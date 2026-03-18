@@ -566,6 +566,8 @@ export const GET_ENCLOSURE_LIST_SECTION_WISE = `v1/enclosure/sub/listing`
 
 export const GET_ENCLOSURE_WISE_STATS = `enclosure/get-enclosure`
 
+export const GET_ENCLOSURE_BASIC_INFO = `enclosure/get-enclosure-basic-info`
+
 export const GET_ENCLOSURE_WISE_SPECIES = `v1/enclosure/species/listing`
 
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
@@ -782,6 +784,7 @@ export const ANIMAL_DIET_LIST = `diet/get-species-detail`
 export const GENERATE_DIET_PDF = `diet/generate-attachment-by-diet`
 
 export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
+export const ANIMAL_JOURNAL_MODULES = `journal/get-animal-module-logs`
 
 export const ANIMAL_HISTORY = `animal-log-history`
 
@@ -1151,6 +1154,10 @@ export const UPDATE_ENTITY_ASSESSMENT_VALUE = 'v1/assessment/entity/update'
 export const GET_ENTITY_ASSESSMENT_HISTORY = 'v1/assessment/entity/defaultValue'
 
 export const ADD_ASSESSMENT_TYPES_TO_ENTITY = 'v1/assessment/entity/types/edit'
+
+export const GET_ASSESSMENT_TEMPLATES_LIST = 'v1/assessment/templates/list'
+
+export const ASSIGN_ASSESSMENT_TEMPLATE = 'v1/assesment-assign-template'
 
 // Family Tree / Lineage
 export const GET_FAMILY_TREE_PARENT_LIST = 'v1/familytree/parent/list'

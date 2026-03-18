@@ -4,11 +4,11 @@ import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
+import EnclosureOverview from 'src/components/housing/enclosure/EnclosureOverview'
 import EnclosureWiseEnclosure from 'src/components/housing/enclosure/EnclosureWiseEnclosure'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
 import MediaListing from 'src/components/housing/enclosure/MediaListing'
 import NotesListing from 'src/components/housing/sites/NotesListing'
-import UsersListing from 'src/components/housing/sites/UsersListing'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
@@ -57,19 +57,19 @@ const EnclsouerDetails: React.FC = () => {
     enabled: !!id
   })
 
+  // Tab order follows mobile implementation (OccupantScreen.js)
   const tabConfig: TabConfigItem[] = [
+    { label: 'Overview', value: 'overview', component: EnclosureOverview },
     { label: 'Species', value: 'species', component: EnclosureWiseSpecies },
-    { label: 'Media', value: 'media', component: MediaListing },
-    { label: 'Assessment', value: 'assessment', component: EntityAssessment },
-    { label: 'Users', value: 'users', component: UsersListing },
     { label: 'Notes', value: 'notes', component: NotesListing },
-    { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
-    { label: 'Incharges', value: 'incharges', component: InchargeListing }
+    { label: 'Assessment', value: 'assessment', component: EntityAssessment },
+    { label: 'Media', value: 'media', component: MediaListing },
+    { label: 'Incharges', value: 'incharges', component: InchargeListing },
+    { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing }
   ]
 
-  // Add Enclosures tab only if there are sub-enclosures
+  // Add Enclosures tab only if there are sub-enclosures (insert after Species, index 2)
   if ((data?.data as any)?.total_sub_enclosure_count > 0) {
-    // Insert after Media tab (index 2)
     tabConfig.splice(2, 0, {
       label: 'Enclosures',
       value: 'enclosures',
@@ -130,19 +130,33 @@ const EnclsouerDetails: React.FC = () => {
     }
   }, [router.query.tab])
 
+  const sectionId = (data?.data as any)?.section_id
+  const sectionName = (data?.data as any)?.section_name
+
+  const handleBreadcrumbClick = () => {
+    if (sectionId) {
+      router.push(`/housing/sections/${sectionId}`)
+    } else {
+      router.push('/housing/sites')
+    }
+  }
+
   return (
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
-            Enclosures
+          <Typography
+            onClick={handleBreadcrumbClick}
+            sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}
+          >
+            {sectionName || 'Section Details'}
           </Typography>
           <Typography color={theme.palette.text.primary}>Enclosure Details</Typography>
         </Breadcrumbs>
         <InsightsCard
           data={data?.data as any}
           loading={isLoading}
-          image={(data?.data as any)?.images?.[0]?.file}
+          image={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
           statsData={statsData as any}
           error={error}
           zooName={(data?.data as any)?.user_enclosure_name}
@@ -166,6 +180,9 @@ const EnclsouerDetails: React.FC = () => {
               window.open(`sms:${phoneNumber}`)
             } else return
           }}
+          qrCodeImage={(data?.data as any)?.enclosure_qr_image || (data?.data as any)?.qr_code_image}
+          entityName={(data?.data as any)?.user_enclosure_name}
+          entityId={(data?.data as any)?.enclosure_id}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -187,7 +204,7 @@ const EnclsouerDetails: React.FC = () => {
               setDrawerData={setDrawerData}
               refType="enclosure"
               entityName={(data?.data as any)?.user_enclosure_name}
-              entityImage={(data?.data as any)?.images?.[0]?.file}
+              entityImage={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
               entityType="enclosure"
               entityId={id || ''}
               entityDetails={data?.data}

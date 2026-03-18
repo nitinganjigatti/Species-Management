@@ -413,10 +413,12 @@ export interface GetAnimalDietListResponse extends ApiResponse<{
 
 export interface GetAnimalJournalLogsParams {
   animal_id?: number | null
-  page_no?: number
-  limit?: number
-  from_date?: string
-  to_date?: string
+  page?: number
+  limit?: number | string
+  start_date?: string
+  end_date?: string
+  user_ids?: string // JSON stringified array of user IDs
+  module?: string // Module name filter (e.g., 'medical_record', 'lineage')
 }
 
 export interface GetAnimalJournalLogsResponse extends ApiResponse<{
@@ -424,6 +426,18 @@ export interface GetAnimalJournalLogsResponse extends ApiResponse<{
   result?: AnimalJournalLog[]
   total_count?: number
 }> {}
+
+export interface GetAnimalJournalModulesParams {
+  animal_id: number | string
+}
+
+export interface JournalModule {
+  id: number | null
+  module: string
+  name?: string
+}
+
+export interface GetAnimalJournalModulesResponse extends ApiResponse<JournalModule[]> {}
 
 // ==================== Species API ====================
 
@@ -445,6 +459,9 @@ export interface GetMortalityListParams extends PaginationParams {
   from_date?: string
   to_date?: string
   status?: string
+  type?: 'animals' | string
+  start_date?: string
+  end_date?: string
 }
 
 export interface GetMortalityListResponse extends ApiResponse<PaginatedData<Mortality>> {}

@@ -58,7 +58,6 @@ import {
 } from 'src/lib/api/housing'
 import { useAuth } from 'src/hooks/useAuth'
 
-// Extended theme interface for custom colors
 interface ExtendedTheme extends Theme {
   palette: Theme['palette'] & {
     customColors?: {
@@ -95,7 +94,6 @@ interface GroupedActivitySection {
   entries: AnimalTransferLogItem[]
 }
 
-// Group activities by date for timeline display
 const groupActivitiesByDate = (activities: AnimalTransferLogItem[]): GroupedActivitySection[] => {
   const grouped: Record<string, GroupedActivitySection> = {}
   activities?.forEach(item => {
@@ -112,7 +110,6 @@ const groupActivitiesByDate = (activities: AnimalTransferLogItem[]): GroupedActi
   return Object.values(grouped)
 }
 
-// Styled Timeline components matching Necropsy drawer design
 const StyledTimeline = styled(Timeline)(() => ({
   [`& .${timelineOppositeContentClasses.root}`]: {
     flex: 0,
@@ -154,7 +151,6 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
   const auth = useAuth()
   const settings = (auth as any)?.userData?.settings
 
-  // Merge permissions from both sources (matching mobile implementation)
   const userSettingsPermissions = (auth as any)?.userData?.permission?.user_settings || {}
   const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
   const permissions = { ...userSettingsPermissions, ...rolesSettingsPermissions }
@@ -604,10 +600,10 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 </Typography>
                 {/* QR Code Button - Show when qr_code_full_path exists */}
                 {transferDetails?.qr_code_full_path &&
-                  (transferDetails?.transfer_type === 'intra' ||
-                    !['PENDING', 'FILL_TRANSFER_CHECKLIST', 'LOADED_ANIMALS'].includes(
-                      transferDetails?.activity_status || ''
-                    )) ? (
+                (transferDetails?.transfer_type === 'intra' ||
+                  !['PENDING', 'FILL_TRANSFER_CHECKLIST', 'LOADED_ANIMALS'].includes(
+                    transferDetails?.activity_status || ''
+                  )) ? (
                   <IconButton
                     onClick={() => setOpenQRDialog(true)}
                     size='small'
@@ -649,8 +645,6 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 >
                   {transferDetails?.destination_name || transferDetails?.destination_site_name || 'Destination'}
                 </Typography>
-
-                {/* Date/Time Display */}
                 <Typography
                   sx={{
                     fontSize: '13px',
@@ -726,7 +720,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 flex: 1,
                 overflowY: 'auto',
                 overflowX: 'hidden',
-                backgroundColor: theme.palette.background.paper,
+                backgroundColor: theme.palette.customColors.Background,
                 display: 'flex',
                 flexDirection: 'column',
                 minHeight: 0
@@ -846,27 +840,25 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 </>
               )}
 
-              {/* Transfer Checklist - Show for inter/external transfers when not pending */}
-              {transferDetails?.activity_status !== 'PENDING' && transferDetails?.transfer_type !== 'intra' && (
+              {/* Transfer Checklist - Show only when show_checklist_button is true (matching mobile) */}
+              {buttonStatus?.show_checklist_button && (
                 <>
                   <Box
+                    onClick={() => setShowChecklistDrawer(true)}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: 2,
                       justifyContent: 'space-between',
-                      backgroundColor: theme.palette.customColors?.avatarBackground,
+                      backgroundColor: theme.palette.background.paper,
                       px: 4,
                       py: 3,
-                      mt: '1px'
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.02) }
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <Icon
-                        icon='uis:check-circle'
-                        color={theme.palette.customColors?.neutralSecondary}
-                        fontSize={22}
-                      />
+                      <Icon icon='mdi:check-circle' color={theme.palette.customColors?.skyblue} fontSize={22} />
                       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Typography
                           sx={{
@@ -877,32 +869,29 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                         >
                           Transfer Checklist
                         </Typography>
-                        <Typography
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '16px',
-                            color: theme.palette.customColors?.OnSurfaceVariant
-                          }}
-                        >
-                          {transferDetails?.checked_count || 0}/
-                          {transferDetails?.total_checklist_count || 0} Filled
-                        </Typography>
                       </Box>
                     </Box>
-                    {(transferDetails?.checked_count || 0) > 0 && (
+                    <Box
+                      sx={{
+                        height: 36,
+                        width: 36,
+                        borderRadius: '50%',
+                        border: `1px solid ${theme.palette.primary.main}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
                       <Typography
-                        onClick={() => setShowChecklistDrawer(true)}
                         sx={{
                           fontWeight: 600,
                           fontSize: '14px',
-                          color: theme.palette.primary.main,
-                          cursor: 'pointer',
-                          '&:hover': { textDecoration: 'underline' }
+                          color: theme.palette.customColors?.onSurface
                         }}
                       >
-                        View
+                        {transferDetails?.checked_count || 0}/{transferDetails?.total_checklist_count || 0}
                       </Typography>
-                    )}
+                    </Box>
                   </Box>
                   <Divider />
                 </>
@@ -1051,7 +1040,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
               )}
 
               {/* Comments Section */}
-              <Box sx={{ px: 4, py: 3 }}>
+              <Box sx={{ px: 4, py: 3, backgroundColor: theme.palette.customColors.OnPrimary }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
                   <Icon
                     icon='mdi:message-text-outline'

@@ -49,17 +49,18 @@ interface StatItem {
   onClick?: () => void
 }
 
+// Tab order matches mobile implementation (HousingEnclouser.js)
 const tabConfig: TabConfigItem[] = [
   { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
   { label: 'Species', value: 'species', component: SpeciesListing },
-  { label: 'Media', value: 'media', component: MediaListing },
+  { label: 'Notes', value: 'notes', component: NotesListing },
   { label: 'Assessment', value: 'assessment', component: EntityAssessment },
+  { label: 'Media', value: 'media', component: MediaListing },
+  { label: 'Users', value: 'users', component: UsersListing },
+  { label: 'Incharges', value: 'incharges', component: InchargeListing },
   { label: 'Mortality', value: 'mortality', component: MortalityListing },
   { label: 'Animals Under Treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
-  { label: 'Users', value: 'users', component: UsersListing },
-  { label: 'Notes', value: 'notes', component: NotesListing },
-  { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
-  { label: 'Incharges', value: 'incharges', component: InchargeListing }
+  { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing }
 ]
 
 const SectionDetails: React.FC = () => {
@@ -159,8 +160,15 @@ const SectionDetails: React.FC = () => {
     }
   ]
 
-  const handleSectionListingClick = (): void => {
-    router.back()
+  const siteId = (data?.data as any)?.site_id
+  const siteName = (data?.data as any)?.site_name
+
+  const handleBreadcrumbClick = (): void => {
+    if (siteId) {
+      router.push(`/housing/sites/${siteId}`)
+    } else {
+      router.push('/housing/sites')
+    }
   }
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
@@ -198,8 +206,11 @@ const SectionDetails: React.FC = () => {
       <Box>
         {/* Breadcrumb */}
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
-            Section Listing
+          <Typography
+            onClick={handleBreadcrumbClick}
+            sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}
+          >
+            {siteName || 'Site Details'}
           </Typography>
           <Typography color={theme.palette.text.primary}>Section Details</Typography>
         </Breadcrumbs>
@@ -209,7 +220,7 @@ const SectionDetails: React.FC = () => {
           data={data?.data as any}
           loading={isLoading}
           zooName={(data?.data as any)?.section_name}
-          image={(data?.data as any)?.images?.[0]?.file}
+          image={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
           subtitle=''
           userName={(data?.data as any)?.incharge_name}
           description=''
@@ -235,6 +246,9 @@ const SectionDetails: React.FC = () => {
           haveInsightsViewAccess={insightsViewAccess}
           error={error}
           statsData={statsData as any}
+          qrCodeImage={(data?.data as any)?.qr_code_image}
+          entityName={(data?.data as any)?.section_name}
+          entityId={(data?.data as any)?.section_id}
         />
 
         {/* Tabs */}
@@ -259,7 +273,7 @@ const SectionDetails: React.FC = () => {
               refetchEnclosure={refetchEnclosure}
               refType='section'
               entityName={(data?.data as any)?.section_name}
-              entityImage={(data?.data as any)?.images?.[0]?.file}
+              entityImage={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
               entityType='section'
               entityId={id || ''}
               entityDetails={data?.data}

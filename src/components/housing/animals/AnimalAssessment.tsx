@@ -27,7 +27,6 @@ interface AnimalAssessmentProps {
   selectedTab?: string
   setSelectedTab?: (tab: string) => void
   animalDetails?: {
-    // Support both naming conventions
     animal_id?: number
     aid?: number
     is_alive?: boolean | string
@@ -86,21 +85,18 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
     enabled: !!animalId
   })
 
-  // Fetch measurement units
   const { data: unitData } = useQuery<GetMeasurementUnitsResponse>({
     queryKey: ['measurement-units'],
     queryFn: getMeasurementUnits,
-    staleTime: Infinity // Units rarely change
+    staleTime: Infinity
   })
 
-  // Process assessment data
   useEffect(() => {
     if (!assessmentData?.success) return
 
     const assessments = assessmentData.data || []
     setAssessmentTypes(assessments)
 
-    // Extract unique categories
     const categoryMap = new Map<string, { name: string; stringId?: string }>()
     assessments.forEach(a => {
       if (!categoryMap.has(a.assessment_category_id)) {
@@ -125,23 +121,19 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
     setCategories(categoryList)
   }, [assessmentData])
 
-  // Process measurement units
   useEffect(() => {
     if (unitData?.success && unitData.data) {
       setMeasurementUnits(unitData.data)
     }
   }, [unitData])
 
-  // Filter assessments
   const filteredAssessments = useMemo(() => {
     let result = assessmentTypes
 
-    // Category filter
     if (selectedCategory !== 'All') {
       result = result.filter(a => a.assessment_category_id === selectedCategory)
     }
 
-    // Search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       result = result.filter(a => a.assessment_name.toLowerCase().includes(query))
@@ -150,21 +142,17 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
     return result
   }, [assessmentTypes, selectedCategory, searchQuery])
 
-  // Permission checks
   const canAddAssessment = useMemo(() => {
     if (!animalDetails) return false
 
-    // Check if animal is alive - handle boolean, string, and number formats
     const isAliveValue = animalDetails.is_alive ?? animalDetails.isAlive
     const isAlive = isAliveValue === true || isAliveValue === '1' || String(isAliveValue) === '1'
 
-    // Check if animal is single or group type
     const isValidType = animalDetails.type === 'single' || animalDetails.type === 'group'
 
     return isAlive && isValidType
   }, [animalDetails])
 
-  // Check if animal is alive for the drawer (to determine edit/view mode)
   const isAnimalAlive = useMemo(() => {
     const isAliveValue = animalDetails?.is_alive ?? animalDetails?.isAlive
 
@@ -173,7 +161,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
 
   const isAnimalOnHold = animalDetails?.animal_status === 'ON_HOLD'
 
-  // Handlers
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId)
   }
@@ -210,12 +197,10 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
   }
 
   const handleHeaderClick = (assessment: AssessmentType) => {
-    // Open assessment summary drawer
     setSummaryInitialTypeId(assessment.assessment_type_id)
     setSummaryDrawerOpen(true)
   }
 
-  // Handlers for summary drawer callbacks
   const handleSummaryAddClick = (assessment: AssessmentType) => {
     setSummaryDrawerOpen(false)
     handleAddClick(assessment)
@@ -241,17 +226,14 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
     refetchAssessments()
   }
 
-  // Get existing type IDs (for Add Assessment Type drawer)
   const existingTypeIds = useMemo(() => {
     return assessmentTypes.map(a => a.assessment_type_id)
   }, [assessmentTypes])
 
-  // Handle Add Assessment Type success
   const handleAddTypeSuccess = () => {
     refetchAssessments()
   }
 
-  // Loading state
   if (isAssessmentLoading) {
     return (
       <Box
@@ -269,7 +251,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
 
   return (
     <Box sx={{ p: 4 }}>
-      {/* Header */}
       <Box
         sx={{
           display: 'flex',
@@ -279,7 +260,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
           gap: 2
         }}
       >
-        {/* Left: Search */}
         <Search
           value={searchQuery}
           onChange={handleSearchChange}
@@ -288,7 +268,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
           width={250}
         />
 
-        {/* Right: Add Button */}
         {canAddAssessment && (
           <Button
             variant='contained'
@@ -309,7 +288,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
         )}
       </Box>
 
-      {/* Category Chips */}
       {categories.length > 1 && (
         <Box sx={{ mb: 4 }}>
           <AssessmentCategoryChips
@@ -320,7 +298,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
         </Box>
       )}
 
-      {/* Assessment Cards */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {filteredAssessments.length === 0 ? (
           <Box
@@ -350,7 +327,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
         )}
       </Box>
 
-      {/* Add/Edit Drawer */}
       <AddEditAssessmentDrawer
         open={drawerOpen}
         setOpen={setDrawerOpen}
@@ -364,7 +340,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
         refetch={handleRefetch}
       />
 
-      {/* Assessment Summary Drawer */}
       <AssessmentSummaryDrawer
         open={summaryDrawerOpen}
         onClose={() => setSummaryDrawerOpen(false)}
@@ -379,7 +354,6 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
         onViewClick={handleSummaryViewClick}
       />
 
-      {/* Add Assessment Type Drawer */}
       <AddAssessmentTypeDrawer
         open={addTypeDrawerOpen}
         onClose={() => setAddTypeDrawerOpen(false)}

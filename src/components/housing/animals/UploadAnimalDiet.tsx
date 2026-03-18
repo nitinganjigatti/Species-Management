@@ -185,7 +185,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
           sm: '560px'
         },
         zIndex: 100,
-        backgroundColor: theme.palatte.customColors.Onprimary,
+        backgroundColor: theme.palette.customColors?.OnPrimary,
         display: 'flex',
         gap: 1,
         padding: '20px 16px'

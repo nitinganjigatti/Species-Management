@@ -5,10 +5,11 @@ import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 
 import Search from 'src/views/utility/Search'
-import MediaCard from 'src/views/utility/MediaCard'
+import NewMediaCard from 'src/views/utility/NewMediaCard'
 import { getAllMedia } from 'src/lib/api/housing'
 import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
 import { Media } from 'src/types/housing'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 type MediaTabType = 'image' | 'document' | 'video'
 
@@ -134,10 +135,25 @@ const MediaListing: React.FC = () => {
       </Box> */}
 
       <Box sx={{ mt: 6 }}>
-        <Grid container spacing={6}>
+        <Grid container spacing={4}>
           {media.map((file: Media) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.media_id}>
-              <MediaCard media={file} isBorderedCard />
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.media_id || file.id}>
+              <NewMediaCard
+                fileUrl={file.file}
+                fileName={file.file_original_name}
+                fileType={file.file_type || file.type}
+                user={{
+                  created_at: file.created_at,
+                  user_profile: {
+                    user_full_name: file.user_name,
+                    user_profile_pic: file.user_profile_pic
+                  }
+                }}
+                width='100%'
+                height='100%'
+                showTitle={true}
+                ondownloadaction={() => {}}
+              />
             </Grid>
           ))}
         </Grid>
@@ -149,9 +165,9 @@ const MediaListing: React.FC = () => {
         )}
 
         {media.length === 0 && !isFetching && (
-          <Typography align='center' sx={{ mt: 6 }}>
-            No media found.
-          </Typography>
+          <Box sx={{ py: 8 }}>
+            <NoDataFound height={250} width={250} />
+          </Box>
         )}
 
         {(isFetchingNextPage || hasNextPage) && media.length > 0 && (

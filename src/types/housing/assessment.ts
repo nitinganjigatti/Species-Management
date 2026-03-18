@@ -51,6 +51,7 @@ export interface AssessmentCategory {
   name: string
   stringId?: string
   isSelected: boolean
+  count?: number
 }
 
 // ==================== Measurement Unit ====================

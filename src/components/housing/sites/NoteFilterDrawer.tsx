@@ -42,6 +42,7 @@ const NoteFilterDrawer: React.FC<NoteFilterDrawerProps> = ({ open, onClose, filt
   const theme = useTheme()
   const [selectedItem, setSelectedItem] = useState<FilterMenuType>('Note Type')
   const [searchQuery, setSearchQuery] = useState('')
+
   const [localSelectedOptions, setLocalSelectedOptions] = useState<LocalSelectedOptions>({
     'Note Type': [],
     Priority: [],
@@ -183,7 +184,8 @@ const NoteFilterDrawer: React.FC<NoteFilterDrawerProps> = ({ open, onClose, filt
                   <Typography
                     sx={{
                       fontSize: '16px',
-                      color: theme.palette.customColors?.OnSurfaceVarient                     }}
+                      color: theme.palette.customColors?.OnSurfaceVarient
+                    }}
                   >
                     {item.label}
                   </Typography>

@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import { fetchNotes, setPagination } from 'src/store/slices/housing/notesSlice'
@@ -110,7 +109,9 @@ const NotesListng: React.FC = () => {
                 fontWeight: 500
               }}
             >
-              {(params.row as IndexedNoteRow & { observation_name?: string }).observation_name ? (params.row as IndexedNoteRow & { observation_name?: string }).observation_name : 'NA'}
+              {(params.row as IndexedNoteRow & { observation_name?: string }).observation_name
+                ? (params.row as IndexedNoteRow & { observation_name?: string }).observation_name
+                : 'NA'}
             </Typography>
           </Box>
         )

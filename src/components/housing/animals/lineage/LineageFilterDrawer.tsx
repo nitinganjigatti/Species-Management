@@ -48,7 +48,6 @@ const LineageFilterDrawer: React.FC<LineageFilterDrawerProps> = ({
   const [localSelections, setLocalSelections] = useState<LocalSelections>(initialFilters.localSelections)
   const [statusFilter, setStatusFilter] = useState<string>(initialFilters.statusFilter)
 
-  // Reset state when drawer opens
   useEffect(() => {
     if (open) {
       setSelectedMenu('Entity')
@@ -57,10 +56,9 @@ const LineageFilterDrawer: React.FC<LineageFilterDrawerProps> = ({
     }
   }, [open, initialFilters])
 
-  // Calculate selected options for badge display
   const selectedOptions: Record<string, any[]> = {
     Entity: [...localSelections.Sites, ...localSelections.Sections, ...localSelections.Enclosures],
-    Status: statusFilter !== 'alive' ? [statusFilter] : [] // Don't count 'alive' as it's default
+    Status: statusFilter !== 'alive' ? [statusFilter] : []
   }
 
   const handleMenuClick = useCallback((menuName: string) => {
@@ -86,7 +84,6 @@ const LineageFilterDrawer: React.FC<LineageFilterDrawerProps> = ({
     if (localSelections.Sites.length > 0) count += localSelections.Sites.length
     if (localSelections.Sections.length > 0) count += localSelections.Sections.length
     if (localSelections.Enclosures.length > 0) count += localSelections.Enclosures.length
-    // Count status filter if it differs from default (alive)
     if (statusFilter !== 'alive') count++
 
     return count
@@ -120,7 +117,6 @@ const LineageFilterDrawer: React.FC<LineageFilterDrawerProps> = ({
 
       {selectedMenu === 'Status' && (
         <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Status Options - Single Select */}
           <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column' }}>
             {STATUS_OPTIONS.map(option => (
               <Box

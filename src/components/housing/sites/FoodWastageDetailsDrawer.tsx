@@ -1,21 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import {
-  Box,
-  Typography,
-  Drawer,
-  IconButton,
-  Divider,
-  CircularProgress,
-  Avatar
-} from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Divider, CircularProgress, Avatar } from '@mui/material'
 import { useTheme, Theme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
-import {
-  getFoodWastageDetails,
-  FoodWastageDetailItem,
-  GetFoodWastageDetailsParams
-} from 'src/lib/api/housing'
+import { getFoodWastageDetails, FoodWastageDetailItem, GetFoodWastageDetailsParams } from 'src/lib/api/housing'
 import { format, parse } from 'date-fns'
 
 interface FoodWastageDetailsDrawerProps {
@@ -46,14 +34,14 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
     try {
       if (wastageDate) {
         const date = parse(wastageDate, 'yyyy-MM-dd', new Date())
-        
-return format(date, 'dd MMM yyyy')
+
+        return format(date, 'dd MMM yyyy')
       }
     } catch {
       return wastageDate
     }
-    
-return wastageDate
+
+    return wastageDate
   }
 
   // Get user initials for avatar
@@ -63,8 +51,8 @@ return wastageDate
     if (parts.length >= 2) {
       return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
     }
-    
-return name.substring(0, 2).toUpperCase()
+
+    return name.substring(0, 2).toUpperCase()
   }
 
   // Format datetime for display
@@ -72,49 +60,52 @@ return name.substring(0, 2).toUpperCase()
     if (!dateStr) return ''
     try {
       const date = new Date(dateStr)
-      
-return format(date, 'dd MMM yyyy • hh:mm a')
+
+      return format(date, 'dd MMM yyyy • hh:mm a')
     } catch {
       return dateStr
     }
   }
 
-  const fetchDetails = useCallback(async (pageNum: number) => {
-    if (!enclosureId || !wastageDate) return
+  const fetchDetails = useCallback(
+    async (pageNum: number) => {
+      if (!enclosureId || !wastageDate) return
 
-    setLoading(true)
-    try {
-      const params: GetFoodWastageDetailsParams = {
-        enclosure_id: enclosureId,
-        date: wastageDate,
-        page_no: pageNum,
-        limit: 25
-      }
-
-      const response = await getFoodWastageDetails(params)
-
-      if (response?.success && response?.data?.list) {
-        if (pageNum === 1) {
-          setDetailsList(response.data.list)
-        } else {
-          setDetailsList(prev => [...prev, ...response.data?.list || []])
+      setLoading(true)
+      try {
+        const params: GetFoodWastageDetailsParams = {
+          enclosure_id: enclosureId,
+          date: wastageDate,
+          page_no: pageNum,
+          limit: 25
         }
-        setHasMore((response.data.list?.length || 0) >= 25)
-      } else {
+
+        const response = await getFoodWastageDetails(params)
+
+        if (response?.success && response?.data?.list) {
+          if (pageNum === 1) {
+            setDetailsList(response.data.list)
+          } else {
+            setDetailsList(prev => [...prev, ...(response.data?.list || [])])
+          }
+          setHasMore((response.data.list?.length || 0) >= 25)
+        } else {
+          if (pageNum === 1) {
+            setDetailsList([])
+          }
+          setHasMore(false)
+        }
+      } catch (error) {
+        console.error('Error fetching food wastage details:', error)
         if (pageNum === 1) {
           setDetailsList([])
         }
-        setHasMore(false)
+      } finally {
+        setLoading(false)
       }
-    } catch (error) {
-      console.error('Error fetching food wastage details:', error)
-      if (pageNum === 1) {
-        setDetailsList([])
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [enclosureId, wastageDate])
+    },
+    [enclosureId, wastageDate]
+  )
 
   useEffect(() => {
     if (open) {
@@ -139,9 +130,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
       onClose={onClose}
       PaperProps={{
         sx: {
-          width: { xs: '100%', sm: 450 },
-          borderTopLeftRadius: 16,
-          borderBottomLeftRadius: 16
+          width: { xs: '100%', sm: 450 }
         }
       }}
     >
@@ -186,7 +175,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
             mx: 3,
             p: 3,
             backgroundColor: theme.palette.customColors?.tertiaryContainer || 'rgba(255, 200, 200, 0.1)',
-            borderRadius: 2,
+            borderRadius: 1,
             textAlign: 'center'
           }}
         >
@@ -194,7 +183,8 @@ return format(date, 'dd MMM yyyy • hh:mm a')
             sx={{
               fontSize: '36px',
               fontWeight: 700,
-              color: theme.palette.customColors?.Tertiary             }}
+              color: theme.palette.customColors?.Tertiary
+            }}
           >
             {totalWastage}
             <Typography
@@ -202,7 +192,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
               sx={{
                 fontSize: '18px',
                 fontWeight: 600,
-                color: theme.palette.customColors?.Tertiary ,
+                color: theme.palette.customColors?.Tertiary,
                 ml: 0.5
               }}
             >
@@ -239,9 +229,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
           ) : detailsList.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Icon icon='mdi:clipboard-text-off-outline' fontSize={48} color={theme.palette.text.disabled} />
-              <Typography sx={{ mt: 2, color: theme.palette.text.secondary }}>
-                No entries found
-              </Typography>
+              <Typography sx={{ mt: 2, color: theme.palette.text.secondary }}>No entries found</Typography>
             </Box>
           ) : (
             <>
@@ -252,7 +240,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
                     mb: 2,
                     p: 2,
                     backgroundColor: theme.palette.grey[50],
-                    borderRadius: 2,
+                    borderRadius: 1,
                     border: `1px solid ${theme.palette.divider}`
                   }}
                 >
@@ -291,10 +279,7 @@ return format(date, 'dd MMM yyyy • hh:mm a')
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {item.user_profile_pic ? (
-                        <Avatar
-                          src={item.user_profile_pic}
-                          sx={{ width: 30, height: 30 }}
-                        />
+                        <Avatar src={item.user_profile_pic} sx={{ width: 30, height: 30 }} />
                       ) : (
                         <Avatar
                           sx={{

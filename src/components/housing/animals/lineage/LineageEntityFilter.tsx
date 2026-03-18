@@ -96,7 +96,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
       {/* Site Selection Card */}
-      <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', width: '100%' }}>
+      <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', width: '100%' }}>
         <CardHeader
           title='Select Site'
           onClick={() => {
@@ -105,19 +105,28 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
             }
           }}
           sx={{
-            background: isSiteDisabled ? '#0000000D' : '#E8F4F2',
+            background: isSiteDisabled
+              ? theme.palette.customColors.neutral05
+              : theme.palette.customColors.displaybgPrimary,
             p: 2,
             pl: 4,
             pr: 2,
             '.MuiCardHeader-title': {
               fontWeight: '500',
               fontSize: '16px',
-              color: isSiteDisabled ? '#44544A' : '#1F515B',
+              color: isSiteDisabled
+                ? theme.palette.customColors.OnSurfaceVariant
+                : theme.palette.customColors.OnPrimaryContainer,
               cursor: isSiteDisabled ? 'default' : 'pointer'
             }
           }}
           action={
-            <IconButton size='small' aria-label='collapse' sx={{ color: '#44544A' }} disabled={isSiteDisabled}>
+            <IconButton
+              size='small'
+              aria-label='collapse'
+              sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
+              disabled={isSiteDisabled}
+            >
               <Icon fontSize={20} icon={isSiteDisabled ? 'mdi:lock' : 'mdi:chevron-down'} />
             </IconButton>
           }
@@ -134,7 +143,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
                   mb: 2
                 }}
               >
-                <Typography variant='body2' sx={{ color: '#000000' }}>
+                <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralPrimary }}>
                   {site.site_name}
                 </Typography>
                 <IconButton
@@ -153,7 +162,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
 
       {/* Section Selection Card - Only show when exactly ONE site is selected */}
       {localSelections?.Sites?.length === 1 && (
-        <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%' }}>
+        <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', mt: '6%' }}>
           <CardHeader
             title='Select Section'
             onClick={() => {
@@ -162,19 +171,28 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
               }
             }}
             sx={{
-              background: isSectionDisabled ? '#0000000D' : '#E8F4F2',
+              background: isSectionDisabled
+                ? theme.palette.customColors.neutral05
+                : theme.palette.customColors.displaybgPrimary,
               p: 2,
               pl: 4,
               pr: 2,
               '.MuiCardHeader-title': {
                 fontWeight: '500',
                 fontSize: '16px',
-                color: isSectionDisabled ? '#44544A' : '#1F515B',
+                color: isSectionDisabled
+                  ? theme.palette.customColors.OnSurfaceVariant
+                  : theme.palette.customColors.OnPrimaryContainer,
                 cursor: isSectionDisabled ? 'default' : 'pointer'
               }
             }}
             action={
-              <IconButton size='small' aria-label='collapse' sx={{ color: '#44544A' }} disabled={isSectionDisabled}>
+              <IconButton
+                size='small'
+                aria-label='collapse'
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                disabled={isSectionDisabled}
+              >
                 <Icon fontSize={20} icon={isSectionDisabled ? 'mdi:lock' : 'mdi:chevron-down'} />
               </IconButton>
             }
@@ -191,7 +209,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
                     mb: 2
                   }}
                 >
-                  <Typography variant='body2' sx={{ color: '#000000' }}>
+                  <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralPrimary }}>
                     {section.section_name}
                   </Typography>
                   <IconButton
@@ -211,24 +229,24 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
 
       {/* Enclosure Selection Card - Only show when exactly ONE section is selected */}
       {localSelections?.Sites?.length === 1 && localSelections?.Sections?.length === 1 && (
-        <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%' }}>
+        <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', mt: '6%' }}>
           <CardHeader
             title='Select Enclosure'
             onClick={() => setOpenEnclosuresListDrawer(true)}
             sx={{
-              background: '#E8F4F2',
+              background: theme.palette.customColors.displaybgPrimary,
               p: 2,
               pl: 4,
               pr: 2,
               '.MuiCardHeader-title': {
                 fontWeight: '500',
                 fontSize: '16px',
-                color: '#1F515B',
+                color: theme.palette.customColors.OnPrimaryContainer,
                 cursor: 'pointer'
               }
             }}
             action={
-              <IconButton size='small' aria-label='collapse' sx={{ color: '#44544A' }}>
+              <IconButton size='small' aria-label='collapse' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                 <Icon fontSize={20} icon='mdi:chevron-down' />
               </IconButton>
             }
@@ -245,7 +263,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
                     mb: 2
                   }}
                 >
-                  <Typography variant='body2' sx={{ color: '#000000' }}>
+                  <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralPrimary }}>
                     {enclosure.user_enclosure_name}
                   </Typography>
                   <IconButton

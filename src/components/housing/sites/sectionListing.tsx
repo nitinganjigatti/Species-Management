@@ -297,7 +297,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
           subtitle={''}
           color={theme.palette.customColors?.OnSurfaceVariant || ''}
           subtitleColor={theme.palette.customColors?.OnSurfaceVariant || ''}
-          imgUrl={(params.row as IndexedSectionRow).images?.[0]?.file}
+          imgUrl={(params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')?.file}
           defaultImage={'/images/housing/section-icon-colored.png'}
           defaultImageAlt={'Section'}
           avatarUrl={''}
@@ -332,7 +332,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
                     queryKey: 'section-species-drawer',
                     id: (params.row as IndexedSectionRow).section_id,
                     name: (params.row as IndexedSectionRow).section_name,
-                    image: (params.row as IndexedSectionRow).images?.[0]?.file,
+                    image: (params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')?.file,
                     params: {
                       section_id: (params.row as IndexedSectionRow).section_id
                     }
@@ -377,7 +377,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
                     queryKey: 'section-animals-drawer',
                     id: (params.row as IndexedSectionRow).section_id,
                     name: (params.row as IndexedSectionRow).section_name,
-                    image: (params.row as IndexedSectionRow).images?.[0]?.file,
+                    image: (params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')?.file,
                     params: {
                       section_id: (params.row as IndexedSectionRow).section_id
                     }

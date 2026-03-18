@@ -108,6 +108,12 @@ export interface IndexedSectionRow extends Section {
   sl_no: number
 }
 
+export interface SectionImage {
+  id?: number
+  file?: string
+  display_type?: string
+}
+
 export interface SectionAnalytics {
   section_id?: number
   section_name?: string
@@ -120,6 +126,10 @@ export interface SectionAnalytics {
   total_male?: number
   total_female?: number
   total_undetermined?: number
+  qr_code_image?: string
+  images?: SectionImage[]
+  incharge_name?: string
+  incharge_phone_number?: string
 }
 
 // ==================== Enclosure ====================
@@ -517,10 +527,14 @@ export interface IndexedTreatmentRow extends Treatment {
 
 export interface Media {
   media_id: number
+  id?: number
   media_guid?: string
   file: string
   file_name?: string
+  file_original_name?: string
   file_type?: string
+  type?: string
+  file_mime_type?: string
   file_size?: number
   upload_type?: string
   ref_type?: string
@@ -538,6 +552,10 @@ export interface Media {
   enclosure_name?: string
   uploaded_by?: string
   uploaded_by_id?: number
+  user_id?: number
+  user_name?: string
+  user_profile_pic?: string
+  access_restricted_key?: string
   created_at?: string
   updated_at?: string
 }
@@ -887,8 +905,11 @@ export interface LineagePair {
 export interface LineageSibling {
   animal_id?: number
   common_name?: string
+  default_common_name?: string
   complete_name?: string
+  scientific_name?: string
   vernacular_name?: string
+  local_identifier_name?: string
   local_identifier_value?: string
   sex?: string
   is_alive?: number | string
@@ -898,6 +919,12 @@ export interface LineageSibling {
   age?: string
   enclosure_name?: string
   user_enclosure_name?: string
+  section_name?: string
+  site_name?: string
+  breed_name?: string
+  morph_name?: string
+  type?: string
+  total_animal?: number | string
 }
 
 // ==================== Lineage CRUD Payloads ====================

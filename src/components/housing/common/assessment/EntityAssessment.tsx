@@ -103,25 +103,30 @@ const EntityAssessment: React.FC<EntityAssessmentProps> = ({
     const assessments = assessmentData.data || []
     setAssessmentTypes(assessments)
 
-    // Extract unique categories
-    const categoryMap = new Map<string, { name: string; stringId?: string }>()
+    // Extract unique categories with counts
+    const categoryMap = new Map<string, { name: string; stringId?: string; count: number }>()
     assessments.forEach(a => {
-      if (!categoryMap.has(a.assessment_category_id)) {
+      if (categoryMap.has(a.assessment_category_id)) {
+        const existing = categoryMap.get(a.assessment_category_id)!
+        existing.count += 1
+      } else {
         categoryMap.set(a.assessment_category_id, {
           name: a.assessment_category_name,
-          stringId: a.assessment_category_string_id
+          stringId: a.assessment_category_string_id,
+          count: 1
         })
       }
     })
 
-    const categoryList: AssessmentCategory[] = [{ id: 'All', name: 'All', isSelected: true }]
+    const categoryList: AssessmentCategory[] = [{ id: 'All', name: 'All', isSelected: true, count: assessments.length }]
 
     categoryMap.forEach((value, key) => {
       categoryList.push({
         id: key,
         name: value.name,
         stringId: value.stringId,
-        isSelected: false
+        isSelected: false,
+        count: value.count
       })
     })
 

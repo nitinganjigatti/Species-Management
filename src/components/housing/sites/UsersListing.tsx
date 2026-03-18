@@ -1,4 +1,4 @@
-import React, { useState, useMemo ,useEffect} from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Box, Typography, useTheme, useMediaQuery, Theme } from '@mui/material'
 import styled from '@emotion/styled'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
@@ -34,8 +34,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
   // Fetch users list
   const { data, isFetching } = useQuery({
     queryKey: ['users-list', id, refType, filters.page_no, filters.search],
-    queryFn: () =>
-      getUsersList({type: refType, id, page_no: filters.page_no, search: filters.search}),
+    queryFn: () => getUsersList({ type: refType, id, page_no: filters.page_no, search: filters.search }),
     enabled: !!id,
     placeholderData: keepPreviousData
   })
@@ -46,12 +45,12 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
 
   // Debounced search
   const debouncedSearch = useMemo(() => debounce(setSearchQuery, 500), [])
-  
-    useEffect(() => {
-      return () => {
-        debouncedSearch.cancel()
-      }
-    }, [debouncedSearch])
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [debouncedSearch])
 
   // Input change handler
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,19 +60,20 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
   }
 
   // Sync debounced search to filters
-useEffect(() => {
-  setFilters(prev => ({
-    ...prev,
-    search: searchQuery,
-    page_no: 1
-  }))
-}, [searchQuery])
-  
+  useEffect(() => {
+    setFilters(prev => ({
+      ...prev,
+      search: searchQuery,
+      page_no: 1
+    }))
+  }, [searchQuery])
+
   // Clear search input handler
   const handleSearchClear = () => {
     setSearchInput('')
     debouncedSearch('')
   }
+
   const columns: GridColDef[] = [
     {
       field: 'id',
@@ -119,9 +119,8 @@ useEffect(() => {
       sortable: false,
       renderCell: params => {
         const rawPhoneNumber = params.row.mobile_number
-        const phoneNumber = rawPhoneNumber?.split('-')?.[1]
-          ? rawPhoneNumber
-          : null
+
+        const phoneNumber = rawPhoneNumber?.split('-')?.[1] ? rawPhoneNumber : null
         let pressTimer: NodeJS.Timeout
 
         const handleLongPress = () => {
@@ -182,13 +181,13 @@ useEffect(() => {
     }
   ]
 
-const indexedRows = useMemo(() => {
-  return rows?.map((row: any, index: number) => ({
-    ...row,
-    id: row.user_id || row.id || `user-row-${index}`,
-    sl_no: (filters.page_no - 1) * filters.limit + index + 1
-  }))
-}, [rows, filters.page_no, filters.limit])
+  const indexedRows = useMemo(() => {
+    return rows?.map((row: any, index: number) => ({
+      ...row,
+      id: row.user_id || row.id || `user-row-${index}`,
+      sl_no: (filters.page_no - 1) * filters.limit + index + 1
+    }))
+  }, [rows, filters.page_no, filters.limit])
 
   // Pagination change handler
   const handlePaginationChange = (model: { page: number; pageSize: number }) => {
@@ -196,11 +195,11 @@ const indexedRows = useMemo(() => {
       ...prev,
       page_no: model.page + 1
     }))
-  } 
+  }
 
   return (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4}}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4 }}>
         <ListingHeader title='Users List' totalCount={total} />
         <Box
           sx={{
@@ -221,17 +220,16 @@ const indexedRows = useMemo(() => {
           />
         </Box>
       </Box>
-    
 
-        <CommonTable
-          columns={columns}
-          indexedRows={indexedRows}
-          rowHeight={60}
-          total={total}
-          loading={isFetching}
-          paginationModel={{ page: filters.page_no - 1, pageSize: filters.limit }}
-          setPaginationModel={handlePaginationChange}
-        />
+      <CommonTable
+        columns={columns}
+        indexedRows={indexedRows}
+        rowHeight={60}
+        total={total}
+        loading={isFetching}
+        paginationModel={{ page: filters.page_no - 1, pageSize: filters.limit }}
+        setPaginationModel={handlePaginationChange}
+      />
     </>
   )
 }

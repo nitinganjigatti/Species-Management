@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Checkbox } from '@mui/material'
-import { Close as CloseIcon
-} from '@mui/icons-material'
+import { Close as CloseIcon } from '@mui/icons-material'
 import { useTheme, alpha } from '@mui/material/styles'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
@@ -20,10 +19,8 @@ interface ParentListDrawerProps {
   parentType: 'Dam' | 'Sire'
   isExternal: boolean
   totalCount: number
-  // For external parents, pass the data directly (no API call needed)
   initialData?: (LineageAnimal | ExternalAnimal)[]
   onAnimalClick?: (animal: LineageAnimal | ExternalAnimal) => void
-  // Edit mode - allows selecting parents to remove
   editMode?: boolean
   onRemove?: (animals: (LineageAnimal | ExternalAnimal)[]) => void
 }
@@ -46,18 +43,15 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const cooldownRef = useRef(false)
 
-  // Selected animals for removal in edit mode
   const [selectedForRemoval, setSelectedForRemoval] = useState<(number | string)[]>([])
 
   const queryKey = ['parent-list-drawer', animalId, parentType, isExternal, open]
 
-  // Only fetch for internal parents - external parents use initialData
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery({
     queryKey,
     enabled: Boolean(open && !isExternal),
     initialPageParam: 1,
     queryFn: async ({ pageParam }) => {
-      // Mobile uses: is_mother, type: "internal"
       const params: Record<string, any> = {
         animal_id: animalId,
         is_mother: parentType === 'Dam' ? '1' : '0',
@@ -68,7 +62,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
 
       const res = await getLineageParents(params as any)
 
-      // Response mapping: data?.result (matching mobile implementation)
       const resultData: LineageAnimal[] = res?.data?.result || []
 
       return {
@@ -89,7 +82,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
     })
   }, [queryClient])
 
-  // Cleanup when drawer closes
   useEffect(() => {
     if (!open) {
       queryClient.cancelQueries({ queryKey: ['parent-list-drawer'] })
@@ -99,8 +91,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
     }
   }, [open, queryClient, clearQuery])
 
-  // For internal parents: use fetched data
-  // For external parents: use initialData passed as prop
   const list = useMemo(() => {
     if (isExternal) {
       return initialData
@@ -127,7 +117,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
     }
   }, [inView, loadMore])
 
-  // Get animal ID for key - defined first as it's used by other functions
   const getAnimalEntityId = (animal: LineageAnimal | ExternalAnimal): number | string | undefined => {
     if (isExternal) {
       return (animal as ExternalAnimal).external_parent_id || (animal as ExternalAnimal).id
@@ -136,7 +125,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
     return (animal as LineageAnimal).animal_id || (animal as LineageAnimal).id
   }
 
-  // Toggle selection for removal
   const toggleSelection = (entityId: number | string) => {
     setSelectedForRemoval(prev => {
       if (prev.includes(entityId)) {
@@ -149,7 +137,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
 
   const handleAnimalClick = (animal: LineageAnimal | ExternalAnimal) => {
     if (editMode) {
-      // In edit mode, clicking toggles selection
       const entityId = getAnimalEntityId(animal)
       if (entityId !== undefined) {
         toggleSelection(entityId)
@@ -159,7 +146,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
     }
   }
 
-  // Handle remove button click
   const handleRemoveClick = () => {
     if (onRemove && selectedForRemoval.length > 0) {
       const animalsToRemove = list.filter(animal => {
@@ -171,7 +157,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
     }
   }
 
-  // Transform animal data for AnimalCard
   const transformAnimalData = (animal: LineageAnimal | ExternalAnimal) => {
     return {
       animal_id: isExternal ? undefined : (animal as LineageAnimal).animal_id,
@@ -211,7 +196,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
       }}
     >
       <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-        {/* Header */}
         <Box
           sx={{
             p: 4,
@@ -251,7 +235,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
           </IconButton>
         </Box>
 
-        {/* Animal List */}
         <Box
           sx={{
             flex: 1,
@@ -306,12 +289,11 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
                       }
                     }}
                   >
-                    {/* Checkbox in edit mode */}
                     {editMode && (
                       <Checkbox
                         checked={isSelected}
                         onChange={() => entityId !== undefined && toggleSelection(entityId)}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={e => e.stopPropagation()}
                         sx={{
                           p: 0,
                           mt: 0.5,
@@ -324,7 +306,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
                     )}
 
                     <Box sx={{ flex: 1 }}>
-                      {/* External/Dead Labels */}
                       <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                         {isExternal && (
                           <Typography
@@ -354,7 +335,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
 
                       <AnimalCard data={transformedData} />
 
-                      {/* External-specific fields */}
                       {isExternal && (animal as ExternalAnimal).organization_name && (
                         <Typography
                           sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mt: 1 }}
@@ -381,7 +361,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
                 </Box>
               )}
 
-              {/* Loader for infinite scroll - only for internal parents */}
               {!isExternal && hasNextPage && (
                 <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
                   <CircularProgress />
@@ -398,7 +377,6 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
         </Box>
       </Box>
 
-      {/* Remove Button - shown in edit mode when items are selected */}
       {editMode && selectedForRemoval.length > 0 && (
         <Box
           sx={{

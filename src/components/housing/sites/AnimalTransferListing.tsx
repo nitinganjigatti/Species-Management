@@ -54,20 +54,26 @@ const TRANSFER_STATUS = [
 // Returns status colors based on theme
 const getStatusColorsFromTheme = (status: string, theme: Theme): { backgroundColor: string; textColor: string } => {
   const customColors = (theme.palette as any).customColors
+
   const statusColorMap: Record<string, { backgroundColor: string; textColor: string }> = {
-    'PENDING': { backgroundColor: customColors?.antzNotes, textColor: customColors?.Tertiary },
-    'APPROVED': { backgroundColor: customColors?.OnBackground, textColor: theme.palette.primary.main },
-    'REJECTED': { backgroundColor: customColors?.ErrorContainer, textColor: customColors?.Error },
-    'CANCELED': { backgroundColor: customColors?.secondaryBg, textColor: customColors?.OnPrimary },
-    'COMPLETED': { backgroundColor: customColors?.deepDark, textColor: customColors?.OnPrimary },
-    'REACHED_DESTINATION': { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
-    'ALLOCATE': { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
-    'RECEIVED_ANIMALS': { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
-    'SECURITY_CHECKOUT_ALLOWED': { backgroundColor: customColors?.OnPrimary, textColor: customColors?.OnPrimaryContainer },
-    'SECURITY_CHECKIN_ALLOWED': { backgroundColor: customColors?.OnPrimary, textColor: customColors?.OnPrimaryContainer }
+    PENDING: { backgroundColor: customColors?.antzNotes, textColor: customColors?.Tertiary },
+    APPROVED: { backgroundColor: customColors?.OnBackground, textColor: theme.palette.primary.main },
+    REJECTED: { backgroundColor: customColors?.ErrorContainer, textColor: customColors?.Error },
+    CANCELED: { backgroundColor: customColors?.secondaryBg, textColor: customColors?.OnPrimary },
+    COMPLETED: { backgroundColor: customColors?.deepDark, textColor: customColors?.OnPrimary },
+    REACHED_DESTINATION: { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
+    ALLOCATE: { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
+    RECEIVED_ANIMALS: { backgroundColor: theme.palette.primary.main, textColor: customColors?.OnPrimary },
+    SECURITY_CHECKOUT_ALLOWED: {
+      backgroundColor: customColors?.OnPrimary,
+      textColor: customColors?.OnPrimaryContainer
+    },
+    SECURITY_CHECKIN_ALLOWED: { backgroundColor: customColors?.OnPrimary, textColor: customColors?.OnPrimaryContainer }
   }
 
-  return statusColorMap[status] || { backgroundColor: theme.palette.grey[100], textColor: customColors?.OnPrimaryContainer }
+  return (
+    statusColorMap[status] || { backgroundColor: theme.palette.grey[100], textColor: customColors?.OnPrimaryContainer }
+  )
 }
 
 // Sub-tabs configuration
@@ -79,7 +85,11 @@ const TRANSFER_TABS = [
 
 // Mobile allocateButtonCheck function (TransferListCard.js lines 55-66)
 // Transforms activity_status to "ALLOCATE" when needed for color lookup
-const allocateButtonCheck = (activityStatus: string, item: AnimalTransferItem, loggedInUserId?: number | string): string => {
+const allocateButtonCheck = (
+  activityStatus: string,
+  item: AnimalTransferItem,
+  loggedInUserId?: number | string
+): string => {
   if (activityStatus === 'REACHED_DESTINATION') {
     try {
       const userDetails = item.user_details ? JSON.parse(item.user_details) : []
@@ -367,6 +377,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
         const row = params.row as IndexedTransferItem
         const siteIdNum = siteId ? parseInt(siteId as string, 10) : null
         const isIncoming = siteIdNum !== null && row.destination_id == siteIdNum
+
         const displayName =
           row.transfer_type === 'inter'
             ? isIncoming
@@ -511,13 +522,13 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             {/* Search */}
-            <Search
+            {/* <Search
               width={250}
               placeholder='Search by Transfer ID'
               value={searchValue}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
-            />
+            /> */}
 
             {/* Status Filter */}
             <FormControl size='small' sx={{ minWidth: 180 }}>

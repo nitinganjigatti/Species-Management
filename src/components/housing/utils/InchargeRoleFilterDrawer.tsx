@@ -36,6 +36,7 @@ const InchargeRoleFilterDrawer: React.FC<InchargeRoleFilterDrawerProps> = ({
     setSearchLoading(true)
     try {
       const res = await getUsersRoleList()
+
       const roles: InchargeRole[] = Array.isArray(res?.data)
         ? res.data.map((item: any) => ({
             label: item.role_name,
@@ -85,6 +86,7 @@ const InchargeRoleFilterDrawer: React.FC<InchargeRoleFilterDrawerProps> = ({
   useEffect(() => {
     if (!open) return
     const restored = initialSelectedOptions || DEFAULT_OPTIONS
+
     const normalized: InchargeRoleFilters = {
       ...restored,
       Role: Array.isArray(restored.Role) ? restored.Role[0] || '' : restored.Role || ''

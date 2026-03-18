@@ -1,14 +1,15 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef, ChangeEvent, SyntheticEvent } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { Box, Grid, Typography, Tabs, Tab, CircularProgress } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useInView } from 'react-intersection-observer'
-import { debounce, DebouncedFunc } from 'lodash'
+import debounce from 'lodash/debounce'
 
 import Search from 'src/views/utility/Search'
-import MediaCard from 'src/views/utility/MediaCard'
+import NewMediaCard from 'src/views/utility/NewMediaCard'
 import { getAllMedia } from 'src/lib/api/housing'
 import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
-import type { Media } from 'src/types/housing'
+import { Media } from 'src/types/housing'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 type MediaTabType = 'image' | 'document' | 'video'
 
@@ -22,15 +23,14 @@ const MediaListing: React.FC = () => {
   const [activeTab, setActiveTab] = useState<MediaTabType>('image')
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
-  const router: NextRouter = useRouter()
-  const { id } = router.query
+  const { id } = useRouter().query
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
   const PAGE_SIZE = 10
 
   // Debounce search input
-  const debouncedSearch: DebouncedFunc<typeof setSearch> = useMemo(() => debounce(setSearch, 500), [])
+  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
   useEffect(() => {
     return () => {
@@ -42,7 +42,8 @@ const MediaListing: React.FC = () => {
     MediaPage,
     Error,
     InfiniteData<MediaPage>,
-    [string, string | string[] | undefined, MediaTabType, string]
+    [string, string | string[] | undefined, MediaTabType, string],
+    number
   >({
     queryKey: ['media', id, activeTab, search],
     queryFn: async ({ pageParam }) => {
@@ -50,14 +51,14 @@ const MediaListing: React.FC = () => {
         ref_id: id as string,
         ref_type: 'section',
         filter_type: activeTab,
-        page_no: pageParam as number,
+        page_no: pageParam,
         limit: PAGE_SIZE,
         q: search
       })
 
       return {
         result: res?.data?.result || [],
-        nextPage: res?.data?.result?.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
+        nextPage: res?.data?.result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
         total: res?.data?.total_count || 0
       }
     },
@@ -71,8 +72,8 @@ const MediaListing: React.FC = () => {
   //   return () => remove()
   // }, [activeTab, search, remove])
 
-  const media: Media[] = useMemo(() => data?.pages.flatMap((page: MediaPage) => page.result) || [], [data])
-  const total: number = useMemo(() => data?.pages?.[0]?.total || 0, [data])
+  const media = useMemo(() => data?.pages.flatMap((page: MediaPage) => page.result) || [], [data])
+  const total = useMemo(() => data?.pages?.[0]?.total || 0, [data])
 
   const cooldownRef = useRef<boolean>(false)
 
@@ -90,13 +91,13 @@ const MediaListing: React.FC = () => {
     if (inView) loadMore()
   }, [inView, loadMore])
 
-  const handleTabChange = (_: SyntheticEvent, newValue: MediaTabType): void => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: MediaTabType): void => {
     setActiveTab(newValue)
     setSearch('')
     setLocalSearch('')
   }
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const value = e.target.value
     setLocalSearch(value)
     debouncedSearch(value)
@@ -128,45 +129,48 @@ const MediaListing: React.FC = () => {
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
-          placeholder='Search media…'
+          placeholder='Search media...'
         />
       </Box> */}
+
       <Box sx={{ mt: 6 }}>
-        <Grid container spacing={6}>
+        <Grid container spacing={4}>
           {media.map((file: Media) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.media_id}>
-              <MediaCard media={file} isBorderedCard />
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.media_id || file.id}>
+              <NewMediaCard
+                fileUrl={file.file}
+                fileName={file.file_original_name}
+                fileType={file.file_type || file.type}
+                user={{
+                  created_at: file.created_at,
+                  user_profile: {
+                    user_full_name: file.user_name,
+                    user_profile_pic: file.user_profile_pic
+                  }
+                }}
+                width='100%'
+                height='100%'
+                showTitle={true}
+                ondownloadaction={() => {}}
+              />
             </Grid>
           ))}
         </Grid>
 
         {isFetching && media.length === 0 && (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              p: 2
-            }}
-          >
+          <Box display='flex' justifyContent='center' p={2}>
             <CircularProgress />
           </Box>
         )}
 
         {media.length === 0 && !isFetching && (
-          <Typography align='center' sx={{ mt: 6 }}>
-            No media found.
-          </Typography>
+          <Box sx={{ py: 8 }}>
+            <NoDataFound height={250} width={250} />
+          </Box>
         )}
 
         {(isFetchingNextPage || hasNextPage) && media.length > 0 && (
-          <Box
-            ref={loaderRef}
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              p: 2
-            }}
-          >
+          <Box ref={loaderRef} display='flex' justifyContent='center' p={2}>
             <CircularProgress />
           </Box>
         )}

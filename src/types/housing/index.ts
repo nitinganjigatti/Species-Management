@@ -223,6 +223,9 @@ export type {
   // Animal Journal
   GetAnimalJournalLogsParams,
   GetAnimalJournalLogsResponse,
+  GetAnimalJournalModulesParams,
+  GetAnimalJournalModulesResponse,
+  JournalModule,
 
   // Species
   GetSpeciesParams,

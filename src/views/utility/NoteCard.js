@@ -30,7 +30,7 @@ const getPriorityBgColor = (priority, theme) => {
     case 'Critical':
       return alpha(theme.palette.customColors?.ErrorContainer, 0.4)
     default:
-      return theme.palette.background.paper
+      return theme.palette.customColors?.antzSecondaryBg
   }
 }
 

@@ -5,8 +5,19 @@ import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutl
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined'
 import AddIcon from '@mui/icons-material/Add'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
+import Icon from 'src/@core/components/icon'
 
-const HeaderCard = ({ title, subtitle, isListingPage, onEdit, onDelete, onAddNew, onTimeClick }) => {
+const HeaderCard = ({
+  title,
+  subtitle,
+  isListingPage,
+  onEdit,
+  onDelete,
+  onAddNew,
+  onTimeClick,
+  onQrClick,
+  hasQrCode
+}) => {
   const theme = useTheme()
 
   return (
@@ -69,7 +80,6 @@ const HeaderCard = ({ title, subtitle, isListingPage, onEdit, onDelete, onAddNew
             <DeleteOutlineOutlinedIcon sx={{ color: theme.palette.common.white }} />
           </IconButton>
         )}
-
         {onAddNew && (
           <Stack direction='row' spacing={2} alignItems='center' sx={{ cursor: 'pointer' }} onClick={onAddNew}>
             <Typography
@@ -90,6 +100,18 @@ const HeaderCard = ({ title, subtitle, isListingPage, onEdit, onDelete, onAddNew
               <AddIcon sx={{ fontSize: '1rem' }} />
             </IconButton>
           </Stack>
+        )}
+        {hasQrCode && onQrClick && (
+          <IconButton
+            sx={{
+              color: theme.palette.common.white,
+              transition: 'color 0.2s'
+            }}
+            size='large'
+            onClick={onQrClick}
+          >
+            <Icon icon='mdi:qrcode' fontSize={32} />
+          </IconButton>
         )}
       </Box>
     </Box>

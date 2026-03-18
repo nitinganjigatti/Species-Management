@@ -84,61 +84,66 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
     setPage(1)
   }
 
-  const fetchFoodWastageData = useCallback(async (): Promise<void> => {
-    if (!id) return
+  // Fetch data when dependencies change
+  useEffect(() => {
+    const fetchData = async (): Promise<void> => {
+      if (!id) return
 
-    setLoading(true)
-    try {
-      // Format dates for API (YYYY-MM-DD)
-      const fromDate = filterDates.startDate ? format(filterDates.startDate, 'yyyy-MM-dd') : ''
-      const toDate = filterDates.endDate ? format(filterDates.endDate, 'yyyy-MM-dd') : ''
+      setLoading(true)
+      try {
+        // Format dates for API (YYYY-MM-DD)
+        const fromDate = filterDates.startDate ? format(filterDates.startDate, 'yyyy-MM-dd') : ''
+        const toDate = filterDates.endDate ? format(filterDates.endDate, 'yyyy-MM-dd') : ''
 
-      // Build params based on refType
-      const getIdParam = () => {
-        switch (refType) {
-          case 'site': return { site_id: id as string }
-          case 'section': return { section_id: id as string }
-          case 'enclosure': return { enclosure_id: id as string }
-          default: return { site_id: id as string }
+        // Build params based on refType
+        const getIdParam = () => {
+          switch (refType) {
+            case 'site':
+              return { site_id: id as string }
+            case 'section':
+              return { section_id: id as string }
+            case 'enclosure':
+              return { enclosure_id: id as string }
+            default:
+              return { site_id: id as string }
+          }
         }
-      }
 
-      const params = {
-        ...getIdParam(),
-        from_date: fromDate,
-        to_date: toDate,
-        limit: viewMode === 'List' ? pageSize : 50,
-        filter: sortOrder,
-        is_graph: (viewMode === 'List' ? 0 : 1) as 0 | 1,
-        page_no: page
-      }
+        const params = {
+          ...getIdParam(),
+          from_date: fromDate,
+          to_date: toDate,
+          limit: viewMode === 'List' ? pageSize : 50,
+          filter: sortOrder,
+          is_graph: (viewMode === 'List' ? 0 : 1) as 0 | 1,
+          page_no: page
+        }
 
-      const response = await getFoodWastage(refType, params)
+        const response = await getFoodWastage(refType, params)
 
-      if (response?.success) {
-        setFoodWastageData(response?.data || {})
-        setFoodWastageList(response?.data?.list || [])
-        setGraphList(response?.data?.graphlist || [])
-        setTotalCount(response?.data?.total_count || response?.data?.list?.length || 0)
-      } else {
+        if (response?.success) {
+          setFoodWastageData(response?.data || {})
+          setFoodWastageList(response?.data?.list || [])
+          setGraphList(response?.data?.graphlist || [])
+          setTotalCount(response?.data?.total_count || response?.data?.list?.length || 0)
+        } else {
+          setFoodWastageData({})
+          setFoodWastageList([])
+          setGraphList([])
+          setTotalCount(0)
+        }
+      } catch {
         setFoodWastageData({})
         setFoodWastageList([])
         setGraphList([])
         setTotalCount(0)
+      } finally {
+        setLoading(false)
       }
-    } catch {
-      setFoodWastageData({})
-      setFoodWastageList([])
-      setGraphList([])
-      setTotalCount(0)
-    } finally {
-      setLoading(false)
     }
-  }, [id, refType, filterDates, viewMode, sortOrder, page, pageSize])
 
-  useEffect(() => {
-    fetchFoodWastageData()
-  }, [fetchFoodWastageData])
+    fetchData()
+  }, [id, refType, filterDates.startDate, filterDates.endDate, viewMode, sortOrder, page, pageSize])
 
   const handleViewModeChange = (_event: React.MouseEvent<HTMLElement>, newMode: 'List' | 'Graph' | null): void => {
     if (newMode !== null) {
@@ -148,7 +153,8 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
   }
 
   const handleSortToggle = (): void => {
-    setSortOrder(prev => (prev === 'DESC' ? 'ASC' : 'DESC'))
+    const newSortOrder = sortOrder === 'DESC' ? 'ASC' : 'DESC'
+    setSortOrder(newSortOrder)
     setPage(1)
   }
 
@@ -332,10 +338,14 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
   // Site shows Sections, Section shows Enclosures, Enclosure shows daily entries
   const getEntityLabels = () => {
     switch (refType) {
-      case 'site': return { singular: 'Section', plural: 'Sections' }
-      case 'section': return { singular: 'Enclosure', plural: 'Enclosures' }
-      case 'enclosure': return { singular: 'Date', plural: 'Daily Entries' }
-      default: return { singular: 'Section', plural: 'Sections' }
+      case 'site':
+        return { singular: 'Section', plural: 'Sections' }
+      case 'section':
+        return { singular: 'Enclosure', plural: 'Enclosures' }
+      case 'enclosure':
+        return { singular: 'Date', plural: 'Daily Entries' }
+      default:
+        return { singular: 'Section', plural: 'Sections' }
     }
   }
   const { singular: entityLabel, plural: entityLabelPlural } = getEntityLabels()
@@ -401,7 +411,11 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                   justifyContent: 'center'
                 }}
               >
-                <Icon icon={refType === 'site' ? 'mdi:folder-outline' : 'mdi:home-outline'} fontSize={24} color={theme.palette.grey[500]} />
+                <Icon
+                  icon={refType === 'site' ? 'mdi:folder-outline' : 'mdi:home-outline'}
+                  fontSize={24}
+                  color={theme.palette.grey[500]}
+                />
               </Box>
             )}
             <Typography
@@ -706,7 +720,9 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                   component='span'
                   sx={{ fontWeight: 700, color: theme.palette.customColors.OnPrimaryContainer }}
                 >
-                  {refType === 'site' ? foodWastageData?.highest_wastage?.section_name : foodWastageData?.highest_wastage?.user_enclosure_name}
+                  {refType === 'site'
+                    ? foodWastageData?.highest_wastage?.section_name
+                    : foodWastageData?.highest_wastage?.user_enclosure_name}
                 </Typography>{' '}
                 with{' '}
                 <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
@@ -846,14 +862,16 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                   </Box>
                 </Box>
 
-                {/* Average Description Card */}
-                {foodWastageData?.section_average && (
+                {/* Average Description Card - Different text based on refType matching mobile */}
+                {/* Site level: Show section_average */}
+                {refType === 'site' && foodWastageData?.section_average && (
                   <Box
                     sx={{
                       p: 2.5,
                       backgroundColor: theme.palette.customColors?.OnPrimary,
                       borderRadius: 1,
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                      border: `1px solid ${theme.palette.customColors.Tertiary}`,
+                      bgcolor: `${theme.palette.customColors.Tertiary}08`
                     }}
                   >
                     <Typography
@@ -863,14 +881,81 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                         lineHeight: 1.7
                       }}
                     >
-                      The {refType} has an average food wastage of{' '}
+                      The site has an average food wastage of{' '}
                       <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
                         {foodWastageData?.section_average} {foodWastageData?.unit || 'Kg'}
                       </Typography>{' '}
-                      per {entityLabel.toLowerCase()}
+                      per section
                     </Typography>
                   </Box>
                 )}
+
+                {/* Section level: Show site_percentage and total_site_wastage */}
+                {refType === 'section' && (foodWastageData?.site_percentage || foodWastageData?.total_site_wastage) && (
+                  <Box
+                    sx={{
+                      p: 2.5,
+                      backgroundColor: theme.palette.customColors?.OnPrimary,
+                      borderRadius: 1,
+                      border: `1px solid ${theme.palette.customColors.Tertiary}`,
+                      bgcolor: `${theme.palette.customColors.Tertiary}08`
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        lineHeight: 1.7
+                      }}
+                    >
+                      This section accounts for{' '}
+                      <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
+                        {foodWastageData?.site_percentage || 0}%
+                      </Typography>{' '}
+                      of the site&apos;s total wastage of{' '}
+                      <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
+                        {foodWastageData?.total_site_wastage || 0} {foodWastageData?.unit || 'Kg'}
+                      </Typography>
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Enclosure level: Show section_percentage and total_section_wastage */}
+                {refType === 'enclosure' &&
+                  (foodWastageData?.section_percentage || foodWastageData?.total_section_wastage) && (
+                    <Box
+                      sx={{
+                        p: 2.5,
+                        backgroundColor: theme.palette.customColors?.OnPrimary,
+                        borderRadius: 1,
+                        border: `1px solid ${theme.palette.customColors.Tertiary}`,
+                        bgcolor: `${theme.palette.customColors.Tertiary}08`
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          lineHeight: 1.7
+                        }}
+                      >
+                        This enclosure accounts for{' '}
+                        <Typography
+                          component='span'
+                          sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}
+                        >
+                          {foodWastageData?.section_percentage || 0}%
+                        </Typography>{' '}
+                        of the section&apos;s total wastage of{' '}
+                        <Typography
+                          component='span'
+                          sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}
+                        >
+                          {foodWastageData?.total_section_wastage || 0} {foodWastageData?.unit || 'Kg'}
+                        </Typography>
+                      </Typography>
+                    </Box>
+                  )}
               </Card>
 
               {/* Area Chart */}

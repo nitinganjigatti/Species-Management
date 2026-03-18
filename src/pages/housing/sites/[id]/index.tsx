@@ -53,28 +53,29 @@ interface StatItem {
   onClick?: () => void
 }
 
+// Tab order matches mobile implementation (SiteDetails.js)
 const allTabConfig: TabConfigItem[] = [
   { label: 'Sections', value: 'sections', component: SectionListing },
   { label: 'Species', value: 'species', component: SpeciesListing },
-  { label: 'Media', value: 'media', component: MediaListing },
-  { label: 'Assessment', value: 'assessment', component: EntityAssessment },
-  { label: 'Mortality', value: 'mortality', component: MortalityListing },
   {
     label: 'Animals Under Treatment',
     value: 'animalTreatment',
     component: AnimalTreatmentListing
   },
-  { label: 'Users', value: 'users', component: UsersListing },
   { label: 'Notes', value: 'notes', component: NotesListing },
-  { label: 'Teams', value: 'teams', component: TeamsListing, requiresSetting: 'ANIMAL_TRANSFER_REQUIRES_APPROVAL' },
+  { label: 'Assessment', value: 'assessment', component: EntityAssessment },
   {
     label: 'Animal Transfer',
     value: 'animalTransfer',
     component: AnimalTransferListing,
     requiresPermission: 'approval_move_animal_external'
   },
-  { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
+  { label: 'Teams', value: 'teams', component: TeamsListing, requiresSetting: 'ANIMAL_TRANSFER_REQUIRES_APPROVAL' },
+  { label: 'Media', value: 'media', component: MediaListing },
+  { label: 'Users', value: 'users', component: UsersListing },
   { label: 'Incharges', value: 'incharges', component: InchargeListing },
+  { label: 'Mortality', value: 'mortality', component: MortalityListing },
+  { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
   { label: 'Hospital Transfer', value: 'hospitalTransfer', component: HospitalTransferListing }
 ]
 
@@ -209,8 +210,8 @@ const SiteDetails: React.FC = () => {
     }
   ]
 
-  const handleHousingClick = (): void => {
-    router.back()
+  const handleBreadcrumbClick = (): void => {
+    router.push('/housing/sites')
   }
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
@@ -240,8 +241,8 @@ const SiteDetails: React.FC = () => {
       <Box>
         {/* Breadcrumb */}
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
-            Site
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleBreadcrumbClick}>
+            Sites
           </Typography>
           <Typography color='text.primary'>Site Details</Typography>
         </Breadcrumbs>
@@ -250,7 +251,7 @@ const SiteDetails: React.FC = () => {
         <InsightsCard
           data={siteData}
           loading={isLoading}
-          image={siteData?.images?.[0]?.file}
+          image={siteData?.images?.find((img: any) => img?.display_type === 'banner')?.file}
           zooName={siteData?.site_name}
           subtitle={siteData?.site_description}
           userName={siteData?.incharges?.[0]?.full_name}
@@ -304,7 +305,7 @@ const SiteDetails: React.FC = () => {
               addSitesAccess={addSitesAccess}
               settings={settings}
               entityName={siteData?.site_name}
-              entityImage={siteData?.images?.[0]?.file}
+              entityImage={siteData?.images?.find((img: any) => img?.display_type === 'banner')?.file}
               entityType="site"
               entityId={id || ''}
               entityDetails={siteData}

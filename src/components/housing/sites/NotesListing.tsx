@@ -65,15 +65,12 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
-  const { list: noteList, loading, total, page, pageSize, filters } = useSelector(
-    (state: RootState) => state.notes
-  )
+  const { list: noteList, loading, total, page, pageSize, filters } = useSelector((state: RootState) => state.notes)
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const cooldownRef = useRef(false)
   const prevIdRef = useRef<string | string[] | undefined>(undefined)
 
-  // Fetch observation master list and users on mount
   useEffect(() => {
     dispatch(fetchObservationMasterList())
     if (zooId) {
@@ -81,49 +78,48 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     }
   }, [dispatch, zooId])
 
-  // Build query params based on filters
-  const buildQueryParams = useCallback((overridePage?: number): NotesQueryParams => {
-    const params: NotesQueryParams = {
-      id: Array.isArray(id) ? id[0] : id || '',
-      type: refType,
-      page_no: overridePage ?? page,
-      limit: pageSize
-    }
+  const buildQueryParams = useCallback(
+    (overridePage?: number): NotesQueryParams => {
+      const params: NotesQueryParams = {
+        id: Array.isArray(id) ? id[0] : id || '',
+        type: refType,
+        page_no: overridePage ?? page,
+        limit: pageSize
+      }
 
-    if (filters.noteType) params.note_type = String(filters.noteType)
-    if (filters.priority) params.priority = String(filters.priority)
-    if (filters.createdBy) params.created_by = String(filters.createdBy)
-    if (filters.taggedTo) params.tagged_to = String(filters.taggedTo)
+      if (filters.noteType) params.note_type = String(filters.noteType)
+      if (filters.priority) params.priority = String(filters.priority)
+      if (filters.createdBy) params.created_by = String(filters.createdBy)
+      if (filters.taggedTo) params.tagged_to = String(filters.taggedTo)
 
-    return params
-  }, [id, refType, page, pageSize, filters])
+      return params
+    },
+    [id, refType, page, pageSize, filters]
+  )
 
-  // Handle id change - clear and fetch fresh data
   useEffect(() => {
     if (id && id !== prevIdRef.current) {
-      // Clear previous notes first
       dispatch(clearNotes())
 
-      // Fetch fresh notes for the new id with page 1
-      dispatch(fetchNotes({
-        id: Array.isArray(id) ? id[0] : id,
-        type: refType,
-        page_no: 1,
-        limit: pageSize
-      }))
+      dispatch(
+        fetchNotes({
+          id: Array.isArray(id) ? id[0] : id,
+          type: refType,
+          page_no: 1,
+          limit: pageSize
+        })
+      )
 
       prevIdRef.current = id
     }
   }, [dispatch, id, refType, pageSize])
 
-  // Fetch notes when pagination or filters change (but not id - that's handled above)
   useEffect(() => {
     if (id && id === prevIdRef.current && page > 1) {
       dispatch(fetchNotes(buildQueryParams()))
     }
   }, [dispatch, page])
 
-  // Fetch notes when filters change
   useEffect(() => {
     if (id && id === prevIdRef.current) {
       dispatch(fetchNotes(buildQueryParams(1)))
@@ -131,14 +127,12 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     }
   }, [filters])
 
-  // Clear notes on unmount
   useEffect(() => {
     return () => {
       dispatch(clearNotes())
     }
   }, [])
 
-  // Handle pagination
   const handleLoadMore = useCallback(() => {
     if (cooldownRef.current || loading || noteList.length >= total) return
 
@@ -156,7 +150,6 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     }
   }, [inView, handleLoadMore, noteList.length, total])
 
-  // Handle filter apply from drawer
   const handleFilterApply = (appliedFilters: Partial<NotesFilters>) => {
     dispatch(setFilters(appliedFilters))
   }
@@ -165,10 +158,8 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     dispatch(clearFilters())
   }
 
-  // Check if any filters are active
   const hasActiveFilters = Object.values(filters).some(v => v !== null)
 
-  // Handle note click
   const handleNoteClick = (note: Note) => {
     setSelectedNote(note)
     setDetailsDrawerOpen(true)
@@ -179,9 +170,7 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     setAddNoteDrawerOpen(true)
   }
 
-  // Handle add note success - reset to page 1 and refresh the list
   const handleAddNoteSuccess = () => {
-    // Reset pagination and fetch fresh data for page 1
     dispatch(setPagination({ page: 1, pageSize }))
     dispatch(
       fetchNotes({
@@ -197,12 +186,10 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     )
   }
 
-  // Handle like click
   const handleLikeClick = async (note: Note) => {
     const isLiked = note.user_reaction === 'like'
     const newLikedState = !isLiked
 
-    // Optimistic update - update UI immediately
     dispatch(updateNoteLike({ observationId: note.observation_id, isLiked: newLikedState }))
 
     try {
@@ -217,7 +204,6 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
         message: isLiked ? 'Like removed' : 'Liked successfully'
       })
     } catch (error) {
-      // Revert optimistic update on failure
       dispatch(updateNoteLike({ observationId: note.observation_id, isLiked: isLiked }))
       console.error('Error toggling like:', error)
       Toaster({
@@ -227,13 +213,11 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     }
   }
 
-  // Handle comment click
   const handleCommentClick = (note: Note) => {
     setSelectedNote(note)
     setCommentDialogOpen(true)
   }
 
-  // Handle comment submit
   const handleCommentSubmit = async (data: CommentSubmitData) => {
     setCommentLoading(true)
     try {
@@ -265,10 +249,8 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   return (
     <Box>
-      {/* Header */}
       <ListingHeader title='Notes' totalCount={total} />
 
-      {/* Action Buttons */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, mt: 3, mb: 2 }}>
         <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
           Add Note
@@ -291,7 +273,6 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
         </Button>
       </Box>
 
-      {/* Notes List - Full Width */}
       <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
         {noteList?.map((note: Note) => (
           <NoteCard
@@ -303,14 +284,12 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
           />
         ))}
 
-        {/* Loading State */}
         {loading && noteList.length === 0 && (
           <Box display='flex' justifyContent='center' p={4}>
             <CircularProgress />
           </Box>
         )}
 
-        {/* Empty State */}
         {!loading && noteList.length === 0 && (
           <Box
             sx={{
@@ -333,14 +312,12 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
           </Box>
         )}
 
-        {/* Load More Indicator */}
         {noteList.length > 0 && noteList.length < total && (
           <Box ref={loaderRef} display='flex' justifyContent='center' p={2}>
             <CircularProgress size={24} />
           </Box>
         )}
 
-        {/* End of List */}
         {noteList.length > 0 && noteList.length >= total && (
           <Typography align='center' sx={{ mt: 4, color: 'text.disabled' }}>
             No more notes to load
@@ -348,7 +325,6 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
         )}
       </Box>
 
-      {/* Comment Dialog */}
       <NoteCommentDialog
         open={commentDialogOpen}
         onClose={() => {
@@ -370,7 +346,6 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
         onUpdate={() => dispatch(fetchNotes(buildQueryParams()))}
       />
 
-      {/* Filter Drawer */}
       <NoteFilterDrawer
         open={filterDrawerOpen}
         onClose={() => setFilterDrawerOpen(false)}
@@ -379,7 +354,6 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
         onClearAll={handleClearFilters}
       />
 
-      {/* Add Note Drawer */}
       <AddNoteDrawer
         open={addNoteDrawerOpen}
         onClose={() => setAddNoteDrawerOpen(false)}

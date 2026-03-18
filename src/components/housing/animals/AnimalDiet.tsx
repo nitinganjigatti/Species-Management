@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Box, Typography, Button, IconButton, Switch, TextField, Avatar, Tooltip, Skeleton } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@mui/material/styles'
-import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { styled } from '@mui/material/styles'
 import UploadAnimalDiet from './UploadAnimalDiet'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -17,15 +17,23 @@ interface DietAttachment {
   ref_id: number
   file: string
   file_original_name: string
-  attached_by: string
-  attached_by_profile: string
-  incident_date: string
+  // Dietitian info (shown in card header)
+  dietitian_name?: string
+  dietitian_by_profile?: string
+  dietitian_role_name?: string
+  // Attached/Detached info (shown in footer)
+  attached_by?: string
+  detached_by?: string
+  created_at?: string
+  // Legacy fields (fallback)
+  attached_by_profile?: string
+  incident_date?: string
   notes?: string
   isActive?: boolean
 }
 
 interface AnimalDietProps {
-  animalDetails: AnimalOverview & { taxonomyId?: string | number }
+  animalDetails: AnimalOverview & { taxonomyId?: string | number; taxonomy_id?: string | number }
 }
 
 const GreenSwitch = styled(Switch)(({ theme }) => ({
@@ -92,10 +100,12 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
   const [pendingDeactivateIndex, setPendingDeactivateIndex] = useState<number | null>(null)
 
   const animalDietList = async (): Promise<void> => {
-    if (!animalId || Array.isArray(animalId)) return
+    // API requires species_id (taxonomy_id) as path param and animal_id as query param
+    const speciesId = animalDetails?.taxonomyId || animalDetails?.taxonomy_id
+    if (!speciesId) return
     try {
       setDietListLoader(true)
-      const res = await getAnimalDietList(animalId)
+      const res = await getAnimalDietList(speciesId, Array.isArray(animalId) ? animalId[0] : animalId || undefined)
       if (res.success) {
         setActiveDietData((res?.data?.active_attachments || []) as unknown as DietAttachment[])
         setInActiveDietData((res?.data?.deactive_attachments || []) as unknown as DietAttachment[])
@@ -110,7 +120,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
 
   useEffect(() => {
     animalDietList()
-  }, [animalId])
+  }, [animalId, animalDetails?.taxonomyId, animalDetails?.taxonomy_id])
 
   // Download helper that works for cross-origin + auth cookies
   const handleDownload = async (url: string | undefined, originalName: string | undefined): Promise<void> => {
@@ -333,33 +343,55 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                         {diet.file_original_name}
                       </Typography>
                     </Tooltip>
-                    <Tooltip title={`${diet.attached_by} • Dietitian`}>
-                      <Typography
-                        sx={{
-                          fontSize: 14,
-                          fontWeight: 400,
-                          letterSpacing: 0,
-                          textOverflow: 'ellipsis',
-                          overflow: 'hidden',
-                          whiteSpace: 'nowrap',
-                          color: theme.palette.customColors.OnSurfaceVariant
-                        }}
-                      >
-                        {diet.attached_by} • Dietitian
-                      </Typography>
-                    </Tooltip>
+                    {/* Dietitian info - matching mobile */}
+                    {diet.dietitian_name && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {diet.dietitian_by_profile ? (
+                          <Avatar
+                            src={diet.dietitian_by_profile}
+                            sx={{ width: 20, height: 20 }}
+                          />
+                        ) : (
+                          <Icon icon='mdi:account-circle' width={20} height={20} color={theme.palette.customColors?.neutralSecondary} />
+                        )}
+                        <Tooltip title={`${diet.dietitian_name} • ${diet.dietitian_role_name || 'Dietitian'}`}>
+                          <Typography
+                            sx={{
+                              fontSize: 14,
+                              fontWeight: 400,
+                              letterSpacing: 0,
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              color: theme.palette.customColors.OnSurfaceVariant
+                            }}
+                          >
+                            {diet.dietitian_name} • {diet.dietitian_role_name || 'Dietitian'}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
 
-                {/* Right: User Info, Switch, Delete */}
-                <Box sx={{ width: '240px', display: 'flex', alignItems: 'start', gap: 2, flexWrap: 'wrap' }}>
-                  <UserInfoCard
-                    avatarUrl={diet.attached_by_profile}
-                    name={diet.attached_by}
-                    description={`${moment(Utility.convertUTCToLocalDate(diet.incident_date)).format('DD MMM YYYY')} |
-                ${Utility.convertUTCToLocaltime(diet.incident_date)}`}
-                    textColor={theme.palette.customColors.OnSurfaceVariant}
-                    fontWeight={500}
+                {/* Right: User Info (Added by / Detached by) */}
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      fontWeight: 400,
+                      color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
+                    }}
+                  >
+                    {diet.attached_by ? 'Added by' : diet.detached_by ? 'Detached by' : ''}
+                  </Typography>
+                  <UserAvatarDetails
+                    profile_image={diet.dietitian_by_profile || diet.attached_by_profile}
+                    user_name={diet.attached_by || diet.detached_by || ''}
+                    date={diet.created_at || diet.incident_date}
+                    show_time={true}
+                    size='medium'
+                    text_color={theme.palette.customColors?.OnSurfaceVariant}
                   />
                   {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     <GreenSwitch

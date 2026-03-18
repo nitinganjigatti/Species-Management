@@ -1,13 +1,15 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { Box, Button, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
+import debounce from 'lodash/debounce'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import InchargeDrawer from '../utils/InchargeDrawer'
+import Search from 'src/views/utility/Search'
 import { getInchargeList } from 'src/lib/api/housing'
 import { useAuth } from 'src/hooks/useAuth'
 import { Incharge, InchargeFilters } from 'src/types/housing/incharge'
@@ -30,6 +32,28 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
   const loggedinUserId = authData?.userData?.user?.user_id
 
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
+  const [searchInput, setSearchInput] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
+
+  // Debounced search
+  const debouncedSearch = useMemo(() => debounce((value: string) => setSearchQuery(value), 500), [])
+
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [debouncedSearch])
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    const value = e.target.value
+    setSearchInput(value)
+    debouncedSearch(value)
+  }
+
+  const handleSearchClear = (): void => {
+    setSearchInput('')
+    setSearchQuery('')
+  }
 
   // Determine access based on refType
   const getAddAccess = () => {
@@ -61,11 +85,12 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
 
   // Fetch incharge list
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['incharge-list', id, refType],
+    queryKey: ['incharge-list', id, refType, searchQuery],
     queryFn: () =>
       getInchargeList({
         ref_id: Number(id),
-        ref_type: refType
+        ref_type: refType,
+        q: searchQuery || undefined
       }),
     enabled: !!id
   })
@@ -195,30 +220,45 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
 
   return (
     <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4 }}>
+      {/* Row 1: Header */}
+      <Box sx={{ mt: 4, mb: 2 }}>
         <ListingHeader title={`${entityLabel} Incharge List`} totalCount={total} />
+      </Box>
 
-        {userInList ||
-          (hasAddAccess && (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                gap: 4,
-                flexWrap: 'wrap'
-              }}
-            >
-              <Button
-                variant='contained'
-                startIcon={<AddIcon />}
-                sx={{ py: 2, px: 3, borderRadius: '4px' }}
-                onClick={() => setOpenDrawer(true)}
-              >
-                {`Choose ${entityLabel} Manager`}
-              </Button>
-            </Box>
-          ))}
+      {/* Row 2: Search (left) and Add Button (right) */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 4,
+          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          gap: 2
+        }}
+      >
+        <Search
+          value={searchInput}
+          onChange={handleSearchChange}
+          onClear={handleSearchClear}
+          placeholder='Search incharges...'
+        />
+
+        {(userInList || hasAddAccess) && (
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            sx={{
+              py: 2,
+              px: 3,
+              borderRadius: '4px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0
+            }}
+            onClick={() => setOpenDrawer(true)}
+          >
+            {`Choose ${entityLabel} Manager`}
+          </Button>
+        )}
       </Box>
       <Box sx={{ mt: 4 }}>
         <CommonTable

@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
-import { Box, Drawer, Typography, IconButton, Button, Checkbox, CircularProgress, Skeleton } from '@mui/material'
+import {
+  Box,
+  Drawer,
+  Typography,
+  IconButton,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Skeleton,
+  Tabs,
+  Tab
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useInView } from 'react-intersection-observer'
 import { debounce } from 'lodash'
@@ -7,11 +18,19 @@ import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { getAssessmentCategoryList, getAssessmentTypeList, addAssessmentTypesToEntity } from 'src/lib/api/assessment'
+import {
+  getAssessmentCategoryList,
+  getAssessmentTypeList,
+  addAssessmentTypesToEntity,
+  getAssessmentTemplatesList,
+  assignAssessmentTemplate
+} from 'src/lib/api/assessment'
 import type { AssessmentCategoryOption, AssessmentTypeOption } from 'src/types/housing/assessment'
+import type { AssessmentTemplate } from 'src/lib/api/assessment'
 import type { EntityType } from './EntityAssessment'
 
 const PAGE_SIZE = 20
+const TEMPLATE_PAGE_SIZE = 10
 
 interface AddEntityAssessmentTypeDrawerProps {
   open: boolean
@@ -21,6 +40,8 @@ interface AddEntityAssessmentTypeDrawerProps {
   existingTypeIds: string[]
   onSuccess: () => void
 }
+
+type TabType = 'types' | 'templates'
 
 const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps> = ({
   open,
@@ -33,25 +54,36 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
   const theme = useTheme() as any
   const cooldownRef = useRef(false)
 
+  // Main tab state
+  const [selectedTab, setSelectedTab] = useState<TabType>('types')
+
   // Search
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
   const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
-  // Categories
+  // Categories (for Types tab)
   const [categories, setCategories] = useState<{ label: string; value: string; count?: number }[]>([])
-  const [activeTab, setActiveTab] = useState<string>('')
+  const [activeCategory, setActiveCategory] = useState<string>('')
   const [isCategoriesLoading, setIsCategoriesLoading] = useState<boolean>(false)
 
   // Types list
   const [availableTypes, setAvailableTypes] = useState<AssessmentTypeOption[]>([])
   const [isTypesLoading, setIsTypesLoading] = useState<boolean>(false)
-  const [hasMore, setHasMore] = useState<boolean>(true)
-  const [pageNo, setPageNo] = useState<number>(1)
-  const [totalCount, setTotalCount] = useState<number>(0)
+  const [typesHasMore, setTypesHasMore] = useState<boolean>(true)
+  const [typesPageNo, setTypesPageNo] = useState<number>(1)
+  const [typesTotalCount, setTypesTotalCount] = useState<number>(0)
+
+  // Templates list
+  const [availableTemplates, setAvailableTemplates] = useState<AssessmentTemplate[]>([])
+  const [isTemplatesLoading, setIsTemplatesLoading] = useState<boolean>(false)
+  const [templatesHasMore, setTemplatesHasMore] = useState<boolean>(true)
+  const [templatesPageNo, setTemplatesPageNo] = useState<number>(1)
+  const [templatesTotalCount, setTemplatesTotalCount] = useState<number>(0)
 
   // Selection
   const [selectedTypes, setSelectedTypes] = useState<{ id: string; label: string }[]>([])
+  const [selectedTemplates, setSelectedTemplates] = useState<{ id: string; label: string }[]>([])
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
   // Infinite scroll
@@ -67,12 +99,15 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
   // Reset on open
   useEffect(() => {
     if (open) {
+      setSelectedTab('types')
       setLocalSearch('')
       setSearch('')
-      setActiveTab('')
+      setActiveCategory('')
       setSelectedTypes([])
+      setSelectedTemplates([])
       fetchCategories()
       resetAndFetchTypes()
+      resetAndFetchTemplates()
     }
   }, [open])
 
@@ -102,9 +137,17 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
   // Reset and fetch types
   const resetAndFetchTypes = () => {
     setAvailableTypes([])
-    setPageNo(1)
-    setHasMore(true)
+    setTypesPageNo(1)
+    setTypesHasMore(true)
     fetchTypes(1, true)
+  }
+
+  // Reset and fetch templates
+  const resetAndFetchTemplates = () => {
+    setAvailableTemplates([])
+    setTemplatesPageNo(1)
+    setTemplatesHasMore(true)
+    fetchTemplates(1, true)
   }
 
   // Fetch types - use 'housing' ref_type for entity assessments
@@ -117,8 +160,8 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
           ref_type: 'housing'
         }
 
-        if (activeTab) {
-          params.cat_id = activeTab
+        if (activeCategory) {
+          params.cat_id = activeCategory
         }
 
         if (search.trim()) {
@@ -130,7 +173,7 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
           const newTypes = response.data?.result || []
           const total = response.data?.total_count || 0
 
-          setTotalCount(total)
+          setTypesTotalCount(total)
 
           if (reset) {
             setAvailableTypes(newTypes)
@@ -139,7 +182,7 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
           }
 
           const currentTotal = reset ? newTypes.length : availableTypes.length + newTypes.length
-          setHasMore(currentTotal < total && newTypes.length === PAGE_SIZE)
+          setTypesHasMore(currentTotal < total && newTypes.length === PAGE_SIZE)
         }
       } catch (error) {
         console.error('Error fetching assessment types:', error)
@@ -147,31 +190,112 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
         setIsTypesLoading(false)
       }
     },
-    [activeTab, search, availableTypes.length]
+    [activeCategory, search, availableTypes.length]
   )
 
-  // Refetch when category or search changes
+  // Fetch templates
+  const fetchTemplates = useCallback(
+    async (page: number, reset: boolean = false) => {
+      setIsTemplatesLoading(true)
+      try {
+        const params: any = {
+          page_no: page,
+          ref_type: 'housing',
+          entity_id: entityId,
+          entity_type: entityType
+        }
+
+        if (search.trim()) {
+          params.q = search.trim()
+        }
+
+        const response = await getAssessmentTemplatesList(params)
+        if (response?.success) {
+          const newTemplates = response.data?.result || []
+          const total = response.data?.total_count || 0
+
+          setTemplatesTotalCount(total)
+
+          if (reset) {
+            setAvailableTemplates(newTemplates)
+          } else {
+            setAvailableTemplates(prev => [...prev, ...newTemplates])
+          }
+
+          const currentTotal = reset ? newTemplates.length : availableTemplates.length + newTemplates.length
+          setTemplatesHasMore(currentTotal < total && newTemplates.length === TEMPLATE_PAGE_SIZE)
+        }
+      } catch (error) {
+        console.error('Error fetching assessment templates:', error)
+      } finally {
+        setIsTemplatesLoading(false)
+      }
+    },
+    [search, availableTemplates.length, entityId, entityType]
+  )
+
+  // Refetch when category or search changes (for types)
   useEffect(() => {
-    if (open) {
+    if (open && selectedTab === 'types') {
       resetAndFetchTypes()
     }
-  }, [activeTab, search])
+  }, [activeCategory])
+
+  // Refetch when search changes
+  useEffect(() => {
+    if (open) {
+      if (selectedTab === 'types') {
+        resetAndFetchTypes()
+      } else {
+        resetAndFetchTemplates()
+      }
+    }
+  }, [search])
 
   // Infinite scroll
   useEffect(() => {
-    if (inView && hasMore && !isTypesLoading && !cooldownRef.current && open) {
+    if (inView && !cooldownRef.current && open) {
       cooldownRef.current = true
-      const nextPage = pageNo + 1
-      setPageNo(nextPage)
-      fetchTypes(nextPage, false).finally(() => {
-        setTimeout(() => {
-          cooldownRef.current = false
-        }, 300)
-      })
+
+      if (selectedTab === 'types' && typesHasMore && !isTypesLoading) {
+        const nextPage = typesPageNo + 1
+        setTypesPageNo(nextPage)
+        fetchTypes(nextPage, false).finally(() => {
+          setTimeout(() => {
+            cooldownRef.current = false
+          }, 300)
+        })
+      } else if (selectedTab === 'templates' && templatesHasMore && !isTemplatesLoading) {
+        const nextPage = templatesPageNo + 1
+        setTemplatesPageNo(nextPage)
+        fetchTemplates(nextPage, false).finally(() => {
+          setTimeout(() => {
+            cooldownRef.current = false
+          }, 300)
+        })
+      } else {
+        cooldownRef.current = false
+      }
     }
-  }, [inView, hasMore, isTypesLoading, pageNo, open])
+  }, [
+    inView,
+    typesHasMore,
+    templatesHasMore,
+    isTypesLoading,
+    isTemplatesLoading,
+    typesPageNo,
+    templatesPageNo,
+    open,
+    selectedTab
+  ])
 
   // Handlers
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: TabType) => {
+    setSelectedTab(newValue)
+    setLocalSearch('')
+    setSearch('')
+  }
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setLocalSearch(value)
@@ -183,8 +307,8 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
     debouncedSearch('')
   }
 
-  const handleTabClick = (tabValue: string) => {
-    setActiveTab(tabValue)
+  const handleCategoryClick = (categoryValue: string) => {
+    setActiveCategory(categoryValue)
   }
 
   const handleToggleType = (type: AssessmentTypeOption) => {
@@ -213,56 +337,99 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
     })
   }
 
+  const handleToggleTemplate = (template: AssessmentTemplate) => {
+    const templateId = String(template.assessment_template_id)
+
+    // Don't allow toggling already assigned templates
+    if (template.status === 'assigned') return
+
+    const templateName = template.template_name || 'Unknown'
+
+    setSelectedTemplates(prev => {
+      const isSelected = prev.some(item => String(item.id) === templateId)
+
+      if (isSelected) {
+        return prev.filter(item => String(item.id) !== templateId)
+      } else {
+        return [
+          ...prev,
+          {
+            id: templateId,
+            label: templateName
+          }
+        ]
+      }
+    })
+  }
+
   const handleDrawerClose = () => {
     onClose()
     setSelectedTypes([])
+    setSelectedTemplates([])
   }
 
   // Submit
   const handleSubmit = async () => {
-    if (selectedTypes.length === 0) {
-      Toaster({ type: 'warning', message: 'Please select at least one assessment type' })
+    const selectedItems = selectedTab === 'types' ? selectedTypes : selectedTemplates
+
+    if (selectedItems.length === 0) {
+      Toaster({
+        type: 'warning',
+        message: `Please select at least one assessment ${selectedTab === 'types' ? 'type' : 'template'}`
+      })
 
       return
     }
 
     setIsSubmitting(true)
     try {
-      const payload = {
-        assessment_types_to_be_removed: JSON.stringify([]),
-        new_assessment_types: JSON.stringify(selectedTypes.map(t => t.id))
-      }
+      if (selectedTab === 'types') {
+        // Use existing API for types
+        const payload = {
+          assessment_types_to_be_removed: JSON.stringify([]),
+          new_assessment_types: JSON.stringify(selectedTypes.map(t => t.id))
+        }
 
-      const response = await addAssessmentTypesToEntity(entityId, entityType, payload)
+        const response = await addAssessmentTypesToEntity(entityId, entityType, payload)
 
-      if (response?.success) {
-        Toaster({ type: 'success', message: 'Assessment types added successfully' })
-        onSuccess()
-        handleDrawerClose()
+        if (response?.success) {
+          Toaster({ type: 'success', message: 'Assessment types added successfully' })
+          onSuccess()
+          handleDrawerClose()
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to add assessment types' })
+        }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add assessment types' })
+        // Use assign template API for templates
+        const payload = {
+          ref_id: entityId,
+          entity_type: 'assessment_template' as const,
+          ref_type: entityType,
+          entity_id: selectedTemplates.map(t => t.id)
+        }
+
+        const response = await assignAssessmentTemplate(payload)
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: 'Assessment templates added successfully' })
+          onSuccess()
+          handleDrawerClose()
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to add assessment templates' })
+        }
       }
     } catch (error) {
-      console.error('Error adding assessment types:', error)
-      Toaster({ type: 'error', message: 'Failed to add assessment types' })
+      console.error('Error adding assessments:', error)
+      Toaster({ type: 'error', message: `Failed to add assessment ${selectedTab === 'types' ? 'types' : 'templates'}` })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  // Get entity type label for display
-  const getEntityTypeLabel = () => {
-    switch (entityType) {
-      case 'site':
-        return 'Site'
-      case 'section':
-        return 'Section'
-      case 'enclosure':
-        return 'Enclosure'
-      default:
-        return 'Entity'
-    }
-  }
+  const selectedCount = selectedTab === 'types' ? selectedTypes.length : selectedTemplates.length
+  const isLoading = selectedTab === 'types' ? isTypesLoading : isTemplatesLoading
+  const hasMore = selectedTab === 'types' ? typesHasMore : templatesHasMore
+  const items = selectedTab === 'types' ? availableTypes : availableTemplates
 
   return (
     <Drawer
@@ -306,7 +473,7 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
                 color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              Add Assessment Types
+              Add Assessment
             </Typography>
           </Box>
 
@@ -320,7 +487,7 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
           {/* Search */}
           <Box sx={{ px: 6, pt: 6, pb: 3 }}>
             <Search
-              placeholder='Search Assessment Types'
+              placeholder={selectedTab === 'types' ? 'Search Assessment Types' : 'Search Assessment Templates'}
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
@@ -329,155 +496,242 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
             />
           </Box>
 
-          {/* Category Tabs */}
+          {/* Types/Templates Tabs */}
+          <Box sx={{ px: 6, borderBottom: `1px solid ${theme.palette.divider}` }}>
+            <Tabs
+              value={selectedTab}
+              onChange={handleTabChange}
+              sx={{
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  minWidth: 'auto',
+                  px: 4
+                },
+                '& .Mui-selected': {
+                  color: theme.palette.primary.main
+                }
+              }}
+            >
+              <Tab label='Types' value='types' />
+              <Tab label='Templates' value='templates' />
+            </Tabs>
+          </Box>
+
+          {/* Category Tabs (only for Types tab) */}
+          {selectedTab === 'types' && (
+            <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {isCategoriesLoading ? (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    pb: 1,
+                    height: 48,
+                    alignItems: 'center',
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': { display: 'none' }
+                  }}
+                >
+                  {Array.from(new Array(4)).map((_, idx) => (
+                    <Skeleton key={idx} variant='rectangular' width={120} height={40} sx={{ borderRadius: 1 }} />
+                  ))}
+                </Box>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 2,
+                    overflowX: 'auto',
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': { display: 'none' },
+                    pb: 1
+                  }}
+                >
+                  {categories.map((item, index) => {
+                    const isActive = activeCategory === item.value
+
+                    return (
+                      <Button
+                        key={index}
+                        onClick={() => handleCategoryClick(item.value)}
+                        sx={{
+                          textTransform: 'none',
+                          borderRadius: 1,
+                          px: 3,
+                          py: 1.5,
+                          fontWeight: 500,
+                          fontSize: '14px',
+                          whiteSpace: 'nowrap',
+                          minWidth: 'auto',
+                          flexShrink: 0,
+                          border: 'none',
+                          backgroundColor: isActive
+                            ? theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+                            : theme.palette.customColors?.displaybgSecondary || theme.palette.grey[200],
+                          color: isActive
+                            ? theme.palette.customColors?.onPrimary
+                            : theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
+                          '&:hover': isActive
+                            ? {
+                                backgroundColor: `${
+                                  theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
+                                } !important`
+                              }
+                            : {
+                                backgroundColor:
+                                  theme.palette.customColors?.displaybgSecondary || theme.palette.grey[300]
+                              }
+                        }}
+                      >
+                        {item.label}
+                      </Button>
+                    )
+                  })}
+                </Box>
+              )}
+            </Box>
+          )}
+
+          {/* List Content */}
           <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {isCategoriesLoading ? (
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  pb: 1,
-                  height: 48,
-                  alignItems: 'center',
-                  overflowX: 'auto',
-                  scrollbarWidth: 'none',
-                  '&::-webkit-scrollbar': { display: 'none' }
-                }}
-              >
-                {Array.from(new Array(4)).map((_, idx) => (
-                  <Skeleton key={idx} variant='rectangular' width={120} height={40} sx={{ borderRadius: 1 }} />
-                ))}
-              </Box>
-            ) : (
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  overflowX: 'auto',
-                  scrollbarWidth: 'none',
-                  '&::-webkit-scrollbar': { display: 'none' },
-                  pb: 1
-                }}
-              >
-                {categories.map((item, index) => {
-                  const isActive = activeTab === item.value
-                  const showCount = item.value === '' ? totalCount : item.count ?? 0
-
-                  return (
-                    <Button
-                      key={index}
-                      onClick={() => handleTabClick(item.value)}
-                      sx={{
-                        textTransform: 'none',
-                        borderRadius: 1,
-                        px: 3,
-                        py: 1.5,
-                        fontWeight: 500,
-                        fontSize: '14px',
-                        whiteSpace: 'nowrap',
-                        minWidth: 'auto',
-                        flexShrink: 0,
-                        border: 'none',
-                        backgroundColor: isActive
-                          ? theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
-                          : theme.palette.customColors?.mdAntzNeutral || theme.palette.grey[200],
-                        color: isActive
-                          ? theme.palette.customColors?.OnPrimary
-                          : theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
-                        '&:hover': isActive
-                          ? {
-                              backgroundColor: `${
-                                theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main
-                              } !important`
-                            }
-                          : {
-                              backgroundColor: theme.palette.customColors?.OutlineVariant || theme.palette.grey[300]
-                            }
-                      }}
-                    >
-                      {item.label} {showCount > 0 && `(${showCount})`}
-                    </Button>
-                  )
-                })}
-              </Box>
-            )}
-
-            {/* Types List */}
-            {isTypesLoading && availableTypes.length === 0 ? (
+            {isLoading && items.length === 0 ? (
               <Box display='flex' justifyContent='center' alignItems='center' py={4}>
                 <CircularProgress />
               </Box>
             ) : (
               <>
-                {availableTypes.map(type => {
-                  // Use assessments_type_label (API field) or fall back to assessment_name
-                  const typeName = type.assessments_type_label || type.assessment_name || 'Unknown'
-                  // API returns 'label' for category name, not 'assessment_category_name'
-                  const categoryName = type.label || type.assessment_category_name || ''
-                  const typeId = String(type.assessment_type_id)
+                {selectedTab === 'types'
+                  ? // Types List
+                    availableTypes.map(type => {
+                      const typeName = type.assessments_type_label || type.assessment_name || 'Unknown'
+                      const categoryName = type.label || type.assessment_category_name || ''
+                      const typeId = String(type.assessment_type_id)
 
-                  // Compare as strings to ensure type consistency
-                  // Ensure existingTypeIds is an array before mapping
-                  const existingIdsArray = Array.isArray(existingTypeIds) ? existingTypeIds : []
-                  const isExisting = existingIdsArray.map(id => String(id)).includes(typeId)
-                  const isSelected = selectedTypes.some(item => String(item.id) === typeId)
+                      const existingIdsArray = Array.isArray(existingTypeIds) ? existingTypeIds : []
+                      const isExisting = existingIdsArray.map(id => String(id)).includes(typeId)
+                      const isSelected = selectedTypes.some(item => String(item.id) === typeId)
 
-                  return (
-                    <Box
-                      key={typeId}
-                      onClick={() => handleToggleType(type)}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        p: 4,
-                        border: isSelected
-                          ? `1px solid ${theme.palette.primary.main}`
-                          : `1px solid ${theme.palette.customColors?.SurfaceVariant || theme.palette.divider}`,
-                        backgroundColor: isSelected
-                          ? theme.palette.customColors?.Surface || theme.palette.action.selected
-                          : isExisting
-                          ? theme.palette.action.disabledBackground
-                          : theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
-                        borderRadius: 1,
-                        cursor: isExisting ? 'not-allowed' : 'pointer',
-                        opacity: isExisting ? 0.6 : 1,
-                        transition: 'background 0.2s, border-color 0.2s'
-                      }}
-                    >
-                      <Box>
-                        <Typography
+                      return (
+                        <Box
+                          key={typeId}
+                          onClick={() => handleToggleType(type)}
                           sx={{
-                            fontSize: '1rem',
-                            fontWeight: 600,
-                            color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: 4,
+                            border: isSelected
+                              ? `1px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.customColors?.SurfaceVariant || theme.palette.divider}`,
+                            backgroundColor: isSelected
+                              ? theme.palette.customColors?.Surface || theme.palette.action.selected
+                              : isExisting
+                              ? theme.palette.action.disabledBackground
+                              : theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+                            borderRadius: 1,
+                            cursor: isExisting ? 'not-allowed' : 'pointer',
+                            opacity: isExisting ? 0.6 : 1,
+                            transition: 'background 0.2s, border-color 0.2s'
                           }}
                         >
-                          {typeName}
-                        </Typography>
-                        <Typography
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                              }}
+                            >
+                              {typeName}
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '0.85rem',
+                                fontWeight: 400,
+                                color: theme.palette.text.secondary,
+                                mt: 0.5
+                              }}
+                            >
+                              {categoryName}
+                              {isExisting && (categoryName ? ' • ' : '') + 'Already added'}
+                            </Typography>
+                          </Box>
+                          <Checkbox
+                            checked={isSelected || isExisting}
+                            disabled={isExisting}
+                            onClick={e => e.stopPropagation()}
+                            onChange={() => handleToggleType(type)}
+                          />
+                        </Box>
+                      )
+                    })
+                  : // Templates List
+                    availableTemplates.map(template => {
+                      const templateName = template.template_name || 'Unknown'
+                      const templateId = String(template.assessment_template_id)
+                      const isAssigned = template.status === 'assigned'
+                      const isSelected = selectedTemplates.some(item => String(item.id) === templateId)
+
+                      return (
+                        <Box
+                          key={templateId}
+                          onClick={() => handleToggleTemplate(template)}
                           sx={{
-                            fontSize: '0.85rem',
-                            fontWeight: 400,
-                            color: theme.palette.text.secondary,
-                            mt: 0.5
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: 4,
+                            border: isSelected
+                              ? `1px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.customColors?.SurfaceVariant || theme.palette.divider}`,
+                            backgroundColor: isSelected
+                              ? theme.palette.customColors?.Surface || theme.palette.action.selected
+                              : isAssigned
+                              ? theme.palette.action.disabledBackground
+                              : theme.palette.customColors?.OnPrimary || theme.palette.background.paper,
+                            borderRadius: 1,
+                            cursor: isAssigned ? 'not-allowed' : 'pointer',
+                            opacity: isAssigned ? 0.6 : 1,
+                            transition: 'background 0.2s, border-color 0.2s'
                           }}
                         >
-                          {categoryName}
-                          {isExisting && (categoryName ? ' • ' : '') + 'Already added'}
-                        </Typography>
-                      </Box>
-                      <Checkbox
-                        checked={isSelected || isExisting}
-                        disabled={isExisting}
-                        onClick={e => e.stopPropagation()}
-                        onChange={() => handleToggleType(type)}
-                      />
-                    </Box>
-                  )
-                })}
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: '1rem',
+                                fontWeight: 600,
+                                color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
+                              }}
+                            >
+                              {templateName}
+                            </Typography>
+                            {isAssigned && (
+                              <Typography
+                                sx={{
+                                  fontSize: '0.85rem',
+                                  fontWeight: 400,
+                                  color: theme.palette.text.secondary,
+                                  mt: 0.5
+                                }}
+                              >
+                                Already added
+                              </Typography>
+                            )}
+                          </Box>
+                          <Checkbox
+                            checked={isSelected || isAssigned}
+                            disabled={isAssigned}
+                            onClick={e => e.stopPropagation()}
+                            onChange={() => handleToggleTemplate(template)}
+                          />
+                        </Box>
+                      )
+                    })}
 
-                {availableTypes.length === 0 && !isTypesLoading && (
+                {items.length === 0 && !isLoading && (
                   <Box
                     sx={{
                       display: 'flex',
@@ -496,13 +750,13 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
                 {/* Infinite scroll loader */}
                 {hasMore && (
                   <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
-                    {isTypesLoading ? <CircularProgress size={24} /> : null}
+                    {isLoading ? <CircularProgress size={24} /> : null}
                   </Box>
                 )}
 
-                {!hasMore && availableTypes.length > 0 && (
+                {!hasMore && items.length > 0 && (
                   <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                    No more types to load
+                    No more {selectedTab === 'types' ? 'types' : 'templates'} to load
                   </Typography>
                 )}
               </>
@@ -529,7 +783,7 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
               color: theme.palette.customColors?.OnSurface || theme.palette.text.primary
             }}
           >
-            Selected - {selectedTypes.length}
+            {selectedCount} {selectedTab === 'types' ? 'Types' : 'Templates'} Selected
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
             <Button
@@ -548,7 +802,7 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
               variant='contained'
               fullWidth
               onClick={handleSubmit}
-              disabled={selectedTypes.length === 0 || isSubmitting}
+              disabled={selectedCount === 0 || isSubmitting}
               sx={{ height: '56px' }}
             >
               {isSubmitting ? <CircularProgress size={24} color='inherit' /> : 'Add'}

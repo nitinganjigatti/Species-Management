@@ -19,6 +19,7 @@ import {
   GET_SPECIFIC_CLUSTER_ANALYTICS,
   GET_ENCLOSURE_LIST_SECTION_WISE,
   GET_ENCLOSURE_WISE_STATS,
+  GET_ENCLOSURE_BASIC_INFO,
   GET_ENCLOSURE_WISE_SPECIES,
   SECTION_INSIGHTS,
   SECTION_GET_ANIMAL_TREATMENT,
@@ -50,6 +51,7 @@ import {
   ANIMAL_HISTORY,
   ANIMAL_MEDIA,
   ANIMAL_JOURNAL_LOGS,
+  ANIMAL_JOURNAL_MODULES,
   TRANSFER_AND_SECURITY_TEAM_LIST,
   ADD_SITE_TEAM,
   EDIT_SITE_TEAM,
@@ -169,6 +171,8 @@ import type {
   GetAnimalDietListResponse,
   GetAnimalJournalLogsParams,
   GetAnimalJournalLogsResponse,
+  GetAnimalJournalModulesParams,
+  GetAnimalJournalModulesResponse,
   GetSpeciesParams,
   GetSpeciesResponse,
   GetMortalityListParams,
@@ -297,6 +301,45 @@ export async function getEnclosureWiseStat(
   params: GetEnclosureWiseStatsParams
 ): Promise<GetEnclosureWiseStatsResponse> {
   const response = await axiosGet({ url: `${GET_ENCLOSURE_WISE_STATS}/${params?.enclosure_id}` })
+
+  return response?.data
+}
+
+// ==================== Enclosure Basic Info API ====================
+// Matches mobile API: enclosure/get-enclosure-basic-info?enclosure_id=
+
+export interface EnclosureBasicInfo {
+  enclosure_id?: number
+  user_enclosure_name?: string
+  parent_enclosure_name?: string
+  section_name?: string
+  site_name?: string
+  enclosure_type?: string
+  enclosure_sunlight?: string
+  enclosure_environment?: string
+  enclosure_is_movable?: string | number
+  enclosure_desc?: string
+  created_at?: string
+  updated_at?: string
+}
+
+export interface GetEnclosureBasicInfoParams {
+  enclosure_id: number
+}
+
+export interface GetEnclosureBasicInfoResponse {
+  success?: boolean
+  message?: string
+  data?: EnclosureBasicInfo
+}
+
+export async function getEnclosureBasicInfo(
+  params: GetEnclosureBasicInfoParams
+): Promise<GetEnclosureBasicInfoResponse> {
+  const response = await axiosGet({
+    url: `${GET_ENCLOSURE_BASIC_INFO}`,
+    params: { enclosure_id: params.enclosure_id }
+  })
 
   return response?.data
 }
@@ -469,10 +512,11 @@ export async function getCarcassDeposition(): Promise<GetCarcassDispositionRespo
 // ==================== Animal Diet API ====================
 
 export async function getAnimalDietList(
-  animalId: number | string,
-  params?: Omit<GetAnimalDietListParams, 'animal_id'>
+  speciesId: number | string,
+  animalId?: number | string
 ): Promise<GetAnimalDietListResponse> {
-  const response = await axiosGet({ url: `${ANIMAL_DIET_LIST}/${animalId}`, params })
+  const params = animalId ? { animal_id: animalId } : undefined
+  const response = await axiosGet({ url: `${ANIMAL_DIET_LIST}/${speciesId}`, params })
 
   return response?.data
 }
@@ -481,6 +525,12 @@ export async function getAnimalDietList(
 
 export async function getAnimalJournalLogs(params: GetAnimalJournalLogsParams): Promise<GetAnimalJournalLogsResponse> {
   const response = await axiosGet({ url: `${ANIMAL_JOURNAL_LOGS}`, params })
+
+  return response?.data
+}
+
+export async function getAnimalJournalModules(params: GetAnimalJournalModulesParams): Promise<GetAnimalJournalModulesResponse> {
+  const response = await axiosGet({ url: `${ANIMAL_JOURNAL_MODULES}`, params })
 
   return response?.data
 }
@@ -688,6 +738,8 @@ export interface GetInchargeListParams {
   enclosure_id?: number
   ref_id?: number
   ref_type?: string
+  q?: string
+  page_no?: number
 }
 
 export interface InchargeUser {
@@ -1102,6 +1154,7 @@ export interface TransferButtonStatus {
   show_approve_entry?: boolean
   show_allow_entry?: boolean
   fill_transfer_check_list?: boolean
+  show_checklist_button?: boolean
 
   // Security flags
   SECURITY_CHECKOUT_ALLOWED?: boolean
@@ -1392,6 +1445,12 @@ export interface FoodWastageData {
   list?: FoodWastageListItem[]
   graphlist?: FoodWastageGraphItem[]
   total_count?: number
+  // Section level graph fields
+  site_percentage?: string | number
+  total_site_wastage?: string | number
+  // Enclosure level graph fields
+  section_percentage?: string | number
+  total_section_wastage?: string | number
 }
 
 export interface GetFoodWastageParams {

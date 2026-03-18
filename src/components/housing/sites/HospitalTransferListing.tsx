@@ -26,7 +26,7 @@ const HospitalTransferListing = () => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
-  const authData:any = useAuth()
+  const authData: any = useAuth()
   const settings = authData?.userData?.settings
 
   const [activeTab, setActiveTab] = useState('pending')
@@ -225,12 +225,13 @@ const HospitalTransferListing = () => {
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => {
         const statusObj = getTransferStatus(params.row)
+
         return (
           <TextEllipsisWithModal
             enableDialog={false}
             text={statusObj.label}
             style={{
-              color: theme.palette.customColors.OnSurfaceVariant ,
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '1rem',
               fontWeight: 400,
               pl: 1.4,
@@ -250,7 +251,7 @@ const HospitalTransferListing = () => {
           enableDialog={false}
           text={params?.row?.reason_for_transfer || '-'}
           style={{
-            color: theme.palette.customColors.OnSurfaceVariant ,
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,

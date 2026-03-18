@@ -1,18 +1,7 @@
 import React, { useContext, useEffect, useState } from 'react'
-import {
-  Box,
-  Typography,
-  Button,
-  Avatar,
-  TextField,
-  Tooltip,
-  Autocomplete,
-  CircularProgress,
-  Skeleton
-} from '@mui/material'
+import { Box, Typography, Button, Avatar, Tooltip, Skeleton } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@mui/material/styles'
-import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { styled } from '@mui/material/styles'
 import TimelineItem from '@mui/lab/TimelineItem'
 import TimelineContent from '@mui/lab/TimelineContent'
@@ -24,20 +13,14 @@ import MuiTimeline from '@mui/lab/Timeline'
 import JournalFilterSheet from './journalFilter'
 import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-import Toaster from 'src/components/Toaster'
 
-import { getAnimalJournalLogs } from 'src/lib/api/housing'
+import { getAnimalJournalLogs, getAnimalJournalModules } from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import Timeline from '@mui/lab/Timeline'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { useRouter } from 'next/router'
-import { AnimalJournalLog, AnimalJournalEntry, User } from 'src/types/housing'
-
-interface CategoryData {
-  categoryId: number
-  categoryName: string
-}
+import { AnimalJournalLog, AnimalJournalEntry, User, JournalModule } from 'src/types/housing'
 
 interface UserOption {
   user_id: string | number
@@ -74,28 +57,11 @@ interface JournalLogEntry {
   }
 }
 
-const categoriesData: CategoryData[] = [
-  { categoryId: 1, categoryName: 'Technology' },
-  { categoryId: 2, categoryName: 'Health' },
-  { categoryId: 3, categoryName: 'Education' },
-  { categoryId: 4, categoryName: 'Finance' },
-  { categoryId: 5, categoryName: 'Travel' },
-  { categoryId: 6, categoryName: 'Food' },
-  { categoryId: 7, categoryName: 'Fashion' },
-  { categoryId: 8, categoryName: 'Sports' },
-  { categoryId: 9, categoryName: 'Entertainment' },
-  { categoryId: 10, categoryName: 'Lifestyle' },
-  { categoryId: 11, categoryName: 'Business' },
-  { categoryId: 12, categoryName: 'Science' },
-  { categoryId: 13, categoryName: 'Politics' },
-  { categoryId: 14, categoryName: 'Art' },
-  { categoryId: 15, categoryName: 'Culture' },
-  { categoryId: 16, categoryName: 'Books' },
-  { categoryId: 17, categoryName: 'Gaming' },
-  { categoryId: 18, categoryName: 'Automobile' },
-  { categoryId: 19, categoryName: 'Music' },
-  { categoryId: 20, categoryName: 'Real Estate' }
-]
+interface ModuleFilterItem {
+  id: number | null
+  name: string // Display name for UI
+  module?: string // Original module value from API (for sending back to API)
+}
 
 const AnimalJournals: React.FC = () => {
   const theme = useTheme() as any
@@ -104,17 +70,22 @@ const AnimalJournals: React.FC = () => {
   const authData = useContext(AuthContext)
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [selectedTab, setSelectedTab] = useState<string>('active') // or 'inactive'
-  const [searchValue, setSearchValue] = useState<string>('')
-
-  const [selectedUser, setSelectedUser] = useState<UserOption>({ user_id: '', user_name: 'All' })
   const [users, setUsers] = useState<UserOption[]>([])
 
   const [journalLogsLoading, setJournalLogsLoading] = useState<boolean>(false)
   const [animalJournalLogs, setAnimalJournalLogs] = useState<JournalLogGroup[]>([])
 
-  // filter options
-  const categories: string[] = ['Users', 'Categories', 'Date Range']
+  // Module filter state (horizontal chips)
+  const [journalModules, setJournalModules] = useState<ModuleFilterItem[]>([{ id: null, name: 'All' }])
+  const [selectedModule, setSelectedModule] = useState<ModuleFilterItem>({ id: null, name: 'All' })
+  const [modulesLoading, setModulesLoading] = useState<boolean>(false)
+
+  // Pagination
+  const [page, setPage] = useState<number>(1)
+  const [totalCount, setTotalCount] = useState<number>(0)
+
+  // filter options - only Users (Date Range is in main UI)
+  const categories: string[] = ['Users']
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
 
@@ -126,17 +97,16 @@ const AnimalJournals: React.FC = () => {
   const [selectedUsers, setSelectedUsers] = useState<(string | number)[]>([])
   const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null })
 
-  const options: Record<string, UserOption[] | CategoryData[] | null> = {
-    Users: users || [],
-    Categories: categoriesData || [],
-    'Date Range': null
-  }
+  // Transform users to match filter drawer interface (userId, userName)
+  const filterDrawerUsers = users
+    .filter(u => u.user_id !== '') // Exclude "All" option for filter drawer
+    .map(u => ({
+      userId: typeof u.user_id === 'string' ? parseInt(u.user_id, 10) : u.user_id,
+      userName: u.user_name
+    }))
 
-  const basicStyle = {
-    '& .MuiOutlinedInput-root': {
-      borderRadius: '4px',
-      height: '40px'
-    }
+  const options: Record<string, any[] | null> = {
+    Users: filterDrawerUsers
   }
 
   const getUsers = async (): Promise<void> => {
@@ -144,59 +114,126 @@ const AnimalJournals: React.FC = () => {
       const zoo_id = (authData as any)?.userData?.user?.zoos?.[0]?.zoo_id
       if (!zoo_id) return
       const Users = await getUserList({ zoo_id })
-      setUsers(Users?.data)
+      setUsers(Users?.data || [])
     } catch (error) {
       console.error(String(error) || 'Failed to fetch user data.')
-
-      // Toaster({ type: 'error', message: String(error) || 'Failed to fetch user data.' })
     }
   }
 
-  const getUserData = (): void => {
-    const result = (authData as any)?.userData
-    if (result?.user?.user_id) {
-      setSelectedUser({
-        user_id: result?.user?.user_id,
-        user_name: `${result?.user?.user_first_name} ${result?.user?.user_last_name}`
-      })
-    }
-  }
-
-  const fetchAnimalJournalLogs = async (): Promise<void> => {
+  // Fetch journal modules (for horizontal filter chips)
+  const fetchJournalModules = async (): Promise<void> => {
     const animalId = Array.isArray(id) ? id[0] : id
     if (!animalId) return
 
-    const params = {
-      animal_id: Number(animalId),
-      category: 'animal_family_tree',
-      page: 1,
-      limit: 10
+    try {
+      setModulesLoading(true)
+      const res = await getAnimalJournalModules({ animal_id: Number(animalId) })
+      if (res.success && res.data) {
+        const modules = res.data.map((item: any) => ({
+          id: item.id,
+          // Store original module value for API calls
+          module: item.module,
+          // Display name: capitalize first letter, keep underscores for matching mobile
+          name: item.module ? item.module.charAt(0).toUpperCase() + item.module.slice(1).toLowerCase() : item.module
+        }))
+        // Add "All" option at the beginning
+        setJournalModules([{ id: null, name: 'All', module: undefined }, ...modules])
+      }
+    } catch (error) {
+      console.error('Error fetching journal modules:', error)
+    } finally {
+      setModulesLoading(false)
     }
+  }
+
+  const fetchAnimalJournalLogs = async (
+    pageNum: number = 1,
+    reset: boolean = false,
+    filters?: {
+      userIds?: (string | number)[]
+      dateRangeFilter?: DateRange
+      moduleFilter?: ModuleFilterItem
+    }
+  ): Promise<void> => {
+    const animalId = Array.isArray(id) ? id[0] : id
+    if (!animalId) return
+
+    // Use passed filters or fall back to current state
+    const currentUserIds = filters?.userIds ?? selectedUsers
+    const currentDateRange = filters?.dateRangeFilter ?? dateRange
+    const currentModule = filters?.moduleFilter ?? selectedModule
+
+    // Build params matching mobile implementation
+    // Mobile always sends start_date and end_date (empty string if not set)
+    const today = new Date().toISOString().split('T')[0]
+
+    const params: any = {
+      animal_id: animalId,
+      page: pageNum,
+      limit: '10',
+      start_date: currentDateRange.from ? new Date(currentDateRange.from).toISOString().split('T')[0] : '',
+      end_date: currentDateRange.to ? new Date(currentDateRange.to).toISOString().split('T')[0] : today
+    }
+
+    // Add user filter (JSON stringified array)
+    if (currentUserIds.length > 0) {
+      params.user_ids = JSON.stringify(currentUserIds)
+    }
+
+    // Add module filter - send original module value from API (matching mobile)
+    if (currentModule.id !== null && currentModule.module) {
+      params.module = currentModule.module
+    }
+
     try {
       setJournalLogsLoading(true)
+      console.log('Journal API params:', params)
       const res = await getAnimalJournalLogs(params)
       if (res.success) {
-        setAnimalJournalLogs((res?.data?.data || []) as JournalLogGroup[])
+        const newLogs = (res?.data?.data || []) as JournalLogGroup[]
+        if (reset) {
+          setAnimalJournalLogs(newLogs)
+        } else {
+          setAnimalJournalLogs(prev => [...prev, ...newLogs])
+        }
+        setTotalCount(res?.data?.total_count || 0)
       } else {
         console.error(String(res.message) || 'Failed to fetch journal logs.')
-
-        // Toaster({ type: 'error', message: String(res.message) || 'Failed to fetch journal logs.' })
       }
     } catch (error) {
       console.error(String(error) || 'Failed to fetch journal logs.')
-
-      // Toaster({ type: 'error', message: String(error) || 'Failed to fetch journal logs.' })
     } finally {
       setJournalLogsLoading(false)
     }
   }
 
+  // Initial load - fetch modules and users
   useEffect(() => {
-    fetchAnimalJournalLogs()
-    getUsers()
-    getUserData()
+    if (id) {
+      fetchJournalModules()
+      getUsers()
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authData])
+  }, [id, authData])
+
+  // Fetch journal logs on initial load and when filters change
+  useEffect(() => {
+    if (id) {
+      setPage(1)
+      // Pass current filter values directly to avoid closure issues
+      fetchAnimalJournalLogs(1, true, {
+        userIds: selectedUsers,
+        dateRangeFilter: dateRange,
+        moduleFilter: selectedModule
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, dateRange, selectedModule, selectedUsers])
+
+  // Handle module selection
+  const handleModuleSelect = (module: ModuleFilterItem): void => {
+    setSelectedModule(module)
+  }
 
   const AnimalJournalLog: React.FC = () => {
     const StyledTimeline = styled(MuiTimeline)({
@@ -277,13 +314,184 @@ const AnimalJournals: React.FC = () => {
                       }
                     }}
                   >
-                    <Avatar sx={{ width: 32, height: 32 }}>
-                      {item?.incon ? (
-                        <img alt='img' style={{ height: '100%', width: '100%' }} src={item?.incon} />
-                      ) : (
-                        <Icon icon='mdi:account' width={20} height={20} />
-                      )}
-                    </Avatar>
+                    {(() => {
+                      // Type-based conditional icon rendering matching mobile JournalCard.js
+                      // Normalize type: lowercase, replace spaces with underscores
+                      const rawType = item?.type || item?.category || ''
+                      const itemType = rawType.toLowerCase().replace(/\s+/g, '_')
+                      const fallbackImage = '/icons/antz.svg'
+
+                      // Medical record type - hardcoded stethoscope icon (matching mobile)
+                      if (itemType.includes('medical') || itemType.includes('medical_record')) {
+                        return (
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.error.main }}>
+                            <Icon icon='fa6-solid:stethoscope' width={16} height={16} color='white' />
+                          </Avatar>
+                        )
+                      }
+
+                      // Vaccination type - syringe icon
+                      if (itemType.includes('vaccination') || itemType.includes('vaccine')) {
+                        return (
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.primary.main }}>
+                            <Icon icon='mdi:needle' width={18} height={18} color='white' />
+                          </Avatar>
+                        )
+                      }
+
+                      // Mortality type - dead emoticon icon with red background
+                      if (itemType.includes('mortality')) {
+                        return (
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.error.main }}>
+                            <Icon icon='mdi:emoticon-dead-outline' width={20} height={20} color='white' />
+                          </Avatar>
+                        )
+                      }
+
+                      // Notes/Observation type - note outline icon
+                      if (itemType.includes('note') || itemType.includes('observation')) {
+                        return (
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.grey[200] }}>
+                            <Icon icon='mdi:note-outline' width={20} height={20} color={theme.palette.text.secondary} />
+                          </Avatar>
+                        )
+                      }
+
+                      // Login/Logout type
+                      if (itemType === 'login' || itemType === 'logout') {
+                        return (
+                          <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.grey[200] }}>
+                            <Icon icon={itemType === 'login' ? 'mdi:login' : 'mdi:logout'} width={20} height={20} />
+                          </Avatar>
+                        )
+                      }
+
+                      // Animal type
+                      if (itemType.includes('animal')) {
+                        const imageUrl = item?.details?.default_icon || item?.incon || (item as any)?.icon
+                        if (imageUrl) {
+                          return (
+                            <Avatar sx={{ width: 32, height: 32 }}>
+                              <img
+                                alt='animal-icon'
+                                style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                                src={imageUrl}
+                                onError={e => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = fallbackImage
+                                }}
+                              />
+                            </Avatar>
+                          )
+                        }
+                      }
+
+                      // Site type
+                      if (itemType.includes('site')) {
+                        const imageUrl = item?.details?.site_default_icon
+                        if (imageUrl) {
+                          return (
+                            <Avatar sx={{ width: 32, height: 32 }}>
+                              <img
+                                alt='site-icon'
+                                style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                                src={imageUrl}
+                                onError={e => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = fallbackImage
+                                }}
+                              />
+                            </Avatar>
+                          )
+                        }
+                      }
+
+                      // Section type
+                      if (itemType.includes('section')) {
+                        const imageUrl = item?.details?.section_default_icon
+                        if (imageUrl) {
+                          return (
+                            <Avatar sx={{ width: 32, height: 32 }}>
+                              <img
+                                alt='section-icon'
+                                style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                                src={imageUrl}
+                                onError={e => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = fallbackImage
+                                }}
+                              />
+                            </Avatar>
+                          )
+                        }
+                      }
+
+                      // Enclosure type
+                      if (itemType.includes('enclosure')) {
+                        const imageUrl = item?.details?.enclosure_default_icon
+                        if (imageUrl) {
+                          return (
+                            <Avatar sx={{ width: 32, height: 32 }}>
+                              <img
+                                alt='enclosure-icon'
+                                style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                                src={imageUrl}
+                                onError={e => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = fallbackImage
+                                }}
+                              />
+                            </Avatar>
+                          )
+                        }
+                      }
+
+                      // User profile type
+                      if (itemType.includes('user') || itemType.includes('profile')) {
+                        const imageUrl = item?.details?.user_profile_pic
+                        if (imageUrl) {
+                          return (
+                            <Avatar sx={{ width: 32, height: 32 }}>
+                              <img
+                                alt='user-icon'
+                                style={{ height: '100%', width: '100%', objectFit: 'cover' }}
+                                src={imageUrl}
+                                onError={e => {
+                                  const target = e.target as HTMLImageElement
+                                  target.src = fallbackImage
+                                }}
+                              />
+                            </Avatar>
+                          )
+                        }
+                      }
+
+                      // Default fallback: check all possible image fields
+                      const imageUrl =
+                        item?.incon ||
+                        (item as any)?.icon ||
+                        item?.details?.default_icon ||
+                        item?.details?.site_default_icon ||
+                        item?.details?.section_default_icon ||
+                        item?.details?.enclosure_default_icon ||
+                        item?.details?.user_profile_pic
+
+                      return (
+                        <Avatar sx={{ width: 32, height: 32 }}>
+                          <img
+                            alt='journal-icon'
+                            style={{ height: '100%', width: '100%', objectFit: 'cover', padding: 4 }}
+                            src={imageUrl || fallbackImage}
+                            onError={e => {
+                              const target = e.target as HTMLImageElement
+                              if (!target.src.endsWith(fallbackImage)) {
+                                target.src = fallbackImage
+                              }
+                            }}
+                          />
+                        </Avatar>
+                      )
+                    })()}
                     {group.entries.length === index + 1 ? null : <TimelineConnector />}
                   </TimelineSeparator>
 
@@ -496,40 +704,14 @@ const AnimalJournals: React.FC = () => {
   }
 
   const handleSelection = async (selectedIDs: (string | number)[] | DateRange, category: string): Promise<void> => {
-    let params: Record<string, string> = {}
     setIsLoading(true)
 
-    const isAllSelected = category === 'Users' ? 'All Users' : category === 'Categories' ? 'All Categories' : null
-
-    const key = category === 'Users' ? 'userIds' : category === 'Categories' ? 'categoryids' : 'date'
-
-    const stateSetter = category === 'Users' ? setSelectedUsers : setSelectedOptions
-
-    // Only run array logic if it's array
-    if (Array.isArray(selectedIDs) && selectedIDs.includes(isAllSelected as any)) {
-      if (category === 'Users') {
-        ;(stateSetter as typeof setSelectedUsers)(users.map(user => user.user_id)) // Select all
-        params[key] = ''
-      } else if (category === 'Categories') {
-        ;(stateSetter as typeof setSelectedOptions)(prev => ({
-          ...prev,
-          Categories: categoriesData.map(c => c.categoryId)
-        }))
-        params[key] = ''
-      }
-    } else {
-      params[key] = Array.isArray(selectedIDs) ? selectedIDs.toString() : ''
-      if (category === 'Users') {
-        ;(stateSetter as typeof setSelectedUsers)(selectedIDs as (string | number)[])
-      } else if (category === 'Categories') {
-        ;(stateSetter as typeof setSelectedOptions)(prev => ({ ...prev, Categories: selectedIDs as number[] }))
-      } else if (category === 'Date Range') {
-        setSelectedOptions(prev => ({
-          ...prev,
-          'Date Range': selectedIDs as DateRange
-        }))
-      }
+    if (category === 'Users') {
+      // Convert user IDs to integers (matching mobile implementation)
+      const userIds = (selectedIDs as (string | number)[]).map(id => (typeof id === 'string' ? parseInt(id, 10) : id))
+      setSelectedUsers(userIds)
     }
+
     setIsLoading(false)
   }
 
@@ -619,136 +801,118 @@ const AnimalJournals: React.FC = () => {
   return (
     <>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px', mt: 4 }}>
-        {/* <Box sx={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <Button
-            onClick={() => setSelectedTab('active')}
-            variant={selectedTab === 'active' ? 'contained' : 'text'}
-            sx={{
-              fontSize: 14,
-              fontWeight: 500,
-              height: '38px',
-              width: '154px',
-              letterSpacing: '0.1px',
-              textTransform: 'capitalize',
-              color:
-                selectedTab === 'active'
-                  ? theme.palette.primary.contrastText
-                  : theme.palette.customColors.OnSurfaceVariant,
-              backgroundColor:
-                selectedTab === 'active'
-                  ? theme.palette.customColors.OnPrimaryContainer
-                  : theme.palette.customColors.displaybgSecondary,
-              '&:hover': {
-                backgroundColor:
-                  selectedTab === 'active'
-                    ? theme.palette.customColors.OnPrimaryContainer
-                    : theme.palette.customColors.displaybgSecondary
-              }
-            }}
-          >
-            All
-          </Button>
-
-          <Button
-            onClick={() => setSelectedTab('inactive')}
-            variant={selectedTab === 'inactive' ? 'contained' : 'text'}
-            sx={{
-              fontSize: 14,
-              fontWeight: 500,
-              height: '38px',
-              width: '154px',
-              letterSpacing: '0.1px',
-              textTransform: 'capitalize',
-              color:
-                selectedTab === 'inactive'
-                  ? theme.palette.primary.contrastText
-                  : theme.palette.customColors.OnSurfaceVariant,
-              backgroundColor:
-                selectedTab === 'inactive'
-                  ? theme.palette.customColors.OnPrimaryContainer
-                  : theme.palette.customColors.displaybgSecondary,
-              '&:hover': {
-                backgroundColor:
-                  selectedTab === 'inactive'
-                    ? theme.palette.customColors.OnPrimaryContainer
-                    : theme.palette.customColors.displaybgSecondary
-              }
-            }}
-          >
-            Mortality
-          </Button>
-        </Box> */}
-
+        {/* Date Range Picker and Filter Button Row */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', rowGap: 4, columnGap: 2, flexWrap: 'wrap' }}>
-          <Box />
-          {/* <Box></Box> */}
-          {/* <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              borderRadius: '4px',
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              padding: '0 8px',
-              height: '40px'
-            }}
-          >
-            <Icon fontSize={24} icon='mi:search' color={theme.palette.customColors.neutralSecondary} />
-            <TextField
-              variant='outlined'
-              placeholder='Search...'
-              onChange={e => {
-                setSearchValue(e.target.value)
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  '& fieldset': {
-                    border: 'none',
-                    borderRadius: '4px'
-                  }
+          <Box sx={{ minWidth: '40px', maxWidth: '400px' }}>
+            <CommonDateRangePickers
+              onChange={(startDate: Date | string, endDate: Date | string) => {
+                // CommonDateRangePickers passes two arguments, convert to object
+                // Empty strings mean "All time" was selected
+                if (startDate === '' && endDate === '') {
+                  setDateRange({ from: null, to: null })
+                } else {
+                  setDateRange({
+                    from: startDate instanceof Date ? startDate : null,
+                    to: endDate instanceof Date ? endDate : null
+                  })
                 }
               }}
+              filterDates={{ startDate: dateRange.from, endDate: dateRange.to }}
             />
-          </Box>  */}
-          <Box sx={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-            <Autocomplete
-              sx={{ width: '200px', height: '40px' }}
-              value={selectedUser}
-              disablePortal
-              options={users}
-              getOptionLabel={(option: UserOption) => option.user_name}
-              isOptionEqualToValue={(option: UserOption, value: UserOption) => option?.user_id === value?.user_id}
-              onChange={(e: React.SyntheticEvent, val: UserOption | null) => {
-                if (val) setSelectedUser(val)
-              }}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  sx={{
-                    ...basicStyle,
-                    '& label.MuiInputLabel-root': {
-                      transform: 'translate(14px, 8px) !important'
-                    },
-                    '& label.MuiInputLabel-root[data-shrink="true"]': {
-                      transform: 'translate(14px, -9px) scale(0.75) !important'
-
-                      // pointerEvents: 'none'
-                    }
-                  }}
-                  label='Users'
-                  placeholder='Search & Select'
-                />
-              )}
-            />
-            {/* <Box onClick={() => setOpenFilterDrawer(true)} sx={{ borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center', height: '40px', width: '95px', border: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
-            <Icon icon='mage:filter' fontSize={24} />
-            <Typography s={{ fontSize: '16px', fontWeight: 400, lineHeight: '24px', letterSpacing: '0.15px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Filter
-            </Typography>
-              </Box>  */}
-            <Box sx={{ minWidth: '40px', maxWidth: '400px' }}>
-              <CommonDateRangePickers onChange={setDateRange} filterDates={dateRange} />
-            </Box>
           </Box>
+          <Button
+            variant='outlined'
+            onClick={() => setOpenFilterDrawer(true)}
+            sx={{
+              minWidth: '40px',
+              height: '40px',
+              p: 1,
+              borderColor: theme.palette.customColors?.OutlineVariant,
+              position: 'relative'
+            }}
+          >
+            <Icon icon='mage:filter' fontSize={20} />
+            {selectedUsers.length > 0 && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: -8,
+                  right: -8,
+                  backgroundColor: theme.palette.primary.main,
+                  color: 'white',
+                  borderRadius: '50%',
+                  width: 20,
+                  height: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 12,
+                  fontWeight: 600
+                }}
+              >
+                {selectedUsers.length}
+              </Box>
+            )}
+          </Button>
+        </Box>
+
+        {/* Journal Type Horizontal Filter Chips - below Users and Date picker */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            overflowX: 'auto',
+            pb: 1,
+            '&::-webkit-scrollbar': {
+              height: 6
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0,0,0,0.2)',
+              borderRadius: 3
+            }
+          }}
+        >
+          {modulesLoading
+            ? // Skeleton loading for modules
+              Array.from({ length: 4 }).map((_, idx) => (
+                <Skeleton
+                  key={idx}
+                  variant='rectangular'
+                  width={100}
+                  height={40}
+                  sx={{ borderRadius: '50px', flexShrink: 0 }}
+                />
+              ))
+            : journalModules.map((module, index) => {
+                const isSelected = selectedModule.name === module.name
+
+                return (
+                  <Button
+                    key={index}
+                    onClick={() => handleModuleSelect(module)}
+                    sx={{
+                      flexShrink: 0,
+                      fontWeight: 500,
+                      fontSize: '0.875rem',
+                      textTransform: 'none',
+                      borderRadius: '8px',
+                      px: 3,
+                      py: 1,
+                      minHeight: '40px',
+                      whiteSpace: 'nowrap',
+                      minWidth: 'auto',
+                      backgroundColor: isSelected
+                        ? theme.palette.customColors?.OnPrimaryContainer
+                        : theme.palette.customColors?.displaybgPrimary,
+                      color: isSelected
+                        ? theme.palette.customColors?.OnPrimary
+                        : theme.palette.customColors?.OnPrimaryContainer
+                    }}
+                  >
+                    {module.name}
+                  </Button>
+                )
+              })}
         </Box>
 
         <JournalFilterSheet

@@ -65,7 +65,8 @@ const MortalityListing: React.FC = () => {
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined,
         q: filters.search,
-        site_id: Number(id)
+        site_id: Number(id),
+        type: 'animals'
       }),
     enabled: !!id
   })
@@ -138,7 +139,9 @@ const MortalityListing: React.FC = () => {
   }
 
   const handleRowClick = (params: GridRowParams): void => {
-    // router.push({ pathname: `/housing/sites/${params.row.site_id}` })
+    if (params.row.animal_id) {
+      router.push(`/housing/animals/${params.row.animal_id}`)
+    }
   }
 
   const columns = [

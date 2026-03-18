@@ -14,7 +14,9 @@ import {
   GET_ASSESSMENT_ENTITY_TYPES,
   ADD_ENTITY_ASSESSMENT_VALUE,
   UPDATE_ENTITY_ASSESSMENT_VALUE,
-  ADD_ASSESSMENT_TYPES_TO_ENTITY
+  ADD_ASSESSMENT_TYPES_TO_ENTITY,
+  GET_ASSESSMENT_TEMPLATES_LIST,
+  ASSIGN_ASSESSMENT_TEMPLATE
 } from 'src/constants/ApiConstant'
 import type {
   GetAssessmentTypesResponse,
@@ -258,6 +260,78 @@ export async function addAssessmentTypesToEntity(
       ref_id: refId,
       ref_type: refType
     }
+  })
+
+  return response?.data
+}
+
+// ==================== Assessment Templates API ====================
+
+export interface GetAssessmentTemplatesParams {
+  page_no?: number
+  q?: string
+  ref_type?: 'animal' | 'housing'
+  entity_id?: number | string
+  entity_type?: 'enclosure' | 'section' | 'site' | ''
+}
+
+export interface AssessmentTemplate {
+  assessment_template_id: string
+  template_name: string
+  description?: string
+  assessment_types?: string[]
+  status?: 'assigned' | 'unassigned'
+  active?: number
+  ref_type?: string
+}
+
+export interface GetAssessmentTemplatesResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: AssessmentTemplate[]
+    total_count?: number
+  }
+}
+
+export interface AssignTemplatePayload {
+  ref_id: number | string
+  entity_type: 'assessment_type' | 'assessment_template'
+  ref_type: string
+  entity_id: string[]
+}
+
+export interface AssignTemplateResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+/**
+ * Get assessment templates list
+ * @param params - Query parameters including page_no, q, ref_type, entity_id, entity_type
+ */
+export async function getAssessmentTemplatesList(
+  params: GetAssessmentTemplatesParams
+): Promise<GetAssessmentTemplatesResponse> {
+  const response = await axiosGet({
+    url: GET_ASSESSMENT_TEMPLATES_LIST,
+    params
+  })
+
+  return response?.data
+}
+
+/**
+ * Assign assessment types or templates to an entity
+ * @param payload - Contains ref_id, entity_type, ref_type, and entity_id array
+ */
+export async function assignAssessmentTemplate(
+  payload: AssignTemplatePayload
+): Promise<AssignTemplateResponse> {
+  const response = await axiosPost({
+    url: ASSIGN_ASSESSMENT_TEMPLATE,
+    body: payload
   })
 
   return response?.data

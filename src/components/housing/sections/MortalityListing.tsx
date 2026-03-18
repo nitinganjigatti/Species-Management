@@ -32,6 +32,7 @@ interface MortalityRow {
   discovered_date?: string
   user_enclosure_name?: string
   reason_name?: string
+  mortality_id?: number
 }
 
 interface IndexedMortalityRow extends MortalityRow {
@@ -69,7 +70,8 @@ const MortalityListing: React.FC = () => {
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined,
         q: filters.search,
-        section_id: Number(id)
+        section_id: Number(id),
+        type: 'animals'
       }),
     enabled: !!id
   })
@@ -81,7 +83,7 @@ const MortalityListing: React.FC = () => {
 
   const indexedRows: IndexedMortalityRow[] = sectionList.map((row, index) => ({
     ...row,
-    id: +(row?.animal_id || 0),
+    id: +(row?.mortality_id || 0),
     sl_no: getSlNo(index)
   }))
 
@@ -142,7 +144,9 @@ const MortalityListing: React.FC = () => {
   }
 
   const handleRowClick = (params: GridRowParams): void => {
-    // router.push({ pathname: `/housing/sites/${params.row.site_id}` })
+    if (params.row.animal_id) {
+      router.push(`/housing/animals/${params.row.animal_id}`)
+    }
   }
 
   const columns: GridColDef[] = [

@@ -144,9 +144,7 @@ const AnimalTreatmentListing: React.FC = () => {
   }
 
   const handleRowClick = (params: GridRowParams): void => {
-    // router.push({
-    //   pathname: `/housing/sites/${params.row.site_id}`
-    // })
+    router.push(`/housing/animals/${params.row.animal_id}`)
   }
 
   const columns = [

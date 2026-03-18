@@ -19,8 +19,12 @@ import {
   Block as BlockIcon,
   Vaccines as VaccineIcon,
   Delete as DeleteIcon,
-  Notes as NotesIcon
+  Notes as NotesIcon,
+  CalendarToday as CalendarIcon,
+  Warning as WarningIcon,
+  Info as InfoIcon
 } from '@mui/icons-material'
+import { Icon } from '@iconify/react'
 
 // Import necropsy components for reuse
 import MedicalRecordsList from 'src/components/necropsy/MedicalRecordsList'
@@ -345,14 +349,21 @@ interface VaccinationListProps {
   canAdd?: boolean
 }
 
+interface VaccinationCounts {
+  pending: number
+  upcoming: number
+  completed: number
+}
+
 const VaccinationList: FC<VaccinationListProps> = ({ animalId, type, canAdd = true }) => {
-  const theme = useTheme()
+  const theme = useTheme() as any
   const [activeSubTab, setActiveSubTab] = useState<'Pending' | 'Upcoming' | 'Completed'>('Pending')
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [pageNo, setPageNo] = useState<number>(1)
   const [hasMore, setHasMore] = useState<boolean>(false)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
+  const [counts, setCounts] = useState<VaccinationCounts>({ pending: 0, upcoming: 0, completed: 0 })
 
   const fetchData = async (tab: string, page: number, append: boolean = false): Promise<void> => {
     try {
@@ -372,6 +383,15 @@ const VaccinationList: FC<VaccinationListProps> = ({ animalId, type, canAdd = tr
         const responseData = res.data
 
         const records = Array.isArray(responseData) ? responseData : responseData?.result || []
+
+        // Update counts from stats if available
+        if (!Array.isArray(responseData) && responseData?.stats) {
+          setCounts({
+            pending: parseInt(String(responseData.stats.pending)) || 0,
+            upcoming: parseInt(String(responseData.stats.upcoming)) || 0,
+            completed: parseInt(String(responseData.stats.completed)) || 0
+          })
+        }
 
         if (append) {
           setData(prev => [...prev, ...records])
@@ -400,17 +420,60 @@ const VaccinationList: FC<VaccinationListProps> = ({ animalId, type, canAdd = tr
     fetchData(activeSubTab, nextPage, true)
   }
 
-  const getStatusColor = (status: string): 'success' | 'warning' | 'info' | 'default' => {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'success'
-      case 'pending':
-        return 'warning'
-      case 'upcoming':
-        return 'info'
-      default:
-        return 'default'
+  const getCounts = (tab: string): number | null => {
+    const key = tab.toLowerCase() as keyof VaccinationCounts
+
+    return counts[key] ?? null
+  }
+
+  // Status detection matching mobile implementation
+  const isPending = (status: string | null): boolean => status === 'pending' || status === null
+
+  const isCompleted = (status: string | null): boolean =>
+    status === 'administrator' || status === 'completed' || status === 'withheld'
+  const isStopped = (status: string | null): boolean => status === 'stopped' || status === 'close'
+
+  // Get background color based on status and side effect
+  const getCardBackground = (record: any): string => {
+    const hasSideEffect = record?.caused_adverse_effects === '1'
+    const stopped = isStopped(record?.status)
+
+    if (hasSideEffect) {
+      return stopped
+        ? alpha(theme.palette.customColors?.neutralPrimary || theme.palette.grey[500], 0.02)
+        : alpha(theme.palette.warning.light, 0.15)
     }
+    if (isPending(record?.status)) {
+      return theme.palette.customColors?.surface || theme.palette.background.paper
+    }
+    if (isCompleted(record?.status) || stopped) {
+      return alpha(theme.palette.customColors?.neutralPrimary || theme.palette.grey[500], 0.02)
+    }
+
+    return theme.palette.background.paper
+  }
+
+  // Format dose string matching mobile
+  const formatDose = (record: any): string => {
+    const quantity = record?.quantity_administered ?? record?.scheduled_quantity
+    const unit = record?.administritive_unit ?? record?.scheduled_unit ?? ''
+    const weightUnit = record?.administritive_weight_uom_abbr ?? record?.weight_unit_name
+
+    if (!quantity) return ''
+
+    let doseStr = `${quantity}${unit}`
+    if (weightUnit) {
+      doseStr += ` / ${weightUnit}`
+    }
+
+    return doseStr
+  }
+
+  // Format date matching mobile
+  const formatDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return ''
+
+    return Utility.formatDisplayDate(dateStr)
   }
 
   return (
@@ -422,6 +485,7 @@ const VaccinationList: FC<VaccinationListProps> = ({ animalId, type, canAdd = tr
           setActiveSubTab(tab as any)
           setPageNo(1)
         }}
+        getCounts={getCounts}
       />
 
       {loading ? (
@@ -430,52 +494,264 @@ const VaccinationList: FC<VaccinationListProps> = ({ animalId, type, canAdd = tr
         <EmptyState message={`No ${type === 'vaccination' ? 'Vaccination' : 'Deworming'} Records Found`} />
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          {data.map((record, index) => (
-            <Box
-              key={record.id || index}
-              sx={{
-                border: `1px solid ${theme.palette.success.main}`,
-                borderRadius: '12px',
-                p: 3,
-                backgroundColor: 'transparent',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: alpha(theme.palette.success.main, 0.04)
-                }
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                <VaccineIcon sx={{ fontSize: 24, color: theme.palette.success.main }} />
-                <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.text.primary, flex: 1 }}>
-                  {record.vaccine_name ||
-                    record.medicine_name ||
-                    record.name ||
-                    (type === 'vaccination' ? 'Vaccine' : 'Deworming')}
-                </Typography>
-                <Chip
-                  label={record.status || activeSubTab}
-                  size='small'
-                  color={getStatusColor(record.status || activeSubTab)}
-                  sx={{ borderRadius: '6px' }}
-                />
+          {data.map((record, index) => {
+            const hasSideEffect = record?.caused_adverse_effects === '1'
+            const stopped = isStopped(record?.status)
+            const isControlledSubstance = record?.schedule_vaccine_cs === '1'
+            const vaccineName = record?.medicine_name || record?.vaccine_name || record?.name || ''
+            const vaccineDate = record?.generate_for_date || record?.scheduled_date
+            const stopDate = record?.administritive_date_time
+            const dose = formatDose(record)
+            const notes = record?.prescription_note
+            const alternativeVaccine = record?.alternate_vaccine_name
+            const isAlternateCS = record?.alternate_vaccine_cs === '1'
+
+            return (
+              <Box
+                key={record.id || index}
+                sx={{
+                  border: `1px solid ${theme.palette.customColors?.outlineVariant || theme.palette.divider}`,
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  backgroundColor: getCardBackground(record)
+                }}
+              >
+                {/* Header Section */}
+                <Box
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    backgroundColor: hasSideEffect
+                      ? stopped
+                        ? alpha(theme.palette.customColors?.neutralPrimary || theme.palette.grey[500], 0.02)
+                        : alpha(theme.palette.warning.light, 0.15)
+                      : 'transparent'
+                  }}
+                >
+                  {/* Vaccine Name with CS Badge */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    {isControlledSubstance && (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: 22,
+                          height: 22,
+                          borderRadius: '4px',
+                          backgroundColor: theme.palette.error.main,
+                          flexShrink: 0
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            color: theme.palette.common.white,
+                            lineHeight: 1
+                          }}
+                        >
+                          CS
+                        </Typography>
+                      </Box>
+                    )}
+                    <Typography
+                      sx={{
+                        fontSize: '1rem',
+                        fontWeight: 600,
+                        color: theme.palette.customColors?.neutralPrimary || theme.palette.text.primary,
+                        flex: 1,
+                        textDecoration: stopped ? 'line-through' : 'none'
+                      }}
+                    >
+                      {vaccineName}
+                    </Typography>
+                  </Box>
+
+                  {/* Alternative Vaccine */}
+                  {alternativeVaccine && (
+                    <Box sx={{ mt: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Icon
+                          icon='mdi:arrow-u-right-bottom'
+                          width={16}
+                          height={16}
+                          color={theme.palette.customColors?.addPrimary || theme.palette.success.main}
+                        />
+                        <Typography
+                          sx={{
+                            fontSize: '0.75rem',
+                            color: theme.palette.customColors?.addPrimary || theme.palette.success.main
+                          }}
+                        >
+                          Alternative Vaccine
+                        </Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, ml: 2.5 }}>
+                        {isAlternateCS && (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: 18,
+                              height: 18,
+                              borderRadius: '3px',
+                              backgroundColor: theme.palette.error.main,
+                              flexShrink: 0
+                            }}
+                          >
+                            <Typography sx={{ fontSize: '8px', fontWeight: 700, color: theme.palette.common.white }}>
+                              CS
+                            </Typography>
+                          </Box>
+                        )}
+                        <Typography
+                          sx={{
+                            fontSize: '0.8125rem',
+                            color: theme.palette.customColors?.onSurfaceVariant || theme.palette.text.secondary
+                          }}
+                        >
+                          {alternativeVaccine}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Stopped Timestamp */}
+                  {stopped && stopDate && (
+                    <Typography
+                      sx={{
+                        fontSize: '0.8125rem',
+                        fontWeight: 500,
+                        color: theme.palette.error.main,
+                        mt: 0.5
+                      }}
+                    >
+                      Stopped on {Utility.convertUTCToLocalDateTime(stopDate)}
+                    </Typography>
+                  )}
+                </Box>
+
+                {/* Side Effect Warning */}
+                {hasSideEffect && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.5,
+                      px: 2,
+                      py: 1,
+                      backgroundColor: getCardBackground(record)
+                    }}
+                  >
+                    <WarningIcon sx={{ fontSize: 18, color: theme.palette.error.main }} />
+                    <Typography
+                      sx={{
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        color: theme.palette.error.main,
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      Caused Adverse Side Effects
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Details Section */}
+                <Box
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1,
+                    backgroundColor: getCardBackground(record)
+                  }}
+                >
+                  {/* Date and Dose Row */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    {/* Date */}
+                    {vaccineDate && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <CalendarIcon
+                          sx={{
+                            fontSize: 18,
+                            color: theme.palette.customColors?.onSurfaceVariant || theme.palette.text.secondary
+                          }}
+                        />
+                        <Typography
+                          sx={{
+                            fontSize: '0.875rem',
+                            color: theme.palette.customColors?.onSurfaceVariant || theme.palette.text.secondary
+                          }}
+                        >
+                          {formatDate(vaccineDate)}
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Dose Badge */}
+                    {dose && (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 0.5,
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: '4px',
+                          backgroundColor: alpha(
+                            theme.palette.customColors?.neutralPrimary || theme.palette.grey[500],
+                            0.05
+                          )
+                        }}
+                      >
+                        <Icon
+                          icon='mdi:scale-balance'
+                          width={16}
+                          height={16}
+                          color={theme.palette.customColors?.onSurfaceVariant || theme.palette.text.secondary}
+                        />
+                        <Typography
+                          sx={{
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            color: theme.palette.customColors?.onSurfaceVariant || theme.palette.text.secondary
+                          }}
+                        >
+                          {dose}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Notes */}
+                  {notes && (
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                      <InfoIcon
+                        sx={{
+                          fontSize: 18,
+                          color: theme.palette.customColors?.onSurfaceVariant || theme.palette.text.secondary,
+                          mt: 0.25
+                        }}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: '0.8125rem',
+                          fontStyle: 'italic',
+                          color: theme.palette.customColors?.onSurfaceVariant || theme.palette.text.secondary
+                        }}
+                      >
+                        {notes}
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
               </Box>
-              {record.dose && (
-                <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary, ml: 5 }}>
-                  Dose: {record.dose}
-                </Typography>
-              )}
-              {record.scheduled_date && (
-                <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary, ml: 5 }}>
-                  Scheduled: {Utility.formatDisplayDate(record.scheduled_date)}
-                </Typography>
-              )}
-              {record.administered_date && (
-                <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary, ml: 5 }}>
-                  Administered: {Utility.formatDisplayDate(record.administered_date)}
-                </Typography>
-              )}
-            </Box>
-          ))}
+            )
+          })}
 
           {hasMore && (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
@@ -611,19 +887,6 @@ const AdverseRxList: FC<AdverseRxListProps> = ({ animalId, canDelete = true }) =
               <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.error.main, flex: 1 }}>
                 {medicine.medicine_name || medicine.name || 'Unknown Medicine'}
               </Typography>
-              <Chip label='Blocked' size='small' color='error' sx={{ borderRadius: '6px' }} />
-              {canDelete && (
-                <IconButton
-                  size='small'
-                  onClick={() => handleDeleteClick(medicine)}
-                  sx={{
-                    color: theme.palette.error.main,
-                    '&:hover': { backgroundColor: alpha(theme.palette.error.main, 0.1) }
-                  }}
-                >
-                  <DeleteIcon fontSize='small' />
-                </IconButton>
-              )}
             </Box>
             {medicine.side_effect && (
               <Typography sx={{ fontSize: '0.8125rem', color: theme.palette.text.secondary, ml: 4.5 }}>
