@@ -527,7 +527,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
     setAttendingSelectedDoctors(prev => {
       const filtered = prev.filter(item => item.value !== doctor.id)
-      setValue('coAttendDoctor', filtered)
+      setValue('attendingDoctors', filtered)
       return filtered
     })
   }
@@ -957,7 +957,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                       Attending Veterinarian
                     </Typography>
                     <Controller
-                      name='coAttendDoctor'
+                      name='attendingDoctors'
                       control={control}
                       defaultValue={[]}
                       render={({ field }) => (
@@ -984,7 +984,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                           }}
                           noOptionsText='No available attending vets...'
                           renderInput={params => (
-                            <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                            <TextField {...params} label='Select Attending Veterinarian' placeholder='Search & Select' />
                           )}
                         />
                       )}
@@ -1202,8 +1202,6 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
           setOpen={setDoctorDrawerOpen}
           onSelectDoctor={handleDoctorSelection}
           hospitalId={selectedHospital?.id}
-          doctors={doctors}
-          setDoctors={setDoctors}
           selectedDoctor={selectedDoctor}
           setSelectedDoctor={setSelectedDoctor}
         />

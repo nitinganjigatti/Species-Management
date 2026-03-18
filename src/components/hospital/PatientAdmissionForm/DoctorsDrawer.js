@@ -7,12 +7,13 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { useForm } from 'react-hook-form'
-const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId, doctors, setDoctors }) => {
+const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId}) => {
   const theme = useTheme()
   const { setValue } = useForm()
   const [searchValue, setSearchValue] = useState('')
   const [selected, setSelected] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [doctors, setDoctors] = useState([])
 
   const getUserLists = async (query = '') => {
     setLoading(true)
@@ -24,15 +25,13 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId, doctors, set
       await getHospitalStaff({ params: { hospital_id: hospitalId, is_hospital_chief_doctor: '1',...params } }).then(res => {
         console.log(res)
         if (res?.success === true) {
-          const records = res?.data?.records || []
 
           setDoctors(
-            records.map(item => ({
+             res?.data?.records.map(item => ({
               name: item?.user_full_name,
               id: item?.user_id,
               default_icon: item?.user_profile_pic,
               role_name: item?.role_name,
-              is_hospital_chief_doctor: '1'
             }))
           )
         } else {
@@ -179,7 +178,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId, doctors, set
             </>
           ) : (
             <>
-              {doctors.map(doctor => (
+              {doctors?.map(doctor => (
                 <Box
                   key={doctor?.id}
                   sx={{
@@ -190,7 +189,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId, doctors, set
                     background: theme.palette.customColors.OnPrimary,
                     borderRadius: 1,
                     cursor: 'pointer',
-                    border: selected?.id === doctor?.id ? `2px solid ${theme.palette.primary.main}` : `2px solid transparent`,
+                    border: selected=== doctor ? `2px solid ${theme.palette.primary.main}` : `2px solid transparent`,
                     transition: 'border-color 0.2s'
                   }}
                   onClick={() => setSelected(doctor)}

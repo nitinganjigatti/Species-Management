@@ -244,8 +244,8 @@ const schema = yup.object().shape({
       const patientData = this.options?.context?.patientData
       if (!patientData) return true
 
-      const admittedAt = dayjs.utc(patientData.admitted_at).local()
-      const dischargeAt = dayjs.utc(patientData.discharge_at).local()
+      const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+      const dischargeAt = dayjs(Utility.convertUTCToLocal(patientData?.discharge_at))
       const now = dayjs()
 
       const selectedDateTime = selectedStartDate.hour(selectedStartTime.hour()).minute(selectedStartTime.minute()).second(0)
@@ -890,7 +890,7 @@ const AddSurgeryRecord = () => {
 
   const minTime = useMemo(() => {
     if (!patientData?.admitted_at || !selectedDate) return null
-    const admitted = dayjs.utc(patientData.admitted_at).local()
+    const admitted = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
     if (dayjs(selectedDate).isSame(admitted, 'day')) {
       return dayjs(selectedDate).hour(admitted.hour()).minute(admitted.minute()).second(0)
     }
@@ -899,7 +899,7 @@ const AddSurgeryRecord = () => {
 
   const maxTime = useMemo(() => {
     if (!patientData?.discharge_at || !selectedDate) return null
-    const discharge = dayjs.utc(patientData.discharge_at).local()
+    const discharge = dayjs(Utility.convertUTCToLocal(patientData?.discharge_at))
     if (dayjs(selectedDate).isSame(discharge, 'day')) {
       return discharge.subtract(1, 'hour').startOf('minute')
     }

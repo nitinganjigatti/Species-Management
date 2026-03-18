@@ -913,7 +913,7 @@ const PatientAdmitForm = ()=> {
                               }}
                               noOptionsText='No available attending vets...'
                               renderInput={params => (
-                                <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                                <TextField {...params} label='Select Attending Veterinarian' placeholder='Search & Select' />
                               )}
                             />
                           )}
@@ -1104,8 +1104,6 @@ const PatientAdmitForm = ()=> {
           setOpen={setDoctorDrawerOpen}
           onSelectDoctor={handleDoctorSelection}
           hospitalId={selectedHospital?.id}
-          doctors={doctors}
-          setDoctors={setDoctors}
         />
       )}
       {isRejecting && (
