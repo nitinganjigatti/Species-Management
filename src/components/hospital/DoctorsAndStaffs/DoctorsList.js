@@ -31,6 +31,7 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import hospital from 'src/pages/hospital/masters/hospital'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const DoctorsList = () => {
   const theme = useTheme()
@@ -356,10 +357,10 @@ const DoctorsList = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Doctors And Staffs</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+            sx={{ mb: 5 }}
+            pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Doctors & Staffs' }]}
+          />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>

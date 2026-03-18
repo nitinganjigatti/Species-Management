@@ -35,6 +35,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalMortality = () => {
   const theme = useTheme()
@@ -553,11 +554,10 @@ const HospitalMortality = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Mortality</Typography>
-        </Breadcrumbs>
+        <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Mortality' }]}
+        />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>

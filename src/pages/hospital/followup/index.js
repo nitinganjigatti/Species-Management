@@ -36,6 +36,7 @@ import Toaster from 'src/components/Toaster'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import toast from 'react-hot-toast'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalFollowUp = () => {
   const theme = useTheme()
@@ -461,11 +462,10 @@ const HospitalFollowUp = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Follow Up</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+            sx={{ mb: 5 }}
+            pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Follow Up' }]}
+          />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
