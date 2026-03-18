@@ -22,6 +22,7 @@ import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
+import AddSiteDrawer from 'src/views/pages/housing/sites/AddSiteDrawer'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
@@ -122,9 +123,10 @@ const SiteDetails: React.FC = () => {
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
   const [showAddSectionDrawer, setShowAddSectionDrawer] = useState<boolean>(false)
+  const [showEditSiteDrawer, setShowEditSiteDrawer] = useState<boolean>(false)
   const [addSuccessCheck, setAddSuccessCheck] = useState<boolean>(false)
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['site-detail', id],
     queryFn: () =>
       getSpecificSiteAnalytics({
@@ -132,6 +134,14 @@ const SiteDetails: React.FC = () => {
       }),
     enabled: !!id
   })
+
+  const siteData = data?.data as any
+
+  // Check if user is site incharge (matching mobile implementation: siteDetailsData?.site_incharge?.includes(loggedin_user_id))
+  const isSiteIncharge = siteData?.incharges?.some((incharge: any) => incharge?.user_id === loggedInUserId)
+
+  // User can edit/delete site if they have add_sites permission OR are a site incharge
+  const canEditSite = addSitesAccess || isSiteIncharge
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string): void => {
     // Find reset action for previous tab
@@ -179,8 +189,6 @@ const SiteDetails: React.FC = () => {
     setDrawerType(null)
     setDrawerData(null)
   }
-
-  const siteData = data?.data as any
 
   const statsData: StatItem[] = [
     {
@@ -260,8 +268,11 @@ const SiteDetails: React.FC = () => {
           userImage={siteData?.incharges?.[0]?.user_profile_pic}
           pageTitle='Site Details'
           actions={{
-            onAddNew: addSectionAccess ? () => setShowAddSectionDrawer(true) : null
+            onAddNew: addSectionAccess ? () => setShowAddSectionDrawer(true) : null,
+            onEdit: canEditSite ? () => setShowEditSiteDrawer(true) : null
           }}
+          addNewTooltip='Add new section'
+          editTooltip='Edit site'
           onCallClick={() => {
             const phoneNumber = siteData?.incharges?.[0]?.user_mobile_number || ''
             if (phoneNumber) {
@@ -302,7 +313,7 @@ const SiteDetails: React.FC = () => {
               addSuccessCheck={addSuccessCheck}
               siteIncharges={siteData?.incharges || []}
               loggedInUserId={loggedInUserId}
-              addSitesAccess={addSitesAccess}
+              addSitesAccess={canEditSite}
               settings={settings}
               entityName={siteData?.site_name}
               entityImage={siteData?.images?.find((img: any) => img?.display_type === 'banner')?.file}
@@ -332,6 +343,21 @@ const SiteDetails: React.FC = () => {
           selectedSiteId={id || ''}
           addSuccessCheck={addSuccessCheck}
           setAddSuccessCheck={setAddSuccessCheck}
+        />
+      )}
+      {showEditSiteDrawer && (
+        <AddSiteDrawer
+          open={showEditSiteDrawer}
+          setSiteDrawer={setShowEditSiteDrawer}
+          refetch={refetch}
+          siteData={siteData ? {
+            site_id: Number(id),
+            site_name: siteData.site_name,
+            site_description: siteData.site_description,
+            latitude: siteData.latitude,
+            longitude: siteData.longitude,
+            images: siteData.images
+          } : null}
         />
       )}
     </>

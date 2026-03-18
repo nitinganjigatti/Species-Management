@@ -8,22 +8,34 @@ import SiteListingCard from 'src/views/pages/housing/utils/SiteListingCard'
 import Search from 'src/views/utility/Search'
 import { useInfiniteQuery, useQueryClient, InfiniteData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import { addCluster, getAllSites } from 'src/lib/api/housing'
+import { addCluster, editCluster, deleteCluster, getAllSites } from 'src/lib/api/housing'
 import { useInView } from 'react-intersection-observer'
 import toast from 'react-hot-toast'
 import SelectedSites from './SelectedSites'
 import Toaster from 'src/components/Toaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { useRouter } from 'next/router'
 import type { Site } from 'src/types/housing'
+
+interface ClusterData {
+  cluster_id: number
+  cluster_name?: string
+  cluster_desc?: string
+  images?: Array<{ file: string; display_type?: string }>
+}
 
 interface AddClusterProps {
   open: boolean
   setShowDrawer: (open: boolean) => void
   refetchCluster: () => void
+  clusterData?: ClusterData | null  // If provided, drawer is in edit mode
+  canDelete?: boolean  // Permission to delete cluster (only for edit mode)
 }
 
 interface FormData {
   clusterName: string
-  images: File[]
+  clusterDescription: string
+  images: (File | string)[]  // Can be File objects or URL strings for existing images
   selectedSites: number[]
 }
 
@@ -33,11 +45,13 @@ interface PageData {
   total: number
 }
 
-const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchCluster }) => {
+const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchCluster, clusterData, canDelete = true }) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const PAGE_SIZE = 10
+  const isEditMode = !!clusterData
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
@@ -46,6 +60,8 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false)
   const [showSelectedSitesDrawer, setShowSelectedSitesDrawer] = useState<boolean>(false)
 
   const {
@@ -53,14 +69,28 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
     setValue,
     watch,
     handleSubmit,
+    reset,
     formState: { errors }
   } = useForm<FormData>({
     defaultValues: {
       clusterName: '',
+      clusterDescription: '',
       images: [],
       selectedSites: []
     }
   })
+
+  // Pre-populate form when in edit mode
+  useEffect(() => {
+    if (isEditMode && clusterData) {
+      reset({
+        clusterName: clusterData.cluster_name || '',
+        clusterDescription: clusterData.cluster_desc || '',
+        images: clusterData.images?.map(img => img.file) || [],
+        selectedSites: []
+      })
+    }
+  }, [isEditMode, clusterData, reset])
 
   const images = watch('images')
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -148,6 +178,7 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
     setSelectedSites([])
     setSelectedSiteObjects([])
     setValue('clusterName', '')
+    setValue('clusterDescription', '')
     setValue('images', [])
     setValue('selectedSites', [])
     setShowDrawer(false)
@@ -237,32 +268,77 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
   }
 
   const onSubmit = async (data: FormData): Promise<void> => {
-    console.log('Form Data:', data)
     setLoading(true)
 
-    const payload = {
-      cluster_name: data?.clusterName,
-      cluster_sites: JSON.stringify(data?.selectedSites),
-      cluster_desc: '',
-      cluster_image: data?.images
-    }
-    console.log('Payload:', payload)
     try {
-      const response = await addCluster(payload)
-      console.log('Cluster added successfully:', response)
-      if (response?.success) {
-        handleDrawerClose()
-        refetchCluster()
-        queryClient.invalidateQueries({ queryKey: ['sites-for-cluster-adding', search] })
-        Toaster({ type: 'success', message: response?.message })
+      if (isEditMode && clusterData) {
+        // Edit mode - only send new File objects, not existing URL strings
+        const newImages = data.images.filter(img => img instanceof File) as File[]
+
+        const payload = {
+          cluster_id: clusterData.cluster_id,
+          cluster_name: data.clusterName,
+          cluster_desc: data.clusterDescription,
+          cluster_image: newImages.length > 0 ? newImages : undefined
+        }
+
+        const response = await editCluster(payload) as any
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: 'Cluster Updated Successfully' })
+          handleDrawerClose()
+          refetchCluster()
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to update cluster' })
+        }
       } else {
-        Toaster({ type: 'error', message: response?.message })
+        // Add mode
+        const payload = {
+          cluster_name: data.clusterName,
+          cluster_sites: JSON.stringify(data.selectedSites),
+          cluster_desc: data.clusterDescription || '',
+          cluster_image: data.images.filter(img => img instanceof File) as File[]
+        }
+
+        const response = await addCluster(payload)
+
+        if (response?.success) {
+          handleDrawerClose()
+          refetchCluster()
+          queryClient.invalidateQueries({ queryKey: ['sites-for-cluster-adding', search] })
+          Toaster({ type: 'success', message: response?.message })
+        } else {
+          Toaster({ type: 'error', message: response?.message })
+        }
       }
     } catch (e) {
-      console.error('Error adding cluster:', e)
-      toast.error('Failed to add cluster')
+      console.error('Error saving cluster:', e)
+      toast.error(isEditMode ? 'Failed to update cluster' : 'Failed to add cluster')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteCluster = async (): Promise<void> => {
+    if (!clusterData) return
+
+    setDeleteLoading(true)
+    try {
+      const response = await deleteCluster({ cluster_id: clusterData.cluster_id }) as any
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Cluster Deleted Successfully' })
+        setShowDeleteDialog(false)
+        handleDrawerClose()
+        router.push('/housing/cluster')
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete cluster' })
+      }
+    } catch (error) {
+      console.error('Delete Error:', error)
+      toast.error('An error occurred while deleting the cluster')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -312,10 +388,15 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
           >
             <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
               <img src='/icons/activity_icon.png' alt='Cluster Icon' width='30px' />
-              <Typography variant='h6'>Add New Cluster</Typography>
+              <Typography variant='h6'>{isEditMode ? 'Edit Cluster' : 'Add New Cluster'}</Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              {isEditMode && canDelete && (
+                <IconButton size='small' onClick={() => setShowDeleteDialog(true)} sx={{ color: 'error.main' }}>
+                  <Icon icon='mdi:delete-outline' fontSize={20} />
+                </IconButton>
+              )}
               <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
                 <Icon icon='mdi:close' fontSize={20} />
               </IconButton>
@@ -353,6 +434,22 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                         placeholder='Enter Cluster Name'
                         error={!!error}
                         helperText={error ? error.message : null}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name='clusterDescription'
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label='Description'
+                        variant='outlined'
+                        fullWidth
+                        multiline
+                        rows={3}
+                        sx={{ mb: 4 }}
+                        placeholder='Enter description (optional)'
                       />
                     )}
                   />
@@ -477,64 +574,67 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                     )}
                   />
                 </Box>
-                <Box sx={{ mb: 4 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      mb: 3
-                    }}
-                  >
-                    <Typography variant='h6' sx={{ color: 'text.secondary' }}>
-                      All Sites ({total})
-                    </Typography>
-                    <Search
-                      placeholder='Search for sites'
-                      value={localSearch}
-                      onChange={handleSearchChange}
-                      onClear={handleSearchClear}
-                      backgroundColor={theme.palette.customColors?.OnPrimary}
-                    />
-                  </Box>
-
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
-                    {list.map((site: Site) => (
-                      <SiteListingCard
-                        key={site?.site_id}
-                        site={site}
-                        isSelected={selectedSites.includes(site?.site_id)}
-                        onAction={handleSiteSelect}
-                        isDisabled={(site as any)?.cluster_present === '1'}
-                        mode='select'
+                {/* Site selection - only shown in add mode */}
+                {!isEditMode && (
+                  <Box sx={{ mb: 4 }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        mb: 3
+                      }}
+                    >
+                      <Typography variant='h6' sx={{ color: 'text.secondary' }}>
+                        All Sites ({total})
+                      </Typography>
+                      <Search
+                        placeholder='Search for sites'
+                        value={localSearch}
+                        onChange={handleSearchChange}
+                        onClear={handleSearchClear}
+                        backgroundColor={theme.palette.customColors?.OnPrimary}
                       />
-                    ))}
+                    </Box>
 
-                    {isFetching && list.length === 0 && (
-                      <Box display='flex' justifyContent='center' p={2} mt={2}>
-                        <CircularProgress />
-                      </Box>
-                    )}
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
+                      {list.map((site: Site) => (
+                        <SiteListingCard
+                          key={site?.site_id}
+                          site={site}
+                          isSelected={selectedSites.includes(site?.site_id)}
+                          onAction={handleSiteSelect}
+                          isDisabled={(site as any)?.cluster_present === '1'}
+                          mode='select'
+                        />
+                      ))}
 
-                    {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
-                      <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
-                        <CircularProgress />
-                      </Box>
-                    )}
+                      {isFetching && list.length === 0 && (
+                        <Box display='flex' justifyContent='center' p={2} mt={2}>
+                          <CircularProgress />
+                        </Box>
+                      )}
 
-                    {!isFetching && list.length === 0 && (
-                      <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-                        No Site found
-                      </Typography>
-                    )}
+                      {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
+                        <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
+                          <CircularProgress />
+                        </Box>
+                      )}
 
-                    {!hasNextPage && list.length > 0 && (
-                      <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                        No more sites to load
-                      </Typography>
-                    )}
+                      {!isFetching && list.length === 0 && (
+                        <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
+                          No Site found
+                        </Typography>
+                      )}
+
+                      {!hasNextPage && list.length > 0 && (
+                        <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
+                          No more sites to load
+                        </Typography>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
+                )}
               </form>
             </Box>
           </Box>
@@ -550,28 +650,31 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
               gap: 10
             }}
           >
-            <Button
-              endIcon={<Icon icon='mdi:chevron-down' size={20} />}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textTransform: 'none',
-                color: theme.palette.primary.main,
-                px: 10
-              }}
-              onClick={() => setShowSelectedSitesDrawer(true)}
-              disabled={selectedSites.length === 0}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Typography sx={{ color: theme.palette.primary.main, fontSize: '16px' }} fontWeight={600}>
-                  {selectedSites.length}
-                </Typography>
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '16px' }}>
-                  Selected
-                </Typography>
-              </Box>
-            </Button>
+            {/* Selected sites button - only shown in add mode */}
+            {!isEditMode && (
+              <Button
+                endIcon={<Icon icon='mdi:chevron-down' size={20} />}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textTransform: 'none',
+                  color: theme.palette.primary.main,
+                  px: 10
+                }}
+                onClick={() => setShowSelectedSitesDrawer(true)}
+                disabled={selectedSites.length === 0}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Typography sx={{ color: theme.palette.primary.main, fontSize: '16px' }} fontWeight={600}>
+                    {selectedSites.length}
+                  </Typography>
+                  <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '16px' }}>
+                    Selected
+                  </Typography>
+                </Box>
+              </Button>
+            )}
             <Button
               variant='contained'
               fullWidth
@@ -581,9 +684,9 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                 bgcolor: theme.palette.primary.main
               }}
               onClick={handleSubmit(onSubmit)}
-              disabled={selectedSites.length === 0 || loading}
+              disabled={(!isEditMode && selectedSites.length === 0) || loading}
             >
-              {loading ? <CircularProgress size={24} color='inherit' /> : 'ADD'}
+              {loading ? <CircularProgress size={24} color='inherit' /> : isEditMode ? 'UPDATE' : 'ADD'}
             </Button>
           </Box>
         </Box>
@@ -595,6 +698,26 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
           clusterName={watch('clusterName')}
           selectedSites={selectedSiteObjects}
           onRemoveSite={handleRemoveSite}
+        />
+      )}
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          title='Delete Cluster'
+          description='Are you sure you want to delete this cluster? This action cannot be undone.'
+          image='/images/warning-icon.svg'
+          imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
+          confirmAction={handleDeleteCluster}
+          loading={deleteLoading}
+          ConfirmationText='DELETE'
+          cancelText='CANCEL'
+          confirmBtnStyle={{ background: theme.palette.customColors?.Error, py: 2 }}
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors?.OnPrimaryContainer,
+            color: theme.palette.customColors?.OnPrimaryContainer
+          }}
         />
       )}
     </>

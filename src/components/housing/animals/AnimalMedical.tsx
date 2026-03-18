@@ -11,8 +11,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Button
+  Button,
+  Tabs,
+  Tab
 } from '@mui/material'
+import { Grid } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
 import {
@@ -62,16 +65,17 @@ type MainTabType =
   | 'Deworming'
   | 'Adverse Rx'
 
-const MAIN_TABS: MainTabType[] = [
-  'Medical Records',
-  'Diagnosis',
-  'Prescription',
-  'Complaints',
-  'Clinical Notes',
-  'Lab Requests',
-  'Vaccination',
-  'Deworming',
-  'Adverse Rx'
+// Sub-tab configuration matching mobile implementation with icons
+const MEDICAL_SUB_TABS: { id: MainTabType; label: string; icon: string }[] = [
+  { id: 'Medical Records', label: 'Basic', icon: 'mdi:heart-pulse' },
+  { id: 'Diagnosis', label: 'Diagnosis', icon: 'mdi:stethoscope' },
+  { id: 'Complaints', label: 'Complaints', icon: 'mdi:emoticon-sad-outline' },
+  { id: 'Prescription', label: 'Prescriptions', icon: 'mdi:prescription' },
+  { id: 'Vaccination', label: 'Vaccination', icon: 'mdi:needle' },
+  { id: 'Deworming', label: 'Deworming', icon: 'mdi:pill' },
+  { id: 'Clinical Notes', label: 'Clinical Notes', icon: 'mdi:note-text' },
+  { id: 'Adverse Rx', label: 'Adverse Rx', icon: 'mdi:alert' },
+  { id: 'Lab Requests', label: 'Lab Requests', icon: 'mdi:flask' }
 ]
 
 // ==================== Shimmer Component ====================
@@ -995,11 +999,49 @@ const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails }) => {
     }
   }
 
+  const handleSubTabChange = (event: React.SyntheticEvent, newValue: MainTabType): void => {
+    handleTabClick(newValue)
+  }
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, py: 4 }}>
-      <PillTabs tabs={MAIN_TABS} activeTab={activeTab} onTabClick={handleTabClick} />
-      {renderTabContent()}
-    </Box>
+    <Grid container sx={{ mt: 4 }}>
+      {/* Sub-tabs */}
+      <Grid size={{ xs: 12 }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+          <Tabs
+            value={activeTab}
+            onChange={handleSubTabChange}
+            variant='scrollable'
+            scrollButtons='auto'
+            sx={{
+              '& .MuiTab-root': {
+                minHeight: 48,
+                textTransform: 'none',
+                fontWeight: 500
+              }
+            }}
+          >
+            {MEDICAL_SUB_TABS.map(tab => (
+              <Tab
+                key={tab.id}
+                value={tab.id}
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Icon icon={tab.icon} fontSize={18} />
+                    <span>{tab.label}</span>
+                  </Box>
+                }
+              />
+            ))}
+          </Tabs>
+        </Box>
+      </Grid>
+
+      {/* Tab Content */}
+      <Grid size={{ xs: 12 }} sx={{ width: '100%' }}>
+        {renderTabContent()}
+      </Grid>
+    </Grid>
   )
 }
 

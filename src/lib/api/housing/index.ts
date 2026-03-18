@@ -26,9 +26,17 @@ import {
   GET_ALL_ENCLOSURES,
   GET_SITES_LIST_CLUSTER_WISE,
   ADD_CLUSTER,
+  EDIT_CLUSTER,
+  DELETE_CLUSTER,
   ADD_SECTION,
+  EDIT_SECTION,
+  DELETE_SECTION,
   CREATE_SITE,
+  EDIT_SITE,
+  DELETE_SITE,
   ADD_ENCLOSURE_TO_HOUSING,
+  EDIT_ENCLOSURE,
+  DELETE_ENCLOSURE,
   GET_ENCLOSURE_SETTINGS,
   GET_SECTION_FOR_ENCLOSURE,
   GET_PARENT_ENCLOSURE,
@@ -249,6 +257,45 @@ export async function AddNewSite(params: AddSitePayload): Promise<AddSiteRespons
   return response.data
 }
 
+// Edit Site - matches mobile API: zoos/editzoosite
+export interface EditSitePayload {
+  zoo_id: number
+  site_id: number
+  site_name: string
+  site_description?: string
+  site_latitude?: string
+  site_longitude?: string
+  site_image?: File[]
+}
+
+export interface EditSiteResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export async function editSite(params: EditSitePayload): Promise<EditSiteResponse> {
+  const response = await axiosFormPost({ url: `${EDIT_SITE}`, body: params })
+
+  return response.data
+}
+
+// Delete Site - matches mobile API: zoos/deletezoosite
+export interface DeleteSiteParams {
+  site_id: number
+}
+
+export interface DeleteSiteResponse {
+  success?: boolean
+  message?: string
+}
+
+export async function deleteSite(params: DeleteSiteParams): Promise<DeleteSiteResponse> {
+  const response = await axiosGet({ url: `${DELETE_SITE}`, params })
+
+  return response.data
+}
+
 export async function getAllSites(params?: GetSitesParams): Promise<GetSitesResponse> {
   const response = await axiosGet({ url: `${GET_SITES}`, params })
 
@@ -277,6 +324,44 @@ export async function getSectionAnalytics(body: GetSectionAnalyticsPayload): Pro
 
 export async function addSection(params: AddSectionPayload): Promise<AddSectionResponse> {
   const response = await axiosFormPost({ url: `${ADD_SECTION}`, body: params })
+
+  return response?.data
+}
+
+// Edit Section - matches mobile API: zoos/editsection
+export interface EditSectionPayload {
+  section_id: number
+  section_name: string
+  section_site_id: number
+  section_latitude?: string
+  section_longitude?: string
+  section_image?: File[]
+}
+
+export interface EditSectionResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export async function editSection(params: EditSectionPayload): Promise<EditSectionResponse> {
+  const response = await axiosFormPost({ url: `${EDIT_SECTION}`, body: params })
+
+  return response?.data
+}
+
+// Delete Section - matches mobile API: zoos/deletesection
+export interface DeleteSectionParams {
+  section_id: number
+}
+
+export interface DeleteSectionResponse {
+  success?: boolean
+  message?: string
+}
+
+export async function deleteSection(params: DeleteSectionParams): Promise<DeleteSectionResponse> {
+  const response = await axiosGet({ url: `${DELETE_SECTION}`, params })
 
   return response?.data
 }
@@ -377,6 +462,55 @@ export async function getParentEnclosureList(
 
 export async function addEnclosureToHousing(params: AddEnclosurePayload): Promise<AddEnclosureResponse> {
   const response = await axiosFormPost({ url: `${ADD_ENCLOSURE_TO_HOUSING}`, body: params })
+
+  return response?.data
+}
+
+// Edit Enclosure - matches mobile API: enclosure/update-enclosure
+export interface EditEnclosurePayload {
+  enclosure_id: number
+  user_enclosure_name: string
+  section_id: number | string
+  enclosure_desc?: string
+  enclosure_environment?: string
+  user_enclosure_id?: string
+  enclosure_is_movable?: number
+  enclosure_is_walkable?: number
+  enclosure_type?: string
+  enclosure_sunlight?: string
+  enclosure_parent_id?: number | string | null
+  enclosure_lat?: string
+  enclosure_long?: string
+  commistioned_date?: string
+  enclosure_status?: string
+  enclosure_code?: string
+  enclosure_image?: File[]
+}
+
+export interface EditEnclosureResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export async function editEnclosure(params: EditEnclosurePayload): Promise<EditEnclosureResponse> {
+  const response = await axiosFormPost({ url: `${EDIT_ENCLOSURE}`, body: params })
+
+  return response?.data
+}
+
+// Delete Enclosure - matches mobile API: enclosure/remove
+export interface DeleteEnclosureParams {
+  enclosure_id: number
+}
+
+export interface DeleteEnclosureResponse {
+  success?: boolean
+  message?: string
+}
+
+export async function deleteEnclosure(params: DeleteEnclosureParams): Promise<DeleteEnclosureResponse> {
+  const response = await axiosPost({ url: `${DELETE_ENCLOSURE}`, body: params })
 
   return response?.data
 }
@@ -603,6 +737,42 @@ export async function getSiteListClusterWise(
 
 export async function addCluster(params: AddClusterPayload): Promise<AddClusterResponse> {
   const response = await axiosFormPost({ url: `${ADD_CLUSTER}`, body: params })
+
+  return response?.data
+}
+
+// Edit Cluster - matches mobile API: cluster/edit-cluster
+export interface EditClusterPayload {
+  cluster_id: number
+  cluster_name: string
+  cluster_desc?: string
+  cluster_image?: File[]
+}
+
+export interface EditClusterResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export async function editCluster(params: EditClusterPayload): Promise<EditClusterResponse> {
+  const response = await axiosFormPost({ url: `${EDIT_CLUSTER}`, body: params })
+
+  return response?.data
+}
+
+// Delete Cluster - matches mobile API: cluster/delete-cluster
+export interface DeleteClusterParams {
+  cluster_id: number
+}
+
+export interface DeleteClusterResponse {
+  success?: boolean
+  message?: string
+}
+
+export async function deleteCluster(params: DeleteClusterParams): Promise<DeleteClusterResponse> {
+  const response = await axiosPost({ url: `${DELETE_CLUSTER}`, body: params })
 
   return response?.data
 }

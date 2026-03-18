@@ -23,61 +23,90 @@ import geolocation from 'geolocation'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { AddNewSite } from 'src/lib/api/housing'
+import { AddNewSite, editSite, deleteSite } from 'src/lib/api/housing'
 import toast from 'react-hot-toast'
 import { AuthContext } from 'src/context/AuthContext'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import Toaster from 'src/components/Toaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import React from 'react'
+import { useRouter } from 'next/router'
+
+interface SiteData {
+  site_id: number
+  site_name: string
+  site_description?: string
+  latitude?: string
+  longitude?: string
+  images?: Array<{ file: string; display_type?: string }>
+}
 
 interface AddSiteDrawerProps {
   open: boolean
   setSiteDrawer: (open: boolean) => void
   refetch: () => void
+  siteData?: SiteData | null  // If provided, drawer is in edit mode
 }
 
 interface FormValues {
   siteName: string
+  siteDescription: string
   latitude: string
   longitude: string
-  images: File[]
+  images: (File | string)[]  // Can be File objects or URL strings for existing images
   image?: { file: File; preview: string }
 }
 
 // Schema
 const schema = yup.object().shape({
   siteName: yup.string().required('Site name is required'),
+  siteDescription: yup.string(),
   latitude: yup.string(),
   longitude: yup.string()
-
-  // image: yup.mixed().required('Image is required')
 })
 
-const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refetch }) => {
+const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refetch, siteData }) => {
   const [loading, setLoading] = useState<boolean>(false)
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false)
   const theme = useTheme() as any
   const fileInputRef = useRef<HTMLInputElement>(null)
   const authData = useContext(AuthContext) as any
+  const router = useRouter()
 
   const zooId = authData?.userData?.user?.zoos[0].zoo_id
-
-  console.log('Auth >', authData, zooId)
+  const isEditMode = !!siteData
 
   const {
     control,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues: {
       siteName: '',
+      siteDescription: '',
       latitude: '',
       longitude: '',
       images: []
     },
     resolver: yupResolver(schema) as any
   })
+
+  // Pre-populate form when in edit mode
+  useEffect(() => {
+    if (isEditMode && siteData) {
+      reset({
+        siteName: siteData.site_name || '',
+        siteDescription: siteData.site_description || '',
+        latitude: siteData.latitude || '',
+        longitude: siteData.longitude || '',
+        images: siteData.images?.map(img => img.file) || []
+      })
+    }
+  }, [isEditMode, siteData, reset])
 
   const images = watch('images')
 
@@ -155,77 +184,144 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
   const onSubmit = async (data: FormValues): Promise<void> => {
     setLoading(true)
 
-    const params = {
-      zoo_id: zooId,
-      site_name: data?.siteName,
-      site_latitude: data?.latitude,
-      site_longitude: data?.longitude,
-      site_image: data?.images
-    }
-
     try {
-      const response = await AddNewSite(params) as any
+      if (isEditMode && siteData) {
+        // Edit mode - only send new File objects, not existing URL strings
+        const newImages = data.images.filter(img => img instanceof File) as File[]
 
-      if (response?.success) {
-        Toaster({ type: 'success', message: 'New Site Is Created Successfully' })
-        setSiteDrawer(false)
-        refetch()
+        const params = {
+          zoo_id: zooId,
+          site_id: siteData.site_id,
+          site_name: data.siteName,
+          site_description: data.siteDescription,
+          site_latitude: data.latitude,
+          site_longitude: data.longitude,
+          site_image: newImages.length > 0 ? newImages : undefined
+        }
+
+        const response = await editSite(params) as any
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: 'Site Updated Successfully' })
+          setSiteDrawer(false)
+          refetch()
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to update site' })
+        }
       } else {
-        Toaster({ type: 'error', message: response?.message })
+        // Add mode
+        const params = {
+          zoo_id: zooId,
+          site_name: data.siteName,
+          site_description: data.siteDescription,
+          site_latitude: data.latitude,
+          site_longitude: data.longitude,
+          site_image: data.images.filter(img => img instanceof File) as File[]
+        }
 
-        // setSiteDrawer(false)
+        const response = await AddNewSite(params) as any
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: 'New Site Is Created Successfully' })
+          setSiteDrawer(false)
+          refetch()
+        } else {
+          Toaster({ type: 'error', message: response?.message })
+        }
       }
     } catch (error) {
       console.error('Submission Error:', error)
-      toast.error('An error occurred while creating the site')
+      toast.error(isEditMode ? 'An error occurred while updating the site' : 'An error occurred while creating the site')
       setSiteDrawer(false)
     } finally {
       setLoading(false)
     }
+  }
 
-    // Send `data` to backend
+  const handleDeleteSite = async (): Promise<void> => {
+    if (!siteData) return
+
+    setDeleteLoading(true)
+    try {
+      const response = await deleteSite({ site_id: siteData.site_id }) as any
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Site Deleted Successfully' })
+        setShowDeleteDialog(false)
+        setSiteDrawer(false)
+        router.push('/housing/sites')
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete site' })
+      }
+    } catch (error) {
+      console.error('Delete Error:', error)
+      toast.error('An error occurred while deleting the site')
+    } finally {
+      setDeleteLoading(false)
+    }
   }
 
   return (
     <Drawer
       anchor='right'
       open={open}
-      sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column'
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: '100%', sm: '562px' },
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: theme.palette.customColors.lightBg,
+            p: 0
+          }
+        }
       }}
     >
-      {/* Header */}
+      {/* Header - Sticky */}
       <Box
-        className='sidebar-header'
         sx={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           bgcolor: theme.palette.customColors.lightBg,
-          px: '1.2rem',
-          py: '1rem',
+          px: 5,
+          py: 4,
           borderBottom: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
           <img src='/icons/activity_icon.png' alt='Site Icon' width='30px' />
-          <Typography variant='h6'>Add New</Typography>
+          <Typography variant='h6'>{isEditMode ? 'Edit Site' : 'Add New Site'}</Typography>
         </Box>
-        <IconButton size='small' onClick={() => setSiteDrawer(false)} sx={{ color: 'text.primary' }}>
-          <Icon icon='mdi:close' fontSize={20} />
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {isEditMode && (
+            <IconButton size='small' onClick={() => setShowDeleteDialog(true)} sx={{ color: 'error.main' }}>
+              <Icon icon='mdi:delete-outline' fontSize={20} />
+            </IconButton>
+          )}
+          <IconButton size='small' onClick={() => setSiteDrawer(false)} sx={{ color: 'text.primary' }}>
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+        </Box>
       </Box>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Box
-          className='sidebar-body'
-          sx={{ px: 4, flexGrow: 1, height: '700px', bgcolor: theme.palette.customColors.lightBg }}
-        >
+      {/* Body - Scrollable */}
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          minHeight: 0,
+          px: 5,
+          py: 4,
+          bgcolor: theme.palette.customColors.lightBg
+        }}
+      >
+        <form id="site-form" onSubmit={handleSubmit(onSubmit)}>
           {/* Site Name & Image */}
-          <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, pt: '1rem' }}>
+          <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500 }}>
             Site Name & Image
           </Typography>
 
@@ -272,7 +368,38 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
               label='Site Name'
               control={control}
               errors={errors}
-              required={false} // or true if required
+              required={false}
+              sx={{
+                mb: 3,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '4px',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: theme.palette.customColors?.OutlineVariant
+                  },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: theme.palette.customColors?.OutlineVariant
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: theme.palette.customColors?.OutlineVariant
+                  }
+                },
+                '& .MuiInputBase-input': {
+                  fontSize: '16px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  color: theme.palette.customColors.Outline
+                }
+              }}
+            />
+
+            <ControlledTextField
+              name='siteDescription'
+              label='Site Description'
+              control={control}
+              errors={errors}
+              required={false}
+              multiline
+              rows={3}
               sx={{
                 mb: 3,
                 '& .MuiOutlinedInput-root': {
@@ -486,31 +613,56 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
               }}
             />
           </Card>
-        </Box>
+        </form>
+      </Box>
 
-        {/* Footer Button */}
-        <Card>
-          <Box
-            sx={{
-              height: '100px',
-              width: '100%',
-              maxWidth: '562px',
-              position: 'fixed',
-              bottom: 0,
-              zIndex: 1,
-              px: 4,
-              bgcolor: theme.palette.customColors?.OnPrimary,
-              alignItems: 'center',
-              justifyContent: 'center',
-              display: 'flex'
-            }}
-          >
-            <LoadingButton loading={loading} fullWidth variant='contained' type='submit' sx={{ height: '50px' }}>
-              Add
-            </LoadingButton>
-          </Box>
-        </Card>
-      </form>
+      {/* Footer - Sticky */}
+      <Box
+        sx={{
+          position: 'sticky',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          p: 5,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          zIndex: 1,
+          boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.06)',
+          flexShrink: 0
+        }}
+      >
+        <LoadingButton
+          loading={loading}
+          fullWidth
+          variant='contained'
+          type='submit'
+          form='site-form'
+          sx={{ height: '50px' }}
+        >
+          {isEditMode ? 'Update' : 'Add'}
+        </LoadingButton>
+      </Box>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          title='Delete Site'
+          description='Are you sure you want to delete this site? This action cannot be undone.'
+          image='/images/warning-icon.svg'
+          imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
+          confirmAction={handleDeleteSite}
+          loading={deleteLoading}
+          ConfirmationText='DELETE'
+          cancelText='CANCEL'
+          confirmBtnStyle={{ background: theme.palette.customColors?.Error, py: 2 }}
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors?.OnPrimaryContainer,
+            color: theme.palette.customColors?.OnPrimaryContainer
+          }}
+        />
+      )}
     </Drawer>
   )
 }

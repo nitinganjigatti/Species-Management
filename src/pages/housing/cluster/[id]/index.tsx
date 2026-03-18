@@ -11,6 +11,7 @@ import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getSpecificClusterAnalytics } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
+import AddCluster from 'src/views/pages/housing/AddCluster/AddCluster'
 
 interface TabConfigItem {
   label: string
@@ -49,11 +50,25 @@ const ClusterDetails: React.FC = () => {
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
+  // Permission check for edit/delete cluster - matches mobile: manage_cluster_permission
+  // Mobile uses hierarchical permission values: "VIEW", "ADD", "EDIT", "DELETE"
+  // - EDIT action requires permission value "EDIT" or "DELETE"
+  // - DELETE action requires permission value "DELETE"
+  const manageClusterPermissionValue =
+    (auth as any)?.userData?.permission?.user_settings?.manage_cluster_permission ||
+    (auth as any)?.userData?.roles?.settings?.manage_cluster_permission
+
+  // Check if user can edit (permission is "EDIT" or "DELETE")
+  const canEditCluster = manageClusterPermissionValue === 'EDIT' || manageClusterPermissionValue === 'DELETE'
+  // Check if user can delete (permission is "DELETE")
+  const canDeleteCluster = manageClusterPermissionValue === 'DELETE'
+
   const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
+  const [showEditClusterDrawer, setShowEditClusterDrawer] = useState<boolean>(false)
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['cluster-detail-stats', id],
     queryFn: () =>
       getSpecificClusterAnalytics({
@@ -184,6 +199,10 @@ const ClusterDetails: React.FC = () => {
           description=""
           error={error}
           haveInsightsViewAccess={insightsViewAccess}
+          actions={{
+            onEdit: canEditCluster ? () => setShowEditClusterDrawer(true) : null
+          }}
+          editTooltip='Edit cluster'
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_mobile_no || ''
             if (phoneNumber) {
@@ -230,6 +249,20 @@ const ClusterDetails: React.FC = () => {
           onClose={handleDrawerClose}
           data={drawerData as any}
           defaultImage={'/images/housing/cluster-icon-colored.svg'}
+        />
+      )}
+      {showEditClusterDrawer && (
+        <AddCluster
+          open={showEditClusterDrawer}
+          setShowDrawer={setShowEditClusterDrawer}
+          refetchCluster={refetch}
+          clusterData={{
+            cluster_id: Number(id),
+            cluster_name: (data?.data as any)?.cluster_name,
+            cluster_desc: (data?.data as any)?.cluster_desc,
+            images: (data?.data as any)?.images
+          }}
+          canDelete={canDeleteCluster}
         />
       )}
     </>

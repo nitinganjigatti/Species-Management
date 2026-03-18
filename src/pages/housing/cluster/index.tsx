@@ -169,6 +169,7 @@ const Clusters: React.FC = () => {
   })
 
   const zooStats = (statsData?.data as any)?.zoo_stats
+
   const clusterStats: StatItem[] = [
     {
       label: 'Species',
@@ -342,9 +343,9 @@ const Clusters: React.FC = () => {
             subtitle={params.row.cluster_desc}
             imgUrl={params.row.images?.[0]?.file}
             defaultImage={'/images/housing/site-icon-colored.svg'}
-            defaultImageAlt=""
-            avatarUrl=""
-            inchagename=""
+            defaultImageAlt=''
+            avatarUrl=''
+            inchagename=''
             color={(theme.palette as any)?.customColors?.OnSurfaceVariant}
             subtitleColor={(theme.palette as any)?.customColors?.secondaryBg}
           />
@@ -575,12 +576,12 @@ const Clusters: React.FC = () => {
             }}
             onCallClick={() => {}}
             onMessageClick={() => {}}
-            zooName=""
-            subtitle=""
-            userName=""
-            image=""
-            userImage=""
-            description=""
+            zooName=''
+            subtitle=''
+            userName=''
+            image=''
+            userImage=''
+            description=''
           />
           <Box sx={{ mt: 6 }}>
             <Card sx={{ p: { xs: 3, md: 5 } }}>
@@ -628,7 +629,9 @@ const Clusters: React.FC = () => {
           </Box>
         </Box>
       </Box>
-      {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData as any} />}
+      {drawerType === 'species' && (
+        <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData as any} />
+      )}
       {drawerType === 'animals' && (
         <AnimalsDrawer
           totalCount={totalAnimalCount}

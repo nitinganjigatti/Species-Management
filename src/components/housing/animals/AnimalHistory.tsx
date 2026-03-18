@@ -1,9 +1,7 @@
 import { Box, Grid } from '@mui/system'
-import { debounce } from 'lodash'
-import React, { useCallback, useEffect, useState } from 'react'
-import Search from 'src/views/utility/Search'
+import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
-import { Typography, Skeleton } from '@mui/material'
+import { Typography, Skeleton, Tabs, Tab } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import AnimalDetailsHistory from 'src/views/pages/housing/animals/AnimalDetailsHistory'
 import {
@@ -18,7 +16,6 @@ import { getAnimalHistory } from 'src/lib/api/housing'
 import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { AnimalHistoryItem } from 'src/types/housing'
 
 interface HistoryData {
   id: number
@@ -44,12 +41,18 @@ interface FormattedHistoryData {
   rawData: HistoryData
 }
 
+// Sub-tab configuration matching mobile implementation
+const SUB_TABS = [
+  { id: 'enclosurehistory', label: 'Enclosures', icon: 'mdi:history' },
+  { id: 'inmates', label: 'Inmates', icon: 'mdi:store' }
+]
+
 const AnimalHistory: React.FC = () => {
   const theme = useTheme() as any
   const router = useRouter()
   const { id } = router.query
 
-  const [inputValue, setInputValue] = useState<string>('')
+  const [selectedSubTab, setSelectedSubTab] = useState<string>('enclosurehistory')
   const [animalHistory, setAnimalHistory] = useState<HistoryData[]>([])
   const [loading, setLoading] = useState<boolean>(false)
 
@@ -64,7 +67,7 @@ const AnimalHistory: React.FC = () => {
 
       await getAnimalHistory(params).then((res: any) => {
         if (res?.success === true) {
-          setAnimalHistory(res?.data?.result)
+          setAnimalHistory(res?.data?.result || [])
           setLoading(false)
         }
       })
@@ -75,12 +78,14 @@ const AnimalHistory: React.FC = () => {
   }
 
   useEffect(() => {
-    if (id) {
+    if (id && selectedSubTab === 'enclosurehistory') {
       fetchHistoryData()
     }
-  }, [id])
+  }, [id, selectedSubTab])
 
-  const handleSearch = (value: string): void => { }
+  const handleSubTabChange = (event: React.SyntheticEvent, newValue: string): void => {
+    setSelectedSubTab(newValue)
+  }
 
   const formatHistoryData = (historyData: HistoryData[]): FormattedHistoryData[] => {
     return historyData.map((item, index) => ({
@@ -182,119 +187,139 @@ const AnimalHistory: React.FC = () => {
     </Timeline>
   )
 
-  return (
-    <>
-      <Grid container sx={{ mt: 6 }}>
-        <Grid size={{ xs: 12 }} sx={{ display: 'none' }}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Search
-              value={inputValue}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              onClear={() => handleSearch('')}
-              placeholder='Search…'
-              sx={{ justifyContent: 'flex-end' }}
-            />
-          </Grid>
-        </Grid>
-        <Grid size={{ xs: 12 }}>
-          <Box
-            sx={{
-              width: '100%',
-              height: '48px',
-              background: 'rgba(0, 0, 0, 0.05)',
-              py: 3,
-              pl: 3,
-              display: 'none',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'flex-start',
-              gap: 2
-            }}
-          >
-            <Icon icon='mdi-calendar-blank' />
-            <Typography sx={{ fontWeight: 500, color: theme.palette.common.black, fontSize: '20px' }}>
-              {animalHistory.length > 0
-                ? Utility.formatDisplayDate(animalHistory[0]?.in_date)
-                : Utility.formatDisplayDate(new Date())}
-            </Typography>
-          </Box>
-        </Grid>
-        <Grid size={{ xs: 12 }} sx={{ width: '100%' }}>
-          {loading ? (
-            <TimelineSkeleton />
-          ) : animalHistory.length > 0 ? (
-            <Timeline
-              position='right'
+  // Enclosure History Content
+  const EnclosureHistoryContent: React.FC = () => {
+    if (loading) {
+      return <TimelineSkeleton />
+    }
+
+    if (animalHistory.length === 0) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+          <NoDataFound />
+        </Box>
+      )
+    }
+
+    return (
+      <Timeline
+        position='right'
+        sx={{
+          [`& .${timelineItemClasses.root}:before`]: {
+            flex: 0,
+            padding: 0
+          }
+        }}
+      >
+        {formatHistoryData(animalHistory).map((item, idx) => (
+          <TimelineItem key={item.id}>
+            <TimelineSeparator
               sx={{
-                [`& .${timelineItemClasses.root}:before`]: {
-                  flex: 0,
-                  padding: 0
+                py: '6px',
+                '& span': {
+                  ml: '1px',
+                  background: 'transparent',
+                  width: '1px',
+                  height: '100%',
+                  backgroundImage: `repeating-linear-gradient(
+                    to bottom,
+                    ${theme.palette.customColors.OutlineVariant},
+                    ${theme.palette.customColors.OutlineVariant} 5px,
+                    transparent 8px,
+                    transparent 13px
+                  )`,
+                  opacity: 1
                 }
               }}
             >
-              {formatHistoryData(animalHistory).map((item, idx) => (
-                <TimelineItem key={item.id}>
-                  <TimelineSeparator
-                    sx={{
-                      py: '6px',
-                      '& span': {
-                        ml: '1px',
-                        background: 'transparent',
-                        width: '1px',
-                        height: '100%',
-                        backgroundImage: `repeating-linear-gradient(
-                        to bottom,
-                        ${theme.palette.customColors.OutlineVariant},
-                        ${theme.palette.customColors.OutlineVariant} 5px,
-                        transparent 8px,
-                        transparent 13px
-                      )`,
-                        opacity: 1
-                      }
-                    }}
-                  >
-                    <img
-                      src={
-                        item?.label === 'Current Enclosure'
-                          ? '/images/housing/current_enclosure.svg'
-                          : '/images/housing/previous_enclosure.svg'
-                      }
-                      alt='current_enclosure'
-                    />
-                    {idx < animalHistory.length - 1 && <TimelineConnector />}
-                  </TimelineSeparator>
-                  <TimelineContent
-                    sx={{
-                      display: 'flex',
-                      flexDirection: 'row',
-                      alignItems: 'flex-start',
-                      gap: 4,
-                      justifyContent: 'flex-start',
-                      width: '100%',
-                      py: 0
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: '200px' }}>
-                      <Typography variant='subtitle2' sx={{ color: theme.palette.customColors?.secondaryBg }}>
-                        {item.label}
-                      </Typography>
-                      <Typography variant='body1' sx={{ fontWeight: 600 }}>
-                        {item.enclosure}
-                      </Typography>
-                      <Typography variant='caption'>{item.time}</Typography>
+              <img
+                src={
+                  item?.label === 'Current Enclosure'
+                    ? '/images/housing/current_enclosure.svg'
+                    : '/images/housing/previous_enclosure.svg'
+                }
+                alt='enclosure_icon'
+              />
+              {idx < animalHistory.length - 1 && <TimelineConnector />}
+            </TimelineSeparator>
+            <TimelineContent
+              sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'flex-start',
+                gap: 4,
+                justifyContent: 'flex-start',
+                width: '100%',
+                py: 0
+              }}
+            >
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: '200px' }}>
+                <Typography variant='subtitle2' sx={{ color: theme.palette.customColors?.secondaryBg }}>
+                  {item.label}
+                </Typography>
+                <Typography variant='body1' sx={{ fontWeight: 600 }}>
+                  {item.enclosure}
+                </Typography>
+                <Typography variant='caption'>{item.time}</Typography>
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
+                <AnimalDetailsHistory historyData={item} />
+              </Box>
+            </TimelineContent>
+          </TimelineItem>
+        ))}
+      </Timeline>
+    )
+  }
+
+  // Inmates Content - Placeholder matching mobile implementation
+  const InmatesContent: React.FC = () => {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 4 }}>
+        <NoDataFound />
+        <Typography variant='body2' sx={{ mt: 2, color: theme.palette.text.secondary }}>
+          No inmates record found
+        </Typography>
+      </Box>
+    )
+  }
+
+  return (
+    <>
+      <Grid container sx={{ mt: 4 }}>
+        {/* Sub-tabs */}
+        <Grid size={{ xs: 12 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+            <Tabs
+              value={selectedSubTab}
+              onChange={handleSubTabChange}
+              sx={{
+                '& .MuiTab-root': {
+                  minHeight: 48,
+                  textTransform: 'none',
+                  fontWeight: 500
+                }
+              }}
+            >
+              {SUB_TABS.map(tab => (
+                <Tab
+                  key={tab.id}
+                  value={tab.id}
+                  label={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Icon icon={tab.icon} fontSize={18} />
+                      <span>{tab.label}</span>
                     </Box>
-                    <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-start' }}>
-                      <AnimalDetailsHistory historyData={item} />
-                    </Box>
-                  </TimelineContent>
-                </TimelineItem>
+                  }
+                />
               ))}
-            </Timeline>
-          ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <NoDataFound />
-            </Box>
-          )}
+            </Tabs>
+          </Box>
+        </Grid>
+
+        {/* Tab Content */}
+        <Grid size={{ xs: 12 }} sx={{ width: '100%' }}>
+          {selectedSubTab === 'enclosurehistory' ? <EnclosureHistoryContent /> : <InmatesContent />}
         </Grid>
       </Grid>
     </>

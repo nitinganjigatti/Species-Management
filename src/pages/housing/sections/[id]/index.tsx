@@ -20,6 +20,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
+import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
 
@@ -72,15 +73,18 @@ const SectionDetails: React.FC = () => {
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
   const [addEnclosureDrawerOpen, setAddEnclosureDrawerOpen] = useState<boolean>(false)
+  const [showEditSectionDrawer, setShowEditSectionDrawer] = useState<boolean>(false)
   const [refetchEnclosure, setRefechEnclosure] = useState<boolean>(false)
+  const [addSuccessCheck, setAddSuccessCheck] = useState<boolean>(false)
   const auth = useAuth()
 
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
   const addEnclosureAccess = (auth as any)?.userData?.roles?.settings?.housing_add_enclosure
+  const addSectionAccess = (auth as any)?.userData?.roles?.settings?.housing_add_section
 
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['section-insights', id],
     queryFn: () =>
       getSectionAnalytics({
@@ -227,8 +231,11 @@ const SectionDetails: React.FC = () => {
           userImage=''
           pageTitle='Section Details'
           actions={{
-            onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null
+            onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null,
+            onEdit: addSectionAccess ? () => setShowEditSectionDrawer(true) : null
           }}
+          addNewTooltip='Add new enclosure'
+          editTooltip='Edit section'
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_phone_number || ''
             if (phoneNumber) {
@@ -301,6 +308,24 @@ const SectionDetails: React.FC = () => {
           zooId={zooId}
           refetchEnclosure={refetchEnclosure}
           setRefechEnclosure={setRefechEnclosure}
+        />
+      )}
+      {showEditSectionDrawer && (
+        <AddSectionDrawer
+          open={showEditSectionDrawer}
+          setShowAddSectionDrawer={setShowEditSectionDrawer}
+          selectedSiteId={(data?.data as any)?.site_id?.toString() || ''}
+          addSuccessCheck={addSuccessCheck}
+          setAddSuccessCheck={setAddSuccessCheck}
+          refetch={refetch}
+          sectionData={(data?.data as any) ? {
+            section_id: (data?.data as any)?.section_id,
+            section_name: (data?.data as any)?.section_name,
+            section_site_id: (data?.data as any)?.site_id,
+            section_latitude: (data?.data as any)?.section_latitude,
+            section_longitude: (data?.data as any)?.section_longitude,
+            images: (data?.data as any)?.images
+          } : null}
         />
       )}
     </>

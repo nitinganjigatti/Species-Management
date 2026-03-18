@@ -1,6 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Button, CircularProgress, Drawer, IconButton, TextField, Typography } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 import { Box, fontSize } from '@mui/system'
 import dayjs, { Dayjs } from 'dayjs'
 import moment from 'moment'
@@ -9,10 +10,14 @@ import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { AuthContext } from 'src/context/AuthContext'
 import {
   addEnclosureToHousing,
+  editEnclosure,
+  deleteEnclosure,
   getEnclosureSetting,
+  getEnclosureBasicInfo,
   getParentEnclosureList,
   getSectionsListingForEnclosure
 } from 'src/lib/api/housing'
@@ -21,6 +26,29 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import * as yup from 'yup'
+import { useRouter } from 'next/router'
+
+interface EnclosureData {
+  enclosure_id: number
+  user_enclosure_name?: string
+  section_id?: number
+  section_name?: string
+  enclosure_desc?: string
+  enclosure_environment?: string
+  enclosure_type?: string
+  enclosure_type_id?: number
+  enclosure_is_movable?: string | number
+  enclosure_is_walkable?: string | number
+  enclosure_sunlight?: string
+  enclosure_parent_id?: number | null
+  parent_enclosure_name?: string
+  enclosure_lat?: string
+  enclosure_long?: string
+  commistioned_date?: string
+  enclosure_code?: string
+  user_enclosure_id?: string
+  images?: Array<{ file: string; display_type?: string }>
+}
 
 interface AddEnclosureDrawerProps {
   setAddEnclosureDrawerOpen: (open: boolean) => void
@@ -29,6 +57,8 @@ interface AddEnclosureDrawerProps {
   zooId: string
   refetchEnclosure: boolean
   setRefechEnclosure: (refetch: boolean) => void
+  enclosureData?: EnclosureData | null  // If provided, drawer is in edit mode
+  refetch?: () => void
 }
 
 interface SelectOption {
@@ -36,7 +66,7 @@ interface SelectOption {
   label: string
 }
 
-interface EnclosureData {
+interface EnclosureSettingsData {
   environment_type?: Array<{ string_id: string; name: string; enabled: boolean }>
   enclosure_type?: Array<{ string_id: string; name: string }>
   aquatic_enclosure_type?: Array<{ string_id: string; name: string }>
@@ -50,7 +80,7 @@ interface FormValues {
   movableOrWalkable: string
   sunlight: string
   commissioned_date: Dayjs
-  images: File[]
+  images: (File | string)[]  // Can be File objects or URL strings for existing images
   batchEnclosureCount: string
   batchSequenceStart: string
   section: SelectOption | null
@@ -94,19 +124,26 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   sectionId,
   zooId,
   refetchEnclosure,
-  setRefechEnclosure
+  setRefechEnclosure,
+  enclosureData,
+  refetch
 }) => {
   const theme = useTheme() as any
+  const router = useRouter()
 
   const authData = useContext(AuthContext) as any
   const user_id = authData?.userData?.user?.user_id
 
+  const isEditMode = !!enclosureData
+
   const [loading, setLoading] = useState<boolean>(false)
+  const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false)
   const [selectedType, setSelectedType] = useState<string>('Single')
   const [movable, setMovable] = useState<boolean>(false)
   const [walkable, setWalkable] = useState<boolean>(false)
   const [environmentTypes, setEnvironmentTypes] = useState<SelectOption[]>([])
-  const [allEnclosureData, setAllEnclosureData] = useState<EnclosureData | null>(null)
+  const [allEnclosureData, setAllEnclosureData] = useState<EnclosureSettingsData | null>(null)
   const [filteredEnclosureTypes, setFilteredEnclosureTypes] = useState<SelectOption[]>([])
   const [sectionList, setSectionList] = useState<SelectOption[]>([])
   const [parentEnclosureList, setParentEnclosureList] = useState<SelectOption[]>([])
@@ -318,30 +355,94 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   }, [])
 
   useEffect(() => {
-    if (open && sectionId && sectionList.length > 0) {
+    if (open && sectionId && sectionList.length > 0 && !isEditMode) {
       const defaultSection = sectionList.find(option => option.value === sectionId)
       setValue('section', defaultSection || null, { shouldValidate: true })
     }
-  }, [open, sectionId, sectionList, setValue])
+  }, [open, sectionId, sectionList, setValue, isEditMode])
+
+  // Pre-populate form when in edit mode
+  useEffect(() => {
+    if (isEditMode && enclosureData && open && sectionList.length > 0 && environmentTypes.length > 0) {
+      // Set section
+      const sectionOption = sectionList.find(s => s.value === String(enclosureData.section_id))
+      if (sectionOption) {
+        setValue('section', sectionOption, { shouldValidate: true })
+        setCurrentSectionId(String(enclosureData.section_id))
+      }
+
+      // Set environment type
+      const envType = environmentTypes.find(e =>
+        e.label?.toLowerCase() === enclosureData.enclosure_environment?.toLowerCase()
+      )
+      if (envType) {
+        setValue('environmentType', envType, { shouldValidate: true })
+      }
+
+      // Set other form values
+      setValue('enclosureName', enclosureData.user_enclosure_name || '')
+      setValue('notes', enclosureData.enclosure_desc || '')
+      setValue('sunlight', enclosureData.enclosure_sunlight || '')
+      setValue('movable', enclosureData.enclosure_is_movable === '1' || enclosureData.enclosure_is_movable === 1)
+      setValue('walkable', enclosureData.enclosure_is_walkable === '1' || enclosureData.enclosure_is_walkable === 1)
+      setMovable(enclosureData.enclosure_is_movable === '1' || enclosureData.enclosure_is_movable === 1)
+      setWalkable(enclosureData.enclosure_is_walkable === '1' || enclosureData.enclosure_is_walkable === 1)
+
+      if (enclosureData.commistioned_date) {
+        setValue('commissioned_date', dayjs(enclosureData.commistioned_date))
+      }
+
+      // Set images
+      if (enclosureData.images && enclosureData.images.length > 0) {
+        setValue('images', enclosureData.images.map(img => img.file))
+      }
+    }
+  }, [isEditMode, enclosureData, open, sectionList, environmentTypes, setValue])
+
+  // Set enclosure type after environment types are filtered
+  useEffect(() => {
+    if (isEditMode && enclosureData && filteredEnclosureTypes.length > 0) {
+      const encType = filteredEnclosureTypes.find(e =>
+        e.value === enclosureData.enclosure_type_id ||
+        e.label?.toLowerCase() === enclosureData.enclosure_type?.toLowerCase()
+      )
+      if (encType) {
+        setValue('enclosureType', encType, { shouldValidate: true })
+      }
+    }
+  }, [isEditMode, enclosureData, filteredEnclosureTypes, setValue])
+
+  // Set parent enclosure after parent enclosure list is loaded
+  useEffect(() => {
+    if (isEditMode && enclosureData && parentEnclosureList.length > 0 && enclosureData.enclosure_parent_id) {
+      const parentEnc = parentEnclosureList.find(p => p.value === enclosureData.enclosure_parent_id)
+      if (parentEnc) {
+        setValue('parentEnclosure', parentEnc, { shouldValidate: true })
+      }
+    }
+  }, [isEditMode, enclosureData, parentEnclosureList, setValue])
 
   const handleEnvironmentTypeChange = (selectedEnvironmentType: string): void => {
     if (!allEnclosureData) return
 
-    let enclosureData: Array<{ string_id: string; name: string }> = []
+    let enclosureTypeData: Array<{ string_id: string; name: string }> = []
 
     if (selectedEnvironmentType === 'terrestrial') {
-      enclosureData = allEnclosureData.enclosure_type || []
+      enclosureTypeData = allEnclosureData.enclosure_type || []
     } else if (selectedEnvironmentType === 'aquatic') {
-      enclosureData = allEnclosureData.aquatic_enclosure_type || []
+      enclosureTypeData = allEnclosureData.aquatic_enclosure_type || []
     }
 
-    const transformedEnclosureTypes = enclosureData.map(enclosure => ({
+    const transformedEnclosureTypes = enclosureTypeData.map(enclosure => ({
       value: enclosure.string_id,
       label: enclosure.name
     }))
 
     setFilteredEnclosureTypes(transformedEnclosureTypes)
-    setValue('enclosureType', null, { shouldValidate: true })
+    // Don't reset enclosure type in edit mode (will be set by the edit useEffect)
+    if (!isEditMode) {
+      setValue('enclosureType', null, { shouldValidate: true })
+    }
   }
 
   const selectedEnvironmentType = watch('environmentType')
@@ -357,41 +458,107 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   const onSubmit = async (data: FormValues): Promise<void> => {
     setLoading(true)
 
-    const payload = {
-      user_enclosure_name: data?.enclosureName,
-      section_id: currentSectionId,
-      enclosure_desc: data?.notes,
-      enclosure_code: '',
-      enclosure_environment: data?.environmentType?.value,
-      enclosure_is_movable: data?.movable ? 1 : 0,
-      enclosure_is_walkable: data?.walkable ? 1 : 0,
-      enclosure_type: data?.enclosureType?.value,
-      enclosure_sunlight: data?.sunlight,
-      enclosure_image: data?.images,
-      zoo_id: zooId,
-      batch_seq: data?.batchSequenceStart,
-      batch_count: data?.batchEnclosureCount,
-      commistioned_date: moment((data as any)?.data?.commissioned_date).format('YYYY-MM-DD'),
-      user_enclosure_id: user_id,
-      enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value
-    }
-
     try {
-      if (sectionId) {
-        const response = await addEnclosureToHousing(payload) as any
+      if (isEditMode && enclosureData) {
+        // Edit mode - only send new File objects, not existing URL strings
+        const newImages = data.images.filter(img => img instanceof File) as File[]
+
+        const payload = {
+          enclosure_id: enclosureData.enclosure_id,
+          user_enclosure_name: data?.enclosureName,
+          section_id: currentSectionId ? Number(currentSectionId) : enclosureData.section_id,
+          enclosure_desc: data?.notes,
+          enclosure_environment: data?.environmentType?.value || data?.environmentType?.label,
+          enclosure_is_movable: data?.movable ? 1 : 0,
+          enclosure_is_walkable: data?.walkable ? 1 : 0,
+          enclosure_type: data?.enclosureType?.value,
+          enclosure_sunlight: data?.sunlight,
+          enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value || null,
+          enclosure_lat: '',
+          enclosure_long: '',
+          commistioned_date: moment(data?.commissioned_date).format('YYYY-MM-DD'),
+          enclosure_status: 'active',
+          enclosure_code: enclosureData.enclosure_code || '',
+          user_enclosure_id: enclosureData.user_enclosure_id || user_id,
+          enclosure_image: newImages.length > 0 ? newImages : undefined
+        }
+
+        const response = await editEnclosure(payload) as any
+
         if (response?.success) {
-          Toaster({ type: 'success', message: response?.message })
-          resetAllFields()
+          Toaster({ type: 'success', message: 'Enclosure Updated Successfully' })
           setAddEnclosureDrawerOpen(false)
+          if (refetch) refetch()
           setRefechEnclosure(!refetchEnclosure)
         } else {
-          Toaster({ type: 'error', message: response?.message })
+          Toaster({ type: 'error', message: response?.message || 'Failed to update enclosure' })
+        }
+      } else {
+        // Add mode
+        const payload = {
+          user_enclosure_name: data?.enclosureName,
+          section_id: currentSectionId,
+          enclosure_desc: data?.notes,
+          enclosure_code: '',
+          enclosure_environment: data?.environmentType?.value,
+          enclosure_is_movable: data?.movable ? 1 : 0,
+          enclosure_is_walkable: data?.walkable ? 1 : 0,
+          enclosure_type: data?.enclosureType?.value,
+          enclosure_sunlight: data?.sunlight,
+          enclosure_image: data?.images,
+          zoo_id: zooId,
+          batch_seq: data?.batchSequenceStart,
+          batch_count: data?.batchEnclosureCount,
+          commistioned_date: moment((data as any)?.data?.commissioned_date).format('YYYY-MM-DD'),
+          user_enclosure_id: user_id,
+          enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value
+        }
+
+        if (sectionId || currentSectionId) {
+          const response = await addEnclosureToHousing(payload) as any
+          if (response?.success) {
+            Toaster({ type: 'success', message: response?.message })
+            resetAllFields()
+            setAddEnclosureDrawerOpen(false)
+            setRefechEnclosure(!refetchEnclosure)
+          } else {
+            Toaster({ type: 'error', message: response?.message })
+          }
         }
       }
     } catch (error) {
-      console.error('Error Adding Enclosure', error)
+      console.error('Error submitting form:', error)
+      toast.error(isEditMode ? 'An error occurred while updating the enclosure' : 'An error occurred while creating the enclosure')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDeleteEnclosure = async (): Promise<void> => {
+    if (!enclosureData) return
+
+    setDeleteLoading(true)
+    try {
+      const response = await deleteEnclosure({ enclosure_id: enclosureData.enclosure_id }) as any
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Enclosure Deleted Successfully' })
+        setShowDeleteDialog(false)
+        setAddEnclosureDrawerOpen(false)
+        // Navigate back to section details page
+        if (enclosureData.section_id) {
+          router.push(`/housing/sections/${enclosureData.section_id}`)
+        } else {
+          router.push('/housing/sites')
+        }
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete enclosure' })
+      }
+    } catch (error) {
+      console.error('Delete Error:', error)
+      toast.error('An error occurred while deleting the enclosure')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -399,51 +566,65 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
     <>
       <Drawer
         anchor='right'
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: ['100%', '562px'],
-            height: '100vh',
-            display: 'flex',
-            flexDirection: 'column'
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100%', sm: '562px' },
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: 'background.default',
+              p: 0
+            }
           }
         }}
         open={open}
         onClose={handleDrawerClose}
       >
+        {/* Header - Sticky */}
         <Box
           sx={{
-            backgroundColor: 'background.default',
-            height: '100%',
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
             display: 'flex',
-            flexDirection: 'column'
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: 'background.default',
+            px: 5,
+            py: 4,
+            borderBottom: `1px solid ${theme.palette.divider}`
           }}
         >
-          <Box
-            className='sidebar-header'
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              backgroundColor: 'background.default',
-              px: '1.2rem',
-              py: '1rem',
-              borderBottom: `1px solid ${theme.palette.divider}`
-            }}
-          >
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
-              <img src='/icons/activity_icon.png' alt='Cluster Icon' width='30px' />
-              <Typography variant='h6'>Add New Enclosure</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <img src='/icons/activity_icon.png' alt='Enclosure Icon' width='30px' />
+            <Typography variant='h6'>{isEditMode ? 'Edit Enclosure' : 'Add New Enclosure'}</Typography>
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-              <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
-                <Icon icon='mdi:close' fontSize={20} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {isEditMode && (
+              <IconButton size='small' onClick={() => setShowDeleteDialog(true)} sx={{ color: 'error.main' }}>
+                <Icon icon='mdi:delete-outline' fontSize={20} />
               </IconButton>
-            </Box>
+            )}
+            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
           </Box>
-          <Box sx={{ flex: 1, overflow: 'auto' }}>
-            <Box sx={{ px: 5, py: 4 }}>
-              <form onSubmit={handleSubmit(onSubmit)}>
+        </Box>
+
+        {/* Body - Scrollable */}
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0,
+            px: 5,
+            py: 4
+          }}
+        >
+          <form id="enclosure-form" onSubmit={handleSubmit(onSubmit)}>
+                {/* Single/Batch section - only show in add mode */}
+                {!isEditMode && (
                 <Box>
                   <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
                     Single/Batch?
@@ -611,6 +792,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                     )}
                   </Box>
                 </Box>
+                )}
                 <Box>
                   <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
                     Basic Information
@@ -990,36 +1172,57 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                     </Box>
                   </Box>
                 </Box>
-              </form>
-            </Box>
-          </Box>
-          <Box
-            sx={{
-              p: 5,
-              borderTop: `1px solid ${theme.palette.divider}`,
-              backgroundColor: 'background.paper',
-              display: 'flex',
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10
-            }}
+          </form>
+        </Box>
+
+        {/* Footer - Sticky */}
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            p: 5,
+            borderTop: `1px solid ${theme.palette.divider}`,
+            backgroundColor: theme.palette.background.paper,
+            zIndex: 1,
+            boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.06)',
+            flexShrink: 0
+          }}
+        >
+          <LoadingButton
+            loading={loading}
+            fullWidth
+            variant='contained'
+            type='submit'
+            form='enclosure-form'
+            sx={{ height: '50px' }}
           >
-            <Button
-              variant='contained'
-              fullWidth
-              size='large'
-              sx={{
-                py: 1.8,
-                bgcolor: theme.palette.primary.main
-              }}
-              onClick={handleSubmit(onSubmit)}
-            >
-              {loading ? <CircularProgress size={24} color='inherit' /> : 'ADD'}
-            </Button>
-          </Box>
+            {isEditMode ? 'Update' : 'Add'}
+          </LoadingButton>
         </Box>
       </Drawer>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          title='Delete Enclosure'
+          description='Are you sure you want to delete this enclosure? This action cannot be undone.'
+          image='/images/warning-icon.svg'
+          imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
+          confirmAction={handleDeleteEnclosure}
+          loading={deleteLoading}
+          ConfirmationText='DELETE'
+          cancelText='CANCEL'
+          confirmBtnStyle={{ background: theme.palette.customColors?.Error, py: 2 }}
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors?.OnPrimaryContainer,
+            color: theme.palette.customColors?.OnPrimaryContainer
+          }}
+        />
+      )}
     </>
   )
 }

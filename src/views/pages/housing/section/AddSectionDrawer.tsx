@@ -1,16 +1,28 @@
 import { useTheme } from '@emotion/react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Button, Card, CircularProgress, Drawer, IconButton, TextField, Typography } from '@mui/material'
+import { LoadingButton } from '@mui/lab'
 import { Box } from '@mui/system'
 import geolocation from 'geolocation'
-import React, { useContext, useRef } from 'react'
+import React, { useContext, useRef, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { AuthContext } from 'src/context/AuthContext'
-import { addSection } from 'src/lib/api/housing'
+import { addSection, editSection, deleteSection } from 'src/lib/api/housing'
 import * as yup from 'yup'
+import { useRouter } from 'next/router'
+
+interface SectionData {
+  section_id: number
+  section_name: string
+  section_site_id: number
+  section_latitude?: string
+  section_longitude?: string
+  images?: Array<{ file: string; display_type?: string }>
+}
 
 interface AddSectionDrawerProps {
   open: boolean
@@ -18,37 +30,42 @@ interface AddSectionDrawerProps {
   selectedSiteId: string
   setAddSuccessCheck: (check: boolean) => void
   addSuccessCheck: boolean
+  sectionData?: SectionData | null  // If provided, drawer is in edit mode
+  refetch?: () => void
 }
 
 interface FormValues {
   sectionName: string
-  images: File[]
+  images: (File | string)[]  // Can be File objects or URL strings for existing images
   latitude: string
   longitude: string
 }
 
 const schema = yup.object().shape({
   sectionName: yup.string().required('Section name is required'),
-  latitude: yup.string().required('Latitude is required'),
-  longitude: yup.string().required('Longitude is required')
-
-  // image: yup.mixed().required('Image is required')
+  latitude: yup.string(),
+  longitude: yup.string()
 })
 
-const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSectionDrawer, selectedSiteId, setAddSuccessCheck, addSuccessCheck }) => {
+const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSectionDrawer, selectedSiteId, setAddSuccessCheck, addSuccessCheck, sectionData, refetch }) => {
   const theme = useTheme() as any
+  const router = useRouter()
 
   const authData = useContext(AuthContext) as any
 
   const zooId = authData?.userData?.user?.zoos[0].zoo_id
+  const isEditMode = !!sectionData
 
   const [loading, setLoading] = React.useState<boolean>(false)
+  const [deleteLoading, setDeleteLoading] = React.useState<boolean>(false)
+  const [showDeleteDialog, setShowDeleteDialog] = React.useState<boolean>(false)
 
   const {
     control,
     setValue,
     watch,
     handleSubmit,
+    reset,
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues: {
@@ -59,6 +76,18 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
     },
     resolver: yupResolver(schema) as any
   })
+
+  // Pre-populate form when in edit mode
+  useEffect(() => {
+    if (isEditMode && sectionData) {
+      reset({
+        sectionName: sectionData.section_name || '',
+        latitude: sectionData.section_latitude || '',
+        longitude: sectionData.section_longitude || '',
+        images: sectionData.images?.map(img => img.file) || []
+      })
+    }
+  }, [isEditMode, sectionData, reset])
 
   const handleDrawerClose = (): void => {
     setValue('sectionName', '')
@@ -128,46 +157,82 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
   const onSubmit = async (data: FormValues): Promise<void> => {
     setLoading(true)
 
-    const payload = {
-      section_name: data?.sectionName,
-      section_latitude: data?.latitude,
-      section_longitude: data?.longitude,
-      site_id: selectedSiteId,
-      zoo_id: zooId,
-      section_image: data?.images
-    }
-
-    // const payload = new FormData()
-    // payload.append('section_name', data.sectionName)
-    // payload.append('section_latitude', data.latitude)
-    // payload.append('section_longitude', data.longitude)
-    // payload.append('site_id', selectedSiteId)
-    // payload.append('zoo_id', zooId)
-
-    // // Append each file individually
-    // data.images.forEach((file, index) => {
-    //   payload.append('section_image', file)
-    // })
-
     try {
-      const response = await addSection(payload) as any
-      if (response?.success) {
-        setLoading(false)
-        Toaster({ type: 'success', message: response?.message })
-        setShowAddSectionDrawer(false)
-        setValue('sectionName', '')
-        setValue('images', [])
-        setValue('latitude', '')
-        setValue('longitude', '')
-        setAddSuccessCheck(!addSuccessCheck)
-      } else {
-        setLoading(false)
+      if (isEditMode && sectionData) {
+        // Edit mode - only send new File objects, not existing URL strings
+        const newImages = data.images.filter(img => img instanceof File) as File[]
 
-        // setShowAddSectionDrawer(false)
-        Toaster({ type: 'error', message: response?.message })
+        const payload = {
+          section_id: sectionData.section_id,
+          section_name: data.sectionName,
+          section_site_id: sectionData.section_site_id,
+          section_latitude: data.latitude,
+          section_longitude: data.longitude,
+          section_image: newImages.length > 0 ? newImages : undefined
+        }
+
+        const response = await editSection(payload) as any
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: 'Section Updated Successfully' })
+          setShowAddSectionDrawer(false)
+          if (refetch) refetch()
+          setAddSuccessCheck(!addSuccessCheck)
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to update section' })
+        }
+      } else {
+        // Add mode
+        const payload = {
+          section_name: data.sectionName,
+          section_latitude: data.latitude,
+          section_longitude: data.longitude,
+          site_id: selectedSiteId,
+          zoo_id: zooId,
+          section_image: data.images.filter(img => img instanceof File) as File[]
+        }
+
+        const response = await addSection(payload) as any
+        if (response?.success) {
+          Toaster({ type: 'success', message: response?.message })
+          setShowAddSectionDrawer(false)
+          setValue('sectionName', '')
+          setValue('images', [])
+          setValue('latitude', '')
+          setValue('longitude', '')
+          setAddSuccessCheck(!addSuccessCheck)
+        } else {
+          Toaster({ type: 'error', message: response?.message })
+        }
       }
     } catch (error) {
       console.error('Error submitting form:', error)
+      toast.error(isEditMode ? 'An error occurred while updating the section' : 'An error occurred while creating the section')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteSection = async (): Promise<void> => {
+    if (!sectionData) return
+
+    setDeleteLoading(true)
+    try {
+      const response = await deleteSection({ section_id: sectionData.section_id }) as any
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Section Deleted Successfully' })
+        setShowDeleteDialog(false)
+        setShowAddSectionDrawer(false)
+        router.push(`/housing/sites/${sectionData.section_site_id}`)
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete section' })
+      }
+    } catch (error) {
+      console.error('Delete Error:', error)
+      toast.error('An error occurred while deleting the section')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -184,51 +249,62 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
   return (
     <Drawer
       anchor='right'
-      sx={{
-        '& .MuiDrawer-paper': {
-          width: ['100%', '562px'],
-          height: '100vh',
-          display: 'flex',
-          flexDirection: 'column'
-        }
-      }}
       open={open}
       onClose={handleDrawerClose}
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: '100%', sm: '562px' },
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: 'background.default',
+            p: 0
+          }
+        }
+      }}
     >
+      {/* Header - Sticky */}
       <Box
         sx={{
-          backgroundColor: 'background.default',
-          height: '100%',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
           display: 'flex',
-          flexDirection: 'column'
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: 'background.default',
+          px: 5,
+          py: 4,
+          borderBottom: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Box
-          className='sidebar-header'
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: 'background.default',
-            px: '1.2rem',
-            py: '1rem',
-            borderBottom: `1px solid ${theme.palette.divider}`
-          }}
-        >
-          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
-            <img src='/icons/activity_icon.png' alt='Cluster Icon' width='30px' />
-            <Typography variant='h6'>Add New Section</Typography>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
-              <Icon icon='mdi:close' fontSize={20} />
-            </IconButton>
-          </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <img src='/icons/activity_icon.png' alt='Section Icon' width='30px' />
+          <Typography variant='h6'>{isEditMode ? 'Edit Section' : 'Add New Section'}</Typography>
         </Box>
-        <Box sx={{ flex: 1, overflow: 'auto' }}>
-          <Box sx={{ px: 5, py: 4 }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {isEditMode && (
+            <IconButton size='small' onClick={() => setShowDeleteDialog(true)} sx={{ color: 'error.main' }}>
+              <Icon icon='mdi:delete-outline' fontSize={20} />
+            </IconButton>
+          )}
+          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+        </Box>
+      </Box>
+
+      {/* Body - Scrollable */}
+      <Box
+        sx={{
+          flex: 1,
+          overflowY: 'auto',
+          minHeight: 0,
+          px: 5,
+          py: 4
+        }}
+      >
+        <form id="section-form" onSubmit={handleSubmit(onSubmit)}>
               <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
                 Section Name & Image
               </Typography>
@@ -465,34 +541,55 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
                 />
               </Card>
             </form>
-          </Box>
-        </Box>
-        <Box
-          sx={{
-            p: 5,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: 'background.paper',
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 10
-          }}
-        >
-          <Button
-            variant='contained'
-            fullWidth
-            size='large'
-            sx={{
-              py: 1.8,
-              bgcolor: theme.palette.primary.main
-            }}
-            onClick={handleSubmit(onSubmit)}
-          >
-            {loading ? <CircularProgress size={24} color='inherit' /> : 'ADD'}
-          </Button>
-        </Box>
       </Box>
+
+      {/* Footer - Sticky */}
+      <Box
+        sx={{
+          position: 'sticky',
+          bottom: 0,
+          left: 0,
+          width: '100%',
+          p: 5,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          zIndex: 1,
+          boxShadow: '0 -2px 8px rgba(0, 0, 0, 0.06)',
+          flexShrink: 0
+        }}
+      >
+        <LoadingButton
+          loading={loading}
+          fullWidth
+          variant='contained'
+          type='submit'
+          form='section-form'
+          sx={{ height: '50px' }}
+        >
+          {isEditMode ? 'Update' : 'Add'}
+        </LoadingButton>
+      </Box>
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteDialog && (
+        <ConfirmationDialog
+          dialogBoxStatus={showDeleteDialog}
+          onClose={() => setShowDeleteDialog(false)}
+          title='Delete Section'
+          description='Are you sure you want to delete this section? This action cannot be undone.'
+          image='/images/warning-icon.svg'
+          imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
+          confirmAction={handleDeleteSection}
+          loading={deleteLoading}
+          ConfirmationText='DELETE'
+          cancelText='CANCEL'
+          confirmBtnStyle={{ background: theme.palette.customColors?.Error, py: 2 }}
+          cancelBtnStyle={{
+            borderColor: theme.palette.customColors?.OnPrimaryContainer,
+            color: theme.palette.customColors?.OnPrimaryContainer
+          }}
+        />
+      )}
     </Drawer>
   )
 }

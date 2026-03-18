@@ -13,9 +13,10 @@ import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
-import { getEnclosureWiseStat } from 'src/lib/api/housing'
+import { getEnclosureWiseStat, getEnclosureBasicInfo } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
+import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
 
 interface TabConfigItem {
   label: string
@@ -44,17 +45,31 @@ const EnclsouerDetails: React.FC = () => {
 
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
+  const [showEditEnclosureDrawer, setShowEditEnclosureDrawer] = useState<boolean>(false)
+  const [refetchEnclosure, setRefetchEnclosure] = useState<boolean>(false)
 
   const auth = useAuth()
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
+  const addEnclosureAccess = (auth as any)?.userData?.roles?.settings?.housing_add_enclosure
+  const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['site-detail', id],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['enclosure-detail', id],
     queryFn: () =>
       getEnclosureWiseStat({
         enclosure_id: Number(id)
       }),
     enabled: !!id
+  })
+
+  // Fetch enclosure basic info for edit mode
+  const { data: enclosureBasicInfo } = useQuery({
+    queryKey: ['enclosure-basic-info', id],
+    queryFn: () =>
+      getEnclosureBasicInfo({
+        enclosure_id: Number(id)
+      }),
+    enabled: !!id && showEditEnclosureDrawer
   })
 
   // Tab order follows mobile implementation (OccupantScreen.js)
@@ -166,6 +181,10 @@ const EnclsouerDetails: React.FC = () => {
           description=""
           pageTitle="Enclosure Details"
           haveInsightsViewAccess={insightsViewAccess}
+          actions={{
+            onEdit: addEnclosureAccess ? () => setShowEditEnclosureDrawer(true) : null
+          }}
+          editTooltip='Edit enclosure'
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_phone_no || ''
             if (phoneNumber) {
@@ -212,6 +231,38 @@ const EnclsouerDetails: React.FC = () => {
           </Box>
         </Card>
       </Box>
+      {showEditEnclosureDrawer && (
+        <AddEnclosureDrawer
+          open={showEditEnclosureDrawer}
+          setAddEnclosureDrawerOpen={setShowEditEnclosureDrawer}
+          sectionId={(data?.data as any)?.section_id?.toString() || null}
+          zooId={zooId}
+          refetchEnclosure={refetchEnclosure}
+          setRefechEnclosure={setRefetchEnclosure}
+          refetch={refetch}
+          enclosureData={{
+            enclosure_id: (data?.data as any)?.enclosure_id,
+            user_enclosure_name: (data?.data as any)?.user_enclosure_name,
+            section_id: (data?.data as any)?.section_id,
+            section_name: (data?.data as any)?.section_name,
+            enclosure_desc: (data?.data as any)?.enclosure_desc,
+            enclosure_environment: (data?.data as any)?.enclosure_environment || enclosureBasicInfo?.data?.enclosure_environment,
+            enclosure_type: (data?.data as any)?.enclosure_type || enclosureBasicInfo?.data?.enclosure_type,
+            enclosure_type_id: (data?.data as any)?.enclosure_type_id || enclosureBasicInfo?.data?.enclosure_type_id,
+            enclosure_is_movable: (data?.data as any)?.enclosure_is_movable || enclosureBasicInfo?.data?.enclosure_is_movable,
+            enclosure_is_walkable: (data?.data as any)?.enclosure_is_walkable || enclosureBasicInfo?.data?.enclosure_is_walkable,
+            enclosure_sunlight: (data?.data as any)?.enclosure_sunlight || enclosureBasicInfo?.data?.enclosure_sunlight,
+            enclosure_parent_id: (data?.data as any)?.enclosure_parent_id,
+            parent_enclosure_name: (data?.data as any)?.parent_enclosure_name,
+            enclosure_lat: (data?.data as any)?.enclosure_lat,
+            enclosure_long: (data?.data as any)?.enclosure_long,
+            commistioned_date: (data?.data as any)?.commistioned_date || enclosureBasicInfo?.data?.created_at,
+            enclosure_code: (data?.data as any)?.enclosure_code,
+            user_enclosure_id: (data?.data as any)?.user_enclosure_id,
+            images: (data?.data as any)?.images
+          }}
+        />
+      )}
     </>
   )
 }

@@ -30,7 +30,9 @@ const InsightsCard = ({
   statsData = [],
   qrCodeImage = '',
   entityName = '',
-  entityId = ''
+  entityId = '',
+  addNewTooltip = 'Add new',
+  editTooltip = 'Edit'
 }) => {
   const theme = useTheme()
   const [qrModalOpen, setQrModalOpen] = useState(false)
@@ -103,6 +105,8 @@ const InsightsCard = ({
           {...actions}
           hasQrCode={!!qrCodeImage}
           onQrClick={() => setQrModalOpen(true)}
+          addNewTooltip={addNewTooltip}
+          editTooltip={editTooltip}
         />
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
