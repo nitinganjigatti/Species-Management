@@ -947,7 +947,8 @@ const PrescriptionMonitoringGrid = ({
                         const status = timeSlot?.value?.status?.toLowerCase()
                         const scheduledTime = timeSlot?.value?.scheduledTime || timeSlot?.time
                         const dosage = timeSlot?.value?.dosage
-
+                        const oneTimeFrequency = metric?.frequency === "one_time"
+                        
                         return (
                           <TimeSlot
                             config={timeSlotGridConfig(status)}
@@ -955,6 +956,7 @@ const PrescriptionMonitoringGrid = ({
                             onClick={() => {
                               // if (isDischared) return
                               if (metric?.status?.toLowerCase() === 'stopped' && status !== 'pending') return
+                              if(oneTimeFrequency && status != 'pending') return
 
                               const data = {
                                 scheduledTime: scheduledTime,
@@ -989,7 +991,7 @@ const PrescriptionMonitoringGrid = ({
                                 // isScheduledFuture(selectedDate, scheduledTime)) ||
                                 // this is for allow schedule for same day for fast time and future time and any fast time
 
-                                isScheduledAllowed(selectedDate, scheduledTime))
+                                isScheduledAllowed(selectedDate, scheduledTime)) || (oneTimeFrequency && status != 'pending')
                               // ||
                               // (status?.toLowerCase() === 'pending' &&
                               //   // isScheduledFuture(selectedDate, scheduledTime)
@@ -1008,6 +1010,7 @@ const PrescriptionMonitoringGrid = ({
                                 // this is for allow schedule for same day for fast time and future time and any fast time
 
                                 isScheduledAllowed(selectedDate, scheduledTime))
+                                || (oneTimeFrequency && status != 'pending')
                               // ||
                               // (status?.toLowerCase() === 'pending' &&
                               //   // isScheduledFuture(selectedDate, scheduledTime)
@@ -1022,7 +1025,7 @@ const PrescriptionMonitoringGrid = ({
                               scheduledTime={scheduledTime}
                               administeredTime={timeSlot?.value?.administered_time}
                               dosage={dosage}
-                              disabled={metric?.status === 'stopped'}
+                              disabled={metric?.status === 'stopped' || (oneTimeFrequency && status != 'pending')}
                               config={timeSlotGridConfig(status)}
                               theme={theme}
                             />
