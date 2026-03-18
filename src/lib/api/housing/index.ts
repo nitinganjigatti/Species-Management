@@ -28,6 +28,7 @@ import {
   ADD_CLUSTER,
   EDIT_CLUSTER,
   DELETE_CLUSTER,
+  ASSIGN_SITES_FOR_CLUSTER,
   ADD_SECTION,
   EDIT_SECTION,
   DELETE_SECTION,
@@ -775,6 +776,68 @@ export interface DeleteClusterResponse {
 
 export async function deleteCluster(params: DeleteClusterParams): Promise<DeleteClusterResponse> {
   const response = await axiosPost({ url: `${DELETE_CLUSTER}`, body: params })
+
+  return response?.data
+}
+
+// Get available sites for cluster assignment - matches mobile API: cluster/get-site-list-for-cluster-assign
+export interface GetAvailableSitesForClusterParams {
+  cluster_id: number
+  q?: string
+  page_no?: number
+  limit?: number
+}
+
+export interface AvailableSiteItem {
+  site_id: number
+  site_name: string
+  site_description?: string
+  images?: Array<{ file?: string; display_type?: string }>
+  incharge_name?: string
+  incharge_image?: string
+  is_assigned?: boolean | number
+}
+
+export interface GetAvailableSitesForClusterResponse {
+  success?: boolean
+  message?: string
+  data?: {
+    result?: AvailableSiteItem[]
+    total_count?: number
+  }
+}
+
+export async function getAvailableSitesForCluster(
+  params: GetAvailableSitesForClusterParams
+): Promise<GetAvailableSitesForClusterResponse> {
+  const response = await axiosGet({ url: `${GET_SITES_LIST_CLUSTER_WISE}`, params })
+
+  return response?.data
+}
+
+// Assign/Remove sites from cluster - matches mobile API: cluster/assign-sites-for-cluster
+export interface AssignSitesToClusterPayload {
+  cluster_id: number
+  cluster_sites: string | number[]  // JSON string or array of site_ids
+  will_add: number  // 1 = add, 0 = remove
+}
+
+export interface AssignSitesToClusterResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export async function assignSitesToCluster(payload: AssignSitesToClusterPayload): Promise<AssignSitesToClusterResponse> {
+  // Format cluster_sites as JSON string if it's an array (matching mobile behavior)
+  const body = {
+    cluster_id: payload.cluster_id,
+    cluster_sites: Array.isArray(payload.cluster_sites)
+      ? JSON.stringify(payload.cluster_sites)
+      : payload.cluster_sites,
+    will_add: payload.will_add
+  }
+  const response = await axiosPost({ url: `${ASSIGN_SITES_FOR_CLUSTER}`, body })
 
   return response?.data
 }

@@ -108,6 +108,7 @@ const ClusterDetails: React.FC = () => {
   }
 
   const clusterStats = (data?.data as any)?.cluster_stats
+
   const statsData: StatItem[] = [
     {
       label: 'Species',
@@ -194,9 +195,9 @@ const ClusterDetails: React.FC = () => {
           image={(data?.data as any)?.images?.[0]?.file}
           userName={(data?.data as any)?.cluster_incharge}
           userImage={(data?.data as any)?.incharge_image}
-          pageTitle="Cluster Details"
-          subtitle=""
-          description=""
+          pageTitle='Cluster Details'
+          subtitle=''
+          description=''
           error={error}
           haveInsightsViewAccess={insightsViewAccess}
           actions={{
@@ -237,7 +238,8 @@ const ClusterDetails: React.FC = () => {
               setDrawerType={setDrawerType}
               drawerData={drawerData}
               setDrawerData={setDrawerData}
-              refType="cluster"
+              refType='cluster'
+              onSiteAdded={refetch}
             />
           </Box>
         </Card>

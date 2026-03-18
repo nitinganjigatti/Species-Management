@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, debounce, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
+import { Box, Button, debounce, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import React, { useMemo, useState } from 'react'
@@ -12,16 +12,19 @@ import Search from 'src/views/utility/Search'
 import SpeciesDrawer from '../utils/SpeciesDrawer'
 import AnimalDrawer from '../utils/AnimalDrawer'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
+import AddSiteToClusterDrawer from './AddSiteToClusterDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { SiteFilters, IndexedSiteRow, Site, DrawerData, DrawerType, SortOrder } from 'src/types/housing'
 import { GridCellParams, GridSortModel } from '@mui/x-data-grid'
+import Icon from 'src/@core/components/icon'
 
 interface ClusterSitesProps {
   drawerType: DrawerType
   setDrawerType: (type: DrawerType) => void
   drawerData: DrawerData | null
   setDrawerData: (data: DrawerData | null) => void
+  onSiteAdded?: () => void
 }
 
 interface PaginationModel {
@@ -29,7 +32,13 @@ interface PaginationModel {
   pageSize: number
 }
 
-const ClusterSites: React.FC<ClusterSitesProps> = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const ClusterSites: React.FC<ClusterSitesProps> = ({
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData,
+  onSiteAdded
+}) => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme() as Theme
@@ -37,6 +46,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({ drawerType, setDrawerType, 
 
   const [downloading, setDownloading] = useState<boolean>(false)
   const [inputValue, setInputValue] = useState<string>('')
+  const [addSiteDrawerOpen, setAddSiteDrawerOpen] = useState<boolean>(false)
 
   const [filters, setFilters] = useState<SiteFilters>({
     page: 1,
@@ -51,7 +61,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({ drawerType, setDrawerType, 
   const auth = useAuth()
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
-  const { data, isFetching } = useQuery({
+  const { data, isFetching, refetch: refetchSites } = useQuery({
     queryKey: ['clustersites', id, filters],
     queryFn: () =>
       getAllSites({
@@ -459,6 +469,14 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({ drawerType, setDrawerType, 
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
+          <Button
+            variant='contained'
+            startIcon={<Icon icon='mdi:plus' />}
+            onClick={() => setAddSiteDrawerOpen(true)}
+            sx={{ height: 44 }}
+          >
+            Add Site
+          </Button>
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
         </Box>
 
@@ -507,6 +525,19 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({ drawerType, setDrawerType, 
       )}
       {drawerType === 'enclosures' && (
         <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
+      {addSiteDrawerOpen && (
+        <AddSiteToClusterDrawer
+          open={addSiteDrawerOpen}
+          onClose={() => setAddSiteDrawerOpen(false)}
+          clusterId={Number(id)}
+          assignedSiteIds={sitesListing.map(site => site.site_id)}
+          onSuccess={() => {
+            // Refetch site list and cluster analytics
+            refetchSites()
+            onSiteAdded?.()
+          }}
+        />
       )}
     </>
   )

@@ -577,11 +577,17 @@ export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
 export const GET_SITES_LIST_CLUSTER_WISE = `cluster/get-site-list-for-cluster-assign`
 
 export const ADD_CLUSTER = `cluster/add-cluster`
+
 export const EDIT_CLUSTER = `cluster/edit-cluster`
+
 export const DELETE_CLUSTER = `cluster/delete-cluster`
 
+export const ASSIGN_SITES_FOR_CLUSTER = `cluster/assign-sites-for-cluster`
+
 export const ADD_SECTION = `/zoos/createsection`
+
 export const EDIT_SECTION = `/zoos/editsection`
+
 export const DELETE_SECTION = `/zoos/deletesection`
 
 export const CREATE_SITE = '/zoos/createZooSite'
@@ -796,6 +802,7 @@ export const ANIMAL_DIET_LIST = `diet/get-species-detail`
 export const GENERATE_DIET_PDF = `diet/generate-attachment-by-diet`
 
 export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
+
 export const ANIMAL_JOURNAL_MODULES = `journal/get-animal-module-logs`
 
 export const ANIMAL_HISTORY = `animal-log-history`
