@@ -3,7 +3,7 @@ import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import EnclosureOverview from 'src/components/housing/enclosure/EnclosureOverview'
 import EnclosureWiseEnclosure from 'src/components/housing/enclosure/EnclosureWiseEnclosure'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
@@ -22,6 +22,7 @@ interface TabConfigItem {
   label: string
   value: string
   component: React.ComponentType<any>
+  requiresPermission?: string
 }
 
 interface DrawerData {
@@ -53,6 +54,11 @@ const EnclsouerDetails: React.FC = () => {
   const addEnclosureAccess = (auth as any)?.userData?.roles?.settings?.housing_add_enclosure
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
+  // Merge permissions from both sources (matching mobile implementation)
+  const userSettingsPermissions = (auth as any)?.userData?.permission?.user_settings || {}
+  const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
+  const permissions: Record<string, boolean> = { ...userSettingsPermissions, ...rolesSettingsPermissions }
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['enclosure-detail', id],
     queryFn: () =>
@@ -73,32 +79,40 @@ const EnclsouerDetails: React.FC = () => {
   })
 
   // Tab order follows mobile implementation (OccupantScreen.js)
-  const tabConfig: TabConfigItem[] = [
+  // Permission checks match mobile: collection_animal_records, medical_records
+  const allTabConfig: TabConfigItem[] = [
     { label: 'Overview', value: 'overview', component: EnclosureOverview },
-    { label: 'Species', value: 'species', component: EnclosureWiseSpecies },
+    { label: 'Species', value: 'species', component: EnclosureWiseSpecies, requiresPermission: 'collection_animal_records' },
+    { label: 'Enclosures', value: 'enclosures', component: EnclosureWiseEnclosure },
     { label: 'Notes', value: 'notes', component: NotesListing },
     { label: 'Assessment', value: 'assessment', component: EntityAssessment },
+    // TODO: Uncomment when Medical tab component is implemented
+    // { label: 'Medical', value: 'medical', component: MedicalListing, requiresPermission: 'medical_records' },
     { label: 'Media', value: 'media', component: MediaListing },
     { label: 'Incharges', value: 'incharges', component: InchargeListing },
     { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing }
   ]
 
-  // Add Enclosures tab only if there are sub-enclosures (insert after Species, index 2)
-  if ((data?.data as any)?.total_sub_enclosure_count > 0) {
-    tabConfig.splice(2, 0, {
-      label: 'Enclosures',
-      value: 'enclosures',
-      component: EnclosureWiseEnclosure
+  const [selectedTab, setSelectedTab] = useState<string>(allTabConfig[0].value)
+
+  // Filter tabs based on permissions and data conditions
+  const tabConfig = useMemo(() => {
+    return allTabConfig.filter(tab => {
+      // Check permission requirement
+      if (tab.requiresPermission) {
+        if (permissions?.[tab.requiresPermission] !== true) {
+          return false
+        }
+      }
+
+      // Hide Enclosures tab if no sub-enclosures
+      if (tab.value === 'enclosures' && !((data?.data as any)?.total_sub_enclosure_count > 0)) {
+        return false
+      }
+
+      return true
     })
-  }
-
-  useEffect(() => {
-    if (!tabConfig.some(tab => tab.value === selectedTab)) {
-      setSelectedTab(tabConfig[0].value)
-    }
-  }, [data])
-
-  const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
+  }, [permissions, data])
 
   const statsData: StatItem[] = [
     {
@@ -144,6 +158,14 @@ const EnclsouerDetails: React.FC = () => {
       setSelectedTab(router.query.tab as string)
     }
   }, [router.query.tab])
+
+  // Reset to first available tab if selected tab becomes unavailable due to permissions
+  useEffect(() => {
+    const isSelectedTabAvailable = tabConfig.some(tab => tab.value === selectedTab)
+    if (!isSelectedTabAvailable && tabConfig.length > 0) {
+      setSelectedTab(tabConfig[0].value)
+    }
+  }, [tabConfig, selectedTab])
 
   const sectionId = (data?.data as any)?.section_id
   const sectionName = (data?.data as any)?.section_name

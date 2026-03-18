@@ -400,9 +400,11 @@ export interface EnclosureBasicInfo {
   section_name?: string
   site_name?: string
   enclosure_type?: string
+  enclosure_type_id?: number | string
   enclosure_sunlight?: string
   enclosure_environment?: string
   enclosure_is_movable?: string | number
+  enclosure_is_walkable?: string | number
   enclosure_desc?: string
   created_at?: string
   updated_at?: string

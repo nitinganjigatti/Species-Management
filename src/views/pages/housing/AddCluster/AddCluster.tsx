@@ -145,7 +145,7 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
   }
 
   const handleRemoveImage = (index: number): void => {
-    const updatedImages = images.filter((_: File, i: number) => i !== index)
+    const updatedImages = images.filter((_: File | string, i: number) => i !== index)
     setValue('images', updatedImages, { shouldValidate: true })
   }
 
@@ -455,7 +455,7 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                   />
                   {images.length > 0 && (
                     <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                      {images.map((img: File, index: number) => {
+                      {images.map((img: File | string, index: number) => {
                         const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
 
                         return (

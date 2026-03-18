@@ -55,9 +55,10 @@ interface StatItem {
 }
 
 // Tab order matches mobile implementation (SiteDetails.js)
+// Permission checks match mobile: collection_animal_records, access_mortality_module, approval_move_animal_external, medical_records
 const allTabConfig: TabConfigItem[] = [
   { label: 'Sections', value: 'sections', component: SectionListing },
-  { label: 'Species', value: 'species', component: SpeciesListing },
+  { label: 'Species', value: 'species', component: SpeciesListing, requiresPermission: 'collection_animal_records' },
   {
     label: 'Animals Under Treatment',
     value: 'animalTreatment',
@@ -65,6 +66,8 @@ const allTabConfig: TabConfigItem[] = [
   },
   { label: 'Notes', value: 'notes', component: NotesListing },
   { label: 'Assessment', value: 'assessment', component: EntityAssessment },
+  // TODO: Uncomment when Medical tab component is implemented
+  // { label: 'Medical', value: 'medical', component: MedicalListing, requiresPermission: 'medical_records' },
   {
     label: 'Animal Transfer',
     value: 'animalTransfer',
@@ -75,9 +78,14 @@ const allTabConfig: TabConfigItem[] = [
   { label: 'Media', value: 'media', component: MediaListing },
   { label: 'Users', value: 'users', component: UsersListing },
   { label: 'Incharges', value: 'incharges', component: InchargeListing },
-  { label: 'Mortality', value: 'mortality', component: MortalityListing },
+  { label: 'Mortality', value: 'mortality', component: MortalityListing, requiresPermission: 'access_mortality_module' },
   { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
-  { label: 'Hospital Transfer', value: 'hospitalTransfer', component: HospitalTransferListing }
+  {
+    label: 'Hospital Transfer',
+    value: 'hospitalTransfer',
+    component: HospitalTransferListing,
+    requiresPermission: 'approval_move_animal_external'
+  }
 ]
 
 const SiteDetails: React.FC = () => {
@@ -96,7 +104,7 @@ const SiteDetails: React.FC = () => {
   // Merge permissions from both sources (matching mobile implementation)
   const userSettingsPermissions = (auth as any)?.userData?.permission?.user_settings || {}
   const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
-  const permissions = { ...userSettingsPermissions, ...rolesSettingsPermissions }
+  const permissions: Record<string, boolean> = { ...userSettingsPermissions, ...rolesSettingsPermissions }
 
   // Filter tabs based on settings and permissions
   const tabConfig = useMemo(() => {
@@ -117,7 +125,7 @@ const SiteDetails: React.FC = () => {
 
       return true
     })
-  }, [settings, userSettingsPermissions, rolesSettingsPermissions])
+  }, [settings, permissions])
 
   const [selectedTab, setSelectedTab] = useState<string>(allTabConfig[0].value)
   const [drawerType, setDrawerType] = useState<string | null>(null)
@@ -243,6 +251,14 @@ const SiteDetails: React.FC = () => {
       setSelectedTab(router.query.tab as string)
     }
   }, [router.query.tab])
+
+  // Reset to first available tab if selected tab becomes unavailable due to permissions
+  useEffect(() => {
+    const isSelectedTabAvailable = tabConfig.some(tab => tab.value === selectedTab)
+    if (!isSelectedTabAvailable && tabConfig.length > 0) {
+      setSelectedTab(tabConfig[0].value)
+    }
+  }, [tabConfig, selectedTab])
 
   return (
     <>

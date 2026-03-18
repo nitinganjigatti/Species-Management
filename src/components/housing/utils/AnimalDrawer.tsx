@@ -13,6 +13,8 @@ import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
 import { useRouter } from 'next/router'
 import { Animal } from 'src/types/housing'
+import { useAuth } from 'src/hooks/useAuth'
+import Toaster from 'src/components/Toaster'
 
 interface AnimalsDrawerData {
   queryKey: string
@@ -46,6 +48,20 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
   const theme = useTheme() as any
   const queryClient = useQueryClient()
   const router = useRouter()
+  const auth = useAuth()
+
+  // Get permissions from both sources (matching mobile implementation)
+  const userSettingsPermissions = (auth as any)?.userData?.permission?.user_settings || {}
+  const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
+  const permissions: Record<string, string | boolean> = { ...userSettingsPermissions, ...rolesSettingsPermissions }
+
+  // Check if user can view animal details (matching mobile: collection_animal_record_access with VIEW level)
+  // Permission hierarchy: VIEW < ADD < EDIT < DELETE (higher levels include lower ones)
+  const canViewAnimalDetails = (): boolean => {
+    const accessLevel = permissions?.collection_animal_record_access
+
+    return ['VIEW', 'ADD', 'EDIT', 'DELETE'].includes(accessLevel as string)
+  }
 
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
@@ -148,6 +164,13 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
   }
 
   const handleAnimalClick = (animalId: number | string) => {
+    // Check permission before navigating (matching mobile implementation)
+    if (!canViewAnimalDetails()) {
+      Toaster({ type: 'error', message: 'Restricted: You do not have permission to access animal details' })
+
+      return
+    }
+
     router.push(`/housing/animals/${animalId}`)
   }
 
@@ -186,12 +209,12 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
           ) : (
             <CellInfo
               value={data?.name}
-              subtitle=""
+              subtitle=''
               imgUrl={data?.image}
-              avatarUrl=""
-              inchagename=""
+              avatarUrl=''
+              inchagename=''
               defaultImage={defaultImage}
-              defaultImageAlt=""
+              defaultImageAlt=''
               color={(theme.palette as any).customColors?.OnSurfaceVariant}
               subtitleColor={(theme.palette as any).customColors?.secondaryBg}
               objectFit={objectFit}
@@ -226,11 +249,14 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
               textColor={(theme.palette as any).customColors?.OnSurfaceVariant}
               animalParentCardStyle={{
                 border: `1px solid transparent`,
-                cursor: 'pointer',
-                '&:hover': {
-                  borderColor: theme.palette.primary.main,
-                  background: (theme.palette as any).customColors?.Surface
-                }
+                cursor: canViewAnimalDetails() ? 'pointer' : 'default',
+                opacity: canViewAnimalDetails() ? 1 : 0.7,
+                '&:hover': canViewAnimalDetails()
+                  ? {
+                      borderColor: theme.palette.primary.main,
+                      background: (theme.palette as any).customColors?.Surface
+                    }
+                  : {}
               }}
             />
           </Box>

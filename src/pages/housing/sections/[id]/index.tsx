@@ -1,6 +1,6 @@
 import { Box, Breadcrumbs, Typography, Tabs, Tab, Card, useTheme } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 // Listing Components
@@ -28,6 +28,7 @@ interface TabConfigItem {
   label: string
   value: string
   component: React.ComponentType<any>
+  requiresPermission?: string
 }
 
 interface DrawerData {
@@ -51,15 +52,18 @@ interface StatItem {
 }
 
 // Tab order matches mobile implementation (HousingEnclouser.js)
-const tabConfig: TabConfigItem[] = [
+// Permission checks match mobile: collection_animal_records, access_mortality_module, medical_records
+const allTabConfig: TabConfigItem[] = [
   { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
-  { label: 'Species', value: 'species', component: SpeciesListing },
+  { label: 'Species', value: 'species', component: SpeciesListing, requiresPermission: 'collection_animal_records' },
   { label: 'Notes', value: 'notes', component: NotesListing },
   { label: 'Assessment', value: 'assessment', component: EntityAssessment },
+  // TODO: Uncomment when Medical tab component is implemented
+  // { label: 'Medical', value: 'medical', component: MedicalListing, requiresPermission: 'medical_records' },
   { label: 'Media', value: 'media', component: MediaListing },
   { label: 'Users', value: 'users', component: UsersListing },
   { label: 'Incharges', value: 'incharges', component: InchargeListing },
-  { label: 'Mortality', value: 'mortality', component: MortalityListing },
+  { label: 'Mortality', value: 'mortality', component: MortalityListing, requiresPermission: 'access_mortality_module' },
   { label: 'Animals Under Treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
   { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing }
 ]
@@ -69,7 +73,7 @@ const SectionDetails: React.FC = () => {
   const router = useRouter()
   const { id } = router.query as { id?: string }
 
-  const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
+  const [selectedTab, setSelectedTab] = useState<string>(allTabConfig[0].value)
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
   const [addEnclosureDrawerOpen, setAddEnclosureDrawerOpen] = useState<boolean>(false)
@@ -83,6 +87,25 @@ const SectionDetails: React.FC = () => {
   const addSectionAccess = (auth as any)?.userData?.roles?.settings?.housing_add_section
 
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
+
+  // Merge permissions from both sources (matching mobile implementation)
+  const userSettingsPermissions = (auth as any)?.userData?.permission?.user_settings || {}
+  const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
+  const permissions: Record<string, boolean> = { ...userSettingsPermissions, ...rolesSettingsPermissions }
+
+  // Filter tabs based on permissions
+  const tabConfig = useMemo(() => {
+    return allTabConfig.filter(tab => {
+      // Check permission requirement
+      if (tab.requiresPermission) {
+        if (permissions?.[tab.requiresPermission] !== true) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [permissions])
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['section-insights', id],
@@ -197,13 +220,13 @@ const SectionDetails: React.FC = () => {
     }
   }, [router.query.tab])
 
-  // useEffect(() => {
-  //   const tabFromQuery = router.query?.enclosureTab
-  //   const isValidTab = tabConfig.some(tab => tab.value === tabFromQuery)
-  //   if (isValidTab && selectedTab !== tabFromQuery) {
-  //     setSelectedTab(tabFromQuery)
-  //   }
-  // }, [router.query?.enclosureTab])
+  // Reset to first available tab if selected tab becomes unavailable due to permissions
+  useEffect(() => {
+    const isSelectedTabAvailable = tabConfig.some(tab => tab.value === selectedTab)
+    if (!isSelectedTabAvailable && tabConfig.length > 0) {
+      setSelectedTab(tabConfig[0].value)
+    }
+  }, [tabConfig, selectedTab])
 
   return (
     <>
