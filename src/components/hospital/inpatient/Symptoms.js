@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { Box, Button, Typography, CircularProgress, debounce } from '@mui/material'
+import { Box, Button, Typography, CircularProgress } from '@mui/material'
+import { debounce } from 'lodash'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import Search from 'src/views/utility/Search'
@@ -110,6 +111,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
       if (searchQuery.trim()) {
         debouncedFetchSymptoms(searchQuery.trim())
       } else {
+        debouncedFetchSymptoms.cancel()
         fetchSymptoms('', 1, false)
       }
     }
