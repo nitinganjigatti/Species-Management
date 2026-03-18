@@ -556,6 +556,10 @@ export const SECTION_GET_ANIMAL_TREATMENT = 'section-wise-animal-medical-data'
 
 export const GET_MEDIA = 'zoos/all-type-media-list'
 
+export const ADD_MEDIA = 'zoos/all-type-add-media'
+
+export const ADD_ANIMAL_MEDIA = 'animal/add-media'
+
 export const GET_ANIMAL = 'v1/animal/listing'
 
 export const GET_CLUSTERS_LIST = `cluster/get-cluster-list`

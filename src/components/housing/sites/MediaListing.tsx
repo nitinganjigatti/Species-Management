@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
-import { Box, Grid, Typography, Tabs, Tab, CircularProgress } from '@mui/material'
+import { Box, Grid, Typography, Tabs, Tab, CircularProgress, Button } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
@@ -10,6 +10,8 @@ import { getAllMedia } from 'src/lib/api/housing'
 import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
 import { Media } from 'src/types/housing'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import Icon from 'src/@core/components/icon'
+import AddMediaDrawer from './AddMediaDrawer'
 
 type MediaTabType = 'image' | 'document' | 'video'
 
@@ -23,6 +25,7 @@ const MediaListing: React.FC = () => {
   const [activeTab, setActiveTab] = useState<MediaTabType>('image')
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
+  const [addMediaDrawerOpen, setAddMediaDrawerOpen] = useState<boolean>(false)
   const { id } = useRouter().query
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
@@ -116,13 +119,23 @@ const MediaListing: React.FC = () => {
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={activeTab} onChange={handleTabChange} sx={{ minHeight: 48 }}>
-          <Tab value='image' label={getTabLabel('image', 'Images')} />
-          <Tab value='document' label={getTabLabel('document', 'Documents')} />
-          <Tab value='video' label={getTabLabel('video', 'Videos')} />
-        </Tabs>
+    <Box sx={{ mt: 6 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+        <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={activeTab} onChange={handleTabChange} sx={{ minHeight: 48 }}>
+            <Tab value='image' label={getTabLabel('image', 'Images')} />
+            <Tab value='document' label={getTabLabel('document', 'Documents')} />
+            <Tab value='video' label={getTabLabel('video', 'Videos')} />
+          </Tabs>
+        </Box>
+        <Button
+          variant='contained'
+          startIcon={<Icon icon='mdi:plus' />}
+          onClick={() => setAddMediaDrawerOpen(true)}
+          sx={{ height: 44 }}
+        >
+          Add Media
+        </Button>
       </Box>
 
       {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
@@ -182,6 +195,15 @@ const MediaListing: React.FC = () => {
           </Typography>
         )}
       </Box>
+
+      {/* Add Media Drawer */}
+      <AddMediaDrawer
+        open={addMediaDrawerOpen}
+        onClose={() => setAddMediaDrawerOpen(false)}
+        refType='site'
+        refId={id as string}
+        onSuccess={() => refetch()}
+      />
     </Box>
   )
 }

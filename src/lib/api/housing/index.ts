@@ -14,6 +14,8 @@ import {
   GET_MORTALITY,
   GET_ANIMAL_TREATMENT,
   GET_MEDIA,
+  ADD_MEDIA,
+  ADD_ANIMAL_MEDIA,
   GET_ANIMAL,
   GET_CLUSTERS_LIST,
   GET_SPECIFIC_CLUSTER_ANALYTICS,
@@ -712,6 +714,40 @@ export async function getAllMedia(params?: GetMediaParams): Promise<GetMediaResp
   const response = await axiosGet({ url: `${GET_MEDIA}`, params })
 
   return response.data
+}
+
+// Add Media for Site/Section/Enclosure - matches mobile API: zoos/all-type-add-media
+export interface AddMediaPayload {
+  ref_id: number | string
+  ref_type: 'site' | 'section' | 'enclosure'
+  access_restricted_key?: number  // 0 = public, 1 = restricted
+  media_attachment: File[]
+}
+
+export interface AddMediaResponse {
+  success?: boolean
+  message?: string
+  data?: unknown
+}
+
+export async function addMedia(formData: FormData): Promise<AddMediaResponse> {
+  const response = await axiosFormPost({ url: `${ADD_MEDIA}`, body: formData })
+
+  return response?.data
+}
+
+// Add Media for Animals - matches mobile API: animal/add-media
+// Note: Mobile uses 'acess_restricted_key' (typo preserved for API compatibility)
+export interface AddAnimalMediaPayload {
+  animal_id: number | string
+  acess_restricted_key?: number  // 0 = public, 1 = restricted (mobile typo)
+  media_attachment: File[]
+}
+
+export async function addAnimalMedia(formData: FormData): Promise<AddMediaResponse> {
+  const response = await axiosFormPost({ url: `${ADD_ANIMAL_MEDIA}`, body: formData })
+
+  return response?.data
 }
 
 // ==================== Cluster API ====================
