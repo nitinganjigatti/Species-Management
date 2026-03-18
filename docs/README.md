@@ -6,6 +6,11 @@ This folder contains developer documentation for the Antz Web Dashboard project.
 
 ```
 docs/
+├── api/                    # API documentation (500+ endpoints)
+│   ├── API_README.md       # Quick start guide
+│   ├── API_ENDPOINTS.md    # Complete endpoint list with params
+│   ├── API_COMPLETE_REFERENCE.md  # Detailed examples for all modules
+│   └── API_PARAMETERS.md   # Parameter patterns and structures
 ├── migration/              # Upgrade and migration guides
 │   └── nextjs-15-to-16.md  # Next.js 15 → 16 migration guide
 └── modules/                # Module-specific documentation
@@ -19,6 +24,15 @@ docs/
         ├── carcass-transfer-listing.md
         └── species-view-feature.md
 ```
+
+## API Documentation
+
+| Guide                                                   | Description                                                  |
+| ------------------------------------------------------- | ------------------------------------------------------------ |
+| [API README](./api/API_README.md)                       | Quick start guide for API documentation                      |
+| [API Endpoints](./api/API_ENDPOINTS.md)                 | Complete list of 500+ endpoints with parameters             |
+| [API Complete Reference](./api/API_COMPLETE_REFERENCE.md) | Detailed examples with request/response for all modules   |
+| [API Parameters](./api/API_PARAMETERS.md)               | Parameter patterns, structures, and common use cases        |
 
 ## Migration Guides
 
