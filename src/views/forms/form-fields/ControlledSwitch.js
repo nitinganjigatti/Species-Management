@@ -93,6 +93,7 @@ const ControlledSwitch = ({
               label={labelNode}
               labelPlacement={labelPosition}
               sx={{
+                marginRight: 0,
                 marginLeft: 0,
                 ...(spaceBetween && {
                   width: '100%',
