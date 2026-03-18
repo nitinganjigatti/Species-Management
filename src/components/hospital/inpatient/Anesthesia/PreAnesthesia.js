@@ -6,6 +6,7 @@ import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import CustomOtherPurposeSection from 'src/views/utility/CustomOtherPurposeSection'
+import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
 
 const fastingTimeOptions = [
   { label: 'Hours', value: 'Hours' },
@@ -198,22 +199,16 @@ function PreAnesthesia({
         </Grid>
 
         <Grid size={{ xs: 12 }}>
-          <Controller
+          <ControlledCheckBox
             name='preAnesthesia.mark_weight_as_approximate'
             control={control}
-            render={({ field }) => (
-              <MUICheckbox
-                checked={!!field.value}
-                onChange={(_, checked) => field.onChange(checked)}
-                label='Mark weight as approximate'
-                labelStyle={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  color: theme.palette.customColors.neutralSecondary
-                }}
-              />
-            )}
-          />
+            label='Mark weight as approximate'
+            labelStyle={{
+              fontSize: '14px',
+              fontWeight: 400,
+              color: theme.palette.customColors.neutralSecondary
+            }}
+            />
         </Grid>
 
         <Grid size={{ xs: 12 }}>

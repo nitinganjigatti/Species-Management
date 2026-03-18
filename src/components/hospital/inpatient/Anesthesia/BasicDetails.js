@@ -21,6 +21,7 @@ import { useTheme, alpha } from '@mui/material/styles'
 import { Router, useRouter } from 'next/router'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import dayjs from 'dayjs'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
@@ -263,6 +264,37 @@ export default function BasicDetails({
     skeletonCount = 9
   }
 
+  const handleAddPurpose = () => {
+    const v = newPurpose.trim()
+    if (!v) return
+    const normalizedNew = normalizePurpose(v)
+    const selected = watch('basicDetails.selected') || []
+    const custom = watch('basicDetails.custom') || []
+
+    const matchedOption = purposeOptions.find(option => normalizePurpose(option?.name || '') === normalizedNew)
+    if (matchedOption) {
+      const idAsString = String(matchedOption.id)
+
+      if (selected.includes(idAsString)) {
+        setNewPurposeError('Purpose already exists and selected ')
+      } else {
+        setNewPurposeError('Purpose already exists, please select')
+      }
+
+      return
+    }
+    const existsInCustom = custom.some(item => normalizePurpose(item) === normalizedNew)
+    if (existsInCustom) {
+      setNewPurposeError('Purpose already exists')
+
+      return
+    }
+    setValue('basicDetails.custom', [...custom, v], { shouldValidate: true })
+    setNewPurpose('')
+    setValue('basicDetails.newPurpose', '')
+    setNewPurposeError('')
+  }
+
   return addLoader ? (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
       <CircularProgress />
@@ -271,20 +303,13 @@ export default function BasicDetails({
     <Box sx={{ width: '100%', p: 0 }}>
       <Grid container spacing={5} columns={12}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
+          <ControlledTextField
             name='basicDetails.location'
+            label='Location*'
             control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label='Location*'
-                error={!!errors.basicDetails?.location}
-                helperText={errors.basicDetails?.location?.message}
-                sx={commonTextFieldSx}
-                slotProps={{ input: { 'data-field': 'location' } }}
-              />
-            )}
+            errors={errors}
+            sx={commonTextFieldSx}
+            onChangeOverride={() => clearErrors?.('basicDetails.location')}
           />
         </Grid>
 
@@ -733,38 +758,7 @@ export default function BasicDetails({
                     variant='contained'
                     color='secondary'
                     disabled={!newPurpose.trim()}
-                    onClick={() => {
-                      const v = newPurpose.trim()
-                      if (!v) return
-                      const normalizedNew = normalizePurpose(v)
-                      const selected = watch('basicDetails.selected') || []
-                      const custom = watch('basicDetails.custom') || []
-
-                      const matchedOption = purposeOptions.find(
-                        option => normalizePurpose(option?.name || '') === normalizedNew
-                      )
-                      if (matchedOption) {
-                        const idAsString = String(matchedOption.id)
-
-                        if (selected.includes(idAsString)) {
-                          setNewPurposeError('Purpose already exists and selected ')
-                        } else {
-                          setNewPurposeError('Purpose already exists, please select')
-                        }
-
-                        return
-                      }
-                      const existsInCustom = custom.some(item => normalizePurpose(item) === normalizedNew)
-                      if (existsInCustom) {
-                        setNewPurposeError('Purpose already exists')
-
-                        return
-                      }
-                      setValue('basicDetails.custom', [...custom, v], { shouldValidate: true })
-                      setNewPurpose('')
-                      setValue('basicDetails.newPurpose', '')
-                      setNewPurposeError('')
-                    }}
+                    onClick={handleAddPurpose}
                     sx={{
                       minWidth: 120,
                       background: theme.palette.primary.main,

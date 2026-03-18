@@ -22,6 +22,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
 
 const EnclosureDischargeForm = props => {
   const {
@@ -396,8 +397,7 @@ const EnclosureDischargeForm = props => {
     }
   }
 
-  const handleReturnToOriginalToggle = (checked, fieldOnChange) => {
-    fieldOnChange(checked)
+  const handleReturnToOriginalToggle = (e, checked) => {
 
     if (checked) {
       // Apply original values (system action → not dirty)
@@ -448,23 +448,18 @@ const EnclosureDischargeForm = props => {
       <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <Controller
-              name='returnToOriginal'
+            <ControlledCheckBox
+              name={'returnToOriginal'}
+              label={'Transfer back to animal’s original location'}
               control={control}
-              render={({ field }) => (
-                <MUICheckbox
-                  {...field}
-                  label='Transfer back to animal’s original location'
-                  labelStyle={{
-                    fontSize: '1rem',
-                    fontWeight: '400',
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                  checked={field.value}
-                  onChange={e => handleReturnToOriginalToggle(e.target.checked, field.onChange)}
-                />
-              )}
-            />
+              errors={errors}
+              labelStyle={{
+                fontSize: '1rem',
+                fontWeight: '400',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+              onChangeOverride={handleReturnToOriginalToggle}
+              />
 
             <StyledTypography>Select location to transfer</StyledTypography>
             <Grid container spacing={6}>
