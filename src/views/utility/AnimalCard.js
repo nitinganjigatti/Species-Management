@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 import Utility from 'src/utility'
 
-const AnimalCard = ({ data, size, edit, valueColor }) => {
+const AnimalCard = ({ data, size, edit, valueColor, cardType = 'animal' }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
   const [src, setSrc] = useState(data?.default_icon)
@@ -190,45 +190,48 @@ const AnimalCard = ({ data, size, edit, valueColor }) => {
           </Box>
         )}
 
-        {!(data?.local_identifier_name && data?.local_identifier_value) && data?.animal_id && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <Typography
+        {!(data?.local_identifier_name && data?.local_identifier_value) &&
+          (data?.animal_id || data?.fetus_code || data?.display_fetus_code) && (
+            <Box
               sx={{
-                fontSize: size ?? '16px',
-                fontWeight: 600,
-                lineHeight: '19.36px',
-                color: valueColor || theme.palette.customColors.OnSurfaceVariant,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                maxWidth: edit ? '118px' : '200px'
+                display: 'flex',
+                alignItems: 'center'
               }}
             >
-              AID : {data?.animal_id}
-            </Typography>
-            {data?.is_primary === '1' && (
-              <Box
-                component='span'
+              <Typography
                 sx={{
+                  fontSize: size ?? '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
                   color: valueColor || theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  background: '#37bd6924',
-                  px: '5px',
-                  py: '2px',
-                  borderRadius: '4px',
-                  ml: '10px'
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: edit ? '118px' : '200px'
                 }}
               >
-                Primary Diet
-              </Box>
-            )}
-          </Box>
-        )}
+                {cardType == 'fetus'
+                  ? `FID : ${data?.fetus_code || data?.display_fetus_code}`
+                  : `AID : ${data?.animal_id}`}
+              </Typography>
+              {data?.is_primary === '1' && (
+                <Box
+                  component='span'
+                  sx={{
+                    color: valueColor || theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    background: '#37bd6924',
+                    px: '5px',
+                    py: '2px',
+                    borderRadius: '4px',
+                    ml: '10px'
+                  }}
+                >
+                  Primary Diet
+                </Box>
+              )}
+            </Box>
+          )}
 
         {(data?.common_name || data?.default_common_name) && (
           <Typography
@@ -243,7 +246,7 @@ const AnimalCard = ({ data, size, edit, valueColor }) => {
           </Typography>
         )}
 
-        {(data?.scientific_name || data?.complete_name) && (
+        {(data?.scientific_name || data?.complete_name || data?.animal_scientific_name) && (
           <Typography
             sx={{
               fontSize: '13px',
@@ -252,7 +255,7 @@ const AnimalCard = ({ data, size, edit, valueColor }) => {
               color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            {data?.scientific_name || data?.complete_name}
+            {data?.scientific_name || data?.complete_name || data?.animal_scientific_name}
           </Typography>
         )}
 
@@ -324,6 +327,35 @@ const AnimalCard = ({ data, size, edit, valueColor }) => {
           >
             <span>Variant : </span>
             {data?.morph_name || '-'}
+          </Typography>
+        )}
+
+        {data?.discovered && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Discovered : </span>
+            {Utility.convertUtcToLocalReadableDate(data?.discovered)}
+            <span> &bull; </span>
+            {Utility.convertUTCToLocaltime(data?.discovered)}
+          </Typography>
+        )}
+
+        {data?.mother_id && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Mother :{data?.mother_id}
           </Typography>
         )}
 
