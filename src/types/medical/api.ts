@@ -20,6 +20,19 @@ export interface MedicalRecordsParams {
   to_date?: string | null
 }
 
+export interface MedicalRecordFilterParams {
+  page_no?: number
+  limit?: number
+  animal_ids?: string
+  site_ids?: string
+  section_ids?: string
+  enclosure_ids?: string
+  species_ids?: string
+  gender?: string
+  start_date?: string
+  end_date?: string
+}
+
 export interface MedicalReportParams {
   animal_ids?: string | number
   enclosure_ids?: string | number

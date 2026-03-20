@@ -19,6 +19,7 @@ export type {
 export type {
   ApiResponse,
   MedicalRecordsParams,
+  MedicalRecordFilterParams,
   MedicalReportParams,
   MedicalRecordsResponse,
   MedicalReportResponse

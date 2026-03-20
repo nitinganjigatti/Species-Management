@@ -1,15 +1,19 @@
-import { Radio } from '@mui/material'
+import { Radio, Checkbox } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React from 'react'
 import AnimalCard from './AnimalCard'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 
-const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, sx }) => {
+const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelete, radio = false, checkbox = false, sx }) => {
   const theme = useTheme()
-  const interactive = Boolean(radio)
+  const interactive = Boolean(radio) || Boolean(checkbox)
   const handleSelect = () => {
-    radio?.onChange?.()
+    if (checkbox) {
+      checkbox?.onChange?.()
+    } else {
+      radio?.onChange?.()
+    }
   }
   const handleKeyDown = event => {
     if (event.target !== event.currentTarget) return
@@ -25,7 +29,7 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
         <Box
           sx={{
             width: '100%',
-            backgroundColor: radio?.checked ? '#F2FFF8' : backgroundColor || theme.palette.primary.contrastText,
+            backgroundColor: (radio?.checked || checkbox?.checked) ? '#F2FFF8' : backgroundColor || theme.palette.primary.contrastText,
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
@@ -33,7 +37,7 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '10px',
-            border: radio?.checked ? `1px solid #37BD69` : 'none',
+            border: (radio?.checked || checkbox?.checked) ? `1px solid #37BD69` : 'none',
             cursor: interactive ? 'pointer' : 'default',
             ...sx
           }}
@@ -76,6 +80,29 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false, ondelet
                 onChange={event => {
                   event.stopPropagation()
                   radio?.onChange?.()
+                }}
+                onClick={event => {
+                  event.stopPropagation()
+                }}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  p: 0,
+                  '& .MuiSvgIcon-root': {
+                    fontSize: 24
+                  }
+                }}
+              />
+            </Box>
+          )}
+
+          {checkbox && (
+            <Box>
+              <Checkbox
+                checked={checkbox?.checked}
+                onChange={event => {
+                  event.stopPropagation()
+                  checkbox?.onChange?.()
                 }}
                 onClick={event => {
                   event.stopPropagation()
