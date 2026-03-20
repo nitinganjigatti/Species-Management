@@ -114,7 +114,23 @@ import {
   GET_USER_ACCESS_CHECK,
   GET_LINEAGE_ANIMAL_LIST,
   GET_FAMILY_TREE_CLUTCH_LIST,
-  GET_FAMILY_TREE_LITTER_LIST
+  GET_FAMILY_TREE_LITTER_LIST,
+  GET_FAMILY_TREE_OFFSPRING_STATS,
+  DELETE_FAMILY_TREE_OFFSPRINGS,
+  ADD_FAMILY_TREE_OFFSPRING,
+  GET_FETUS_STATS,
+  GET_FETUS_LIST,
+  GET_FETUS_DETAILS,
+  GET_CLUTCH_DETAILS,
+  GET_CLUTCH_EGG_LIST,
+  EGG,
+  GET_EGG_PARENT_DETAILS,
+  GET_EGG_HISTORY,
+  EGG_ADD_COMMENT,
+  EGG_UPLOAD_IMAGES,
+  EGG_STATUS_MASTER_DATA,
+  EGG_STATUS_UPDATE,
+  EGG_GET_MEDIA_LIST
 } from 'src/constants/ApiConstant'
 import type {
   GetSitesParams,
@@ -231,6 +247,18 @@ import type {
   GetLineageAnimalListParams,
   GetLineageAnimalListResponse
 } from 'src/types/housing'
+import {
+  OffspringStatsPayload,
+  OffspringStatsResponse,
+  DeleteOffspringPayload,
+  DeleteOffspringResponse,
+  AddOffspringPayload,
+  AddOffspringResponse,
+  FetusStatsPayload,
+  FetusStatsResponse,
+  GetFetusPayload,
+  GetFetusResponse
+} from 'src/types/housing/animalsOffspring'
 import type {
   AddParentPayload,
   EditExternalParentPayload,
@@ -2154,6 +2182,125 @@ export interface DeleteObservationTemplateResponse {
 
 export async function deleteObservationTemplate(id: number): Promise<DeleteObservationTemplateResponse> {
   const response = await axiosPost({ url: `${OBSERVATION_TEMPLATE_DELETE}/${id}`, body: {} })
+
+  return response?.data
+}
+
+export async function getOffspringStats(params: OffspringStatsPayload): Promise<OffspringStatsResponse> {
+  try {
+    const response = await axiosGet({ url: GET_FAMILY_TREE_OFFSPRING_STATS, params })
+
+    return response?.data
+  } catch (error: any) {
+    console.error('Error fetching offspring stats:', error?.message)
+    throw error
+  }
+}
+
+export async function deleteOffspring(params: DeleteOffspringPayload): Promise<DeleteOffspringResponse> {
+  try {
+    const response = await axiosPost({ url: DELETE_FAMILY_TREE_OFFSPRINGS, body: params })
+
+    return response?.data
+  } catch (error: any) {
+    console.error('Error deleting offspring:', error?.message)
+    throw error
+  }
+}
+
+export async function addOffspring(params: AddOffspringPayload): Promise<AddOffspringResponse> {
+  try {
+    const response = await axiosFormPost({ url: ADD_FAMILY_TREE_OFFSPRING, body: params })
+
+    return response?.data
+  } catch (error: any) {
+    console.error('Error adding offspring:', error?.message)
+    throw error
+  }
+}
+
+export async function getFetusStats(params: FetusStatsPayload): Promise<FetusStatsResponse> {
+  try {
+    const response = await axiosGet({ url: GET_FETUS_STATS, params })
+
+    return response?.data
+  } catch (error: any) {
+    console.error('Error fetching fetus stats:', error?.message)
+    throw error
+  }
+}
+
+export async function getFetusList(params: GetFetusPayload): Promise<GetFetusResponse> {
+  try {
+    const response = await axiosGet({ url: GET_FETUS_LIST, params })
+
+    return response?.data
+  } catch (error: any) {
+    console.error('Error fetching fetus list:', error?.message)
+    throw error
+  }
+}
+export async function getFetusDetails({ fetusId }: { fetusId: number }): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: `${GET_FETUS_DETAILS}/${fetusId}` })
+
+  return response?.data
+}
+
+export async function getClutchDetails(params): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: { GET_CLUTCH_DETAILS }, body: params })
+
+  return response?.data
+}
+
+export async function getClutchEggList(params): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: GET_CLUTCH_EGG_LIST, params })
+
+  return response?.data
+}
+
+export async function getEggDetails({ eggId }: { eggId: number }): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: `${EGG}/${eggId}` })
+
+  return response?.data
+}
+
+export async function getEggParentDetails({ eggId }: { eggId: number }): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: `${GET_EGG_PARENT_DETAILS}?egg_id=${eggId}` })
+
+  return response?.data
+}
+
+export async function getEggHistory({ eggId }: { eggId: number }): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: `${GET_EGG_HISTORY}/${eggId}` })
+
+  return response?.data
+}
+
+export async function eggAddComment(params: { egg_id: number; comments: string }): Promise<any> {
+  const response = await axiosPost({ url: EGG_ADD_COMMENT, body: params })
+
+  return response?.data
+}
+
+export async function eggUploadImages(formData: FormData): Promise<any> {
+  const response = await axiosFormPost({ url: EGG_UPLOAD_IMAGES, body: formData })
+
+  return response?.data
+}
+
+export async function getEggStatusMasterData(): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: EGG_STATUS_MASTER_DATA })
+
+  return response?.data
+}
+export async function updateEggStatus(params): Promise<GetFetusResponse> {
+  const response = await axiosPost({ url: EGG_STATUS_UPDATE, body: params })
+
+  return response?.data
+}
+
+export async function getEggMediaList(params): Promise<GetFetusResponse> {
+  const response = await axiosGet({ url: EGG_GET_MEDIA_LIST, params })
 
   return response?.data
 }

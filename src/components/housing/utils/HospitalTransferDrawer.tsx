@@ -282,10 +282,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
                     gap: 2
                   }}
                 >
-                  <StyledTypography
-                    fontSize={'12px'}
-                    color={alpha(theme.palette.customColors?.OnPrimary , 0.8)}
-                  >
+                  <StyledTypography fontSize={'12px'} color={alpha(theme.palette.customColors?.OnPrimary, 0.8)}>
                     Initiated by
                   </StyledTypography>
                   <UserAvatarDetails
@@ -335,7 +332,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
                         onClick={() => setShowMobileNumber(prev => !prev)}
                         sx={{
                           color: theme.palette.customColors?.OnPrimary,
-                          '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary , 0.1) }
+                          '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1) }
                         }}
                       >
                         <Icon icon='mdi:phone' fontSize={20} />
@@ -367,7 +364,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
                             sx={{
                               color: theme.palette.customColors?.OnPrimary,
                               '&:hover': {
-                                backgroundColor: alpha(theme.palette.customColors?.OnPrimary , 0.1)
+                                backgroundColor: alpha(theme.palette.customColors?.OnPrimary, 0.1)
                               }
                             }}
                           >

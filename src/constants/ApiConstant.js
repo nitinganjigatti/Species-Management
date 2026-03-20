@@ -1209,6 +1209,36 @@ export const GET_FAMILY_TREE_CLUTCH_LIST = 'v1/familytree/clutch/list'
 
 export const GET_FAMILY_TREE_LITTER_LIST = 'v1/familytree/litter/list'
 
+export const GET_FETUS_LIST = 'fetus/list'
+
+export const GET_FAMILY_TREE_OFFSPRING_STATS = 'v1/familytree/stats'
+
+export const DELETE_FAMILY_TREE_OFFSPRINGS = 'v1/familytree/offspring/delete'
+
+export const ADD_FAMILY_TREE_OFFSPRING = 'v1/familytree/offspring/add'
+
+export const GET_FETUS_STATS = 'fetus/stats'
+
+export const GET_FETUS_DETAILS = 'fetus'
+
+export const GET_CLUTCH_DETAILS = 'egg/details'
+
+export const GET_CLUTCH_EGG_LIST = 'egg/detail/list'
+
+export const GET_EGG_PARENT_DETAILS = 'egg/parent/detail'
+
+export const GET_EGG_HISTORY = 'egg/history'
+
+export const EGG_ADD_COMMENT = 'egg/add-comment'
+
+export const EGG_UPLOAD_IMAGES = 'egg/upload-egg-media'
+
+export const EGG_STATUS_MASTER_DATA = 'egg/master/data/all'
+
+export const EGG_STATUS_UPDATE = 'egg/status/update'
+
+export const EGG_GET_MEDIA_LIST = 'egg/get-media-by-egg-id'
+
 // Observation Templates
 export const OBSERVATION_TEMPLATE_LIST = 'antz/observation/templates'
 
