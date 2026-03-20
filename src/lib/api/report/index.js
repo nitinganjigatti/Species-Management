@@ -9,7 +9,8 @@ import {
   MEDICAL_REPORT,
   SPECIES_FILTER,
   ASSESSMENT_REPORT,
-  GET_UPCOMING_VACCINATION_RECORDS
+  GET_UPCOMING_VACCINATION_RECORDS,
+  ASSESSMENT_RESPONSE_TYPE
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -120,6 +121,12 @@ export async function getAssessmentCategoriesList(params) {
 
 export async function getAssessmentTypesList(params) {
   const response = await axiosGet({ url: `v1/assessment/type/list`, params })
+
+  return response.data
+}
+
+export async function getAssessmentResponseType(params) {
+  const response = await axiosGet({ url: `${ASSESSMENT_RESPONSE_TYPE}`, params })
 
   return response.data
 }
