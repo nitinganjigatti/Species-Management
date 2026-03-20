@@ -32,7 +32,7 @@ const RecipientField = ({ label, users, onEdit, onRemove }) => {
           transition: 'border-color 0.2s, box-shadow 0.2s',
           '&:hover': {
             borderColor: 'primary.main',
-            boxShadow: '0 0 0 3px rgba(55,189,105,0.10)'
+            boxShadow: theme => `0 0 0 3px ${theme.palette.primary.main}1A`
           }
         }}
       >
@@ -55,10 +55,10 @@ const RecipientField = ({ label, users, onEdit, onRemove }) => {
                 />
               }
               sx={{
-                bgcolor: '#F2FFF8', color: 'customColors.OnSurfaceVariant',
-                border: '1px solid #DAE7DF', fontWeight: 500, fontSize: '12px',
+                bgcolor: 'customColors.Surface', color: 'customColors.OnSurfaceVariant',
+                border: '1px solid', borderColor: 'customColors.SurfaceVariant', fontWeight: 500, fontSize: '12px',
                 '& .MuiChip-avatar': { width: 20, height: 20 },
-                '& .MuiChip-deleteIcon': { color: '#839D8D', fontSize: 16, '&:hover': { color: '#FA6140' } }
+                '& .MuiChip-deleteIcon': { color: 'customColors.Outline', fontSize: 16, '&:hover': { color: 'customColors.Tertiary' } }
               }}
             />
           ))
@@ -112,7 +112,7 @@ const ReportCard = ({ report, recipients, onUpdateRecipients }) => {
             borderBottom: expanded ? '1px solid' : 'none',
             borderColor: 'customColors.OutlineVariant',
             transition: 'background 0.15s',
-            '&:hover': { bgcolor: '#F2FFF8' }
+            '&:hover': { bgcolor: 'customColors.Surface' }
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -128,7 +128,7 @@ const ReportCard = ({ report, recipients, onUpdateRecipients }) => {
           </Box>
           <Icon
             icon='mdi:chevron-down'
-            style={{ transition: 'transform 0.25s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', color: '#839D8D' }}
+            style={{ transition: 'transform 0.25s', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)' }}
           />
         </Box>
 
@@ -185,9 +185,9 @@ const ZooSettingsReportSection = ({ reportTypes = [], reportRecipients, onUpdate
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <Box sx={{
             width: 34, height: 34, borderRadius: '8px',
-            bgcolor: '#E0F7F6',
+            bgcolor: 'customColors.antzSecondaryBg',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#00AEA4'
+            color: 'secondary.main'
           }}>
             <Icon icon='mdi:email-outline' fontSize={18} />
           </Box>
