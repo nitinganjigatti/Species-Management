@@ -25,8 +25,8 @@ import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const notificationTabs = [
   { label: 'Low Stock Notification', value: '1', key: 'weekly_low_stock_qty_notification' },
-  { label: 'Expired Stock Notification', value: '2', key: 'weekly_expired_stock_qty_notification' },
-  { label: 'About To Expire Notification', value: '3', key: 'weekly_about_to_expire_stock_qty_notification' }
+  { label: 'Stock Expiry Notification', value: '2', key: 'weekly_expired_stock_qty_notification' }
+  // { label: 'Stock Expiry Notification', value: '3', key: 'weekly_about_to_expire_stock_qty_notification' }
 ]
 
 const PharmacySettingsList = () => {
@@ -61,8 +61,8 @@ const PharmacySettingsList = () => {
       })
       setSettingsData({
         weekly_low_stock_qty_notification: parsed?.weekly_low_stock_qty_notification || [],
-        weekly_expired_stock_qty_notification: parsed?.weekly_expired_stock_qty_notification || [],
-        weekly_about_to_expire_stock_qty_notification: parsed?.weekly_about_to_expire_stock_qty_notification || []
+        weekly_expired_stock_qty_notification: parsed?.weekly_expired_stock_qty_notification || []
+        // weekly_about_to_expire_stock_qty_notification: parsed?.weekly_about_to_expire_stock_qty_notification || []
       })
     } else {
       toast.error(response?.message || 'Failed to fetch data')
