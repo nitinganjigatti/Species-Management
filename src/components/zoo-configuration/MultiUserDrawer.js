@@ -27,9 +27,9 @@ const MultiUserCard = ({ name, image, role, checked, onChange }) => {
     <Card
       sx={{
         boxShadow: 'none',
-        backgroundColor: checked ? '#F2FFF8' : 'white',
+        backgroundColor: checked ? theme.palette.customColors.Surface : 'white',
         display: 'flex',
-        border: checked ? '1px solid #37BD69' : '1px solid white',
+        border: checked ? `1px solid ${theme.palette.primary.main}` : '1px solid white',
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
@@ -62,8 +62,8 @@ const MultiUserCard = ({ name, image, role, checked, onChange }) => {
         onClick={e => e.stopPropagation()}
         sx={{
           p: 0,
-          color: '#64748B',
-          '&.Mui-checked': { color: '#37BD69' }
+          color: theme.palette.customColors.neutralSecondary,
+          '&.Mui-checked': { color: theme.palette.primary.main }
         }}
       />
     </Card>
@@ -226,7 +226,7 @@ const MultiUserDrawer = ({
           <Box sx={{
             position: 'fixed', bottom: 0, right: 0, width: ['100%', '562px'],
             px: 4, py: '24px', bgcolor: 'white', zIndex: 1234,
-            borderTop: '1px solid #DAE7DF'
+            borderTop: `1px solid ${theme.palette.customColors.SurfaceVariant}`
           }}>
             <LoadingButton fullWidth onClick={handleConfirm} variant='contained' size='large' sx={{ height: '58px' }}>
               {confirmText} ({selected.length} selected)
