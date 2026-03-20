@@ -1,16 +1,42 @@
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { getZooSettings, getZooReportTypes, saveZooSettings } from 'src/lib/api/zoo-settings'
+import { getZooSettings, getZooSettingsSchema, getZooReportTypes, saveZooSettings } from 'src/lib/api/zoo-settings'
 import ZooSettingsView from 'src/views/pages/zoo-configuration/ZooSettingsView'
+import ZooSettingsHistoryDrawer from './ZooSettingsHistoryDrawer'
+
+// Fallback schema if the schema endpoint isn't deployed yet
+const FALLBACK_SCHEMA = [
+  {
+    key: 'general',
+    label: 'General Settings',
+    order: 1,
+    icon: 'mdi:earth',
+    description: 'Timezone and currency preferences',
+    fields: [
+      { key: 'timezone', label: 'Timezone', type: 'timezone_picker', required: true },
+      { key: 'currency', label: 'Currency', type: 'currency_picker', required: true }
+    ]
+  },
+  {
+    key: 'report_recipients',
+    label: 'Report Distribution',
+    order: 99,
+    type: 'report_recipients'
+  }
+]
 
 const ZooSettings = () => {
-  const [generalValues, setGeneralValues] = useState({
-    timezone: '',
-    currency: ''
-  })
-
+  const [sectionValues, setSectionValues] = useState({})
   const [reportRecipients, setReportRecipients] = useState({})
+  const [historyOpen, setHistoryOpen] = useState(false)
+
+  const { data: schemaData, isLoading: schemaLoading } = useQuery({
+    queryKey: ['zoo-settings-schema'],
+    queryFn: getZooSettingsSchema,
+    retry: false,
+    onError: () => {}
+  })
 
   const { data: settingsData, isLoading: settingsLoading } = useQuery({
     queryKey: ['zoo-settings'],
@@ -26,15 +52,42 @@ const ZooSettings = () => {
     onError: () => {}
   })
 
-  // Prefill state from API response
+  const schema = schemaData?.data || FALLBACK_SCHEMA
+
+  // Prefill state from API response using schema
   useEffect(() => {
-    if (settingsData?.data) {
-      const { timezone, currency, report_recipients } = settingsData.data
-      if (timezone) setGeneralValues(prev => ({ ...prev, timezone }))
-      if (currency) setGeneralValues(prev => ({ ...prev, currency }))
-      if (report_recipients) setReportRecipients(report_recipients)
+    if (!settingsData?.data) return
+
+    const data = settingsData.data
+    const newSectionValues = {}
+
+    schema.forEach(section => {
+      if (section.type === 'report_recipients') return // handled separately
+      if (!section.fields) return
+
+      const sectionData = data[section.key]
+      const values = {}
+
+      section.fields.forEach(field => {
+        if (sectionData != null && typeof sectionData === 'object') {
+          // Nested: e.g. cluster_management.enable_cluster_management
+          values[field.key] = sectionData[field.key] ?? field.default ?? null
+        } else {
+          // Top-level fallback: e.g. timezone, currency (if backend hasn't normalized yet)
+          values[field.key] = data[field.key] ?? field.default ?? null
+        }
+      })
+
+      newSectionValues[section.key] = values
+    })
+
+    setSectionValues(newSectionValues)
+
+    // Report recipients
+    if (data.report_recipients) {
+      setReportRecipients(data.report_recipients)
     }
-  }, [settingsData])
+  }, [settingsData, schemaData])
 
   // Initialize empty recipients for report types that don't have saved data
   useEffect(() => {
@@ -52,10 +105,40 @@ const ZooSettings = () => {
     }
   }, [reportTypesData])
 
-  const handleGeneralChange = (field, value) => {
-    setGeneralValues(prev => ({ ...prev, [field]: value }))
+  // Generic section field change handler
+  const handleSectionFieldChange = (sectionKey, fieldKey, value) => {
+    setSectionValues(prev => ({
+      ...prev,
+      [sectionKey]: { ...prev[sectionKey], [fieldKey]: value }
+    }))
   }
 
+  // Generic section save handler
+  const handleSaveSection = async sectionKey => {
+    try {
+      const values = sectionValues[sectionKey] || {}
+      const sectionSchema = schema.find(s => s.key === sectionKey)
+      const payload = { section: sectionKey }
+
+      // Build flat payload, extracting user IDs for user_picker fields
+      ;(sectionSchema?.fields || []).forEach(field => {
+        const val = values[field.key]
+        if (field.type === 'user_picker' && Array.isArray(val)) {
+          payload[field.key] = val.map(u => u.user_id)
+        } else {
+          payload[field.key] = val
+        }
+      })
+
+      const res = await saveZooSettings(payload)
+      toast.success(res?.message || 'Settings saved')
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to save settings')
+      throw err
+    }
+  }
+
+  // Report recipients handlers (unchanged)
   const handleUpdateRecipients = (reportKey, field, users) => {
     setReportRecipients(prev => ({
       ...prev,
@@ -63,22 +146,8 @@ const ZooSettings = () => {
     }))
   }
 
-  const handleSaveGeneral = async () => {
-    try {
-      const res = await saveZooSettings({
-        section: 'general',
-        ...generalValues
-      })
-      toast.success(res?.message || 'General settings saved')
-    } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to save general settings')
-      throw err
-    }
-  }
-
   const handleSaveReports = async () => {
     try {
-      // Backend expects user IDs only, not full user objects
       const payload = {}
       Object.keys(reportRecipients).forEach(key => {
         payload[key] = {
@@ -98,16 +167,24 @@ const ZooSettings = () => {
   }
 
   return (
-    <ZooSettingsView
-      isLoading={settingsLoading || reportTypesLoading}
-      generalValues={generalValues}
-      onGeneralChange={handleGeneralChange}
-      onSaveGeneral={handleSaveGeneral}
-      reportTypes={reportTypesData?.data || []}
-      reportRecipients={reportRecipients}
-      onUpdateRecipients={handleUpdateRecipients}
-      onSaveReports={handleSaveReports}
-    />
+    <>
+      <ZooSettingsView
+        isLoading={settingsLoading || reportTypesLoading || schemaLoading}
+        schema={schema}
+        sectionValues={sectionValues}
+        onSectionFieldChange={handleSectionFieldChange}
+        onSaveSection={handleSaveSection}
+        reportTypes={reportTypesData?.data || []}
+        reportRecipients={reportRecipients}
+        onUpdateRecipients={handleUpdateRecipients}
+        onSaveReports={handleSaveReports}
+        onOpenHistory={() => setHistoryOpen(true)}
+      />
+      <ZooSettingsHistoryDrawer
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+      />
+    </>
   )
 }
 
