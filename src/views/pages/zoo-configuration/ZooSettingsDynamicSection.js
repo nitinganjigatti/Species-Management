@@ -13,7 +13,7 @@ const ZooSettingsDynamicSection = ({ section, values, onChange, onSave }) => {
   }
 
   return (
-    <Card sx={{ mb: 5, boxShadow: theme => theme.shadows[2], borderRadius: '10px' }}>
+    <Card sx={{ boxShadow: theme => theme.shadows[2], borderRadius: '10px' }}>
       <Box
         sx={{
           px: 6, py: 4,
