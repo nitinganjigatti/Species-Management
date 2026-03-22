@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import moment from 'moment-timezone'
+import dayjs from 'dayjs'
 import {
   Autocomplete, Box, Chip, Avatar, FormControlLabel,
   Radio, RadioGroup, Switch, TextField, Typography
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+import MUITimePicker from 'src/views/forms/form-fields/MUITimePicker'
 import MultiUserDrawer from 'src/components/zoo-configuration/MultiUserDrawer'
 
 // ── Shared constants ──────────────────────────────────────────────
@@ -240,6 +243,157 @@ const UserPickerField = ({ field, value, onChange }) => {
   )
 }
 
+const CheckboxGroupField = ({ field, value, onChange }) => {
+  const selected = Array.isArray(value) ? value : []
+
+  const toggle = optValue => {
+    if (selected.includes(optValue)) {
+      onChange(selected.filter(v => v !== optValue))
+    } else {
+      onChange([...selected, optValue])
+    }
+  }
+
+  return (
+    <Box>
+      <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+        {field.label}
+      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+        {(field.options || []).map(opt => {
+          const isSelected = selected.includes(opt.value)
+
+          return (
+            <Chip
+              key={opt.value}
+              label={opt.label}
+              size='small'
+              onClick={() => toggle(opt.value)}
+              sx={{
+                fontWeight: 500, fontSize: '12.5px', cursor: 'pointer',
+                transition: 'all 0.15s',
+                ...(isSelected
+                  ? {
+                      bgcolor: 'primary.main', color: 'primary.contrastText',
+                      border: '1px solid', borderColor: 'primary.main',
+                      '&:hover': { bgcolor: 'primary.dark' }
+                    }
+                  : {
+                      bgcolor: 'background.paper', color: 'customColors.OnSurfaceVariant',
+                      border: '1px solid', borderColor: 'customColors.SurfaceVariant',
+                      '&:hover': { borderColor: 'primary.main', bgcolor: 'customColors.Surface' }
+                    })
+              }}
+            />
+          )
+        })}
+      </Box>
+    </Box>
+  )
+}
+
+const TimePickerListField = ({ field, value, onChange }) => {
+  const times = Array.isArray(value) ? value : []
+  const maxItems = field.max_items || 3
+
+  const handleAdd = () => {
+    if (times.length >= maxItems) return
+    onChange([...times, '08:00'])
+  }
+
+  const handleRemove = idx => {
+    const updated = times.filter((_, i) => i !== idx)
+    onChange(updated)
+  }
+
+  const toMinutes = t => {
+    const [h, m] = t.split(':').map(Number)
+
+    return h * 60 + m
+  }
+
+  const handleChange = (idx, newVal) => {
+    if (!newVal || !newVal.isValid()) return
+    const formatted = newVal.format('HH:mm')
+    const newMins = toMinutes(formatted)
+
+    // Enforce 30-min gap from other times
+    const tooClose = times.some((t, i) => {
+      if (i === idx || !t) return false
+      const diff = Math.abs(newMins - toMinutes(t))
+      const wrappedDiff = Math.min(diff, 1440 - diff)
+
+      return wrappedDiff < 30
+    })
+
+    if (tooClose) {
+      toast.error('Send times must be at least 30 minutes apart')
+
+      return
+    }
+
+    const updated = [...times]
+    updated[idx] = formatted
+    onChange(updated)
+  }
+
+  return (
+    <Box>
+      <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 500 }}>
+        {field.label}
+      </Typography>
+      <Typography variant='caption' sx={{ mb: 1, color: 'text.disabled', display: 'block' }}>
+        Reports are dispatched within a 15-minute window of the selected time
+      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center' }}>
+        {times.map((t, idx) => (
+          <Box
+            key={idx}
+            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, maxWidth: 180 }}
+          >
+            <MUITimePicker
+              value={t ? dayjs(`2000-01-01 ${t}`) : null}
+              onChange={val => handleChange(idx, val)}
+              label=''
+              format='hh:mm A'
+              size='small'
+              ampm
+              sx={{ '& .MuiInputBase-input': { fontSize: '13px', py: '8px' } }}
+            />
+            <Box
+              onClick={() => handleRemove(idx)}
+              sx={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: 24, height: 24, borderRadius: '50%', cursor: 'pointer', flexShrink: 0,
+                color: 'customColors.Outline', transition: 'all 0.15s',
+                '&:hover': { color: 'customColors.Tertiary', bgcolor: 'customColors.BgTeritary' }
+              }}
+            >
+              <Icon icon='mdi:close' fontSize={16} />
+            </Box>
+          </Box>
+        ))}
+        {times.length < maxItems && (
+          <Box
+            onClick={handleAdd}
+            sx={{
+              display: 'inline-flex', alignItems: 'center', gap: 0.5,
+              border: '1px dashed', borderColor: 'customColors.OutlineVariant',
+              borderRadius: '6px', px: 1.5, py: '7px',
+              cursor: 'pointer', color: 'primary.main', fontSize: '12.5px', fontWeight: 500,
+              transition: 'all 0.15s',
+              '&:hover': { borderColor: 'primary.main', bgcolor: 'customColors.Surface' }
+            }}
+          >
+            <Icon icon='mdi:plus' fontSize={14} />
+            Add time
+          </Box>
+        )}
+      </Box>
+    </Box>
+  )
+}
+
 // ── Registry ──────────────────────────────────────────────────────
 
 const FIELD_RENDERERS = {
@@ -250,7 +404,9 @@ const FIELD_RENDERERS = {
   dropdown: DropdownField,
   number: NumberField,
   text: TextFieldRenderer,
-  user_picker: UserPickerField
+  user_picker: UserPickerField,
+  checkbox_group: CheckboxGroupField,
+  time_picker_list: TimePickerListField
 }
 
 export const getFieldRenderer = type => FIELD_RENDERERS[type] || TextFieldRenderer

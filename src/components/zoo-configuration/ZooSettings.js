@@ -19,16 +19,36 @@ const FALLBACK_SCHEMA = [
     ]
   },
   {
-    key: 'report_recipients',
-    label: 'Report Distribution',
-    order: 99,
-    type: 'report_recipients'
+    key: 'report_email',
+    label: 'Report Email',
+    order: 6,
+    type: 'report_email',
+    description: 'Configure recipients, schedule, and frequency for each report type',
+    fields: [
+      { key: 'enabled', label: 'Enable', type: 'toggle', default: false },
+      {
+        key: 'frequency', label: 'Frequency', type: 'radio', default: 'daily',
+        options: [{ value: 'daily', label: 'Daily' }, { value: 'weekly', label: 'Weekly' }]
+      },
+      {
+        key: 'days', label: 'Days', type: 'checkbox_group',
+        visible_when: { frequency: 'weekly' },
+        options: [
+          { value: 'monday', label: 'Mon' }, { value: 'tuesday', label: 'Tue' },
+          { value: 'wednesday', label: 'Wed' }, { value: 'thursday', label: 'Thu' },
+          { value: 'friday', label: 'Fri' }, { value: 'saturday', label: 'Sat' },
+          { value: 'sunday', label: 'Sun' }
+        ],
+        default: []
+      },
+      { key: 'send_times', label: 'Send Times', type: 'time_picker_list', max_items: 3, min_items: 1, format: 'HH:mm', default: [] }
+    ]
   }
 ]
 
 const ZooSettings = () => {
   const [sectionValues, setSectionValues] = useState({})
-  const [reportRecipients, setReportRecipients] = useState({})
+  const [reportEmailValues, setReportEmailValues] = useState({})
   const [historyOpen, setHistoryOpen] = useState(false)
 
   const { data: schemaData, isLoading: schemaLoading } = useQuery({
@@ -62,7 +82,7 @@ const ZooSettings = () => {
     const newSectionValues = {}
 
     schema.forEach(section => {
-      if (section.type === 'report_recipients') return // handled separately
+      if (section.type === 'report_email') return // handled separately
       if (!section.fields) return
 
       const sectionData = data[section.key]
@@ -70,10 +90,8 @@ const ZooSettings = () => {
 
       section.fields.forEach(field => {
         if (sectionData != null && typeof sectionData === 'object') {
-          // Nested: e.g. cluster_management.enable_cluster_management
           values[field.key] = sectionData[field.key] ?? field.default ?? null
         } else {
-          // Top-level fallback: e.g. timezone, currency (if backend hasn't normalized yet)
           values[field.key] = data[field.key] ?? field.default ?? null
         }
       })
@@ -83,20 +101,27 @@ const ZooSettings = () => {
 
     setSectionValues(newSectionValues)
 
-    // Report recipients
-    if (data.report_recipients) {
-      setReportRecipients(data.report_recipients)
+    // Report email (combined recipients + schedule)
+    if (data.report_email) {
+      setReportEmailValues(data.report_email)
     }
   }, [settingsData, schemaData])
 
-  // Initialize empty recipients for report types that don't have saved data
+  // Initialize defaults for report types without saved data
   useEffect(() => {
     if (reportTypesData?.data?.length) {
-      setReportRecipients(prev => {
+      setReportEmailValues(prev => {
         const updated = { ...prev }
         reportTypesData.data.forEach(rt => {
           if (!updated[rt.key]) {
-            updated[rt.key] = { to: [], cc: [] }
+            updated[rt.key] = {
+              enabled: false,
+              to: [],
+              cc: [],
+              frequency: 'daily',
+              days: [],
+              send_times: [rt.default_send_time || '08:00']
+            }
           }
         })
 
@@ -120,7 +145,6 @@ const ZooSettings = () => {
       const sectionSchema = schema.find(s => s.key === sectionKey)
       const payload = { section: sectionKey }
 
-      // Build flat payload, extracting user IDs for user_picker fields
       ;(sectionSchema?.fields || []).forEach(field => {
         const val = values[field.key]
         if (field.type === 'user_picker' && Array.isArray(val)) {
@@ -138,30 +162,30 @@ const ZooSettings = () => {
     }
   }
 
-  // Report recipients handlers (unchanged)
-  const handleUpdateRecipients = (reportKey, field, users) => {
-    setReportRecipients(prev => ({
-      ...prev,
-      [reportKey]: { ...prev[reportKey], [field]: users }
-    }))
+  // Report email handlers (combined recipients + schedule)
+  const handleReportEmailChange = (reportKey, updatedData) => {
+    setReportEmailValues(prev => ({ ...prev, [reportKey]: updatedData }))
   }
 
-  const handleSaveReports = async () => {
+  const handleSaveReportEmail = async () => {
     try {
+      // Build payload: convert hydrated user objects to IDs
       const payload = {}
-      Object.keys(reportRecipients).forEach(key => {
+      Object.entries(reportEmailValues).forEach(([key, val]) => {
         payload[key] = {
-          to: reportRecipients[key].to.map(u => u.user_id),
-          cc: reportRecipients[key].cc.map(u => u.user_id)
+          ...val,
+          to: (val.to || []).map(u => typeof u === 'object' ? u.user_id : u),
+          cc: (val.cc || []).map(u => typeof u === 'object' ? u.user_id : u)
         }
       })
+
       const res = await saveZooSettings({
-        section: 'report_recipients',
-        report_recipients: payload
+        section: 'report_email',
+        report_email: payload
       })
-      toast.success(res?.message || 'Report recipients saved')
+      toast.success(res?.message || 'Report email settings saved')
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to save report recipients')
+      toast.error(err?.response?.data?.message || 'Failed to save report email settings')
       throw err
     }
   }
@@ -175,9 +199,10 @@ const ZooSettings = () => {
         onSectionFieldChange={handleSectionFieldChange}
         onSaveSection={handleSaveSection}
         reportTypes={reportTypesData?.data || []}
-        reportRecipients={reportRecipients}
-        onUpdateRecipients={handleUpdateRecipients}
-        onSaveReports={handleSaveReports}
+        reportEmailValues={reportEmailValues}
+        onReportEmailChange={handleReportEmailChange}
+        onSaveReportEmail={handleSaveReportEmail}
+        timezone={sectionValues.general?.timezone || settingsData?.data?.timezone || null}
         onOpenHistory={() => setHistoryOpen(true)}
       />
       <ZooSettingsHistoryDrawer

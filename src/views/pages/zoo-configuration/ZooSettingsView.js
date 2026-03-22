@@ -1,7 +1,7 @@
 import { Box, Button, Typography, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import ZooSettingsDynamicSection from './ZooSettingsDynamicSection'
-import ZooSettingsReportSection from './ZooSettingsReportSection'
+import ZooSettingsReportEmailSection from './ZooSettingsReportEmailSection'
 
 const ZooSettingsView = ({
   isLoading,
@@ -10,9 +10,10 @@ const ZooSettingsView = ({
   onSectionFieldChange,
   onSaveSection,
   reportTypes,
-  reportRecipients,
-  onUpdateRecipients,
-  onSaveReports,
+  reportEmailValues,
+  onReportEmailChange,
+  onSaveReportEmail,
+  timezone,
   onOpenHistory
 }) => {
   if (isLoading) {
@@ -33,7 +34,7 @@ const ZooSettingsView = ({
             Zoo Settings
           </Typography>
           <Typography variant='body2' sx={{ color: 'text.secondary', mt: 0.5 }}>
-            Manage zoo-level configuration and report distribution
+            Manage zoo-level configuration and report email settings
           </Typography>
         </Box>
         <Button
@@ -47,15 +48,18 @@ const ZooSettingsView = ({
         </Button>
       </Box>
 
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
       {sortedSchema.map(section => {
-        if (section.type === 'report_recipients') {
+        if (section.type === 'report_email') {
           return (
-            <ZooSettingsReportSection
+            <ZooSettingsReportEmailSection
               key={section.key}
+              section={section}
               reportTypes={reportTypes}
-              reportRecipients={reportRecipients}
-              onUpdateRecipients={onUpdateRecipients}
-              onSave={onSaveReports}
+              reportEmailValues={reportEmailValues}
+              timezone={timezone}
+              onChange={onReportEmailChange}
+              onSave={onSaveReportEmail}
             />
           )
         }
@@ -70,6 +74,7 @@ const ZooSettingsView = ({
           />
         )
       })}
+      </Box>
     </Box>
   )
 }
