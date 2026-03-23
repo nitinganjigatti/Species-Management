@@ -36,6 +36,7 @@ export default function BasicDetails({
   vetOptions = [],
   anesthetistOptions = [],
   purposeOptions = [],
+  anesthesiaId = '',
   addLoader = false,
   selectedHospital,
   loadMoreDoctors = () => {},
@@ -53,6 +54,7 @@ export default function BasicDetails({
     control,
     watch,
     setValue,
+    clearErrors,
     trigger,
     formState: { errors }
   } = useFormContext()
@@ -68,6 +70,7 @@ export default function BasicDetails({
   const [newPurposeError, setNewPurposeError] = useState('')
   const contentRef = useRef(null)
   const { id, anaesthesia_id } = router.query
+  const effectiveAnesthesiaId = anesthesiaId || anaesthesia_id
   const timeUnits = [
     { label: 'hr', value: 'hr' },
     { label: 'min', value: 'min' }
@@ -90,7 +93,7 @@ export default function BasicDetails({
 
   useEffect(() => {
     // For new records, await patientData to set proper fallback
-    if (!anaesthesia_id && patientData && !isDefaultDateSetRef.current) {
+    if (!effectiveAnesthesiaId && patientData && !isDefaultDateSetRef.current) {
       const defaultDateTime = patientData?.discharge_at
         ? dayjs.utc(patientData.discharge_at).local().format('YYYY-MM-DD HH:mm:ss')
         : dayjs().format('YYYY-MM-DD HH:mm:ss')
@@ -98,21 +101,21 @@ export default function BasicDetails({
         shouldValidate: true
       })
       isDefaultDateSetRef.current = true
-    } else if (!anaesthesiaDateTimeValue && !isDefaultDateSetRef.current && !anaesthesia_id) {
+    } else if (!anaesthesiaDateTimeValue && !isDefaultDateSetRef.current && !effectiveAnesthesiaId) {
       // Temporary fallback while patientData loads
       setValue('basicDetails.anaesthesia_datetime', dayjs().format('YYYY-MM-DD HH:mm:ss'), {
         shouldValidate: true
       })
-    } else if (!anaesthesiaDateTimeValue && anaesthesia_id) {
+    } else if (!anaesthesiaDateTimeValue && effectiveAnesthesiaId) {
        setValue('basicDetails.anaesthesia_datetime', dayjs().format('YYYY-MM-DD HH:mm:ss'), {
         shouldValidate: true
       })
     }
 
-    if (!anaesthesia_id && selectedHospital?.name && !watch('basicDetails.location')) {
+    if (!effectiveAnesthesiaId && selectedHospital?.name && !watch('basicDetails.location')) {
       setValue('basicDetails.location', selectedHospital.name)
     }
-  }, [anaesthesiaDateTimeValue, setValue, patientData, anaesthesia_id, selectedHospital, drawerOpen])
+  }, [anaesthesiaDateTimeValue, setValue, patientData, effectiveAnesthesiaId, selectedHospital, drawerOpen])
 
   const commonTextFieldSx = {
     '& .MuiOutlinedInput-root': {

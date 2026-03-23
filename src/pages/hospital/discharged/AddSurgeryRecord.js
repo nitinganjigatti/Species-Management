@@ -372,6 +372,7 @@ const AddSurgeryRecord = () => {
   const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
+  const [editingAnesthesiaRecordId, setEditingAnesthesiaRecordId] = useState('')
   const [initialAnesthesiaRecord, setInitialAnesthesiaRecord] = useState(null)
   const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
   const [richNote, setRichNote] = useState('')
@@ -1111,8 +1112,17 @@ const AddSurgeryRecord = () => {
   }, [])
 
   const handleAddNewanesthesia = useCallback(() => {
+    setEditingAnesthesiaRecordId('')
     setOpenAddanesthesiaDrawer(true)
   }, [setOpenAddanesthesiaDrawer])
+
+  const handleEditSelectedAnesthesia = useCallback(() => {
+    const recordId = getAnesthesiaIdentifier(selectedAnesthesiaRecord)
+    if (!recordId) return
+
+    setEditingAnesthesiaRecordId(String(recordId))
+    setOpenAddanesthesiaDrawer(true)
+  }, [selectedAnesthesiaRecord])
 
   const handleSelectanesthesiaRecord = useCallback(() => {
     setOpenSelectAnesthesiaDrawer(true)
@@ -1122,6 +1132,7 @@ const AddSurgeryRecord = () => {
     record => {
       if (record) {
         setSelectedAnesthesiaRecord(record)
+        setEditingAnesthesiaRecordId('')
       }
     },
     [setSelectedAnesthesiaRecord]
@@ -1130,6 +1141,12 @@ const AddSurgeryRecord = () => {
   const handleAnesthesiaRecordSelect = useCallback(record => {
     setPendingAnesthesiaRecord(record)
   }, [])
+
+  useEffect(() => {
+    if (!openAddanesthesiaDrawer && editingAnesthesiaRecordId) {
+      setEditingAnesthesiaRecordId('')
+    }
+  }, [openAddanesthesiaDrawer, editingAnesthesiaRecordId])
 
   const handleConfirmAnesthesiaRecord = useCallback(record => {
     if (record) {
@@ -1750,12 +1767,17 @@ const AddSurgeryRecord = () => {
                 {selectedAnesthesia?.code || getAnesthesiaIdentifier(selectedAnesthesia) || '--'}
                 <Icon icon='mdi:chevron-right' fontSize={20} />
               </Box>
-              <IconButton
-                onClick={handleClearSelectedAnesthesia}
-                sx={{ color: theme.palette.customColors.neutralSecondary }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton onClick={handleEditSelectedAnesthesia} sx={{ color: theme.palette.primary.main }}>
+                  <Icon icon='mdi:pencil-outline' fontSize={22} />
+                </IconButton>
+                <IconButton
+                  onClick={handleClearSelectedAnesthesia}
+                  sx={{ color: theme.palette.customColors.neutralSecondary }}
+                >
+                  <Icon icon='mdi:close' fontSize={24} />
+                </IconButton>
+              </Box>
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -2063,6 +2085,7 @@ const AddSurgeryRecord = () => {
       <AddAnesthesiaRecordDrawer
         setOpenAddanesthesiaDrawer={setOpenAddanesthesiaDrawer}
         openAddanesthesiaDrawer={openAddanesthesiaDrawer}
+        editRecordId={editingAnesthesiaRecordId}
         hospitalCaseId={resolvedHospitalCaseId}
         medicalRecordId={medicalRecordId}
         vetOptions={doctorOptions}

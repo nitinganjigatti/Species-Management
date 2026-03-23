@@ -9,9 +9,10 @@ import { useForm, FormProvider } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { LoadingButton } from '@mui/lab'
+import Utility from 'src/utility'
 
 import BasicDetails from './Anesthesia/BasicDetails'
-import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
+import { getAssesmentList, getAnesthesiaDetail } from 'src/lib/api/hospital/anesthesia'
 import Toaster from 'src/components/Toaster'
 import { addAnesthesia } from 'src/lib/api/hospital/anesthesia'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
@@ -63,9 +64,24 @@ const defaultValues = {
   }
 }
 
+const normalizePurposeName = value => String(value || '').trim().toLowerCase().replace(/\s+/g, ' ')
+
+const mapDoctorFromDetail = item => {
+  const id = item?.id || item?.user_id || item?.doctor_id || item?.value
+  const name = item?.full_name || item?.user_full_name || item?.name || item?.label
+
+  if (!id || !name) return null
+
+  return {
+    id: String(id),
+    name: String(name)
+  }
+}
+
 const AddanesthesiaRecordDrawer = ({
   openAddanesthesiaDrawer,
   setOpenAddanesthesiaDrawer,
+  editRecordId = '',
   hospitalCaseId = '',
   medicalRecordId = '',
   vetOptions = [],
@@ -84,9 +100,11 @@ const AddanesthesiaRecordDrawer = ({
   const [masterAnesthetistDoctors, setMasterAnesthetistDoctors] = useState([])
   const [loadingVet, setLoadingVet] = useState(false)
   const [loadingAnesthetist, setLoadingAnesthetist] = useState(false)
+  const [editRecordData, setEditRecordData] = useState(null)
 
   const vetSearchTimerRef = useRef(null)
   const anesthetistSearchTimerRef = useRef(null)
+  const isEditMode = Boolean(editRecordId)
 
   useEffect(() => {
     if (vetOptions?.length > 0) {
@@ -247,6 +265,140 @@ const AddanesthesiaRecordDrawer = ({
     formState: { isSubmitting }
   } = methods
 
+  const buildPurposeSelection = useCallback(
+    purposeList => {
+      const optionById = new Map()
+      const optionByName = new Map()
+
+      ;(purposeOptions || []).forEach(item => {
+        if (!item?.id || !item?.name) return
+        optionById.set(String(item.id), String(item.id))
+        optionByName.set(normalizePurposeName(item.name), String(item.id))
+      })
+
+      const selected = []
+      const custom = []
+
+      ;(Array.isArray(purposeList) ? purposeList : []).forEach(item => {
+        const rawId = item?.id !== undefined && item?.id !== null ? String(item.id) : ''
+        const rawName = String(item?.name || '').trim()
+
+        if (rawId && optionById.has(rawId)) {
+          selected.push(rawId)
+          return
+        }
+
+        if (rawName && optionByName.has(normalizePurposeName(rawName))) {
+          selected.push(optionByName.get(normalizePurposeName(rawName)))
+          return
+        }
+
+        if (rawName) {
+          custom.push(rawName)
+        }
+      })
+
+      return {
+        selected: Array.from(new Set(selected)),
+        custom: Array.from(new Set(custom))
+      }
+    },
+    [purposeOptions]
+  )
+
+  const buildEditFormValues = useCallback(
+    detail => {
+      const veterinarians = (detail?.veterinarians || []).map(mapDoctorFromDetail).filter(Boolean)
+      const anesthetists = (detail?.anesthetists || []).map(mapDoctorFromDetail).filter(Boolean)
+      const { selected, custom } = buildPurposeSelection(detail?.purpose)
+      const detailDateTimeValue = detail?.anaesthesia_datetime || detail?.anesthesia_datetime || ''
+      const anaesthesiaDateTimeValue = detailDateTimeValue ? Utility.convertUTCToLocal(detailDateTimeValue) : ''
+
+      return {
+        veterinarians,
+        anesthetists,
+        values: {
+          basicDetails: {
+            location: detail?.location || '',
+            anaesthesia_datetime: anaesthesiaDateTimeValue,
+            estimated_time_required: detail?.estimated_time_required || '',
+            estimated_time_unit: detail?.estimated_time_unit || 'hr',
+            veterinarian_id: veterinarians,
+            anesthetist_id: anesthetists,
+            selected,
+            custom,
+            newPurpose: '',
+            notes: detail?.notes || ''
+          }
+        }
+      }
+    },
+    [buildPurposeSelection]
+  )
+
+  const mergeDoctors = useCallback((setter, entries = []) => {
+    setter(prev => {
+      const merged = [...prev, ...entries].filter(Boolean)
+
+      return Array.from(new Map(merged.map(item => [String(item.id), item])).values())
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!openAddanesthesiaDrawer || !isEditMode) return
+
+    let isMounted = true
+
+    const fetchAnesthesiaDetail = async () => {
+      try {
+        const response = await getAnesthesiaDetail(editRecordId)
+        const detail = response?.data || response
+
+        if (!isMounted) return
+
+        setEditRecordData(detail || null)
+      } catch (error) {
+        if (!isMounted) return
+        console.error('Failed to fetch anesthesia detail:', error)
+        Toaster({ type: 'error', message: error?.message || 'Failed to load anesthesia record' })
+      }
+    }
+
+    fetchAnesthesiaDetail()
+
+    return () => {
+      isMounted = false
+    }
+  }, [openAddanesthesiaDrawer, isEditMode, editRecordId])
+
+  useEffect(() => {
+    if (!openAddanesthesiaDrawer || !isEditMode || !editRecordData) return
+
+    const { veterinarians, anesthetists, values } = buildEditFormValues(editRecordData)
+
+    if (veterinarians.length) {
+      mergeDoctors(setVetDoctors, veterinarians)
+      mergeDoctors(setMasterVetDoctors, veterinarians)
+    }
+
+    if (anesthetists.length) {
+      mergeDoctors(setAnesthetistDoctors, anesthetists)
+      mergeDoctors(setMasterAnesthetistDoctors, anesthetists)
+    }
+
+    reset(values)
+  }, [openAddanesthesiaDrawer, isEditMode, editRecordData, buildEditFormValues, mergeDoctors, reset])
+
+  const handleResetForm = useCallback(() => {
+    if (isEditMode && editRecordData) {
+      reset(buildEditFormValues(editRecordData).values)
+
+      return
+    }
+
+    reset(defaultValues)
+  }, [isEditMode, editRecordData, buildEditFormValues, reset])
+
   const onSubmit = async data => {
     const formData = new FormData()
     const anaesthesiaDateTime = data.basicDetails.anaesthesia_datetime || data.basicDetails.anesthesia_datetime || ''
@@ -255,6 +407,9 @@ const AddanesthesiaRecordDrawer = ({
 
     formData.append('hospital_case_id', hospitalCaseId || '')
     formData.append('medical_record_id', medicalRecordId || '')
+    if (isEditMode) {
+      formData.append('anaesthesia_id', editRecordId)
+    }
     formData.append('location', data.basicDetails.location || '')
     formData.append('anaesthesia_datetime', anaesthesiaDateTime || '')
     formData.append('estimated_time_required', data.basicDetails.estimated_time_required || '')
@@ -273,17 +428,27 @@ const AddanesthesiaRecordDrawer = ({
       const response = await addAnesthesia(formData)
 
       if (response?.status === true || response?.success === true) {
-        Toaster({ type: 'success', message: response?.message || 'anesthesia added successfully' })
+        Toaster({
+          type: 'success',
+          message: response?.message || (isEditMode ? 'Anesthesia updated successfully' : 'Anesthesia added successfully')
+        })
 
         const createdId =
-          response?.anaesthesia_id || response?.anesthesia_id || response?.data?.anaesthesia_id || response?.data?.id
+          response?.anaesthesia_id ||
+          response?.anesthesia_id ||
+          response?.data?.anaesthesia_id ||
+          response?.data?.id ||
+          editRecordId
 
         const createdCode =
           response?.anaesthesia_code ||
           response?.anesthesia_code ||
           response?.code ||
           response?.data?.anaesthesia_code ||
-          response?.data?.code
+          response?.data?.code ||
+          editRecordData?.anaesthesia_code ||
+          editRecordData?.anesthesia_code ||
+          editRecordData?.code
 
         const mapPeople = (ids, options) => {
           if (!Array.isArray(ids)) return []
@@ -334,7 +499,7 @@ const AddanesthesiaRecordDrawer = ({
         reset(defaultValues)
         setOpenAddanesthesiaDrawer(false)
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add anesthesia' })
+        Toaster({ type: 'error', message: response?.message || 'Failed to save anesthesia' })
       }
     } catch (error) {
       console.error('Add anesthesia failed:', error)
@@ -345,6 +510,7 @@ const AddanesthesiaRecordDrawer = ({
   useEffect(() => {
     if (!openAddanesthesiaDrawer) {
       reset(defaultValues)
+      setEditRecordData(null)
     }
   }, [openAddanesthesiaDrawer, reset])
 
@@ -408,7 +574,7 @@ const AddanesthesiaRecordDrawer = ({
         <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', maxHight: '80px' }}>
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Add anesthesia
+            {isEditMode ? 'Edit anesthesia' : 'Add anesthesia'}
           </Typography>
         </Box>
         <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setOpenAddanesthesiaDrawer(false)}>
@@ -521,6 +687,7 @@ const AddanesthesiaRecordDrawer = ({
                 }}
               >
                 <BasicDetails
+                  anesthesiaId={editRecordId}
                   vetOptions={vetDoctors}
                   anesthetistOptions={anesthetistDoctors}
                   purposeOptions={purposeOptions}
@@ -559,7 +726,7 @@ const AddanesthesiaRecordDrawer = ({
             }}
           >
             <LoadingButton
-              onClick={() => reset(defaultValues)}
+              onClick={handleResetForm}
               variant='outlined'
               disabled={isSubmitting}
               sx={{
@@ -587,7 +754,7 @@ const AddanesthesiaRecordDrawer = ({
                 px: '24px'
               }}
             >
-              SAVE
+              {isEditMode ? 'UPDATE' : 'SAVE'}
             </LoadingButton>
           </Box>
         </Box>
