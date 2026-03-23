@@ -543,8 +543,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                             }}
                           >
                             <StyledTypography fontWeight={600} color={theme.palette.error.OnPrimaryContainer}>
-                              {/* {eggHistoryData?.result?.[0]?.comments} */}
-                              {eggData?.activity_log?.[0]?.comments}
+                              {eggData?.activity_log?.[0]?.action.split('_').join(' ')}
                             </StyledTypography>
                             <StyledTypography fontSize={'12px'}>
                               {Utility.convertUtcToLocalReadableDate(eggData?.activity_log?.[0]?.created_at)}{' '}
@@ -632,7 +631,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                                       : theme.palette.customColors?.OnPrimaryContainer
                                   }
                                 >
-                                  {section?.comments}
+                                  {section?.action.split('_').join(' ')}
                                 </StyledTypography>
                                 <StyledTypography
                                   fontSize={'12px'}
@@ -881,7 +880,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 }}
               >
                 <StyledTypography fontSize={'16px'} fontWeight={600}>
-                  Hatched At Site
+{selectedTimelineItem?.action?.split('_').join(' ') }
                 </StyledTypography>
                 <StyledTypography fontSize={'12px'}>
                   Reported on {Utility.convertUtcToLocalReadableDate(selectedTimelineItem?.created_at)} •{' '}
