@@ -395,6 +395,7 @@ export default function AddMedicineToPrescription() {
   const dosageDuration = watch('dosageDuration')
   const intervalItem = watch('interval')
   const selectMedicineType = watch('selectMedicineType')
+  const isDischargedAnimal = Boolean(patientData?.discharge_at)
 
   const isSmallerDevices = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -1070,6 +1071,12 @@ export default function AddMedicineToPrescription() {
       }
     }
   }, [patientData?.discharge_at, patientData?.admitted_at, selectMedicineType, isOneTimeFrequency, prescriptionStartDate, setValue])
+
+  useEffect(() => {
+    if (isDischargedAnimal && selectMedicineType !== 'Direct Administer') {
+      setValue('selectMedicineType', 'Direct Administer')
+    }
+  }, [isDischargedAnimal, selectMedicineType, setValue])
 
   function toISTISOString(date, includeCurrentTime = false) {
     if (!date) return ''
@@ -2260,17 +2267,19 @@ export default function AddMedicineToPrescription() {
               Select the medicine to
             </Typography>
           </Grid>
-          <Grid size={{ xs: 12, md: 4, lg: 4 }}>
-            <TreatmentTypeRadioButtons
-              label='Schedule'
-              isSelected={watch('selectMedicineType') === 'Schedule'}
-              sx={{
-                borderColor: `${theme.palette.customColors.OutlineVariant}`
-              }}
-              onClick={() => setValue('selectMedicineType', 'Schedule')}
-            />
-          </Grid>
-          {!discharge_tab && !fromPage && (
+          {!isDischargedAnimal && (
+            <Grid size={{ xs: 12, md: 4, lg: 4 }}>
+              <TreatmentTypeRadioButtons
+                label='Schedule'
+                isSelected={watch('selectMedicineType') === 'Schedule'}
+                sx={{
+                  borderColor: `${theme.palette.customColors.OutlineVariant}`
+                }}
+                onClick={() => setValue('selectMedicineType', 'Schedule')}
+              />
+            </Grid>
+          )}
+          {(!discharge_tab && !fromPage) || isDischargedAnimal ? (
             <Grid size={{ xs: 12, md: 4, lg: 4 }}>
               <TreatmentTypeRadioButtons
                 label='Direct Administer'
@@ -2281,7 +2290,7 @@ export default function AddMedicineToPrescription() {
                 onClick={() => setValue('selectMedicineType', 'Direct Administer')}
               />
             </Grid>
-          )}
+          ) : null}
         </Grid>
         <Grid container spacing={5} className='match-height' sx={{ pt: 6 }}>
           <Grid size={{ xs: 12, md: 6, lg: 6 }}>
