@@ -432,6 +432,12 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
     return moment(date).utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
+  function toUTCISOString(date) {
+    if (!date) return ''
+
+    return moment(date).utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+  }
+
   const handleAdministerSubmit = async formData => {
     try {
       setIsAdministerSlotLoading(true)
@@ -456,8 +462,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         prescription: JSON.stringify([
           {
             id: selectedSlotData?.data?.medicine_id,
-            start_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
-            end_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+            start_date: toUTCISOString(new Date()),
+            end_date: toUTCISOString(new Date()),
             notes: data.notes || '',
             schedule_doses: [
               {

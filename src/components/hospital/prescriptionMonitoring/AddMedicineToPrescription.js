@@ -431,7 +431,7 @@ export default function AddMedicineToPrescription() {
       // For regular intervals (not one-time) in Schedule mode
       if (dosageDuration?.value && dosageDuration?.unit) {
         // Schedule: Calculate END date (forward from start date)
-        const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration, intervalItem)
+        const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration, intervalItem, false)
         if (calculatedEndDate) {
           const formattedDate = moment(calculatedEndDate).format('DD MMM YYYY')
           setEndsOn(formattedDate)
@@ -1101,6 +1101,31 @@ export default function AddMedicineToPrescription() {
     return momentDate.utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
+  function formatPrescriptionUTCDateTime(date, includeCurrentTime = false) {
+    if (!date) return ''
+
+    let momentDate = moment(date)
+
+    if (includeCurrentTime) {
+      const year = momentDate.year()
+      const month = momentDate.month()
+      const day = momentDate.date()
+      const now = new Date()
+
+      momentDate = moment({
+        year,
+        month,
+        date: day,
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds(),
+        millisecond: now.getMilliseconds()
+      })
+    }
+
+    return momentDate.utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+  }
+
   function convertUTCToLocaltime(date) {
     if (!date) return ''
     const stillUtc = moment.utc(date).toDate()
@@ -1208,11 +1233,9 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
-              : toISTISOString(data.prescriptionStartDate, true),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),
 
             restart_reason: '',
@@ -1389,11 +1412,10 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate, true),
-            end_date:
-              isOneTimeFrequency || data.prescriptionStartDate.split('T')[0] === data.prescriptionEndDate.split('T')[0]
-                ? toISTISOString(data.prescriptionStartDate, true)
-                : toISTISOString(data.prescriptionEndDate, true),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
+            end_date: isOneTimeFrequency
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
+              : formatPrescriptionUTCDateTime(data.prescriptionEndDate, true),
 
             restart_reason: '',
             stop_reason: '',
@@ -1551,11 +1573,9 @@ export default function AddMedicineToPrescription() {
           delivery_route_id: deliveryRoute?.id || '',
           delivery_route_string_id: deliveryRoute?.string_id || '',
 
-          start_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate, true)
-            : toISTISOString(data.prescriptionStartDate, true).replace('+05:30', 'Z'),
+          start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
           end_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate, true)
+            ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
             : formatDateWithCurrentTime(
                 calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value)
               ),
@@ -1666,14 +1686,12 @@ export default function AddMedicineToPrescription() {
 
             notes: data?.notes || '',
 
-            start_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
-              : toISTISOString(data.prescriptionStartDate, true).replace('+05:30', 'Z'),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
             stop_date: null,
             show_stop_button: 'no',
             administer_date: null,
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
               : formatDateWithCurrentTime(
                   calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value)
                 ),
@@ -2036,11 +2054,11 @@ export default function AddMedicineToPrescription() {
             delivery_route_string_id: deliveryRoute?.string_id || '',
             delivery_route_label: deliveryRoute?.label, //new added
 
-            start_date: toISTISOString(data.prescriptionStartDate),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
 
             //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, intervalItem),
 
             restart_reason: '',
@@ -2129,7 +2147,7 @@ export default function AddMedicineToPrescription() {
     return unit?.string_id || ''
   }
 
-  const calculateEndDate = (startDate, dosageDuration, interval) => {
+  const calculateEndDate = (startDate, dosageDuration, interval, includeTime = true) => {
     if (!startDate || !dosageDuration?.value) return ''
 
     const start = moment(startDate.toISOString ? startDate.toISOString() : startDate)
@@ -2159,7 +2177,7 @@ export default function AddMedicineToPrescription() {
       }
     }
 
-    return endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+    return formatPrescriptionUTCDateTime(endDate, includeTime)
   }
 
   const calculateStartDate = (endDate, dosageDuration) => {
