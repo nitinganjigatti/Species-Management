@@ -248,9 +248,9 @@ const CheckboxGroupField = ({ field, value, onChange }) => {
 
   const toggle = optValue => {
     if (selected.includes(optValue)) {
-      onChange(selected.filter(v => v !== optValue))
+      onChange([])
     } else {
-      onChange([...selected, optValue])
+      onChange([optValue])
     }
   }
 
@@ -294,7 +294,7 @@ const CheckboxGroupField = ({ field, value, onChange }) => {
 
 const TimePickerListField = ({ field, value, onChange }) => {
   const times = Array.isArray(value) ? value : []
-  const maxItems = field.max_items || 3
+  const maxItems = 1
 
   const handleAdd = () => {
     if (times.length >= maxItems) return
