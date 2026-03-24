@@ -6,8 +6,8 @@ import { callRefreshToken } from 'src/lib/api/auth'
 import { usePharmacyContext } from './PharmacyContext'
 import { usePariveshContext } from './PariveshContext'
 
-// ** Next Import
-import { useRouter } from 'next/router'
+// ** Next Import - Use safe router for both Page Router and App Router compatibility
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** Axios
 import axios from 'axios'
@@ -49,7 +49,7 @@ const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient()
 
   // ** Hooks
-  const router = useRouter()
+  const router = useSafeRouter()
   useEffect(() => {
     const initAuth = async () => {
       //   const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)

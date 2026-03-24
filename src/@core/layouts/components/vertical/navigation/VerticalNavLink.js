@@ -1,6 +1,6 @@
 // ** Next Imports
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
 import Chip from '@mui/material/Chip'
@@ -67,7 +67,7 @@ const VerticalNavLink = ({
   navigationBorderWidth
 }) => {
   // ** Hooks
-  const router = useRouter()
+  const router = useSafeRouter()
 
   // ** Vars
   const { navCollapsed } = settings

@@ -2,7 +2,7 @@
 import { useState, Fragment, useEffect, useContext } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -39,7 +39,7 @@ const UserDropdown = props => {
   const [userData, setUserData] = useState([])
 
   // ** Hooks
-  const router = useRouter()
+  const router = useSafeRouter()
   const { logout } = useAuth()
 
   // ** Vars
