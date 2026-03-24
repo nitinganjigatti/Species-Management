@@ -50,6 +50,8 @@ import FixedFooterWrapper from 'src/components/diet/FixedFooterWrapper'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Error404 from 'src/pages/404'
 import AddEnclosureToGroup from 'src/views/pages/diet/mealGroup/addEnclosureToGroup'
+import AddDropPointDrawer from 'src/components/diet/AddDropPointDrawer'
+import { removeMealGroupFromDropPoint } from 'src/lib/api/diet/mealgroup'
 
 const MealGroup = () => {
   const router = useRouter()
@@ -109,6 +111,7 @@ const MealGroup = () => {
   const [selectedForDrawer, setSelectedForDrawer] = useState([])
   const [mealId, setMealId] = useState(null)
   const [addEnclosureDrawer, setAddEnclosureDrawer] = useState(false)
+  const [dropPointDrawer, setDropPointDrawer] = useState(false)
 
   const [mealType, setmealType] = useState({
     type: 'view'
@@ -154,6 +157,7 @@ const MealGroup = () => {
   }
 
   const [checkedRows, setCheckedRows] = useState([])
+  const [checkedMealGroups, setCheckedMealGroups] = useState([])
 
   console.log('Checked >>', checkedRows, selectedItems)
 
@@ -195,6 +199,64 @@ const MealGroup = () => {
     } else {
       setCheckedRows([])
       setSelectedItems([])
+    }
+  }
+
+  const handleMealGroupCheckboxChange = (e, row) => {
+    e.stopPropagation()
+
+    // Don't allow selection if drop point is assigned
+    if (row.drop_point_id) {
+      return
+    }
+
+    const id = row.id
+
+    if (e.target.checked) {
+      setCheckedMealGroups(prev => [...prev, id])
+    } else {
+      setCheckedMealGroups(prev => prev.filter(i => i !== id))
+    }
+  }
+
+  const handleMealGroupSelectAll = e => {
+    if (e.target.checked) {
+      // Only select meal groups that don't have drop points
+      const selectableIds = menuGroupList
+        .filter(item => !item.drop_point_id)
+        .map(item => item.id)
+      setCheckedMealGroups(selectableIds)
+    } else {
+      setCheckedMealGroups([])
+    }
+  }
+
+  const handleRemoveDropPoint = async (e, mealGroup) => {
+    e.stopPropagation()
+
+    if (!mealGroup.drop_point_id) {
+      toast.error('No drop point to remove')
+      return
+    }
+
+    try {
+      const formData = new FormData()
+      formData.append('site_id', selectedOption)
+      formData.append('drop_point_id', mealGroup.drop_point_id)
+      formData.append('meal_group_id', mealGroup.id)
+
+      const response = await removeMealGroupFromDropPoint(formData)
+
+      if (response?.success) {
+        toast.success('Drop point removed successfully')
+        fetchEnclosure()
+        fetchSiteStats()
+      } else {
+        toast.error(response?.message || 'Failed to remove drop point')
+      }
+    } catch (error) {
+      toast.error('Server error. Please try again.')
+      console.error('Remove Drop Point Error:', error)
     }
   }
 
@@ -561,6 +623,7 @@ const MealGroup = () => {
     setSelectedGroup('all')
     setSelectedSpecies('all')
     setCheckedRows([])
+    setCheckedMealGroups([])
     setSearchValue('')
     setEditItems([])
     setSelectedItems([])
@@ -574,9 +637,6 @@ const MealGroup = () => {
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId(id)
-
-      // setCheckedRows([])
-      console.log('Checked rows >>', checkedRows)
 
       const params = {
         q: searchValue,
@@ -778,33 +838,75 @@ const MealGroup = () => {
       headerName: 'Meal Group Name ',
       headerAlign: 'left',
       align: 'left',
-      renderHeader: () => (
+      renderHeader: () => {
+        const selectableGroups = menuGroupList.filter(item => !item.drop_point_id)
+        const isAllSelected = selectableGroups.length > 0 && checkedMealGroups.length === selectableGroups.length
+        const isIndeterminate = checkedMealGroups.length > 0 && checkedMealGroups.length < selectableGroups.length
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'start',
+              gap: 1
+            }}
+          >
+            <Box onClick={e => e.stopPropagation()}>
+              <Checkbox
+                sx={{
+                  '&.Mui-checked': {
+                    color: theme.palette.primary.main
+                  },
+                  '& .MuiSvgIcon-root': {
+                    width: '19px',
+                    height: '19px',
+                    border: '2px dotted'
+                  },
+                  mr: 1
+                }}
+                size='small'
+                checked={isAllSelected}
+                indeterminate={isIndeterminate}
+                onChange={handleMealGroupSelectAll}
+              />
+            </Box>
+            <Typography
+              variant='subtitle2'
+              sx={{
+                fontWeight: 600,
+                fontSize: '12px',
+                fontFamily: 'Inter',
+                color: theme.palette.customColors.OnSurfaceVariant,
+                textTransform: 'uppercase'
+              }}
+            >
+              Meal Group Name
+            </Typography>
+          </Box>
+        )
+      },
+      renderCell: params => (
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'start',
-            gap: 1
+            gap: 1,
+            width: '100%',
+            ml: 2
           }}
         >
-          <Typography
-            variant='subtitle2'
-            sx={{
-              fontWeight: 600,
-              fontSize: '12px',
-              fontFamily: 'Inter',
-              color: theme.palette.customColors.OnSurfaceVariant,
-              textTransform: 'uppercase'
-            }}
-          >
-            Meal Group Name
-          </Typography>
-        </Box>
-      ),
-      renderCell: params => (
-        <>
+          <Box onClick={e => e.stopPropagation()}>
+            <Checkbox
+              size='small'
+              checked={checkedMealGroups.includes(params.row.id)}
+              disabled={!!params.row.drop_point_id}
+              onChange={e => handleMealGroupCheckboxChange(e, params.row)}
+            />
+          </Box>
           <Tooltip title={params?.row.group_name}>
             <Typography
+              noWrap
               variant='body2'
               sx={{
                 textAlign: 'center',
@@ -812,13 +914,16 @@ const MealGroup = () => {
                 fontSize: '16px',
                 fontWeight: 500,
                 color: theme.palette.customColors.OnSurfaceVariant,
-                fontFamily: 'Inter'
+                fontFamily: 'Inter',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
               }}
             >
               {params?.row.group_name}
             </Typography>
           </Tooltip>
-        </>
+        </Box>
       )
     },
     {
@@ -965,19 +1070,18 @@ const MealGroup = () => {
       )
     },
     {
-      flex: 0.35, // increased flex
-      minWidth: 200, // minimum width for small screens
+      flex: 1,
       field: 'actions',
       sortable: false,
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'right',
+      align: 'right',
       renderHeader: () => (
         <>
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'start',
+              justifyContent: 'flex-end',
               gap: 1
             }}
           >
@@ -1001,10 +1105,26 @@ const MealGroup = () => {
           sx={{
             display: 'flex',
             gap: 1,
-            justifyContent: 'center',
+            justifyContent: 'flex-end',
             width: '100%'
           }}
         >
+          {params.row.drop_point_id && params.row.drop_point_id !== null && params.row.drop_point_id !== '' && (
+            <Button
+              sx={{
+                borderColor: theme.palette.error.main,
+                color: theme.palette.error.main,
+                borderRadius: '4px',
+                height: '36px',
+                fontSize: '12px',
+                minWidth: '140px'
+              }}
+              variant='outlined'
+              onClick={e => handleRemoveDropPoint(e, params.row)}
+            >
+              Remove Drop Point
+            </Button>
+          )}
           {siteStats.unmapped_enclosures !== '0' && (
             <Button
               sx={{
@@ -1022,17 +1142,27 @@ const MealGroup = () => {
               Add Enclosure
             </Button>
           )}
+          <Box onClick={e => e.stopPropagation()}>
+            {params.row.enclosure_count !== '0' ? (
+              <IconButton
+                onClick={e => handleEdit(e, params.row)}
+                size='small'
+                sx={{ color: theme.palette.primary.light }}
+              >
+                <Icon icon='mdi:pencil-outline' fontSize={20} />
+              </IconButton>
+            ) : (
+              <Box sx={{ width: 60 }} />
+            )}
 
-          <IconButton onClick={e => handleEdit(e, params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
-            <Icon icon='mdi:pencil-outline' fontSize={20} />
-          </IconButton>
-          <IconButton
-            onClick={e => handleRemove(e, params.row.id)}
-            size='small'
-            sx={{ color: theme.palette.primary.light }}
-          >
-            <Icon icon='mdi:close' fontSize={20} />
-          </IconButton>
+            <IconButton
+              onClick={e => handleRemove(e, params.row.id)}
+              size='small'
+              sx={{ color: theme.palette.primary.light }}
+            >
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Box>
         </Box>
       )
     }
@@ -1463,7 +1593,6 @@ const MealGroup = () => {
                 value={defaultSite}
                 disablePortal
                 id='site_id'
-
                 // clearIcon={firstSite?.site_id ? true: false}
                 disableClearable={defaultSite?.site_id === firstSite?.site_id}
                 options={authData?.userData?.user?.zoos?.[0]?.sites || []}
@@ -1565,6 +1694,55 @@ const MealGroup = () => {
             <TabPanel value='mealgroup'>{''}</TabPanel>
           </TabContext>
         </Grid>
+
+        {status === 'mealgroup' && (
+          <Box
+            sx={{
+              mt: 4,
+              display: 'flex',
+              gap: 2,
+              padding: 2,
+              borderRadius: 2,
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  fontFamily: 'Inter',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {checkedMealGroups.length > 0
+                  ? `Selected: ${checkedMealGroups.length} Meal Group${checkedMealGroups.length > 1 ? 's' : ''}`
+                  : 'Select meal groups to add to drop point'}
+              </Typography>
+            </Box>
+            <Box sx={{ marginLeft: 'auto' }}>
+              <Button
+                disabled={checkedMealGroups.length === 0}
+                onClick={() => {
+                  setDropPointDrawer(true)
+                }}
+                variant='contained'
+                sx={{
+                  backgroundColor: theme.palette.primary.main,
+                  borderRadius: '4px',
+                  height: '40px',
+                  '&:hover': {
+                    backgroundColor: theme.palette.primary.dark
+                  }
+                }}
+              >
+                Add Drop Point
+              </Button>
+            </Box>
+          </Box>
+        )}
 
         {status !== 'mealgroup' && (
           <Box
@@ -1944,6 +2122,23 @@ const MealGroup = () => {
           setEditItems={setEditItems}
           editSearchValue={editSearchValue}
           handleEnclosureSearch={handleEnclosureSearch}
+        />
+      )}
+      {dropPointDrawer && (
+        <AddDropPointDrawer
+          openDrawer={dropPointDrawer}
+          handleCloseSideBar={() => {
+            setDropPointDrawer(false)
+            setCheckedMealGroups([])
+          }}
+          selectedOption={selectedOption}
+          selectedMealGroups={checkedMealGroups}
+          mealGroupsList={menuGroupList}
+          siteName={defaultSite?.site_name}
+          fetchEnclosure={fetchEnclosure}
+          onRemoveMealGroup={mealGroupId => {
+            setCheckedMealGroups(prev => prev.filter(id => id !== mealGroupId))
+          }}
         />
       )}
     </React.Fragment>

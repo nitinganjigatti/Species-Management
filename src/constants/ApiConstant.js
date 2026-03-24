@@ -504,6 +504,16 @@ export const GET_ENCLOSURE_LIST = '/diet/get-enclosure-list-for-diet'
 
 export const ADD_ENCLOSURE = '/diet/add-enclosure-to-meal-group'
 
+export const ADD_DROP_POINT = '/diet/add-drop-point-to-meal-group'
+
+export const GET_DROP_POINT_LIST = '/diet/get-drop-point-list'
+
+export const CREATE_DROP_POINT = '/diet/create-drop-point'
+
+export const EDIT_DROP_POINT = '/diet/edit-drop-point'
+
+export const REMOVE_MEAL_GROUP_FROM_DROP_POINT = '/diet/remove-meal-group-from-drop-point'
+
 export const UPDATE_GROUP = '/diet/edit-meal-group'
 
 export const GET_STATS = '/diet/get-meal-group-site-wise-stats'

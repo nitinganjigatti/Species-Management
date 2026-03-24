@@ -558,7 +558,7 @@ const DietDetailCard = ({
                   alignItems: 'center',
                   gap: '8px',
                   mb: '6px',
-                  maxWidth: '275px'
+                  maxWidth: dietDetails?.dietitian?.user_name?.length > 20 ? '260px' : 'fit-content'
                 }}
               >
                 <UserAvatarDetails
