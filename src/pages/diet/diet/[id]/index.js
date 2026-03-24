@@ -389,7 +389,7 @@ const DietDetail = () => {
         }
       }
     } catch (e) {
-      console.error('Error fetching list:', e)
+      Toaster({ type: 'error', message: e?.message })
     } finally {
       setLoading(false)
       setIsLoadingMore(false)
