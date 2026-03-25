@@ -51,11 +51,12 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
         slotProps={{
           paper: {
             sx: {
-              width: { xs: '100%', sm: '80%', md: 560 },
+              width: { xs: '100%', sm: 560 },
               display: 'flex',
               flexDirection: 'column',
               backgroundColor: theme.palette.customColors?.OnPrimary,
-              p: 0
+              p: 0,
+              height: '100%'
             }
           }
         }}
@@ -63,12 +64,16 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
         {isFetusDetailsFetching ? (
           <LoadingSkeleton />
         ) : (
-          <>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%',
+              backgroundColor: theme.palette.customColors?.OnPrimary
+            }}
+          >
             <Box
               sx={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 1,
                 backgroundColor: alpha(theme.palette.customColors?.AntzTertiary, 0.5),
                 color: theme.palette.customColors?.OnPrimary
               }}
@@ -242,105 +247,109 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                 )}
               </Box>
             </Box>
-
             <Box
               sx={{
                 flex: 1,
                 overflowY: 'auto',
-                background: theme.palette.customColors?.displaybgPrimary,
-                display: 'flex',
-                flexDirection: 'column',
                 minHeight: 0,
-                p: 4,
-                gap: 4
+                background: theme.palette.customColors?.displaybgPrimary
               }}
             >
-              <Card sx={{ p: 4, boxShadow: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                    Obstetric estimate of gestation at delivery
-                  </StyledTypography>
-                  <StyledTypography fontSize={'14px'} fontWeight={500}>
-                    {fetusDetailsData?.obstetric_estimate_of_gestation}
-                    {fetusDetailsData?.obstetric_estimate_of_gestation_type}
-                  </StyledTypography>
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                    Estimated date and time of fetal death
-                  </StyledTypography>
-                  <StyledTypography fontSize={'14px'} fontWeight={500}>
-                    {Utility.convertUtcToLocalReadableDate(fetusDetailsData?.estimated_fetus_death_day_time)}{' '}
-                    <span> &bull; </span>{' '}
-                    {Utility.convertUTCToLocaltime(fetusDetailsData?.estimated_fetus_death_day_time)}
-                  </StyledTypography>
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                    Date and time of discovery
-                  </StyledTypography>
-                  <StyledTypography fontSize={'14px'} fontWeight={500}>
-                    {Utility.convertUtcToLocalReadableDate(fetusDetailsData?.discovery_of_fetus_death_day_time)}{' '}
-                    <span> &bull; </span>{' '}
-                    {Utility.convertUTCToLocaltime(fetusDetailsData?.discovery_of_fetus_death_day_time)}
-                  </StyledTypography>
-                </Box>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                    Notes
-                  </StyledTypography>
-                  <StyledTypography fontSize={'14px'} fontWeight={500}>
-                    {fetusDetailsData?.notes || '--'}
-                  </StyledTypography>
-                </Box>
-              </Card>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  p: 4,
+                  gap: 4
+                }}
+              >
+                <Card sx={{ p: 4, boxShadow: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
+                      Obstetric estimate of gestation at delivery
+                    </StyledTypography>
+                    <StyledTypography fontSize={'14px'} fontWeight={500}>
+                      {fetusDetailsData?.obstetric_estimate_of_gestation}
+                      {fetusDetailsData?.obstetric_estimate_of_gestation_type}
+                    </StyledTypography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
+                      Estimated date and time of fetal death
+                    </StyledTypography>
+                    <StyledTypography fontSize={'14px'} fontWeight={500}>
+                      {Utility.convertUtcToLocalReadableDate(fetusDetailsData?.estimated_fetus_death_day_time)}{' '}
+                      <span> &bull; </span>{' '}
+                      {Utility.convertUTCToLocaltime(fetusDetailsData?.estimated_fetus_death_day_time)}
+                    </StyledTypography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
+                      Date and time of discovery
+                    </StyledTypography>
+                    <StyledTypography fontSize={'14px'} fontWeight={500}>
+                      {Utility.convertUtcToLocalReadableDate(fetusDetailsData?.discovery_of_fetus_death_day_time)}{' '}
+                      <span> &bull; </span>{' '}
+                      {Utility.convertUTCToLocaltime(fetusDetailsData?.discovery_of_fetus_death_day_time)}
+                    </StyledTypography>
+                  </Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
+                      Notes
+                    </StyledTypography>
+                    <StyledTypography fontSize={'14px'} fontWeight={500}>
+                      {fetusDetailsData?.notes || '--'}
+                    </StyledTypography>
+                  </Box>
+                </Card>
 
-              <Card sx={{ p: 4, boxShadow: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Accordion
-                  sx={{
-                    boxShadow: 0,
-                    '&:before': { display: 'none' },
-                    m: 0
-                  }}
-                >
-                  <AccordionSummary
-                    expandIcon={<ExpandMoreIcon sx={{ color: theme.palette.primary.main }} />}
-                    aria-controls='panel1-content'
-                    id='panel1-header'
+                <Card sx={{ p: 4, boxShadow: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Accordion
                     sx={{
-                      p: 0,
-                      minHeight: 'unset',
-                      '& .MuiAccordionSummary-content': {
-                        m: 0
-                      }
+                      boxShadow: 0,
+                      '&:before': { display: 'none' },
+                      m: 0
                     }}
                   >
-                    <StyledTypography fontSize={'18px'} fontWeight={600}>
-                      Parents
-                    </StyledTypography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ p: 0 }}>
-                    <Box
-                      sx={{ border: `1px solid ${theme.palette.customColors?.customTableBorderBg}`, borderRadius: 1 }}
+                    <AccordionSummary
+                      expandIcon={<ExpandMoreIcon sx={{ color: theme.palette.primary.main }} />}
+                      aria-controls='panel1-content'
+                      id='panel1-header'
+                      sx={{
+                        p: 0,
+                        minHeight: 'unset',
+                        '& .MuiAccordionSummary-content': {
+                          m: 0
+                        }
+                      }}
                     >
+                      <StyledTypography fontSize={'18px'} fontWeight={600}>
+                        Parents
+                      </StyledTypography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ p: 0 }}>
                       <Box
-                        sx={{
-                          backgroundColor: theme.palette.customColors.displaybgPrimary,
-                          borderRadius: '8px 8px 0 0',
-                          p: 3
-                        }}
+                        sx={{ border: `1px solid ${theme.palette.customColors?.customTableBorderBg}`, borderRadius: 1 }}
                       >
-                        <StyledTypography fontWeight={600}>Mother</StyledTypography>
+                        <Box
+                          sx={{
+                            backgroundColor: theme.palette.customColors.displaybgPrimary,
+                            borderRadius: '8px 8px 0 0',
+                            p: 3
+                          }}
+                        >
+                          <StyledTypography fontWeight={600}>Mother</StyledTypography>
+                        </Box>
+                        <Box sx={{ p: 3 }}>
+                          <AnimalCard data={fetusDetailsData} />
+                        </Box>
                       </Box>
-                      <Box sx={{ p: 3 }}>
-                        <AnimalCard data={fetusDetailsData} />
-                      </Box>
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              </Card>
+                    </AccordionDetails>
+                  </Accordion>
+                </Card>
+              </Box>
             </Box>
-          </>
+          </Box>
         )}
       </Drawer>
     </>

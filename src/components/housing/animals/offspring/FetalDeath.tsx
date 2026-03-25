@@ -86,72 +86,77 @@ const FetalDeath: React.FC<TabProps> = props => {
     )
   }
 
-  if (isFetusDataFetching) return <LoadingSkeleton />
-
-  if (fetus?.length === 0) return <NoDataFound width={250} height={250} />
-
   return (
     <>
       <PillTabs tabs={availableTabs} activeTab={activeTab} onTabClick={handleTabClick} />
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        {fetus?.map((item, index) => {
-          return (
-            <Box
-              key={index}
-              sx={{
-                p: 4,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                backgroundColor: 'inherit',
-                '&:hover': {
-                  backgroundColor: alpha(theme.palette.action.hover, 0.04)
-                },
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 2,
-                mb: 2,
-                cursor: 'pointer'
-              }}
-              onClick={() => {
-                setSelectedFetus(item?.fetus_id)
-                setFetusDrawerOpen(true)
-              }}
-            >
-              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      {isFetusDataFetching ? (
+        <LoadingSkeleton />
+      ) : props.stats.fetal_death_count == 0 ||
+        fetus?.length === 0 ||
+        (activeTab === 'Still Birth' && fetusStatsData?.stillbirth_count == 0) ||
+        (activeTab === 'Abortion' && fetusStatsData?.abortion_count == 0) ? (
+        <NoDataFound width={250} height={250} />
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          {fetus?.map((item, index) => {
+            return (
+              <Box
+                key={index}
+                sx={{
+                  p: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: 'inherit',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.action.hover, 0.04)
+                  },
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  mb: 2,
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  setSelectedFetus(item?.fetus_id)
+                  setFetusDrawerOpen(true)
+                }}
+              >
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: { xs: 'flex-start', md: 'center' },
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: { md: 'space-between' }
+                    }}
+                  >
+                    <Typography>
+                      Reported by <span style={{ fontWeight: 600 }}>{item.report_by}</span>
+                    </Typography>
+                    <Typography>
+                      {' '}
+                      {Utility.convertUtcToLocalReadableDate(item?.discovered)}
+                      <span> &bull; </span>
+                      {Utility.convertUTCToLocaltime(item?.discovered)}
+                    </Typography>
+                  </Box>
+                  <AnimalCard data={item} cardType='fetus' />
+                </Box>
                 <Box
                   sx={{
                     display: 'flex',
-                    alignItems: { xs: 'flex-start', md: 'center' },
-                    flexDirection: { xs: 'column', md: 'row' },
-                    justifyContent: { md: 'space-between' }
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ml: 4
                   }}
                 >
-                  <Typography>
-                    Reported by <span style={{ fontWeight: 600 }}>{item.report_by}</span>
-                  </Typography>
-                  <Typography>
-                    {' '}
-                    {Utility.convertUtcToLocalReadableDate(item?.discovered)}
-                    <span> &bull; </span>
-                    {Utility.convertUTCToLocaltime(item?.discovered)}
-                  </Typography>
+                  <Icon icon={'fe:arrow-right'} fontSize={24} />
                 </Box>
-                <AnimalCard data={item} cardType='fetus' />
               </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  ml: 4
-                }}
-              >
-                <Icon icon={'fe:arrow-right'} fontSize={24} />
-              </Box>
-            </Box>
-          )
-        })}
-      </Box>
+            )
+          })}
+        </Box>
+      )}
 
       {fetusDrawerOpen && (
         <FetalDeathDrawer open={fetusDrawerOpen} onClose={() => setFetusDrawerOpen(false)} fetusId={selectedFetus} />

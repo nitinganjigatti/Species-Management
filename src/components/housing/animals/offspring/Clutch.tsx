@@ -104,23 +104,38 @@ const Clutch: React.FC<TabProps> = props => {
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mx: 4, my: 6 }}>
-                  {Number(item?.male_count) > 0 && <SexBadge label='M' value={item?.male_count} bgColor={alpha(theme.palette.customColors.SecondaryContainer,0.8)} />}
+                  {Number(item?.male_count) > 0 && (
+                    <SexBadge
+                      label='M'
+                      value={item?.male_count}
+                      bgColor={alpha(theme.palette.customColors.SecondaryContainer, 0.8)}
+                    />
+                  )}
 
-                  {Number(item?.female_count) > 0 && <SexBadge label='F' value={item?.female_count}bgColor={alpha(theme.palette.customColors.customDropdownColor,0.4)} />}
+                  {Number(item?.female_count) > 0 && (
+                    <SexBadge
+                      label='F'
+                      value={item?.female_count}
+                      bgColor={alpha(theme.palette.customColors.customDropdownColor, 0.4)}
+                    />
+                  )}
 
-                  {Number(item?.indeterminate_count) > 0 && <SexBadge
-                    label='ID'
-                    value={item?.indeterminate_count}
-                    color={theme.palette.customColors.OnPrimaryContainer}
-                    bgColor={theme.palette.customColors.displaybgSecondary}
-                  />
-                    }
-                  {Number(item?.undetermined_count) > 0 && <SexBadge
-                    label='UD'
-                    value={item?.undetermined_count}
-                     color={theme.palette.customColors.Error}
-                    bgColor={theme.palette.customColors.SurfaceVariant}
-                  />}
+                  {Number(item?.indeterminate_count) > 0 && (
+                    <SexBadge
+                      label='ID'
+                      value={item?.indeterminate_count}
+                      color={theme.palette.customColors.OnPrimaryContainer}
+                      bgColor={theme.palette.customColors.displaybgSecondary}
+                    />
+                  )}
+                  {Number(item?.undetermined_count) > 0 && (
+                    <SexBadge
+                      label='UD'
+                      value={item?.undetermined_count}
+                      color={theme.palette.customColors.Error}
+                      bgColor={theme.palette.customColors.SurfaceVariant}
+                    />
+                  )}
                 </Box>
 
                 <Divider />
@@ -130,7 +145,7 @@ const Clutch: React.FC<TabProps> = props => {
                     Total: <span style={{ fontWeight: 600 }}>{item?.total_egg_count || 0}</span>
                   </StyledTypography>
                   <StyledTypography>
-                    Discarded: <span style={{ fontWeight: 600 }}>{item?.deathdiscarded_count_count || 0}</span>
+                    Discarded: <span style={{ fontWeight: 600 }}>{item?.discarded_count || 0}</span>
                   </StyledTypography>
                   <StyledTypography>
                     Hatched: <span style={{ fontWeight: 600 }}>{item?.hatched_count || 0}</span>

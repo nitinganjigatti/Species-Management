@@ -96,7 +96,7 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
 
   //  Render tab content
   const renderTabContent = () => {
-    const props = { animalDetails, animalId, isMother }
+    const props = { animalDetails, animalId, isMother, stats }
 
     switch (activeTab) {
       case 'all_offspring':

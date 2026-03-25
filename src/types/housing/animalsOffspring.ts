@@ -523,7 +523,7 @@ export interface ClutchItem {
   start_date: string
   end_date: string
   total_egg_count: string
-  deathdiscarded_count_count: string
+  discarded_count: string
   hatched_count: string
   male_count: string | number
   female_count: string | number
@@ -538,6 +538,8 @@ export interface AnimalOffspringProps {
 export interface TabProps {
   animalId: string
   isMother: number
+  stats?: OffspringStats | null
+  animalDetails?: any
 }
 
 export interface FetalDeathDrawerProps {
