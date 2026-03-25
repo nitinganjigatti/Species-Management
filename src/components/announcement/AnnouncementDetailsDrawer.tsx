@@ -328,7 +328,7 @@ const AnnouncementDetailsDrawer = ({
         onClose={onClose}
         PaperProps={{
           sx: {
-            width: { xs: '100%', sm: 480 },
+            width: { xs: '100%', sm: 580 },
             maxWidth: '100%'
           }
         }}

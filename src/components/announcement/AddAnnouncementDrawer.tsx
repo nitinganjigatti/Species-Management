@@ -97,6 +97,8 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
   const auth = useAuth() as any
   // Get zooId from userData (matching mobile: state.UserAuth.zoo_id)
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
+  // Get file icon settings (matching ControlledMultiFileUpload pattern)
+  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER || {}
   const createAnnouncement = useCreateAnnouncement()
   const updateAnnouncement = useUpdateAnnouncement()
 
@@ -106,6 +108,41 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
   // Track existing attachments and deleted ones for edit mode
   const [existingAttachments, setExistingAttachments] = useState<ExistingAttachment[]>([])
   const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<number[]>([])
+
+  // Get file icon config based on file type (matching ControlledMultiFileUpload pattern)
+  // Uses customColors from theme for consistency
+  const getFileIconConfig = (fileType: string) => {
+    const type = fileType?.toLowerCase() || ''
+    if (type.includes('pdf')) {
+      return imgPath.pdf || {
+        bg_color: theme.palette.customColors.ErrorContainer || theme.palette.customColors.BgTeritary,
+        icon_color: theme.palette.customColors.Tertiary
+      }
+    }
+    if (type.includes('video')) {
+      return imgPath.video || {
+        bg_color: theme.palette.customColors.TertiaryContainer || theme.palette.customColors.infoContainer,
+        icon_color: theme.palette.primary.main
+      }
+    }
+    if (type.includes('audio')) {
+      return imgPath.audio || {
+        bg_color: theme.palette.customColors.warningContainer,
+        icon_color: theme.palette.warning.main
+      }
+    }
+    if (type.includes('doc') || type.includes('document')) {
+      return imgPath.document || {
+        bg_color: theme.palette.customColors.primaryContainer,
+        icon_color: theme.palette.primary.main
+      }
+    }
+
+    return imgPath.default || {
+      bg_color: theme.palette.customColors.SurfaceVariant || theme.palette.customColors.OutlineVariant,
+      icon_color: theme.palette.customColors.OnSurfaceVariant
+    }
+  }
 
   const {
     control,
@@ -167,8 +204,10 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       const isEveryone = editAnnouncement.target_zoo_only ?? true
       setValue('isEveryoneVisible', isEveryone)
 
-      // Post now / scheduled - is_scheduled: 1 means "post now", 0 means "scheduled"
-      const postNow = editAnnouncement.is_scheduled === 1 || editAnnouncement.is_scheduled === '1'
+      // Post now / scheduled - is_scheduled: true/1/'1' means "post now", false/0/'0' means "scheduled"
+      // API returns boolean, but we need to handle all possible types
+      const isScheduledValue = editAnnouncement.is_scheduled
+      const postNow = isScheduledValue === true || isScheduledValue === 1 || isScheduledValue === '1'
       setValue('isPostNow', postNow)
 
       // Schedule date/time
@@ -177,8 +216,11 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
         setValue('schedule_time', dayjs(editAnnouncement.schedule_datetime))
       }
 
-      // Always visible / end date
-      const alwaysVisible = editAnnouncement.end_date_flag === true || editAnnouncement.end_date_flag === 1
+      // Always visible / end date - handle all possible types from API
+      // end_date_flag: true/1 means always visible (no end date)
+      // end_date_flag: false/0/undefined/null means has end date
+      const endDateFlagValue = editAnnouncement.end_date_flag
+      const alwaysVisible = endDateFlagValue === true || endDateFlagValue === 1
       setValue('isAlwaysVisible', alwaysVisible)
 
       if (editAnnouncement.schedule_end_date) {
@@ -329,7 +371,8 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
     }
 
     // Build user_target_groups if specific users are selected
-    let userTargetGroups: string | undefined = undefined
+    // Mobile sends empty string when not targeting specific users, not undefined
+    let userTargetGroups: string = ''
     if (!data.isEveryoneVisible && selectedUsers.length > 0) {
       userTargetGroups = JSON.stringify([
         {
@@ -343,12 +386,12 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       title: data.title,
       description: data.description || '',
       type: data.type,
-      allow_comments: data.allow_comments,
-      is_scheduled: data.isPostNow ? 1 : 0,  // Matching mobile: Post Now = 1, Scheduled for later = 0
+      allow_comments: data.allow_comments, // Will be converted to 1/0 in API layer
+      is_scheduled: data.isPostNow ? 1 : 0, // Matching mobile: Post Now = 1, Scheduled for later = 0
       schedule_datetime: scheduleDateTimeStr,
       schedule_end_date: calculateEndDate(),
       target_groups: JSON.stringify(targetGroups),
-      user_target_groups: userTargetGroups,
+      user_target_groups: userTargetGroups || undefined, // Send undefined if empty to avoid sending empty string
       attachments: data.attachments,
       // Include deleted attachments for edit mode
       deleted_attachments: deletedAttachmentIds.length > 0 ? deletedAttachmentIds.join(',') : undefined
@@ -1291,57 +1334,61 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 <Typography sx={sectionTitleSx}>Attachments</Typography>
               </Box>
 
-              {/* Existing Attachments (for edit mode) */}
+              {/* Existing Attachments (for edit mode) - matching ControlledMultiFileUpload pattern */}
               {isEdit && existingAttachments.length > 0 && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography
-                    sx={{
-                      fontSize: '0.75rem',
-                      fontWeight: 600,
-                      color: theme.palette.customColors.neutralSecondary,
-                      mb: 2,
-                      textTransform: 'uppercase'
-                    }}
-                  >
-                    Existing Attachments ({existingAttachments.length})
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {existingAttachments.map(attachment => (
+                <Box sx={{ mb: 4, display: 'flex', gap: { xs: 2, sm: '1.125rem' }, flexWrap: 'wrap' }}>
+                  {existingAttachments.map(attachment => {
+                    const isImage = attachment.file_type?.startsWith('image') || attachment.file_type === 'image'
+                    const iconConfig = getFileIconConfig(attachment.file_type)
+
+                    return (
                       <Box
                         key={attachment.id}
                         sx={{
                           position: 'relative',
+                          width: 100,
+                          height: 100,
+                          borderRadius: 1,
+                          backgroundColor: theme.palette.customColors.displaybgPrimary,
                           display: 'flex',
                           alignItems: 'center',
-                          gap: 2,
-                          p: 2,
-                          backgroundColor: inputBgColor,
-                          borderRadius: '8px',
-                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                          justifyContent: 'center'
                         }}
                       >
                         {/* Attachment preview/icon */}
-                        {attachment.file_type?.startsWith('image') ? (
+                        {isImage ? (
                           <Box
                             component='img'
                             src={attachment.file}
                             alt={attachment.file_orginal_name}
                             sx={{
-                              width: 48,
-                              height: 48,
+                              width: 80,
+                              height: 80,
                               objectFit: 'cover',
+                              borderRadius: '8px'
+                            }}
+                          />
+                        ) : iconConfig.image_path ? (
+                          <Box
+                            component='img'
+                            src={iconConfig.image_path}
+                            alt='file icon'
+                            sx={{
+                              width: 40,
+                              height: 40,
+                              backgroundColor: iconConfig.bg_color,
                               borderRadius: '4px'
                             }}
                           />
                         ) : (
                           <Box
                             sx={{
-                              width: 48,
-                              height: 48,
+                              width: 40,
+                              height: 40,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              backgroundColor: theme.palette.primary.light + '30',
+                              backgroundColor: iconConfig.bg_color,
                               borderRadius: '4px'
                             }}
                           >
@@ -1350,52 +1397,39 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                                 attachment.file_type?.includes('pdf')
                                   ? 'mdi:file-pdf-box'
                                   : attachment.file_type?.includes('video')
-                                  ? 'mdi:file-video'
+                                  ? 'mdi:play-circle'
                                   : attachment.file_type?.includes('audio')
-                                  ? 'mdi:file-music'
-                                  : 'mdi:file-document'
+                                  ? 'mdi:music-note'
+                                  : 'mdi:file-document-outline'
                               }
-                              fontSize={24}
-                              color={theme.palette.primary.main}
+                              fontSize={40}
+                              color={iconConfig.icon_color}
                             />
                           </Box>
                         )}
-                        <Box sx={{ maxWidth: 120 }}>
-                          <Typography
-                            sx={{
-                              fontSize: '0.8125rem',
-                              fontWeight: 500,
-                              color: theme.palette.customColors.OnSurfaceVariant,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {attachment.file_orginal_name}
-                          </Typography>
-                        </Box>
-                        {/* Remove button */}
+                        {/* Remove button - matching ControlledMultiFileUpload style */}
                         <IconButton
                           size='small'
                           onClick={() => handleRemoveExistingAttachment(attachment.id)}
                           sx={{
                             position: 'absolute',
-                            top: -8,
-                            right: -8,
-                            backgroundColor: theme.palette.customColors.Tertiary,
+                            top: 5,
+                            right: 5,
+                            backgroundColor: theme.palette.customColors.secondaryBg,
                             color: theme.palette.customColors.OnPrimary,
-                            width: 20,
-                            height: 20,
+                            width: 24,
+                            height: 24,
+                            zIndex: 1,
                             '&:hover': {
-                              backgroundColor: theme.palette.error.dark
+                              backgroundColor: theme.palette.customColors.OnSurfaceVariant
                             }
                           }}
                         >
-                          <Icon icon='mdi:close' fontSize={14} />
+                          <Icon icon='mdi:close' fontSize={18} />
                         </IconButton>
                       </Box>
-                    ))}
-                  </Box>
+                    )
+                  })}
                 </Box>
               )}
 
