@@ -10,7 +10,7 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
 import Utility from 'src/utility'
-import { StyledTypographyProps, AnimalItem, ClutchItem } from 'src/types/housing/animalsOffspring'
+import { StyledTypographyProps, AnimalItem, ClutchItem, ClutchEgg } from 'src/types/housing/animalsOffspring'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import EggCard from './EggCard'
 
@@ -31,7 +31,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
   const [isAnimalFetching, setIsAnimalFetching] = useState<boolean>(false)
   const [animalData, setAnimalData] = useState<AnimalItem[] | null>(null)
   const [isEggFetching, setIsEggFetching] = useState<boolean>(false)
-  const [eggData, setEggData] = useState<AnimalItem[] | null>(null)
+  const [eggData, setEggData] = useState<ClutchEgg[] | null>(null)
 
   const debouncedSearchClutch = useMemo(() => debounce(setSearchClutch, 500), [])
 
@@ -110,7 +110,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
   }
 
   useEffect(() => {
-      if (!clutchDetails?.clutch_id) return
+    if (!clutchDetails?.clutch_id) return
 
     if (activeTab == 'eggs') {
       fetchClutchEggList()
@@ -383,7 +383,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
                         mb: 2,
                         cursor: 'pointer'
                       }}
-                      onClick={() => handleAnimalClick(item.animal_id)}
+                      onClick={() => handleAnimalClick(String(item.animal_id))}
                     >
                       <Box sx={{ flexGrow: 1 }}>
                         <AnimalCard data={item} />

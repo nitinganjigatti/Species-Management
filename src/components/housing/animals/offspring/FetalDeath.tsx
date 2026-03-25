@@ -10,6 +10,12 @@ import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import FetalDeathDrawer from './FetalDeathDrawer'
 
+type PillTabsProps = {
+  tabs: string[]
+  activeTab: string
+  onTabClick: (tab: string) => void
+}
+
 const FetalDeath: React.FC<TabProps> = props => {
   const theme = useTheme() as any
 
@@ -43,7 +49,7 @@ const FetalDeath: React.FC<TabProps> = props => {
   })
   const fetus = fetusData?.data?.fetus_details || null
 
-  const PillTabs = ({ tabs, activeTab, onTabClick }) => {
+  const PillTabs: React.FC<PillTabsProps> = ({ tabs, activeTab, onTabClick }) => {
     const theme = useTheme() as any
 
     const tabStatsMap: Record<string, number> = {
@@ -91,7 +97,7 @@ const FetalDeath: React.FC<TabProps> = props => {
       <PillTabs tabs={availableTabs} activeTab={activeTab} onTabClick={handleTabClick} />
       {isFetusDataFetching ? (
         <LoadingSkeleton />
-      ) : props.stats.fetal_death_count == 0 ||
+      ) : Number(props.stats?.fetal_death_count ?? 0) === 0 ||
         fetus?.length === 0 ||
         (activeTab === 'Still Birth' && fetusStatsData?.stillbirth_count == 0) ||
         (activeTab === 'Abortion' && fetusStatsData?.abortion_count == 0) ? (
@@ -140,7 +146,19 @@ const FetalDeath: React.FC<TabProps> = props => {
                       {Utility.convertUTCToLocaltime(item?.discovered)}
                     </Typography>
                   </Box>
-                  <AnimalCard data={item} cardType='fetus' />
+                  <AnimalCard
+                    data={{
+                      local_identifier_name: 'FID',
+                      local_identifier_value: item?.fetus_code,
+                      default_common_name: item?.default_common_name,
+                      complete_name: item?.animal_scientific_name,
+                      discovered: item?.discovered,
+                      mother_id: item?.mother_id,
+                      site_name: item?.site_name,
+                      default_icon: item?.default_icon,
+                      sex: item?.sex
+                    }}
+                  />
                 </Box>
                 <Box
                   sx={{

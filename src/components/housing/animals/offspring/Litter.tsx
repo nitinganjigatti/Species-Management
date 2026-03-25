@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Typography,useTheme, Skeleton, Divider } from '@mui/material'
+import { Box, Typography, useTheme, Skeleton, Divider } from '@mui/material'
 import styled from '@emotion/styled'
 import { alpha } from '@mui/material/styles'
 
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { StyledTypographyProps, TabProps,LitterItem} from 'src/types/housing/animalsOffspring'
+import { StyledTypographyProps, TabProps, LitterItem } from 'src/types/housing/animalsOffspring'
 import LitterDrawer from './LitterDrawer'
 import { getLitterList } from 'src/lib/api/housing'
 import Utility from 'src/utility'
@@ -26,7 +26,7 @@ const Litter: React.FC<TabProps> = props => {
         page_no: 1
       })
       if (response?.success) {
-        const result = response.data?.result  as LitterItem[] | undefined
+        const result = response.data?.result as LitterItem[] | undefined
         setLitter(result ?? [])
       } else {
         setLitter([])
@@ -105,23 +105,38 @@ const Litter: React.FC<TabProps> = props => {
                 }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mx: 4, my: 6 }}>
-                  {Number(item?.male_count) > 0 && <SexBadge label='M' value={item?.male_count} bgColor={alpha(theme.palette.customColors.SecondaryContainer,0.8)} />}
+                  {Number(item?.male_count) > 0 && (
+                    <SexBadge
+                      label='M'
+                      value={item?.male_count}
+                      bgColor={alpha(theme.palette.customColors.SecondaryContainer, 0.8)}
+                    />
+                  )}
 
-                  {Number(item?.female_count) > 0 && <SexBadge label='F' value={item?.female_count}bgColor={alpha(theme.palette.customColors.customDropdownColor,0.4)} />}
+                  {Number(item?.female_count) > 0 && (
+                    <SexBadge
+                      label='F'
+                      value={item?.female_count}
+                      bgColor={alpha(theme.palette.customColors.customDropdownColor, 0.4)}
+                    />
+                  )}
 
-                  {Number(item?.indeterminate_count) > 0 && <SexBadge
-                    label='ID'
-                    value={item?.indeterminate_count}
-                    color={theme.palette.customColors.OnPrimaryContainer}
-                    bgColor={theme.palette.customColors.displaybgSecondary}
-                  />
-                    }
-                  {Number(item?.undetermined_count) > 0 && <SexBadge
-                    label='UD'
-                    value={item?.undetermined_count}
-                     color={theme.palette.customColors.Error}
-                    bgColor={theme.palette.customColors.SurfaceVariant}
-                  />}
+                  {Number(item?.indeterminate_count) > 0 && (
+                    <SexBadge
+                      label='ID'
+                      value={item?.indeterminate_count}
+                      color={theme.palette.customColors.OnPrimaryContainer}
+                      bgColor={theme.palette.customColors.displaybgSecondary}
+                    />
+                  )}
+                  {Number(item?.undetermined_count) > 0 && (
+                    <SexBadge
+                      label='UD'
+                      value={item?.undetermined_count}
+                      color={theme.palette.customColors.Error}
+                      bgColor={theme.palette.customColors.SurfaceVariant}
+                    />
+                  )}
                 </Box>
 
                 <Divider />

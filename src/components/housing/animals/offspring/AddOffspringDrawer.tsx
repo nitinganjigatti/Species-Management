@@ -1,15 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
-import {
-  Box,
-  Card,
-  CircularProgress,
-  Drawer,
-  IconButton,
-  Typography,
-  useTheme,
-  Grid,
-  Radio
-} from '@mui/material'
+import { Box, Card, CircularProgress, Drawer, IconButton, Typography, useTheme, Grid, Radio } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { getLitterList } from 'src/lib/api/housing'
@@ -18,30 +8,45 @@ import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/Treatmen
 import { LoadingButton } from '@mui/lab'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { AuthContext } from 'src/context/AuthContext'
-import MultiSelectAnimalDrawer from 'src/components/housing/animals/lineage/MultiSelectAnimalDrawer'
+import MultiSelectAnimalDrawer, {
+  Animal as MultiSelectAnimal
+} from 'src/components/housing/animals/lineage/MultiSelectAnimalDrawer'
 import { addOffspring } from 'src/lib/api/housing'
 import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from 'src/components/Toaster'
-import { StyledTypographyProps, LitterItem } from 'src/types/housing/animalsOffspring'
+import {
+  StyledTypographyProps,
+  LitterItem,
+  AddOffspringDrawerProps,
+  AnimalItem
+} from 'src/types/housing/animalsOffspring'
 
+export interface AddOffspringPayload {
+  offspring_ids: string[] | string
+  mother_id: string | number
+  ref_type: 'litter'
+  create_new: boolean
+  ref_id?: string | number
+  father_id?: string | number
+}
 
 const options = [
   { label: 'Existing', value: 'existing' },
   { label: 'Create new', value: 'createNew' }
 ]
 
-const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDetails }: any) => {
+const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsDetails }: AddOffspringDrawerProps) => {
   const theme = useTheme() as any
   const authData = useContext(AuthContext)
 
-  const zooId = authData?.userData?.user?.zoos[0]?.zoo_id
+  const zooId = (authData as any)?.userData?.user?.zoos[0]?.zoo_id
 
   const [selectedOption, setSelectedOption] = useState('createNew')
-  const [loading, setLoading] = useState(false)
-  const [selectedSire, setSelectedSire] = useState(null)
-  const [selectedOffspring, setSelectedOffspring] = useState([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [selectedSire, setSelectedSire] = useState<AnimalItem | null>(null)
+  const [selectedOffspring, setSelectedOffspring] = useState<AnimalItem[]>([])
   const [animalDrawerOpen, setAnimalDrawerOpen] = useState(false)
   const [litterDrawerOpen, setLitterDrawerOpen] = useState(false)
   const [selectionType, setSelectionType] = useState('')
@@ -98,7 +103,6 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
     }
   }
 
-
   const handleAddOffspring = async () => {
     let hasError = false
 
@@ -119,7 +123,7 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
 
     setLoading(true)
     try {
-      const params = {
+      const params: AddOffspringPayload = {
         offspring_ids: JSON.stringify(selectedOffspring.map(a => Number(a.animal_id))),
         mother_id: animalId,
         ref_type: 'litter',
@@ -132,8 +136,7 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
         onClose()
         onAcceptSuccess()
         Toaster({ type: 'success', message: response?.message || 'Offspring added successfully' })
-      }
-      else {
+      } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to add offspring' })
       }
     } catch (error: any) {
@@ -187,7 +190,6 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
     setOffspringError(false)
     setLitterError(false)
   }
-
 
   useEffect(() => {
     if (open && animalId) {
@@ -253,7 +255,8 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
             sx={{
               flex: 1,
               overflowY: 'auto',
-              minHeight: 0
+              minHeight: 0,
+              backgroundColor: theme.palette.background.default
             }}
           >
             <Box
@@ -261,7 +264,6 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
                 display: 'flex',
                 flexDirection: 'column',
                 flexGrow: 1,
-                backgroundColor: theme.palette.background.default,
                 p: 4,
                 gap: 4
               }}
@@ -807,7 +809,7 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
           onClose={() => setAnimalDrawerOpen(false)}
           onSelect={animals => {
             if (selectionType === 'sire') {
-              const newSire = animals[0] || null
+              const newSire = (animals[0] as unknown as AnimalItem) || null
 
               setSelectedSire(prev => {
                 if (prev?.animal_id !== newSire?.animal_id) {
@@ -822,14 +824,20 @@ const AddOffspringDrawer = ({ open, onClose,onAcceptSuccess, animalId, animalsDe
                 const map = new Map(prev.map(a => [a.animal_id, a]))
 
                 animals.forEach(a => {
-                  if (a.animal_id) map.set(a.animal_id, a)
+                  if (a.animal_id) map.set(a.animal_id, a as unknown as AnimalItem)
                 })
 
                 return Array.from(map.values())
               })
             }
           }}
-          initialSelectedAnimals={selectionType === 'sire' ? (selectedSire ? [selectedSire] : []) : selectedOffspring}
+          initialSelectedAnimals={
+            selectionType === 'sire'
+              ? selectedSire
+                ? [selectedSire as unknown as MultiSelectAnimal]
+                : []
+              : (selectedOffspring as unknown as MultiSelectAnimal[])
+          }
           title={selectionType === 'sire' ? 'Select Sire' : 'Select Offspring'}
           btnText='ADD'
           selectionMode={selectionType === 'sire' ? 'single' : 'multi'}

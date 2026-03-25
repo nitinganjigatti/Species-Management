@@ -19,6 +19,7 @@ import dayjs from 'dayjs'
 interface EggStatusDrawerProps {
   open: boolean
   onClose: () => void
+  refetch: () => void
   eggDetails?: {
     egg_id?: string
     egg_status_id?: string | number
@@ -166,7 +167,7 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
 
     try {
       setSubmitLoader(true)
-      const response = await updateEggStatus(payload)
+      const response = await updateEggStatus(payload as any)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Updated successfully' })
@@ -182,14 +183,14 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
     }
   }
   // Options
-  const statusOptions = (eggStatusMasterData?.egg_status || []).map(item => ({
+  const statusOptions = (eggStatusMasterData?.egg_status || []).map((item: any) => ({
     label: item.egg_status,
     value: item.id
   }))
 
   const filteredStateOptions = (eggStatusMasterData?.egg_state || [])
-    .filter(item => item.egg_status_id === selectedStatus)
-    .map(item => ({
+    .filter((item: any) => item.egg_status_id === selectedStatus)
+    .map((item: any) => ({
       label: item.egg_state,
       value: item.id
     }))
@@ -245,8 +246,8 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
                   errors={errors}
                   label={'Select Status'}
                   options={statusOptions}
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
+                  getOptionLabel={(option: any) => option.label}
+                  getOptionValue={(option: any) => option.value}
                   loading={isEggStatusMasterDataFetching}
                   disabled={isEggStatusMasterDataFetching}
                 />
@@ -260,8 +261,8 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
                     required
                     fullWidth
                     options={filteredStateOptions}
-                    getOptionLabel={option => option.label}
-                    getOptionValue={option => option.value}
+                    getOptionLabel={(option: any) => option.label}
+                    getOptionValue={(option: any) => option.value}
                     errors={errors}
                   />
                 </Grid>

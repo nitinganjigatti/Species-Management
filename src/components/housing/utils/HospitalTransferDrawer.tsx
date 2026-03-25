@@ -70,7 +70,7 @@ const groupCommentsByDate = (comments: ChecklistComment[]): GroupedChecklistSect
 }
 
 const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose, transferId, showQRCode }) => {
-  const theme = useTheme()
+  const theme = useTheme() as any
   const router = useRouter()
 
   const [loading, setLoading] = useState<boolean>(false)

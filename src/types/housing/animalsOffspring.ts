@@ -167,6 +167,7 @@ export interface GetClutchEggListPayload {
   parent_id: string | number
   is_mother: 0 | 1
   page_no: number
+  clutch_id?: string | number
 }
 
 export interface ClutchEgg {
@@ -492,7 +493,7 @@ export interface GetEggHistoryResponse {
 }
 
 export interface AnimalItem {
-  animal_id: string
+  animal_id: string | number
   common_name: string
   scientific_name: string
   user_enclosure_name: string
@@ -546,4 +547,26 @@ export interface FetalDeathDrawerProps {
   open: boolean
   onClose: () => void
   fetusId: number | string
+}
+
+export interface AddOffspringDrawerProps {
+  open: boolean
+  onClose: () => void
+  onAcceptSuccess: () => void
+  animalId: string | number
+  animalsDetails?: any
+}
+
+export interface UpdateEggStatusPayload {
+  egg_id: string
+  egg_status_id: string
+  egg_state_id: string | null
+  hatch_date: string | null
+  comment: string | null
+  egg_attachment: any[] | string | null
+}
+
+export interface GetEggMediaListPayload {
+  ref_id: number
+  ref_type: string
 }

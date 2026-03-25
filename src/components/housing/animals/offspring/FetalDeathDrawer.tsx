@@ -111,7 +111,10 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                       px: '12px',
                       py: '6px',
                       borderRadius: '4px',
-                      backgroundColor: theme.palette.customColors.rusticRed,
+                      backgroundColor:
+                        fetusDetailsData?.type_of_fetal_death === 'stillborn'
+                          ? theme.palette.customColors.rusticRed
+                          : theme.palette.customColors.Error,
                       display: 'inline-flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -126,9 +129,19 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                       {fetusDetailsData?.type_of_fetal_death}
                     </StyledTypography>
                   </Box>
+
                   <AnimalCard
-                    data={fetusDetailsData}
-                    cardType='fetus'
+                    data={{
+                      local_identifier_name: 'FID',
+                      local_identifier_value: fetusDetailsData?.display_fetus_code,
+                      default_common_name: fetusDetailsData?.default_common_name,
+                      complete_name: fetusDetailsData?.complete_name,
+                      site_name: fetusDetailsData?.site_name,
+                      section_name: fetusDetailsData?.section_name,
+                      user_enclosure_name: fetusDetailsData?.user_enclosure_name,
+                      default_icon: fetusDetailsData?.default_icon,
+                      sex: fetusDetailsData?.sex
+                    }}
                     valueColor={theme.palette.customColors.rusticRed}
                   />
                 </Box>
@@ -340,9 +353,19 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                         >
                           <StyledTypography fontWeight={600}>Mother</StyledTypography>
                         </Box>
-                        <Box sx={{ p: 3 }}>
-                          <AnimalCard data={fetusDetailsData} />
-                        </Box>
+                        {/* Mother List */}
+                        {fetusDetailsData?.parent_list?.mother_list?.map((parent: any, index: number) => (
+                          <Box key={`mother-${index}`} sx={{ p: 3 }}>
+                            <AnimalCard data={parent} />
+                          </Box>
+                        ))}
+
+                        {/* Father List */}
+                        {fetusDetailsData?.parent_list?.father_list?.map((parent: any, index: number) => (
+                          <Box key={`father-${index}`} sx={{ p: 3 }}>
+                            <AnimalCard data={parent} />
+                          </Box>
+                        ))}
                       </Box>
                     </AccordionDetails>
                   </Accordion>
