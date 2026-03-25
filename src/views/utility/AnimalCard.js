@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 import Utility from 'src/utility'
 
-const AnimalCard = ({ data, size, edit, valueColor, cardType = 'animal' }) => {
+const AnimalCard = ({ data, size, edit, valueColor }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
   const [src, setSrc] = useState(data?.default_icon)
@@ -190,48 +190,45 @@ const AnimalCard = ({ data, size, edit, valueColor, cardType = 'animal' }) => {
           </Box>
         )}
 
-        {!(data?.local_identifier_name && data?.local_identifier_value) &&
-          (data?.animal_id || data?.fetus_code || data?.display_fetus_code) && (
-            <Box
+        {!(data?.local_identifier_name && data?.local_identifier_value) && data?.animal_id && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Typography
               sx={{
-                display: 'flex',
-                alignItems: 'center'
+                fontSize: size ?? '16px',
+                fontWeight: 600,
+                lineHeight: '19.36px',
+                color: valueColor || theme.palette.customColors.OnSurfaceVariant,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: edit ? '118px' : '200px'
               }}
             >
-              <Typography
+              AID : {data?.animal_id}
+            </Typography>
+            {data?.is_primary === '1' && (
+              <Box
+                component='span'
                 sx={{
-                  fontSize: size ?? '16px',
-                  fontWeight: 600,
-                  lineHeight: '19.36px',
                   color: valueColor || theme.palette.customColors.OnSurfaceVariant,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: edit ? '118px' : '200px'
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  background: '#37bd6924',
+                  px: '5px',
+                  py: '2px',
+                  borderRadius: '4px',
+                  ml: '10px'
                 }}
               >
-                {cardType == 'fetus'
-                  ? `FID : ${data?.fetus_code || data?.display_fetus_code}`
-                  : `AID : ${data?.animal_id}`}
-              </Typography>
-              {data?.is_primary === '1' && (
-                <Box
-                  component='span'
-                  sx={{
-                    color: valueColor || theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    background: '#37bd6924',
-                    px: '5px',
-                    py: '2px',
-                    borderRadius: '4px',
-                    ml: '10px'
-                  }}
-                >
-                  Primary Diet
-                </Box>
-              )}
-            </Box>
-          )}
+                Primary Diet
+              </Box>
+            )}
+          </Box>
+        )}
 
         {(data?.common_name || data?.default_common_name) && (
           <Typography
@@ -246,7 +243,7 @@ const AnimalCard = ({ data, size, edit, valueColor, cardType = 'animal' }) => {
           </Typography>
         )}
 
-        {(data?.scientific_name || data?.complete_name || data?.animal_scientific_name) && (
+        {(data?.scientific_name || data?.complete_name) && (
           <Typography
             sx={{
               fontSize: '13px',
@@ -255,7 +252,7 @@ const AnimalCard = ({ data, size, edit, valueColor, cardType = 'animal' }) => {
               color: valueColor || theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            {data?.scientific_name || data?.complete_name || data?.animal_scientific_name}
+            {data?.scientific_name || data?.complete_name}
           </Typography>
         )}
 
