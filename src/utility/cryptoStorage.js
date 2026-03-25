@@ -1,31 +1,80 @@
 const ENCRYPTION_PASSPHRASE = 'antz-web-dashboard-2024-secure-key'
 const SALT = 'antz_salt_v1'
 
-// Derive AES-GCM key from passphrase using PBKDF2
-const deriveKey = async () => {
-  const encoder = new TextEncoder()
-  const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(ENCRYPTION_PASSPHRASE), 'PBKDF2', false, [
-    'deriveKey'
-  ])
-
-  return crypto.subtle.deriveKey(
-    {
-      name: 'PBKDF2',
-      salt: encoder.encode(SALT),
-      iterations: 100000,
-      hash: 'SHA-256'
-    },
-    keyMaterial,
-    { name: 'AES-GCM', length: 256 },
-    false,
-    ['encrypt', 'decrypt']
-  )
+// Check if crypto.subtle is available (requires secure context: HTTPS or localhost)
+const isSecureContext = () => {
+  try {
+    return typeof window !== 'undefined' && window.isSecureContext && !!crypto?.subtle
+  } catch {
+    return false
+  }
 }
 
-// Encrypt a string value using AES-GCM
+// ─── Fallback encoding (Base64 obfuscation for non-secure contexts) ───
+
+const fallbackEncode = value => {
+  try {
+    return btoa(encodeURIComponent(value))
+  } catch (error) {
+    console.warn('Fallback encode failed:', error)
+
+    return null
+  }
+}
+
+const fallbackDecode = encodedValue => {
+  try {
+    return decodeURIComponent(atob(encodedValue))
+  } catch (error) {
+    console.warn('Fallback decode failed:', error)
+
+    return null
+  }
+}
+
+// ─── Secure encryption (AES-256-GCM via Web Crypto API) ───
+
+// Derive AES-GCM key from passphrase using PBKDF2
+const deriveKey = async () => {
+  try {
+    const encoder = new TextEncoder()
+    const keyMaterial = await crypto.subtle.importKey('raw', encoder.encode(ENCRYPTION_PASSPHRASE), 'PBKDF2', false, [
+      'deriveKey'
+    ])
+
+    return crypto.subtle.deriveKey(
+      {
+        name: 'PBKDF2',
+        salt: encoder.encode(SALT),
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    )
+  } catch (error) {
+    console.error('Key derivation failed:', error)
+
+    return null
+  }
+}
+
+// Encrypt a string value — AES-GCM if secure context, Base64 fallback otherwise
 export const encrypt = async value => {
   try {
+    // Fallback: Base64 obfuscation for non-secure contexts (HTTP + IP)
+    if (!isSecureContext()) {
+      console.warn('Non-secure context: using Base64 obfuscation instead of AES encryption')
+
+      return fallbackEncode(value)
+    }
+
+    // Secure: AES-256-GCM encryption
     const key = await deriveKey()
+    if (!key) return fallbackEncode(value)
+
     const encoder = new TextEncoder()
     const iv = crypto.getRandomValues(new Uint8Array(12))
     const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoder.encode(value))
@@ -37,16 +86,25 @@ export const encrypt = async value => {
 
     return btoa(String.fromCharCode(...combined))
   } catch (error) {
-    console.error('Encryption failed:', error)
+    console.error('Encryption failed, using fallback:', error)
 
-    return null
+    // Last resort fallback
+    return fallbackEncode(value)
   }
 }
 
-// Decrypt a base64-encoded AES-GCM encrypted string
+// Decrypt a string value — tries AES-GCM first, falls back to Base64
 export const decrypt = async encryptedValue => {
   try {
+    // Fallback: Base64 decode for non-secure contexts
+    if (!isSecureContext()) {
+      return fallbackDecode(encryptedValue)
+    }
+
+    // Secure: AES-256-GCM decryption
     const key = await deriveKey()
+    if (!key) return fallbackDecode(encryptedValue)
+
     const combined = Uint8Array.from(atob(encryptedValue), c => c.charCodeAt(0))
 
     // Extract IV (first 12 bytes) and ciphertext (rest)
@@ -56,6 +114,14 @@ export const decrypt = async encryptedValue => {
 
     return new TextDecoder().decode(decrypted)
   } catch (error) {
+    // AES decryption failed — try Base64 fallback (data may have been stored in non-secure context)
+    try {
+      const fallbackResult = fallbackDecode(encryptedValue)
+      if (fallbackResult) return fallbackResult
+    } catch {
+      // Both methods failed
+    }
+
     console.error('Decryption failed:', error)
 
     return null
