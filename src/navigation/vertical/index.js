@@ -16,6 +16,8 @@ import hospitalNavigation from 'src/components/navigation/hospital'
 import settingsNavigation from 'src/components/navigation/settings'
 import necropsyNavigation from 'src/components/navigation/necropsy'
 import announcementsNavigation from 'src/components/navigation/announcements'
+import notesNavigation from 'src/components/navigation/notes'
+
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -63,6 +65,11 @@ const ComposeNavigation = () => {
   // Announcements module (App Router)
   const announcementsNav = announcementsNavigation()
   navigationArray.push(...announcementsNav)
+
+  // Notes module (App Router)
+  const notesNav = notesNavigation()
+  navigationArray.push(...notesNav)
+
 
   if (reports_module) {
     const reportNav = reportNavigation({

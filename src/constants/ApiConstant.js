@@ -1082,3 +1082,13 @@ export const LAB_SAMPLE_LOGS = 'v1/lab-request/get-sample-logs'
 export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
 
 export const GET_ASSESSMENT_ANIMAL_DATA = 'v1/assessment/animal/defaultValue'
+
+//Notes module
+
+export const GET_NOTES_LIST = 'v1/get-observation-list'
+
+export const ADD_NOTES_REACTION = 'v1/notes/add/reaction'
+
+export const REMOVE_NOTES_REACTION = 'v1/notes/remove/reaction'
+
+export const GET_NOTES_DETAILS ='v1/observation/details'
