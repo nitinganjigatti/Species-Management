@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -23,16 +23,24 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import MUITimePicker from 'src/views/forms/form-fields/MUITimePicker'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
-import { useCreateAnnouncement } from 'src/hooks/announcement/useAnnouncements'
+import { useCreateAnnouncement, useUpdateAnnouncement } from 'src/hooks/announcement/useAnnouncements'
 import { useAuth } from 'src/hooks/useAuth'
 import SearchUsersDrawer, { SelectedUser } from './SearchUsersDrawer'
 import SelectSitesRolesDrawer, { Site, Role } from './SelectSitesRolesDrawer'
-import type { AnnouncementType, CreateAnnouncementPayload } from 'src/types/announcement'
+import type { Announcement, AnnouncementType, CreateAnnouncementPayload } from 'src/types/announcement'
+
+interface ExistingAttachment {
+  id: number
+  file: string
+  file_orginal_name: string
+  file_type: string
+}
 
 interface AddAnnouncementDrawerProps {
   open: boolean
   onClose: () => void
   onSuccess?: () => void
+  editAnnouncement?: Announcement | null
 }
 
 interface FormValues {
@@ -84,12 +92,20 @@ const removeEmojis = (text: string): string => {
   )
 }
 
-const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDrawerProps) => {
+const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: AddAnnouncementDrawerProps) => {
   const theme = useTheme()
   const auth = useAuth() as any
   // Get zooId from userData (matching mobile: state.UserAuth.zoo_id)
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
   const createAnnouncement = useCreateAnnouncement()
+  const updateAnnouncement = useUpdateAnnouncement()
+
+  // Edit mode detection (matching mobile)
+  const isEdit = !!editAnnouncement
+
+  // Track existing attachments and deleted ones for edit mode
+  const [existingAttachments, setExistingAttachments] = useState<ExistingAttachment[]>([])
+  const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<number[]>([])
 
   const {
     control,
@@ -137,6 +153,64 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
   const [isSitesRolesDrawerOpen, setIsSitesRolesDrawerOpen] = useState(false)
   const [isUsersDrawerOpen, setIsUsersDrawerOpen] = useState(false)
 
+  // Populate form when editing (matching mobile implementation)
+  useEffect(() => {
+    if (open && isEdit && editAnnouncement) {
+      // Title and description
+      setValue('title', editAnnouncement.title || '')
+      setValue('description', editAnnouncement.description || '')
+
+      // Type
+      setValue('type', (editAnnouncement.type as AnnouncementType) || 'general')
+
+      // Visibility - check if target_zoo_only or target_groups indicates everyone
+      const isEveryone = editAnnouncement.target_zoo_only ?? true
+      setValue('isEveryoneVisible', isEveryone)
+
+      // Post now / scheduled - is_scheduled: 1 means "post now", 0 means "scheduled"
+      const postNow = editAnnouncement.is_scheduled === 1 || editAnnouncement.is_scheduled === '1'
+      setValue('isPostNow', postNow)
+
+      // Schedule date/time
+      if (editAnnouncement.schedule_datetime) {
+        setValue('schedule_date', dayjs(editAnnouncement.schedule_datetime))
+        setValue('schedule_time', dayjs(editAnnouncement.schedule_datetime))
+      }
+
+      // Always visible / end date
+      const alwaysVisible = editAnnouncement.end_date_flag === true || editAnnouncement.end_date_flag === 1
+      setValue('isAlwaysVisible', alwaysVisible)
+
+      if (editAnnouncement.schedule_end_date) {
+        setValue('schedule_end_date', dayjs(editAnnouncement.schedule_end_date))
+      }
+
+      // Allow comments
+      const allowComments =
+        editAnnouncement.allow_comments === 1 ||
+        editAnnouncement.allow_comments === '1' ||
+        editAnnouncement.allow_comments === true
+      setValue('allow_comments', allowComments)
+
+      // Existing attachments
+      if (editAnnouncement.attachments && editAnnouncement.attachments.length > 0) {
+        setExistingAttachments(
+          editAnnouncement.attachments.map(att => ({
+            id: att.id,
+            file: att.file,
+            file_orginal_name: att.file_orginal_name || 'Attachment',
+            file_type: att.file_type || ''
+          }))
+        )
+      }
+
+      // Reset deleted attachments
+      setDeletedAttachmentIds([])
+
+      // TODO: Parse and set target_groups, user_target_groups for sites/roles/users
+    }
+  }, [open, isEdit, editAnnouncement, setValue])
+
   // Handle sites and roles selection from drawer
   const handleSitesRolesChange = (sites: Site[], roles: Role[]) => {
     setSelectedSites(sites)
@@ -164,7 +238,15 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
     setSelectedSites([])
     setSelectedRoles([])
     setSelectedUsers([])
+    setExistingAttachments([])
+    setDeletedAttachmentIds([])
     onClose()
+  }
+
+  // Handle removing existing attachment (for edit mode)
+  const handleRemoveExistingAttachment = (attachmentId: number) => {
+    setExistingAttachments(prev => prev.filter(att => att.id !== attachmentId))
+    setDeletedAttachmentIds(prev => [...prev, attachmentId])
   }
 
   // Calculate end date from duration
@@ -267,11 +349,22 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
       schedule_end_date: calculateEndDate(),
       target_groups: JSON.stringify(targetGroups),
       user_target_groups: userTargetGroups,
-      attachments: data.attachments
+      attachments: data.attachments,
+      // Include deleted attachments for edit mode
+      deleted_attachments: deletedAttachmentIds.length > 0 ? deletedAttachmentIds.join(',') : undefined
     }
 
     try {
-      await createAnnouncement.mutateAsync(payload)
+      if (isEdit && editAnnouncement) {
+        // Update existing announcement
+        await updateAnnouncement.mutateAsync({
+          announcementId: editAnnouncement.announcement_id,
+          payload
+        })
+      } else {
+        // Create new announcement
+        await createAnnouncement.mutateAsync(payload)
+      }
       handleDrawerClose()
       onSuccess?.()
     } catch (error) {
@@ -361,7 +454,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Create Announcement
+              {isEdit ? 'Edit Announcement' : 'Create Announcement'}
             </Typography>
             <IconButton
               size='small'
@@ -1198,6 +1291,114 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
                 <Typography sx={sectionTitleSx}>Attachments</Typography>
               </Box>
 
+              {/* Existing Attachments (for edit mode) */}
+              {isEdit && existingAttachments.length > 0 && (
+                <Box sx={{ mb: 3 }}>
+                  <Typography
+                    sx={{
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: theme.palette.customColors.neutralSecondary,
+                      mb: 2,
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    Existing Attachments ({existingAttachments.length})
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    {existingAttachments.map(attachment => (
+                      <Box
+                        key={attachment.id}
+                        sx={{
+                          position: 'relative',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          p: 2,
+                          backgroundColor: inputBgColor,
+                          borderRadius: '8px',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                        }}
+                      >
+                        {/* Attachment preview/icon */}
+                        {attachment.file_type?.startsWith('image') ? (
+                          <Box
+                            component='img'
+                            src={attachment.file}
+                            alt={attachment.file_orginal_name}
+                            sx={{
+                              width: 48,
+                              height: 48,
+                              objectFit: 'cover',
+                              borderRadius: '4px'
+                            }}
+                          />
+                        ) : (
+                          <Box
+                            sx={{
+                              width: 48,
+                              height: 48,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              backgroundColor: theme.palette.primary.light + '30',
+                              borderRadius: '4px'
+                            }}
+                          >
+                            <Icon
+                              icon={
+                                attachment.file_type?.includes('pdf')
+                                  ? 'mdi:file-pdf-box'
+                                  : attachment.file_type?.includes('video')
+                                  ? 'mdi:file-video'
+                                  : attachment.file_type?.includes('audio')
+                                  ? 'mdi:file-music'
+                                  : 'mdi:file-document'
+                              }
+                              fontSize={24}
+                              color={theme.palette.primary.main}
+                            />
+                          </Box>
+                        )}
+                        <Box sx={{ maxWidth: 120 }}>
+                          <Typography
+                            sx={{
+                              fontSize: '0.8125rem',
+                              fontWeight: 500,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {attachment.file_orginal_name}
+                          </Typography>
+                        </Box>
+                        {/* Remove button */}
+                        <IconButton
+                          size='small'
+                          onClick={() => handleRemoveExistingAttachment(attachment.id)}
+                          sx={{
+                            position: 'absolute',
+                            top: -8,
+                            right: -8,
+                            backgroundColor: theme.palette.customColors.Tertiary,
+                            color: theme.palette.customColors.OnPrimary,
+                            width: 20,
+                            height: 20,
+                            '&:hover': {
+                              backgroundColor: theme.palette.error.dark
+                            }
+                          }}
+                        >
+                          <Icon icon='mdi:close' fontSize={14} />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
               <ControlledMultiFileUpload
                 name='attachments'
                 control={control}
@@ -1229,7 +1430,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
               variant='outlined'
               fullWidth
               onClick={handleDrawerClose}
-              disabled={createAnnouncement.isPending}
+              disabled={isEdit ? updateAnnouncement.isPending : createAnnouncement.isPending}
               sx={{
                 borderColor: theme.palette.primary.main,
                 color: theme.palette.primary.main,
@@ -1239,13 +1440,13 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
                 fontWeight: 600
               }}
             >
-              Preview
+              {isEdit ? 'Cancel' : 'Preview'}
             </Button>
             <Button
               type='submit'
               variant='contained'
               fullWidth
-              disabled={createAnnouncement.isPending}
+              disabled={isEdit ? updateAnnouncement.isPending : createAnnouncement.isPending}
               onClick={handleSubmit(onSubmit)}
               sx={{
                 height: '48px',
@@ -1254,7 +1455,13 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess }: AddAnnouncementDraw
                 fontWeight: 600
               }}
             >
-              {createAnnouncement.isPending ? <CircularProgress size={24} color='inherit' /> : 'Publish'}
+              {(isEdit ? updateAnnouncement.isPending : createAnnouncement.isPending) ? (
+                <CircularProgress size={24} color='inherit' />
+              ) : isEdit ? (
+                'Update'
+              ) : (
+                'Publish'
+              )}
             </Button>
           </Box>
         </Box>

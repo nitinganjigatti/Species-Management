@@ -336,15 +336,44 @@ export const useCreateAnnouncement = () => {
         const errorMessage = response.errors?.[0] || response.message || 'Failed to create announcement'
         throw new Error(errorMessage)
       }
-      
+
       return response
     },
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
       toast.success(data.message || 'Announcement created successfully')
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to create announcement')
+    }
+  })
+}
+
+/**
+ * Hook for updating an existing announcement
+ */
+export const useUpdateAnnouncement = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ announcementId, payload }: { announcementId: number; payload: any }) => {
+      const response = await announcementApi.updateAnnouncement(announcementId, payload)
+      // Check API-level success (matching mobile implementation)
+      if (!response.success && response.status === false) {
+        const errorMessage = response.errors?.[0] || response.message || 'Failed to update announcement'
+        throw new Error(errorMessage)
+      }
+
+      return response
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate both list and details queries
+      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
+      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, variables.announcementId] })
+      toast.success(data.message || 'Announcement updated successfully')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update announcement')
     }
   })
 }

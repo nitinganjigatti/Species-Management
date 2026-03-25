@@ -31,6 +31,9 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
   const [filter, setFilter] = useState<'all' | 'my_posts'>(initialFilter)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
+  // Edit announcement state
+  const [editAnnouncement, setEditAnnouncement] = useState<Announcement | null>(null)
+
   // Details drawer state
   const [detailsDrawer, setDetailsDrawer] = useState<{
     open: boolean
@@ -73,7 +76,11 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
   }
 
   const handleEdit = (announcement: Announcement) => {
-    console.log('Edit announcement:', announcement.announcement_id)
+    // Close details drawer if open
+    setDetailsDrawer({ open: false, announcementId: null })
+    // Set the announcement to edit and open the drawer
+    setEditAnnouncement(announcement)
+    setIsDrawerOpen(true)
   }
 
   const handleDelete = (announcementId: number) => {
@@ -105,6 +112,7 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
 
   const handleDrawerClose = () => {
     setIsDrawerOpen(false)
+    setEditAnnouncement(null)
   }
 
   const handleCardClick = (announcementId: number) => {
@@ -339,8 +347,13 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         </Typography>
       )}
 
-      {/* Add Announcement Drawer */}
-      <AddAnnouncementDrawer open={isDrawerOpen} onClose={handleDrawerClose} />
+      {/* Add/Edit Announcement Drawer */}
+      <AddAnnouncementDrawer
+        open={isDrawerOpen}
+        onClose={handleDrawerClose}
+        editAnnouncement={editAnnouncement}
+        onSuccess={() => refetch()}
+      />
 
       {/* Announcement Details Drawer */}
       <AnnouncementDetailsDrawer
@@ -348,6 +361,7 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         onClose={handleDetailsDrawerClose}
         announcementId={detailsDrawer.announcementId}
         onAnnouncementUpdated={() => refetch()}
+        onEdit={handleEdit}
       />
 
       {/* Confirmation Dialog */}

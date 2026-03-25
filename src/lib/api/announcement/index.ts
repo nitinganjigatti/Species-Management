@@ -216,6 +216,62 @@ export const createAnnouncement = async (
 }
 
 /**
+ * Update an existing announcement
+ * Matches mobile: POST to v1/announcement/edit/{id}
+ */
+export const updateAnnouncement = async (
+  announcementId: number,
+  payload: CreateAnnouncementPayload
+): Promise<CreateAnnouncementResponse> => {
+  const formData = new FormData()
+  formData.append('title', payload.title)
+  formData.append('description', payload.description || '')
+  formData.append('type', payload.type)
+  formData.append('allow_comments', payload.allow_comments ? '1' : '0')
+  formData.append('is_scheduled', payload.is_scheduled.toString())
+
+  // Schedule datetime
+  if (payload.schedule_datetime) {
+    formData.append('schedule_datetime', payload.schedule_datetime)
+  }
+
+  // Visibility end date
+  if (payload.schedule_end_date) {
+    formData.append('schedule_end_date', payload.schedule_end_date)
+  }
+
+  // Target groups (audience)
+  if (payload.target_groups) {
+    formData.append('target_groups', payload.target_groups)
+  }
+
+  // User target groups
+  if (payload.user_target_groups) {
+    formData.append('user_target_groups', payload.user_target_groups)
+  }
+
+  // New attachments only (files without id)
+  if (payload.attachments && payload.attachments.length > 0) {
+    payload.attachments.forEach((file) => {
+      formData.append('attachments[]', file)
+    })
+  }
+
+  // Deleted attachment IDs
+  if (payload.deleted_attachments) {
+    formData.append('deleted_attachments', payload.deleted_attachments)
+  }
+
+  const response = await axiosFormPost({
+    url: ANNOUNCEMENT_ENDPOINTS.EDIT(announcementId),
+    body: formData,
+    pharmacy: false
+  })
+
+  return response.data
+}
+
+/**
  * Get list of roles for targeting
  */
 export const getRoleList = async (): Promise<any> => {
@@ -224,6 +280,6 @@ export const getRoleList = async (): Promise<any> => {
     params: {},
     pharmacy: false
   })
-  
+
   return response.data
 }

@@ -6,7 +6,6 @@ import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
-import Chip from '@mui/material/Chip'
 import Divider from '@mui/material/Divider'
 import Avatar from '@mui/material/Avatar'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -35,6 +34,7 @@ interface AnnouncementDetailsDrawerProps {
   onClose: () => void
   announcementId: number | null
   onAnnouncementUpdated?: () => void
+  onEdit?: (announcement: Announcement) => void
 }
 
 // Constants
@@ -44,7 +44,8 @@ const AnnouncementDetailsDrawer = ({
   open,
   onClose,
   announcementId,
-  onAnnouncementUpdated
+  onAnnouncementUpdated,
+  onEdit
 }: AnnouncementDetailsDrawerProps) => {
   const [showLikesDialog, setShowLikesDialog] = useState(false)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
@@ -219,6 +220,17 @@ const AnnouncementDetailsDrawer = ({
     setConfirmDialog({ open: true, type: 'cancel', id: announcement.announcement_id })
   }
 
+  const handleEdit = () => {
+    if (!announcement) return
+    if (onEdit) {
+      onEdit(announcement)
+      onClose()
+    } else {
+      // TODO: Wire up edit functionality
+      console.log('Edit announcement:', announcement.announcement_id)
+    }
+  }
+
   const handleConfirmDialogClose = () => {
     setConfirmDialog({ open: false, type: null, id: null })
   }
@@ -269,8 +281,13 @@ const AnnouncementDetailsDrawer = ({
       ]
     }
 
-    // Full menu for active announcements
+    // Full menu for active announcements (Edit, Cancel, Delete - matching mobile)
     return [
+      {
+        label: 'Edit',
+        icon: <Icon icon='mdi:pencil-outline' fontSize={18} />,
+        action: handleEdit
+      },
       {
         label: 'Cancel',
         icon: <Icon icon='mdi:cancel' fontSize={18} />,
@@ -419,6 +436,21 @@ const AnnouncementDetailsDrawer = ({
                 </Box>
               </Box>
 
+              {/* Images Carousel - at top like mobile */}
+              {carouselImages.length > 0 && (
+                <Box sx={{ mb: 1 }}>
+                  <ImageCarousel
+                    images={carouselImages}
+                    height={280}
+                    borderRadius={0}
+                    showArrows={carouselImages.length > 1}
+                    showDots={false}
+                    showCounter={carouselImages.length > 1}
+                    onImageClick={handleImageClick}
+                  />
+                </Box>
+              )}
+
               {/* Title */}
               <Box sx={{ px: 3 }}>
                 <Typography
@@ -494,8 +526,8 @@ const AnnouncementDetailsDrawer = ({
                 )}
               </Box>
 
-              {/* Attachments Section - Images and Documents */}
-              {(carouselImages.length > 0 || documents.length > 0) && (
+              {/* Documents Section */}
+              {documents.length > 0 && (
                 <>
                   <Divider sx={{ mx: 3 }} />
                   <Box sx={{ px: 3, py: 2 }}>
@@ -505,21 +537,6 @@ const AnnouncementDetailsDrawer = ({
                         Attachments
                       </Typography>
                     </Box>
-
-                    {/* Images Carousel */}
-                    {carouselImages.length > 0 && (
-                      <Box sx={{ mb: documents.length > 0 ? 2 : 0 }}>
-                        <ImageCarousel
-                          images={carouselImages}
-                          height={220}
-                          borderRadius={1}
-                          showArrows={carouselImages.length > 1}
-                          showDots={carouselImages.length > 1}
-                          showCounter={carouselImages.length > 1}
-                          onImageClick={handleImageClick}
-                        />
-                      </Box>
-                    )}
 
                     {/* Documents */}
                     {documents.map((doc: AnnouncementAttachment, index: number) => (

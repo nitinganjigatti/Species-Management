@@ -67,8 +67,9 @@ export interface Announcement {
   created_user_id: number
   created_by: AnnouncementUser
   schedule_datetime: string
-  is_scheduled: boolean
-  allow_comments: 0 | 1
+  schedule_end_date?: string
+  is_scheduled: boolean | number | string
+  allow_comments: 0 | 1 | boolean | string
   comment_count: number
   comments: AnnouncementComment[]
   user_reaction: 'like' | null
@@ -80,6 +81,8 @@ export interface Announcement {
   cancel_reason?: string
   target_groups?: any[]
   user_target_groups?: any[]
+  target_zoo_only?: boolean
+  end_date_flag?: boolean | number
   created_at: string
   modified_at: string
 }
