@@ -40,6 +40,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
 import EnclosureOccupantsDrawer from 'src/views/pages/hospital/masters/hospital/EnclosureOccupantsDrawer'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const statusOptions = [
   { label: 'All Status', value: 'all' },
@@ -527,13 +528,16 @@ const HospitalBedDetails = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color={theme.palette.text.secondary}>Hospital</Typography>
-        <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
-          Room
-        </Typography>
-        <Typography color={theme.palette.text.primary}>Enclosures</Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
+        pageItems={[
+          { title: 'Hospital' },
+          { title: 'Masters' },
+          { title: 'Hospital List' },
+          { title: 'Hospital Detail', onClick: () => router.back() },
+          { title: 'Room Detail' }
+        ]}
+      />
       <Card sx={{ p: 6 }}>
         <CardHeader
           sx={{

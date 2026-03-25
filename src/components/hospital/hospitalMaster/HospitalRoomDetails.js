@@ -43,6 +43,7 @@ import {
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalRoomDetails = () => {
   const theme = useTheme()
@@ -689,12 +690,15 @@ const HospitalRoomDetails = () => {
 
   return (
     <>
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography onClick={() => router.back()} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
-          Hospital
-        </Typography>
-        <Typography sx={{ color: theme.palette.text.primary }}>Room</Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        pageItems={[
+          { title: 'Hospital' },
+          { title: 'Masters' },
+          { title: 'Hospital List', onClick: () => router.back() },
+          { title: 'Hospital Detail' }
+        ]}
+        sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
+      />
       <Card sx={{ p: 6 }}>
         <CardHeader
           sx={{
@@ -749,10 +753,7 @@ const HospitalRoomDetails = () => {
           }
         />
 
-        <HospitalAnalytics
-          isHospitalStatsLoading={isLoadingRooms}
-          hospitalDetails={hospitalDetails}
-        />
+        <HospitalAnalytics isHospitalStatsLoading={isLoadingRooms} hospitalDetails={hospitalDetails} />
 
         <Box
           sx={{
