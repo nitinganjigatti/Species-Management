@@ -605,6 +605,17 @@ declare module 'src/components/drawers/FilterContent' {
   export default FilterContent
 }
 
+declare module 'geolocation' {
+  interface GeolocationModule {
+    getCurrentPosition: (
+      callback: (err: GeolocationPositionError | null, position: GeolocationPosition) => void
+    ) => void
+  }
+
+  const geolocation: GeolocationModule
+  export default geolocation
+}
+
 declare module 'src/views/utility/Layout/PageCardLayout' {
   import { FC, ReactNode } from 'react'
   import { SxProps } from '@mui/material'
