@@ -45,7 +45,6 @@ const DoctorsList = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [selected, setSelected] = useState(null)
   // const [sortColumn, setSortColumn] = useState(router.query.column || '')
   // const [sort, setSort] = useState('asc')
 
@@ -62,7 +61,7 @@ const DoctorsList = () => {
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchValue])
+  }, [searchValue, debouncedSearch])
 
   
 
@@ -96,11 +95,11 @@ const DoctorsList = () => {
     } finally {
       setLoading(false)
     }
-  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id, selected])
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
 
   useEffect(() => {
     fetchHospitalStaff()
-  }, [paginationModel.page, paginationModel.pageSize])
+  }, [fetchHospitalStaff])
 
 
     const indexedRows = useMemo(() => {
@@ -122,7 +121,7 @@ const DoctorsList = () => {
       const params = {
         action: 'add',
         hospital_id: selectedHospital?.id,
-        hospital_chief_doctor: user_id
+        hospital_chief_doctor: user_id,
       }
       const response = await addChiefDoctor(params)
       if (response?.message && response?.success === true) {
@@ -138,7 +137,7 @@ const DoctorsList = () => {
       const params = {
         action: 'delete',
         hospital_id: selectedHospital?.id,
-        hospital_chief_doctor: user_id
+        hospital_chief_doctor: user_id,
       }
       const response = await removeChiefDoctor(params)
       if (response?.message && response?.success === true) {
