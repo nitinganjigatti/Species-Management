@@ -403,7 +403,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   useEffect(() => {
     if (isEditMode && enclosureData && filteredEnclosureTypes.length > 0) {
       const encType = filteredEnclosureTypes.find(e =>
-        e.value === enclosureData.enclosure_type_id ||
+        e.value === String(enclosureData.enclosure_type_id) ||
         e.label?.toLowerCase() === enclosureData.enclosure_type?.toLowerCase()
       )
       if (encType) {
@@ -415,7 +415,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   // Set parent enclosure after parent enclosure list is loaded
   useEffect(() => {
     if (isEditMode && enclosureData && parentEnclosureList.length > 0 && enclosureData.enclosure_parent_id) {
-      const parentEnc = parentEnclosureList.find(p => p.value === enclosureData.enclosure_parent_id)
+      const parentEnc = parentEnclosureList.find(p => p.value === String(enclosureData.enclosure_parent_id))
       if (parentEnc) {
         setValue('parentEnclosure', parentEnc, { shouldValidate: true })
       }
@@ -466,7 +466,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
         const payload = {
           enclosure_id: enclosureData.enclosure_id,
           user_enclosure_name: data?.enclosureName,
-          section_id: currentSectionId ? Number(currentSectionId) : enclosureData.section_id,
+          section_id: currentSectionId ? Number(currentSectionId) : (enclosureData.section_id || 0),
           enclosure_desc: data?.notes,
           enclosure_environment: data?.environmentType?.value || data?.environmentType?.label,
           enclosure_is_movable: data?.movable ? 1 : 0,
@@ -476,7 +476,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
           enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value || null,
           enclosure_lat: '',
           enclosure_long: '',
-          commistioned_date: moment(data?.commissioned_date).format('YYYY-MM-DD'),
+          commistioned_date: dayjs(data?.commissioned_date).format('YYYY-MM-DD'),
           enclosure_status: 'active',
           enclosure_code: enclosureData.enclosure_code || '',
           user_enclosure_id: enclosureData.user_enclosure_id || user_id,
@@ -494,7 +494,9 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
           Toaster({ type: 'error', message: response?.message || 'Failed to update enclosure' })
         }
       } else {
-        // Add mode
+        // Add mode - filter to only include File objects (not URL strings)
+        const imageFiles = data.images.filter(img => img instanceof File) as File[]
+
         const payload = {
           user_enclosure_name: data?.enclosureName,
           section_id: currentSectionId,
@@ -505,11 +507,11 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
           enclosure_is_walkable: data?.walkable ? 1 : 0,
           enclosure_type: data?.enclosureType?.value,
           enclosure_sunlight: data?.sunlight,
-          enclosure_image: data?.images,
+          enclosure_image: imageFiles,
           zoo_id: zooId,
           batch_seq: data?.batchSequenceStart,
           batch_count: data?.batchEnclosureCount,
-          commistioned_date: moment((data as any)?.data?.commissioned_date).format('YYYY-MM-DD'),
+          commistioned_date: dayjs(data?.commissioned_date).format('YYYY-MM-DD'),
           user_enclosure_id: user_id,
           enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value
         }

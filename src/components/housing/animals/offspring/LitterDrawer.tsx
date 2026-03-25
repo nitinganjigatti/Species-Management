@@ -282,7 +282,7 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
                     mb: 2,
                     cursor: 'pointer'
                   }}
-                  onClick={() => handleAnimalClick(item.animal_id)}
+                  onClick={() => handleAnimalClick(String(item.animal_id))}
                 >
                   <Box sx={{ flexGrow: 1 }}>
                     <AnimalCard data={item} />

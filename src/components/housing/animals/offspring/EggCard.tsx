@@ -160,7 +160,13 @@ const EggCard: React.FC<EggCardProps> = ({
             }}
           >
             {imgURl ? (
-              <FallbackAvatar src={imgURl} variant='circular' sx={{ width: '100%', height: '100%' }} />
+              <FallbackAvatar
+                src={imgURl}
+                variant='circular'
+                sx={{ width: '100%', height: '100%' }}
+                onLoad={undefined}
+                onError={undefined}
+              />
             ) : (
               <Icon icon='mdi:egg' />
             )}

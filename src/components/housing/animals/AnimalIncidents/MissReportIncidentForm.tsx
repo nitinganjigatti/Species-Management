@@ -14,7 +14,7 @@ import {
 import { Box, Stack } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
+import { updateAnimalIncident } from 'src/lib/api/housing'
 import Toaster from 'src/components/Toaster'
 import imageUploader from 'public/images/gallery_add_Icon.png'
 import { DatePicker, LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
@@ -38,6 +38,8 @@ interface MissReportIncidentFormProps {
   missReportIncidentForm: boolean
   setMissReportIncidentForm: (open: boolean) => void
   animalId: string | string[] | undefined
+  incidentId: number | null
+  fetchAnimalIncidents: () => void
 }
 
 interface FormValues {
@@ -62,7 +64,9 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
   missReportIncidence,
   missReportIncidentForm,
   setMissReportIncidentForm,
-  animalId
+  animalId,
+  incidentId,
+  fetchAnimalIncidents
 }) => {
   const theme = useTheme() as any
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -101,7 +105,10 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
       getUsers()
       const user = (authData as any)?.userData?.user
       if (user) {
-        const current: PreparedByUser = { user_id: user?.user_id, user_name: `${user?.user_first_name} ${user?.user_last_name}` }
+        const current: PreparedByUser = {
+          user_id: user?.user_id,
+          user_name: `${user?.user_first_name} ${user?.user_last_name}`
+        }
         setDefaultPreparedBy(current)
         setValue('misReportedBy', current.user_id)
       }
@@ -137,7 +144,7 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
         ignoreCase: true
       })
 
-return
+      return
     }
 
     setSelectedFile(file)
@@ -149,33 +156,44 @@ return
     }
   }
 
-
   ////////////////////////////////////////////////////////////
-  const onSubmit = async ({ localIdentifierType, LocalIdentifier }: any): Promise<void> => {
+  const onSubmit = async (data: FormValues): Promise<void> => {
+    if (!incidentId) {
+      Toaster({ type: 'error', message: 'Incident ID is missing' })
+
+      return
+    }
+
+    const { incidentType, misReportedBy, notes } = data
+
+    const formData = new FormData()
+    formData.append('incident_details_id', String(incidentId))
+    formData.append('incident_type', incidentType.toLowerCase())
+    formData.append('reported_by', misReportedBy)
+    formData.append('notes', notes)
+    formData.append('is_misreported', '1')
+
     setUploadingAttachment(true)
     try {
-      const res = await speciesAttachmentUpload({
-        species_id: (window as any).speciesId,
-        attachment: selectedFile,
-        localIdentifierType,
-        LocalIdentifier
-      })
-      Toaster({ type: 'success', message: res.message })
-      ;(window as any).fetchTableData?.()
-      ;(window as any).setUploadDietDrawer?.(false)
-      reset()
-      setDefaultPreparedBy(null)
-      setSelectedFileName(null)
-      setSelectedFile(null)
-      ;(window as any).handleSearch?.('')
-      if ((window as any).speciesDetailsDrawer) {
-        ;(window as any).getSpecieDetail?.((window as any).speciesId)
+      const res = await updateAnimalIncident(formData)
+      if (res.success) {
+        Toaster({ type: 'success', message: res.message || 'Incident updated successfully' })
+        fetchAnimalIncidents()
+        handleCloseFormDrawer()
+      } else {
+        Toaster({ type: 'error', message: res.message || 'Failed to update incident' })
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error.message || 'File upload failed.' })
+      Toaster({ type: 'error', message: error.message || 'Failed to update incident' })
     } finally {
       setUploadingAttachment(false)
     }
+  }
+
+  const handleCloseFormDrawer = (): void => {
+    reset()
+    setDefaultPreparedBy(null)
+    setMissReportIncidentForm(false)
   }
 
   useEffect(() => {
@@ -238,7 +256,7 @@ return
     }
   }
 
-return (
+  return (
     <Drawer
       anchor='right'
       open={missReportIncidentForm}
@@ -321,7 +339,9 @@ return (
                           value={defaultPreparedBy}
                           options={preparedByUsers}
                           getOptionLabel={(option: PreparedByUser) => option.user_name}
-                          isOptionEqualToValue={(option: PreparedByUser, value: PreparedByUser) => option?.user_id === value?.user_id}
+                          isOptionEqualToValue={(option: PreparedByUser, value: PreparedByUser) =>
+                            option?.user_id === value?.user_id
+                          }
                           onChange={(e: React.SyntheticEvent, val: PreparedByUser | null) => {
                             setDefaultPreparedBy(val)
                             onChange(val?.user_id || '')
@@ -402,7 +422,9 @@ return (
                       )}
                     />
                     {errors && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{(errors as any)?.localIdentifier?.message}</FormHelperText>
+                      <FormHelperText sx={{ color: 'error.main' }}>
+                        {(errors as any)?.localIdentifier?.message}
+                      </FormHelperText>
                     )}
                   </FormControl>
                 </Box>

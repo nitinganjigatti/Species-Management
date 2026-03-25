@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Typography,useTheme, Skeleton, Divider } from '@mui/material'
+import { Box, Typography, useTheme, Skeleton, Divider } from '@mui/material'
 import styled from '@emotion/styled'
 import { alpha } from '@mui/material/styles'
 
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { StyledTypographyProps, TabProps,ClutchItem} from 'src/types/housing/animalsOffspring'
+import { StyledTypographyProps, TabProps, ClutchItem } from 'src/types/housing/animalsOffspring'
 import ClutchDrawer from './ClutchDrawer'
 import { getClutchList } from 'src/lib/api/housing'
 import Utility from 'src/utility'
@@ -25,7 +25,7 @@ const Clutch: React.FC<TabProps> = props => {
         page_no: 1
       })
       if (response?.success) {
-        const result = response.data?.result  as ClutchItem[] | undefined
+        const result = response.data?.result as ClutchItem[] | undefined
         setClutch(result ?? [])
       } else {
         setClutch([])

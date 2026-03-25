@@ -1,25 +1,20 @@
 import React, { useState } from 'react'
-import {
-  Box,
-  Card,
-  CardContent,
-  Drawer,
-  IconButton,
-  Skeleton,
-  Tooltip,
-  Typography,
-  useTheme,
-} from '@mui/material'
+import { Box, Card, CardContent, Drawer, IconButton, Skeleton, Tooltip, Typography, useTheme } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { useQuery } from '@tanstack/react-query'
 
-import type {StyledTypographyProps,HospitalTransferDrawerProps} from 'src/types/housing/hospitalTransfer'
+import type { StyledTypographyProps } from 'src/types/housing/hospitalTransfer'
 import { getFetusDetails } from 'src/lib/api/housing'
 
-const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose, fetusId }) => {
+type FetalDeathDrawerProps = {
+  open: boolean
+  onClose: () => void
+  fetusId: number
+}
+const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetusId }) => {
   const theme = useTheme()
   const [showMobileNumber, setShowMobileNumber] = useState<boolean>(false)
   const [copied, setCopied] = useState<boolean>(false)
@@ -36,7 +31,7 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
     enabled: !!fetusId
   })
   const fetusDetailsData = (fetusDetails?.data?.fetus_details?.[0] || {}) as any
-  
+
   return (
     <>
       <Drawer
@@ -69,39 +64,35 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
                 color: theme.palette.customColors?.OnPrimary
               }}
             >
-             
-            <Box
-              sx={{
-                p: 4,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                backgroundColor: 'inherit',
-                '&:hover': {
-                  backgroundColor: alpha(theme.palette.action.hover, 0.04)
-                },
-                border: `1px solid ${theme.palette.divider}`,
-                borderRadius: 2,
-                mb: 2,
-              }}
-            >
-              <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center' ,
-                    p:4
-                  }}
-                >
-                  <Typography>
-                    Aborted
-                  </Typography>
+              <Box
+                sx={{
+                  p: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: 'inherit',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.action.hover, 0.04)
+                  },
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  mb: 2
+                }}
+              >
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      p: 4
+                    }}
+                  >
+                    <Typography>Aborted</Typography>
+                  </Box>
+                  <AnimalCard data={fetusDetailsData} cardType='fetus' />
                 </Box>
-                <AnimalCard data={fetusDetailsData} cardType='fetus' />
               </Box>
-            </Box>
-          
-            
+
               {/* User / Contact Information */}
               <Box
                 sx={{
@@ -119,8 +110,11 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
                     gap: 2
                   }}
                 >
-                  <StyledTypography fontSize={'12px'} color={alpha(theme.palette.customColors?.OnPrimary || theme.palette.text.primary, 0.8)}>
-                    Reported by 
+                  <StyledTypography
+                    fontSize={'12px'}
+                    color={alpha(theme.palette.customColors?.OnPrimary || theme.palette.text.primary, 0.8)}
+                  >
+                    Reported by
                   </StyledTypography>
                   <UserAvatarDetails
                     user_name={fetusDetailsData?.user_full_name}
@@ -142,9 +136,7 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
                             backgroundColor: alpha(theme.palette.customColors?.deepDark || 'rgba(0, 0, 0, 0.5)', 0.5)
                           }
                         }}
-                        onClick={() =>
-                          window.open(`tel:${fetusDetailsData?.user_mobile_number}`, '_self')
-                        }
+                        onClick={() => window.open(`tel:${fetusDetailsData?.user_mobile_number}`, '_self')}
                       >
                         <Icon icon='mdi:phone' fontSize={20} />
                       </IconButton>
@@ -156,9 +148,7 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
                             backgroundColor: alpha(theme.palette.customColors?.deepDark || 'rgba(0, 0, 0, 0.5)', 0.5)
                           }
                         }}
-                        onClick={() =>
-                          window.open(`sms:${fetusDetailsData?.user_mobile_number}`, '_self')
-                        }
+                        onClick={() => window.open(`sms:${fetusDetailsData?.user_mobile_number}`, '_self')}
                       >
                         <Icon icon='mdi:message-text' fontSize={20} />
                       </IconButton>
@@ -169,7 +159,12 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
                         onClick={() => setShowMobileNumber(prev => !prev)}
                         sx={{
                           color: theme.palette.customColors?.OnPrimary,
-                          '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnPrimary || theme.palette.text.primary, 0.1) }
+                          '&:hover': {
+                            backgroundColor: alpha(
+                              theme.palette.customColors?.OnPrimary || theme.palette.text.primary,
+                              0.1
+                            )
+                          }
                         }}
                       >
                         <Icon icon='mdi:phone' fontSize={20} />
@@ -195,13 +190,14 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
                         <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
                           <IconButton
                             size='small'
-                            onClick={() =>
-                              handleCopyNumber(fetusDetailsData?.user_mobile_number || '')
-                            }
+                            onClick={() => handleCopyNumber(fetusDetailsData?.user_mobile_number || '')}
                             sx={{
                               color: theme.palette.customColors?.OnPrimary,
                               '&:hover': {
-                                backgroundColor: alpha(theme.palette.customColors?.OnPrimary || theme.palette.text.primary, 0.1)
+                                backgroundColor: alpha(
+                                  theme.palette.customColors?.OnPrimary || theme.palette.text.primary,
+                                  0.1
+                                )
                               }
                             }}
                           >
@@ -224,9 +220,7 @@ const FetalDeathDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose
                 flexDirection: 'column',
                 minHeight: 0
               }}
-            >
-              
-            </Box>  
+            ></Box>
           </>
         )}
       </Drawer>

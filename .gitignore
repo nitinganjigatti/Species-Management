@@ -42,5 +42,7 @@ public/reports/*
 .superdesign/
 .cursor/
 .windsurfrules
+.cursor/*
 .vscode
 .vscode/*
+.claude

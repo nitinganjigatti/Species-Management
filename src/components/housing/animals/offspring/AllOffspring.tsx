@@ -8,7 +8,7 @@ import { useRouter } from 'next/router'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
 
-import {StyledTypographyProps,TabProps} from 'src/types/housing/animalsOffspring'
+import { StyledTypographyProps, TabProps } from 'src/types/housing/animalsOffspring'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import { deleteOffspring } from 'src/lib/api/housing'
 import { useQueryClient } from '@tanstack/react-query'
@@ -127,7 +127,7 @@ const AllOffspring: FC<TabProps> = props => {
   //     </Box>
   //   )
   // }
-  
+
   return (
     <Box sx={{ position: 'relative', width: '100%', minHeight: '100%' }}>
       {isLoading && <LoadingSkeleton />}
@@ -280,7 +280,7 @@ const AllOffspring: FC<TabProps> = props => {
             fetchOffspringList()
             queryClient.invalidateQueries({ queryKey: ['offspring-stats', id, props.isMother] })
           }}
-          animalId={id}
+          animalId={Array.isArray(id) ? id[0] : id ?? ''}
           animalsDetails={props.animalDetails}
         />
       )}

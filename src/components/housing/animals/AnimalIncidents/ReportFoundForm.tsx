@@ -166,8 +166,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
 
     const formData = new FormData()
     formData.append('incident_type', 'found')
-    formData.append('incident_date', moment(foundDate?.toDate()).format('YYYY-MM-DD'))
-    formData.append('incident_time', moment(foundTime?.toDate()).format('HH:mm:ss'))
+    formData.append('incident_date', dayjs(foundDate).format('YYYY-MM-DD'))
+    formData.append('incident_time', dayjs(foundTime).format('HH:mm:ss'))
     formData.append('reported_by', foundBy)
     formData.append('notes', notes)
     formData.append(

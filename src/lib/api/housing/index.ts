@@ -263,7 +263,9 @@ import {
   GetClutchEggListResponse,
   GetEggDetailsResponse,
   GetEggParentDetailsResponse,
-  GetEggHistoryResponse
+  GetEggHistoryResponse,
+  UpdateEggStatusPayload,
+  GetEggMediaListPayload
 } from 'src/types/housing/animalsOffspring'
 import type {
   AddParentPayload,
@@ -2246,7 +2248,7 @@ export async function getFetusList(params: GetFetusPayload): Promise<GetFetusLis
     throw error
   }
 }
-export async function getFetusDetails({ fetusId }: { fetusId: number }): Promise<GetFetusResponse> {
+export async function getFetusDetails({ fetusId }: { fetusId: number }): Promise<any> {
   try {
     const response = await axiosGet({ url: `${GET_FETUS_DETAILS}/${fetusId}` })
 
@@ -2257,11 +2259,11 @@ export async function getFetusDetails({ fetusId }: { fetusId: number }): Promise
   }
 }
 
-export async function getClutchDetails(params): Promise<GetFetusResponse> {
-  const response = await axiosGet({ url: { GET_CLUTCH_DETAILS }, body: params })
+// export async function getClutchDetails(params): Promise<any> {
+//   const response = await axiosGet({ url: { GET_CLUTCH_DETAILS }, body: params })
 
-  return response?.data
-}
+//   return response?.data
+// }
 
 export async function getClutchEggList(params: GetClutchEggListPayload): Promise<GetClutchEggListResponse> {
   try {
@@ -2329,13 +2331,13 @@ export async function getEggStatusMasterData(): Promise<any> {
 
   return response?.data
 }
-export async function updateEggStatus(params): Promise<any> {
+export async function updateEggStatus(params:UpdateEggStatusPayload): Promise<any> {
   const response = await axiosPost({ url: EGG_STATUS_UPDATE, body: params })
 
   return response?.data
 }
 
-export async function getEggMediaList(params): Promise<any> {
+export async function getEggMediaList(params:GetEggMediaListPayload): Promise<any> {
   const response = await axiosGet({ url: EGG_GET_MEDIA_LIST, params })
 
   return response?.data

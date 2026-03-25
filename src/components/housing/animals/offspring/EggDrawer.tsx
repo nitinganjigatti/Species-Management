@@ -87,7 +87,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
     setIsEggFetching(true)
     try {
       const response = await getEggDetails({
-        eggId: eggDetails?.egg_id
+        eggId: Number(eggDetails?.egg_id)
       })
       if (response?.success) {
         const result = response.data
@@ -108,18 +108,18 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
     queryKey: ['egg-parent-details', eggDetails?.egg_id],
     queryFn: () =>
       getEggParentDetails({
-        eggId: eggDetails?.egg_id
+        eggId: Number(eggDetails?.egg_id)
       }),
     enabled: !!eggDetails?.egg_id && isParentOpen,
-    select: res => (res?.success ? res.data : {})
+    select: res => (res?.success ? res.data : null) as any
   })
 
   // Fetch egg history
   const { data: eggHistoryData, isFetching: isEggHistoryFetching } = useQuery({
     queryKey: ['egg-history', eggDetails?.egg_id],
-    queryFn: () => getEggHistory({ eggId: eggDetails?.egg_id }),
+    queryFn: () => getEggHistory({ eggId: Number(eggDetails?.egg_id) }),
     enabled: !!eggDetails?.egg_id && showChecklistComment,
-    select: res => (res?.success ? res.data : {})
+    select: res => (res?.success ? res.data : null) as any
   })
 
   // Adds a comment to the transfer
@@ -153,7 +153,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
     if (!images || images.length === 0) return
 
     try {
-      const cleanedFiles = images.filter(file => file instanceof File)
+      const cleanedFiles = images.filter((file: any) => file instanceof File)
 
       const payload = {
         egg_id: eggDetails?.egg_id,
@@ -180,11 +180,11 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
     queryKey: ['egg-media-details', eggDetails?.egg_id],
     queryFn: () =>
       getEggMediaList({
-        ref_id: eggDetails?.egg_id,
+        ref_id: Number(eggDetails?.egg_id),
         ref_type: 'egg'
       }),
     enabled: !!eggDetails?.egg_id,
-    select: res => (res?.success ? res.data : {})
+    select: res => (res?.success ? res.data : null) as any
   })
   console.log('eggMediaData', eggMediaData)
   const handleEggStatusClose = () => {
@@ -558,7 +558,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 </Box>
                 <Collapse in={showChecklistComment}>
                   <Box sx={{ maxHeight: 300, overflowY: 'auto', mb: 2 }}>
-                    {eggHistoryData?.result?.map((section, sectionIndex) => (
+                    {eggHistoryData?.result?.map((section: any, sectionIndex: number) => (
                       <Box key={`section-${sectionIndex}`}>
                         <StyledTimeline>
                           <TimelineItem
@@ -702,7 +702,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
               </Box>
             )}
             <Grid container spacing={3}>
-              {visibleMedia?.map((attachment, index) => (
+              {visibleMedia?.map((attachment: any, index: number) => (
                 <Grid key={attachment?.id || index} size={{ xs: 12, sm: 6 }}>
                   <FilePreviewCard
                     fileUrl={attachment?.file_name}
@@ -880,7 +880,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 }}
               >
                 <StyledTypography fontSize={'16px'} fontWeight={600}>
-{selectedTimelineItem?.action?.split('_').join(' ') }
+                  {selectedTimelineItem?.action?.split('_').join(' ')}
                 </StyledTypography>
                 <StyledTypography fontSize={'12px'}>
                   Reported on {Utility.convertUtcToLocalReadableDate(selectedTimelineItem?.created_at)} •{' '}
