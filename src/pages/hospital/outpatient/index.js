@@ -18,6 +18,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalOutPatient = () => {
   const theme = useTheme()
@@ -414,11 +415,10 @@ const HospitalOutPatient = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Outpatient</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Outpatient' }]}
+        />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>

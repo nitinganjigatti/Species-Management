@@ -19,10 +19,9 @@ import TextEllipsisWithModal from '../TextEllipsisWithModal'
 import Utility from 'src/utility'
 import { EXTENSION_TYPE_MAP } from 'src/constants/Constants'
 
-const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
+const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) => {
   const theme = useTheme()
   const { userData } = useAuth()
-  console.log('src', src)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isError, setIsError] = useState(false)
@@ -33,6 +32,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   const derivedFileType = useMemo(() => {
     if (type) return type
     if (!title) return 'other'
+
     const ext = title?.split('.').pop().toLowerCase() || ''
 
     return EXTENSION_TYPE_MAP[ext] || 'other'
@@ -41,6 +41,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
   // Derive file icon if not explicitly provided
   const derivedFileIcon = useMemo(() => {
     if (fileIcon) return fileIcon
+
     const imgPath = userData?.settings?.DEFAULT_IMAGE_MASTER || {}
 
     return imgPath?.[derivedFileType] || imgPath?.default || {}
@@ -141,7 +142,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           <Icon
             icon={derivedFileIcon?.icon || 'mdi:file'}
             fontSize={80}
-            color={derivedFileIcon?.icon_color || theme.palette.primary.main}
+            color={derivedFileIcon?.icon_color || theme.palette.text.secondary}
           />
         )}
         <Typography variant='body1' color='text.secondary' sx={{ fontWeight: 500 }}>
@@ -170,8 +171,7 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
 
   // Renders preview content based on file type
   const renderContent = () => {
-    if (!src) return renderFallback()
-    if (isError) return renderFallback()
+    if (!src || isError) return renderFallback()
 
     switch (derivedFileType) {
       case 'pdf':
@@ -340,7 +340,10 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           sx={{ mr: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'nowrap' }}
         >
           <Grid
-            size={{ sm: derivedFileType == 'pdf' ? 8 : 11, md: derivedFileType == 'pdf' ? 9 : 11 }}
+            size={{
+              sm: derivedFileType === 'pdf' && errorType !== 'broken' && !!src ? 8 : 11,
+              md: derivedFileType === 'pdf' && errorType !== 'broken' && !!src ? 9 : 11
+            }}
             sx={{ display: 'flex', justifyContent: 'center' }}
           >
             <TextEllipsisWithModal
@@ -356,10 +359,13 @@ const FileDialog = ({ open, onClose, src, title, type, fileIcon }) => {
           </Grid>
 
           <Grid
-            size={{ sm: derivedFileType == 'pdf' ? 4 : 1, md: derivedFileType == 'pdf' ? 3 : 1 }}
+            size={{
+              sm: derivedFileType === 'pdf' && errorType !== 'broken' && !!src ? 4 : 1,
+              md: derivedFileType === 'pdf' && errorType !== 'broken' && !!src ? 3 : 1
+            }}
             sx={{ display: 'flex', justifyContent: 'end', gap: 3 }}
           >
-            {derivedFileType === 'pdf' && errorType !== 'broken' && (
+            {derivedFileType === 'pdf' && errorType !== 'broken' && !!src && (
               <Button
                 variant='contained'
                 onClick={() => window.open(src, '_blank')}

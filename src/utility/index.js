@@ -142,6 +142,12 @@ function convertUtcToLocalReadableDate(date) {
   return local
 }
 
+function formatDateTimeDisplay(date) {
+  if (!date) return ''
+
+  return moment(date).format('DD MMM YYYY | hh:mm A')
+}
+
 function convertUTCToLocaltime(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('h:mm A')
@@ -552,7 +558,8 @@ const Utility = {
   scrollToField,
   scrollToFirstError,
   AgeConverter,
-  extractTextFromHtml
+  extractTextFromHtml,
+  formatDateTimeDisplay
 }
 
 export default Utility

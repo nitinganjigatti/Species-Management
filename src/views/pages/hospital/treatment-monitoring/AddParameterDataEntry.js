@@ -88,7 +88,8 @@ const AddParameterDataEntry = ({
   animalId,
   refetchMonitoringData,
   selectedDate,
-  isPatientDischarged
+  isPatientDischarged,
+  refetchPatient
 }) => {
   const theme = useTheme()
 
@@ -145,12 +146,12 @@ const AddParameterDataEntry = ({
     refetchOnWindowFocus: false
   })
 
-  useEffect(() => {
-    if (open && isPatientDischarged) {
-      setActiveTab(1)
-      refetchHistory()
-    }
-  }, [open, isPatientDischarged])
+  // useEffect(() => {
+  //   if (open && isPatientDischarged) {
+  //     setActiveTab(1)
+  //     refetchHistory()
+  //   }
+  // }, [open, isPatientDischarged])
 
   const historyList = historyData?.data || []
 
@@ -163,12 +164,12 @@ const AddParameterDataEntry = ({
   }
 
   const handleTabChange = (event, newValue) => {
-    if (isPatientDischarged) {
-      setActiveTab(1)
-      refetchHistory()
-
-      return
-    }
+    // if (isPatientDischarged) {
+    //   setActiveTab(1)
+    //   refetchHistory()
+    //
+    //   return
+    // }
     setActiveTab(newValue)
     if (newValue === 1) refetchHistory()
   }
@@ -198,6 +199,8 @@ const AddParameterDataEntry = ({
           setAddLoading(false)
           Toaster({ type: 'success', message: res?.message })
           handleDrawerClose()
+          // Refetch patient details only when weight parameter is added to update animal card
+          if (data?.parameter?.assessment_type_id === '1' && refetchPatient) refetchPatient()
 
           // refetchMonitoringData()
         } else {
@@ -302,12 +305,23 @@ const AddParameterDataEntry = ({
                 }
               }}
             >
-              {!isPatientDischarged && <Tab label='ADD NEW ENTRY' />}
+              {/* !isPatientDischarged && <Tab label='ADD NEW ENTRY' /> */}
+              <Tab label='ADD NEW ENTRY' />
               <Tab label='VIEW PREVIOUS ENTRY' />
             </Tabs>
           </Box>
           <Box sx={{ flex: 1, overflow: 'auto', p: 6 }}>
-            {!isPatientDischarged && activeTab === 0 && (
+            {/* !isPatientDischarged && activeTab === 0 && (
+              <>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    backgroundColor: theme.palette.customColors.OnPrimary,
+                    borderRadius: 1
+                  }}
+                > */}
+            {activeTab === 0 && (
               <>
                 <Box
                   sx={{
@@ -653,7 +667,7 @@ const AddParameterDataEntry = ({
                                   </Typography>
                                 )}
                               </Box>
-                              {!isPatientDischarged && (
+                              {/* !isPatientDischarged && (
                                 <IconButton
                                   onClick={() => {
                                     setEditHistoryData({
@@ -665,7 +679,18 @@ const AddParameterDataEntry = ({
                                 >
                                   <Icon icon={'material-symbols:edit-outline-rounded'} />
                                 </IconButton>
-                              )}
+                              ) */}
+                              <IconButton
+                                onClick={() => {
+                                  setEditHistoryData({
+                                    ...item,
+                                    unitsData
+                                  })
+                                  setOpenEditHistoryDrawer(true)
+                                }}
+                              >
+                                <Icon icon={'material-symbols:edit-outline-rounded'} />
+                              </IconButton>
                             </Box>
 
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -698,7 +723,19 @@ const AddParameterDataEntry = ({
               </>
             )}
           </Box>
-          {!isPatientDischarged && activeTab === 0 && (
+          {/* !isPatientDischarged && activeTab === 0 && (
+            <Box
+              sx={{
+                p: 4,
+                borderTop: `1px solid ${theme.palette.divider}`,
+                backgroundColor: 'background.paper',
+                display: 'flex',
+                justifyContent: 'center',
+                gap: 2,
+                boxShadow: '0px -1px 30px 0px rgba(0, 0, 0, 0.1)'
+              }}
+            > */}
+          {activeTab === 0 && (
             <Box
               sx={{
                 p: 4,
@@ -744,6 +781,7 @@ const AddParameterDataEntry = ({
           measurementType={measurementType}
           unitsData={unitsData}
           interval={data?.interval}
+          refetchPatient={refetchPatient}
         />
       )}
     </>

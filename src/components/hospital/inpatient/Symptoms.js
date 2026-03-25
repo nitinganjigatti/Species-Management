@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { Box, Button, Typography, CircularProgress, debounce } from '@mui/material'
+import { Box, Button, Typography, CircularProgress } from '@mui/material'
+import { debounce } from 'lodash'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useRouter } from 'next/router'
 import Search from 'src/views/utility/Search'
@@ -110,6 +111,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
       if (searchQuery.trim()) {
         debouncedFetchSymptoms(searchQuery.trim())
       } else {
+        debouncedFetchSymptoms.cancel()
         fetchSymptoms('', 1, false)
       }
     }
@@ -150,6 +152,18 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
     if (category === 'Outpatients') {
       router.push({
         pathname: `/hospital/outpatient/${id}/symptoms`
+      })
+    } else if (category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${id}/symptoms`
+      })
+    } else if (category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${id}/symptoms`
+      })
+    } else if (category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${id}/symptoms`
       })
     } else {
       router.push({
@@ -242,7 +256,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
               </Box>
             </Box>
 
-            {!isDischared && (
+            {/* {!isDischared && ( */}
               <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', flexWrap: 'wrap' }}>
                 <Search
                   value={searchQuery}
@@ -253,7 +267,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
                   ADD NEW
                 </Button>
               </Box>
-            )}
+            {/* )} */}
           </Box>
           <Box>
             <MUISwitch
@@ -304,7 +318,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
             <NoMedicalData
               btnText={'ADD NEW SYMPTOM'}
               text={'All Added SYMPTOMS Will Appear here'}
-              isDischarged={isDischared}
+              // isDischarged={isDischared}
               btnAction={handleRouterNavigation}
             />
           </Box>

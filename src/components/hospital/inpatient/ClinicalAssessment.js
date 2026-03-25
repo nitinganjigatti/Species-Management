@@ -441,7 +441,23 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       router.push({
         pathname: `/hospital/outpatient/${id}/add-clinical-assessment`
       })
-    } else {
+    } 
+    else if(category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${id}/add-clinical-assessment`
+      })
+    }
+    else if(category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${id}/add-clinical-assessment`
+      })
+    }
+    else if(category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${id}/add-clinical-assessment`
+      })
+    }
+    else {
       router.push({
         pathname: `/hospital/inpatient/${id}/add-clinical-assessment`
       })
@@ -544,11 +560,11 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
                   debouncedSearch('')
                 }}
               />
-              {!isDischared && (
+              {/* {!isDischared && ( */}
                 <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
                   ADD NEW
                 </Button>
-              )}
+              {/* )} */}
             </Box>
           </Box>
           <Box>
@@ -609,7 +625,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
             <NoMedicalData
               btnText={'ADD NEW CLINICAL ASSESSMENT'}
               text={'All Added Clinical Assessments Will Appear here'}
-              isDischarged={isDischared}
+              // isDischarged={isDischared}
               btnAction={handleRouterNavigation}
             />
           </Box>
@@ -651,6 +667,9 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           recordedDateTime={recordedDateTime}
           setRecordedDateTime={setRecordedDateTime}
           isChanged={assessmentChangeState.hasChanges}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
 

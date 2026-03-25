@@ -28,7 +28,6 @@ const getFileIcon = (fileType, imgPath) => {
 const FilePreviewCard = ({
   fileUrl,
   fileName,
-  fileType: fileTypeFromApi,
   user,
   width,
   height,

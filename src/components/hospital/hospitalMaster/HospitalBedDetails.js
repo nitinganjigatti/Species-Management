@@ -389,7 +389,8 @@ const HospitalBedDetails = () => {
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,
-            maxWidth: '210px'
+            maxWidth: '210px',
+            cursor: 'pointer'
           }}
         />
       )

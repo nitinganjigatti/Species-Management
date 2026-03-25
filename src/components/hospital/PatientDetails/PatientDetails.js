@@ -418,12 +418,19 @@ const PatientDetails = ({ category }) => {
   )
 
   const handleBack = useCallback(() => {
-    if (category === 'Inpatient') {
-      router.push('/hospital/inpatient')
-    } else {
-      router.push('/hospital/outpatient')
-    }
-  }, [router, category])
+    router.back()
+    // if (typeof window !== 'undefined' && window.history.length > 1) {
+    //   console.log('window.history.length', window.history.length)
+    //   router.back()
+    // } else {
+    // // Fallback to category-based navigation if no history
+    //   if (category === 'Inpatient') {
+    //     router.replace('/hospital/inpatient')
+    //   } else {
+    //     router.replace('/hospital/outpatient')
+    //   }
+    // }
+  }, [router])
 
   // Memoize selected component to avoid recalculation
   const { SelectedComponent, selectedLabel } = useMemo(() => {

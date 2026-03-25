@@ -27,7 +27,14 @@ const AnimalCard: React.FC<AnimalCardProps> = ({ sx = {}, data, animalParentCard
           flexWrap: 'wrap'
         }}
       >
-        <AnimalParentCard data={data} size={14} animal={true} sx={animalParentCardStyle} backgroundColor="" ondelete={() => {}} />
+        <AnimalParentCard
+          data={data}
+          size={14}
+          animal={true}
+          sx={animalParentCardStyle}
+          backgroundColor=''
+          ondelete={() => {}}
+        />
       </Box>
     </Card>
   )

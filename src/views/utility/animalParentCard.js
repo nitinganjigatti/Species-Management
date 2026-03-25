@@ -14,7 +14,8 @@ const AnimalParentCard = ({
   radio = false,
   checkbox = false,
   onClick,
-  sx
+  sx,
+  onWeightClick
 }) => {
   const theme = useTheme()
   const interactive = Boolean(radio) || Boolean(checkbox) || Boolean(onClick)
@@ -74,7 +75,7 @@ const AnimalParentCard = ({
           role={interactive ? 'button' : undefined}
         >
           {/* Animal Card Content */}
-          <AnimalCard data={data} size={size} animal={animal} />
+          <AnimalCard data={data} size={size} animal={animal} onWeightClick={onWeightClick} />
 
           {/* Right-aligned status chips */}
 

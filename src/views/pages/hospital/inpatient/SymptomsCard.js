@@ -358,13 +358,13 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
             Last Updated:{' '}
-            {Utility?.formatDisplayDate(
+            {record?.comment_count > 1 ? `${Utility?.convertUtcToLocalReadableDate(
               record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
-            )}
-            <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-            {Utility.convertUTCToLocaltime(
+            )} • ${Utility.convertUTCToLocaltime(
               record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
-            )}
+            )}` : `${Utility?.convertUtcToLocalReadableDate(record?.additional_info?.recorded_date_time)} • ${Utility.convertUTCToLocaltime(
+              record?.additional_info?.recorded_date_time
+            )}`}
           </Typography>
         </Box>
 
@@ -400,7 +400,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
               date={
                 record?.status === 'active'
-                  ? record?.created_at
+                  ? record?.comment_count > 1 ? record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at : record?.additional_info?.recorded_date_time
                   : record?.latest_note?.modified_at || record?.additional_info?.closed_comment_date
               }
               show_time
