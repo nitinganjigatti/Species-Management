@@ -9,7 +9,7 @@ import { CellInfo } from 'src/utility/render'
 import Search from 'src/views/utility/Search'
 import { getAllAnimalList } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
-import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
+import AnimalParentCard from 'src/views/utility/animalParentCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
 import { useRouter } from 'next/router'
 import { Animal } from 'src/types/housing'
@@ -244,11 +244,13 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map((animal: Animal) => (
           <Box key={animal?.animal_id} onClick={() => handleAnimalClick(animal?.animal_id)}>
-            <AnimalCard
+            <AnimalParentCard
               data={animal as unknown as { [key: string]: unknown }}
-              textColor={(theme.palette as any).customColors?.OnSurfaceVariant}
-              animalParentCardStyle={{
-                border: `1px solid transparent`,
+              size={14}
+              animal={true}
+              backgroundColor=""
+              sx={{
+                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 cursor: canViewAnimalDetails() ? 'pointer' : 'default',
                 opacity: canViewAnimalDetails() ? 1 : 0.7,
                 '&:hover': canViewAnimalDetails()

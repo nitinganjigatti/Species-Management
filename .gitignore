@@ -39,5 +39,7 @@ yarn.lock
 public/reports/*
 
 .cursor
+.cursor/*
 .vscode
 .vscode/*
+.claude

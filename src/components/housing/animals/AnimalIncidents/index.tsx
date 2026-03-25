@@ -34,7 +34,7 @@ import CreateMissingIncident from './CreateMissingIncident'
 import MissReportIncidentForm from './MissReportIncidentForm'
 import { getAnimalIncidentDetails, getAnimalIncidentList } from 'src/lib/api/housing'
 import IncidentDetailsCard from './IncidentDetailsCard'
-import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
+import AnimalParentCard from 'src/views/utility/animalParentCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
 
 interface IncidentDetail {
@@ -107,6 +107,7 @@ const AnimalIncidents: React.FC = () => {
 
   const [missReportIncidence, setMissReportIncidence] = useState<string>('')
   const [missReportIncidentForm, setMissReportIncidentForm] = useState<boolean>(false)
+  const [missReportIncidentId, setMissReportIncidentId] = useState<number | null>(null)
   const [reportFoundForm, setReportFoundForm] = useState<boolean>(false)
 
   const fetchAnimalIncidents = async (): Promise<void> => {
@@ -145,7 +146,13 @@ const AnimalIncidents: React.FC = () => {
     }
   }
 
-  const IncidentCardList: React.FC<IncidentCardListProps> = ({ data, onViewDetails, onEdit, onMisreport, onReportFound }) => {
+  const IncidentCardList: React.FC<IncidentCardListProps> = ({
+    data,
+    onViewDetails,
+    onEdit,
+    onMisreport,
+    onReportFound
+  }) => {
     const theme = useTheme() as any
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null)
@@ -353,7 +360,6 @@ const AnimalIncidents: React.FC = () => {
                 onClick={() => {
                   setIsEdit(true)
 
-
                   // Prefer the 'missing' detail if available; otherwise fallback to first
                   const editDetail =
                     selectedIncident?.incident_details?.find(d => d?.incident_type === 'missing') ||
@@ -370,6 +376,7 @@ const AnimalIncidents: React.FC = () => {
                   onClick={() => {
                     setIncidentDetailsDate(selectedIncident?.incident_details?.[0]?.created_at || '')
                     setMissReportIncidence('Found')
+                    setMissReportIncidentId(selectedIncident?.incident_id || null)
                     setMissReportIncidentForm(true)
                     handleMenuClose()
                   }}
@@ -381,6 +388,7 @@ const AnimalIncidents: React.FC = () => {
               <MenuItem
                 onClick={() => {
                   setMissReportIncidence('Missing')
+                  setMissReportIncidentId(selectedIncident?.incident_id || null)
                   setMissReportIncidentForm(true)
                   handleMenuClose()
                 }}
@@ -559,10 +567,12 @@ const AnimalIncidents: React.FC = () => {
                   </Typography>
                 </Box>
               </Box>
-              <AnimalCard
-                animalParentCardStyle={{ paddingLeft: 0 }}
-                sx={{ border: 'none' }}
+              <AnimalParentCard
                 data={incidentDetailsData as any}
+                size={14}
+                animal={true}
+                backgroundColor=''
+                sx={{ paddingLeft: 0 }}
               />
             </Box>
             <Box
@@ -653,6 +663,7 @@ const AnimalIncidents: React.FC = () => {
               onEdit={() => console.log('Edit incident')}
               onMisreport={(incident: Incident, type: string) => {
                 setMissReportIncidence(type)
+                setMissReportIncidentId(incident?.incident_id || null)
                 setMissReportIncidentForm(true)
               }}
               onReportFound={() => setReportFoundForm(true)}
@@ -677,6 +688,8 @@ const AnimalIncidents: React.FC = () => {
         missReportIncidentForm={missReportIncidentForm}
         missReportIncidence={missReportIncidence}
         setMissReportIncidentForm={setMissReportIncidentForm}
+        incidentId={missReportIncidentId}
+        fetchAnimalIncidents={fetchAnimalIncidents}
       />
       <ReportFoundForm animalId={animalId} reportFoundForm={reportFoundForm} setReportFoundForm={setReportFoundForm} />
     </>

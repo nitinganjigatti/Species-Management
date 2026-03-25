@@ -254,8 +254,8 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
 
     const formData = new FormData()
     formData.append('incident_type', 'missing')
-    formData.append('incident_date', moment(incident_date?.toDate()).format('YYYY-MM-DD'))
-    formData.append('incident_time', moment(incident_time?.toDate()).format('HH:mm:ss'))
+    formData.append('incident_date', dayjs(incident_date).format('YYYY-MM-DD'))
+    formData.append('incident_time', dayjs(incident_time).format('HH:mm:ss'))
     formData.append('reported_by', reported_by?.user_id || '')
     formData.append('notes', notes)
     formData.append(
