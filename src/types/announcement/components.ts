@@ -82,12 +82,6 @@ export interface AnnouncementReactionsProps {
   onViewLikes?: () => void
 }
 
-export interface ReactionUserListDialogProps {
-  open: boolean
-  onClose: () => void
-  announcementId: number
-}
-
 // ==================== Comment Props ====================
 
 export interface AnnouncementCommentsProps {

@@ -14,7 +14,6 @@ import Icon from 'src/@core/components/icon'
 import MenuWithDots from 'src/components/MenuWithDots'
 import { ImageCarousel, CarouselImage } from 'src/components/common'
 import FileDialog from 'src/components/utility/FileDialog'
-import ReactionUserListDialog from './ReactionUserListDialog'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import { CommentItem, CommentInput } from './comments'
 import {
@@ -39,7 +38,6 @@ const AnnouncementDetailsDrawer = ({
   onAnnouncementUpdated,
   onEdit
 }: AnnouncementDetailsDrawerProps) => {
-  const [showLikesDialog, setShowLikesDialog] = useState(false)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -134,7 +132,6 @@ const AnnouncementDetailsDrawer = ({
   useEffect(() => {
     if (!open) {
       setIsDescriptionExpanded(false)
-      setShowLikesDialog(false)
       setImagePreview({ open: false, url: '', title: '' })
     }
   }, [open])
@@ -167,12 +164,6 @@ const AnnouncementDetailsDrawer = ({
       announcementId: announcement.announcement_id,
       isLiked
     })
-  }
-
-  const handleViewLikes = () => {
-    if (likeCount > 0) {
-      setShowLikesDialog(true)
-    }
   }
 
   const handleAddComment = (text: string) => {
@@ -478,12 +469,10 @@ const AnnouncementDetailsDrawer = ({
                     <Icon icon={isLiked ? 'mdi:thumb-up' : 'mdi:thumb-up-outline'} fontSize={22} />
                   </IconButton>
                   <Typography
-                    onClick={likeCount > 0 ? handleViewLikes : undefined}
                     sx={{
                       fontSize: '0.9375rem',
                       fontWeight: 500,
-                      color: textPrimary,
-                      cursor: likeCount > 0 ? 'pointer' : 'default'
+                      color: textPrimary
                     }}
                   >
                     {likeCount}
@@ -619,15 +608,6 @@ const AnnouncementDetailsDrawer = ({
           </Box>
         )}
       </Drawer>
-
-      {/* Likes Dialog */}
-      {announcement && (
-        <ReactionUserListDialog
-          open={showLikesDialog}
-          onClose={() => setShowLikesDialog(false)}
-          announcementId={announcement.announcement_id}
-        />
-      )}
 
       {/* Confirmation Dialog */}
       <DeleteConfirmationDialog

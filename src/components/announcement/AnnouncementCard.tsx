@@ -12,7 +12,6 @@ import MenuWithDots from 'src/components/MenuWithDots'
 import Link from '@mui/material/Link'
 import Icon from 'src/@core/components/icon'
 import AnnouncementMedia from './AnnouncementMedia'
-import ReactionUserListDialog from './ReactionUserListDialog'
 import { useToggleReaction } from 'src/hooks/announcement/useAnnouncements'
 import { useAuth } from 'src/hooks/useAuth'
 import Utility from 'src/utility'
@@ -22,7 +21,6 @@ import type { AnnouncementCardProps } from 'src/types/announcement'
 const DESCRIPTION_MAX_LENGTH = 150
 
 const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }: AnnouncementCardProps) => {
-  const [showLikesDialog, setShowLikesDialog] = useState(false)
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
   const theme = useTheme()
@@ -105,12 +103,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
       announcementId: announcement.announcement_id,
       isLiked
     })
-  }
-
-  const handleViewLikes = () => {
-    if (likeCount > 0) {
-      setShowLikesDialog(true)
-    }
   }
 
   const userName = `${announcement.created_by.first_name} ${announcement.created_by.last_name}`
@@ -395,12 +387,10 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
                     </IconButton>
                     {likeCount > 0 && (
                       <Typography
-                        onClick={handleViewLikes}
                         sx={{
                           fontSize: '0.9375rem',
                           fontWeight: 500,
-                          color: textPrimary,
-                          cursor: 'pointer'
+                          color: textPrimary
                         }}
                       >
                         {likeCount}
@@ -430,13 +420,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
           </>
         )}
       </Card>
-
-      {/* Likes Dialog */}
-      <ReactionUserListDialog
-        open={showLikesDialog}
-        onClose={() => setShowLikesDialog(false)}
-        announcementId={announcement.announcement_id}
-      />
     </>
   )
 }

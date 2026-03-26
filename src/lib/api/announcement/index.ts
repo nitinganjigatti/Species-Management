@@ -11,7 +11,6 @@ import type {
   AnnouncementListParams,
   AnnouncementListResponse,
   AnnouncementDetailsResponse,
-  ReactionUsersResponse,
   CommentResponse,
   ActionResponse,
   CreateAnnouncementPayload,
@@ -72,21 +71,6 @@ export const removeReaction = async (
   const response = await axiosPost({
     url: ANNOUNCEMENT_ENDPOINTS.REMOVE_REACTION,
     body: { announcement_id: announcementId },
-    pharmacy: false
-  })
-
-  return response.data
-}
-
-/**
- * Get list of users who reacted to an announcement
- */
-export const getReactionUsers = async (
-  announcementId: number
-): Promise<ReactionUsersResponse> => {
-  const response = await axiosGet({
-    url: ANNOUNCEMENT_ENDPOINTS.REACTION_USERS(announcementId),
-    params: {},
     pharmacy: false
   })
 

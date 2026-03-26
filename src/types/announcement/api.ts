@@ -2,12 +2,7 @@
  * API request/response types for the Announcement module
  */
 
-import type {
-  Announcement,
-  AnnouncementComment,
-  AnnouncementType,
-  ReactionUser
-} from './models'
+import type { Announcement, AnnouncementComment, AnnouncementType } from './models'
 
 // ==================== Generic API Types ====================
 
@@ -47,11 +42,6 @@ export interface AnnouncementDetailsResponse {
 
 export interface AddReactionPayload {
   announcement_id: number
-}
-
-export interface ReactionUsersResponse {
-  success: boolean
-  data: ReactionUser[]
 }
 
 // ==================== Comment API Types ====================

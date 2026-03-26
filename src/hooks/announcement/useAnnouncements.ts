@@ -4,18 +4,10 @@
  * Custom hooks for managing announcement data with React Query.
  */
 
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient
-} from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Toaster from 'src/components/Toaster'
 import * as announcementApi from 'src/lib/api/announcement'
-import {
-  ANNOUNCEMENT_QUERY_KEYS,
-  ANNOUNCEMENT_PAGE_SIZE
-} from 'src/constants/announcement'
+import { ANNOUNCEMENT_QUERY_KEYS, ANNOUNCEMENT_PAGE_SIZE } from 'src/constants/announcement'
 import type {
   Announcement,
   AnnouncementListParams,
@@ -39,10 +31,7 @@ export const useAnnouncementList = (params: UseAnnouncementListParams = {}) => {
       return response
     },
     getNextPageParam: (lastPage, allPages) => {
-      const totalFetched = allPages.reduce(
-        (acc, page) => acc + (page.data?.announcement_details?.length || 0),
-        0
-      )
+      const totalFetched = allPages.reduce((acc, page) => acc + (page.data?.announcement_details?.length || 0), 0)
       const total = lastPage.data?.total_announcement_count || 0
 
       return totalFetched < total ? allPages.length + 1 : undefined
@@ -63,30 +52,13 @@ export const useAnnouncementDetails = (id: number, enabled = true) => {
 }
 
 /**
- * Hook for fetching reaction users
- */
-export const useReactionUsers = (announcementId: number, enabled = true) => {
-  return useQuery({
-    queryKey: [ANNOUNCEMENT_QUERY_KEYS.REACTION_USERS, announcementId],
-    queryFn: () => announcementApi.getReactionUsers(announcementId),
-    enabled: enabled && announcementId > 0
-  })
-}
-
-/**
  * Hook for toggling like reaction on an announcement
  */
 export const useToggleReaction = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
-      announcementId,
-      isLiked
-    }: {
-      announcementId: number
-      isLiked: boolean
-    }) => {
+    mutationFn: async ({ announcementId, isLiked }: { announcementId: number; isLiked: boolean }) => {
       if (isLiked) {
         return announcementApi.removeReaction(announcementId)
       }
@@ -94,57 +66,85 @@ export const useToggleReaction = () => {
       return announcementApi.addReaction(announcementId)
     },
     onMutate: async ({ announcementId, isLiked }) => {
-      // Cancel outgoing refetches
+      // Cancel outgoing refetches for both LIST and DETAILS queries
       await queryClient.cancelQueries({
         queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST]
       })
+      await queryClient.cancelQueries({
+        queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId]
+      })
 
-      // Snapshot previous value
-      const previousData = queryClient.getQueriesData({
+      // Snapshot previous values
+      const previousListData = queryClient.getQueriesData({
         queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST]
       })
 
-      // Optimistically update the cache
-      queryClient.setQueriesData(
-        { queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] },
-        (old: any) => {
-          if (!old?.pages) return old
+      const previousDetailsData = queryClient.getQueryData([ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId])
 
-          return {
-            ...old,
-            pages: old.pages.map((page: AnnouncementListResponse) => ({
-              ...page,
-              data: {
-                ...page.data,
-                announcement_details: page.data.announcement_details.map(
-                  (announcement: Announcement) =>
-                    announcement.announcement_id === announcementId
-                      ? {
-                          ...announcement,
-                          user_reaction: isLiked ? null : 'like',
-                          reactions_summary: {
-                            ...announcement.reactions_summary,
-                            like: isLiked
-                              ? announcement.reactions_summary.like - 1
-                              : announcement.reactions_summary.like + 1
-                          }
-                        }
-                      : announcement
-                )
-              }
-            }))
+      // Optimistically update the LIST cache
+      queryClient.setQueriesData({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] }, (old: any) => {
+        if (!old?.pages) return old
+
+        return {
+          ...old,
+          pages: old.pages.map((page: AnnouncementListResponse) => ({
+            ...page,
+            data: {
+              ...page.data,
+              announcement_details: page.data.announcement_details.map((announcement: Announcement) =>
+                announcement.announcement_id === announcementId
+                  ? {
+                      ...announcement,
+                      user_reaction: isLiked ? null : 'like',
+                      reactions_summary: {
+                        ...announcement.reactions_summary,
+                        like: isLiked
+                          ? announcement.reactions_summary.like - 1
+                          : announcement.reactions_summary.like + 1
+                      }
+                    }
+                  : announcement
+              )
+            }
+          }))
+        }
+      })
+
+      // Optimistically update the DETAILS cache
+      queryClient.setQueryData([ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId], (old: any) => {
+        if (!old?.data) return old
+
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            user_reaction: isLiked ? null : 'like',
+            reactions_summary: {
+              ...old.data.reactions_summary,
+              like: isLiked ? old.data.reactions_summary.like - 1 : old.data.reactions_summary.like + 1
+            }
           }
         }
-      )
+      })
 
-      return { previousData }
+      return { previousListData, previousDetailsData, announcementId }
     },
-    onError: (_err, _variables, context) => {
-      // Rollback on error
-      if (context?.previousData) {
-        context.previousData.forEach(([queryKey, data]) => {
+    onSuccess: (_data, { isLiked }) => {
+      Toaster({
+        type: 'success',
+        message: isLiked ? 'Reaction removed' : 'Reaction added'
+      })
+    },
+    onError: (_err, { announcementId }, context) => {
+      // Rollback LIST cache on error
+      if (context?.previousListData) {
+        context.previousListData.forEach(([queryKey, data]) => {
           queryClient.setQueryData(queryKey, data)
         })
+      }
+      // Rollback DETAILS cache on error
+      if (context?.previousDetailsData) {
+        queryClient.setQueryData([ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId], context.previousDetailsData)
       }
       Toaster({ type: 'error', message: 'Failed to update reaction' })
     }
@@ -158,45 +158,33 @@ export const useAddComment = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
-      announcementId,
-      text
-    }: {
-      announcementId: number
-      text: string
-    }) => {
+    mutationFn: async ({ announcementId, text }: { announcementId: number; text: string }) => {
       return announcementApi.addComment(announcementId, text)
     },
     onSuccess: (response, { announcementId }) => {
       // Update comment count and add new comment to list cache
-      queryClient.setQueriesData(
-        { queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] },
-        (old: any) => {
-          if (!old?.pages) return old
+      queryClient.setQueriesData({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] }, (old: any) => {
+        if (!old?.pages) return old
 
-          return {
-            ...old,
-            pages: old.pages.map((page: AnnouncementListResponse) => ({
-              ...page,
-              data: {
-                ...page.data,
-                announcement_details: page.data.announcement_details.map(
-                  (announcement: Announcement) =>
-                    announcement.announcement_id === announcementId
-                      ? {
-                          ...announcement,
-                          comment_count: announcement.comment_count + 1,
-                          comments: response.data
-                            ? [...announcement.comments, response.data]
-                            : announcement.comments
-                        }
-                      : announcement
-                )
-              }
-            }))
-          }
+        return {
+          ...old,
+          pages: old.pages.map((page: AnnouncementListResponse) => ({
+            ...page,
+            data: {
+              ...page.data,
+              announcement_details: page.data.announcement_details.map((announcement: Announcement) =>
+                announcement.announcement_id === announcementId
+                  ? {
+                      ...announcement,
+                      comment_count: announcement.comment_count + 1,
+                      comments: response.data ? [...announcement.comments, response.data] : announcement.comments
+                    }
+                  : announcement
+              )
+            }
+          }))
         }
-      )
+      })
       // Also invalidate the details query to refresh the drawer
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId] })
       Toaster({ type: 'success', message: 'Comment added' })
@@ -214,48 +202,33 @@ export const useDeleteComment = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({
-      commentId,
-      announcementId
-    }: {
-      commentId: number
-      announcementId: number
-    }) => {
+    mutationFn: async ({ commentId, announcementId }: { commentId: number; announcementId: number }) => {
       return announcementApi.deleteComment(commentId)
     },
     onSuccess: (_response, { commentId, announcementId }) => {
       // Remove comment from list cache and update count
-      queryClient.setQueriesData(
-        { queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] },
-        (old: any) => {
-          if (!old?.pages) return old
+      queryClient.setQueriesData({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] }, (old: any) => {
+        if (!old?.pages) return old
 
-          return {
-            ...old,
-            pages: old.pages.map((page: AnnouncementListResponse) => ({
-              ...page,
-              data: {
-                ...page.data,
-                announcement_details: page.data.announcement_details.map(
-                  (announcement: Announcement) =>
-                    announcement.announcement_id === announcementId
-                      ? {
-                          ...announcement,
-                          comment_count: Math.max(
-                            0,
-                            announcement.comment_count - 1
-                          ),
-                          comments: announcement.comments.filter(
-                            c => c.id !== commentId
-                          )
-                        }
-                      : announcement
-                )
-              }
-            }))
-          }
+        return {
+          ...old,
+          pages: old.pages.map((page: AnnouncementListResponse) => ({
+            ...page,
+            data: {
+              ...page.data,
+              announcement_details: page.data.announcement_details.map((announcement: Announcement) =>
+                announcement.announcement_id === announcementId
+                  ? {
+                      ...announcement,
+                      comment_count: Math.max(0, announcement.comment_count - 1),
+                      comments: announcement.comments.filter(c => c.id !== commentId)
+                    }
+                  : announcement
+              )
+            }
+          }))
         }
-      )
+      })
       // Also invalidate the details query to refresh the drawer
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId] })
       Toaster({ type: 'success', message: 'Comment deleted' })
@@ -282,7 +255,7 @@ export const useDeleteAnnouncement = () => {
 
       return response
     },
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
       Toaster({ type: 'success', message: data.message || 'Announcement deleted' })
     },
@@ -308,7 +281,7 @@ export const useCancelAnnouncement = () => {
 
       return response
     },
-    onSuccess: (data) => {
+    onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
       Toaster({ type: 'success', message: data.message || 'Announcement cancelled' })
     },

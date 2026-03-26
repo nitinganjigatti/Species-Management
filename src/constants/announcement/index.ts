@@ -17,7 +17,6 @@ export const ANNOUNCEMENT_ENDPOINTS = {
   ADD_REACTION: 'v1/announcement/add/reaction',
   REMOVE_REACTION: 'v1/announcement/remove/reaction',
   REACTION_COUNT: (id: number) => `v1/announcement/reaction/count/${id}`,
-  REACTION_USERS: (id: number) => `v1/announcement/${id}/reactions`,
 
   // Comments
   CREATE_COMMENT: 'v1/comment/create',
@@ -46,6 +45,5 @@ export const ANNOUNCEMENT_STATUSES = {
 // Query keys for React Query
 export const ANNOUNCEMENT_QUERY_KEYS = {
   LIST: 'announcements',
-  DETAILS: 'announcement-details',
-  REACTION_USERS: 'announcement-reaction-users'
+  DETAILS: 'announcement-details'
 } as const

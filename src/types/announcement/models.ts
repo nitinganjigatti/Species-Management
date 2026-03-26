@@ -53,14 +53,6 @@ export interface ReactionsSummary {
   like: number
 }
 
-export interface ReactionUser {
-  user_id: number
-  first_name: string
-  last_name: string
-  profile_pic: string
-  reacted_at: string
-}
-
 // ==================== Announcement Types ====================
 
 export type AnnouncementType = 'general' | 'important'
