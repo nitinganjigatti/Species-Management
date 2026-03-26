@@ -828,7 +828,7 @@ export default function AddAnesthesiaRecord() {
 
   const handleCancel = async () => {
     // router.push(`/hospital/discharged/${id}/?tab=anesthesia`)
-    router.back();
+    router.back()
     await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
   }
 
