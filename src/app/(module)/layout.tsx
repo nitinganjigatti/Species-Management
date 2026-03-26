@@ -11,7 +11,7 @@ import UserLayout from 'src/layouts/UserLayout'
 import Spinner from 'src/@core/components/spinner'
 
 // ** ACL Guard for App Router
-import AclGuard from 'src/app/components/AclGuard'
+import AclGuard from 'src/configs/AclGuard'
 
 interface DashboardLayoutProps {
   children: ReactNode
