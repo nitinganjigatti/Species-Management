@@ -41,6 +41,7 @@ const AnimalAssessment = () => {
 
   const [initialLoad, setInitialLoad] = useState(true)
   const [selectedSpecies, setSelectedSpecies] = useState([])
+  const [selectAllActive, setSelectAllActive] = useState(false)
   const [openspeciesFilter, setOpenspeciesFilter] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(0)
   const [selectedAssessmentType, setSelectedAssessmentType] = useState('')
@@ -92,11 +93,12 @@ const AnimalAssessment = () => {
   const [showDetailsPopUp, setShowDetailsPopUp] = useState(false)
   const [animalDetailsData, setAnimalDetailsData] = useState({})
 
-  const taxonomyIds =
-    selectedSpecies
-      ?.map(species => species?.tsn_id)
-      .filter(Boolean)
-      .join(',') || ''
+  const taxonomyIds = selectAllActive
+    ? null
+    : selectedSpecies
+        ?.map(species => species?.tsn_id)
+        .filter(Boolean)
+        .join(',') || ''
   const selectedSpeciesIcon = selectedSpecies?.[0]?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'
 
   const resetDrawerFilters = () => {
@@ -678,7 +680,7 @@ const AnimalAssessment = () => {
                           {`${selectedSpecies?.[0]?.common_name} `}
                           <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecies?.[0]?.complete_name})`}</span>
                         </Typography>
-                        {selectedSpecies.length > 1 && (
+                        {selectAllActive ? (
                           <Typography
                             sx={{
                               fontWeight: 600,
@@ -687,8 +689,21 @@ const AnimalAssessment = () => {
                               whiteSpace: 'nowrap'
                             }}
                           >
-                            +{selectedSpecies.length - 1}
+                            All
                           </Typography>
+                        ) : (
+                          selectedSpecies.length > 1 && (
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                color: theme.palette.primary.main,
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              +{selectedSpecies.length - 1}
+                            </Typography>
+                          )
                         )}
                       </Box>
                     ) : (
@@ -1027,6 +1042,8 @@ const AnimalAssessment = () => {
               setSelectedSpecies={setSelectedSpecies}
               openspeciesFilter={openspeciesFilter}
               setOpenspeciesFilter={setOpenspeciesFilter}
+              selectAllActive={selectAllActive}
+              setSelectAllActive={setSelectAllActive}
             />
           )}
           {openassessmentFilter && (
