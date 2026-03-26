@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useContext, useLayoutEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useContext, useLayoutEffect, useMemo } from 'react'
 import { Drawer, IconButton, TextField, Typography, CircularProgress, Box, Checkbox } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
@@ -12,7 +12,9 @@ function AssessmentSpeciesListingDrawer({
   selectedSpecies = [],
   setSelectedSpecies,
   openspeciesFilter,
-  setOpenspeciesFilter
+  setOpenspeciesFilter,
+  selectAllActive,
+  setSelectAllActive
 }) {
   const theme = useTheme()
   const drawerContentRef = useRef(null)
@@ -23,6 +25,7 @@ function AssessmentSpeciesListingDrawer({
   const zoo_id = authData.userData.user.zoos[0]?.zoo_id
 
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState(selectedSpecies || [])
+  const [selectAllMode, setSelectAllMode] = useState(false)
 
   const [searchValue, setSearchValue] = useState('')
   const [speciesList, setSpeciesList] = useState([])
@@ -48,7 +51,23 @@ function AssessmentSpeciesListingDrawer({
 
   useEffect(() => {
     setTempSelectedSpecies(selectedSpecies || [])
-  }, [selectedSpecies, openspeciesFilter])
+    setSelectAllMode(selectAllActive || false) // Initialize with parent's select all state
+  }, [selectedSpecies, openspeciesFilter, selectAllActive])
+
+  // When selectAllMode is active and species list updates, auto-select all loaded species
+  useEffect(() => {
+    if (selectAllMode && speciesList.length > 0) {
+      setTempSelectedSpecies(prev => {
+        const existingIds = new Set(prev.map(s => s.tsn_id))
+        const newSelections = speciesList.filter(specie => !existingIds.has(specie.tsn_id))
+        // Only update if there are new selections to add
+        if (newSelections.length > 0) {
+          return [...prev, ...newSelections]
+        }
+        return prev
+      })
+    }
+  }, [selectAllMode, speciesList])
 
   const fetchSpecies = async (q = '', pageNum = 1, isNewSearch = false) => {
     if (loading) return
@@ -87,9 +106,10 @@ function AssessmentSpeciesListingDrawer({
       setPage(1)
       setSpeciesList([])
       setHasMore(true)
+      setSelectAllMode(false) // Reset select all mode on new search
       fetchSpecies(value, 1, true)
     }, 500),
-    []
+    [selectAllMode]
   )
 
   const handleCloseDrawer = () => {
@@ -102,15 +122,44 @@ function AssessmentSpeciesListingDrawer({
     debouncedSearch(value)
   }
 
+  // Memoize selected species IDs for O(1) lookup performance
+  const selectedSpeciesIds = useMemo(
+    () => new Set(tempSelectedSpecies.map(s => s?.tsn_id)),
+    [tempSelectedSpecies]
+  )
+
+  const areAllSelected = useMemo(
+    () => speciesList.length > 0 && speciesList.every(specie => selectedSpeciesIds.has(specie.tsn_id)),
+    [speciesList, selectedSpeciesIds]
+  )
+
   const toggleSpeciesSelection = specie => {
     setTempSelectedSpecies(prev => {
       const exists = prev.some(selected => selected?.tsn_id === specie.tsn_id)
       if (exists) {
+        // If deselecting, turn off select all mode
+        setSelectAllMode(false)
         return prev.filter(selected => selected?.tsn_id !== specie.tsn_id)
       }
       return [...prev, specie]
     })
   }
+
+  const handleSelectAll = useCallback(() => {
+    const allSelected = speciesList.every(specie => selectedSpeciesIds.has(specie.tsn_id))
+
+    if (allSelected) {
+      // Deselect all currently visible species and turn off select all mode
+      setSelectAllMode(false)
+      const visibleTsnIds = new Set(speciesList.map(s => s.tsn_id))
+      setTempSelectedSpecies(prev => prev.filter(selected => !visibleTsnIds.has(selected?.tsn_id)))
+    } else {
+      // Select all currently visible species and activate select all mode
+      setSelectAllMode(true)
+      const newSelections = speciesList.filter(specie => !selectedSpeciesIds.has(specie.tsn_id))
+      setTempSelectedSpecies(prev => [...prev, ...newSelections])
+    }
+  }, [speciesList, selectedSpeciesIds])
 
   const handleScroll = () => {
     if (!drawerContentRef.current || loading || !hasMore) return
@@ -191,10 +240,22 @@ function AssessmentSpeciesListingDrawer({
             }
           }}
         />
+      </Box>
+
+      {/* Species Header with Select All */}
+      <Box
+        sx={{
+          mt: 6,
+          mb: 4,
+          px: 4,
+          backgroundColor: 'background.default',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
         <Typography
           sx={{
-            mt: 6,
-            mb: 4,
             fontSize: '16px',
             fontWeight: 600,
             color: theme.palette.customColors.OnSurfaceVariant
@@ -202,6 +263,40 @@ function AssessmentSpeciesListingDrawer({
         >
           Species
         </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            pr: theme => theme.spacing(3.255),
+            mr: -4
+          }}
+        >
+          <Box
+            onClick={handleSelectAll}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+              userSelect: 'none',
+              whiteSpace: 'nowrap',
+              '&:hover': {
+                opacity: 0.8
+              }
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: theme.palette.primary.main,
+                mr: 1
+              }}
+            >
+              Select All
+            </Typography>
+            <Checkbox checked={areAllSelected} color='primary' sx={{ p: 0 }} />
+          </Box>
+        </Box>
       </Box>
 
       {/* Content */}
@@ -220,10 +315,10 @@ function AssessmentSpeciesListingDrawer({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {speciesList.length > 0 &&
             speciesList.map((item, index) => {
-              const isSelected = tempSelectedSpecies?.some(species => species?.tsn_id === item.tsn_id)
+              const isSelected = selectedSpeciesIds.has(item.tsn_id)
               return (
                 <Box
-                  key={index}
+                  key={item.tsn_id || index}
                   onClick={() => toggleSpeciesSelection(item)}
                   sx={{
                     bgcolor: theme.palette.primary.contrastText,
@@ -306,6 +401,10 @@ function AssessmentSpeciesListingDrawer({
           size='large'
           onClick={() => {
             setSelectedSpecies(tempSelectedSpecies)
+            // Pass the select all mode state to parent component
+            if (setSelectAllActive) {
+              setSelectAllActive(selectAllMode)
+            }
             setOpenspeciesFilter(false)
           }}
         >

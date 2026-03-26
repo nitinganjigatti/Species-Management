@@ -1039,8 +1039,6 @@ export const ADD_DISCHARGE = 'v1/hospital/discharge'
 
 export const DOWNLOAD_DISCHARGE_LISTINGS = 'v1/hospital/get-hospital-patients'
 
-
-
 //  Inpatient Treatment Monitoring
 
 export const GET_TREATMENT_PARAMETERS_INTERVALS = `v1/hospital/get-assessment-intervals`

@@ -140,7 +140,6 @@ const SelectSectionList = ({
     <Drawer
       anchor='right'
       open={open}
-
       // onClose={onClose}
       sx={{
         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
@@ -349,7 +348,6 @@ const SelectSectionList = ({
                     </ListItemAvatar>
                     <ListItemText
                       primary={section?.section_name}
-
                       // secondary={section.location || '-'}
                       slotProps={{
                         primary: {
