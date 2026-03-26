@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useContext, useCallback } from 'react'
+import { useState, useEffect, useRef, useContext, useCallback, useMemo } from 'react'
 import {
   Avatar,
   Box,
@@ -42,6 +42,7 @@ const AnimalAssessment = () => {
   const [initialLoad, setInitialLoad] = useState(true)
   const [selectedSpecies, setSelectedSpecies] = useState([])
   const [selectAllActive, setSelectAllActive] = useState(false)
+  const [isSearchResult, setIsSearchResult] = useState(false)
   const [openspeciesFilter, setOpenspeciesFilter] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(0)
   const [selectedAssessmentType, setSelectedAssessmentType] = useState('')
@@ -93,13 +94,19 @@ const AnimalAssessment = () => {
   const [showDetailsPopUp, setShowDetailsPopUp] = useState(false)
   const [animalDetailsData, setAnimalDetailsData] = useState({})
 
-  const taxonomyIds = selectAllActive
-    ? null
-    : selectedSpecies
-        ?.map(species => species?.tsn_id)
-        .filter(Boolean)
-        .join(',') || ''
-  const selectedSpeciesIcon = selectedSpecies?.[0]?.default_icon || '/branding/antz/Antz_logomark_h_color.svg'
+  // Only pass null if select all is active AND it's not a search result
+  const taxonomyIds = useMemo(
+    () =>
+      selectAllActive && !isSearchResult
+        ? null
+        : selectedSpecies?.map(species => species?.tsn_id).filter(Boolean).join(',') || '',
+    [selectAllActive, isSearchResult, selectedSpecies]
+  )
+
+  const selectedSpeciesIcon = useMemo(
+    () => selectedSpecies?.[0]?.default_icon || '/branding/antz/Antz_logomark_h_color.svg',
+    [selectedSpecies]
+  )
 
   const resetDrawerFilters = () => {
     setSelectedItems(getDefaultSelectedItems())
@@ -664,46 +671,50 @@ const AnimalAssessment = () => {
                   >
                     {selectedSpecies?.length ? (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
-                        <Typography
-                          sx={{
-                            flex: 1,
-                            fontWeight: 500,
-                            fontSize: '16px',
-                            lineHeight: '100%',
-                            letterSpacing: '0%',
-                            color: theme.palette.primary.light,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {`${selectedSpecies?.[0]?.common_name} `}
-                          <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecies?.[0]?.complete_name})`}</span>
-                        </Typography>
-                        {selectAllActive ? (
+                        {selectAllActive && !isSearchResult ? (
                           <Typography
                             sx={{
-                              fontWeight: 600,
-                              fontSize: '14px',
-                              color: theme.palette.primary.main,
-                              whiteSpace: 'nowrap'
+                              flex: 1,
+                              fontWeight: 500,
+                              fontSize: '16px',
+                              lineHeight: '100%',
+                              letterSpacing: '0%',
+                              color: theme.palette.primary.light
                             }}
                           >
                             All
                           </Typography>
                         ) : (
-                          selectedSpecies.length > 1 && (
+                          <>
                             <Typography
                               sx={{
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                color: theme.palette.primary.main,
+                                flex: 1,
+                                fontWeight: 500,
+                                fontSize: '16px',
+                                lineHeight: '100%',
+                                letterSpacing: '0%',
+                                color: theme.palette.primary.light,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
                                 whiteSpace: 'nowrap'
                               }}
                             >
-                              +{selectedSpecies.length - 1}
+                              {`${selectedSpecies?.[0]?.common_name} `}
+                              <span style={{ fontStyle: 'italic' }}>{`(${selectedSpecies?.[0]?.complete_name})`}</span>
                             </Typography>
-                          )
+                            {selectedSpecies.length > 1 && (
+                              <Typography
+                                sx={{
+                                  fontWeight: 600,
+                                  fontSize: '14px',
+                                  color: theme.palette.primary.main,
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                +{selectedSpecies.length - 1}
+                              </Typography>
+                            )}
+                          </>
                         )}
                       </Box>
                     ) : (
@@ -1044,6 +1055,8 @@ const AnimalAssessment = () => {
               setOpenspeciesFilter={setOpenspeciesFilter}
               selectAllActive={selectAllActive}
               setSelectAllActive={setSelectAllActive}
+              isSearchResult={isSearchResult}
+              setIsSearchResult={setIsSearchResult}
             />
           )}
           {openassessmentFilter && (
