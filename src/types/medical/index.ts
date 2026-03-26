@@ -6,19 +6,13 @@
  */
 
 // ==================== Model Types ====================
-export type {
-  AnimalData,
-  MedicalRow,
-  FilterOptions,
-  SortType,
-  FilterDate,
-  PaginationFilters
-} from './models'
+export type { AnimalData, MedicalRow, FilterOptions, SortType, FilterDate, PaginationFilters } from './models'
 
 // ==================== API Types ====================
 export type {
   ApiResponse,
   MedicalRecordsParams,
+  MedicalRecordFilterParams,
   MedicalReportParams,
   MedicalRecordsResponse,
   MedicalReportResponse

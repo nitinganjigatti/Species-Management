@@ -41,7 +41,27 @@ declare module 'src/views/utility/Search' {
   const Search: FC<SearchProps>
   export default Search
 }
-
+declare module 'src/views/forms/form-fields/MUISearch' {
+  import { FC, ChangeEvent, RefObject, Ref } from 'react'
+  import { SxProps } from '@mui/material'
+  interface MUISearchProps {
+    value?: string
+    onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+    onClear?: () => void
+    placeholder?: string
+    width?: number | string
+    sx?: SxProps
+    textFielsSX?: SxProps
+    backgroundColor?: string
+    borderRadius?: string | number
+    inputStyle?: Record<string, unknown>
+    disabled?: boolean
+    ref?: Ref<HTMLInputElement | null> | null
+    [key: string]: unknown
+  }
+  const MUISearch: FC<MUISearchProps>
+  export default MUISearch
+}
 declare module 'src/views/table/data-grid/CommonTable' {
   import { FC } from 'react'
   import { GridColDef, GridPaginationModel, GridSortModel, GridRowParams } from '@mui/x-data-grid'

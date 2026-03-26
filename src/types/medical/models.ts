@@ -6,20 +6,20 @@
 
 export interface AnimalData {
   animal_id: string | number
-  default_common_name: string
-  scientific_name: string
-  user_enclosure_name: string
-  section_name: string
-  site_name: string
-  type: string
-  sex: string
-  default_icon: string
-  total_animal: number
-  local_identifier_name: string
-  local_identifier_value: string
-  enclosure_id: string | number
-  section_id: string | number
-  site_id: string | number
+  default_common_name?: string
+  scientific_name?: string
+  user_enclosure_name?: string
+  section_name?: string
+  site_name?: string
+  type?: string
+  sex?: string
+  default_icon?: string
+  total_animal?: string | number
+  local_identifier_name?: string | null
+  local_identifier_value?: string | null
+  enclosure_id?: string | number
+  section_id?: string | number
+  site_id?: string | number
 }
 
 // ==================== Medical Record Row ====================

@@ -260,6 +260,24 @@ export interface AnimalOverview extends Animal {
   parent_enclosure_id?: number
   user_full_name?: string
   user_profile_image?: string
+  animal_id: number
+  default_common_name?: string
+  scientific_name?: string
+  user_enclosure_name?: string
+  section_name?: string
+  site_name?: string
+  type?: string
+  sex?: string
+  default_icon?: string
+  total_animal?: string | number
+  local_identifier_name?: string | null
+  local_identifier_value?: string | null
+  enclosure_id?: number
+  section_id?: number
+  site_id?: number
+  common_name?: string
+  complete_name?: string
+  vernacular_name?: string
 }
 
 // ==================== Species ====================

@@ -246,7 +246,29 @@ export interface GetAnimalDetailsOverviewParams {
   animal_id: number
 }
 
-export interface GetAnimalDetailsOverviewResponse extends ApiResponse<AnimalOverview> {}
+export interface AnimalDetailsOverviewData {
+  animal_details: AnimalOverview
+  enclosure_details?: {
+    user_enclosure_name?: string
+    enclosure_id?: string
+    enclosure_type?: string
+    enclosure_type_name?: string
+    section_name?: string
+    section_id?: string
+    site_name?: string
+    site_id?: string
+  }
+  animal_identifier?: any[]
+  body_weight?: any[]
+  diagnosis?: any[]
+  prescription?: any[]
+  observation?: any[]
+  diagnosis_count?: number
+  prescription_count?: number
+  observation_count?: number
+}
+
+export interface GetAnimalDetailsOverviewResponse extends ApiResponse<AnimalDetailsOverviewData> {}
 
 export interface GetAnimalHistoryParams {
   animal_id: number
@@ -256,10 +278,11 @@ export interface GetAnimalHistoryParams {
   to_date?: string
 }
 
-export interface GetAnimalHistoryResponse extends ApiResponse<{
-  result: AnimalHistoryItem[]
-  total_count?: number
-}> {}
+export interface GetAnimalHistoryResponse
+  extends ApiResponse<{
+    result: AnimalHistoryItem[]
+    total_count?: number
+  }> {}
 
 export interface GetAnimalMediaParams {
   animal_id: number
@@ -269,10 +292,11 @@ export interface GetAnimalMediaParams {
   q?: string
 }
 
-export interface GetAnimalMediaResponse extends ApiResponse<{
-  result: Media[]
-  total_count?: number
-}> {}
+export interface GetAnimalMediaResponse
+  extends ApiResponse<{
+    result: Media[]
+    total_count?: number
+  }> {}
 
 // ==================== Animal Identifier API ====================
 
@@ -313,10 +337,11 @@ export interface GetAnimalIncidentListParams {
   animal_id: number | string
 }
 
-export interface GetAnimalIncidentListResponse extends ApiResponse<{
-  result: AnimalIncident[]
-  total_count?: number
-}> {}
+export interface GetAnimalIncidentListResponse
+  extends ApiResponse<{
+    result: AnimalIncident[]
+    total_count?: number
+  }> {}
 
 export interface GetAnimalIncidentDetailsParams {
   incident_id: number | string
@@ -400,14 +425,15 @@ export interface GetAnimalDietListParams {
   limit?: number
 }
 
-export interface GetAnimalDietListResponse extends ApiResponse<{
-  result?: AnimalDiet[]
-  total_count?: number
-  active_attachments?: AnimalDiet[]
-  deactive_attachments?: AnimalDiet[]
-  active_attachments_count?: number
-  deactive_attachments_count?: number
-}> {}
+export interface GetAnimalDietListResponse
+  extends ApiResponse<{
+    result?: AnimalDiet[]
+    total_count?: number
+    active_attachments?: AnimalDiet[]
+    deactive_attachments?: AnimalDiet[]
+    active_attachments_count?: number
+    deactive_attachments_count?: number
+  }> {}
 
 // ==================== Animal Journal API ====================
 
@@ -421,11 +447,12 @@ export interface GetAnimalJournalLogsParams {
   module?: string // Module name filter (e.g., 'medical_record', 'lineage')
 }
 
-export interface GetAnimalJournalLogsResponse extends ApiResponse<{
-  data: AnimalJournalLog[]
-  result?: AnimalJournalLog[]
-  total_count?: number
-}> {}
+export interface GetAnimalJournalLogsResponse
+  extends ApiResponse<{
+    data: AnimalJournalLog[]
+    result?: AnimalJournalLog[]
+    total_count?: number
+  }> {}
 
 export interface GetAnimalJournalModulesParams {
   animal_id: number | string

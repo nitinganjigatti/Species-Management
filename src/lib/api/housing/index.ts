@@ -3,7 +3,11 @@ import { axiosFormPost as _axiosFormPost, axiosGet as _axiosGet, axiosPost as _a
 // Type-safe wrappers for axios utilities (any used for return type to preserve existing behavior)
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
-const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
+const axiosFormPost = _axiosFormPost as (params: {
+  url: string
+  body?: unknown
+  pharmacy?: unknown
+}) => Promise<{ data: any }>
 import {
   GET_ALL_SECTIONS,
   GET_SITES,
@@ -614,29 +618,29 @@ export async function deleteAnimalIdentifier(
 
 // ==================== Animal Incident API ====================
 
-export async function getAnimalIncidentList(
-  animalId: number | string
-): Promise<GetAnimalIncidentListResponse> {
+export async function getAnimalIncidentList(animalId: number | string): Promise<GetAnimalIncidentListResponse> {
   const response = await axiosGet({ url: `${ANIMAL_DETAILS_INCIDENT_LIST}/${animalId}` })
 
   return response?.data
 }
 
-export async function getAnimalIncidentDetails(
-  incidentId: number | string
-): Promise<GetAnimalIncidentDetailsResponse> {
+export async function getAnimalIncidentDetails(incidentId: number | string): Promise<GetAnimalIncidentDetailsResponse> {
   const response = await axiosGet({ url: `${ANIMAL_INCIDENT_DETAILS}/${incidentId}` })
 
   return response?.data
 }
 
-export async function createAnimalIncident(payload: CreateAnimalIncidentPayload | FormData): Promise<CreateAnimalIncidentResponse> {
+export async function createAnimalIncident(
+  payload: CreateAnimalIncidentPayload | FormData
+): Promise<CreateAnimalIncidentResponse> {
   const response = await axiosFormPost({ url: `${ANIMAL_CREATE_INCIDENT}`, body: payload })
 
   return response?.data
 }
 
-export async function updateAnimalIncident(params: UpdateAnimalIncidentPayload | FormData): Promise<UpdateAnimalIncidentResponse> {
+export async function updateAnimalIncident(
+  params: UpdateAnimalIncidentPayload | FormData
+): Promise<UpdateAnimalIncidentResponse> {
   const response = await axiosFormPost({ url: `${ANIMAL_UPDATE_INCIDENT}`, body: params })
 
   return response?.data
@@ -704,7 +708,9 @@ export async function getAnimalJournalLogs(params: GetAnimalJournalLogsParams): 
   return response?.data
 }
 
-export async function getAnimalJournalModules(params: GetAnimalJournalModulesParams): Promise<GetAnimalJournalModulesResponse> {
+export async function getAnimalJournalModules(
+  params: GetAnimalJournalModulesParams
+): Promise<GetAnimalJournalModulesResponse> {
   const response = await axiosGet({ url: `${ANIMAL_JOURNAL_MODULES}`, params })
 
   return response?.data
@@ -756,7 +762,7 @@ export async function getAllMedia(params?: GetMediaParams): Promise<GetMediaResp
 export interface AddMediaPayload {
   ref_id: number | string
   ref_type: 'site' | 'section' | 'enclosure'
-  access_restricted_key?: number  // 0 = public, 1 = restricted
+  access_restricted_key?: number // 0 = public, 1 = restricted
   media_attachment: File[]
 }
 
@@ -776,7 +782,7 @@ export async function addMedia(formData: FormData): Promise<AddMediaResponse> {
 // Note: Mobile uses 'acess_restricted_key' (typo preserved for API compatibility)
 export interface AddAnimalMediaPayload {
   animal_id: number | string
-  acess_restricted_key?: number  // 0 = public, 1 = restricted (mobile typo)
+  acess_restricted_key?: number // 0 = public, 1 = restricted (mobile typo)
   media_attachment: File[]
 }
 
@@ -890,8 +896,8 @@ export async function getAvailableSitesForCluster(
 // Assign/Remove sites from cluster - matches mobile API: cluster/assign-sites-for-cluster
 export interface AssignSitesToClusterPayload {
   cluster_id: number
-  cluster_sites: string | number[]  // JSON string or array of site_ids
-  will_add: number  // 1 = add, 0 = remove
+  cluster_sites: string | number[] // JSON string or array of site_ids
+  will_add: number // 1 = add, 0 = remove
 }
 
 export interface AssignSitesToClusterResponse {
@@ -900,13 +906,13 @@ export interface AssignSitesToClusterResponse {
   data?: unknown
 }
 
-export async function assignSitesToCluster(payload: AssignSitesToClusterPayload): Promise<AssignSitesToClusterResponse> {
+export async function assignSitesToCluster(
+  payload: AssignSitesToClusterPayload
+): Promise<AssignSitesToClusterResponse> {
   // Format cluster_sites as JSON string if it's an array (matching mobile behavior)
   const body = {
     cluster_id: payload.cluster_id,
-    cluster_sites: Array.isArray(payload.cluster_sites)
-      ? JSON.stringify(payload.cluster_sites)
-      : payload.cluster_sites,
+    cluster_sites: Array.isArray(payload.cluster_sites) ? JSON.stringify(payload.cluster_sites) : payload.cluster_sites,
     will_add: payload.will_add
   }
   const response = await axiosPost({ url: `${ASSIGN_SITES_FOR_CLUSTER}`, body })
@@ -1004,9 +1010,9 @@ export async function getAllUsers(params?: GetUsersListParams): Promise<GetUsers
 export interface GetUserListPostParams {
   zoo_id?: number
   isActive?: boolean
-  role_id?: string | number  // Filter by role ID (comma-separated for multiple)
-  site_id?: string | number  // Filter by site ID (comma-separated for multiple)
-  q?: string                 // Search query
+  role_id?: string | number // Filter by role ID (comma-separated for multiple)
+  site_id?: string | number // Filter by site ID (comma-separated for multiple)
+  q?: string // Search query
 }
 
 export interface UserListItem {
@@ -1170,7 +1176,9 @@ export interface UpdatePerformActionResponse {
   data?: unknown
 }
 
-export async function updateTeamMemberPermission(params: UpdatePerformActionPayload): Promise<UpdatePerformActionResponse> {
+export async function updateTeamMemberPermission(
+  params: UpdatePerformActionPayload
+): Promise<UpdatePerformActionResponse> {
   const response = await axiosPost({ url: `${UPDATE_PERFORM_ACTION}`, body: params })
 
   return response?.data
@@ -1214,7 +1222,9 @@ export interface GetAnimalTransferListResponse {
   }
 }
 
-export async function getAnimalTransferList(params: GetAnimalTransferListParams): Promise<GetAnimalTransferListResponse> {
+export async function getAnimalTransferList(
+  params: GetAnimalTransferListParams
+): Promise<GetAnimalTransferListResponse> {
   const response = await axiosGet({ url: `${GET_ANIMAL_TRANSFER_LIST}`, params })
 
   return response?.data
@@ -1334,7 +1344,10 @@ export interface GetTransferSummaryResponse {
   data?: TransferSummaryData
 }
 
-export async function getTransferSummary(params: { animal_movement_id: number | string; type?: string }): Promise<GetTransferSummaryResponse> {
+export async function getTransferSummary(params: {
+  animal_movement_id: number | string
+  type?: string
+}): Promise<GetTransferSummaryResponse> {
   const response = await axiosGet({ url: `${GET_TRANSFER_SUMMARY}`, params })
 
   return response?.data
@@ -1347,7 +1360,9 @@ export interface GetAnimalTransferSummaryParams {
   type?: string
 }
 
-export async function getAnimalTransferSummary(params: GetAnimalTransferSummaryParams): Promise<GetTransferSummaryResponse> {
+export async function getAnimalTransferSummary(
+  params: GetAnimalTransferSummaryParams
+): Promise<GetTransferSummaryResponse> {
   const response = await axiosGet({ url: `${GET_ANIMAL_TRANSFER_SUMMARY}`, params })
 
   return response?.data
@@ -1358,7 +1373,9 @@ export interface GetAnimalTransferButtonStatusParams {
   type?: string
 }
 
-export async function getAnimalTransferButtonStatus(params: GetAnimalTransferButtonStatusParams): Promise<GetTransferButtonStatusResponse> {
+export async function getAnimalTransferButtonStatus(
+  params: GetAnimalTransferButtonStatusParams
+): Promise<GetTransferButtonStatusResponse> {
   const response = await axiosPost({ url: `${GET_ANIMAL_TRANSFER_BUTTON_STATUS}`, body: params })
 
   return response?.data
@@ -1383,12 +1400,16 @@ export interface AnimalTransferLogItem {
 export interface GetAnimalTransferLogsResponse {
   success?: boolean
   message?: string
-  data?: {
-    logs?: AnimalTransferLogItem[]
-  } | AnimalTransferLogItem[]
+  data?:
+    | {
+        logs?: AnimalTransferLogItem[]
+      }
+    | AnimalTransferLogItem[]
 }
 
-export async function getAnimalTransferLogs(animal_movement_id: number | string): Promise<GetAnimalTransferLogsResponse> {
+export async function getAnimalTransferLogs(
+  animal_movement_id: number | string
+): Promise<GetAnimalTransferLogsResponse> {
   const response = await axiosGet({ url: `${GET_ANIMAL_TRANSFER_LOGS}`, params: { animal_movement_id } })
 
   return response?.data
@@ -1405,7 +1426,9 @@ export interface AddAnimalTransferCommentResponse {
   data?: unknown
 }
 
-export async function addAnimalTransferComment(payload: AddAnimalTransferCommentPayload): Promise<AddAnimalTransferCommentResponse> {
+export async function addAnimalTransferComment(
+  payload: AddAnimalTransferCommentPayload
+): Promise<AddAnimalTransferCommentResponse> {
   const response = await axiosPost({ url: `${ADD_ANIMAL_TRANSFER_COMMENT}`, body: payload })
 
   return response?.data
@@ -1424,7 +1447,9 @@ export interface UpdateAnimalTransferStatusResponse {
   data?: unknown
 }
 
-export async function updateAnimalTransferStatus(payload: UpdateAnimalTransferStatusPayload): Promise<UpdateAnimalTransferStatusResponse> {
+export async function updateAnimalTransferStatus(
+  payload: UpdateAnimalTransferStatusPayload
+): Promise<UpdateAnimalTransferStatusResponse> {
   const response = await axiosPost({ url: `${UPDATE_ANIMAL_TRANSFER_STATUS}`, body: payload })
 
   return response?.data
@@ -1482,7 +1507,9 @@ export interface GetTransferButtonStatusParams {
   type?: string
 }
 
-export async function getTransferButtonStatus(params: GetTransferButtonStatusParams): Promise<GetTransferButtonStatusResponse> {
+export async function getTransferButtonStatus(
+  params: GetTransferButtonStatusParams
+): Promise<GetTransferButtonStatusResponse> {
   const { animal_movement_id, ...restParams } = params
 
   const response = await axiosGet({
@@ -1508,7 +1535,9 @@ export interface UpdateTransferStatusResponse {
   data?: unknown
 }
 
-export async function updateTransferStatus(payload: UpdateTransferStatusPayload): Promise<UpdateTransferStatusResponse> {
+export async function updateTransferStatus(
+  payload: UpdateTransferStatusPayload
+): Promise<UpdateTransferStatusResponse> {
   // Mobile uses POST /v1/transfer/update-btn-status/{movement_id}
   const { movement_id, ...restPayload } = payload
 
@@ -1603,7 +1632,9 @@ export interface GetTransferMembersResponse {
   data?: TransferMembersData
 }
 
-export async function getTransferMembers(params: { animal_movement_id: number | string }): Promise<GetTransferMembersResponse> {
+export async function getTransferMembers(params: {
+  animal_movement_id: number | string
+}): Promise<GetTransferMembersResponse> {
   const response = await axiosGet({ url: `${GET_TRANSFER_MEMBERS}`, params })
 
   return response?.data
@@ -1617,7 +1648,9 @@ export interface ApproveTransferResponse {
   data?: unknown
 }
 
-export async function approveTransferRequest(params: { animal_movement_id: number | string }): Promise<ApproveTransferResponse> {
+export async function approveTransferRequest(params: {
+  animal_movement_id: number | string
+}): Promise<ApproveTransferResponse> {
   const response = await axiosPost({ url: `${APPROVE_TRANSFER_REQUEST}`, body: params })
 
   return response?.data
@@ -1697,7 +1730,9 @@ export interface GetAnimalListBySpeciesResponse {
   }
 }
 
-export async function getAnimalListBySpecies(params: { animal_movement_id: number | string }): Promise<GetAnimalListBySpeciesResponse> {
+export async function getAnimalListBySpecies(params: {
+  animal_movement_id: number | string
+}): Promise<GetAnimalListBySpeciesResponse> {
   const response = await axiosGet({ url: `${GET_ANIMAL_LIST_BY_SPECIES}`, params })
 
   return response?.data
@@ -1818,8 +1853,8 @@ export async function getFoodWastage(
   if (refType === 'enclosure') {
     return getEnclosureFoodWastage(params)
   }
-  
-return getSiteFoodWastage(params)
+
+  return getSiteFoodWastage(params)
 }
 
 // ==================== Food Wastage Details API ====================
@@ -1858,7 +1893,9 @@ export interface GetFoodWastageDetailsResponse {
   data?: FoodWastageDetailsData
 }
 
-export async function getFoodWastageDetails(params: GetFoodWastageDetailsParams): Promise<GetFoodWastageDetailsResponse> {
+export async function getFoodWastageDetails(
+  params: GetFoodWastageDetailsParams
+): Promise<GetFoodWastageDetailsResponse> {
   const response = await axiosGet({ url: `${GET_FOOD_WASTAGE_DETAILS}`, params })
 
   return response?.data
@@ -1933,15 +1970,17 @@ export interface VaccinationRecord {
 export interface GetVaccinationListResponse {
   success?: boolean
   message?: string
-  data?: {
-    result?: VaccinationRecord[]
-    stats?: {
-      pending?: number
-      upcoming?: number
-      completed?: number
-    }
-    total_count?: number
-  } | VaccinationRecord[]
+  data?:
+    | {
+        result?: VaccinationRecord[]
+        stats?: {
+          pending?: number
+          upcoming?: number
+          completed?: number
+        }
+        total_count?: number
+      }
+    | VaccinationRecord[]
   total_count?: number
 }
 
@@ -1972,16 +2011,20 @@ export interface MedicineSideEffect {
 export interface GetMedicineSideEffectResponse {
   success?: boolean
   message?: string
-  data?: {
-    result?: MedicineSideEffect[]
-    total_count?: number
-  } | MedicineSideEffect[]
+  data?:
+    | {
+        result?: MedicineSideEffect[]
+        total_count?: number
+      }
+    | MedicineSideEffect[]
 }
 
-export async function getMedicineSideEffect(params: GetMedicineSideEffectParams): Promise<GetMedicineSideEffectResponse> {
+export async function getMedicineSideEffect(
+  params: GetMedicineSideEffectParams
+): Promise<GetMedicineSideEffectResponse> {
   const { GET_MEDICINE_SIDE_EFFECT } = await import('src/constants/ApiConstant')
   // Mobile sends animal_id as JSON stringified array
-  
+
   const body = {
     animal_id: JSON.stringify([params.animal_id]),
     page_no: params.page_no || 1
@@ -2000,7 +2043,9 @@ export interface DeleteMedicineSideEffectResponse {
   message?: string
 }
 
-export async function deleteMedicineSideEffect(params: DeleteMedicineSideEffectParams): Promise<DeleteMedicineSideEffectResponse> {
+export async function deleteMedicineSideEffect(
+  params: DeleteMedicineSideEffectParams
+): Promise<DeleteMedicineSideEffectResponse> {
   const { DELETE_MEDICINE_SIDE_EFFECT } = await import('src/constants/ApiConstant')
   // Mobile sends { side_effect_id: id }
   const response = await axiosPost({ url: `${DELETE_MEDICINE_SIDE_EFFECT}`, body: params })
@@ -2133,7 +2178,9 @@ export interface GetObservationTemplatesResponse {
   }
 }
 
-export async function getObservationTemplates(params: GetObservationTemplatesParams): Promise<GetObservationTemplatesResponse> {
+export async function getObservationTemplates(
+  params: GetObservationTemplatesParams
+): Promise<GetObservationTemplatesResponse> {
   const response = await axiosGet({ url: OBSERVATION_TEMPLATE_LIST, params })
 
   return response?.data
@@ -2143,7 +2190,7 @@ export interface CreateObservationTemplatePayload {
   zooID: number
   template_name: string
   template_type: string
-  template_items: string  // JSON string of user_ids
+  template_items: string // JSON string of user_ids
   template_sub_type?: number
   is_default?: number
   status?: number
@@ -2155,7 +2202,9 @@ export interface CreateObservationTemplateResponse {
   data?: ObservationTemplate
 }
 
-export async function createObservationTemplate(payload: CreateObservationTemplatePayload): Promise<CreateObservationTemplateResponse> {
+export async function createObservationTemplate(
+  payload: CreateObservationTemplatePayload
+): Promise<CreateObservationTemplateResponse> {
   const response = await axiosPost({ url: OBSERVATION_TEMPLATE_CREATE, body: payload })
 
   return response?.data
@@ -2163,7 +2212,7 @@ export async function createObservationTemplate(payload: CreateObservationTempla
 
 export interface UpdateObservationTemplatePayload {
   template_name?: string
-  template_items?: string  // JSON string of user_ids
+  template_items?: string // JSON string of user_ids
   is_default?: number
   status?: number
 }
@@ -2331,13 +2380,13 @@ export async function getEggStatusMasterData(): Promise<any> {
 
   return response?.data
 }
-export async function updateEggStatus(params:UpdateEggStatusPayload): Promise<any> {
+export async function updateEggStatus(params: UpdateEggStatusPayload): Promise<any> {
   const response = await axiosPost({ url: EGG_STATUS_UPDATE, body: params })
 
   return response?.data
 }
 
-export async function getEggMediaList(params:GetEggMediaListPayload): Promise<any> {
+export async function getEggMediaList(params: GetEggMediaListPayload): Promise<any> {
   const response = await axiosGet({ url: EGG_GET_MEDIA_LIST, params })
 
   return response?.data

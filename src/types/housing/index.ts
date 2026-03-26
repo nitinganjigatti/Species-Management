@@ -179,6 +179,7 @@ export type {
   GetAnimalsParams,
   GetAnimalsResponse,
   GetAnimalDetailsOverviewParams,
+  AnimalDetailsOverviewData,
   GetAnimalDetailsOverviewResponse,
   GetAnimalHistoryParams,
   GetAnimalHistoryResponse,
