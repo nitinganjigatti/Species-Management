@@ -21,6 +21,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/server": "11.10.0",
     "@emotion/styled": "^11.14.0",
+    "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@hookform/resolvers": "5.2.2",
     "@iconify/react": "4.1.0",
     "@mui/icons-material": "^7.3.8",
