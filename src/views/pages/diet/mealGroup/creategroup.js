@@ -42,22 +42,23 @@ const CreateMealGroup = ({
   mealType,
   loader,
   mealId,
-  handleEditSearch
+  handleEditSearch,
+  fetchSiteStats
 }) => {
-
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [removedEnclosures, setRemovedEnclosures] = useState([])
   const [loading, setLoading] = useState(false)
+  const toastLock = useRef(false)
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] 
+    const itemToRemove = selectedItems[index]
     const updatedItems = selectedItems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
 
     setSelectedItems(updatedItems)
-    setCheckedRows(updatedChecked) 
+    setCheckedRows(updatedChecked)
   }
 
   console.log('Group NMW >', groupName)
@@ -93,14 +94,31 @@ const CreateMealGroup = ({
   //   }
   // }
 
+  const showToast = (message, type = 'error') => {
+    if (toastLock.current) return
+
+    toastLock.current = true
+    toast[type](message)
+
+    setTimeout(() => {
+      toastLock.current = false
+    }, 3000)
+  }
+
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setGroupNameError(true)
+
       return
     }
     setGroupNameError(false)
 
-    if (loading) return 
+    if (!selectedItems || selectedItems.length === 0) {
+      showToast('Please select an enclosure')
+      return
+    }
+
+    if (loading) return
 
     setLoading(true)
     try {
@@ -131,8 +149,8 @@ const CreateMealGroup = ({
     debounce(async q => {
       setSearchTerm(q)
       if (q.trim() === '') {
-        const data = [...selectedItems] 
-        const filteredData = data.filter(item => checkedRows.includes(item.id)) 
+        const data = [...selectedItems]
+        const filteredData = data.filter(item => checkedRows.includes(item.id))
         setSelectedItems(filteredData)
 
         return
@@ -153,7 +171,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [selectedOption] 
+    [selectedOption]
   )
 
   const handleCreateSearch = value => {
@@ -169,6 +187,14 @@ const CreateMealGroup = ({
       return
     }
 
+    const isNameChanged = groupName !== (editParam?.group_name || '')
+    const hasEnclosuresRemoved = removedEnclosures.length > 0
+
+    if (!isNameChanged && !hasEnclosuresRemoved) {
+      return
+    }
+
+    setLoading(true)
     try {
       const params = {
         site_id: selectedOption,
@@ -184,6 +210,7 @@ const CreateMealGroup = ({
       if (response) {
         handleCloseSideBar()
         fetchEnclosure()
+        fetchSiteStats()
         toast.success('Meal Group updated Successfully')
       } else {
         toast.error('Something went wrong')
@@ -191,13 +218,15 @@ const CreateMealGroup = ({
     } catch (error) {
       toast.error('Server error. Please try again.')
       console.error('Create Meal Group Error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleEnclosureRemove = async index => {
     console.log('index >', index)
 
-    const itemToRemove = editeditems[index] 
+    const itemToRemove = editeditems[index]
 
     const updatedEditedEnclosures = editeditems.filter((_, i) => i !== index)
     const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
@@ -206,7 +235,7 @@ const CreateMealGroup = ({
     setRemovedEnclosures([...removedEnclosures, itemToRemove?.enclosure_id])
 
     setEditItems(updatedEditedEnclosures)
-    setCheckedRows(updatedChecked) 
+    setCheckedRows(updatedChecked)
   }
 
   // const selectedObj = editeditems[index]
@@ -261,7 +290,12 @@ const CreateMealGroup = ({
           onClick={Object.keys(editParam).length > 0 ? handleUpdateGroup : handleCreateGroup}
           sx={{ height: '58px' }}
           fullWidth
-          disabled={loading}
+          disabled={
+            loading ||
+            (Object.keys(editParam).length > 0 &&
+              groupName === (editParam?.group_name || '') &&
+              removedEnclosures.length === 0)
+          }
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
@@ -274,6 +308,9 @@ const CreateMealGroup = ({
       </Box>
     )
   }
+
+  const totalSpecies = selectedItems?.reduce((acc, item) => acc + Number(item?.species_count || 0), 0) || 0
+  const totalAnimals = selectedItems?.reduce((acc, item) => acc + Number(item?.animal_count || 0), 0) || 0
 
   return dietModule ? (
     <>
@@ -423,7 +460,8 @@ const CreateMealGroup = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_enclosures}
+                      {selectedItems?.length}
+                      {/* {siteStats?.total_enclosures} */}
                     </Box>
                     <Box
                       component='span'
@@ -434,7 +472,7 @@ const CreateMealGroup = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Enclosures
+                      {selectedItems?.length === 1 ? 'Enclosure' : 'Enclosures'}
                     </Box>
                   </Typography>
 
@@ -449,7 +487,8 @@ const CreateMealGroup = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_species}
+                      {totalSpecies}
+                      {/* {siteStats?.total_species} */}
                     </Box>
                     <Box
                       component='span'
@@ -475,7 +514,8 @@ const CreateMealGroup = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_animals}
+                      {totalAnimals}
+                      {/* {siteStats?.total_animals} */}
                     </Box>
                     <Box
                       component='span'
@@ -486,7 +526,7 @@ const CreateMealGroup = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Animals
+                      {totalAnimals === 1 ? 'Animal' : 'Animals'}
                     </Box>
                   </Typography>
                 </Box>
@@ -585,8 +625,8 @@ const CreateMealGroup = ({
                   gap: 2,
                   overflowY: 'auto',
                   overflowX: 'hidden',
-                  pr: 1, 
-                  height: '80vh' 
+                  pr: 1,
+                  height: '80vh'
                 }}
               >
                 {loader ? (

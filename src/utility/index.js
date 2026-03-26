@@ -142,6 +142,12 @@ function convertUtcToLocalReadableDate(date) {
   return local
 }
 
+function formatDateTimeDisplay(date) {
+  if (!date) return ''
+
+  return moment(date).format('DD MMM YYYY | hh:mm A')
+}
+
 function convertUTCToLocaltime(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('h:mm A')
@@ -228,8 +234,26 @@ const downloadFileFromURL = async (fileUrl, title = '') => {
   }
 }
 
+const downloadFileFromURLWithBlob = async (url, fileName) => {
+  if (!url) return
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = blobUrl
+    link.download = fileName || 'download'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(blobUrl)
+  } catch (error) {
+    console.error('Download failed:', error?.message)
+  }
+}
+
 const formatText = text => {
-  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
 
 function toPascalSentenceCase(str) {
@@ -239,7 +263,7 @@ function toPascalSentenceCase(str) {
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-    .join(' ')
+    .join(' ');
 }
 
 function formatAmountCompactDisplay(value) {
@@ -280,7 +304,7 @@ function formatIdentifierType(type) {
     .replace(/_/g, ' ') // Replace underscores with spaces
     .split(' ') // Split into words
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
-    .join(' ') // Join back with spaces
+    .join(' '); // Join back with spaces
 }
 
 function hexToHex8(hex, opacity) {
@@ -314,9 +338,14 @@ export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) =
     // Call the API to get the download URL
     const response = await apiCall(params)
 
-    if (response?.success && response?.data?.download_url) {
+    // Handle both response formats:
+    // 1. response.data.download_url (nested URL)
+    // 2. response.data as direct URL string
+    const downloadUrl = response?.data?.download_url || (typeof response?.data === 'string' ? response.data : null)
+
+    if (response?.success && downloadUrl) {
       // Fetch the file as a blob
-      const fileResponse = await fetch(response.data.download_url, {
+      const fileResponse = await fetch(downloadUrl, {
         method: 'GET',
         headers
       })
@@ -349,7 +378,150 @@ export const downloadPDF = async ({ apiCall, params, fileName, headers = {} }) =
 }
 
 const capitalizeFirstLetter = string => {
+  if (!string) return ''
+
   return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
+/**
+ * Scrolls to a specific form field by name, id, or data-field attribute
+ * @param {string} fieldName - The name/id/data-field of the field to scroll to
+ * @param {Object} options - Scroll options
+ * @param {string} options.behavior - Scroll behavior ('smooth' | 'instant' | 'auto'), default 'smooth'
+ * @param {string} options.block - Vertical alignment ('start' | 'center' | 'end' | 'nearest'), default 'center'
+ * @param {boolean} options.focus - Whether to focus the element after scrolling, default true
+ * @param {number} options.focusDelay - Delay in ms before focusing, default 300
+ */
+const scrollToField = (fieldName, options = {}) => {
+  const { behavior = 'smooth', block = 'center', focus = true, focusDelay = 300 } = options
+
+  const element =
+    document.querySelector(`[name="${fieldName}"]`) ||
+    document.querySelector(`#${fieldName}`) ||
+    document.querySelector(`[data-field="${fieldName}"]`)
+
+  if (element) {
+    element.scrollIntoView({ behavior, block })
+
+    if (focus && typeof element.focus === 'function') {
+      setTimeout(() => element.focus(), focusDelay)
+    }
+
+    return true
+  }
+
+  return false
+}
+
+/**
+ * Scrolls to the first field with a validation error (for react-hook-form)
+ * @param {Object} errors - The errors object from react-hook-form's formState
+ * @param {Object} options - Scroll options (same as scrollToField)
+ * @returns {string|null} - The name of the first error field, or null if no errors
+ */
+const scrollToFirstError = (errors, options = {}) => {
+  const errorFields = Object.keys(errors || {})
+
+  if (errorFields.length > 0) {
+    const firstErrorField = errorFields[0]
+    scrollToField(firstErrorField, options)
+
+    return firstErrorField
+  }
+
+  return null
+}
+
+export const AgeConverter = recorded_date_time => {
+  moment.updateLocale('en', {
+    relativeTime: {
+      future: 'in %s',
+      past: '%s',
+      s: 'sec',
+      ss: '%dsec',
+      m: '%dm',
+      mm: '%dm',
+      h: '%dh',
+      hh: '%dh',
+      d: '%dd',
+      dd: '%dd',
+      w: 'a week',
+      ww: '%d weeks',
+      M: '%d months',
+      MM: '%d months',
+      y: 'a year',
+      yy: '%d years'
+    }
+  })
+
+  if (!recorded_date_time) {
+    return ''
+  }
+
+  let recordedAge
+  const now = moment()
+  const recorded = moment(recorded_date_time, 'YYYY-MM-DD HH:mm:ss')
+  if (!recorded.isValid()) {
+    return ''
+  }
+
+  const diffInMinutes = now.diff(recorded, 'minutes')
+  const diffInHours = now.diff(recorded, 'hours')
+  const diffInDays = now.diff(recorded, 'days')
+  const nowYear = now.year()
+  const recordedYear = recorded.year()
+
+  if (diffInMinutes < 1) {
+    return 'Just now'
+  }
+
+  if (diffInMinutes < 60) {
+    return `${diffInMinutes} minute ago`
+  }
+
+  if (diffInHours < 24) {
+    return `${diffInHours} hour ago`
+  }
+
+  if (diffInDays < 30) {
+    return `${diffInDays} day ago`
+  }
+
+  if (nowYear === recordedYear) {
+    return recorded.format('D MMM')
+  }
+
+  return recorded.format('D MMM YYYY')
+}
+
+export const extractTextFromHtml = html => {
+  if (!html) return ''
+
+  // Pre-strip script/style tags and their content via regex before DOM parsing
+  const sanitized = html.replace(/<script\b[\s\S]*?<\/script\s*>/gi, '').replace(/<style\b[\s\S]*?<\/style\s*>/gi, '')
+
+  const parser = new DOMParser()
+  const doc = parser?.parseFromString(sanitized, 'text/html')
+  doc?.querySelectorAll('script, style, iframe, object, embed')?.forEach(el => {
+    el?.remove()
+  })
+  doc?.querySelectorAll('br')?.forEach(br => {
+    br?.replaceWith(' ')
+  })
+
+  doc?.querySelectorAll('li')?.forEach(li => {
+    li?.appendChild(document.createTextNode(' '))
+  })
+
+  doc?.querySelectorAll('p')?.forEach(p => {
+    p.appendChild(document.createTextNode(' '))
+  })
+
+  // Strip any HTML-encoded tags that became plain text (e.g. &lt;script&gt; → <script>)
+  return (doc?.body?.textContent || '')
+    .replace(/<\/?[^>]+(>|$)/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 const Utility = {
@@ -371,6 +543,7 @@ const Utility = {
   formatNumberToDisplay,
   formatAmountToReadableDigit,
   downloadFileFromURL,
+  downloadFileFromURLWithBlob,
   formatText,
   toPascalSentenceCase,
   renderUserAvatar,
@@ -381,7 +554,12 @@ const Utility = {
   hexToHex8,
   getUpcomingHours,
   downloadPDF,
-  capitalizeFirstLetter
+  capitalizeFirstLetter,
+  scrollToField,
+  scrollToFirstError,
+  AgeConverter,
+  extractTextFromHtml,
+  formatDateTimeDisplay
 }
 
 export default Utility

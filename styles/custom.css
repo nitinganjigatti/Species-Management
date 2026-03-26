@@ -37,7 +37,7 @@
   width: 121px;
 }
 .cellmodule4 {
-  width: 580px;
+  width: 565px;
 }
 .cell_gend {
   width: 580px;
@@ -95,6 +95,7 @@
     position: absolute !important;
     right: 7% !important;
   }
+
   .diet_steps .MuiStepper-root {
     display: -webkit-inline-box;
     align-items: center;
@@ -406,7 +407,7 @@
     width: 465px !important;
   }
   .cellmodule5 {
-    width: 545px !important;
+    width: 475px !important;
   }
   .cellmodule6 {
     width: 755px !important;
@@ -418,10 +419,10 @@
     width: 645px !important;
   }
   .diet_val_container {
-    width: 140px;
+    width: 130px;
   }
   .cell_dimn {
-    width: 840px;
+    width: 731px;
   }
   .cell_dimn1 {
     width: 715px;
@@ -433,7 +434,7 @@
     width: 590px;
   }
   .cell_gend {
-    width: 608px;
+    width: 560px;
   }
   .diet_gender {
     width: 129px;
@@ -469,7 +470,7 @@
     width: 465px !important;
   }
   .cellmodule5 {
-    width: 585px !important;
+    width: 580px !important;
   }
   .cellmodule6 {
     width: 815px !important;

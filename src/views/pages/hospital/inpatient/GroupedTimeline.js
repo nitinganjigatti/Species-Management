@@ -1,7 +1,8 @@
 import React from 'react'
-import { Box, FormControl, MenuItem, Select, Skeleton, Tooltip, Typography } from '@mui/material'
+import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem'
+import { timelineOppositeContentClasses } from '@mui/lab'
 import TimelineSeparator from '@mui/lab/TimelineSeparator'
 import TimelineConnector from '@mui/lab/TimelineConnector'
 import TimelineContent from '@mui/lab/TimelineContent'
@@ -9,13 +10,11 @@ import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import { timelineOppositeContentClasses } from '@mui/lab'
 import Search from 'src/views/utility/Search'
-import { FilterButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
-import NoDataFound from 'src/views/utility/NoDataFound'
-import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
-import { Grid } from '@mui/system'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const medicalTypeOptions = [
   { label: 'All Activities', value: '' },
@@ -25,17 +24,143 @@ const medicalTypeOptions = [
   { label: 'Symptoms', value: 'symptoms' }
 ]
 
+const DETAIL_LABELS = {
+  case_type: 'Case Type',
+  complaints: 'Symptoms',
+  complaint: 'Symptoms',
+  diagnosis: 'Clinical Assessment',
+  prescription: 'Prescription',
+  advice: 'Advice',
+  advices: 'Advice',
+  notes: 'Notes',
+  note: 'Notes',
+  follow_up_date: 'Next Visit',
+  lab: 'Lab Tests',
+  lab_data: 'Lab Tests',
+  lab_test_requests: 'Lab Tests',
+  attachment: 'Attachments',
+  attachments: 'Attachments'
+}
+
+const HIDDEN_DETAIL_KEYS = new Set(['medical_record_number'])
+
+const isEmptyDetailValue = value => {
+  if (value === null || value === undefined) return true
+  if (typeof value === 'string' && value.trim() === '') return true
+  if (Array.isArray(value)) return value.every(isEmptyDetailValue)
+  if (typeof value === 'object') return Object.keys(value).length === 0
+
+  return false
+}
+
+const formatDetailLabel = key => {
+  if (DETAIL_LABELS[key]) return DETAIL_LABELS[key]
+
+  return key
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, char => char.toUpperCase())
+}
+
+const getObjectDisplayValue = value => {
+  if (!value || typeof value !== 'object') return null
+
+  const preferredKeys = [
+    'label',
+    'name',
+    'title',
+    'complaint',
+    'diagnosis',
+    'medicine_name',
+    'lab_code',
+    'request_code',
+    'note',
+    'value'
+  ]
+
+  for (const key of preferredKeys) {
+    const candidate = value?.[key]
+    if (!isEmptyDetailValue(candidate)) {
+      return formatDetailValue(candidate)
+    }
+  }
+
+  const nestedValues = Object.values(value)
+    .map(item => formatDetailValue(item))
+    .filter(Boolean)
+
+  return nestedValues.length ? nestedValues.join(', ') : null
+}
+
+const formatDetailValue = value => {
+  if (isEmptyDetailValue(value)) return null
+
+  if (typeof value === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return Utility.convertUtcToLocalReadableDate(value)
+    }
+
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
+      return Utility.convertUTCToLocalDate(value)
+    }
+
+    return value.replace(/\\n/g, '\n').trim()
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+
+  if (Array.isArray(value)) {
+    const items = value.map(item => formatDetailValue(item)).filter(Boolean)
+
+    return items.length ? items.join(', ') : null
+  }
+
+  if (typeof value === 'object') {
+    return getObjectDisplayValue(value)
+  }
+
+  return String(value)
+}
+
+const getDisplayDetails = details => {
+  if (!details || typeof details !== 'object') return []
+
+  const preferredOrder = [
+    'case_type',
+    'complaints',
+    'complaint',
+    'diagnosis',
+    'prescription',
+    'advice',
+    'advices',
+    'lab',
+    'lab_data',
+    'lab_test_requests',
+    'attachments',
+    'attachment',
+    'notes',
+    'note',
+    'follow_up_date'
+  ]
+
+  const allKeys = Object.keys(details).filter(key => !HIDDEN_DETAIL_KEYS.has(key))
+  const orderedKeys = [...preferredOrder, ...allKeys.filter(key => !preferredOrder.includes(key))]
+
+  return orderedKeys
+    .filter((key, index) => allKeys.includes(key) && orderedKeys.indexOf(key) === index)
+    .map(key => ({
+      key,
+      label: formatDetailLabel(key),
+      value: formatDetailValue(details[key])
+    }))
+    .filter(item => item.value)
+}
+
 const TimelineEvent = ({ entry, isFirst, isLast }) => {
   const theme = useTheme()
-
-  const snakeToTitleCase = title => {
-    if (!title || typeof title !== 'string') return 'NA'
-
-    return title
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ')
-  }
+  const detailItems = getDisplayDetails(entry?.details)
 
   return (
     <TimelineItem sx={{ minHeight: '5rem' }}>
@@ -48,7 +173,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
             visibility: isFirst ? 'hidden' : 'visible',
             minHeight: isFirst ? 0 : '1.25rem',
             backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-            width: '1.6px'
+            width: '1.5px'
           }}
         />
         <Box
@@ -69,7 +194,7 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
             visibility: isLast ? 'hidden' : 'visible',
             minHeight: isLast ? 0 : '1.25rem',
             backgroundColor: theme.palette.customColors.OnPrimaryContainer,
-            width: '1.6px'
+            width: '1.5px'
           }}
         />
       </TimelineSeparator>
@@ -81,47 +206,61 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
         <Grid
           container
           wrap='nowrap' // Prevents wrapping
-          sx={{ minWidth: '540px' }} // Minimum width similar to iPad layout
+          sx={{ xs: '100%', minWidth: '540px' }} // Minimum width similar to iPad layout
         >
-          <Grid size={{ xs: 3 }} sx={{ display: 'flex', flexDirection: 'column' }}>
-            <TextEllipsisWithModal
-              placement='top'
-              text={snakeToTitleCase(entry?.title)}
-              style={{
-                fontWeight: 600,
-                fontSize: '1rem',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '100%'
-              }}
-            />
-            <TextEllipsisWithModal
-              text={snakeToTitleCase(
-                entry?.details?.medical_record_number ? entry?.details?.medical_record_number : 'NA'
-              )}
-              style={{
-                fontWeight: 400,
-                fontSize: '0.75rem',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                maxWidth: '100%'
-              }}
-            />
+          <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', gap: 1 }}>
+            <StyledTypography fontWeight={600}>{entry?.title}</StyledTypography>
+            <StyledTypography fontWeight={400} fontSize={'0.75rem'}>
+              {entry?.details?.medical_record_number}
+            </StyledTypography>
           </Grid>
           <Grid
             size={{ xs: 6 }}
             sx={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              textAlign: entry?.complaints ? 'justify' : 'center'
+              display: 'flex',
+              alignItems: 'center'
             }}
           >
-            <StyledTypography fontSize={'0.875rem'} fontWeight={500}>
-              <Tooltip title={entry?.complaints || 'NA'} arrow placement='top'>
-                {entry?.details?.complaints || 'NA'}
-              </Tooltip>
-            </StyledTypography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', py: 0.25, minWidth: 0 }}>
+              {detailItems.length > 0 ? (
+                detailItems.map(item => (
+                  <Box
+                    key={item.key}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 1,
+                      minWidth: 0,
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <StyledTypography
+                      fontSize={'1rem'}
+                      fontWeight={600}
+                      color={theme.palette.customColors.OnSurface}
+                    >
+                      {item.label}:
+                    </StyledTypography>
+                    <StyledTypography
+                      fontSize={'1rem'}
+                      fontWeight={500}
+                      sx={{
+                        whiteSpace: 'pre-wrap',
+                        wordBreak: 'break-word',
+                        minWidth: 0,
+                        flex: 1
+                      }}
+                    >
+                      {item.value}
+                    </StyledTypography>
+                  </Box>
+                ))
+              ) : (
+                <StyledTypography fontSize={'0.875rem'} fontWeight={500}>
+                  --
+                </StyledTypography>
+              )}
+            </Box>
           </Grid>
           <Grid
             size={{ xs: 3 }}
@@ -145,10 +284,10 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
 const TimelineSection = ({ section }) => {
   const theme = useTheme()
 
-  if (!section?.entries || section.entries.length === 0) return
+  if (!section?.entries || section?.entries?.length === 0) return
 
   return (
-    <Box>
+    <Box sx={{}}>
       <StyledSectionHeader>
         <CalendarTodayIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
         <StyledTypography fontSize={'1.25rem'} color={theme.palette.customColors.OnPrimaryContainer}>
@@ -172,68 +311,149 @@ const TimelineSection = ({ section }) => {
 const GroupedTimeline = ({
   medicalSummaryData,
   isLoading,
+  isRefetching,
   searchQuery,
   onSearchChange,
   onMedicalTypeChange,
   medicalType,
-  onClearSearch
+  onClearSearch,
+  lastTimelineRef,
+  hasNextPage,
+  isFetchingNextPage,
+  setOpenFilterDrawer,
+  filterCount,
+  filterDate,
+  setFilterDate,
+  hasActiveFilters
 }) => {
-  return (
-    <>
-      <Box sx={{ width: '100%', mt: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        <>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Search
-              borderRadius={'4px'}
-              width={222}
-              value={searchQuery}
-              onChange={e => onSearchChange(e.target.value)}
-              onClear={onClearSearch}
-            />
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <FormControl sx={{ m: 1, minWidth: 120 }}>
-                <Select
-                  value={medicalType}
-                  onChange={e => onMedicalTypeChange(e.target.value)}
-                  displayEmpty
-                  inputProps={{ 'aria-label': 'Without label' }}
-                  sx={{
-                    height: 40,
-                    width: 200,
-                    borderRadius: '4px'
-                  }}
-                >
-                  {medicalTypeOptions.map(type => (
-                    <MenuItem key={type.value} value={type.value}>
-                      {type.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+  const theme = useTheme()
 
-              <FilterButton />
-            </Box>
-          </Box>
+  const dataLength = medicalSummaryData?.length || 0
+  const noData = dataLength === 0
+  const filtering = hasActiveFilters
 
-          {isLoading ? (
-            <TimelineSkeleton />
-          ) : medicalSummaryData.length > 0 ? (
-            medicalSummaryData?.map((section, index) => (
-              <TimelineSection key={`${section?.date}-${index}`} section={section} />
-            ))
-          ) : (
-            <NoDataFound variant='Seal' height={300} width={300} />
-          )}
-        </>
+  const Header = (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        justifyContent: { xs: 'center', sm: 'space-between' },
+        alignItems: { xs: 'stretch', sm: 'center' },
+        gap: 3,
+        mb: '1.5rem'
+      }}
+    >
+      <Search
+        borderRadius='4px'
+        width={{ xs: '100%', sm: 222 }}
+        value={searchQuery}
+        onChange={e => onSearchChange(e.target.value)}
+        onClear={onClearSearch}
+      />
+
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <CommonDateRangePickers
+          filterDates={filterDate}
+          onChange={(start, end) => setFilterDate({ startDate: start, endDate: end })}
+        />
+
+        <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
       </Box>
-    </>
+    </Box>
+  )
+
+  if (isLoading && !filtering) {
+    return (
+      <Box sx={{ mt: 2 }}>
+        <TimelineSkeleton />
+      </Box>
+    )
+  }
+
+  if (!isLoading && !filtering && noData) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          mt: '2rem',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <NoMedicalData isDischarged={true} />
+      </Box>
+    )
+  }
+
+  if (filtering && noData) {
+    return (
+      <Box sx={{ width: '100%', mt: '1.5rem' }}>
+        {Header}
+
+        {/* Show skeleton while filtering refetch or initial load */}
+        {isLoading || isRefetching ? (
+          <TimelineSkeleton />
+        ) : (
+          <Box
+            sx={{
+              width: '100%',
+              mt: 4,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            <NoMedicalData isDischarged={true} />
+          </Box>
+        )}
+      </Box>
+    )
+  }
+
+  return (
+    <Box sx={{ width: '100%', mt: '1.5rem' }}>
+      {Header}
+
+      {/* If filtering and refetching, show skeleton for data section */}
+      {isRefetching && filtering && (
+        <Box sx={{ mt: 2 }}>
+          <TimelineSkeleton />
+        </Box>
+      )}
+
+      {/* Data List */}
+      {!isRefetching &&
+        medicalSummaryData?.map((section, index) => {
+          const isLast = index === dataLength - 1
+
+          return (
+            <Box key={`${section?.date}-${index}`} ref={isLast ? lastTimelineRef : null} sx={{ mb: '1rem' }}>
+              <TimelineSection section={section} />
+            </Box>
+          )
+        })}
+
+      {/* Show skeleton only when fetching more pages */}
+      {isFetchingNextPage && (
+        <Box sx={{ mt: 2 }}>
+          <TimelineSkeleton />
+        </Box>
+      )}
+
+      {/*  Show "No more data" */}
+      {!hasNextPage && dataLength > 9 && (
+        <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
+          No more medical summary data to load
+        </StyledTypography>
+      )}
+    </Box>
   )
 }
 
 export default GroupedTimeline
 
-// Styled Components
-const StyledTimeline = styled(Timeline)(({ theme }) => ({
+const StyledTimeline = styled(Timeline)(() => ({
   [`& .${timelineOppositeContentClasses.root}`]: {
     flex: 0,
     minWidth: '5rem',
@@ -246,7 +466,7 @@ const StyledTimeline = styled(Timeline)(({ theme }) => ({
   }
 }))
 
-const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(({ theme }) => ({
+const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(() => ({
   display: 'flex',
   justifyContent: 'start',
   alignItems: 'center'
@@ -254,20 +474,24 @@ const StyledTimelineOppositeContent = styled(TimelineOppositeContent)(({ theme }
 
 const StyledTimelineContent = styled(Grid)(({ theme, borderTop }) => ({
   marginLeft: '0.625rem',
-  padding: '1.4rem 0',
+  padding: '1.5rem 0',
   borderTop: borderTop || 'none',
-
-  // Default: No scroll on larger screens
-  overflowX: 'unset',
+  overflowX: 'hidden',
 
   [`@media (max-width: 768px)`]: {
     overflowX: 'auto',
     WebkitOverflowScrolling: 'touch',
-    scrollbarWidth: 'auto', // Firefox
-    msOverflowStyle: 'auto', // IE/Edge
+
+    // Hide scrollbar (Chrome, Safari)
     '&::-webkit-scrollbar': {
-      display: 'block' // Chrome, Safari
-    }
+      display: 'none'
+    },
+
+    // Hide scrollbar (Firefox)
+    scrollbarWidth: 'none',
+
+    // Hide scrollbar (IE/Edge)
+    msOverflowStyle: 'none'
   }
 }))
 

@@ -268,7 +268,8 @@ const AssessmentReportFilterDrawer = ({
                   count = 1
                 }
               }
-              return (
+              
+return (
                 <Box
                   key={menu}
                   sx={{
@@ -603,6 +604,7 @@ const AssessmentReportFilterDrawer = ({
                       <Box
                         key={option.label}
                         sx={{ display: 'flex', alignItems: 'center', mb: 3, cursor: 'pointer' }}
+
                         // onClick={() => {
                         //   const { start, end } = option.getRange()
                         //   setTempSelectedItems(prev => ({
@@ -631,6 +633,7 @@ const AssessmentReportFilterDrawer = ({
                       >
                         <Checkbox
                           checked={isSelected}
+
                           // onChange={() => {
                           //   const { start, end } = option.getRange()
                           //   setTempSelectedItems(prev => ({

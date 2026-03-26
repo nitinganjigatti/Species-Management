@@ -13,7 +13,6 @@ import {
   debounce
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { DataGrid } from '@mui/x-data-grid'
 import toast from 'react-hot-toast'
 import moment from 'moment'
 
@@ -22,7 +21,7 @@ import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AddLabTest from 'src/views/pages/lab/test/addTest'
 import TestDetails from 'src/views/pages/lab/test/testDetails'
 
@@ -378,8 +377,22 @@ const LabTest = () => {
           <Card>
             <CardHeader title='Lab Tests' sx={{ paddingX: 5 }} action={headerAction} />
 
-            <DataGrid
-              sx={{
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              setPaginationModel={setPaginationModel}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              onCellClick={handleCellClick}
+              pageSizeOptions={[7, 10, 25, 50]}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              externalTableStyle={{
                 paddingX: 5,
                 borderTopLeftRadius: '8px',
                 '& .MuiBox-root': {
@@ -395,41 +408,10 @@ const LabTest = () => {
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }
               }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={handleCellClick}
             />
           </Card>
           {openDrawer && (
@@ -463,7 +445,7 @@ const LabTest = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default LabTest

@@ -352,10 +352,7 @@ const Animal = () => {
           >
             <Box sx={{ display: 'flex', gap: 3 }}>
               <Box sx={{ minWidth: 0 }}>
-                <CommonDateRangePickers
-                  onChange={handleDateRangeChange}
-                  filterDates={{ startDate, endDate }}
-                />
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={{ startDate, endDate }} />
               </Box>
 
               <Box>
@@ -483,7 +480,6 @@ const Animal = () => {
                     <TextField
                       label='End Date*'
                       fullWidth
-                      inputProps={{ readOnly: true, inputMode: 'none' }}
                       sx={{
                         '& .MuiInputBase-input': {
                           mt: 1,

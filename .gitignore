@@ -35,3 +35,14 @@ yarn-error.log*
 
 #Ignore package-lock.json
 package-lock.json
+yarn.lock
+public/reports/*
+
+# design tools
+.superdesign/
+.cursor/
+.windsurfrules
+.cursor/*
+.vscode
+.vscode/*
+.claude

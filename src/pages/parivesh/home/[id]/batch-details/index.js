@@ -26,7 +26,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import moment from 'moment'
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
@@ -436,47 +436,20 @@ const BatchDetails = ({ params, searchParams }) => {
               ConfirmationText={'Delete'}
               confirmAction={onClose}
             />
-            <DataGrid
-              disableColumnMenu
-              disableColumnFilter
-              // disableColumnSorting
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              setPaginationModel={setPaginationModel}
+              pageSizeOptions={[total]}
+              loading={loading}
+              searchValue={searchValue}
+              // handleSearch={handleSearch}
+              onCellClick={onCellClick}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[total]}
-              paginationModel={paginationModel}
-              // slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
             />
           </Card>
         )}

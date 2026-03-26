@@ -28,7 +28,7 @@ const composeDietNavigation = () => {
   }
 
   const speciesDietList = {
-    title: 'Species Diet List',
+    title: 'Diet List',
     path: '/diet/species-diet',
     icon: <img src='/icons/icon_species_diet.png' alt='Grocery Icon' />,
     activeIcon: <img src='/icons/icon_species_diet_white.png' alt='Grocery Icon' />
@@ -79,6 +79,11 @@ const composeDietNavigation = () => {
     path: '/diet/settings/diet-category'
   }
 
+  const dropPoints = {
+    title: 'Drop Points',
+    path: '/diet/settings/drop-points'
+  }
+
   const kitchenParent = {
     title: 'Kitchen',
     path: '/diet/kitchen/diet-report',
@@ -98,7 +103,7 @@ const composeDietNavigation = () => {
 
   kitchenParent.children.push(dietReport, mealGroupReport)
 
-  settingsParent.children.push(preparationTypes, cutSize, dietCategory)
+  settingsParent.children.push(preparationTypes, cutSize, dietCategory, dropPoints)
 
   const dietNavigation = [
     pharmacyTitle,

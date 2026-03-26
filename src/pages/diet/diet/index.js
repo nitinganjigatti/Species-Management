@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -170,10 +170,6 @@ const Diet = () => {
             <Icon icon='mdi:add' fontSize={20} />
             &nbsp; Add New
           </Button>
-          {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add Recipe
-      </Button> */}
         </div>
       )}
     </>
@@ -189,7 +185,7 @@ const Diet = () => {
   const columns = [
     {
       //flex: 0.19,
-      width: 70,
+      width: 80,
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
@@ -235,7 +231,7 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 130,
+      width: 150,
       field: 'no_meals',
       headerName: 'No of mixes',
       renderCell: params => (
@@ -246,7 +242,7 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 120,
+      width: 160,
       field: 'no_recipe',
       headerName: 'No of Recipes',
       renderCell: params => (
@@ -255,47 +251,6 @@ const Diet = () => {
         </Typography>
       )
     },
-
-    // {
-    //   //flex: 0.6,
-    //   width: 260,
-    //   field: 'created_at',
-    //   headerName: 'CREATED BY',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Avatar
-    //         variant='square'
-    //         alt='Diet Image'
-    //         sx={{
-    //           width: 30,
-    //           height: 30,
-    //           mr: 4,
-    //           borderRadius: '50%',
-    //           background: theme.palette.customColors.tableHeaderBg,
-    //           overflow: 'hidden'
-    //         }}
-    //       >
-    //         {params.row.profile_pic ? (
-    //           <img
-    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //             src={params.row.profile_pic}
-    //             alt='Profile'
-    //           />
-    //         ) : (
-    //           <Icon icon='mdi:user' />
-    //         )}
-    //       </Avatar>
-    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-    //           {params.row.user_name ? params.row.user_name : '-'}
-    //         </Typography>
-    //         <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}>
-    //           {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
-    //         </Typography>
-    //       </Box>
-    //     </Box>
-    //   )
-    // },
 
     {
       //flex: 0.6,
@@ -309,14 +264,8 @@ const Diet = () => {
               profile_image={params.row.dietitian_profile_pic}
               user_name={params.row.dietitian_name}
               role={params.row.dietitian_role_name}
+              crby_width='200px'
             />
-            {/* {UserAvatarDetails({
-              profile_image: params.row.profile_pic,
-              user_name: params.row.user_name,
-              descriptors: params.row.dietitian_role_name
-
-              // date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD')
-            })} */}
           </Box>
         </>
       )
@@ -333,7 +282,8 @@ const Diet = () => {
             {RenderUtility.renderUserAvatarDetails({
               profile_image: params.row.profile_pic,
               user_name: params.row.user_name,
-              date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD')
+              date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+              crby_width: 200
             })}
           </Box>
         </>
@@ -342,7 +292,7 @@ const Diet = () => {
 
     {
       //flex: 0.3,
-      width: 100,
+      width: 120,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -396,55 +346,13 @@ const Diet = () => {
               <CardHeader title='Diet' action={headerAction} sx={{ px: 5 }} />
 
               <Box sx={{ width: '100%', overflowX: 'auto' }}>
-                <DataGrid
-                  sx={{
-                    height: 700,
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    },
-                    '& .MuiDataGrid-columnHeaders': {
-                      backgroundColor: theme.palette.customColors.customTableHeaderBg,
-                      color: theme.palette.customColors.customHeadingTextColor
-                    },
-                    '.MuiDataGrid-virtualScroller': {
-                      overflowX: 'auto'
-                    },
-                    '.MuiDataGrid-main': {
-                      borderLeft: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                      borderRight: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                      marginLeft: '20px',
-                      marginRight: '20px',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(233, 233, 236, 1)'
-                    },
-                    '& .MuiDataGrid-footerContainer': {
-                      borderTop: 'none'
-                    },
-
-                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                      borderBottom: 'none'
-                    }
-                  }}
-                  columnVisibilityModel={{
-                    sl_no: false
-                  }}
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  autoHeight
-                  pagination
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
+                <CommonTable
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
                   columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50, 100]}
                   paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbarWithFilter }}
-                  onPaginationModelChange={newPaginationModel => {
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={newPaginationModel => {
                     updateQueryParams({
                       page: newPaginationModel.page,
                       pageSize: newPaginationModel.pageSize
@@ -452,18 +360,20 @@ const Diet = () => {
                     setPaginationModel(newPaginationModel)
                   }}
                   loading={loading}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      title: 'diet',
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
+                  columnVisibilityModel={{
+                    sl_no: false
                   }}
                   onCellClick={onCellClick}
+                  externalTableStyle={{
+                    height: 700,
+                    '.MuiDataGrid-virtualScroller': {
+                      overflowX: 'auto'
+                    },
+                    '.MuiDataGrid-main': {
+                      marginLeft: '20px',
+                      marginRight: '20px'
+                    }
+                  }}
                 />
               </Box>
             </Card>

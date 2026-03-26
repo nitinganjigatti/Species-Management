@@ -82,6 +82,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         })
 
         Toaster({ type: 'success', message: 'Diet Activated Successfully' })
+
         // Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -162,7 +163,10 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   pt: '6px',
                   width: 48,
                   height: 48,
-                  background: theme.palette.customColors.avatarBackground,
+                  background:
+                    type === 'attach'
+                      ? theme.palette.customColors.avatarBackground
+                      : theme.palette.customColors.mdAntzNeutral,
                   overflow: 'hidden'
                 }}
               >
@@ -190,9 +194,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        width: 'calc(100% - 120px)'
-
-                        // minWidth: 150
+                        // width: 'calc(100% - 120px)'
+                        width: 350
                       }}
                     >
                       {item?.file_original_name}
@@ -212,6 +215,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     defaultChecked={type === 'attach' ? true : false}
                   />
                 </Box>
+
                 <Box
                   sx={{
                     width: '100%',
@@ -219,7 +223,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     alignItems: 'center',
                     gap: '8px',
                     mb: '6px',
-                    maxWidth: '400px'
+                    maxWidth:
+                      item?.dietitian_name?.length && item?.dietitian_name?.length > 20 ? '260px' : 'fit-content'
                   }}
                 >
                   {/* <DietitianAvatar item={item} />
@@ -518,6 +523,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               setUploadDietDrawer(true)
             }}
             disabled={dietModuleAccess === 'VIEW'}
+
             // loading={loader}
           >
             UPLOAD NEW

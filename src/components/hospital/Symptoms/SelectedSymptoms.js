@@ -59,6 +59,7 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
             display: 'flex',
             p: 7,
             overflow: 'auto'
+
             //py: 10
           }}
         >
@@ -76,7 +77,7 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
             >
               <Box>
                 <Typography
-                  fontWeight={400}
+                  fontWeight={600}
                   sx={{
                     color: getSymptomsSeverityColor(selected[idx]?.severity).color,
                     fontSize: '14px',
@@ -86,7 +87,6 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
                   {symptom.name}
                 </Typography>
                 <Typography
-                  variant='body2'
                   sx={{
                     textAlign: 'left',
                     background: theme.palette.common.white,
@@ -97,7 +97,9 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
                     px: 3.5,
                     py: 0.5,
                     width: 'fit-content',
-                    minWidth: 'auto'
+                    minWidth: 'auto',
+                    fontSize: '12px',
+                    fontWeight: 600
                   }}
                 >
                   {symptom.severity}

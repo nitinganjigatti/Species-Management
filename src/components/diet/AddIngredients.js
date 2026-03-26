@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useRef } from 'react'
 import Drawer from '@mui/material/Drawer'
 import {
   Box,
@@ -13,7 +13,9 @@ import {
   CircularProgress,
   Avatar,
   InputAdornment,
-  Tooltip
+  Tooltip,
+  Autocomplete,
+  Paper
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
@@ -25,6 +27,22 @@ import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
+import { KeyboardArrowDown } from '@mui/icons-material'
+
+const CustomPaper = props => {
+  const { children, isLoading, ...other } = props
+
+  return (
+    <Paper {...other}>
+      {children}
+      {isLoading && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+          <CircularProgress size={20} />
+        </Box>
+      )}
+    </Paper>
+  )
+}
 
 const AddIngredients = props => {
   const {
@@ -35,7 +53,6 @@ const AddIngredients = props => {
     allSelectedValues,
     formData,
     setSelectedIngredient,
-    setUomprevnew,
     uom,
     feedType,
     ingredientId,
@@ -51,8 +68,11 @@ const AddIngredients = props => {
     setReachedEnd,
     searchValue,
     setSearchValue,
-    setSort,
-    sort
+    sort,
+    onLoadMore,
+    loadingfeed,
+    feedtotalCount,
+    handleFeedSearch
   } = props
   const theme = useTheme()
   const [feed, setFeed] = React.useState('')
@@ -66,8 +86,9 @@ const AddIngredients = props => {
   const [visibility, setVisibility] = useState([])
 
   const [selectedDays, setSelectedDays] = useState([])
+  const [validationErrors, setValidationErrors] = useState([])
   const [loading, setLoading] = useState(false)
-
+  const menuRef = useRef(null)
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
 
@@ -105,10 +126,48 @@ const AddIngredients = props => {
     })
   }
 
-  const handleSidebarClose = () => {
+  const handleScrollnew = e => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target
+    const nearBottom = scrollHeight - scrollTop - clientHeight < 20
+
+    if (nearBottom && !loadingfeed) {
+      onLoadMore()
+    }
+  }
+
+  useEffect(() => {
+    const menuEl = menuRef.current?.querySelector('.MuiPaper-root')
+    if (menuEl) menuEl.addEventListener('scroll', handleScrollnew)
+
+    return () => {
+      if (menuEl) menuEl.removeEventListener('scroll', handleScrollnew)
+    }
+  }, [feedType, loadingfeed])
+
+  const handleSidebarClose = async () => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
+    // debouncedSearch('')
+    setReachedEnd(true)
+    handleFeedSearch('')
+
+    try {
+      const params = { page: 1, q: '', sort, feed_type: '', status: 1, limit: 20 }
+      const res = await getIngredientList({ params })
+      if (res?.data?.result?.length > 0) {
+        setIngredientList(res.data.result)
+        setIngredientPage(1)
+        setTotalCount(res?.data?.total_count)
+        setReachedEnd(false)
+      } else {
+        setIngredientList([])
+        setReachedEnd(false)
+      }
+    } catch (error) {
+      console.error(error)
+      setReachedEnd(false)
+    }
   }
 
   const handleChangeTopFeed = async event => {
@@ -116,6 +175,7 @@ const AddIngredients = props => {
     setFeed(event.target.value)
 
     try {
+      setLoading(true)
       const params = { page: 1, limit: 20, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
@@ -123,8 +183,10 @@ const AddIngredients = props => {
           setIngredientPage(1)
           setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
+          setLoading(false)
         } else {
           setReachedEnd(false)
+          setLoading(false)
           setIngredientList([])
         }
       })
@@ -213,6 +275,12 @@ const AddIngredients = props => {
 
     if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
+      setValidationErrors(prevErrors => {
+        if (prevErrors.includes(item.id)) {
+          return prevErrors.filter(id => id !== item.id)
+        }
+        return prevErrors
+      })
     }
   }
 
@@ -236,14 +304,18 @@ const AddIngredients = props => {
     const updatedSelectedDays = selectedDays
       .map(selectedItem => {
         if (selectedItem.cardId === cardId) {
-          let updatedDays = [...selectedItem.days] // Copy existing days
+          let updatedDays = [...selectedItem.days]
 
-          if (dayId === 0 && !updatedDays.some(day => day.dayId === 0)) {
-            // Select "All" if it's not already selected
-            updatedDays = Day.map(day => ({ dayId: day.id, dayName: day.name }))
-            // updatedDays.push({ dayId: 0, dayName: 'All' })
-          } else if (dayId !== 0) {
-            // Toggle individual day selection
+          if (dayId === 0) {
+            // Toggle All
+            const isAllCurrentlyActive = updatedDays.some(d => d.dayId === 0)
+            if (isAllCurrentlyActive) {
+              updatedDays = []
+            } else {
+              updatedDays = Day.map(day => ({ dayId: day.id, dayName: day.name }))
+            }
+          } else {
+            // Toggle specific day
             const existingIndex = updatedDays.findIndex(d => d.dayId === dayId)
             if (existingIndex === -1) {
               updatedDays.push({ dayId, dayName })
@@ -251,16 +323,17 @@ const AddIngredients = props => {
               updatedDays = updatedDays.filter(d => d.dayId !== dayId)
             }
 
-            // Check if "All" should be deselected
-            const allDayIndex = updatedDays.findIndex(d => d.dayId === 0)
-            if (allDayIndex !== -1 && dayId !== 0) {
+            // Check if "All" should be toggled
+            const allDaysButZero = Day.filter(d => d.id !== 0)
+            const activeStandardDays = updatedDays.filter(d => d.dayId !== 0)
+
+            if (activeStandardDays.length === allDaysButZero.length) {
+              if (!updatedDays.some(d => d.dayId === 0)) {
+                updatedDays.push({ dayId: 0, dayName: 'All' })
+              }
+            } else {
               updatedDays = updatedDays.filter(d => d.dayId !== 0)
             }
-          }
-
-          // Ensure at least one day remains selected if only one is currently selected
-          if (updatedDays.length === 0 && selectedItem.days.length === 1) {
-            updatedDays = selectedItem.days
           }
 
           return { cardId, days: updatedDays }
@@ -271,6 +344,13 @@ const AddIngredients = props => {
       .filter(item => item !== undefined)
 
     setSelectedDays(updatedSelectedDays)
+
+    // Remove validation error for this card if it now has at least one day selected
+    const updatedCard = updatedSelectedDays.find(c => c.cardId === cardId)
+    const activeDaysCount = updatedCard?.days.filter(d => d.dayId !== 0).length || 0
+    if (activeDaysCount > 0) {
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== cardId))
+    }
 
     if (updatedSelectedDays.length > 0) {
       handelCardSelection(event, item, null, null, null, updatedSelectedDays)
@@ -289,15 +369,13 @@ const AddIngredients = props => {
 
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
-    const remarksData = newRemarks ? newRemarks : remarks[item.id]?.remarks || ''
+    const remarksData = newRemarks !== undefined ? newRemarks : remarks[item.id]?.remarks || ''
 
     const selectedDaysForItem = selectedDays
       ?.filter(updatedDay => updatedDay.cardId === item.id)
       .flatMap(dayObj => dayObj.days.map(day => day.dayId))
 
     if (!feed_type) {
-      // toast.error('Please select a feed type.')
-
       return
     }
 
@@ -316,7 +394,7 @@ const AddIngredients = props => {
       preparation_type_id: feed_type_id,
       preparation_type: feed_type,
       days_of_week: selectedDaysForItem,
-      remarks: newRemarks ? newRemarks : remarksData,
+      remarks: remarksData,
       mealid: checkid,
       ingredient_image: item.image,
       //feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
@@ -348,9 +426,35 @@ const AddIngredients = props => {
       toast.error('Please select a Cutsize', {
         duration: 1000
       })
-    } else if (selectedCard?.length > 0) {
-      debouncedSearch('')
+      // Identify cards missing cutsize
+      const missingCutsizeCards = selectedCard.filter(card => !size[card.ingredient_id])
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        missingCutsizeCards.forEach(c => newErrors.add(c.ingredient_id))
+        return Array.from(newErrors)
+      })
+      return
+    }
+
+    const invalidIngredients = selectedCard.filter(item => {
+      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.ingredient_id)
+      const activeDays = selectedDaysForItem?.days.filter(d => d.dayId !== 0) || []
+      return activeDays.length === 0
+    })
+
+    if (invalidIngredients.length > 0) {
+      toast.error('Please select at least one feeding day for each selected item.')
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        invalidIngredients.forEach(i => newErrors.add(i.ingredient_id))
+        return Array.from(newErrors)
+      })
+      return
+    }
+
+    if (selectedCard?.length > 0) {
       handleSidebarClose()
+
       setSelectedCard(selectedCard)
       setSearchValue('')
       onChange(selectedCard)
@@ -409,12 +513,22 @@ const AddIngredients = props => {
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
     cardIds?.forEach((cardId, index) => {
-      updatedSelectedDays.push({
-        cardId: String(cardId),
-        days: days[index]?.map(dayId => ({
+      const allStandardDays = Day.filter(d => d.id !== 0)
+      const isAllSelected = allStandardDays.every(d => days[index]?.includes(d.id))
+
+      let initialDaysForCard =
+        days[index]?.map(dayId => ({
           dayId: dayId,
           dayName: Day.find(day => day.id === dayId)?.name
-        }))
+        })) || []
+
+      if (isAllSelected && !initialDaysForCard.some(d => d.dayId === 0)) {
+        initialDaysForCard.push({ dayId: 0, dayName: 'All' })
+      }
+
+      updatedSelectedDays.push({
+        cardId: String(cardId),
+        days: initialDaysForCard
       })
     })
     setSelectedDays(updatedSelectedDays)
@@ -515,10 +629,13 @@ const AddIngredients = props => {
 
         return newSize
       })
+
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
 
-  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  // let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  let sortedIngredientList = [...ingredientList]
 
   if (fromrow !== '' && fromrow === 'rowedit_ingredient') {
     sortedIngredientList = sortedIngredientList.filter(
@@ -604,49 +721,114 @@ const AddIngredients = props => {
               </Box>
               <Box sx={{ width: '184px' }}>
                 <FormControl fullWidth>
-                  <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
-                  <Select
-                    labelId='demo-simple-select-label'
-                    id='demo-simple-select'
-                    value={feed}
-                    label='Feed'
-                    onChange={handleChangeTopFeed}
-                    sx={{
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.customColors.Outline
-                      },
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '0px'
+                  <Autocomplete
+                    id='feed-autocomplete'
+                    options={feedType}
+                    getOptionLabel={option => option?.feed_type_name || ''}
+                    value={feedType.find(option => option?.id === feed) || null}
+                    onChange={(event, newValue) => {
+                      handleChangeTopFeed({ target: { value: newValue?.id || '' } })
+                    }}
+                    onInputChange={(event, newInputValue, reason) => {
+                      if (reason === 'input' || newInputValue === '') {
+                        handleFeedSearch(newInputValue)
                       }
                     }}
-                    MenuProps={{
-                      PaperProps: {
+                    renderInput={params => (
+                      <TextField
+                        {...params}
+                        label='Feed'
+                        variant='outlined'
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            '& .MuiAutocomplete-endAdornment': {
+                              right: '16px'
+                            },
+                            '& fieldset': {
+                              borderColor: theme.palette.customColors.Outline
+                            },
+                            '&:hover fieldset': {
+                              borderColor: theme.palette.customColors.Outline
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: theme.palette.primary.main
+                            }
+                          },
+                          '& .MuiInputLabel-root': {
+                            '&.Mui-focused': {
+                              color: theme.palette.primary.main
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option?.key}>
+                        <Tooltip title={option?.feed_type_name || ''} arrow placement='right'>
+                          <Box
+                            sx={{
+                              maxWidth: 200,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {option?.feed_type_name}
+                          </Box>
+                        </Tooltip>
+                      </li>
+                    )}
+                    popupIcon={
+                      feed ? (
+                        <IconButton
+                          aria-label='clear feed selection'
+                          onClick={handleClearFeed}
+                          edge='end'
+                          size='small'
+                          sx={{
+                            position: 'absolute',
+                            right: '0px',
+                            '&:hover': {
+                              backgroundColor: 'transparent'
+                            }
+                          }}
+                        >
+                          <ClearIcon />
+                        </IconButton>
+                      ) : (
+                        <KeyboardArrowDown />
+                      )
+                    }
+                    loading={loadingfeed}
+                    loadingText='Loading...'
+                    disableClearable
+                    slots={{
+                      paper: CustomPaper
+                    }}
+                    slotProps={{
+                      listbox: {
+                        onScroll: e => {
+                          const { scrollTop, scrollHeight, clientHeight } = e.target
+                          const nearBottom = scrollHeight - scrollTop - clientHeight < 20
+
+                          if (nearBottom && !loadingfeed && feedType.length < feedtotalCount) {
+                            onLoadMore()
+                          }
+                        },
                         style: {
                           maxHeight: 300
                         }
+                      },
+                      paper: {
+                        isLoading: loadingfeed,
+                        style: {
+                          width: 184
+                        }
                       }
                     }}
-                    endAdornment={
-                      feed ? (
-                        <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
-                          <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
-                            <ClearIcon />
-                          </IconButton>
-                        </InputAdornment>
-                      ) : (
-                        ''
-                      )
-                    }
-                  >
-                    {feedType?.map(feedList => (
-                      <MenuItem key={feedList?.key} value={feedList?.id}>
-                        {feedList?.feed_type_name}
-                      </MenuItem>
-                    ))}
-                  </Select>
+                  />
                 </FormControl>
               </Box>
             </Box>
@@ -665,7 +847,8 @@ const AddIngredients = props => {
 
             height: fromrow !== 'rowedit_ingredient' ? 'calc(100vh - 245px)' : '85%',
             overflowY: 'auto',
-            bgcolor: theme.palette.customColors.bodyBg
+            bgcolor: theme.palette.customColors.bodyBg,
+            pb: '100px'
           }}
           onScroll={fromrow !== 'rowedit_ingredient' ? handleScroll : undefined}
         >
@@ -683,9 +866,11 @@ const AddIngredients = props => {
                   borderRadius: '8px',
                   my: 4,
                   width: '92%',
-                  ...(selectedCard.some(card => card.ingredient_id === item.id) && {
-                    border: `2px solid ${theme.palette.primary.main}`
-                  })
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
+                    : selectedCard.some(card => card.ingredient_id === item.id)
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >
@@ -742,7 +927,7 @@ const AddIngredients = props => {
                           background: theme.palette.customColors.displaybgPrimary,
                           borderRadius: 20
                         }}
-                        src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                        src={item?.image ? item?.image : '/icons/icon_ingredient_fill.png'}
                       >
                         {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
                       </Avatar>
@@ -794,7 +979,7 @@ const AddIngredients = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Preparation Type</Typography>
+                      <Typography>Preparation Type*</Typography>
 
                       <Box sx={{ width: 200 }}>
                         <FormControl fullWidth>
@@ -814,16 +999,60 @@ const AddIngredients = props => {
                               '&:hover .MuiOutlinedInput-notchedOutline': {
                                 borderColor: theme.palette.customColors.Outline
                               },
+                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                borderColor: theme.palette.primary.main
+                              },
+                              '&.Mui-focused .MuiSelect-select': {
+                                color: theme.palette.primary.main
+                              },
                               '& .MuiOutlinedInput-root': {
                                 borderRadius: '0px'
                               }
+                            }}
+                            renderValue={selected => {
+                              const selectedUnit = item.preparation_types?.find(unit => unit.id === selected)
+                              return (
+                                <Tooltip title={selectedUnit?.label || ''}>
+                                  <span
+                                    style={{
+                                      display: 'block',
+                                      maxWidth: 150,
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap'
+                                    }}
+                                  >
+                                    {selectedUnit ? selectedUnit.label : 'Select'}
+                                  </span>
+                                </Tooltip>
+                              )
                             }}
                           >
                             <MenuItem value='' disabled>
                               Select
                             </MenuItem>
                             {item.preparation_types.map(preparationType => (
-                              <MenuItem key={preparationType.key} value={preparationType.id}>
+                              <MenuItem
+                                key={preparationType.key}
+                                value={preparationType.id}
+                                sx={{
+                                  display: 'block',
+                                  maxWidth: 200,
+                                  overflowX: 'auto',
+                                  whiteSpace: 'nowrap',
+                                  scrollbarWidth: 'thin',
+                                  '&::-webkit-scrollbar': {
+                                    height: '1px'
+                                  },
+                                  '&::-webkit-scrollbar-thumb': {
+                                    backgroundColor: theme.palette.grey[400],
+                                    borderRadius: '1px'
+                                  },
+                                  '&::-webkit-scrollbar-thumb:hover': {
+                                    backgroundColor: theme.palette.grey[600]
+                                  }
+                                }}
+                              >
                                 {preparationType.label}
                               </MenuItem>
                             ))}
@@ -851,9 +1080,9 @@ const AddIngredients = props => {
                       <>
                         <Divider mt={-2} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                          <Typography>Enter cut size</Typography>
+                          <Typography>Enter cut size*</Typography>
 
-                          <Box sx={{ pl: 5 }}>
+                          <Box sx={{ pl: 5, width: 150 }}>
                             <FormControl fullWidth>
                               <Select
                                 size='small'
@@ -874,6 +1103,12 @@ const AddIngredients = props => {
                                   '& .MuiOutlinedInput-root': {
                                     borderRadius: '0px'
                                   },
+                                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: theme.palette.primary.main
+                                  },
+                                  '&.Mui-focused .MuiSelect-select': {
+                                    color: theme.palette.primary.main
+                                  },
                                   '&.Mui-error .MuiOutlinedInput-notchedOutline': {
                                     borderColor:
                                       selectFeed[item.id]?.id !== size[item.id]?.id
@@ -886,14 +1121,60 @@ const AddIngredients = props => {
                                     style: {
                                       maxHeight: 300
                                     }
+                                  },
+                                  anchorOrigin: {
+                                    vertical: 'bottom',
+                                    horizontal: 'left'
+                                  },
+                                  transformOrigin: {
+                                    vertical: 'top',
+                                    horizontal: 'left'
                                   }
+                                }}
+                                renderValue={selected => {
+                                  const selectedUnit = uom?.find(unit => unit.id === selected)
+                                  return (
+                                    <Tooltip title={selectedUnit?.cut_size || ''}>
+                                      <span
+                                        style={{
+                                          display: 'block',
+                                          maxWidth: 150,
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap'
+                                        }}
+                                      >
+                                        {selectedUnit ? selectedUnit.cut_size : 'Select'}
+                                      </span>
+                                    </Tooltip>
+                                  )
                                 }}
                               >
                                 <MenuItem value='' disabled>
                                   Select
                                 </MenuItem>
                                 {uom?.map(unit => (
-                                  <MenuItem key={unit.id} value={unit.id}>
+                                  <MenuItem
+                                    key={unit.id}
+                                    value={unit.id}
+                                    sx={{
+                                      display: 'block',
+                                      maxWidth: 150,
+                                      overflowX: 'auto',
+                                      whiteSpace: 'nowrap',
+                                      scrollbarWidth: 'thin',
+                                      '&::-webkit-scrollbar': {
+                                        height: '2px'
+                                      },
+                                      '&::-webkit-scrollbar-thumb': {
+                                        backgroundColor: theme.palette.grey[400],
+                                        borderRadius: '1px'
+                                      },
+                                      '&::-webkit-scrollbar-thumb:hover': {
+                                        backgroundColor: theme.palette.grey[600]
+                                      }
+                                    }}
+                                  >
                                     {unit.cut_size}
                                   </MenuItem>
                                 ))}
@@ -906,7 +1187,7 @@ const AddIngredients = props => {
 
                     <Divider />
                     <Box>
-                      <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
+                      <Typography sx={{ py: 3, px: 2 }}>Feeding Days*</Typography>
 
                       <Stack
                         direction='row'
@@ -994,7 +1275,7 @@ const AddIngredients = props => {
                 {/* ) : null} */}
               </Box>
             ))
-          ) : searchValue !== '' && sortedIngredientList.length <= 0 ? (
+          ) : sortedIngredientList?.length <= 0 ? (
             <Box
               sx={{
                 display: 'flex',
@@ -1006,14 +1287,6 @@ const AddIngredients = props => {
               }}
             >
               <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-              <Box
-                sx={{
-                  color: theme.palette.customColors.statusText,
-                  fontSize: '16px'
-                }}
-              >
-                No records to show
-              </Box>
             </Box>
           ) : null}
           {!loading && reachedEnd ? (
@@ -1025,16 +1298,19 @@ const AddIngredients = props => {
 
         <Box
           sx={{
-            height: '100px',
+            height: { xs: '80px', sm: '90px', md: '100px' },
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',
             bottom: 0,
+            right: 0,
             px: 4,
             bgcolor: 'white',
+            display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            display: 'flex'
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            zIndex: 9999
           }}
         >
           {fromrow === 'rowedit_ingredient' ? (
@@ -1043,7 +1319,15 @@ const AddIngredients = props => {
             </Button>
           ) : (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD ITEM - {selectedCard?.length} SELECTED
+              {searchValue
+                ? (() => {
+                    const visibleCount = selectedCard.filter(card =>
+                      sortedIngredientList.some(item => String(item.id) === String(card.ingredient_id))
+                    ).length
+
+                    return visibleCount > 0 ? `ADD ITEM - ${visibleCount} SELECTED` : 'ADD ITEM'
+                  })()
+                : `ADD ITEM - ${selectedCard?.length} SELECTED`}
             </Button>
           )}
         </Box>

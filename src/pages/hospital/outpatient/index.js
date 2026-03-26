@@ -1,36 +1,24 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem } from '@mui/material'
-import { minWidth } from '@mui/system'
+import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem, alpha } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
-import { AuthContext } from 'src/context/AuthContext'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
+import enforceModuleAccess from 'src/components/ProtectedRoute'
+import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
-import { VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
-
-const visitTypeOptions = [
-  { value: '', label: 'All visit' },
-  { value: 'checkup', label: 'Checkup' },
-  { value: 'emergency', label: 'Emergency' },
-  { value: 'opd', label: 'OPD' }
-]
-
-const getVisitTypeLabel = title => {
-  if (title === 'checkup') return 'Check up'
-  if (title === 'emergency') return 'Emergency'
-  if (title === 'follow_up') return 'Follow-up'
-  if (title === 'outpatient') return 'OUTPATIENT'
-  if (title === 'opd') return 'OUTPATIENT'
-}
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalOutPatient = () => {
   const theme = useTheme()
@@ -38,16 +26,32 @@ const HospitalOutPatient = () => {
 
   const { selectedHospital } = useHospital()
 
-  const authData = useContext(AuthContext)
-
   const [searchValue, setSearchValue] = useState('')
   const [selectedVisitType, setSelectedVisitType] = useState('')
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [filterCount, setFilterCount] = useState(0)
+  const [filterDate, setFilterDate] = useState({})
+  const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const [sortModel, setSortModel] = useState([])
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    'Chief Veterinarian': [],
+    'Origin Site': []
+  })
 
   const [filters, setFilters] = useState({
     page: 1,
     limit: 50,
     q: ''
   })
+
+  const applyFilters = selectedOptions => {
+    setSelectedOptions(selectedOptions)
+    setFilters(prev => ({ ...prev, page: 1 }))
+    setOpenFilterDrawer(false)
+  }
 
   useEffect(() => {
     const { page = '1', limit = '50', q = '' } = router.query
@@ -61,27 +65,51 @@ const HospitalOutPatient = () => {
     setSearchValue(q)
   }, [router.query])
 
-  const { data, isFetching, refetch } = useQuery({
-    queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id],
-    queryFn: () =>
-      getIncomingPatients({
+  const prepareFilterParams = key => {
+    return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
+  }
+
+  const formatDate = dateString => {
+    if (!dateString) return null
+
+    return new Date(dateString).toISOString().split('T')[0]
+  }
+
+  const fetchOutPatients = async () => {
+    if (!selectedHospital?.id) return
+
+    try {
+      setLoading(true)
+
+      const activeSortModel = sortModel[0]
+      const sortParam = activeSortModel ? JSON.stringify({ [activeSortModel.field]: activeSortModel.sort }) : undefined
+
+      const res = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
-        search: filters?.q,
+        q: filters?.q,
         hospital_id: selectedHospital?.id,
-        status: 'opd',
         visit_type: selectedVisitType,
-        visit_category: 'outpatient',
-        patient_category: 'outpatient'
+        patient_category: 'outpatient',
+        from_date: formatDate(filterDate.startDate),
+        to_date: formatDate(filterDate.endDate),
+        users: prepareFilterParams('Chief Veterinarian'),
+        origin_site: prepareFilterParams('Origin Site'),
+        sort: sortParam
       })
-  })
 
-  const total = data?.data?.total || 0
-  const rows = data?.data?.records || []
+      setRows(res?.data?.records || [])
+      setTotal(res?.data?.total || 0)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    refetch()
-  }, [refetch])
+    fetchOutPatients()
+  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions, sortModel])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -124,6 +152,26 @@ const HospitalOutPatient = () => {
     },
     [debouncedSearch]
   )
+
+  const handleSearchClear = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
+  const handleSortModel = model => {
+    setSortModel(model)
+    setFilters(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleDateChange = (start, end) => {
+    setFilterDate({ startDate: start, endDate: end })
+    setFilters(prev => ({ ...prev, page: 1 }))
+  }
+
+  const handleVisitTypeChange = e => {
+    setSelectedVisitType(e.target.value)
+    setFilters(prev => ({ ...prev, page: 1 }))
+  }
 
   const getSlNo = index => (filters.page - 1) * filters.limit + index + 1
 
@@ -172,50 +220,109 @@ const HospitalOutPatient = () => {
       )
     },
     {
-      width: 250,
+      width: 180,
+      minWidth: 120,
+      field: 'health_status',
+      sortable: true,
+      headerName: 'HEALTH STATUS',
+      renderCell: params => {
+        const status = params.row.health_status || 'stable'
+        const isCritical = status === 'critical'
+        const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1)
+
+        return (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+
+            }}
+          >
+            <Box sx={{
+              width: '20px',
+              height: '20px',
+              borderRadius: '50%',
+              backgroundColor: isCritical ? alpha(theme.palette.error.main, 0.2) : theme.palette.customColors.OnBackground,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <Box sx={{
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                backgroundColor: isCritical ? theme.palette.customColors.Tertiary : theme.palette.primary.main
+              }}>
+
+              </Box>
+            </Box>
+            <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+
+              {capitalizedStatus}
+            </Typography>
+          </Box>
+        )
+      }
+    },
+    {
+      width: 180,
+      minWidth: 120,
+      field: 'case_code',
+      sortable: false,
+      headerName: 'CASE ID',
+      renderCell: params => (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+          }}
+        >
+          {params.row.case_code || 'N/A'}
+        </Typography>
+      )
+    },
+    {
+      width: 300,
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
       headerName: 'Purpose of Visit',
       renderCell: params => (
         <>
-          <Tooltip title={params.row.purpose_of_visit}>
-            <Typography
-              variant='body2'
-              sx={{
-                fontSize: '14px',
-                fontWeight: 400,
-                fontFamily: 'Inter',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                display: '-webkit-box',
-                WebkitLineClamp: 4,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'normal',
-                py: 4
-              }}
-            >
-              <>{params.row.purpose_of_visit || ''}</>
-            </Typography>
-          </Tooltip>
-        </>
-      )
-    },
-    {
-      width: 150,
-      minWidth: 20,
-      field: 'medical_record_code',
-      sortable: false,
-      headerName: 'Medical Id',
-      align: 'left',
-      headerAlign: 'left',
-
-      renderCell: params => (
-        <>
-          <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.medical_record_code}
-          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
+              <VisitType title={params.row.visit_type} />
+              {params?.row?.medical_record_code && (
+                <MedicalIdChip
+                  medId={params?.row?.medical_record_code}
+                  backgroundColor={theme.palette.customColors.mdAntzNeutral}
+                />
+              )}
+            </Box>
+            {params.row.purpose_of_visit && (
+              <Tooltip title={params.row.purpose_of_visit} arrow>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    fontFamily: 'Inter',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 5,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'normal'
+                  }}
+                >
+                  <>{params.row.purpose_of_visit || ''}</>
+                </Typography>
+              </Tooltip>
+            )}
+          </Box>
         </>
       )
     },
@@ -223,7 +330,7 @@ const HospitalOutPatient = () => {
       width: 200,
       minWidth: 20,
       field: 'admitted_at',
-      sortable: false,
+      sortable: true,
       headerName: 'OPD Visit Date',
       align: 'left',
       headerAlign: 'left',
@@ -248,25 +355,15 @@ const HospitalOutPatient = () => {
     {
       width: 180,
       minWidth: 20,
-      field: 'duration',
+      field: 'total_admitted_days',
       sortable: false,
       headerName: 'duration',
       align: 'left',
       headerAlign: 'left',
-
       renderCell: params => {
-        const admittedAt = params?.row?.admitted_at
-        let days = '-'
-
-        if (admittedAt) {
-          const admittedDate = new Date(admittedAt)
-          const today = new Date()
-          days = differenceInDays(today, admittedDate)
-        }
-
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {days} {days !== '-' ? 'days' : ''}
+            {params?.row?.total_admitted_days}
           </Typography>
         )
       }
@@ -274,25 +371,13 @@ const HospitalOutPatient = () => {
     {
       width: 200,
       minWidth: 20,
-      field: 'visit_type',
-      sortable: false,
-      headerName: 'Visit Type',
-      renderCell: params => (
-        <>
-          <VisitType title={getVisitTypeLabel(params.row.visit_type)} />
-        </>
-      )
-    },
-    {
-      width: 200,
-      minWidth: 20,
-      field: 'holding_enclosure_name',
+      field: 'bed_name',
       sortable: false,
       headerName: 'Location',
       renderCell: params => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {params?.row?.holding_enclosure_name ? params?.row?.holding_enclosure_name : '-'}
+            {params?.row?.bed_name || params?.row?.room_name ? `${params?.row?.bed_name}, ${params?.row?.room_name}` : '-'}
           </Typography>
         </>
       )
@@ -315,12 +400,13 @@ const HospitalOutPatient = () => {
 
   const handleRowClick = params =>
     router.push({
-      pathname: `/hospital/inpatient/${params.row.id}`
+      pathname: `/hospital/outpatient/${params.row?.id}`,
+      query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
     })
 
   const headerAction = (
     <>
-      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/add-patient` })}>
+      <Button variant='contained' onClick={() => router.push({ pathname: `/hospital/outpatient/add-outpatient` })}>
         ADD PATIENT
       </Button>
     </>
@@ -329,16 +415,23 @@ const HospitalOutPatient = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>outpatient</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Outpatient' }]}
+        />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle('Outpatients')} action={headerAction} />
-            <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-between' }}>
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexDirection: { xs: 'column', lg: 'row' },
+                gap: 4
+              }}
+            >
               <Box sx={{ ml: 2 }}>
                 <Search
                   borderRadius='4px'
@@ -346,14 +439,19 @@ const HospitalOutPatient = () => {
                   placeholder='Search by medical Id or animal id'
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
+                  onClear={handleSearchClear}
                 />
               </Box>
-              <Box sx={{ mr: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+                <CommonDateRangePickers
+                  filterDates={filterDate}
+                  onChange={handleDateChange}
+                />
                 <Select
                   size='small'
                   value={selectedVisitType}
                   displayEmpty
-                  onChange={e => setSelectedVisitType(e.target.value)}
+                  onChange={handleVisitTypeChange}
                 >
                   {visitTypeOptions?.map((item, index) => (
                     <MenuItem key={index} value={item?.value}>
@@ -361,21 +459,25 @@ const HospitalOutPatient = () => {
                     </MenuItem>
                   ))}
                 </Select>
-                <Box></Box>
+                <FilterButtonWithNotification
+                  onClick={() => setOpenFilterDrawer(true)}
+                  appliedFiltersCount={filterCount}
+                />
               </Box>
             </Box>
             <Grid
               sx={{
-                mx: { xs: 3, md: 5 }
+                mx: { xs: 5 }
               }}
             >
               <CommonTable
                 columns={columns}
                 indexedRows={indexedRows}
                 total={total}
-                loading={isFetching}
+                loading={loading}
                 paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                 setPaginationModel={handlePaginationModelChange}
+                handleSortModel={handleSortModel}
                 searchValue=''
                 getRowHeight={() => 'auto'}
                 onRowClick={handleRowClick}
@@ -389,8 +491,18 @@ const HospitalOutPatient = () => {
           </Card>
         </Box>
       </Box>
+      {openFilterDrawer && (
+        <InpatientFilterDrawer
+          open={openFilterDrawer}
+          onClose={() => setOpenFilterDrawer(false)}
+          onApplyFilters={applyFilters}
+          setFilterCount={setFilterCount}
+          initialSelectedOptions={selectedOptions}
+          hospitalId={selectedHospital?.id}
+        />
+      )}
     </>
   )
 }
 
-export default HospitalOutPatient
+export default enforceModuleAccess(HospitalOutPatient, 'add_hospital')

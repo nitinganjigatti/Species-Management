@@ -120,7 +120,8 @@ const FilterSheet = ({
       // ✅ Add only filtered IDs to current selection (merge with previous)
       setDraftSelectedOptions(prev => {
         const current = prev[activeCategory] || []
-        return {
+        
+return {
           ...prev,
           [activeCategory]: Array.from(new Set([...current, ...filteredIds]))
         }
@@ -130,7 +131,8 @@ const FilterSheet = ({
       setDraftSelectedOptions(prev => {
         const current = prev[activeCategory] || []
         const updated = current.filter(id => !filteredIds.includes(id))
-        return {
+        
+return {
           ...prev,
           [activeCategory]: updated
         }

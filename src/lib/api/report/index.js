@@ -9,7 +9,8 @@ import {
   MEDICAL_REPORT,
   SPECIES_FILTER,
   ASSESSMENT_REPORT,
-  GET_UPCOMING_VACCINATION_RECORDS
+  GET_UPCOMING_VACCINATION_RECORDS,
+  ASSESSMENT_RESPONSE_TYPE
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -124,6 +125,12 @@ export async function getAssessmentTypesList(params) {
   return response.data
 }
 
+export async function getAssessmentResponseType(params) {
+  const response = await axiosGet({ url: `${ASSESSMENT_RESPONSE_TYPE}`, params })
+
+  return response.data
+}
+
 export async function getDailyFoodWastageReport(params) {
   const response = await axiosGet({ url: `v1/food/wastage/report`, params })
 
@@ -139,6 +146,7 @@ export async function getDailyFoodWastageReport(params) {
 //   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
 //   return response.data
 // }
+
 export async function getUpcomingVaccinationRecords(params) {
   const response = await axiosGet({ url: `${GET_UPCOMING_VACCINATION_RECORDS}`, params })
 

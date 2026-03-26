@@ -316,7 +316,7 @@ const StepPreviewDiet = ({
         setdiettypechildvalues(parsedValue)
         setDietTypes(newarr)
       } else {
-        console.error('Cookie "dietTypeChildValues" not found')
+        return
       }
     }
   }, [activitySidebarOpen, id])
@@ -1170,32 +1170,25 @@ const StepPreviewDiet = ({
                             >
                               <Typography>GENERIC</Typography>
                             </TableCell>
-                            <TableCell
-                              // colSpan={12}
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '141px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>FEMALE </Typography>
-                            </TableCell>
-                            <TableCell
-                              colSpan={8}
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '141px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>MALE</Typography>
-                            </TableCell>
+
+                            {formData.child?.map((all, index) => {
+                              return (
+                                <TableCell
+                                  colSpan={5}
+                                  key={index}
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '140px',
+                                    borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  <Typography>{all}</Typography>
+                                </TableCell>
+                              )
+                            })}
                           </>
                         ) : formData.diet_type_name === 'By Lifestage' ? (
                           <>
@@ -1213,67 +1206,25 @@ const StepPreviewDiet = ({
                               <Typography>GENERIC</Typography>
                             </TableCell>
 
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '140px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Juvenile </Typography>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '140px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Young</Typography>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '140px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Adult</Typography>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '157px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Undetermined</Typography>
-                            </TableCell>
-                            <TableCell
-                              // colSpan={12}
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '127px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Old</Typography>
-                            </TableCell>
+                            {formData.child?.map((all, index) => {
+                              return (
+                                <TableCell
+                                  colSpan={5}
+                                  key={index}
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '140px',
+                                    borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                    textAlign: 'center',
+                                    p: all === 'Undetermined' ? '6px' : '16px'
+                                  }}
+                                >
+                                  <Typography>{all}</Typography>
+                                </TableCell>
+                              )
+                            })}
                           </>
                         ) : formData.diet_type_name === 'Generic' ? (
                           <>
@@ -1840,6 +1791,7 @@ const StepPreviewDiet = ({
 
                                                           return meal.quantity + (uomName ? ' ' + uomName : '')
                                                         }
+
                                                         return null
                                                       })
                                                       .filter(Boolean)
@@ -1854,7 +1806,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -1968,6 +1925,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -1989,6 +1947,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2010,6 +1969,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2031,6 +1991,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2451,7 +2412,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -2565,6 +2531,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2586,6 +2553,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2607,6 +2575,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2628,6 +2597,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3008,7 +2978,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3122,6 +3097,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3143,6 +3119,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3164,6 +3141,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3185,6 +3163,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3329,6 +3308,9 @@ const StepPreviewDiet = ({
                                                         }}
                                                       >
                                                         {item?.ingredient_name}
+                                                        <span style={{ lineHeight: '18px', fontWeight: 400 }}>
+                                                          {' |'}&nbsp;
+                                                        </span>
                                                       </Typography>
 
                                                       {item?.master_cut_size ? (
@@ -3340,8 +3322,8 @@ const StepPreviewDiet = ({
                                                             color: theme.palette.secondary.dark
                                                           }}
                                                         >
-                                                          &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
-                                                          {item?.master_cut_size}
+                                                          {' '}
+                                                          {item?.preparation_type} | {item?.master_cut_size}
                                                         </Typography>
                                                       ) : (
                                                         <Typography
@@ -3352,7 +3334,7 @@ const StepPreviewDiet = ({
                                                             color: theme.palette.secondary.dark
                                                           }}
                                                         >
-                                                          &nbsp;-&nbsp; {item?.preparation_type}
+                                                          {item?.preparation_type}
                                                         </Typography>
                                                       )}
                                                     </Box>
@@ -3528,7 +3510,12 @@ const StepPreviewDiet = ({
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3643,6 +3630,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3664,6 +3652,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3685,6 +3674,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3706,6 +3696,7 @@ const StepPreviewDiet = ({
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )

@@ -1,204 +1,173 @@
-import { Drawer, IconButton, Typography, TextField } from '@mui/material'
-import { Box } from '@mui/system'
+import { useState, useMemo, useEffect, useCallback } from 'react'
+import { Drawer, IconButton, Typography, TextField, CircularProgress } from '@mui/material'
+import { alpha, Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { useEffect, useState, useMemo } from 'react'
 import { LoadingButton } from '@mui/lab'
 import EditTemplateForm from '../../../../components/hospital/inpatient/EditTemplateForm'
 import SurgeryTemplateCard from './SurgeryTemplateCard'
+import Toaster from 'src/components/Toaster'
+import { deleteTemplate, updateTemplate } from 'src/lib/api/hospital/surgeryMaster'
 
-// Sample template data
-const sampleTemplates = [
-  {
-    id: 1,
-    title: 'Ovariohysterectomy',
-    description:
-      'Appendectomy was performed via a right lower abdominal approach under general anesthesia. The patient was positioned supine and prepped with standard sterile technique.',
-    category: 'Surgery'
-  },
-  {
-    id: 2,
-    title: 'Appendectomy',
-    description:
-      'Standard appendectomy procedure with laparoscopic approach. Patient was placed under general anesthesia.',
-    category: 'Surgery'
-  },
-  {
-    id: 3,
-    title: 'Dental Cleaning',
-    description: 'Comprehensive dental cleaning and examination. Scaling and polishing performed under sedation.',
-    category: 'Dental'
-  },
-  {
-    id: 4,
-    title: 'Vaccination',
-    description: 'Annual vaccination protocol including core vaccines and additional recommended vaccines.',
-    category: 'Preventive'
-  },
-  {
-    id: 5,
-    title: 'Blood Test',
-    description: 'Complete blood count and comprehensive metabolic panel for routine health assessment.',
-    category: 'Diagnostic'
-  },
-  {
-    id: 6,
-    title: 'X-Ray Examination',
-    description: 'Radiographic examination of chest and abdomen for diagnostic purposes.',
-    category: 'Diagnostic'
-  },
-  {
-    id: 7,
-    title: 'Suture Removal',
-    description: 'Removal of surgical sutures and wound assessment for proper healing.',
-    category: 'Post-operative'
-  },
-  {
-    id: 8,
-    title: 'Bandage Change',
-    description: 'Regular bandage change and wound dressing for optimal healing conditions.',
-    category: 'Post-operative'
-  },
-  {
-    id: 9,
-    title: 'Medication Review',
-    description: 'Comprehensive review of current medications and dosage adjustments if needed.',
-    category: 'Medical'
-  },
-  {
-    id: 10,
-    title: 'Physical Examination',
-    description: 'Complete physical examination including vital signs and general health assessment.',
-    category: 'Medical'
-  },
-  {
-    id: 11,
-    title: 'Microchip Implantation',
-    description: 'Subcutaneous microchip implantation for pet identification and tracking.',
-    category: 'Identification'
-  },
-  {
-    id: 12,
-    title: 'Neutering',
-    description: 'Surgical neutering procedure with pre-operative assessment and post-operative care.',
-    category: 'Surgery'
-  },
-  {
-    id: 13,
-    title: 'Ear Cleaning',
-    description: 'Professional ear cleaning and examination for ear health maintenance.',
-    category: 'Grooming'
-  },
-  {
-    id: 14,
-    title: 'Nail Trimming',
-    description: 'Professional nail trimming and paw care for optimal comfort and health.',
-    category: 'Grooming'
-  },
-  {
-    id: 15,
-    title: 'Parasite Treatment',
-    description: 'Comprehensive parasite treatment including flea, tick, and worm prevention.',
-    category: 'Preventive'
-  },
-  {
-    id: 16,
-    title: 'Emergency Stabilization',
-    description: 'Emergency medical stabilization and critical care treatment protocol.',
-    category: 'Emergency'
-  },
-  {
-    id: 17,
-    title: 'Fluid Therapy',
-    description: 'Intravenous fluid therapy for hydration and electrolyte balance restoration.',
-    category: 'Treatment'
-  },
-  {
-    id: 18,
-    title: 'Wound Management',
-    description: 'Comprehensive wound management including cleaning, debridement, and dressing.',
-    category: 'Treatment'
-  },
-  {
-    id: 19,
-    title: 'Behavioral Assessment',
-    description: 'Comprehensive behavioral assessment and consultation for behavioral issues.',
-    category: 'Behavioral'
-  },
-  {
-    id: 20,
-    title: 'Nutritional Consultation',
-    description:
-      'Dietary assessment and nutritional consultation for optimal health and weightDietary assessment and nutritional consultation for optimal health and weightDietary assessment and nutritional consultation for optimal health and weight management.',
-    category: 'Nutrition'
-  }
-]
-
-const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTemplateDrawer }) => {
+const SurgeryRecordTemplateList = ({
+  openSurgeryTemplateDrawer,
+  setOpenSurgeryTemplateDrawer,
+  templates = [],
+  loading = false,
+  onApplyTemplate = () => {},
+  onTemplatesUpdated = () => {} //refetch templates after update/delete
+}) => {
   const theme = useTheme()
   const [searchValue, setSearchValue] = useState('')
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [openEditPopup, setOpenEditPopup] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState(null)
+  const [actionLoading, setActionLoading] = useState(false)
+  const [deletingTemplateId, setDeletingTemplateId] = useState(null)
 
   // Filter templates based on search
   const filteredTemplates = useMemo(() => {
-    if (!searchValue.trim()) return sampleTemplates
+    const list = Array.isArray(templates) ? templates : []
 
-    return sampleTemplates.filter(
-      template =>
-        template.title.toLowerCase().includes(searchValue.toLowerCase()) ||
-        template.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-        template.category.toLowerCase().includes(searchValue.toLowerCase())
-    )
-  }, [searchValue])
+    if (!searchValue.trim()) return list
 
-  // Handle template selection
+    const value = searchValue.toLowerCase()
+
+    return list.filter(template => {
+      const title = template?.title?.toLowerCase() || ''
+      const description = template?.description?.toLowerCase() || ''
+      const category = template?.category?.toLowerCase() || ''
+
+      return title.includes(value) || description.includes(value) || category.includes(value)
+    })
+  }, [searchValue, templates])
+
+  // Keep selectedTemplate in sync with list
+  useEffect(() => {
+    if (!selectedTemplate) return
+
+    const list = Array.isArray(templates) ? templates : []
+    const match = list.find(template => template.id === selectedTemplate.id)
+
+    if (!match) {
+      setSelectedTemplate(null)
+
+      return
+    }
+
+    if (match !== selectedTemplate) {
+      setSelectedTemplate(match)
+    }
+  }, [templates, selectedTemplate])
+
+  // Handle template selection (card click)
   const handleTemplateSelect = template => {
-    setSelectedTemplate(selectedTemplate?.id === template.id ? null : template)
+    setSelectedTemplate(prev => (prev?.id === template.id ? null : template))
   }
 
-  // Handle apply template
+  // Apply template into editor
   const handleApplyTemplate = () => {
     if (selectedTemplate) {
-      console.log('Applied template:', selectedTemplate)
-
-      // Add your logic here to apply the template
+      onApplyTemplate(selectedTemplate)
       setOpenSurgeryTemplateDrawer(false)
     }
   }
 
-  // Handle edit template
-  const handleEditTemplate = () => {
-    if (selectedTemplate) {
-      setEditingTemplate(selectedTemplate)
-      setOpenEditPopup(true)
-    }
+  // Handle edit template close
+  const handleEditTemplateClose = () => {
+    setOpenSurgeryTemplateDrawer(false)
   }
 
-  // Handle edit template from pencil button
-  const handleEditTemplateFromPencil = template => {
+  // Handle edit template open
+  const handleEditTemplateOpen = template => {
     setEditingTemplate(template)
     setOpenEditPopup(true)
   }
 
-  // Handle update template
-  const handleUpdateTemplate = formData => {
-    console.log('Updating template:', formData)
+  // Handle form update template
+  const handleUpdateTemplate = useCallback(
+    async formData => {
+      if (!editingTemplate?.id) {
+        Toaster({ type: 'error', message: 'Template not found for update' })
 
-    // Add your API call here to update the template
-    setOpenEditPopup(false)
-    setEditingTemplate(null)
-  }
+        return
+      }
+
+      try {
+        setActionLoading(true)
+
+        const payload = { id: editingTemplate.id, template_name: formData.name, description: formData.description }
+
+        const response = await updateTemplate(payload)
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: response?.message || 'Template updated successfully' })
+
+          // await onTemplatesUpdated?.()
+          await Promise.resolve(onTemplatesUpdated?.())
+
+          setOpenEditPopup(false)
+          setEditingTemplate(null)
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to update template' })
+        }
+      } catch (error) {
+        console.error('Error updating template:', error?.message)
+        Toaster({
+          type: 'error',
+          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+        })
+      } finally {
+        setActionLoading(false)
+      }
+    },
+    [editingTemplate, onTemplatesUpdated]
+  )
 
   // Handle delete template
-  const handleDeleteTemplate = templateId => {
-    console.log('Deleting template:', templateId)
+  const handleDeleteTemplate = useCallback(
+    async templateId => {
+      if (!templateId) {
+        Toaster({ type: 'error', message: 'Template not found for delete' })
 
-    // Add your API call here to delete the template
-    setOpenEditPopup(false)
-    setEditingTemplate(null)
-  }
+        return
+      }
+
+      try {
+        setActionLoading(true)
+        setDeletingTemplateId(templateId)
+        const response = await deleteTemplate({ id: templateId })
+
+        if (response?.success) {
+          Toaster({ type: 'success', message: response?.message || 'Template deleted successfully' })
+
+          // If the deleted one was selected or being edited, clear them
+          if (selectedTemplate?.id === templateId) {
+            setSelectedTemplate(null)
+          }
+          if (editingTemplate?.id === templateId) {
+            setEditingTemplate(null)
+            setOpenEditPopup(false)
+          }
+
+          // Refresh list in parent
+          await Promise.resolve(onTemplatesUpdated?.())
+        } else {
+          Toaster({ type: 'error', message: response?.message || 'Failed to delete template' })
+        }
+      } catch (error) {
+        console.error('Delete template error:', error?.response?.data?.message || error?.message || error)
+        Toaster({
+          type: 'error',
+          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+        })
+      } finally {
+        setActionLoading(false)
+        setDeletingTemplateId(null)
+      }
+    },
+    [editingTemplate, onTemplatesUpdated, selectedTemplate]
+  )
 
   return (
     <Drawer
@@ -206,78 +175,77 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
       open={openSurgeryTemplateDrawer}
       ModalProps={{ keepMounted: true }}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        '& .MuiDrawer-paper': { width: ['100%', '562px'] },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        gap: '24px',
-
-        backgroundColor: 'background.default'
+        gap: '24px'
       }}
     >
       <Box
-        className='sidebar-header'
         sx={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-
-          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          flexDirection: 'column',
+          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center', maxHight: '80px' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            All Templates - 12
-          </Typography>
-        </Box>
-        <IconButton size='small' onClick={() => setOpenSurgeryTemplateDrawer(false)}>
-          <Icon color={theme.palette.primary.light} icon='mdi:close' fontSize={24} />
-        </IconButton>
-      </Box>
-      <Box
-        sx={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 10,
-          mt: '12px',
-          mb: '24px',
-          px: '24px'
-        }}
-      >
-        <TextField
-          fullWidth
-          placeholder='Search'
-          value={searchValue}
-          onChange={e => setSearchValue(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <Icon
-                icon='mdi:magnify'
-                fontSize={20}
-                style={{ marginRight: 8, color: theme.palette.customColors.OnSurfaceVariant }}
-              />
-            )
-          }}
+        <Box
+          className='sidebar-header'
           sx={{
-            '& .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
-              borderColor: theme.palette.customColors.OutlineVariant,
-              borderRadius: '4px'
-            }
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 6
           }}
-        />
+        >
+          <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+            <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
+            <Typography
+              sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+            >
+              All Templates - {templates?.length || 0}
+            </Typography>
+          </Box>
+          <IconButton size='small' onClick={handleEditTemplateClose}>
+            <Icon color={theme.palette.primary.light} icon='mdi:close' fontSize={24} />
+          </IconButton>
+        </Box>
+        <Box sx={{ padding: '0 24px 24px 24px' }}>
+          <TextField
+            fullWidth
+            placeholder='Search'
+            value={searchValue}
+            onChange={e => setSearchValue(e.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <Icon
+                    icon='mdi:magnify'
+                    fontSize={24}
+                    style={{ marginRight: 8, color: theme.palette.customColors.OnSurfaceVariant }}
+                  />
+                )
+              }
+            }}
+            sx={{
+              '& .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
+                borderColor: theme.palette.customColors.Outline,
+                borderRadius: '4px'
+              }
+            }}
+          />
+        </Box>
       </Box>
 
       <Box
         sx={{
-          p: '24px',
-          backgroundColor: 'background.default',
+          p: 6,
+          backgroundColor: theme.palette.background.default,
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px',
-          overflow: 'hidden',
-          borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          gap: 4,
+          overflow: 'hidden'
         }}
       >
         {/* Scrollable Template List */}
@@ -288,24 +256,43 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
               overflow: 'auto',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
+              gap: 4,
               paddingBottom: '80px'
             }}
           >
-            {filteredTemplates.map(template => (
-              <SurgeryTemplateCard
-                key={template.id}
-                template={template}
-                selectedTemplate={selectedTemplate}
-                onSelect={handleTemplateSelect}
-                onEdit={handleEditTemplateFromPencil}
-                onDelete={template => console.log('Delete template:', template)}
-              />
-            ))}
+            {loading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
+                <CircularProgress size={32} />
+              </Box>
+            ) : filteredTemplates?.length > 0 ? (
+              filteredTemplates?.map(template => (
+                <SurgeryTemplateCard
+                  key={template.id}
+                  template={template}
+                  selectedTemplate={selectedTemplate}
+                  onSelect={handleTemplateSelect}
+                  onEdit={handleEditTemplateOpen}
+                  onDelete={() => handleDeleteTemplate(template.id)}
+                  disabled={actionLoading}
+                  isDeleting={deletingTemplateId === template.id}
+                />
+              ))
+            ) : (
+              <Typography
+                sx={{
+                  textAlign: 'center',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  mt: 6
+                }}
+              >
+                No templates found.
+              </Typography>
+            )}
           </Box>
         </Box>
       </Box>
 
+      {/* Footer buttons */}
       <Box
         sx={{
           height: '88px',
@@ -319,32 +306,38 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
           justifyContent: 'center',
           gap: 5,
           display: 'flex',
-          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
           zIndex: 123
         }}
       >
         <LoadingButton
           variant='outlined'
           size='large'
-          disabled={!selectedTemplate}
-          onClick={handleEditTemplate}
+          disabled={loading || actionLoading}
+          onClick={() => {
+            if (selectedTemplate) {
+              handleEditTemplateOpen(selectedTemplate)
+            } else {
+              handleEditTemplateClose()
+            }
+          }}
           sx={{
             flex: 1,
             height: '56px',
-            borderColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
-            color: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
+            borderColor: theme.palette.customColors.OutlineVariant,
+            color: theme.palette.customColors.neutralSecondary,
             '&:hover': {
-              borderColor: selectedTemplate ? theme.palette.primary.main : theme.palette.customColors.Outline,
-              backgroundColor: selectedTemplate ? 'rgba(25, 118, 210, 0.04)' : 'transparent'
+              borderColor: theme.palette.customColors.neutralSecondary,
+              backgroundColor: theme.palette.customColors.mdAntzNeutral
             }
           }}
         >
-          EDIT
+          {selectedTemplate ? 'Edit' : 'Close'}
         </LoadingButton>
         <LoadingButton
           variant='contained'
           size='large'
-          disabled={!selectedTemplate}
+          disabled={loading || actionLoading || !selectedTemplate}
           onClick={handleApplyTemplate}
           sx={{
             flex: 1,
@@ -370,7 +363,7 @@ const SurgeryRecordTemplateList = ({ openSurgeryTemplateDrawer, setOpenSurgeryTe
         template={editingTemplate}
         onUpdate={handleUpdateTemplate}
         onDelete={handleDeleteTemplate}
-        loading={false}
+        loading={actionLoading}
       />
     </Drawer>
   )

@@ -47,7 +47,8 @@ import Utility from 'src/utility'
 
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
-import { write, read } from 'src/lib/windows/utils'
+
+const ALL_NURSERY_OPTION = { nursery_id: '', nursery_name: 'All' }
 
 const EggList = () => {
   const theme = useTheme()
@@ -114,8 +115,8 @@ const EggList = () => {
 
   // nursery filter dropdown
   const [nurseryLoading, setNurseryLoading] = useState(false)
-  const [nurseryList, setNurseryList] = useState([])
-  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [nurseryList, setNurseryList] = useState([ALL_NURSERY_OPTION])
+  const [defaultNursery, setDefaultNursery] = useState(ALL_NURSERY_OPTION)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
 
   useEffect(() => {
@@ -1107,7 +1108,11 @@ const EggList = () => {
               <span style={{ color: theme.palette.success.main }}>
                 {!isNaN(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)) &&
                 calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0'
-                  ? `${calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%`
+                  ? `${parseFloat(
+                      parseFloat(
+                        calculatePercentageChange(params.row.initial_weight, params.row.current_weight)
+                      ).toFixed(3)
+                    )}%`
                   : ''}
               </span>
             </>
@@ -1138,7 +1143,12 @@ const EggList = () => {
                         : theme.palette.formContent.tertiary
                   }}
                 >
-                  {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+                  {parseFloat(
+                    parseFloat(calculatePercentageChange(params.row.initial_weight, params.row.current_weight)).toFixed(
+                      3
+                    )
+                  )}
+                  %
                 </span>
               )}
           </Typography>
@@ -1160,7 +1170,7 @@ const EggList = () => {
             lineHeight: '19.36px'
           }}
         >
-          {params.row.initial_length ? params.row.initial_length : '-'}
+          {params.row.initial_length ? parseFloat(parseFloat(params.row.initial_length).toFixed(3)) : '-'}
         </Typography>
       )
     },
@@ -2206,54 +2216,41 @@ const EggList = () => {
     [fetchTableData, selectedFiltersOptions, filterByNurseryId] // <== important for latest values
   )
 
-  const NurseryList = async q => {
+  const fetchNurseryOptions = useCallback(async (query = '') => {
     setNurseryLoading(true)
     try {
       const params = {
-        search: q,
+        search: query,
         page: 1,
         limit: 50
       }
-      await GetNurseryList({ params }).then(res => {
-        const apiList = res?.data?.result || []
+      const res = await GetNurseryList({ params })
+      const apiList = res?.data?.result || []
+      const sanitizedList = apiList.filter(option => option?.nursery_id !== '')
 
-        // Add the "All" option
-        const allOption = { nursery_id: '', nursery_name: 'All' }
-        const updatedList = [allOption, ...apiList]
-        setNurseryList(updatedList)
-      })
-    } catch (e) {
-      console.error(e)
+      setNurseryList([ALL_NURSERY_OPTION, ...sanitizedList])
+    } catch (error) {
+      console.error(error)
     } finally {
       setNurseryLoading(false)
     }
-  }
-
-  const readNursery = async () => {
-    const storedNursery = read('Nursery')
-    const parsedNursery = await JSON.parse(storedNursery)
-    if (parsedNursery) {
-      setDefaultNursery(parsedNursery)
-      setFilterByNurseryId(parsedNursery?.nursery_id)
-    } else {
-      setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
-      setFilterByNurseryId(parsedNursery?.nursery_id)
-    }
-  }
-
-  useEffect(() => {
-    readNursery()
-    NurseryList()
   }, [])
 
-  // 👇 debounce the function just once using useMemo
-  const debouncedSetFilterByNurseryId = useMemo(
+  const debouncedFetchNurseryOptions = useMemo(
     () =>
       debounce(value => {
-        NurseryList(value)
+        fetchNurseryOptions(value)
       }, 400),
-    []
+    [fetchNurseryOptions]
   )
+
+  useEffect(() => {
+    fetchNurseryOptions('')
+
+    return () => {
+      debouncedFetchNurseryOptions.clear()
+    }
+  }, [fetchNurseryOptions, debouncedFetchNurseryOptions])
 
   const headerAction = (
     <>
@@ -2268,25 +2265,26 @@ const EggList = () => {
           disablePortal
           id='nursery'
           onInputChange={(event, newInputValue, reason) => {
-            if (reason === 'reset') {
-              debouncedSetFilterByNurseryId(newInputValue)
+            if (reason === 'input') {
+              debouncedFetchNurseryOptions(newInputValue)
+            } else if (reason === 'clear') {
+              fetchNurseryOptions('')
             }
-            debouncedSetFilterByNurseryId(newInputValue)
           }}
           loading={nurseryLoading}
           options={nurseryList?.length > 0 ? nurseryList : []}
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
-            if (val === null || val.nursery_id === '') {
-              // setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+            if (!val || val.nursery_id === '') {
+              setDefaultNursery(ALL_NURSERY_OPTION)
               setFilterByNurseryId('')
-              write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
-            } else {
-              setDefaultNursery({ nursery_id: val.nursery_id, nursery_name: val.nursery_name })
-              setFilterByNurseryId(val.nursery_id)
-              write('Nursery', JSON.stringify({ nursery_id: val.nursery_id, nursery_name: val.nursery_name }))
+
+              return
             }
+
+            setDefaultNursery(val)
+            setFilterByNurseryId(val.nursery_id || '')
           }}
           renderInput={params => (
             <TextField

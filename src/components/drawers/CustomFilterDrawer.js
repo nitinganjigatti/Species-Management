@@ -14,9 +14,9 @@ const CustomFilterDrawer = ({
   children,
   isSubmitting,
   selectedItem,
-  onSelectItem
+  onSelectItem,
+  zIndex
 }) => {
-
   const theme = useTheme()
 
   const getMenuBadgeCount = menuName => {
@@ -28,6 +28,7 @@ const CustomFilterDrawer = ({
       anchor='right'
       open={open}
       onClose={onClose}
+      sx={{ ...(zIndex && { zIndex }) }}
       slotProps={{
         paper: {
           sx: {
@@ -91,7 +92,10 @@ const CustomFilterDrawer = ({
                   borderBottomLeftRadius: '8px',
                   backgroundColor: selectedItem === item ? theme.palette.customColors.OnPrimary : 'transparent',
                   '&:hover': {
-                    backgroundColor: selectedItem === item ? theme.palette.customColors.OnPrimary : alpha(theme.palette.customColors.OnPrimary, 0.8)
+                    backgroundColor:
+                      selectedItem === item
+                        ? theme.palette.customColors.OnPrimary
+                        : alpha(theme.palette.customColors.OnPrimary, 0.8)
                   }
                 }}
               >
@@ -117,10 +121,12 @@ const CustomFilterDrawer = ({
         {/* Main Content Section */}
         <Box
           sx={{
+            width: '100%',
             backgroundColor: theme.palette.customColors.OnPrimary,
             borderTopRightRadius: '8px',
             p: '24px',
-            pb: 0
+            pb: 0,
+            flex: 1
           }}
         >
           {children}

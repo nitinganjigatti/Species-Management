@@ -246,6 +246,7 @@ const AnimalCardLayout = ({
                     {card.common_name}
                   </Typography>
                   <Typography
+
                     //variant='subtitle2'
                     sx={{
                       color: theme.palette.customColors.OnSurfaceVariant,

@@ -159,8 +159,10 @@ const StoreWiseDispatch = () => {
               {
                 field: 'store_name',
                 headerName: `Pharmacy Name`,
+                align: 'left',
+                headerAlign: 'left',
                 renderHeader: () => (
-                  <Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Pharmacies
                     </Typography>
@@ -175,7 +177,7 @@ const StoreWiseDispatch = () => {
                   </Box>
                 ),
                 renderCell: params => (
-                  <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                     <Tooltip title={params.row.store_name}>
                       <Typography
                         sx={{
@@ -673,9 +675,27 @@ const StoreWiseDispatch = () => {
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
                     },
-
+                    '& .MuiDataGrid-cell': {
+                      display: 'flex',
+                      alignItems: 'center'
+                    },
                     '& .MuiDataGrid-columnHeaders': {
                       backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-columnHeader': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-filler': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-scrollbarFiller': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-filler--pinnedColumns': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-scrollbarFiller--header': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
                     },
                     '& .MuiDataGrid-row:hover': {
                       cursor: 'pointer'

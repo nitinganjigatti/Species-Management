@@ -122,6 +122,7 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
                 label='Male Count'
                 value={value}
                 variant='outlined'
+
                 // onChange={onChange}
                 onChange={e => {
                   onChange(e) // Update the value in the form
@@ -156,6 +157,7 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
                 placeholder='Enter the Female Count'
                 value={value}
                 variant='outlined'
+
                 // onChange={onChange}
                 onChange={e => {
                   onChange(e) // Update the value in the form
@@ -199,6 +201,7 @@ const BirthFrom = ({ control, errors, watch, clearErrors }) => {
                 placeholder='Enter the Others Count'
                 value={value}
                 variant='outlined'
+
                 // onChange={onChange}
                 onChange={e => {
                   onChange(e) // Update the value in the form

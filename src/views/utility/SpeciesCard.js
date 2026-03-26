@@ -14,7 +14,9 @@ function SpeciesCard({ species, edit }) {
 
   const handleImageError = () => {
     setLoading(false)
-    setImgSrc('/images/housing/species-icon-colored.svg')
+
+    // setImgSrc('/images/housing/species-icon-colored.svg')
+    setImgSrc('/branding/antz/Antz_logomark_h_color.svg')
   }
 
   return (
@@ -27,18 +29,18 @@ function SpeciesCard({ species, edit }) {
             sx={{
               width: 40,
               height: 40,
-              padding: species?.default_icon === '/branding/antz/Antz_logomark_h_color.svg' && '4px',
+
+              // padding: species?.default_icon === '/branding/antz/Antz_logomark_h_color.svg' && '4px',
+              padding: imgSrc?.includes('Antz_logomark_h_color.svg') ? '4px' : '0px',
               '& img': {
                 objectFit: 'inherit'
               },
-              borderRadius:
-                species?.default_icon && species.default_icon.includes('.svg')
-                  ? '50%'
-                  : species?.default_icon
-                  ? '50%'
-                  : 'unset'
+
+              // borderRadius:species?.default_icon && species.default_icon.includes('.svg') ? '50%' : species?.default_icon ? '50%' : 'unset'
+              borderRadius: imgSrc.includes('.svg') ? '50%' : 'unset'
             }}
-            src={imgSrc}
+            // src={imgSrc}
+            src={species?.default_icon || '/images/housing/species-icon-colored.svg'}
             alt={species.scientific_name}
             slotProps={{
               img: {
@@ -51,7 +53,7 @@ function SpeciesCard({ species, edit }) {
       )}
 
       <Box>
-        {species.primary_identifier_type && species.primary_identifier_value && (
+        {/* {species.primary_identifier_type && species.primary_identifier_value && (
           <Tooltip title={`${species.primary_identifier_type}: ${species.primary_identifier_value}`}>
             <Typography
               sx={{
@@ -69,7 +71,7 @@ function SpeciesCard({ species, edit }) {
               {species.primary_identifier_type}: {species.primary_identifier_value}
             </Typography>
           </Tooltip>
-        )}
+        )} */}
         {species.common_name && (
           <Tooltip title={species.common_name}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

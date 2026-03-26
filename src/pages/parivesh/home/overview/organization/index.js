@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { debounce } from 'lodash'
 
 import moment from 'moment'
@@ -270,10 +270,12 @@ const Organization = () => {
           <Card sx={{ mt: 4 }}>
             <CardHeader title={'Approved Batches'} action={headerAction} />
             <ConfirmationDialog
+
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
               iconColor={'#ff3838'}
               title={'Are you sure you want to delete this ingredient?'}
+
               // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
               formComponent={
                 <ConfirmationCheckBox
@@ -292,53 +294,26 @@ const Organization = () => {
               ConfirmationText={'Delete'}
               confirmAction={onClose}
             />
-            <DataGrid
-              disableColumnMenu
-              disableColumnFilter
-              disableColumnSorting
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              pageSizeOptions={[7, 10, 25, 50]}
+              loading={loading}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              onCellClick={onCellClick}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
             />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   const headerAction = (

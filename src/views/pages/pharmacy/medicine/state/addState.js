@@ -4,18 +4,9 @@ import { useState, useEffect, forwardRef, useCallback, Fragment } from 'react'
 
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-import Select from '@mui/material/Select'
-import Switch from '@mui/material/Switch'
-import Button from '@mui/material/Button'
-import MenuItem from '@mui/material/MenuItem'
-import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
-import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
-import FormControlLabel from '@mui/material/FormControlLabel'
-import { RadioGroup, FormLabel, Radio } from '@mui/material'
+
 import { getStateById } from 'src/lib/api/pharmacy/getStates'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -23,10 +14,11 @@ import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
 
 // ** Third Party Imports
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 import Icon from 'src/@core/components/icon'
-
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 
 const schema = yup.object().shape({
   name: yup
@@ -72,6 +64,7 @@ const AddStates = props => {
     reset,
     control,
     handleSubmit,
+    setValue,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -151,92 +144,60 @@ const AddStates = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='State Name*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='State Name'
-                  error={Boolean(errors.name)}
-                  name='name'
-                />
-              )}
-            />
-            {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name.message}</FormHelperText>}
-          </FormControl>
+          <ControlledTextField
+            name='name'
+            control={control}
+            required={true}
+            label='State Name*'
+            placeholder='State Name'
+            error={Boolean(errors.name)}
+            fullWidth
+            sx={{ mb: 6 }}
+          />
 
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='code'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='State Code*'
-                  type='number'
-                  value={value}
-                  onChange={onChange}
-                  name='code'
-                  error={Boolean(errors.code)}
-                />
-              )}
-            />
-            {errors.code && <FormHelperText sx={{ color: 'error.main' }}>{errors.code.message}</FormHelperText>}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='short_code'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Short Code*'
-                  value={value.toLocaleUpperCase()}
-                  onChange={onChange}
-                  name='short_code'
-                  error={Boolean(errors.short_code)}
-                />
-              )}
-            />
-            {errors.short_code && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.short_code?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='code'
+            control={control}
+            type='number'
+            required={true}
+            label='State Code*'
+            placeholder='State Code*'
+            error={Boolean(errors.name)}
+            fullWidth
+            sx={{ mb: 6 }}
+          />
+
+          <ControlledTextField
+            name='short_code'
+            control={control}
+            required={true}
+            label='Short Code*'
+            placeholder='Short Code*'
+            onChangeOverride={e => {
+              const val = e?.target?.value
+              if (typeof val === 'string') {
+                setValue('short_code', val.toLocaleUpperCase())
+              }
+            }}
+            error={Boolean(errors.name)}
+            fullWidth
+            sx={{ mb: 6 }}
+          />
           {editParams?.id !== null ? (
-            <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-              <FormLabel>Status</FormLabel>
-              <Controller
-                name='status'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <RadioGroup row {...field} aria-label='gender' name='validation-basic-radio'>
-                    <FormControlLabel
-                      value='active'
-                      label='Active'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                    <FormControlLabel
-                      value='inactive'
-                      label='Inactive'
-                      sx={errors.status ? { color: 'error.main' } : null}
-                      control={<Radio sx={errors.status ? { color: 'error.main' } : null} />}
-                    />
-                  </RadioGroup>
-                )}
-              />
-              {errors.radio && (
-                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                  This field is required
-                </FormHelperText>
-              )}
-            </FormControl>
+            <ControlledRadioGroup
+              name='status'
+              control={control}
+              errors={errors}
+              label='Status'
+              required
+              options={[
+                { label: 'Active', value: 'active' },
+                { label: 'Inactive', value: 'inactive' }
+              ]}
+              row
+              gap={4}
+              sx={{ mb: 6 }}
+            />
           ) : null}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />

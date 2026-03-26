@@ -4,42 +4,40 @@ import Icon from 'src/@core/components/icon'
 import { FilterButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { readAsync } from 'src/lib/windows/utils'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { debounce } from 'lodash'
-
-const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import { useForm } from 'react-hook-form'
+const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId}) => {
   const theme = useTheme()
-
+  const { setValue } = useForm()
   const [searchValue, setSearchValue] = useState('')
   const [selected, setSelected] = useState(null)
-  const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(false)
+  const [doctors, setDoctors] = useState([])
 
   const getUserLists = async (query = '') => {
     setLoading(true)
     try {
-      const userDetails = await readAsync('userDetails')
-      if (userDetails?.user?.zoos.length > 0) {
-        const zoo_id = userDetails.user.zoos[0].zoo_id
-        const params = { zoo_id }
-        if (query.trim() !== '') {
-          params.q = query
-        }
-        const res = await getUserList(params)
-        if (res?.data?.length > 0) {
+      const params = {}
+      if (query.trim() !== '') {
+        params.q = query
+      }
+      await getHospitalStaff({ params: { hospital_id: hospitalId, is_hospital_chief_doctor: '1',...params } }).then(res => {
+        console.log(res)
+        if (res?.success === true) {
+
           setDoctors(
-            res.data.map(item => ({
-              name: item?.user_name,
+             res?.data?.records.map(item => ({
+              name: item?.user_full_name,
               id: item?.user_id,
               default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
+              role_name: item?.role_name,
             }))
           )
         } else {
           setDoctors([])
         }
-      }
+      })
     } catch (error) {
       console.log('user error', error)
     }
@@ -71,8 +69,18 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
     if (selected) {
       onSelectDoctor(selected)
       setOpen(false)
+      
     }
   }
+  
+  useEffect(() => {
+  if (doctors.length === 1) {
+    const singleDoctor = doctors[0]
+    setSelected(singleDoctor)
+    
+    setValue('doctors', singleDoctor)
+  }
+}, [doctors])
 
   return (
     <>
@@ -84,7 +92,8 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
           paper: {
             sx: {
               width: { xs: '100%', sm: '80%', md: 560 },
-              height: '100vh',
+
+              // height: '100vh',
               display: 'flex',
               flexDirection: 'column',
               backgroundColor: 'customColors.Background',
@@ -115,7 +124,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <img src='/icons/Activity.svg' alt='Activity' />
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                Select Attending Doctor
+                Select Chief Veterinarian
               </Typography>
             </Box>
             <IconButton onClick={() => setOpen(false)}>
@@ -180,13 +189,13 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
                     background: theme.palette.customColors.OnPrimary,
                     borderRadius: 1,
                     cursor: 'pointer',
-                    border: selected === doctor ? `2px solid ${theme.palette.primary.main}` : `2px solid transparent`,
+                    border: selected=== doctor ? `2px solid ${theme.palette.primary.main}` : `2px solid transparent`,
                     transition: 'border-color 0.2s'
                   }}
                   onClick={() => setSelected(doctor)}
                 >
                   <UserAvatarDetails user_name={doctor?.name} profile_image={doctor?.default_icon} size='large' />
-                  {selected === doctor && (
+                  {selected?.id === doctor?.id && (
                     <Icon icon='mdi:check-circle' color={theme.palette.primary.main} style={{ fontSize: 20 }} />
                   )}
                 </Box>
@@ -214,7 +223,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor }) => {
             color='primary'
             onClick={onSave}
             sx={{ p: 3, fontWeight: 600 }}
-            disabled={selected === null}
+            disabled={selected=== null}
           >
             ADD
           </Button>

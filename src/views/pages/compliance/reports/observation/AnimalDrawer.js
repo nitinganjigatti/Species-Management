@@ -1,5 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Skeleton } from '@mui/material'
+import {
+  Box,
+  Checkbox,
+  Drawer,
+  Typography,
+  IconButton,
+  CircularProgress,
+  Button,
+  Skeleton,
+  Tooltip
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -11,6 +21,7 @@ import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 
 const PAGE_SIZE = 10
 
@@ -19,7 +30,17 @@ const AnimalDrawer = ({
   onClose,
   handleAnimalClick,
   btnText = 'GENERATE OBSERVATION REPORT',
-  showAnimalFilter = true
+  showAnimalFilter = true,
+  showFilterAndSort = false,
+  handleFilterClick = () => {},
+  handleSortClick = () => {},
+  module = 'housing',
+  filters = {},
+  sortType,
+  filterCount,
+  multiSelect = false,
+  defaultSelected = [],
+  customQueryParams = null
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -27,12 +48,23 @@ const AnimalDrawer = ({
   const [search, setSearch] = useState('')
   const [localSearch, setLocalSearch] = useState('')
   const [internalSelected, setInternalSelected] = useState(null)
+  const [internalMultiSelected, setInternalMultiSelected] = useState([])
   const [activeTab, setActiveTab] = useState('all_animals')
   const [horizontalLoading, setHorizontalLoading] = useState(true)
   const [horizontalNavList, setHorizontalNavList] = useState([])
+  const [isReady, setIsReady] = useState(false)
+  const [isSelectAllUsed, setIsSelectAllUsed] = useState(false)
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
-  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        clearAnimalQuery()
+        setSearch(value)
+      }, 500),
+    []
+  )
 
   useEffect(() => {
     const getAnimalsHorizontalNavigation = async () => {
@@ -62,49 +94,207 @@ const AnimalDrawer = ({
     return date ? date.toISOString().split('T')[0] : undefined
   }
 
+  const shouldFetchHospitalAnimals = module !== 'hospital' || (module === 'hospital' && search.trim().length > 0)
+
+  const stableFilters = useMemo(() => JSON.stringify(filters), [filters])
+  const stableSortType = useMemo(() => JSON.stringify(sortType), [sortType])
+
+  const stableCustomQueryParams = useMemo(() => JSON.stringify(customQueryParams), [customQueryParams])
+
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, remove } = useInfiniteQuery({
-    queryKey: ['animal-List-Observation-Report', search, activeTab],
+    queryKey: [
+      'animal-List-Observation-Report',
+      module,
+      search,
+      activeTab,
+      stableFilters,
+      stableSortType,
+      stableCustomQueryParams
+    ],
+    enabled: open && isReady && shouldFetchHospitalAnimals,
+
     queryFn: async ({ pageParam = 1 }) => {
-      const params = {
+      // Hospital module requires search input before fetching
+      if (module === 'hospital' && !search.trim()) {
+        return { animals: [], nextPage: undefined, total_animal_count: 0 }
+      }
+
+      // Base params common to all modules
+      const baseParams = {
         page_no: pageParam,
         limit: PAGE_SIZE,
-        q: search,
-        type: activeTab,
-        end_date: formatDate(new Date())
+        list_type: 'animals',
+        type: 'single',
+        // include_dead_animal: 0,
+        ...(search.trim() && { filter_aid_local_identifier: search })
       }
-      const res = await getAnimalListForObservationReport(params)
+
+      // Build module-specific params conditionally
+      let moduleParams = {}
+
+      if (customQueryParams) {
+        // customQueryParams from parent overrides module-based params
+        moduleParams =
+          typeof customQueryParams === 'function'
+            ? customQueryParams({ search, activeTab, pageParam, filters, sortType })
+            : customQueryParams
+      } else if (module === 'hospital') {
+        moduleParams = {
+          animal_list_type: 'all_animals',
+          gender: filters?.Gender || [],
+          tsn_id: filters?.Species || [],
+          site_id: filters?.Site || [],
+          section_id: filters?.Section || [],
+          enclosure_id: filters?.Enclosure || [],
+          sort: sortType?.sort,
+          column: sortType?.column,
+          ignore_permission: 1,
+          include_dead_animal: 0
+        }
+      } else {
+        // Default params for housing, medical, and other modules
+        moduleParams = {
+          animal_list_type: activeTab
+          // gender: filters?.Gender || [],
+          // tsn_id: filters?.Species || [],
+          // site_id: filters?.Site || [],
+          // section_id: filters?.Section || [],
+          // enclosure_id: filters?.Enclosure || [],
+          // sort: sortType?.sort || 'asc',
+          // column: sortType?.column || 'animal_id',
+          // ignore_permission: 0
+        }
+      }
+
+      // Single API call for all modules
+      const params = { ...baseParams, ...moduleParams }
+      const res = await getNewAnimalListWithFilters(params)
 
       return {
-        animals: res?.data?.animals || [],
-        nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total_animal_count: res?.data?.total_animal_count || 0
+        animals: res?.data || [],
+        nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total_animal_count: res?.total_count || 0
       }
+
+      // =====================================================================
+      // OLD: Separate module branches (used before, now unified above)
+      // =====================================================================
+
+      // --- OLD housing module branch (used getAnimalListForObservationReport) ---
+      // if (module === 'housing') {
+      //   const params = {
+      //     page_no: pageParam,
+      //     limit: PAGE_SIZE,
+      //     q: search,
+      //     type: activeTab,
+      //     end_date: formatDate(new Date())
+      //   }
+      //   const res = await getAnimalListForObservationReport(params)
+      //   return {
+      //     animals: res?.data?.animals || [],
+      //     nextPage: res?.data?.animals?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+      //     total_animal_count: res?.data?.total_animal_count || 0
+      //   }
+      // }
+
+      // --- OLD hospital module branch ---
+      // if (module === 'hospital') {
+      //   if (!search.trim()) {
+      //     return { animals: [], nextPage: undefined, total_animal_count: 0 }
+      //   }
+      //   const params = {
+      //     page_no: pageParam,
+      //     filter_aid_local_identifier: search,
+      //     limit: PAGE_SIZE,
+      //     list_type: 'animals',
+      //     type: 'single',
+      //     animal_list_type: 'all_animals',
+      //     gender: filters?.Gender || [],
+      //     tsn_id: filters?.Species || [],
+      //     site_id: filters?.Site || [],
+      //     section_id: filters?.Section || [],
+      //     enclosure_id: filters?.Enclosure || [],
+      //     sort: sortType?.sort,
+      //     column: sortType?.column,
+      //     include_dead_animal: 0,
+      //     ignore_permission: 1
+      //   }
+      //   const res = await getNewAnimalListWithFilters(params)
+      //   return {
+      //     animals: res?.data || [],
+      //     nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+      //     total_animal_count: res?.total_count || 0
+      //   }
+      // }
+
+      // --- OLD medical module branch ---
+      // if (module === 'medical') {
+      //   const params = {
+      //     page_no: pageParam,
+      //     ...(search.trim() && { filter_aid_local_identifier: search }),
+      //     limit: PAGE_SIZE,
+      //     list_type: 'animals',
+      //     type: 'single',
+      //     animal_list_type: activeTab,
+      //     gender: filters?.Gender || [],
+      //     tsn_id: filters?.Species || [],
+      //     site_id: filters?.Site || [],
+      //     section_id: filters?.Section || [],
+      //     enclosure_id: filters?.Enclosure || [],
+      //     sort: sortType?.sort || 'asc',
+      //     column: sortType?.column || 'animal_id',
+      //     include_dead_animal: 0,
+      //     ignore_permission: 0
+      //   }
+      //   const res = await getNewAnimalListWithFilters(params)
+      //   return {
+      //     animals: res?.data || [],
+      //     nextPage: res?.data?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+      //     total_animal_count: res?.total_count || 0
+      //   }
+      // }
     },
-    getNextPageParam: lastPage => lastPage.nextPage
+    getNextPageParam: lastPage => lastPage.nextPage,
+    gcTime: 0,
+    staleTime: 0,
+    keepPreviousData: false
   })
+
+  const clearAnimalQuery = () => {
+    queryClient.removeQueries({
+      queryKey: ['animal-List-Observation-Report'],
+      exact: false
+    })
+  }
 
   useEffect(() => {
     if (open) {
+      setIsReady(false)
       setLocalSearch('')
       setSearch('')
-    }
-  }, [open])
+      setInternalSelected(null)
+      setInternalMultiSelected(multiSelect && defaultSelected.length > 0 ? defaultSelected : [])
+      setIsSelectAllUsed(false)
+      clearAnimalQuery()
 
-  useEffect(() => {
-    if (!open) {
+      // Allow state to settle before enabling the query
+      const timer = setTimeout(() => setIsReady(true), 0)
+      return () => clearTimeout(timer)
+    } else {
+      setIsReady(false)
       queryClient.cancelQueries(['animal-List-Observation-Report', search])
-      remove()
+      clearAnimalQuery()
       cooldownRef.current = false
     }
-  }, [open, search, queryClient, remove])
+  }, [open])
 
   const list = useMemo(
     () =>
       data?.pages?.flatMap(page =>
         page.animals.map(animal => ({
           animal_id: animal?.animal_id,
-          default_common_name: animal?.default_common_name,
-          scientific_name: animal?.complete_name,
+          default_common_name: animal?.default_common_name || animal?.common_name,
+          scientific_name: animal?.complete_name || animal?.scientific_name,
           user_enclosure_name: animal?.user_enclosure_name,
           section_name: animal?.section_name,
           site_name: animal?.site_name,
@@ -115,7 +305,8 @@ const AnimalDrawer = ({
           local_identifier_name: animal?.local_identifier_name,
           local_identifier_value: animal?.local_identifier_value,
           site_id: animal?.site_id,
-          enclosure_id: animal?.enclosure_id
+          enclosure_id: animal?.enclosure_id,
+          ...(module === 'hospital' && { in_transit: animal?.in_transit, is_hospitalized: animal?.is_hospitalized })
         }))
       ) || [],
     [data]
@@ -150,16 +341,59 @@ const AnimalDrawer = ({
 
   const handleSearchClear = () => {
     setLocalSearch('')
-    debouncedSearch('')
+    clearAnimalQuery()
+    setSearch('')
   }
 
   const handleTabClick = tabValue => {
     setActiveTab(tabValue)
   }
 
+  const selectableList = useMemo(() => {
+    return list.filter(
+      animal => !(module === 'hospital' && (animal?.in_transit === '1' || animal?.is_hospitalized === '1'))
+    )
+  }, [list, module])
+
+  const isAllSelected =
+    selectableList.length > 0 &&
+    selectableList.every(animal => internalMultiSelected.some(a => a.animal_id === animal.animal_id))
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setIsSelectAllUsed(false)
+      setInternalMultiSelected(prev => prev.filter(a => !selectableList.some(s => s.animal_id === a.animal_id)))
+    } else {
+      setIsSelectAllUsed(true)
+      setInternalMultiSelected(prev => {
+        const existingIds = new Set(prev.map(a => a.animal_id))
+        const newAnimals = selectableList.filter(a => !existingIds.has(a.animal_id))
+        return [...prev, ...newAnimals]
+      })
+    }
+  }
+
+  const handleMultiSelectToggle = animal => {
+    setIsSelectAllUsed(false)
+    setInternalMultiSelected(prev => {
+      const isSelected = prev.some(a => a.animal_id === animal.animal_id)
+      if (isSelected) {
+        return prev.filter(a => a.animal_id !== animal.animal_id)
+      }
+      return [...prev, animal]
+    })
+  }
+
   const onGenerateClick = () => {
-    handleAnimalClick(internalSelected)
-    onClose()
+    let result
+    if (multiSelect) {
+      result = handleAnimalClick(internalMultiSelected, { isSelectAll: isSelectAllUsed })
+    } else {
+      result = handleAnimalClick(internalSelected)
+    }
+    if (result !== false) {
+      onClose()
+    }
   }
 
   return (
@@ -191,6 +425,7 @@ const AnimalDrawer = ({
           <IconButton
             onClick={() => {
               setInternalSelected(null)
+              setInternalMultiSelected([])
               onClose()
             }}
           >
@@ -209,27 +444,48 @@ const AnimalDrawer = ({
             pb: 4
           }}
         >
-          <Grid item size={{ xs: 12, sm: 12 }}>
+          <Grid size={{ xs: 12, sm: showFilterAndSort ? 10 : 12 }}>
             <Search
               width='100%'
-              placeholder='Search by Animal name, AID or Identifier'
+              placeholder='Search animal by AID or identifier'
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
-              inputStyle={{ py: '18px', px: '12px' }}
+              inputStyle={{ py: '12px', px: '12px' }}
             />
           </Grid>
-          {/* <Grid
-            item
-            size={{ xs: 12, sm: 1.5 }}
-            sx={{
-              display: 'none',
-              justifyContent: { xs: 'flex-end', sm: 'center' },
-              mt: { xs: 2, sm: 0 }
-            }}
-          >
-            <FilterButton />
-          </Grid> */}
+          {showFilterAndSort && (
+            <>
+              <Grid item size={{ xs: 1, sm: 1 }}>
+                <FilterButton
+                  bgColor={theme?.palette?.customColors?.OnPrimary}
+                  border={`1px solid ${theme?.palette?.customColors?.OutlineVariant}`}
+                  onClick={handleFilterClick}
+                  appliedFiltersCount={filterCount}
+                />
+              </Grid>
+              <Grid size={{ xs: 1, sm: 1 }}>
+                <Tooltip title='Sort' placement='bottom'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      width: '40px',
+                      height: '40px',
+                      borderRadius: '4px',
+                      bgcolor: theme?.palette.customColors?.OnPrimary,
+                      border: `1px solid ${theme?.palette?.customColors?.OutlineVariant}`,
+                      alignItems: 'center',
+                      cursor: 'pointer'
+                    }}
+                    onClick={handleSortClick}
+                  >
+                    <Icon icon={'lets-icons:sort-arrow'} fontSize={24} />
+                  </Box>
+                </Tooltip>
+              </Grid>
+            </>
+          )}
         </Grid>
 
         {showAnimalFilter && (
@@ -329,27 +585,101 @@ const AnimalDrawer = ({
               <CircularProgress />
             </Box>
           ) : (
+            // : module === 'hospital' && search.trim().length === 0 && !isFetching ? (
+            //   <Box
+            //     sx={{
+            //       backgroundColor: theme.palette.customColors.antzNotes,
+            //       display: 'flex',
+            //       alignItems: 'center',
+            //       justifyContent: 'center',
+            //       px: 4,
+            //       py: 4,
+            //       mt: 4,
+            //       borderRadius: 1
+            //     }}
+            //   >
+            //     <Typography
+            //       sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
+            //     >
+            //       Search animal by AID or animal identifier
+            //     </Typography>
+            //   </Box>
+            // )
             <>
-              {list.map(animal => (
-                <AnimalParentCard
-                  key={animal.animal_id}
-                  data={animal}
-                  radio={{
-                    checked: internalSelected?.animal_id === animal.animal_id,
-                    onChange: () => setInternalSelected(animal)
+              {multiSelect && selectableList.length > 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    px: 1,
+                    py: 1,
+                    cursor: 'pointer'
                   }}
-                />
-              ))}
-              {list.length === 0 && (
+                  onClick={handleSelectAll}
+                >
+                  <Checkbox
+                    checked={isAllSelected}
+                    indeterminate={internalMultiSelected.length > 0 && !isAllSelected}
+                    onChange={handleSelectAll}
+                    onClick={e => e.stopPropagation()}
+                    sx={{
+                      width: 24,
+                      height: 24,
+                      p: 0,
+                      '& .MuiSvgIcon-root': { fontSize: 24 }
+                    }}
+                  />
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      color: theme.palette.text.secondary
+                    }}
+                  >
+                    Select All
+                  </Typography>
+                </Box>
+              )}
+              {list.map(animal => {
+                const isDisabled =
+                  module === 'hospital' && (animal?.in_transit === '1' || animal?.is_hospitalized === '1')
+
+                return (
+                  <AnimalParentCard
+                    key={animal.animal_id}
+                    data={animal}
+                    radio={
+                      !multiSelect
+                        ? isDisabled
+                          ? false
+                          : {
+                              checked: internalSelected?.animal_id === animal.animal_id,
+                              onChange: () => setInternalSelected(animal)
+                            }
+                        : false
+                    }
+                    checkbox={
+                      multiSelect
+                        ? isDisabled
+                          ? false
+                          : {
+                              checked: internalMultiSelected.some(a => a.animal_id === animal.animal_id),
+                              onChange: () => handleMultiSelectToggle(animal)
+                            }
+                        : false
+                    }
+                  />
+                )
+              })}
+              {list.length === 0 && !isFetching && (
                 <Box
                   sx={{
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
                     height: 200,
-                    flexDirection: 'column',
-                    p: 4,
-                    mt: 6
+                    flexDirection: 'column'
                   }}
                 >
                   <NoDataFound variant='Meerkat' height={250} width={250} />
@@ -370,7 +700,7 @@ const AnimalDrawer = ({
         </Box>
       </Box>
 
-      {internalSelected !== null && (
+      {(multiSelect ? internalMultiSelected.length > 0 : internalSelected !== null) && (
         <Box
           sx={{
             width: '100%',
@@ -391,7 +721,9 @@ const AnimalDrawer = ({
             onClick={onGenerateClick}
             sx={{ p: 3, fontWeight: 600 }}
           >
-            {btnText}
+            {multiSelect && internalMultiSelected.length > 0
+              ? `${btnText} (${isSelectAllUsed && total > 0 ? total : internalMultiSelected.length})`
+              : btnText}
           </Button>
         </Box>
       )}

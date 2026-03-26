@@ -13,6 +13,8 @@ import reportNavigation from 'src/components/navigation/report'
 import medicalNavigation from 'src/components/navigation/medical'
 import housingNavigation from 'src/components/navigation/housing'
 import hospitalNavigation from 'src/components/navigation/hospital'
+import settingsNavigation from 'src/components/navigation/settings'
+import necropsyNavigation from 'src/components/navigation/necropsy'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -21,7 +23,6 @@ const ComposeNavigation = () => {
   const labRole = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
   const userSettings = authData?.userData?.permission?.user_settings
-
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const complianceModule = authData?.userData?.roles?.settings?.compliance_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
@@ -37,10 +38,19 @@ const ComposeNavigation = () => {
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
-  const housingModule = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModuleWeb = authData?.userData?.roles?.settings?.enable_housing_in_web
+  const housingModule = authData?.userData?.roles?.settings?.enable_housing
   const housingModuleCluster = authData?.userData?.roles?.settings?.manage_cluster_permission
 
+  const hospitalModule = authData?.userData?.roles?.settings?.add_hospital
+  const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
+
   const userRole = authData?.userData?.roles?.role_name
+
+  const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
+  const allowCarcassCollection = authData?.userData?.roles?.settings?.allow_carcass_collection
+  const hasPermissionToAddNecropsyCenter = authData?.userData?.permission?.user_settings?.add_necropsy_center
+  const medicalAccess = authData?.userData?.roles?.settings?.medical_records
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
@@ -87,22 +97,38 @@ const ComposeNavigation = () => {
     navigationArray.push(...pariveshNav)
   }
 
-  if (housingModule) {
+  if (housingModuleWeb) {
     const housingNav = housingNavigation(housingModuleCluster)
     navigationArray.push(...housingNav)
   }
-
-  const hospitalNav = hospitalNavigation()
-  navigationArray.push(...hospitalNav)
+  if (hospitalModule) {
+    const hospitalNav = hospitalNavigation(havePermissionToAddHospital)
+    navigationArray.push(...hospitalNav)
+  }
 
   const medicalNav = medicalNavigation({
-    userSettings
+    userSettings,
+    medicalAccess
   })
   navigationArray.push(...medicalNav)
 
   if (complianceModule) {
     const complianceNav = complianceNavigation()
     navigationArray.push(...complianceNav)
+  }
+
+  if (enableAddNecropsyReport || allowCarcassCollection || hasPermissionToAddNecropsyCenter) {
+    const necropsyNav = necropsyNavigation(
+      hasPermissionToAddNecropsyCenter,
+      allowCarcassCollection,
+      enableAddNecropsyReport
+    )
+    navigationArray.push(...necropsyNav)
+  }
+
+  if (housingModule || housingModuleWeb) {
+    const settingsNav = settingsNavigation({ userRole })
+    navigationArray.push(...settingsNav)
   }
 
   return navigationArray

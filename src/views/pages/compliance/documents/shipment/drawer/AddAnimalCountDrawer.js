@@ -23,7 +23,8 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
   const getValidGender = gender => {
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
-    return 'unknown'
+    
+return 'unknown'
   }
 
   const normalizedGenders = rawGenders.map(getValidGender)
@@ -31,7 +32,8 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
   const genderUsage = animals.reduce((acc, animal, i) => {
     const g = getValidGender(animal.gender)
     if (i !== index && g) acc[g] = (acc[g] || 0) + 1
-    return acc
+    
+return acc
   }, {})
 
   // const availableGenders = normalizedGenders.filter(g => {
@@ -73,7 +75,8 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
               if (!selected) {
                 return <span style={{ color: '#9e9e9e' }}>Gender*</span>
               }
-              return selected.charAt(0).toUpperCase() + selected.slice(1)
+              
+return selected.charAt(0).toUpperCase() + selected.slice(1)
             }}
           >
             {availableGenders.map(gender => (
@@ -96,7 +99,8 @@ const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesLi
               if (!selected) {
                 return <span style={{ color: '#9e9e9e' }}>Select Identifier Type*</span>
               }
-              return selected.charAt(0).toUpperCase() + selected.slice(1)
+              
+return selected.charAt(0).toUpperCase() + selected.slice(1)
             }}
           >
             {mastersData.identifier_type.map(idType => (
@@ -133,6 +137,8 @@ const AddanimalCountDrawer = ({
   setanimalDetailsDrawerOpen
 }) => {
   const theme = useTheme()
+
+
   // Find the current species data
   const currentSpecies =
     selectedExportData.others.find(item => item.species?.tsn_id === currentSpeciesId)?.species ||
@@ -217,7 +223,8 @@ const AddanimalCountDrawer = ({
   const getValidGender = gender => {
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
-    return 'unknown'
+    
+return 'unknown'
   }
 
   // const handleChange = (index, field, value) => {
@@ -233,7 +240,8 @@ const AddanimalCountDrawer = ({
         ...updated[index],
         [field]: value
       }
-      return updated
+      
+return updated
     })
   }
 
@@ -242,6 +250,7 @@ const AddanimalCountDrawer = ({
   }
 
   const canAddAnimal = animals.length < Number(counts.male) + Number(counts.female) + Number(counts.unknown)
+
   const handleSelectAnimals = () => {
     const genderCounts = {
       male_count: counts.male,
@@ -258,6 +267,7 @@ const AddanimalCountDrawer = ({
     if (genderTotals.male > genderCounts.male_count) {
       return Toaster({
         type: 'error',
+
         //message: `Animal details count for male gender (${genderTotals.male}) must be ≤ male count entered (${genderCounts.male_count})`
         message: `The entered count does not match the selected animals. Please update to proceed`
       })
@@ -266,6 +276,7 @@ const AddanimalCountDrawer = ({
     if (genderTotals.female > genderCounts.female_count) {
       return Toaster({
         type: 'error',
+
         // message: `Animal details count for female gender (${genderTotals.female}) must be ≤ female count entered (${genderCounts.female_count})`
         message: `The entered count does not match the selected animals. Please update to proceed`
       })
@@ -274,6 +285,7 @@ const AddanimalCountDrawer = ({
     if (genderTotals.unknown > genderCounts.undeterminate_count) {
       return Toaster({
         type: 'error',
+
         // message: `Animal details count for unknown gender (${genderTotals.unknown}) must be ≤ unknown count entered (${genderCounts.undeterminate_count})`
         message: `The entered count does not match the selected animals. Please update to proceed`
       })
@@ -303,6 +315,7 @@ const AddanimalCountDrawer = ({
   return (
     <Drawer
       open={open}
+
       //onClose={onClose}
       anchor='right'
     >

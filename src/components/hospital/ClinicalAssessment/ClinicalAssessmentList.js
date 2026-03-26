@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext } from 'react'
 import {
   Box,
   TextField,
@@ -7,10 +7,16 @@ import {
   InputAdornment,
   Typography,
   CircularProgress,
-  Skeleton
+  Skeleton,
+  Button
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { Add as AddIcon } from '@mui/icons-material'
+import { alpha, useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
+import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
+import { AuthContext } from 'src/context/AuthContext'
+import Search from 'src/views/utility/Search'
+import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 
 export default function ClinicalAssessmentList({
   symptoms,
@@ -20,34 +26,62 @@ export default function ClinicalAssessmentList({
   handleTabChange,
   currentTab,
   isTabsLoading,
-  isListLoading,
+  isInitialLoading,
   tabOptions,
   searchTerm,
-  setSearchTerm
+  setSearchTerm,
+  hasMore,
+  totalCount,
+  isLoading,
+  loadMoreTriggerRef,
+  handleAddNewClick,
+  alreadySelectedIds = []
 }) {
   const theme = useTheme()
+
+  const authData = useContext(AuthContext)
+  const userSettings = authData?.userData?.permission?.user_settings
 
   const filteredSymptoms = symptoms
 
   return (
     <Box sx={{ pt: 1 }}>
-      <TextField
-        placeholder='Search'
-        fullWidth
-        size='small'
-        sx={{ mb: 3, borderRadius: '8px' }}
-        value={searchTerm}
-        onChange={e => setSearchTerm(e.target.value)}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position='start'>
-                <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
-              </InputAdornment>
-            )
-          }
-        }}
-      />
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
+        <Search
+          value = {searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          width={'100%'}
+          sx = {{
+            flex: 1,
+            borderRadius: '8px',
+            '& .MuiOutlinedInput-root': {
+              borderRadius: '8px'
+            }
+          }}
+          onClear={()=> {
+            setSearchTerm('')
+          }}
+        
+        />
+
+        {userSettings?.medical_add_diagnosis && (
+          <Button
+            variant='contained'
+            startIcon={<AddIcon />}
+            onClick={handleAddNewClick}
+            sx={{
+              height: '40px',
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '14px',
+              px: 3
+            }}
+          >
+            ADD NEW
+          </Button>
+        )}
+      </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box
@@ -72,7 +106,7 @@ export default function ClinicalAssessmentList({
                 ))
               : tabOptions?.map(tab => (
                   <Box
-                    key={tab}
+                    key={tab.id}
                     onClick={() => handleTabChange(tab?.category, tab?.id)}
                     sx={{
                       flexShrink: 0,
@@ -116,8 +150,6 @@ export default function ClinicalAssessmentList({
           mt: 3,
           background: theme.palette.customColors.mdAntzNeutral,
           display: 'flex',
-
-          //justifyContent: 'space-between',
           alignItems: 'center'
         }}
       >
@@ -126,20 +158,8 @@ export default function ClinicalAssessmentList({
       </Box>
 
       <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
-        {isListLoading ? (
-          <Box
-            sx={{
-              background: theme.palette.common.white,
-              height: 500,
-              borderRadius: '8px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <CircularProgress />
-          </Box>
+        {isTabsLoading || isInitialLoading ? (
+          <ClinicalAssessmentListShimmer rows={8} />
         ) : filteredSymptoms.length === 0 ? (
           <Box
             sx={{
@@ -158,59 +178,86 @@ export default function ClinicalAssessmentList({
             </Typography>
           </Box>
         ) : (
-          filteredSymptoms.map((symptom, index) => {
-            const isSelected = selectedSymptoms.includes(symptom.id)
-            const isTemporarilySelected = temporarilySelected?.id === symptom.id
+          <>
+            {filteredSymptoms.map((symptom, index) => {
+              const isSelected = selectedSymptoms.includes(symptom.id)
+              const isTemporarilySelected = temporarilySelected?.id === symptom.id
+              const isAlreadyPrescribed = alreadySelectedIds?.includes(symptom.id)
 
-            return (
-              <Box
-                key={index}
-                sx={{
-                  background:
-                    isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
-                  borderRadius: '1px',
-                  px: 1,
-                  py: 3.7,
-                  display: 'flex',
-                  alignItems: 'center',
-                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                }}
-              >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={isSelected || isTemporarilySelected}
-                      onChange={() => onSelect(symptom)}
-                      sx={{
-                        transform: 'scale(0.8)',
-                        padding: '4px'
-                      }}
-                    />
-                  }
-                  label={symptom.name}
+              return (
+                <Box
+                  key={symptom.id || index}
                   sx={{
-                    flex: 1,
-                    m: 0,
-                    '& .MuiFormControlLabel-label': {
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      fontSize: '16px',
-                      fontWeight: 600
-                    }
-                  }}
-                />
-                <Typography
-                  sx={{
-                    width: '200px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: 400
+                    background:
+                      isSelected || isTemporarilySelected ? theme.palette.customColors.OnBackground : 'transparent',
+                    borderRadius: '1px',
+                    px: 1,
+                    py: 3.7,
+                    display: 'flex',
+                    alignItems: 'center',
+                    borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    justifyContent: 'space-between'
+                    // opacity: isAlreadyPrescribed ? 0.5 : 1,
+                    // pointerEvents: isAlreadyPrescribed ? 'none' : 'auto',
+                    // backgroundColor: isAlreadyPrescribed ? alpha(theme.palette.action.disabledBackground, 0.1) : 'inherit'
                   }}
                 >
-                  {symptom.category_name}
+                  <MUICheckbox
+                    label={symptom.name}
+                    checked={isSelected || isTemporarilySelected || isAlreadyPrescribed}
+                    disabled={isAlreadyPrescribed}
+                    onChange={() => onSelect(symptom)}
+                    checkboxStyle = {{
+                       transform: 'scale(0.8)',
+                        padding: '4px'
+                    }}
+                    formControlLabelStyle={{
+                      '& .MuiFormControlLabel-label': {
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '16px',
+                        fontWeight: 600,
+                      },
+                    }}
+
+                    />
+                  <Typography
+                    sx={{
+                      width: '200px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '14px',
+                      fontWeight: 400
+                    }}
+                  >
+                    {symptom.category_name}
+                  </Typography>
+                </Box>
+              )
+            })}
+
+            {/* Infinite scroll trigger element - shows loader when loading more pages */}
+            {(hasMore || isLoading) && (
+              <Box
+                ref={loadMoreTriggerRef}
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  padding: 3,
+                  minHeight: '60px'
+                }}
+              >
+                {isLoading && <CircularProgress size={24} />}
+              </Box>
+            )}
+
+            {/* End message when all items loaded */}
+            {!hasMore && !isLoading && symptoms?.length > 10 && (
+              <Box sx={{ textAlign: 'center', py: 2 }}>
+                <Typography variant='body2' color='textSecondary'>
+                  All assessments loaded ({symptoms?.length} of {totalCount})
                 </Typography>
               </Box>
-            )
-          })
+            )}
+          </>
         )}
       </Box>
     </Box>

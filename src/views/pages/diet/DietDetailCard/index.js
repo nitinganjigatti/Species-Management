@@ -33,7 +33,9 @@ const DietDetailCard = ({
   handleSpeciesClick,
   handleSpeciesClicknew,
   setapplyfilterCheck,
-  authData
+  authData,
+  onDownloadPdf,
+  downloadingPdf = false
 }) => {
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
@@ -266,6 +268,24 @@ const DietDetailCard = ({
               </Box>
             </Tooltip>
           )}
+          {onDownloadPdf && (
+            <Tooltip title='Download PDF' placement='top'>
+              <Box>
+                <Avatar
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    borderRadius: '8px',
+                    cursor: downloadingPdf ? 'not-allowed' : 'pointer',
+                    opacity: downloadingPdf ? 0.6 : 1
+                  }}
+                  src={'/icons/download_outlined.svg'}
+                  variant='square'
+                  onClick={downloadingPdf ? undefined : onDownloadPdf}
+                />
+              </Box>
+            </Tooltip>
+          )}
         </Box>
         <Grid
           sx={{
@@ -362,6 +382,16 @@ const DietDetailCard = ({
                         >
                           Assign to Animals
                         </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('site_species')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign to Site Species
+                        </MenuItem>
                       </Menu>
                     </div>
                   </Box>
@@ -410,7 +440,7 @@ const DietDetailCard = ({
 
                   <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
-                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 3 }}>
+                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 0 }}>
                         {/* Label */}
                         <Typography
                           variant='body2'
@@ -441,6 +471,46 @@ const DietDetailCard = ({
                             }}
                           >
                             Primary {dietDetails.total_primary_animals}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      ''
+                    )}
+                  </Grid>
+
+                  <Grid size={{ xs: 12 }}>
+                    {dietDetails?.total_sites !== '0' ? (
+                      <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ pb: 3 }}>
+                        <Typography
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                        >
+                          Site, Species
+                        </Typography>
+
+                        <Box
+                          display='flex'
+                          alignItems='center'
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => handleSpeciesClicknew('details', 'site_species')}
+                        >
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_sites}, {dietDetails.total_site_unique_species}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_site_primary_species}
                           </Typography>
                         </Box>
                       </Box>
@@ -488,7 +558,7 @@ const DietDetailCard = ({
                   alignItems: 'center',
                   gap: '8px',
                   mb: '6px',
-                  maxWidth: '400px'
+                  maxWidth: dietDetails?.dietitian?.user_name?.length > 20 ? '260px' : 'fit-content'
                 }}
               >
                 <UserAvatarDetails

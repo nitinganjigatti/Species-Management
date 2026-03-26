@@ -69,6 +69,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
   const fetchNurseryList = async (q = '') => {
     try {
       setNurseryLoader(true)
+
       const params = {
         type: 'only_active',
         search: q,
@@ -97,6 +98,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
 
   const onSubmit = async values => {
     setLoader(true)
+
     const payload = {
       room_name: values.room_name,
       site_id: values.site_id,
@@ -137,6 +139,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
       setValue('site_id', selectedNursery?.site_id || '')
       clearErrors('site_id')
     }
+
     // }, [nurseryId])
   }, [nurseryId, nurseryList])
 
@@ -227,11 +230,13 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultNursery(null)
-                          return onChange('')
+                          
+return onChange('')
                         } else {
                           setDefaultNursery(val)
                           setValue('room', '')
-                          return onChange(val.nursery_id)
+                          
+return onChange(val.nursery_id)
                         }
                       }}
                       renderInput={params => (

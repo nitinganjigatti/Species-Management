@@ -6,37 +6,40 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import Utility from 'src/utility'
 
-const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick }) => {
+const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, isDischared, patientData }) => {
   const theme = useTheme()
   const { getSeverityColor, getTypeChipColor, getPrognosisColor } = useHospitalColorUtils()
 
   const mappedRecord = {
     id: record.id,
     title: record.name,
-    type: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Differential',
+    medical_record_code: record?.medical_record_code,
+    type: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Tentative',
     status: record.additional_info?.status || 'active',
     severity: record.additional_info?.severity || '',
     category: record.category,
-    activity: record.comment_count ? `+${record.comment_count}` : '+0',
-    clinicalAssessment:
-      record.clinical_assessment === 'diagnosis'
-        ? 'Diagnosis'
-        : record.clinical_assessment === 'differential'
-        ? 'Differential → Diagnosis'
-        : '',
-    chronic: record.additional_info?.isChronic ? 'Yes' : 'No',
-    prognosis: record?.prognosis,
+    activity: record.comment_count - 1 > 0 ? `+${record.comment_count - 1}` : null,
+    clinicalAssessment: record.clinical_assessment === 'diagnosis' ? 'Diagnosis' : 'Tentative',
+
+    oldRecord: record?.latest_note?.notes_dump?.old_data?.clinical_assessment,
+    newRecord: record?.latest_note?.notes_dump?.new_data?.clinical_assessment,
+    chronic: record.latest_note?.notes_dump?.new_data?.is_cronical ? (record.latest_note?.notes_dump?.new_data?.is_cronical ? 'Yes' : 'No') : null,
+    prognosis: Utility.capitalizeFirstLetter(record?.prognosis),
     notes:
       record.additional_info?.latest_note || record.additional_info?.start_note || record.additional_info?.stop_note,
     description: record.latest_note?.note || record.additional_info?.latest_note,
-    lastUpdated: Utility.formatDisplayDate(record.latest_note?.modified_at || record.created_at),
-    resolvedBy: record.additional_info?.closed_at
-      ? {
-          name: record.additional_info?.resolved_user_name || record.created_by_user_name,
-          avatar: record.additional_info?.resolved_user_profile_pic || record.created_by_user_name,
-          date: Utility.formatDisplayDate(record.additional_info?.closed_at)
-        }
-      : null
+    lastUpdated: record.latest_note?.modified_at || record.latest_note?.created_at || record.created_at,
+    resolvedBy: {
+      name:
+        record.additional_info?.status === 'active'
+          ? record.created_by_user_name
+          : record.additional_info?.resolved_user_name,
+      avatar:
+        record.additional_info?.status === 'active'
+          ? record?.created_user_profile_pic
+          : record.additional_info?.resolved_user_profile_pic || record.created_by_user_name,
+      date: record?.comment_count > 1 ? record?.latest_note?.modified_at || record.additional_info?.closed_at : record?.additional_info?.recorded_date_time
+    }
   }
 
   // Determine if resolved based on API data
@@ -53,8 +56,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
         padding: { xs: '16px', sm: '20px', md: '24px' },
         backgroundColor: resolved
           ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
-          : !isDifferential && getSeverityColor(mappedRecord.severity).bgColor,
-        cursor: 'pointer'
+          : !isDifferential && getSeverityColor(mappedRecord.prognosis).bgColor,
+        cursor: isDischared ? 'not-allowed' : 'pointer'
       }}
     >
       <Box
@@ -74,8 +77,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           <MedicalIdChip
             leftImage
-            medId={record?.medical_record_id ? `MID-${record.medical_record_id}` : ''}
-            rightDot
+            medId={record?.medical_record_code}
+            rightDot={record?.medical_record_code === patientData?.medical_record_code}
             dotColor={isActive ? theme.palette.primary.main : theme.palette.success.main}
             textColor={theme.palette.customColors.OnSurface}
           />
@@ -105,7 +108,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
               }}
             />
 
-            {mappedRecord?.severity && (
+            {mappedRecord?.prognosis && !isDifferential && (
               <Box
                 component='span'
                 sx={{
@@ -115,7 +118,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                   fontWeight: 500,
                   color: resolved
                     ? theme.palette.customColors.neutralSecondary
-                    : getSeverityColor(mappedRecord?.severity).color,
+                    : getSeverityColor(mappedRecord?.prognosis).color,
                   '&:before': {
                     content: { xs: '""', sm: '"•"' },
                     marginRight: { xs: 0, sm: '4px' },
@@ -123,11 +126,11 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                   }
                 }}
               >
-                {mappedRecord.severity || ''}
+                {mappedRecord.prognosis || ''}
               </Box>
             )}
 
-            {mappedRecord.category && (
+            {/* {mappedRecord.category && (
               <Box
                 component='span'
                 sx={{
@@ -145,36 +148,47 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                 }}
               >
                 {mappedRecord.category}
-              </Box>
-            )}
+              </Box>  
+            )} */}
           </Box>
         </Box>
 
         {/* Middle Content */}
         <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-              Activity:
-            </Typography>
-            <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-              {mappedRecord.activity}
-            </Typography>
-          </Box>
-
-          {mappedRecord.clinicalAssessment && (
+          {mappedRecord.activity && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
-              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
-                Clinical Assessment :{' '}
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
+                Activity:
               </Typography>
-              <Typography
-                sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 600 }}
-              >
-                {mappedRecord.clinicalAssessment}
+              <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
+                {mappedRecord.activity}
               </Typography>
             </Box>
           )}
 
-          {mappedRecord.chronic && (
+          {record?.latest_note?.is_system_generated == 1 && (mappedRecord?.oldRecord || mappedRecord?.newRecord) && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
+                Clinical Assessment :{' '}
+              </Typography>
+              {mappedRecord?.oldRecord && (
+                <Typography
+                  sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary, fontWeight: 600 }}
+                >
+                  {Utility.capitalizeFirstLetter(mappedRecord?.oldRecord)}
+                </Typography>
+              )}
+              {mappedRecord?.newRecord && (
+                <Typography
+                  sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 600 }}
+                >
+                  {mappedRecord?.oldRecord && '→'} {Utility.capitalizeFirstLetter(mappedRecord.newRecord)}
+                </Typography>
+              )}
+            </Box>
+          )}
+
+          {record?.latest_note?.is_system_generated == true && mappedRecord.chronic && !isDifferential && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Is it Chronic :{' '}
@@ -191,7 +205,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
             </Box>
           )}
 
-          {mappedRecord.prognosis && (
+          {record.latest_note?.is_system_generated == true && mappedRecord.prognosis && !isDifferential && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 Prognosis :{' '}
@@ -200,7 +214,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
                 sx={{
                   fontSize: '0.875rem',
                   color: getPrognosisColor
-                    ? getPrognosisColor(mappedRecord.prognosis).color
+                    ? getSeverityColor(mappedRecord.prognosis).color
                     : theme.palette.customColors.OnSurfaceVarient,
                   fontWeight: 600
                 }}
@@ -210,7 +224,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
             </Box>
           )}
 
-          {mappedRecord.notes && (
+          {record.latest_note?.is_system_generated == true && mappedRecord.notes && (
             <Tooltip title={mappedRecord.notes} arrow placement='top'>
               <Typography
                 sx={{
@@ -230,7 +244,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
             </Tooltip>
           )}
 
-          {mappedRecord.description && (
+          {record.latest_note?.is_system_generated == false && mappedRecord.description && (
             <Tooltip title={mappedRecord.description} arrow placement='top'>
               <Typography
                 sx={{
@@ -251,69 +265,61 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick })
           )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-            Last Updated: {mappedRecord.lastUpdated}
+            Last Updated:{' '}
+            {record?.comment_count > 1 ? `${Utility.convertUtcToLocalReadableDate(mappedRecord.lastUpdated)} • ${Utility.convertUTCToLocaltime(
+              mappedRecord.lastUpdated
+            )}` : `${Utility.convertUtcToLocalReadableDate(record?.additional_info?.recorded_date_time)} • ${Utility.convertUTCToLocaltime(
+              record?.additional_info?.recorded_date_time
+            )}`}
           </Typography>
         </Box>
 
         {/* Right Content - Resolved By */}
-        {mappedRecord.resolvedBy && (
-          <Box
-            sx={{
-              gridColumn: { xs: '1', sm: '1 / span 2', md: '3' },
-              mt: { xs: 1, md: 0 },
-              borderTop: { xs: `1px solid ${alpha(theme.palette.divider, 0.1)}`, md: 'none' },
-              pt: { xs: 1.5, md: 0 }
-            }}
-          >
-            <Typography
-              sx={{
-                mb: { xs: 1, md: 2 },
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '0.75rem',
-                ml: { xs: 0, md: 1 }
-              }}
-            >
-              Resolved by
-            </Typography>
-            <UserAvatarDetails
-              profile_image={mappedRecord.resolvedBy.avatar}
-              user_name={mappedRecord.resolvedBy.name}
-              date={mappedRecord.resolvedBy.date}
-              show_time
-              compact={true}
-            />
-          </Box>
-        )}
 
         {/* Created By (for active records) */}
-        {!resolved && (
-          <Box
+
+        <Box
+          sx={{
+            gridColumn: { xs: '1', sm: '1 / span 2', md: '3' },
+            mt: { xs: 1, md: 0 },
+            borderTop: { xs: `1px solid ${alpha(theme.palette.divider, 0.1)}`, md: 'none' },
+            pt: { xs: 1.5, md: 0 }
+          }}
+        >
+          <Typography
             sx={{
-              gridColumn: { xs: '1', sm: '1 / span 2', md: '3' },
-              mt: { xs: 1, md: 0 },
-              borderTop: { xs: `1px solid ${alpha(theme.palette.divider, 0.1)}`, md: 'none' },
-              pt: { xs: 1.5, md: 0 }
+              mb: { xs: 1, md: 2 },
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '0.75rem',
+              ml: { xs: 0, md: 1 }
             }}
           >
-            <Typography
-              sx={{
-                mb: { xs: 1, md: 2 },
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '0.75rem',
-                ml: { xs: 0, md: 1 }
-              }}
-            >
-              Created by
-            </Typography>
-            <UserAvatarDetails
-              profile_image={record.created_by_user_name}
-              user_name={record.created_by_user_name}
-              date={Utility.formatDisplayDate(record.created_at)}
-              show_time
-              compact={true}
-            />
-          </Box>
-        )}
+            {record.additional_info?.status === 'active'
+              ? record?.latest_note?.modified_at?.slice(0, 19) === record?.created_at
+                ? 'Created by'
+                : 'Updated by'
+              : 'Resolved by'}
+          </Typography>
+          <UserAvatarDetails
+            profile_image={
+              record?.additional_info?.status === 'active'
+                ? record?.updated_by_user_name
+                  ? record?.updated_user_profile_pic
+                  : record?.created_user_profile_pic
+                : record.additional_info?.resolved_user_profile_pic || record.created_by_user_name
+            }
+            user_name={
+              record?.additional_info?.status === 'active'
+                ? record?.updated_by_user_name
+                  ? record?.updated_by_user_name
+                  : record.created_by_user_name
+                : record.additional_info?.resolved_user_name
+            }
+            date={record?.comment_count > 1 ? record?.latest_note?.modified_at || record.additional_info?.closed_at : record?.additional_info?.recorded_date_time}
+            show_time
+            compact={true}
+          />
+        </Box>
       </Box>
     </Box>
   )

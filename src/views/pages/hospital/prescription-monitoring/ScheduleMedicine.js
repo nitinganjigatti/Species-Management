@@ -1,7 +1,7 @@
-import React from 'react'
-import { Box, Typography, Button, Grid, Paper, IconButton } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import { useFieldArray, watch } from 'react-hook-form'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { Box, Typography, Button, Grid, Paper, IconButton, CircularProgress } from '@mui/material'
+import { alpha, useTheme } from '@mui/material/styles'
+import { useFieldArray, useWatch } from 'react-hook-form'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
@@ -11,48 +11,73 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import AddIcon from '@mui/icons-material/Add'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
+import dayjs from 'dayjs'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
+import Utility from 'src/utility'
+import { useRouter } from 'next/router'
+import moment from 'moment'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
-export default function ScheduleMedicine({ control, errors, selectedMedicineTo }) {
+const STORAGE_KEY = 'medical_record_data'
+
+export default function ScheduleMedicine({
+  control,
+  errors,
+  selectedMedicineTo,
+  medicalMasterData,
+  isMedicineSelected,
+  batchList = [],
+  batchLoading,
+  handleBatchSearch,
+  isControlledSubstance = false,
+  setValue,
+  getValues,
+  reset,
+  isOneTimeFrequency = false,
+  stopDate,
+  endsOn,
+  loadingSideEffects,
+  patientData = null
+}) {
+  const {
+    caseTypes,
+    prescriptionDosageMeasurementType,
+    prescriptionDuration,
+    prescriptionFrequency,
+    prescriptionDeliveryRoute,
+    intervalList
+  } = medicalMasterData
   const theme = useTheme()
+  const hasSetDefaults = useRef(false)
 
-  // Options for selects
-  const frequencyOptions = [
-    { id: 1, label: 'Everyday', value: 'everyday' },
-    { id: 2, label: 'Alternate Day', value: 'every-other-day' },
-    { id: 3, label: 'Weekly', value: 'weekly' },
-    { id: 4, label: 'Monthly', value: 'monthly' },
-    { id: 5, label: 'As Needed', value: 'as-needed' }
-  ]
+  const now = new Date()
+  const router = useRouter()
+  const { data } = useDynamicStateContext()
+  const medicalRecordData = data[STORAGE_KEY] || {}
 
-  const doseTypeOptions = [
-    { id: 1, label: 'Fixed Dose', value: 'fixed-dose' },
-    { id: 2, label: 'Variable Dose', value: 'variable-dose' },
-    { id: 3, label: 'As Prescribed', value: 'as-prescribed' }
-  ]
+  const animal_admitted_date = medicalRecordData?.animal_admitted_date
+  const { medicine_edit_id, fromPage, date } = router.query
 
-  const unitOptions = [
-    { id: 1, label: 'Tablets', value: 'tablets' },
-    { id: 2, label: 'Capsules', value: 'capsules' },
-    { id: 3, label: 'ml', value: 'ml' },
-    { id: 4, label: 'mg', value: 'mg' },
-    { id: 5, label: 'Drops', value: 'drops' },
-    { id: 6, label: 'Puffs', value: 'puffs' }
-  ]
+  const editIdStr = medicine_edit_id?.toString()
+  const enclosureMedicines = data?.enclosure_medicines || []
 
-  const deliveryRouteOptions = [
-    { id: 1, label: 'Oral', value: 'oral' },
-    { id: 2, label: 'Injection', value: 'injection' },
-    { id: 3, label: 'Topical', value: 'topical' },
-    { id: 4, label: 'Inhalation', value: 'inhalation' },
-    { id: 5, label: 'Sublingual', value: 'sublingual' },
-    { id: 6, label: 'Rectal', value: 'rectal' }
-  ]
+  // Find the selected medicine to edit
+  const editingMedicineData = editIdStr ? enclosureMedicines.find(m => m?.id?.toString() === editIdStr) : null
 
-  const durationUnitOptions = [
-    { id: 1, label: 'Days', value: 'days' },
-    { id: 2, label: 'Weeks', value: 'weeks' },
-    { id: 3, label: 'Months', value: 'months' }
-  ]
+  // Add this state to track start date validation
+  const [startDateWarning, setStartDateWarning] = useState('')
+
+  // Watch for date and medicine type changes
+  const prescriptionStartDate = useWatch({
+    control,
+    name: 'prescriptionStartDate'
+  })
+
+  const prescriptionEndDate = useWatch({
+    control,
+    name: 'prescriptionEndDate'
+  })
 
   // Common styles for form fields
   const commonFieldStyles = {
@@ -66,8 +91,240 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'schedules',
-    keyName: 'fieldId' // add this to avoid key prop conflicts
+    keyName: 'fieldId'
   })
+
+  // Watch all schedules
+  const allSchedules = useWatch({
+    control,
+    name: 'schedules'
+  })
+
+  // Calculate if we should restrict time to now
+  const shouldRestrictTimeToNow = useMemo(() => {
+    if (selectedMedicineTo !== 'Direct Administer') {
+      return false
+    }
+
+    const isOneTime = isOneTimeFrequency
+    if (!isOneTime) {
+      return false
+    }
+
+    if (!prescriptionStartDate) {
+      return false
+    }
+
+    const selectedDate = dayjs(prescriptionStartDate)
+    const today = dayjs()
+
+    return selectedDate.isSame(today, 'day')
+  }, [selectedMedicineTo, isOneTimeFrequency, prescriptionStartDate])
+
+  // Determine if we're in Direct Administer with regular intervals mode
+  const isDirectAdministerRegular = useMemo(() => {
+    return selectedMedicineTo === 'Direct Administer' && !isOneTimeFrequency
+  }, [selectedMedicineTo, isOneTimeFrequency])
+
+  // Set default values when medicine is selected
+  useEffect(() => {
+    if (isMedicineSelected && medicalMasterData && !hasSetDefaults.current && intervalList && prescriptionFrequency) {
+      const currentTime = dayjs()
+
+      // Set default frequency (first item)
+      if (prescriptionFrequency && prescriptionFrequency.length > 0) {
+        setValue('frequency', prescriptionFrequency[0].value)
+      }
+
+      // Set default interval (first item)
+      if (intervalList && intervalList?.length > 0) {
+        setValue('interval', intervalList[0].value)
+      }
+
+      // Set default schedule with current time and EMPTY unit
+      setValue('schedules', [
+        {
+          time: currentTime,
+          quantity: '',
+          unit: '' // Empty by default
+        }
+      ])
+
+      // Set default prescription start date
+      // If patient is discharged, use admitted date; otherwise use today
+      let defaultStartDate = dayjs(date) || dayjs()
+      if (patientData?.discharge_at && patientData?.admitted_at) {
+        // Convert UTC to local time
+        defaultStartDate = dayjs(Utility?.convertUTCToLocal(patientData.admitted_at) || patientData.admitted_at)
+      } else if (patientData?.discharge_at) {
+        // Fallback to discharge date if admitted date not available
+        // Convert UTC to local time
+        defaultStartDate = dayjs(Utility?.convertUTCToLocal(patientData.discharge_at) || patientData.discharge_at)
+      }
+      setValue('prescriptionStartDate', defaultStartDate)
+
+      // Set default prescription end date
+      // If patient is discharged, use discharge date; otherwise use today
+      if (isDirectAdministerRegular) {
+        let defaultEndDate = dayjs()
+        if (patientData?.discharge_at) {
+          // Convert UTC to local time
+          defaultEndDate = dayjs(Utility?.convertUTCToLocal(patientData.discharge_at) || patientData.discharge_at)
+        }
+        setValue('prescriptionEndDate', defaultEndDate)
+      }
+
+      // Set default dosage duration to 1
+      setValue('dosageDuration.value', '0')
+
+      // Set default dosage unit (first item)
+      if (prescriptionDuration && prescriptionDuration.length > 0) {
+        setValue('dosageDuration.unit', prescriptionDuration[0].value)
+      }
+
+      hasSetDefaults.current = true
+    }
+  }, [
+    isMedicineSelected,
+    medicalMasterData,
+    prescriptionDosageMeasurementType,
+    prescriptionFrequency,
+    prescriptionDuration,
+    intervalList,
+    setValue,
+    patientData?.discharge_at,
+    patientData?.admitted_at
+  ])
+
+  // Reset the flag when medicine is deselected
+  useEffect(() => {
+    if (!isMedicineSelected) {
+      hasSetDefaults.current = false
+    }
+  }, [isMedicineSelected])
+
+  // Set minDate and maxDate based on discharge status
+  // For discharged patients, restrict dates to discharge date
+  useEffect(() => {
+    if (patientData?.discharge_at) {
+      const dischargeDate = dayjs(patientData.discharge_at)
+
+      // For Direct Administer with regular intervals, set both start and end dates to discharge date
+      // (This is already handled in parent component, but we control the date picker limits here)
+    }
+  }, [patientData?.discharge_at])
+
+  // Remove extra schedules when switching to "one_time" frequency
+  useEffect(() => {
+    if (isOneTimeFrequency && fields.length > 1) {
+      // Keep only the first schedule
+      const firstSchedule = getValues('schedules.0')
+      setValue('schedules', [firstSchedule])
+    }
+  }, [isOneTimeFrequency, fields.length, getValues, setValue])
+
+  // Handler for adding new time slot
+  const handleAddTime = e => {
+    e.preventDefault()
+
+    // Get the current schedules
+    const currentSchedules = getValues('schedules')
+
+    // Get the unit from the last schedule (previous index)
+    const lastScheduleUnit = currentSchedules[currentSchedules.length - 1]?.unit || ''
+
+    const lastScheduleQuantity = currentSchedules[currentSchedules.length - 1]?.quantity || ''
+
+    const lastScheduledTime = currentSchedules[currentSchedules.length - 1]?.time || ''
+
+    // Calculate new time: last time + 2 hours
+    const newTime = dayjs(lastScheduledTime).add(2, 'hour')
+
+    // Add new schedule with the previous schedule's unit
+    append({
+      time: newTime,
+      quantity: lastScheduleQuantity,
+      unit: lastScheduleUnit
+    })
+  }
+
+  function convertTimeToToday(timeStr) {
+    if (!timeStr) return dayjs()
+
+    // Example format: "11 : 30 : AM" → "11:30 AM"
+    const cleaned = timeStr.replace(/\s*:\s*/g, ':')
+
+    return dayjs(cleaned, ['hh:mm A', 'h:mm A'])
+  }
+
+  // Prefill form when editing an existing medicine
+  useEffect(() => {
+    if (editingMedicineData) {
+      hasSetDefaults.current = true // prevent default overrides
+      const firstBatch = editingMedicineData.batch_list?.[0] || {}
+
+      reset({
+        frequency: editingMedicineData.frequency_id || editingMedicineData.frequency || '',
+        interval: editingMedicineData.interval_id || '',
+        deliveryRoute: editingMedicineData?.delivery_route_name || '',
+
+        prescriptionStartDate: editingMedicineData?.start_date ? dayjs(editingMedicineData.start_date) : null,
+
+        dosageDuration: {
+          value: editingMedicineData?.duration_qty || '0',
+          unit: editingMedicineData?.duration_type?.toLowerCase() || ''
+        },
+
+        notes: editingMedicineData.notes || '',
+
+        wastageQuantity: firstBatch.wastage || '',
+        wastageUOM: firstBatch.wastageUnit || '',
+        wastageNotes: firstBatch.notes || '',
+
+        batchNumber: firstBatch.batchNumber || null,
+        batchImage: firstBatch.files || [],
+
+        schedules: editingMedicineData.schedule_doses?.map(s => ({
+          time: s.time ? dayjs(convertTimeToToday(s.time)) : dayjs(),
+          quantity: s.quantity || '',
+          unit: s.unit_name || ''
+        })) || [{ time: dayjs(), quantity: '', unit: '' }],
+        selectMedicineType: 'Schedule'
+      })
+    }
+  }, [editingMedicineData, reset, medicalMasterData])
+
+  if (loadingSideEffects)
+    return (
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: alpha(theme?.palette?.customColors?.deepDark, 0.3),
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1299
+        }}
+      >
+        <Paper
+          sx={{
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 2,
+            borderRadius: '8px'
+          }}
+        >
+          <CircularProgress />
+          {/* <Typography>Checking for adverse side effects...</Typography> */}
+        </Paper>
+      </Box>
+    )
 
   return (
     <Box
@@ -79,7 +336,6 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
         // height: '100%',
         maxHeight: 850,
         overflowY: 'auto',
-
         background: theme.palette.customColors.OnBackground,
         borderRadius: '8px',
         display: 'flex',
@@ -100,370 +356,534 @@ export default function ScheduleMedicine({ control, errors, selectedMedicineTo }
       }}
     >
       <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-        <Box
-          container
-          sx={{
-            background: theme.palette.common.white,
-            minHeight: 'fit-content',
-            borderRadius: '4px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            justifyContent: 'flex-start',
-            gap: 2,
-            padding: '24px',
-            width: '100%',
-
-            // maxWidth: '420px',
-            flex: 1,
-            overflowY: 'auto',
-
-            '& .MuiGrid-item': {
-              paddingLeft: '8px !important',
-              paddingTop: '8px !important'
-            }
-          }}
-        >
-          <Typography
+        {isMedicineSelected ? (
+          <Box
+            container
             sx={{
-              mb: 4,
-              fontSize: '20px',
-              fontWeight: '500',
-              textAlign: 'left',
-              color: theme.palette.customColors.OnSurfaceVariant
+              background: theme.palette.common.white,
+              minHeight: 'fit-content',
+              borderRadius: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              justifyContent: 'flex-start',
+              gap: 2,
+              padding: '24px',
+              width: '100%',
+
+              // maxWidth: '420px',
+              flex: 1,
+              overflowY: 'auto',
+              '& .MuiGrid-item': {
+                paddingLeft: '8px !important',
+                paddingTop: '8px !important'
+              }
             }}
           >
-            Schedule Medicine
-          </Typography>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledSelect
-              fullWidth={true}
-              name='frequency'
-              sx={commonFieldStyles}
-              size='large'
-              label='Set Frequency'
-              control={control}
-              errors={errors}
-              options={frequencyOptions}
-              getOptionLabel={option => option.label}
-              getOptionValue={option => option.value}
-              required
-            />
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledSelect
-              fullWidth={true}
-              name='doseType'
-              label='Select Dose Type'
+            <Typography
               sx={{
+                mb: 4,
+                fontSize: '20px',
+                fontWeight: '500',
                 textAlign: 'left',
-                borderColor: `${theme.palette.customColors.OutlineVariant} !important`,
-                borderRadius: '4px',
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px',
-                  borderColor: `${theme.palette.customColors.OutlineVariant} !important`
-                }
-              }}
-              size='large'
-              control={control}
-              errors={errors}
-              options={doseTypeOptions}
-              getOptionLabel={option => option.label}
-              getOptionValue={option => option.value}
-              required
-            />
-          </Box>
-
-          {fields.map((field, idx) => (
-            <Grid
-              container
-              spacing={2}
-              key={field.fieldId}
-              sx={{
-                mb: 3,
-                flexDirection: 'row',
-                alignItems: 'flex-start',
-                '& .MuiFormControl-root': {
-                  width: '100%'
-                }
+                color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              <Grid item size={4.5}>
-                <ControlledTimePicker
-                  name={`schedules.${idx}.time`}
-                  label='Time'
-                  control={control}
-                  errors={errors}
-                  placeholder='12:30 PM'
-                  required
-                  sx={commonFieldStyles}
-                  size='large'
-                />
-              </Grid>
+              {selectedMedicineTo === 'Direct Administer' ? 'Direct Administer' : 'Schedule Medicine'}
+            </Typography>
 
-              <Grid item size={6.5}>
-                <ControlledSelectWithTextField
-                  textFieldName={`schedules.${idx}.quantity`}
-                  selectFieldName={`schedules.${idx}.unit`}
-                  control={control}
-                  errors={errors}
-                  options={unitOptions}
-                  label='Quantity'
-                  placeholder='Enter quantity'
-                  type='number'
-                  getOptionLabel={option => option.label}
-                  getOptionValue={option => option.value}
-                  sx={commonFieldStyles}
-                  size='large'
-                  required
-                />
-              </Grid>
-
-              {fields?.length > 1 && (
-                <Grid
-                  item
-                  size={1}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    pt: '20px !important' // Align with input fields
-                  }}
-                >
-                  <IconButton
-                    onClick={() => remove(idx)}
-                    size='small'
-                    sx={{
-                      mt: '-4px' // Fine tune alignment with input fields
-                    }}
-                  >
-                    <CloseIcon fontSize='small' />
-                  </IconButton>
-                </Grid>
-              )}
-            </Grid>
-          ))}
-
-          <Button
-            startIcon={<AddIcon />}
-            variant='outlined'
-            fullWidth
-            sx={{
-              mb: 3,
-              height: '48px',
-              fontSize: '16px',
-              background: '#EAF8F2',
-              color: '#1A7F64',
-              borderColor: '#B6E2D3',
-              fontWeight: 500,
-              padding: '10px 12px'
-            }}
-            onClick={e => {
-              e.preventDefault()
-              append({ time: '', quantity: '', unit: '' })
-            }}
-          >
-            Add Time
-          </Button>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledSelect
-              name='deliveryRoute'
-              label='Select Delivery Route'
-              fullWidth={true}
-              sx={{
-                textAlign: 'left',
-                borderRadius: '4px'
-              }}
-              size='large'
-              control={control}
-              errors={errors}
-              options={deliveryRouteOptions}
-              getOptionLabel={option => option.label}
-              getOptionValue={option => option.value}
-              required
-            />
-          </Box>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledDatePicker
-              fullWidth={true}
-              sx={commonFieldStyles}
-              size='large'
-              name='prescriptionStartDate'
-              label='Prescription Start Date'
-              control={control}
-              errors={errors}
-              required
-            />
-          </Box>
-
-          <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
-            <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-              <ControlledTextField
-                name='dosageDuration.value'
-                label='Dosage Duration'
+            <Box sx={{ mb: 3 }}>
+              <ControlledSelect
+                fullWidth={true}
+                name='frequency'
+                sx={commonFieldStyles}
+                size='large'
+                label='Set Frequency*'
                 control={control}
                 errors={errors}
-                type='number'
+                options={prescriptionFrequency}
+                getOptionLabel={option => option.label}
+                getOptionValue={option => option.value}
+                required
+              />
+            </Box>
+
+            {!isOneTimeFrequency && (
+              <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    backgroundColor: theme.palette.customColors.OnBackground,
+                    padding: '16px 14px',
+                    borderRadius: '4px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      textAlign: 'left',
+                      color: theme.palette.customColors.OnSurface
+                    }}
+                  >
+                    Every
+                  </Typography>
+                </Box>
+                <ControlledSelect
+                  fullWidth={true}
+                  name='interval'
+                  sx={commonFieldStyles}
+                  size='large'
+                  label='Set Interval*'
+                  control={control}
+                  errors={errors}
+                  options={intervalList}
+                  getOptionLabel={option => option.label}
+                  getOptionValue={option => option.value}
+                  required
+                />
+              </Box>
+            )}
+
+            {/* <Box sx={{ mb: 3 }}>
+              <ControlledSelect
+                fullWidth={true}
+                name='doseType'
+                label='Select Dose Type*'
                 sx={{
                   textAlign: 'left',
+                  borderColor: `${theme.palette.customColors.OutlineVariant} !important`,
+                  borderRadius: '4px',
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '4px',
+                    borderColor: `${theme.palette.customColors.OutlineVariant} !important`
+                  }
+                }}
+                size='large'
+                control={control}
+                errors={errors}
+                options={prescriptionDosageMeasurementType}
+                getOptionLabel={option => option.label}
+                getOptionValue={option => option.value}
+                required
+              />
+            </Box> */}
+
+            {fields.map((field, idx) => (
+              <Grid
+                container
+                spacing={2}
+                key={field.fieldId}
+                sx={{
+                  mb: 3,
+                  flexDirection: 'row',
+                  alignItems: 'flex-start',
+                  '& .MuiFormControl-root': {
+                    width: '100%'
+                  }
+                }}
+              >
+                <Grid item size={4.5}>
+                  <ControlledTimePicker
+                    name={`schedules.${idx}.time`}
+                    label='Time*'
+                    control={control}
+                    errors={errors}
+                    placeholder='12:30 PM'
+                    required
+                    sx={commonFieldStyles}
+                    size='large'
+                    maxTime={shouldRestrictTimeToNow ? dayjs() : undefined}
+                    helperText={shouldRestrictTimeToNow ? "Time cannot be in future for today's date" : undefined}
+                  />
+                </Grid>
+
+                <Grid item size={fields?.length > 1 ? 6.5 : 7.5}>
+                  <ControlledSelectWithTextField
+                    textFieldName={`schedules.${idx}.quantity`}
+                    selectFieldName={`schedules.${idx}.unit`}
+                    control={control}
+                    errors={errors}
+                    options={prescriptionDosageMeasurementType}
+                    label='Quantity*'
+                    placeholder='Enter quantity'
+                    type='number'
+                    selectWidth={{ xs: 80, sm: 100, md: 100, lg: 120 }}
+                    getOptionLabel={option => option.label}
+                    getOptionValue={option => option.value}
+                    sx={commonFieldStyles}
+                    size='large'
+                    required
+                    maxDecimals={4}
+                  />
+                </Grid>
+
+                {fields?.length > 1 && (
+                  <Grid
+                    item
+                    size={1}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      pt: '20px !important'
+                    }}
+                  >
+                    <IconButton
+                      onClick={() => remove(idx)}
+                      size='small'
+                      sx={{
+                        mt: '-4px'
+                      }}
+                    >
+                      <CloseIcon fontSize='small' />
+                    </IconButton>
+                  </Grid>
+                )}
+              </Grid>
+            ))}
+
+            {/* Conditionally render "Add Time" button */}
+            {!isOneTimeFrequency && (
+              <Button
+                startIcon={<AddIcon />}
+                variant='outlined'
+                fullWidth
+                sx={{
+                  mb: 3,
+                  height: '48px',
+                  fontSize: '16px',
+                  background: theme.palette.customColors.SurfaceVariant,
+                  color: theme.palette.customColors.OnSurface,
+                  border: 'none',
+                  borderRadius: '4px',
+                  fontWeight: 500,
+                  padding: '10px 12px'
+                }}
+                onClick={handleAddTime}
+              >
+                Add Time
+              </Button>
+            )}
+
+            <Box sx={{ mb: 3 }}>
+              <ControlledSelect
+                name='deliveryRoute'
+                label='Select Delivery Route*'
+                fullWidth={true}
+                sx={{
+                  textAlign: 'left',
+                  borderRadius: '4px'
+                }}
+                size='large'
+                control={control}
+                errors={errors}
+                options={prescriptionDeliveryRoute}
+                getOptionLabel={option => option.label}
+                getOptionValue={option => option.value}
+                required
+              />
+            </Box>
+
+            <Box sx={{ mb: 3 }}>
+              <Box>
+                <ControlledDatePicker
+                  fullWidth={true}
+                  sx={commonFieldStyles}
+                  minDate={fromPage === 'prescriptionDetail' ? dayjs(stopDate) : dayjs(animal_admitted_date)}
+                  maxDate={
+                    patientData?.discharge_at
+                      ? dayjs(patientData.discharge_at)
+                      : selectedMedicineTo === 'Direct Administer'
+                      ? dayjs(now)
+                      : undefined
+                  }
+                  size='large'
+                  name='prescriptionStartDate'
+                  label={
+                    isDirectAdministerRegular
+                      ? 'Prescription Start Date*'
+                      : selectedMedicineTo === 'Direct Administer'
+                      ? 'Prescription Start Date*'
+                      : 'Prescription Start Date*'
+                  }
+                  control={control}
+                  errors={errors}
+                  required
+                />
+              </Box>
+            </Box>
+
+            {/* Show End Date field ONLY for Direct Administer with regular intervals */}
+            {isDirectAdministerRegular && (
+              <Box sx={{ mb: 3 }}>
+                <ControlledDatePicker
+                  fullWidth={true}
+                  sx={commonFieldStyles}
+                  minDate={dayjs(animal_admitted_date)}
+                  maxDate={patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs(now)}
+                  size='large'
+                  name='prescriptionEndDate'
+                  label='Prescription End Date*'
+                  control={control}
+                  errors={errors}
+                  required
+                />
+              </Box>
+            )}
+
+            {/* Show Dosage Duration ONLY for Schedule mode or Direct Administer one-time */}
+            {!isOneTimeFrequency && !isDirectAdministerRegular && (
+              <>
+                <Grid container display='flex' justifyContent={'space-between'} spacing={2}>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledTextField
+                      name='dosageDuration.value'
+                      label='Dosage Duration*'
+                      control={control}
+                      errors={errors}
+                      type='number'
+                      sx={{
+                        textAlign: 'left',
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '4px'
+                        }
+                      }}
+                      size='large'
+                      required
+                    />
+                  </Grid>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledSelect
+                      name='dosageDuration.unit'
+                      // label='Dosage Unit*'
+                      sx={{
+                        textAlign: 'left',
+                        borderRadius: '4px'
+                      }}
+                      size='large'
+                      control={control}
+                      errors={errors}
+                      options={prescriptionDuration}
+                      required
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                    />
+                  </Grid>
+                </Grid>
+              </>
+            )}
+
+            {endsOn && selectedMedicineTo !== 'Direct Administer' && (
+              <Typography
+                sx={{
+                  display: 'flex',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  fontStyle: 'italic',
+                  color: theme.palette.customColors.OnSurface,
+                  mb: 3,
+                  mt: 2
+                }}
+              >
+                {`Prescription ends on ${endsOn}`}
+              </Typography>
+            )}
+
+            <Box sx={{ mb: 3 }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 ,textAlign:'left'}}>Notes</Typography>
+              <ControlledTextArea
+                fullWidth={true}
+                sx={{
+                  textAlign: 'left',
+                  background: '#FFF9E5',
+                  borderRadius: '4px',
                   '& .MuiOutlinedInput-root': {
                     borderRadius: '4px'
                   }
                 }}
-                size='large'
-                required
-              />
-            </Grid>
-            <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-              <ControlledSelect
-                name='dosageDuration.unit'
-                sx={{
-                  textAlign: 'left',
-                  borderRadius: '4px'
-                }}
-                size='large'
+                name='notes'
+                placeholder='Enter Notes'
                 control={control}
                 errors={errors}
-                options={durationUnitOptions}
-                required
-                getOptionLabel={option => option.label}
-                getOptionValue={option => option.value}
+                rows={4}
               />
-            </Grid>
-          </Grid>
-
-          <Box sx={{ mb: 3 }}>
-            <ControlledTextArea
-              fullWidth={true}
-              sx={{
-                textAlign: 'left',
-                background: '#FFF9E5',
-                borderRadius: '4px',
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '4px'
-                }
-              }}
-              name='notes'
-              label='Enter Notes'
-              control={control}
-              errors={errors}
-              rows={4}
-            />
-          </Box>
-          {selectedMedicineTo === 'Direct Administer' && (
-            <>
-              <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
-                <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
-                  <Typography
-                    sx={{
-                      mb: 1,
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      textAlign: 'left',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    Add Wastage & Batch Number
-                    <span
-                      style={{
-                        color: theme.palette.customColors.neutralSecondary,
-                        fontSize: '14px',
-                        fontWeight: '500'
+            </Box>
+            {selectedMedicineTo === 'Direct Administer' && (
+              <>
+                <Grid container display='flex' justifyContent={'space-between'} spacing={2} sx={{ mb: 3 }}>
+                  <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                    <Typography
+                      sx={{
+                        mb: 1,
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        textAlign: 'left',
+                        color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      (Optional)
-                    </span>
-                  </Typography>
+                      Add Wastage & Batch Number
+                      <span
+                        style={{
+                          color: theme.palette.customColors.neutralSecondary,
+                          fontSize: '14px',
+                          fontWeight: '500'
+                        }}
+                      >
+                        (Optional)
+                      </span>
+                    </Typography>
+                  </Grid>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledTextField
+                      name='wastageQuantity'
+                      label='Quantity'
+                      control={control}
+                      errors={errors}
+                      type='number'
+                      sx={{
+                        textAlign: 'left',
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '4px'
+                        }
+                      }}
+                      size='large'
+                    />
+                  </Grid>
+                  <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
+                    <ControlledSelect
+                      name='wastageUOM'
+                      label={'UOM'}
+                      sx={{
+                        textAlign: 'left',
+                        borderRadius: '4px'
+                      }}
+                      size='large'
+                      control={control}
+                      errors={errors}
+                      options={prescriptionDosageMeasurementType}
+                      getOptionLabel={option => option.label}
+                      getOptionValue={option => option.value}
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-                  <ControlledTextField
-                    name='dosageDuration.value'
-                    label='Quantity'
-                    control={control}
-                    errors={errors}
-                    type='number'
+                <Box sx={{ mb: 3}}>
+                  <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2,textAlign:'left' }}>Notes</Typography>
+                  <ControlledTextArea
+                    fullWidth={true}
                     sx={{
                       textAlign: 'left',
+                      borderRadius: '4px',
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '4px'
                       }
                     }}
-                    size='large'
-                    required
-                  />
-                </Grid>
-                <Grid item size={{ xs: 6, md: 6, lg: 6 }}>
-                  <ControlledSelect
-                    name='dosageDuration.unit'
-                    label={'UOM'}
-                    sx={{
-                      textAlign: 'left',
-                      borderRadius: '4px'
-                    }}
-                    size='large'
+                    name='wastageNotes'
+                    placeholder='Enter Notes'
                     control={control}
                     errors={errors}
-                    options={[]}
-                    required
-                    getOptionLabel={option => option.label}
-                    getOptionValue={option => option.value}
+                    rows={2}
+                  />
+                </Box>
+                <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      textAlign: 'left',
+                      my: 2,
+                      color: isControlledSubstance
+                        ? theme.palette.error.main
+                        : theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {isControlledSubstance
+                      ? '! Batch Number is Mandatory for controlled substances'
+                      : '! Batch Number is Mandatory for controlled substances'}
+                  </Typography>
+                </Grid>
+                <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
+                  <ControlledAutocomplete
+                    name='batchNumber'
+                    control={control}
+                    errors={errors}
+                    sx={commonFieldStyles}
+                    label={
+                      isControlledSubstance ? 'Enter batch number (required)' : 'Enter batch number if any (optional)'
+                    }
+                    options={batchList}
+                    getOptionLabel={option => {
+                      if (typeof option === 'string') return option
+
+                      return option?.batch_no || ''
+                    }}
+                    getOptionValue={option => {
+                      if (typeof option === 'string') return option
+
+                      return option?.batch_no || ''
+                    }}
+                    isOptionEqualToValue={(option, value) => {
+                      if (!option || !value) return false
+                      const optionVal = typeof option === 'string' ? option : option?.batch_no
+                      const valueVal = typeof value === 'string' ? value : value?.batch_no
+
+                      return optionVal === valueVal
+                    }}
+                    loading={batchLoading}
+                    onInputChange={handleBatchSearch}
+                    required={isControlledSubstance}
+                    autocompleteProps={{
+                      filterOptions: x => x,
+                      noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                    }}
                   />
                 </Grid>
-              </Grid>
-              <Box sx={{ mb: 3 }}>
-                <ControlledTextArea
-                  fullWidth={true}
-                  sx={{
-                    textAlign: 'left',
-                    borderRadius: '4px',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px'
-                    }
-                  }}
-                  name='notes'
-                  label='Enter Notes'
+                <ControlledMultiFileUpload
+                  name='batchImage'
                   control={control}
                   errors={errors}
-                  rows={2}
+                  sx={commonFieldStyles}
+                  label='Batch Image'
+                  maxFiles={1}
+                  maxFileSize={5 * 1024 * 1024} // 5MB
+                  acceptedFileTypes='images'
                 />
-              </Box>
-              <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    fontSize: '12px',
-                    fontWeight: '500',
-                    textAlign: 'left',
-                    my: 2,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  ! Batch Number is Mandatory for controlled substances
-                </Typography>
-              </Grid>
-              <Grid item size={{ xs: 12, md: 12, lg: 12 }}>
-                <ControlledTextField
-                  name='dosageDuration.value'
-                  label='Enter batch number if any (optional)'
-                  control={control}
-                  errors={errors}
-                  sx={{
-                    textAlign: 'left',
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px'
-                    }
-                  }}
-                  size='large'
-                  required
-                />
-              </Grid>
-              <ControlledFileUpload name='controlSubstanceFiles' label='Batch Image' control={control} />
-            </>
-          )}
-        </Box>
+              </>
+            )}
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              background: theme.palette.common.white,
+
+              // minHeight: 'fit-content',
+              borderRadius: '4px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'stretch',
+              justifyContent: 'flex-start',
+              gap: 2,
+              padding: '24px',
+              width: '100%',
+              flex: 1,
+              overflowY: 'auto',
+              '& .MuiGrid-item': {
+                paddingLeft: '8px !important',
+                paddingTop: '8px !important'
+              }
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '16px',
+                fontWeight: '500',
+                textAlign: 'center',
+                color: theme.palette.customColors.neutralSecondary
+              }}
+            >
+              Please select a medicine to schedule.
+            </Typography>
+          </Box>
+        )}
       </Box>
     </Box>
   )

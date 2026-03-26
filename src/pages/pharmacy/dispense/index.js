@@ -1,35 +1,25 @@
 import {
-  Avatar,
   Box,
-  Card,
-  CardHeader,
   Grid,
-  TextField,
   Typography,
   debounce,
-  FormControlLabel,
-  Switch
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 
 // ** Icon Imports
-import { AddButton } from 'src/components/Buttons'
 import { getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import moment from 'moment'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 function Dispense() {
   const router = useRouter()
 
@@ -83,7 +73,6 @@ function Dispense() {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
           }}
         >
           {params.row.dispense_id}
@@ -165,7 +154,6 @@ function Dispense() {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
           }}
         >
           {params.row.animal_count ? params.row.animal_count : 0}
@@ -184,7 +172,6 @@ function Dispense() {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
           }}
         >
           {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))} -{' '}
@@ -352,6 +339,9 @@ function Dispense() {
             title='Add Dispense'
             action={() => router.push('/pharmacy/dispense/add-dispense')}
             fullWidth={'fullWidth'}
+            styles = {{
+              mr: 0
+            }}
           />
         </Grid>
       )}
@@ -362,64 +352,33 @@ function Dispense() {
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
-        <Card>
-          <CardHeader
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'flex-start',
-              alignItems: 'flex-start',
-              gap: { xs: 3, sm: 0 },
-              '& .MuiCardHeader-action': {
-                width: { xs: '100% ', sm: 'auto' }
-              },
-              mx: { xs: -1, sm: 0 },
-              mt: 1,
-              mb: 2
-            }}
-            title={RenderUtility.pageTitle('Dispense')}
-            action={headerAction}
-          />
-
-          <Grid
-            container
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Grid item size={{ xs: 12, sm: 8, md: 8 }} sx={{ mx: { xs: 3, md: 5 } }}>
-              <Box
-                sx={{
+        
+          <PageCardLayout
+              title = 'Dispense'
+              action = {headerAction}>
+          
+            <Grid
+              container
+              spacing={4}
+              sx={
+                {
                   display: 'flex',
                   alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
-                  width: { xs: '100%', sm: '240px' }
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
+                  justifyContent: 'space-between'
+
+                }
+              }
+            >
+              <Grid size={{ xs: 12, sm: 4, md: 3, xl: 2.5  }}>
+                <MUISearch
+                  width={'100%'}
                   placeholder='Search...'
+                  value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
+                  onClear={() => handleSearch('')}
                 />
-              </Box>
-            </Grid>
+              </Grid>
 
             {/* Switch */}
             {/* {status === 'all' || status === 'completed' ? (
@@ -435,26 +394,23 @@ function Dispense() {
                 />
               </Grid>
             ) : null} */}
-          </Grid>
+            </Grid>
 
-          <Grid
-            sx={{
-              mx: { xs: 3, md: 5 }
-            }}
-          >
-            <CommonTable
-              onRowClick={onRowClick}
-              indexedRows={indexedRows}
-              total={total}
-              handleSortModel={handleSortModel}
-              columns={columns}
-              paginationModel={paginationModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-            />
-          </Grid>
-        </Card>
+            <Grid>
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                handleSortModel={handleSortModel}
+                columns={columns}
+                paginationModel={paginationModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+            </PageCardLayout>
+         
       ) : (
         <Error404 />
       )}

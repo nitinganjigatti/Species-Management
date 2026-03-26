@@ -29,6 +29,7 @@ function SpeciesIllustrationCard({ eggDetails, theme }) {
             borderRadius: '8px',
             objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
           }}
+
           // srcSet={eggDetails?.default_icon}
           src={eggDetails?.default_icon}
           alt='default_icon'

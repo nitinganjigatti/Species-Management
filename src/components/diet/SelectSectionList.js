@@ -335,7 +335,7 @@ const SelectSectionList = ({
                       {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: section?.default_icon ? 0 : 2 }} src={section.default_icon || '/images/housing/site-icon-colored.svg'} variant='rounded' /> */}
                       <FallbackAvatar
                         src={section.default_icon}
-                        fallback='/images/housing/section-colored-icon.svg'
+                        fallback='/images/housing/section-icon-colored.png'
                         variant='rounded'
                         sx={{
                           backgroundColor: theme.palette.customColors.displaybgPrimary,
@@ -412,6 +412,7 @@ const SelectSectionList = ({
             onClick={() => {
               onSelectSections(selectedSections)
               setSearchTerm('')
+              onClose?.()
             }}
             disabled={selectedSections?.length <= 0}
           >

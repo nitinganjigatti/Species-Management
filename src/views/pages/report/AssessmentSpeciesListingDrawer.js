@@ -42,6 +42,7 @@ function AssessmentSpeciesListingDrawer({
 
   useEffect(() => {
     window.addEventListener('resize', measureHeights)
+
     return () => window.removeEventListener('resize', measureHeights)
   }, [])
 
@@ -273,6 +274,7 @@ function AssessmentSpeciesListingDrawer({
           position: 'sticky', // sticky works inside the Drawer column; avoids layout jumps
           bottom: 0,
           minHeight: '106px',
+
           // height: { xs: 88, sm: 96, md: 106 }, // responsive heights
           px: 4,
           bgcolor: 'white',
@@ -294,7 +296,7 @@ function AssessmentSpeciesListingDrawer({
           // gap: 5,
           // display: 'flex',
           // boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
-      // zIndex: 1
+          // zIndex: 1
         }}
       >
         <LoadingButton
