@@ -81,7 +81,7 @@ echo "Running npm install:"; pwd
 #rm package-lock.json
 #npm update
 #npm install --legacy-peer-deps
-npm install --production
+npm install --production --loglevel info
 #### BACKUP the existing FOLDER as ZIP(SITE FOLDER)
 
 #Create build
