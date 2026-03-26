@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useContext } from 'react'
 import Router, { useRouter } from 'next/router'
 
 import { Box, Badge, Breadcrumbs, Tooltip, Typography, Button, Card, CardHeader, IconButton } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 
@@ -10,7 +9,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import Icon from 'src/@core/components/icon'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getLabList } from 'src/lib/api/lab/addLab'
 
 const ListOfLab = () => {
@@ -319,22 +318,19 @@ const ListOfLab = () => {
               </Breadcrumbs>
               <Card sx={{ paddingX: 5 }}>
                 <CardHeader sx={{ paddingX: 0 }} title='Lab List' action={headerAction} />
-                <DataGrid
-                  autoHeight
-                  pagination
-                  disableColumnMenu
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
+                <CommonTable
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
                   columns={columns}
-                  sortingMode='server'
-                  pageSizeOptions={[10, 25, 50]}
                   paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={handlePaginationModelChange}
+                  setPaginationModel={handlePaginationModelChange}
+                  handleSortModel={handleSortModel}
                   loading={loading}
                   onCellClick={onCellClick}
-                  sx={{
+                  pageSizeOptions={[10, 25, 50]}
+                  searchValue={searchValue}
+                  handleSearch={handleSearch}
+                  externalTableStyle={{
                     borderTopLeftRadius: '8px',
                     '& .MuiBox-root': {
                       paddingX: 0
@@ -347,19 +343,6 @@ const ListOfLab = () => {
                       border: 'none !important'
                     }
                   }}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => {
-                        setSearchValue(event.target.value)
-                        handleSearch(event.target.value)
-                      }
-                    }
-                  }}
                 />
               </Card>
             </>
@@ -369,7 +352,7 @@ const ListOfLab = () => {
         <ErrorScreen />
       )}
     </>
-  )
+  );
 }
 
 export default ListOfLab

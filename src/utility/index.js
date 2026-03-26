@@ -142,6 +142,12 @@ function convertUtcToLocalReadableDate(date) {
   return local
 }
 
+function formatDateTimeDisplay(date) {
+  if (!date) return ''
+
+  return moment(date).format('DD MMM YYYY | hh:mm A')
+}
+
 function convertUTCToLocaltime(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('h:mm A')
@@ -247,7 +253,7 @@ const downloadFileFromURLWithBlob = async (url, fileName) => {
 }
 
 const formatText = text => {
-  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
 
 function toPascalSentenceCase(str) {
@@ -257,7 +263,7 @@ function toPascalSentenceCase(str) {
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-    .join(' ')
+    .join(' ');
 }
 
 function formatAmountCompactDisplay(value) {
@@ -298,7 +304,7 @@ function formatIdentifierType(type) {
     .replace(/_/g, ' ') // Replace underscores with spaces
     .split(' ') // Split into words
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize each word
-    .join(' ') // Join back with spaces
+    .join(' '); // Join back with spaces
 }
 
 function hexToHex8(hex, opacity) {
@@ -515,7 +521,7 @@ export const extractTextFromHtml = html => {
   return (doc?.body?.textContent || '')
     .replace(/<\/?[^>]+(>|$)/g, '')
     .replace(/\s+/g, ' ')
-    .trim()
+    .trim();
 }
 
 const Utility = {
@@ -552,7 +558,8 @@ const Utility = {
   scrollToField,
   scrollToFirstError,
   AgeConverter,
-  extractTextFromHtml
+  extractTextFromHtml,
+  formatDateTimeDisplay
 }
 
 export default Utility

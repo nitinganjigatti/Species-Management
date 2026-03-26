@@ -24,7 +24,7 @@ import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilte
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
-import { getPatientDischargeSummary, getPatientsMortalityListings } from 'src/lib/api/hospital/inpatient'
+import { getPatientDischargeSummary, getPatientsMortalityListings, downloadMortalityListings } from 'src/lib/api/hospital/inpatient'
 import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
@@ -34,6 +34,8 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalMortality = () => {
   const theme = useTheme()
@@ -50,6 +52,7 @@ const HospitalMortality = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [excelDownload, setExcelDownload] = useState(false);
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -81,10 +84,10 @@ const HospitalMortality = () => {
     setFilters({
       page: parseInt(page),
       limit: parseInt(limit),
-      q
+      q: q
     })
 
-    setSearchValue(q)
+    // setSearchValue(q)
   }, [router.query])
 
   const prepareFilterParams = key => {
@@ -237,6 +240,32 @@ const HospitalMortality = () => {
       console.error('Error downloading discharge summary:', error)
     } finally {
       setDownloadingRowId(null)
+    }
+  }
+
+    const exportMortalityListings = async () => {
+    try {
+      setExcelDownload(true)
+
+      const params = {
+        page_no: 1,
+        limit: 50,
+        q: searchValue,
+        hospital_id: selectedHospital?.id,
+        visit_type: selectedVisitType,
+        export: true
+      }
+
+      const response = await downloadMortalityListings(params)
+      if (response?.success === true && response) {
+        console.log(response?.data?.download_url)
+        Utility.downloadFileFromURL(response?.data?.download_url, Utility.extractHoursAndMinutes)
+        setExcelDownload(false)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+    } finally {
+      setExcelDownload(false)
     }
   }
 
@@ -496,40 +525,39 @@ const HospitalMortality = () => {
 
   const handleRowClick = async params => {
     if (params?.field !== 'action') {
-      // router.push({
-      //   pathname: `/hospital/mortality/${params.row?.hospital_case_id}`,
-      //   query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
-      // })
+      router.push({
+        pathname: `/hospital/mortality/${params.row?.hospital_case_id}`,
+        query: { animal_id: params.row?.animal_detail?.animal_id, medical_record_id: params.row.medical_record_id }
+      })
 
-      try {
-        const payload = {
-          hospital_case_id: params?.row?.hospital_case_id
-        }
+      // try {
+      //   const payload = {
+      //     hospital_case_id: params?.row?.hospital_case_id
+      //   }
 
-        const response = await getPatientDischargeSummary(payload)
-        if (response?.success) {
-          const pdfLink = response?.data?.download_url
+      //   const response = await getPatientDischargeSummary(payload)
+      //   if (response?.success) {
+      //     const pdfLink = response?.data?.download_url
 
-          if (pdfLink) {
-            window.open(pdfLink, '_blank', 'noopener,noreferrer')
-          }
-        }
-      } catch (error) {
-        console.error('Error downloading discharge summary:', error)
-      } finally {
-        setDownloadingRowId(null)
-      }
+      //     if (pdfLink) {
+      //       window.open(pdfLink, '_blank', 'noopener,noreferrer')
+      //     }
+      //   }
+      // } catch (error) {
+      //   console.error('Error downloading discharge summary:', error)
+      // } finally {
+      //   setDownloadingRowId(null)
+      // }
     }
   }
 
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Mortality</Typography>
-        </Breadcrumbs>
+        <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Mortality' }]}
+        />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
@@ -558,11 +586,12 @@ const HospitalMortality = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: {xs: 'flex-start',sm: 'center'},flexDirection: {xs: 'column', sm: 'row'} , gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />
+               <Box sx = {{display: 'flex', gap: 4}}>
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -579,6 +608,14 @@ const HospitalMortality = () => {
                   onClick={() => setOpenFilterDrawer(true)}
                   appliedFiltersCount={filterCount}
                 />
+                <Box sx={{ width: 40, height: 40 }}>
+                  <ExportButton
+                    loading={excelDownload}
+                    onClick={exportMortalityListings}
+                    disabled={total === 0 ? true : false}
+                  />
+                </Box>
+                </Box>
               </Box>
             </Box>
             <Box sx={{ px: 5, mb: 2, borderBottom: 1, borderColor: 'divider' }}>

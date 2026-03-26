@@ -26,7 +26,8 @@ const EditTreatmentDrawer = ({
   isSubmitting = false,
   formatTimestamp,
   formatShortDate,
-  admissionDate
+  admissionDate,
+  dischargedDate
 }) => {
   const theme = useTheme()
 
@@ -188,7 +189,7 @@ const EditTreatmentDrawer = ({
                       label=''
                       format='DD MMM YYYY'
                       minDate={admissionDate}
-                      maxDate={dayjs()}
+                      maxDate={dischargedDate || dayjs()}
                       sx={{
                         ...commonFieldStyles,
                         '& .MuiOutlinedInput-root': {

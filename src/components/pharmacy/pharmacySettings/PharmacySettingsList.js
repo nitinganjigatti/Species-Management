@@ -12,7 +12,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { AuthContext } from 'src/context/AuthContext'
 import PharmacySettingsDrawer from 'src/views/pages/pharmacy/store/pharmacy-settings/PharmacySettingsDrawer'
-
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 // ** API
 import { getPharmacySettingsList, submitPharmacySettings } from 'src/lib/api/pharmacy/pharmacySettings'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
@@ -115,8 +115,7 @@ const PharmacySettingsList = () => {
 
   const columns = [
     {
-      minWidth: 400,
-      width: 400,
+      minWidth: 500,
       field: 'username',
       headerName: 'User Details',
       sortable: false,
@@ -133,7 +132,7 @@ const PharmacySettingsList = () => {
 
     {
       ...(pharmacyRole && {
-        minWidth: 400,
+        minWidth: 500,
         field: 'action',
         sortable: false,
         headerName: 'Action',

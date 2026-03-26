@@ -12,8 +12,8 @@ import { getRequestListChart } from 'src/lib/api/pharmacy/getAllReports'
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'
 
 // ** Third Party Imports
-import format from 'date-fns/format'
-import subDays from 'date-fns/subDays'
+import { format } from 'date-fns/format'
+import { subDays } from 'date-fns/subDays'
 import DatePicker from 'react-datepicker'
 
 // ** Icon Imports

@@ -326,7 +326,7 @@ const AddIngredients = props => {
             // Check if "All" should be toggled
             const allDaysButZero = Day.filter(d => d.id !== 0)
             const activeStandardDays = updatedDays.filter(d => d.dayId !== 0)
-            
+
             if (activeStandardDays.length === allDaysButZero.length) {
               if (!updatedDays.some(d => d.dayId === 0)) {
                 updatedDays.push({ dayId: 0, dayName: 'All' })
@@ -451,7 +451,7 @@ const AddIngredients = props => {
       })
       return
     }
-    
+
     if (selectedCard?.length > 0) {
       handleSidebarClose()
 
@@ -515,11 +515,12 @@ const AddIngredients = props => {
     cardIds?.forEach((cardId, index) => {
       const allStandardDays = Day.filter(d => d.id !== 0)
       const isAllSelected = allStandardDays.every(d => days[index]?.includes(d.id))
-      
-      let initialDaysForCard = days[index]?.map(dayId => ({
-        dayId: dayId,
-        dayName: Day.find(day => day.id === dayId)?.name
-      })) || []
+
+      let initialDaysForCard =
+        days[index]?.map(dayId => ({
+          dayId: dayId,
+          dayName: Day.find(day => day.id === dayId)?.name
+        })) || []
 
       if (isAllSelected && !initialDaysForCard.some(d => d.dayId === 0)) {
         initialDaysForCard.push({ dayId: 0, dayName: 'All' })
@@ -628,7 +629,7 @@ const AddIngredients = props => {
 
         return newSize
       })
-      
+
       setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
@@ -865,11 +866,11 @@ const AddIngredients = props => {
                   borderRadius: '8px',
                   my: 4,
                   width: '92%',
-                  border: validationErrors.includes(item.id) 
-                    ? '2px solid red' 
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
                     : selectedCard.some(card => card.ingredient_id === item.id)
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : 'none'
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >
@@ -978,7 +979,7 @@ const AddIngredients = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Preparation Type</Typography>
+                      <Typography>Preparation Type*</Typography>
 
                       <Box sx={{ width: 200 }}>
                         <FormControl fullWidth>
@@ -1079,7 +1080,7 @@ const AddIngredients = props => {
                       <>
                         <Divider mt={-2} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                          <Typography>Enter cut size</Typography>
+                          <Typography>Enter cut size*</Typography>
 
                           <Box sx={{ pl: 5, width: 150 }}>
                             <FormControl fullWidth>
@@ -1186,7 +1187,7 @@ const AddIngredients = props => {
 
                     <Divider />
                     <Box>
-                      <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
+                      <Typography sx={{ py: 3, px: 2 }}>Feeding Days*</Typography>
 
                       <Stack
                         direction='row'

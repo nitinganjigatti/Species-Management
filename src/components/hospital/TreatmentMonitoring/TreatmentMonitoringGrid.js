@@ -27,10 +27,13 @@ import AddParameterDataEntry from 'src/views/pages/hospital/treatment-monitoring
 import { useQuery } from '@tanstack/react-query'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+
+dayjs.extend(utc)
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -170,7 +173,7 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
   }, [scrollContainerRef, timeSlots, isToday])
 }
 
-const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
+const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatient }) => {
   const theme = useTheme()
   const { data } = useDynamicStateContext()
   const medicalRecordData = data[STORAGE_KEY] || {}
@@ -184,12 +187,21 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
   const animal_id = medicalRecordData?.animal_id
   const today = new Date().toISOString().split('T')[0]
 
+  // If patient is discharged, default to discharge date; otherwise use today
+  const getDefaultDate = () => {
+    if (isPatientDischarged && patientData?.discharge_at) {
+      const dischargeDate = dayjs.utc(patientData.discharge_at).local().format('YYYY-MM-DD')
+      return dischargeDate
+    }
+    return today
+  }
+
   const [didInitialScroll, setDidInitialScroll] = useState(false)
   const [openScheduleDrawer, setOpenScheduleDrawer] = useState(false)
   const [addParameterDrawerOpen, setAddParameterDrawerOpen] = useState(false)
   const [openParamsEntryDrawer, setOpenParamsEntryDrawer] = useState(false)
   const [dates, setDates] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(today)
+  const [selectedDate, setSelectedDate] = useState(getDefaultDate())
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   const [paramData, setParamData] = useState(null)
@@ -361,6 +373,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           setOpenDeleteDialog(false)
           monitoringRefetch()
           refetchMonitoringParams()
+          // Refetch patient details when weight parameter is deleted to update animal card
+          if (paramData?.assessment_type_id === '1' && refetchPatient) refetchPatient()
         } else {
           setDeleteLoading(false)
           Toaster({ type: 'error', message: res?.message })
@@ -514,6 +528,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                   </Box>
                 </Box>
               ) : (
+                // !isDisabled && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
                 (!isDisabled || isPatientDischarged) && showPlus && <Icon icon={'mdi-plus'} fontSize={20} />
               )}
             </TimeSlot>
@@ -605,6 +620,9 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
     dateNavGrid = 12
     scheduleGrid = 0
   } else if(!(monitoringData?.length > 0)) {
+    dateNavGrid = 12
+    scheduleGrid = 0
+  } else {
     dateNavGrid = 10
     scheduleGrid = 2
   }
@@ -632,6 +650,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
             {monitoringLoading ? (
               <Skeleton variant='rectangular' height={48} sx={{ borderRadius: 1 }} animation='wave' />
             ) : !monitoringLoading && !isToday && !isAfterDischarge && (!isPatientDischarged || isDischargedToday) ? (
+              // !monitoringLoading && !isToday && !isAfterDischarge && (!isPatientDischarged || isDischargedToday) ? (
               <Button
                 sx={{
                   height: '48px',
@@ -647,10 +666,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                 Today
               </Button>
             ) : (
-              !isPatientDischarged &&
+              // !isPatientDischarged &&
+              // isToday &&
+              // monitoringData?.length > 0 &&
+              // !isAfterDischarge && (
               isToday &&
-              monitoringData?.length > 0 &&
-              !isAfterDischarge && (
+              monitoringData?.length > 0 && (
                 <Button
                   sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
                   variant='contained'
@@ -712,7 +733,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
               <NoMedicalData
                 btnText={'Add Monitoring'}
                 text={'All Added Treatments Will Appear here'}
-                isDischarged={isPatientDischarged}
+                // isDischarged={isPatientDischarged}
                 btnAction={() => setAddParameterDrawerOpen(true)}
               />
             </Box>
@@ -726,11 +747,14 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                     >
                       Monitoring
                     </Typography>
-                    {!isPatientDischarged && (
+                    {/* !isPatientDischarged && (
                       <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
                         <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
                       </IconButton>
-                    )}
+                    ) */}
+                    <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
+                      <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
+                    </IconButton>
                   </HeaderContainer>
 
                   {displayMetrics?.map(metric => (
@@ -754,7 +778,23 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
                         </Box>
                       </Box>
 
-                      {metric?.canEdit && !isPatientDischarged && (
+                      {/* metric?.canEdit && !isPatientDischarged && (
+                        <IconButton
+                          size='small'
+                          onClick={() => {
+                            const hasEntries = metric?.timeSlots?.some(slot => slot.record)
+                            setParamData({
+                              ...metric,
+                              hasEntries
+                            })
+                            setOpenDeleteDialog(true)
+                          }}
+                          sx={{ color: theme.palette.customColors.OnPrimaryContainer, ml: 1 }}
+                        >
+                          <Icon icon={'mdi-close'} fontSize={20} />
+                        </IconButton>
+                      ) */}
+                      {metric?.canEdit && (
                         <IconButton
                           size='small'
                           onClick={() => {
@@ -826,6 +866,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData }) => {
           selectedDate={selectedDate}
           monitoringRefetch={monitoringRefetch}
           isPatientDischarged={isPatientDischarged}
+          refetchPatient={refetchPatient}
         />
       )}
       {openDeleteDialog && (

@@ -99,7 +99,9 @@ const ComboCard = ({
           const ingredientCutSizes = {}
           combo?.combo_ingredients?.forEach(ingredient => {
             if (ingredient.ingredient_id && ingredient.ingredient_cut_size_id) {
-              ingredientCutSizes[ingredient.ingredient_id] = { id: ingredient.ingredient_cut_size_id }
+              const prepId = ingredient.preparation_type_id || ''
+              const key = prepId ? `${ingredient.ingredient_id}-${prepId}` : ingredient.ingredient_id
+              ingredientCutSizes[key] = { id: ingredient.ingredient_cut_size_id }
             }
           })
           updatedSize[combo.recipe_id] = ingredientCutSizes
@@ -129,7 +131,7 @@ const ComboCard = ({
               return {
                 id: day.id,
                 name: day.name,
-                isActive: day.id === 0 ? allDaysSelected : (selectedItem.days_of_week?.includes(day.id) || false)
+                isActive: day.id === 0 ? allDaysSelected : selectedItem.days_of_week?.includes(day.id) || false
               }
             })
           }
@@ -172,7 +174,7 @@ const ComboCard = ({
             return {
               id: day.id,
               name: day.name,
-              isActive: day.id === 0 ? allDaysSelected : (days[index]?.includes(day.id) ? true : false)
+              isActive: day.id === 0 ? allDaysSelected : days[index]?.includes(day.id) ? true : false
             }
           })
         })
@@ -319,7 +321,7 @@ const ComboCard = ({
 
         // Check if all individual days are selected
         const anyDayUnselected = updatedCard.days.filter(d => d.id !== 0).some(day => !day.isActive)
-        
+
         // Update 'All' day status based on whether all other days are selected
         updatedCard.days = updatedCard.days.map(day => {
           if (day.id === 0) {
@@ -383,19 +385,24 @@ const ComboCard = ({
     const invalidCombos = selectedCardCombo.filter(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
       const activeDays = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0) || []
-      
+
       return activeDays.length === 0
     })
 
     if (invalidCombos.length > 0) {
       toast.error('Please select at least one feeding day for each selected mix.')
       setValidationErrors(invalidCombos.map(combo => combo.id))
-      
+
       return
     }
 
     const cardsWithMissingCutSize = selectedCardCombo.filter(item =>
-      item.ingredients.some(ingredient => !size[item.id]?.[ingredient.ingredient_id]?.id)
+      item.ingredients.some(ingredient => {
+        const key = ingredient.preparation_type_id
+          ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
+          : ingredient.ingredient_id
+        return !size[item.id]?.[key]?.id
+      })
     )
 
     if (cardsWithMissingCutSize.length > 0) {
@@ -425,17 +432,26 @@ const ComboCard = ({
       const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
 
-      const comboIngredients = item.ingredients.map(ingredient => ({
-        ingredient_id: ingredient.ingredient_id,
-        ingredient_cut_size_id: size[item.id]?.[ingredient.ingredient_id]?.id || null
-      }))
+      const comboIngredients = item.ingredients.map(ingredient => {
+        const key = ingredient.preparation_type_id
+          ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
+          : ingredient.ingredient_id
+        return {
+          ingredient_id: ingredient.ingredient_id,
+          preparation_type_id: ingredient.preparation_type_id,
+          ingredient_cut_size_id: size[item.id]?.[key]?.id || null
+        }
+      })
 
       const existingCard = selectedCardCombo?.find(card => card.id === item.id)
 
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
 
       const updatedIngredients = item.ingredients.map(ingredient => {
-        const cutSizeId = size[item.id]?.[ingredient.ingredient_id]?.id || null
+        const key = ingredient.preparation_type_id
+          ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
+          : ingredient.ingredient_id
+        const cutSizeId = size[item.id]?.[key]?.id || null
         const cutSize = cutsizelist?.find(cs => cs.id === cutSizeId)?.cut_size || null
 
         return {
@@ -513,11 +529,15 @@ const ComboCard = ({
 
     const newCutSize = cutsizelist.find(type => Number(type.id) === Number(value))
 
+    const ingredientKey = ingredient.preparation_type_id
+      ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
+      : ingredient.ingredient_id
+
     setSize(prevState => ({
       ...prevState,
       [item.id]: {
         ...prevState[item.id],
-        [ingredient.ingredient_id]: {
+        [ingredientKey]: {
           id: value,
           name: newCutSize?.cut_size
         }
@@ -528,9 +548,12 @@ const ComboCard = ({
       if (prevErrors.includes(item.id)) {
         const updatedItemSizeInfo = {
           ...(size[item.id] || {}),
-          [ingredient.ingredient_id]: { id: value }
+          [ingredientKey]: { id: value }
         }
-        const hasMissingCutSize = item.ingredients.some(ing => !updatedItemSizeInfo[ing.ingredient_id]?.id)
+        const hasMissingCutSize = item.ingredients.some(ing => {
+          const key = ing.preparation_type_id ? `${ing.ingredient_id}-${ing.preparation_type_id}` : ing.ingredient_id
+          return !updatedItemSizeInfo[key]?.id
+        })
         if (!hasMissingCutSize) {
           return prevErrors.filter(id => id !== item.id)
         }
@@ -560,11 +583,11 @@ const ComboCard = ({
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: validationErrors.includes(item.id) 
-                    ? '2px solid red' 
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
                     : selectedCardCombo?.some(card => card?.id === item?.id)
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : theme.palette.customColors.OnPrimary,
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : theme.palette.customColors.OnPrimary,
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
@@ -679,10 +702,10 @@ const ComboCard = ({
                           fontWeight: '500',
                           color: theme.palette.customColors.neutral_50,
                           fontSize: '16px',
-                          mr: 20
+                          mr: 18
                         }}
                       >
-                        Cut size
+                        Cut size*
                       </Typography>
                     </Box>
                     {item.ingredients.map((ingredient, index) => (
@@ -790,7 +813,7 @@ const ComboCard = ({
                 {selectedCardCombo?.some(card => card?.id === item?.id) ? (
                   <>
                     <Divider />
-                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
+                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days*</Typography>
                     <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
                       {Day?.map(day => (
                         <Box

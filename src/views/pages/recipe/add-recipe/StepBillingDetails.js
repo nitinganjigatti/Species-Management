@@ -7,7 +7,6 @@ import { Card, CardContent, Avatar, Tooltip, CircularProgress } from '@mui/mater
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import { useTheme } from '@mui/material/styles'
-import 'react-credit-cards/es/styles-compiled.css'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   const theme = useTheme()

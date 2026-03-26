@@ -529,10 +529,10 @@ export default function ShipmentRequests({ updateUrlParams }) {
             handleSearch={handleSearch}
             checkBoxOption={true}
             onRowSelectionModelChange={newSelection => {
-              const selectedData = indexedRows.filter(row => newSelection?.includes(row?.id))
+              const selectedData = indexedRows?.filter(row => newSelection?.includes(row?.id))
               dispatch(setSelectedRows(selectedData))
             }}
-            selectedRows={selectedRows?.map(row => row?.id)}
+            selectedRows={selectedRows}
           />
         </Card>
 

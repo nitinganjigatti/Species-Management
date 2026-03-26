@@ -84,7 +84,10 @@ const PharmacySettingsDrawer = props => {
               multiple
               label='Select Users'
               placeholder='Search or Type User'
-              isOptionEqualToValue={(option, value) => option?.value === value?.value}
+              isOptionEqualToValue={(option, value) => {
+                if (!option || !value) return false
+                return option.value === value.value
+              }}
               errors={errors}
               helperText={errors.selectedUsers?.message}
               autocompleteProps={{ limitTags: 3 }}

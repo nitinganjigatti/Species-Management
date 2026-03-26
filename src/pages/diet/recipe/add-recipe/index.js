@@ -1,20 +1,14 @@
 // ** React Imports
 import { useState, useEffect } from 'react'
-
-// ** MUI Imports
 import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
 import StepLabel from '@mui/material/StepLabel'
-
-// ** Step Components
 import StepAddIngredients from 'src/views/pages/recipe/add-recipe/StepAddIngredients'
 import StepBasicDetails from 'src/views/pages/recipe/add-recipe/StepBasicDetails'
 import StepBillingDetails from 'src/views/pages/recipe/add-recipe/StepBillingDetails'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-
-// ** Custom Component Import
 import StepperCustomDot from 'src/views/forms/form-wizard/StepperCustomDot'
 import StepperWrapper from 'src/@core/styles/mui/stepper'
 import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from 'src/lib/api/diet/recipe'
@@ -86,10 +80,14 @@ const AddRecipe = () => {
     desc: ''
   })
 
+  const [page, setPage] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [searchValue, setSearchValue] = useState('')
+
   useEffect(() => {
     getUnitsList()
     getCutsizeListdata()
-    callIngredientTypeList({ status: 1, page: 1, limit: 50 })
+    callIngredientTypeList({ status: 1, page: 1, limit: 20, q: '' })
   }, [activeStep == 0])
 
   const getUnitsList = async () => {
@@ -122,6 +120,8 @@ const AddRecipe = () => {
   }
 
   const IngredientTypeListSearch = debounce(async value => {
+    setSearchValue(value)
+    setPage(1)
     try {
       await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
     } catch (e) {
@@ -134,14 +134,13 @@ const AddRecipe = () => {
       const params = {
         //status,
         q,
-
-        //active: 1,
         page,
         limit,
         status: 1
       }
 
       await getIngredientList({ params: params }).then(res => {
+        setTotalCount(res?.data?.total_count || 0)
         setIngredientTypeList(res?.data?.result)
         setFullIngredientList(prevList => [
           ...prevList,
@@ -153,19 +152,13 @@ const AddRecipe = () => {
     }
   }
 
-  // const IngredientTypeListSearch = debounce(value => {
-  //   console.log(value, 'value')
-  //   if (value) {
-  //     const filteredList = fullIngredientList.filter(ingredient =>
-  //       ingredient.ingredient_name.toLowerCase().includes(value.toLowerCase())
-  //     )
-  //     console.log(filteredList, 'filteredList')
-  //     setIngredientTypeList(filteredList)
-  //   } else {
-  //     // If no search value, show the full list
-  //     setIngredientTypeList(fullIngredientList)
-  //   }
-  // }, 500)
+  const fetchMoreIngredients = () => {
+    if (fullIngredientList.length < totalCount) {
+      const nextPage = page + 1
+      setPage(nextPage)
+      callIngredientTypeList({ status: 1, page: nextPage, limit: 20, q: searchValue })
+    }
+  }
 
   const handleCancelIconClick = async () => {
     setFormData(prevData => ({
@@ -177,7 +170,9 @@ const AddRecipe = () => {
         feed_type_label: ''
       }))
     }))
-    callIngredientTypeList({ status: 1, page: 1, limit: 50, q: '' })
+    setPage(1)
+    setSearchValue('')
+    callIngredientTypeList({ status: 1, page: 1, limit: 20, q: '' })
   }
 
   const getIngredientsDetailval = async id => {
@@ -188,7 +183,6 @@ const AddRecipe = () => {
       if (response.data.success === true && response.data.data !== null) {
         const data = response.data.data
 
-        // Update recipe_name based on urlType
         if (urlType === 'copy') {
           data.recipe_name = name
         }
@@ -210,7 +204,6 @@ const AddRecipe = () => {
           }))
         }
 
-        // Filter out the keys that were initially set in formData
         const initialKeys = Object.keys(formData)
         const updatedData = {}
         Object.keys(convertedData).forEach(key => {
@@ -224,7 +217,6 @@ const AddRecipe = () => {
           ...updatedData
         }))
 
-        // Combine ingredient data and filter out duplicates based on id
         const combinedIngredients = [
           ...data.by_percentage.map(item => ({
             id: item.ingredient_id,
@@ -240,7 +232,10 @@ const AddRecipe = () => {
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
         setLoader(false)
-        setFullIngredientList(uniqueIngredientList)
+        setFullIngredientList(prevList => [
+          ...prevList,
+          ...uniqueIngredientList.filter(newItem => !prevList.some(item => item.id === newItem.id))
+        ])
       }
     } catch (error) {
       console.log('Feed list', error)
@@ -276,13 +271,6 @@ const AddRecipe = () => {
       setActiveStep(activeStep - 1)
     }
   }
-
-  // const handleBasicDetailsChange = (name, value) => {
-  //   setFormData(prevData => ({
-  //     ...prevData,
-  //     [name]: value
-  //   }))
-  // }
 
   const handleIngredientChange = (name, value, ingredient, index) => {
     setFormData(prevData => ({
@@ -339,9 +327,7 @@ const AddRecipe = () => {
           }))
         )
       }
-      console.log(numericFormData, 'numericFormData')
 
-      // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
 
@@ -418,7 +404,6 @@ const AddRecipe = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewRecipe(updatedFormData)
 
       if (apival.success === true) {
@@ -484,7 +469,6 @@ const AddRecipe = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      console.log(updatedFormData, 'updatedFormData')
       const apival = await updateRecipe(id, updatedFormData)
 
       if (apival.success === true) {
@@ -528,6 +512,7 @@ const AddRecipe = () => {
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
             setcutSize={setcutSize}
+            fetchMoreIngredients={fetchMoreIngredients}
           />
         )
       case 2:

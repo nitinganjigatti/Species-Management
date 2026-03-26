@@ -27,21 +27,40 @@ const FALLBACK_SCHEMA = [
     fields: [
       { key: 'enabled', label: 'Enable', type: 'toggle', default: false },
       {
-        key: 'frequency', label: 'Frequency', type: 'radio', default: 'daily',
-        options: [{ value: 'daily', label: 'Daily' }, { value: 'weekly', label: 'Weekly' }]
+        key: 'frequency',
+        label: 'Frequency',
+        type: 'radio',
+        default: 'daily',
+        options: [
+          { value: 'daily', label: 'Daily' },
+          { value: 'weekly', label: 'Weekly' }
+        ]
       },
       {
-        key: 'days', label: 'Days', type: 'checkbox_group',
+        key: 'days',
+        label: 'Days',
+        type: 'checkbox_group',
         visible_when: { frequency: 'weekly' },
         options: [
-          { value: 'monday', label: 'Mon' }, { value: 'tuesday', label: 'Tue' },
-          { value: 'wednesday', label: 'Wed' }, { value: 'thursday', label: 'Thu' },
-          { value: 'friday', label: 'Fri' }, { value: 'saturday', label: 'Sat' },
+          { value: 'monday', label: 'Mon' },
+          { value: 'tuesday', label: 'Tue' },
+          { value: 'wednesday', label: 'Wed' },
+          { value: 'thursday', label: 'Thu' },
+          { value: 'friday', label: 'Fri' },
+          { value: 'saturday', label: 'Sat' },
           { value: 'sunday', label: 'Sun' }
         ],
         default: []
       },
-      { key: 'send_times', label: 'Send Times', type: 'time_picker_list', max_items: 3, min_items: 1, format: 'HH:mm', default: [] }
+      {
+        key: 'send_times',
+        label: 'Send Times',
+        type: 'time_picker_list',
+        max_items: 3,
+        min_items: 1,
+        format: 'HH:mm',
+        default: []
+      }
     ]
   }
 ]
@@ -174,8 +193,8 @@ const ZooSettings = () => {
       Object.entries(reportEmailValues).forEach(([key, val]) => {
         payload[key] = {
           ...val,
-          to: (val.to || []).map(u => typeof u === 'object' ? u.user_id : u),
-          cc: (val.cc || []).map(u => typeof u === 'object' ? u.user_id : u)
+          to: (val.to || []).map(u => (typeof u === 'object' ? u.user_id : u)),
+          cc: (val.cc || []).map(u => (typeof u === 'object' ? u.user_id : u))
         }
       })
 
@@ -205,10 +224,7 @@ const ZooSettings = () => {
         timezone={sectionValues.general?.timezone || settingsData?.data?.timezone || null}
         onOpenHistory={() => setHistoryOpen(true)}
       />
-      <ZooSettingsHistoryDrawer
-        open={historyOpen}
-        onClose={() => setHistoryOpen(false)}
-      />
+      <ZooSettingsHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
     </>
   )
 }

@@ -295,7 +295,7 @@ const AddLab = () => {
     lab_contact_number: yup
       .string()
       .trim()
-      .required('Lab incharge No is required')
+      .required('Lab incharge mobile number is required')
       .max(10, 'Maximum of 10 digits')
       .min(10, 'Minimum of 10 digits'),
     is_default: yup.boolean()

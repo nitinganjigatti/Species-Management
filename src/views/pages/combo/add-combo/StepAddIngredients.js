@@ -73,7 +73,8 @@ const StepAddIngredients = ({
   fullIngredientList,
   IngredientTypeListSearch,
   setcutSize,
-  loader
+  loader,
+  fetchMoreIngredients
 }) => {
   const ingredients = [
     { label: ' Items' },
@@ -82,6 +83,13 @@ const StepAddIngredients = ({
 
     // { label: 'Cut Size' }
   ]
+
+  const handleScroll = event => {
+    const listboxNode = event.currentTarget
+    if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 5) {
+      fetchMoreIngredients()
+    }
+  }
 
   const editParamsInitialState = { id: null, label: null, status: null }
   const [uploadedImage, setUploadedImage] = useState(null)
@@ -147,8 +155,6 @@ const StepAddIngredients = ({
               ingredient_id: '',
               quantity: '',
               preparation_type_id: ''
-
-              //cut_size_id: ''
             })
           }}
         >
@@ -185,8 +191,6 @@ const StepAddIngredients = ({
             ingredient_id: '',
             quantity: '',
             preparation_type_id: ''
-
-            //cut_size_id: ''
           })
         }}
       >
@@ -568,7 +572,6 @@ const StepAddIngredients = ({
               <Grid container spacing={5} sx={{ px: 0, py: 0 }}>
                 {fieldsIngredients.map((field, index) => (
                   <Grid container spacing={5} sx={{ px: 0, py: 1 }} key={field.id} id={'test' + index}>
-
                     <Grid size={{ xs: 12, sm: 3.6 }}>
                       <FormControl fullWidth>
                         <Controller
@@ -590,6 +593,9 @@ const StepAddIngredients = ({
                               options={fullIngredientList || []}
                               getOptionLabel={option => option?.ingredient_name}
                               isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              ListboxProps={{
+                                onScroll: handleScroll
+                              }}
                               onChange={(e, val) => {
                                 if (val === null) {
                                   onChange('')
@@ -731,7 +737,7 @@ const StepAddIngredients = ({
                                 options={preparationTypeListPercentage[index] || []}
                                 onChange={(event, newValue) => {
                                   const updatedIngredient = newValue?.id || ''
-                                  setFormValue(`by_percentage[${index}].preparation_type_id`, newValue?.id || '') // Use id instead of value
+                                  setFormValue(`by_percentage[${index}].preparation_type_id`, newValue?.id || '')
                                   setFormValue(`by_percentage[${index}].preparation_type`, newValue?.label || '')
                                   onChange(updatedIngredient, index)
                                 }}
@@ -812,7 +818,6 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
-
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}

@@ -17,7 +17,6 @@ import {
   Switch,
   FormControlLabel
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 
 import { Icon } from '@iconify/react'
@@ -27,6 +26,7 @@ import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import Toaster from 'src/components/Toaster'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import ErrorScreen from 'src/pages/Error'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
@@ -605,8 +605,7 @@ const NurseryDetails = () => {
                 </FormControl>
               </Box>
             </Box>
-            <DataGrid
-              sx={{
+            <CommonTable               externalTableStyle={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
@@ -628,20 +627,13 @@ const NurseryDetails = () => {
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
               disableMultipleColumnsSorting={true}
               columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              onPaginationModelChange={setPaginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
               rowHeight={64}
               loading={loading}
               onCellClick={onCellClick}

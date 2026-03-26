@@ -29,6 +29,7 @@ const MUICheckbox = ({
   required = false,
   sx = {},
   checkboxStyle,
+  formControlLabelStyle = {},
   labelStyle,
   error = false,
   helperText = ''
@@ -63,7 +64,8 @@ const MUICheckbox = ({
         labelPlacement={labelPlacement}
         sx={{
           gap,
-          m: 0
+          m: 0,
+          ...formControlLabelStyle
         }}
       />
       {error && (

@@ -3,15 +3,17 @@ import {
   CREATE_TREATMENT,
   GET_TREATMENT_LIST,
   UPDATE_TREATMENT,
-  DELETE_TREATMENT
+  DELETE_TREATMENT,
+  ADD_TREATMENT_MASTERS,
+  UPDATE_TREATMENT_MASTERS
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet } from '../utility'
 
-export const getTreatmentMasterList = async ({ q = '', page = 0, limit = 10 } = {}) => {
+export const getTreatmentMasterList = async params => {
   try {
     const response = await axiosGet({
       url: GET_TREATMENT_MASTER_LIST,
-      params: { q, page, limit }
+      params: params
     })
 
     return response?.data
@@ -19,6 +21,18 @@ export const getTreatmentMasterList = async ({ q = '', page = 0, limit = 10 } = 
     console.error('Error fetching treatment master list:', error?.message || error)
     throw error
   }
+}
+
+export const addTreatmentMasters = async payload => {
+  const response = await axiosFormPost({ url: `${ADD_TREATMENT_MASTERS}`, body: payload })
+
+  return response?.data
+}
+
+export const updateTreatmentMasters = async payload => {
+  const response = await axiosFormPost({ url: `${UPDATE_TREATMENT_MASTERS}`, body: payload })
+
+  return response?.data
 }
 
 export const createTreatmentRecord = async payload => {

@@ -60,7 +60,6 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
         await getDietListonRecipeDtl(id, params, type).then(res => {
           console.log('response', res)
 
-        
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
           let listWithId = res.data.data.result.map((el, i) => {
@@ -140,7 +139,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.08,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -237,7 +236,6 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
-
                 //checkboxSelection={true}
                 disableColumnMenu={true}
                 onRowSelectionModelChange={handleSelectionChange}
@@ -266,6 +264,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                     tableValue: 'recipe-List'
                   }
                 }}
+                showToolbar
               />
             </div>
           </>

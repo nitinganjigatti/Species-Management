@@ -838,7 +838,7 @@ const AcquisitionFields = ({
         <DialogContent />
       </Dialog>
     </>
-  )
+  );
 }
 
 export default AcquisitionFields

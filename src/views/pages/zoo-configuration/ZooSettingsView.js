@@ -49,31 +49,31 @@ const ZooSettingsView = ({
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      {sortedSchema.map(section => {
-        if (section.type === 'report_email') {
+        {sortedSchema.map(section => {
+          if (section.type === 'report_email') {
+            return (
+              <ZooSettingsReportEmailSection
+                key={section.key}
+                section={section}
+                reportTypes={reportTypes}
+                reportEmailValues={reportEmailValues}
+                timezone={timezone}
+                onChange={onReportEmailChange}
+                onSave={onSaveReportEmail}
+              />
+            )
+          }
+
           return (
-            <ZooSettingsReportEmailSection
+            <ZooSettingsDynamicSection
               key={section.key}
               section={section}
-              reportTypes={reportTypes}
-              reportEmailValues={reportEmailValues}
-              timezone={timezone}
-              onChange={onReportEmailChange}
-              onSave={onSaveReportEmail}
+              values={sectionValues[section.key] || {}}
+              onChange={(fieldKey, value) => onSectionFieldChange(section.key, fieldKey, value)}
+              onSave={() => onSaveSection(section.key)}
             />
           )
-        }
-
-        return (
-          <ZooSettingsDynamicSection
-            key={section.key}
-            section={section}
-            values={sectionValues[section.key] || {}}
-            onChange={(fieldKey, value) => onSectionFieldChange(section.key, fieldKey, value)}
-            onSave={() => onSaveSection(section.key)}
-          />
-        )
-      })}
+        })}
       </Box>
     </Box>
   )

@@ -20,7 +20,6 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme, styled } from '@mui/material/styles'
-import { DataGrid } from '@mui/x-data-grid'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DatePicker } from '@mui/x-date-pickers'
@@ -34,6 +33,7 @@ import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
 
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import DetailCard from 'src/components/egg/DetailCard'
 import Toaster from 'src/components/Toaster'
@@ -49,32 +49,6 @@ import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { hatcheryStatus } from 'src/lib/api/egg'
 
-// Styled DataGrid Component
-const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
-  '.MuiDataGrid-columnHeaderTitleContainer': {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  '.MuiDataGrid-columnHeader .MuiSvgIcon-root': {
-    display: 'none'
-  },
-  '.MuiDataGrid-columnHeaderFilterIcon': {
-    display: 'none'
-  },
-  '.MuiDataGrid-menuIcon': {
-    display: 'none'
-  },
-  '.MuiDataGrid-main': {
-    borderLeft: '1px solid #0000000D',
-    borderRight: '1px solid #0000000D',
-    borderRadius: '8px',
-    border: '1px solid rgba(233, 233, 236, 1)'
-  },
-  '& .MuiDataGrid-footerContainer': {
-    borderTop: 'none'
-  }
-}))
 
 const IncubatorDetails = () => {
   const theme = useTheme()
@@ -1176,35 +1150,17 @@ const IncubatorDetails = () => {
               </Box>
               {egg_collection_permission && (
                 <Box>
-                  <CustomDataGrid
-                    sx={{
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      }
-                    }}
+                  <CommonTable
+                    indexedRows={indexedRows === undefined ? [] : indexedRows}
+                    total={total}
+                    rowHeight={64}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
                     columnVisibilityModel={{
                       sl_no: false
                     }}
-                    hideFooterSelectedRowCount
-                    disableColumnSelector={true}
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    rowHeight={64}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[5, 10, 25, 50]}
-                    paginationModel={paginationModel}
-
-                    // onSortModelChange={handleSortModel}
-                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'
@@ -1216,6 +1172,37 @@ const IncubatorDetails = () => {
                       }
                     }}
                     onCellClick={onCellClick}
+                    externalTableStyle={{
+                      '.MuiDataGrid-cell:focus': {
+                        outline: 'none'
+                      },
+                      '& .MuiDataGrid-row:hover': {
+                        cursor: 'pointer'
+                      },
+                      '.MuiDataGrid-columnHeaderTitleContainer': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      },
+                      '.MuiDataGrid-columnHeader .MuiSvgIcon-root': {
+                        display: 'none'
+                      },
+                      '.MuiDataGrid-columnHeaderFilterIcon': {
+                        display: 'none'
+                      },
+                      '.MuiDataGrid-menuIcon': {
+                        display: 'none'
+                      },
+                      '.MuiDataGrid-main': {
+                        borderLeft: '1px solid #0000000D',
+                        borderRight: '1px solid #0000000D',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(233, 233, 236, 1)'
+                      },
+                      '& .MuiDataGrid-footerContainer': {
+                        borderTop: 'none'
+                      }
+                    }}
                   />
                   {dialog && (
                     <AddIncubators

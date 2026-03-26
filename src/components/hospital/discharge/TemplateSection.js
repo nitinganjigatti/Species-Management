@@ -35,7 +35,7 @@ const richFromHtml = html => {
   return String(html)
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
+    .trim();
 }
 
 const getRichTextHtml = note => {

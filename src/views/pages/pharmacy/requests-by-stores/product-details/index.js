@@ -721,10 +721,10 @@ const RequestedProductDetails = props => {
                             //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
                             //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                             // />
-                            <MenuWithDots
+                            (<MenuWithDots
                               options={generateOptions(parentItems, parentItems?.id)}
                               disabled={selectedPharmacy.type === 'local'}
-                            />
+                            />)
                           )
                         }
                         slotProps={{
@@ -875,7 +875,7 @@ const RequestedProductDetails = props => {
         </>
       )}
     </Drawer>
-  )
+  );
 }
 
 export default RequestedProductDetails

@@ -20,7 +20,8 @@ const AddTreatmentDrawer = ({
   optionsLoading,
   onInputValueChange,
   isSubmitting,
-  admissionDate
+  admissionDate,
+  dischargedDate
 }) => {
   const theme = useTheme()
 
@@ -160,7 +161,7 @@ const AddTreatmentDrawer = ({
                 label=''
                 format='DD MMM YYYY'
                 minDate={admissionDate}
-                maxDate={dayjs()}
+                maxDate={dischargedDate || dayjs()}
                 sx={{
                   ...commonFieldStyles,
                   '& .MuiOutlinedInput-root': {

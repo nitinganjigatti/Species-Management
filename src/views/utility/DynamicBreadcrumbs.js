@@ -33,7 +33,7 @@ const DynamicBreadcrumbs = ({
 
         return { href, title, segment: subpath }
       })
-      .filter(item => !hiddenSegments.includes(item.segment))
+      .filter(item => !hiddenSegments.includes(item.segment));
   }
 
   const itemsToRender = pageItems || generateBreadcrumbs()

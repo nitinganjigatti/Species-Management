@@ -16,7 +16,7 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
-import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
+// import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
 import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
@@ -71,11 +71,11 @@ const EditClinicalAsmntDrawer = ({
 
     // Set date range based on discharge status
     if (isDischarged && dischargedDate) {
-      setMinDate(dayjs(admittedDate).startOf('day'))
-      setMaxDate(dayjs(dischargedDate).endOf('day'))
+      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
+      setMaxDate(dayjs.utc(dischargedDate).local().endOf('day'))
     } else {
-      setMinDate(admittedDate ? dayjs(admittedDate).startOf('day') : null)
-      setMaxDate(null)
+      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
+      setMaxDate(dayjs()) // Set max date to current time for non-discharged animals
     }
 
     // Set recorded datetime from existing data or default
@@ -119,7 +119,7 @@ const EditClinicalAsmntDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.diagnosis_notes?.map(activity => ({
+    activityListData?.diagnosis_notes?.map((activity, index) => ({
       ...activity,
       isSystemGenerated: activity?.is_system_generated === 1,
       oldSeverity: activity?.notes_dump?.old_data?.severity || '',
@@ -127,7 +127,9 @@ const EditClinicalAsmntDrawer = ({
       oldPrognosis: activity?.notes_dump?.old_data?.prognosis || '',
       newPrognosis: activity?.notes_dump?.new_data?.prognosis || '',
       createdBy: activity?.created_by_user_name || '',
-      formattedTime: `${Utility.convertUtcToLocalReadableDate(
+      formattedTime: activityListData?.diagnosis_notes?.length === index + 1 ? `${Utility.convertUtcToLocalReadableDate(
+        activityListData?.recorded_date_time
+      )} • ${Utility.convertUTCToLocaltime(activityListData?.recorded_date_time)}` : `${Utility.convertUtcToLocalReadableDate(
         activity?.modified_at || activity.created_at
       )} • ${Utility.convertUTCToLocaltime(activity?.modified_at || activity?.created_at)}`,
       note: activity.note || '',
@@ -206,6 +208,22 @@ const EditClinicalAsmntDrawer = ({
             >
               {selectedSymptom?.created_by_user_name} • {Utility.formatDisplayDate(selectedSymptom?.created_at)}
             </Typography>
+
+            {/* <Typography
+              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+            >
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box> */}
 
             <Box sx={{ display: 'flex', gap: 2, mt: 6 }}>
               <Box>
@@ -384,22 +402,6 @@ const EditClinicalAsmntDrawer = ({
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
-            >
-              Date & Time
-            </Typography>
-            <Box sx={{ mb: 6 }}>
-              <MUIDateTimePicker
-                value={recordedDateTime}
-                onChange={newValue => setRecordedDateTime(newValue)}
-                label=''
-                minDateTime={minDate}
-                maxDateTime={maxDate}
-                ampm={true}
-              />
-            </Box>
-
-            <Typography
-              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
             >
               Notes
             </Typography>

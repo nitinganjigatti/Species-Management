@@ -242,7 +242,7 @@ const SpeciesDetails = () => {
     {
       minWidth: 220,
       field: 'shipment_number',
-      headerName: 'SHIPMENT NUMBER',
+      headerName: 'SHIPMENT ID',
       sortable: true,
       align: 'left',
       headerAlign: 'left',

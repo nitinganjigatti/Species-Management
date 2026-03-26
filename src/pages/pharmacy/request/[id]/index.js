@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { forwardRef, useState, useEffect, useCallback } from 'react'
+import React, { forwardRef, useState, useEffect, useCallback, useMemo } from 'react'
 
 import {
   getRequestItemsListById,
@@ -66,33 +66,36 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import InfoDisplayGrid from 'src/views/utility/InfoDisplayGrid'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
+
+// import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
+const TabLists = styled(MuiTabList)(({ theme }) => ({
+  '& .MuiTabs-indicator': {
+    display: 'none'
+  },
+  '& .Mui-selected': {
+    backgroundColor: theme.palette.customColors.OnSecondaryContainer,
+    color: theme.palette.common.white
+  },
+  '& .MuiTab-root': {
+    minHeight: 38,
+    minWidth: 110,
+    borderRadius: 8,
+    paddingTop: theme.spacing(2),
+    paddingBottom: theme.spacing(2)
+  }
+}))
+
 const IndividualRequest = () => {
-  const TabLists = styled(MuiTabList)(({ theme }) => ({
-    '& .MuiTabs-indicator': {
-      display: 'none'
-    },
-    '& .Mui-selected': {
-      backgroundColor: theme.palette.customColors.OnSecondaryContainer,
-      color: theme.palette.common.white
-    },
-    '& .MuiTab-root': {
-      minHeight: 38,
-      minWidth: 110,
-      borderRadius: 8,
-      paddingTop: theme.spacing(2),
-      paddingBottom: theme.spacing(2)
-    }
-  }))
   const router = useRouter()
 
   const [requestItems, setRequestItems] = useState([])
-  const [loader, setLoader] = useState(false)
+  const [loadingCount, setLoadingCount] = useState(0)
+  const loader = loadingCount > 0
   const [show, setShow] = useState(false)
   const [orderFormDialog, setOrderFormDialog] = useState(false)
   const [disputeItemDialog, setDisputeItemDialog] = useState(false)
@@ -178,7 +181,7 @@ const IndividualRequest = () => {
       const newQuery = { ...router.query, ...params }
       router.replace({ pathname: router.pathname, query: newQuery }, undefined)
     },
-    [router, detailsTab, shipmentTab]
+    [router]
   )
 
   const closeRejectMedicineDialog = () => {
@@ -217,81 +220,56 @@ const IndividualRequest = () => {
   // const base_image_url = '/uploads/control_substance/'
 
   const getRequestItemLists = async id => {
-    setLoader(true)
-    const response = await getRequestItemsListById(id)
-    if (response?.success) {
-      const responseData = response?.data
+    setLoadingCount(c => c + 1)
+    try {
+      const response = await getRequestItemsListById(id)
+      if (response?.success) {
+        const responseData = response?.data
 
-      const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
-        ...item,
-        sl_no: index + 1
-      }))
-      responseData['request_item_details'] = mappedWithUid
+        const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
+          ...item,
+          sl_no: index + 1
+        }))
+        responseData['request_item_details'] = mappedWithUid
 
-      setRequestItems(responseData)
-      setLoader(false)
-      setPermissionView(true)
-    } else {
-      setLoader(false)
-      setPermissionView(false)
+        setRequestItems(responseData)
+        setPermissionView(true)
+      } else {
+        setPermissionView(false)
+      }
+    } finally {
+      setLoadingCount(c => c - 1)
     }
   }
 
   const getDispatchedItems = async id => {
-    setLoader(true)
-    const response = await getDispatchItemsByBatchId(id)
-    if (response.success) {
-      var responseData = response?.data
+    setLoadingCount(c => c + 1)
+    try {
+      const response = await getDispatchItemsByBatchId(id)
+      if (response.success) {
+        const responseData = response?.data
 
-      const data = responseData?.dispatch_items?.map((el, index) => {
-        const items = {
+        const data = responseData?.dispatch_items?.map((el, index) => ({
           ...el,
           sl_no: index + 1,
           id: index + 1,
-          dispatch_id: el.dispatch_id,
-          dispatch_item_id: el.dispatch_item_id,
-          stock_item_id: el.stock_item_id,
-          request_number: el.request_number,
-          medicin_name: el.medicin_name,
-          unit_price: el.unit_price,
-          mrp_price: el.mrp_price,
-          purchase_price: el.purchase_price,
-          batch_no: el.batch_no,
-          expiry_date: el.expiry_date,
-          dispatch_qty: el.dispatch_qty,
-          dispatch_box_qty: el.dispatch_box_qty,
-          unit_id: el.unit_id,
-          leaf_id: el.leaf_id,
-          leaf_name: el.leaf_name,
-          net_amount: el.net_amount,
-          dispatch_status: el.dispatch_status,
-          description: el.description,
-          stock_qty: el.stock_qty,
-          from_store_name: el.from_store_name,
-          to_store_name: el.to_store_name,
-          total_requested_qty: el.total_requested_qty,
-          total_dispatch_qty: el.total_dispatch_qty,
           package: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
           manufacture: el?.manufacturer
-        }
+        }))
 
-        return items
-      })
-
-      var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
-      responseData['dispatch_items'] = dispatches
-
-      setDispatchedItems(responseData?.dispatch_items)
-
-      setLoader(false)
-    } else {
-      setLoader(false)
+        const dispatches = data?.filter(
+          item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp'
+        )
+        setDispatchedItems(dispatches)
+      }
+    } finally {
+      setLoadingCount(c => c - 1)
     }
   }
 
   const getShippedItems = async id => {
+    setLoadingCount(c => c + 1)
     try {
-      setLoader(true)
       const response = await getShippedItemsByRequestId(id)
 
       if (response.success) {
@@ -301,12 +279,11 @@ const IndividualRequest = () => {
         }))
 
         setShippedItems(mappedWithUid)
-        setLoader(false)
-      } else {
-        setLoader(false)
       }
     } catch (e) {
-      setLoader(false)
+      console.log(e)
+    } finally {
+      setLoadingCount(c => c - 1)
     }
   }
 
@@ -369,21 +346,9 @@ const IndividualRequest = () => {
   //   }
   // }
 
-  const handleEdit = id => {
-    Router.push({
-      pathname: '/pharmacy/request/add-request/',
-      query: { id: id, action: 'edit' }
-    })
-  }
-
-  const onRowClick = data => {}
-
   const init = async id => {
     if (id !== undefined) {
-      await getRequestItemLists(id)
-
-      await getDispatchedItems(id)
-      await getShippedItems(id)
+      await Promise.all([getRequestItemLists(id), getDispatchedItems(id), getShippedItems(id)])
     }
   }
 
@@ -404,13 +369,6 @@ const IndividualRequest = () => {
       init(id)
     }
   }, [id, selectedPharmacy.id])
-
-  useEffect(() => {
-    // if (id !== undefined && orderFormDialog === false) {
-    //   getDisputeItems(id)
-    //   // getDispenseItems(id)
-    // }
-  }, [orderFormDialog])
 
   const closeOrderFormDialog = () => {
     setOrderFormDialog(false)
@@ -547,10 +505,10 @@ const IndividualRequest = () => {
     }
 
     if (
-      (selectedPharmacy.type === 'central' &&
-        parseInt(params?.requested_qty) - parseInt(params?.dispatch_qty) > 0 &&
-        params?.request_status !== 'Alternate') ||
-      params?.request_status !== 'Not Available' ||
+      selectedPharmacy.type === 'central' &&
+      parseInt(params?.requested_qty) - parseInt(params?.dispatch_qty) > 0 &&
+      params?.request_status !== 'Alternate' &&
+      params?.request_status !== 'Not Available' &&
       params?.request_status !== 'Rejected'
     ) {
       options.push(
@@ -907,10 +865,10 @@ const IndividualRequest = () => {
           })
         }
         if (
-          (selectedPharmacy.type === 'central' &&
-            parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-            params.row.request_status !== 'Alternate') ||
-          params.row.request_status !== 'Not Available' ||
+          selectedPharmacy.type === 'central' &&
+          parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
+          params.row.request_status !== 'Alternate' &&
+          params.row.request_status !== 'Not Available' &&
           params.row.request_status !== 'Rejected'
         ) {
           options.push(
@@ -1453,7 +1411,7 @@ const IndividualRequest = () => {
     } else if (requestItems?.request_item_details?.length > 0) {
       setStatus('All')
     }
-  }, [hasNotFulfilledItems, requestItems?.request_item_details?.length > 0])
+  }, [hasNotFulfilledItems, requestItems?.request_item_details?.length])
 
   useEffect(() => {
     if (dispatchedItems?.length > 0) {
@@ -1461,11 +1419,15 @@ const IndividualRequest = () => {
     } else if (shippedItems?.length > 0) {
       setShipmentTab('Shipped')
     }
-  }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
+  }, [dispatchedItems?.length, shippedItems?.length])
 
-  const allShippedLineItems =
-    shippedItems.length > 0 &&
-    shippedItems?.flatMap(shipment => shipment?.shipment_item_details?.map(item => ({ ...item })))
+  const allShippedLineItems = useMemo(
+    () =>
+      shippedItems.length > 0
+        ? shippedItems.flatMap(shipment => shipment?.shipment_item_details?.map(item => ({ ...item })))
+        : [],
+    [shippedItems]
+  )
 
   return (
     <>
@@ -1697,16 +1659,15 @@ const IndividualRequest = () => {
                                   ? requestItems?.request_item_details?.filter(
                                       el =>
                                         el?.dispatch_status === 'Not Fulfilled' &&
-                                        (el?.request_status !== 'Rejected' || el?.request_status !== 'Not Available')
+                                        el?.request_status !== 'Rejected' &&
+                                        el?.request_status !== 'Not Available'
                                     )?.length > 0 && (
                                       <DetailsTable
                                         requestItems={requestItems}
                                         items={
-                                          requestItems?.request_item_details?.length > 0
-                                            ? requestItems?.request_item_details?.filter(
-                                                el => el?.dispatch_status === 'Not Fulfilled'
-                                              )
-                                            : []
+                                          requestItems?.request_item_details?.filter(
+                                            el => el?.dispatch_status === 'Not Fulfilled'
+                                          ) || []
                                         }
                                         renderAttachmentIcons={renderAttachmentIcons}
                                         getCellBgColor={getCellBgColor}
@@ -1722,7 +1683,8 @@ const IndividualRequest = () => {
                                   requestItems?.request_item_details?.filter(
                                     el =>
                                       el?.dispatch_status === 'Not Fulfilled' &&
-                                      (el?.request_status !== 'Rejected' || el?.request_status !== 'Not Available')
+                                      el?.request_status !== 'Rejected' &&
+                                      el?.request_status !== 'Not Available'
                                   )?.length === 0 && <NoDataFound variant='Meerkat' height={200} width={200} />}
                               </TabPanel>
                               <TabPanel

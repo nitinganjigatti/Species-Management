@@ -173,9 +173,9 @@ const TableColumns = () => {
             onChange: event => handleSearch(event.target.value)
           }
         }}
-      />
+        showToolbar />
     </Card>
-  )
+  );
 }
 
 export default TableColumns

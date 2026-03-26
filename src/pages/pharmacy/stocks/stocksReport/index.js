@@ -343,27 +343,29 @@ const ListOfStocks = () => {
         </Box>
       )
     },
-    {
-      ...(stockId === 'all' && {
-        width: 200,
-        field: 'store_name',
-        headerName: 'Store Name',
-        renderCell: params => (
-          <Tooltip title={params.row.store_name} placement='top'>
-            <Typography
-              variant='body2'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500
-              }}
-            >
-              {params.row.store_name}
-            </Typography>
-          </Tooltip>
-        )
-      })
-    },
+    ...(stockId === 'all'
+      ? [
+          {
+            width: 200,
+            field: 'store_name',
+            headerName: 'Store Name',
+            renderCell: params => (
+              <Tooltip title={params.row.store_name} placement='top'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500
+                  }}
+                >
+                  {params.row.store_name}
+                </Typography>
+              </Tooltip>
+            )
+          }
+        ]
+      : []),
 
     {
       minWidth: 160,
@@ -472,27 +474,29 @@ const ListOfStocks = () => {
         </Box>
       )
     },
-    {
-      ...(stockId === 'all' && {
-        width: 200,
-        field: 'store_name',
-        headerName: 'Store Name',
-        renderCell: params => (
-          <Tooltip title={params.row.store_name} placement='top'>
-            <Typography
-              variant='body2'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500
-              }}
-            >
-              {params.row.store_name}
-            </Typography>
-          </Tooltip>
-        )
-      })
-    },
+    ...(stockId === 'all'
+      ? [
+          {
+            width: 200,
+            field: 'store_name',
+            headerName: 'Store Name',
+            renderCell: params => (
+              <Tooltip title={params.row.store_name} placement='top'>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: theme.palette.customColors.customHeadingTextColor,
+                    fontSize: '14px',
+                    fontWeight: 500
+                  }}
+                >
+                  {params.row.store_name}
+                </Typography>
+              </Tooltip>
+            )
+          }
+        ]
+      : []),
     {
       minWidth: 160,
       field: 'stock_qty',

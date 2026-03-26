@@ -126,6 +126,12 @@ export async function getAssessmentTypesList(params) {
   return response.data
 }
 
+export async function getAssessmentResponseType(params) {
+  const response = await axiosGet({ url: `${ASSESSMENT_RESPONSE_TYPE}`, params })
+
+  return response.data
+}
+
 export async function getDailyFoodWastageReport(params) {
   const response = await axiosGet({ url: `v1/food/wastage/report`, params })
 

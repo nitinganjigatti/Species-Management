@@ -19,7 +19,6 @@ import {
   FormControlLabel,
   Switch
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 
 import { debounce } from 'lodash'
@@ -30,6 +29,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
 
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CustomChip from 'src/@core/components/mui/chip'
 import DetailCard from 'src/components/egg/DetailCard'
 import Toaster from 'src/components/Toaster'
@@ -711,8 +711,7 @@ const RoomDetails = () => {
                 <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
               </Box>
               <Box>
-                <DataGrid
-                  sx={{
+                <CommonTable                   sx={{
                     paddingX: 4,
                     borderTopLeftRadius: '8px',
                     '& .MuiBox-root': { paddingX: 0 },
@@ -727,18 +726,12 @@ const RoomDetails = () => {
                   columnVisibilityModel={{
                     sl_no: false
                   }}
-                  disableColumnSelector={true}
-                  autoHeight
-                  pagination
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
                   columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
                   rowHeight={64}
-                  pageSizeOptions={[7, 10, 25, 50]}
                   paginationModel={paginationModel}
-                  onPaginationModelChange={setPaginationModel}
+                  setPaginationModel={setPaginationModel}
                   loading={loading}
                   onCellClick={onCellClick}
                 />

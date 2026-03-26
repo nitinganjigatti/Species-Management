@@ -38,7 +38,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
         record.additional_info?.status === 'active'
           ? record?.created_user_profile_pic
           : record.additional_info?.resolved_user_profile_pic || record.created_by_user_name,
-      date: record?.latest_note?.modified_at || record.additional_info?.closed_at
+      date: record?.comment_count > 1 ? record?.latest_note?.modified_at || record.additional_info?.closed_at : record?.additional_info?.recorded_date_time
     }
   }
 
@@ -266,8 +266,10 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
             Last Updated:{' '}
-            {`${Utility.convertUtcToLocalReadableDate(mappedRecord.lastUpdated)} • ${Utility.convertUTCToLocaltime(
+            {record?.comment_count > 1 ? `${Utility.convertUtcToLocalReadableDate(mappedRecord.lastUpdated)} • ${Utility.convertUTCToLocaltime(
               mappedRecord.lastUpdated
+            )}` : `${Utility.convertUtcToLocalReadableDate(record?.additional_info?.recorded_date_time)} • ${Utility.convertUTCToLocaltime(
+              record?.additional_info?.recorded_date_time
             )}`}
           </Typography>
         </Box>
@@ -313,7 +315,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   : record.created_by_user_name
                 : record.additional_info?.resolved_user_name
             }
-            date={record?.latest_note?.modified_at || record.additional_info?.closed_at}
+            date={record?.comment_count > 1 ? record?.latest_note?.modified_at || record.additional_info?.closed_at : record?.additional_info?.recorded_date_time}
             show_time
             compact={true}
           />

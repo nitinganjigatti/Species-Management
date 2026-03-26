@@ -22,19 +22,22 @@ import Utility from 'src/utility'
 
 const MortalityDischargeForm = props => {
   const {
-    patientData,
-    watchDischargeType,
     causeOfDeath,
     carcassCondition,
     carcassDeposition,
     necropsyCenter,
-    fetchLoading,
+    mannerLoading,
+    conditionLoading,
+    dispositionLoading,
+    necropsyLoading,
+    submitLoader,
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
     handleNecropsyCenterSearch,
-    submitLoader,
     handleSubmitData,
+    patientData,
+    watchDischargeType,
     onDirtyChange,
     refetchPatient
   } = props
@@ -331,7 +334,7 @@ const MortalityDischargeForm = props => {
                   onInputChange={value => handleMannerSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleMannerSearch('')}
-                  loading={fetchLoading}
+                  loading={mannerLoading}
                   required
                   showIcons={false}
                   showLoader={true}
@@ -348,7 +351,7 @@ const MortalityDischargeForm = props => {
                   onInputChange={value => handleConditionSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleConditionSearch('')}
-                  loading={fetchLoading}
+                  loading={conditionLoading}
                   required
                   showIcons={false}
                   showLoader={true}
@@ -365,7 +368,7 @@ const MortalityDischargeForm = props => {
                   onInputChange={value => handleDispositionSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleDispositionSearch('')}
-                  loading={fetchLoading}
+                  loading={dispositionLoading}
                   required
                   showIcons={false}
                   showLoader={true}
@@ -490,9 +493,10 @@ const MortalityDischargeForm = props => {
                   onInputChange={value => handleNecropsyCenterSearch(value)}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleNecropsyCenterSearch('')}
-                  loading={fetchLoading}
+                  loading={necropsyLoading}
                   required
                   showIcons={false}
+                  showLoader={true}
                   sx={{ width: { xs: '100%', sm: '50%', md: '32%' } }}
                 />
               </Box>

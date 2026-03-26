@@ -10,13 +10,13 @@ module.exports = {
   trailingSlash: true,
   reactStrictMode: false,
   // devIndicators: false,
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true
-  },
   images: {
-    domains: ['api.dev.antzsystems.com']
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.dev.antzsystems.com'
+      }
+    ]
   },
   async rewrites() {
     return [
@@ -45,6 +45,12 @@ module.exports = {
         destination: '/reports/assessment-dashboard/index.html'
       }
     ]
+  },
+  turbopack: {
+    resolveAlias: {
+      apexcharts: './node_modules/apexcharts-clevision',
+      'apexcharts/dist/apexcharts.common': './node_modules/apexcharts-clevision/dist/apexcharts.common.js'
+    }
   },
   webpack: config => {
     config.resolve.alias = {

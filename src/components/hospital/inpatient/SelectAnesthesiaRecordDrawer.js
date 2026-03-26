@@ -16,7 +16,8 @@ const SelectAnesthesiaRecordDrawer = ({
   records = [],
   initialSelectedId = null,
   onSelect = () => {},
-  onConfirm = () => {}
+  onConfirm = () => {},
+  refetchTrigger = 0
 }) => {
   const theme = useTheme()
   const [selectedId, setSelectedId] = useState(initialSelectedId)
@@ -28,7 +29,7 @@ const SelectAnesthesiaRecordDrawer = ({
   }, [initialSelectedId, open])
 
   const { data: anesthesiaResponse, isFetching: isAnesthesiaLoading } = useQuery({
-    queryKey: ['anesthesia-records', hospitalCaseId, medicalRecordId, open],
+    queryKey: ['anesthesia-records', hospitalCaseId, medicalRecordId, open, refetchTrigger],
     queryFn: () => {
       const params = {
         hospital_case_id: hospitalCaseId,

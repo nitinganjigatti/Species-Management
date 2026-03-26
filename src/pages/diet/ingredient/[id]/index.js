@@ -57,7 +57,7 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
   },
   '& .MuiTabs-flexContainer': {
     borderRadius: 8,
-    width: '511px',
+    width: '682px',
     backgroundColor: '#E8F4F2'
   }
 }))
@@ -72,6 +72,7 @@ const IngredientDetail = () => {
   const [dietListTotal, setDietListTotal] = useState(0)
   const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
   const [recipeListTotal, setRecipeListTotal] = useState(0)
+  const [comboListTotal, setComboListTotal] = useState(0)
   const [statusDialog, setstatusDialog] = useState(false)
 
   const authData = useContext(AuthContext)
@@ -156,7 +157,7 @@ const IngredientDetail = () => {
         Router.push(`/diet/ingredient`)
 
         //Toaster({ type: 'success', message: `Ingredient ${'ING' + id} has been successfully deleted` })
-        Toaster({ type: 'success', message: `Ingredient Deleted Successfully` })
+        Toaster({ type: 'success', message: `Item Deleted Successfully` })
       } else {
         Toaster({ type: 'error', message: 'something went wrong' })
       }
@@ -286,14 +287,17 @@ const IngredientDetail = () => {
                               <Tab
                                 style={{ borderRadius: 0 }}
                                 value='2'
-
                                 // label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
-                                label={`USED IN RECIPE${recipeListTotal > 0 ? ` - ${recipeListTotal}` : ''}`}
+                                label={`USED IN RECIPE ${recipeListTotal > 0 ? ` - ${recipeListTotal}` : ''}`}
+                              />
+                              <Tab
+                                style={{ borderRadius: 0 }}
+                                value='4'
+                                label={`USED IN MIX ${comboListTotal > 0 ? ` - ${comboListTotal}` : ''}`}
                               />
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='3'
-
                                 //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
                                 label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                               />
@@ -305,6 +309,14 @@ const IngredientDetail = () => {
                               <RecipeListTabview
                                 IngredientName={IngredientsDetailsval.ingredient_name}
                                 onTotalChange={setRecipeListTotal}
+                                mealType='recipe'
+                              />
+                            </TabPanel>
+                            <TabPanel value='4'>
+                              <RecipeListTabview
+                                IngredientName={IngredientsDetailsval.ingredient_name}
+                                onTotalChange={setComboListTotal}
+                                mealType='combo'
                               />
                             </TabPanel>
                             <TabPanel value='3'>

@@ -368,21 +368,13 @@ export default function AddAnesthesiaRecord() {
   const scrollToSection = sectionId => {
     setExpanded(sectionId)
 
-    requestAnimationFrame(() => {
-      const scrollContainer = scrollContainerRef.current
+    setTimeout(() => {
       const sectionEl = sectionRefs.current[sectionId]
 
-      if (scrollContainer && sectionEl) {
-        const containerRect = scrollContainer.getBoundingClientRect()
-        const targetRect = sectionEl.getBoundingClientRect()
-        const offset = 8
-
-        scrollContainer.scrollTo({
-          top: scrollContainer.scrollTop + targetRect.top - containerRect.top - offset,
-          behavior: 'smooth'
-        })
+      if (sectionEl) {
+        sectionEl.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
-    })
+    }, 100)
   }
 
   const getUserLists = async (hospitalId, pageNo = 1) => {
@@ -1502,26 +1494,13 @@ export default function AddAnesthesiaRecord() {
     setExpanded(sectionId)
 
     if (isExpanding) {
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            const target = sectionRefs.current[sectionId]
-            const scrollContainer = scrollContainerRef.current
+      setTimeout(() => {
+        const target = sectionRefs.current[sectionId]
 
-            if (target && scrollContainer) {
-              const containerRect = scrollContainer.getBoundingClientRect()
-              const targetRect = target.getBoundingClientRect()
-              const offset = 8
-              const scrollTop = scrollContainer.scrollTop + targetRect.top - containerRect.top - offset
-
-              scrollContainer.scrollTo({
-                top: scrollTop,
-                behavior: 'smooth'
-              })
-            }
-          }, 350)
-        })
-      })
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }
+      }, 350)
     }
   }
 
@@ -2069,14 +2048,7 @@ export default function AddAnesthesiaRecord() {
           <Typography color={theme.palette.text.primary}>Add Anesthesia</Typography>
         </Breadcrumbs>
 
-        <Box
-          position='relative'
-          height='80vh'
-          display='flex'
-          flexDirection='column'
-          borderRadius='8px'
-          overflow='hidden'
-        >
+        <Box position='relative' display='flex' flexDirection='column' borderRadius='8px'>
           <Paper
             elevation={3}
             sx={{
@@ -2146,7 +2118,8 @@ export default function AddAnesthesiaRecord() {
                 additionalFields={[
                   {
                     label:
-                      patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                      patientData?.animal_detail?.local_identifier_name &&
+                      patientData?.animal_detail?.local_identifier_value
                         ? patientData?.animal_detail?.local_identifier_name
                         : 'AID',
                     value: handleAIDDisplay()
@@ -2204,26 +2177,11 @@ export default function AddAnesthesiaRecord() {
 
           {/* Scroll container with proper height and overflow */}
           <Box
-            ref={scrollContainerRef}
-            flex={1}
-            overflow='auto'
             p={0}
             mt={4}
             mb={3}
             sx={{
               pr: { xs: 2, sm: 2, md: 2 },
-              '&::-webkit-scrollbar': {
-                width: '8px'
-              },
-              '&::-webkit-scrollbar-track': {
-                background: '#f1f1f1'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: '#c1c1c1',
-                borderRadius: '4px'
-              },
-              overflowX: 'hidden',
-              scrollbarGutter: 'stable',
               '& .MuiAccordionSummary-root': {
                 pr: 2
               }
@@ -2243,6 +2201,7 @@ export default function AddAnesthesiaRecord() {
                     mb: 2,
                     borderRadius: '8px',
                     boxShadow: 0,
+                    scrollMarginTop: '240px',
                     '&:before': { display: 'none' },
                     ...(isDisabled && {
                       opacity: 0.6,
