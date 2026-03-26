@@ -10,47 +10,7 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Icon from 'src/@core/components/icon'
-
-// Interfaces
-export interface Site {
-  site_id: number
-  site_name: string
-  site_image?: string
-}
-
-export interface Role {
-  id: number | string
-  role_name: string
-  string_id?: string
-}
-
-export interface TargetGroupSite {
-  group_type: 'site'
-  values: number[]
-}
-
-export interface TargetGroupRole {
-  group_type: 'role'
-  values: (number | string)[]
-}
-
-export interface TargetGroupSiteRole {
-  group_type: 'site_role'
-  values: Array<{
-    site_id: number
-    role_id: (number | string)[]
-  }>
-}
-
-export type TargetGroup = TargetGroupSite | TargetGroupRole | TargetGroupSiteRole
-
-interface SelectSitesRolesDrawerProps {
-  open: boolean
-  onClose: () => void
-  selectedSites: Site[]
-  selectedRoles: Role[]
-  onSelectionChange: (sites: Site[], roles: Role[]) => void
-}
+import type { Site, Role, SelectSitesRolesDrawerProps } from 'src/types/announcement'
 
 const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
   open,
@@ -63,25 +23,20 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
   const auth = useAuth() as any
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id || auth?.user?.zoo_id
 
-  // Local state
   const [localSelectedSites, setLocalSelectedSites] = useState<Site[]>([])
   const [localSelectedRoles, setLocalSelectedRoles] = useState<Role[]>([])
   const [isAllSites, setIsAllSites] = useState(true)
   const [isAllRoles, setIsAllRoles] = useState(true)
 
-  // Sites list state
   const [sitesList, setSitesList] = useState<Site[]>([])
   const [sitesLoading, setSitesLoading] = useState(false)
   const [sitesDrawerOpen, setSitesDrawerOpen] = useState(false)
   const [sitesSearchTerm, setSitesSearchTerm] = useState('')
-
-  // Roles list state
   const [rolesList, setRolesList] = useState<Role[]>([])
   const [rolesLoading, setRolesLoading] = useState(false)
   const [rolesDrawerOpen, setRolesDrawerOpen] = useState(false)
   const [rolesSearchTerm, setRolesSearchTerm] = useState('')
 
-  // Initialize state when drawer opens
   useEffect(() => {
     if (open) {
       setLocalSelectedSites([...selectedSites])
@@ -91,7 +46,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
       fetchSites()
       fetchRoles()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
   const fetchSites = async () => {
@@ -105,8 +59,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
       } else {
         setSitesList([])
       }
-    } catch (error) {
-      console.error('Error fetching sites:', error)
+    } catch {
       setSitesList([])
     } finally {
       setSitesLoading(false)
@@ -124,20 +77,17 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
       } else {
         setRolesList([])
       }
-    } catch (error) {
-      console.error('Error fetching roles:', error)
+    } catch {
       setRolesList([])
     } finally {
       setRolesLoading(false)
     }
   }
 
-  // Toggle handlers
   const handleAllSitesToggle = (checked: boolean) => {
     setIsAllSites(checked)
     if (checked) {
       setLocalSelectedSites([])
-      // When all sites is ON, also reset roles
       setIsAllRoles(true)
       setLocalSelectedRoles([])
     }
@@ -150,7 +100,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
     }
   }
 
-  // Site selection handlers
   const handleSiteToggle = (site: Site) => {
     const isSelected = localSelectedSites.some(s => s.site_id === site.site_id)
     if (isSelected) {
@@ -164,7 +113,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
     setLocalSelectedSites(localSelectedSites.filter(s => s.site_id !== siteId))
   }
 
-  // Role selection handlers
   const handleRoleToggle = (role: Role) => {
     const isSelected = localSelectedRoles.some(r => r.id === role.id)
     if (isSelected) {
@@ -178,7 +126,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
     setLocalSelectedRoles(localSelectedRoles.filter(r => r.id !== roleId))
   }
 
-  // Filter sites and roles based on search
   const filteredSites = useMemo(() => {
     if (!sitesSearchTerm) return sitesList
 
@@ -191,7 +138,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
     return rolesList.filter(role => role.role_name.toLowerCase().includes(rolesSearchTerm.toLowerCase()))
   }, [rolesList, rolesSearchTerm])
 
-  // Submit handler
   const handleDone = () => {
     onSelectionChange(isAllSites ? [] : localSelectedSites, isAllRoles ? [] : localSelectedRoles)
     onClose()
@@ -201,7 +147,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
     onClose()
   }
 
-  // Styles
   const inputBgColor = theme.palette.customColors?.SurfaceVariant
 
   const switchRowSx = {
@@ -217,7 +162,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
 
   return (
     <>
-      {/* Main Drawer */}
       <Drawer
         anchor='right'
         open={open}
@@ -237,7 +181,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             flexDirection: 'column'
           }}
         >
-          {/* Header */}
           <Box
             sx={{
               display: 'flex',
@@ -265,9 +208,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             </Box>
           </Box>
 
-          {/* Content */}
           <Box sx={{ flex: 1, overflow: 'auto', p: 4 }}>
-            {/* Choose Sites Section */}
             <Box
               sx={{
                 backgroundColor: theme.palette.customColors?.OnPrimary,
@@ -287,7 +228,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                 Choose Sites
               </Typography>
 
-              {/* All Sites Toggle */}
               <Box sx={switchRowSx}>
                 <Typography
                   sx={{
@@ -305,7 +245,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                 />
               </Box>
 
-              {/* Selected Sites Section - shown when All Sites is OFF */}
               {!isAllSites && (
                 <Box
                   sx={{
@@ -315,7 +254,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                     overflow: 'hidden'
                   }}
                 >
-                  {/* Header with Add button */}
                   <Box
                     onClick={() => setSitesDrawerOpen(true)}
                     sx={{
@@ -344,7 +282,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                     </IconButton>
                   </Box>
 
-                  {/* Selected Sites List */}
                   {localSelectedSites.length > 0 && (
                     <Box sx={{ px: 3, pb: 3 }}>
                       {localSelectedSites.map(site => (
@@ -399,7 +336,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
               )}
             </Box>
 
-            {/* Choose Roles Section */}
             <Box
               sx={{
                 backgroundColor: theme.palette.customColors?.OnPrimary,
@@ -418,7 +354,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                 Choose Roles
               </Typography>
 
-              {/* All Roles Toggle */}
               <Box sx={switchRowSx}>
                 <Typography
                   sx={{
@@ -436,7 +371,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                 />
               </Box>
 
-              {/* Add Roles Section - shown when All Roles is OFF */}
               {!isAllRoles && (
                 <Box
                   sx={{
@@ -446,7 +380,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                     overflow: 'hidden'
                   }}
                 >
-                  {/* Header with Add button */}
                   <Box
                     onClick={() => setRolesDrawerOpen(true)}
                     sx={{
@@ -475,7 +408,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                     </IconButton>
                   </Box>
 
-                  {/* Selected Roles List */}
                   {localSelectedRoles.length > 0 && (
                     <Box sx={{ px: 3, pb: 3 }}>
                       {localSelectedRoles.map(role => (
@@ -529,7 +461,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             </Box>
           </Box>
 
-          {/* Footer */}
           <Box
             sx={{
               p: 4,
@@ -555,7 +486,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
         </Box>
       </Drawer>
 
-      {/* Sites Selection Drawer - opens from bottom-right */}
       <Drawer
         anchor='bottom'
         open={sitesDrawerOpen}
@@ -614,7 +544,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             </IconButton>
           </Box>
 
-          {/* Search */}
           <Box sx={{ px: 4, py: 3, backgroundColor: theme.palette.customColors?.OnPrimary }}>
             <Search
               placeholder='Search'
@@ -625,7 +554,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             />
           </Box>
 
-          {/* Sites List */}
           <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
             {sitesLoading ? (
               <>
@@ -682,7 +610,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             )}
           </Box>
 
-          {/* Footer */}
           <Box
             sx={{
               p: 4,
@@ -709,7 +636,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
         </Box>
       </Drawer>
 
-      {/* Roles Selection Drawer - opens from bottom-right */}
       <Drawer
         anchor='bottom'
         open={rolesDrawerOpen}
@@ -732,7 +658,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             backgroundColor: theme.palette.customColors?.Background
           }}
         >
-          {/* Header */}
           <Box
             sx={{
               display: 'flex',
@@ -768,7 +693,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             </IconButton>
           </Box>
 
-          {/* Search */}
           <Box sx={{ px: 4, py: 3, backgroundColor: theme.palette.customColors?.OnPrimary }}>
             <Search
               placeholder='Search'
@@ -779,7 +703,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             />
           </Box>
 
-          {/* Roles List */}
           <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
             {rolesLoading ? (
               <>
@@ -835,7 +758,6 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
             )}
           </Box>
 
-          {/* Footer */}
           <Box
             sx={{
               p: 4,

@@ -1,9 +1,3 @@
-/**
- * Announcement Module Constants
- *
- * API endpoints and constants for the announcement module.
- */
-
 export const ANNOUNCEMENT_BASE_URL = 'v1/announcement/'
 
 export const COMMENT_BASE_URL = 'v1/comment/'

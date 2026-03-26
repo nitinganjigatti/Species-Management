@@ -27,15 +27,7 @@ import {
 } from 'src/hooks/announcement/useAnnouncements'
 import { useAuth } from 'src/hooks/useAuth'
 import Utility from 'src/utility'
-import type { Announcement, AnnouncementAttachment } from 'src/types/announcement'
-
-interface AnnouncementDetailsDrawerProps {
-  open: boolean
-  onClose: () => void
-  announcementId: number | null
-  onAnnouncementUpdated?: () => void
-  onEdit?: (announcement: Announcement) => void
-}
+import type { AnnouncementAttachment, AnnouncementDetailsDrawerProps } from 'src/types/announcement'
 
 // Constants
 const DESCRIPTION_MAX_LENGTH = 300
@@ -160,27 +152,12 @@ const AnnouncementDetailsDrawer = ({
     setImagePreview({ open: false, url: '', title: '' })
   }
 
-  // Format date/time functions
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const day = date.getDate()
-    const month = date.toLocaleString('en-US', { month: 'short' })
-    const year = date.getFullYear()
-
-    const time = date.toLocaleString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    })
-
-    return `${day} ${month} ${year} • ${time}`
-  }
-
+  // Get relative time using Utility functions
   const getRelativeTime = (dateString: string) => {
     if (!dateString) return ''
     const localDateTime = Utility.convertUTCToLocal(dateString)
 
-    return Utility.AgeConverter(localDateTime) || formatDateTime(dateString)
+    return Utility.AgeConverter(localDateTime) || Utility.convertUTCToLocalDateTime(dateString)
   }
 
   // Event handlers
@@ -225,9 +202,6 @@ const AnnouncementDetailsDrawer = ({
     if (onEdit) {
       onEdit(announcement)
       onClose()
-    } else {
-      // TODO: Wire up edit functionality
-      console.log('Edit announcement:', announcement.announcement_id)
     }
   }
 
@@ -412,7 +386,7 @@ const AnnouncementDetailsDrawer = ({
               </Typography>
               {announcement?.modified_at && (
                 <Typography sx={{ color: textSecondary, fontSize: '0.875rem' }}>
-                  Deleted on {formatDateTime(announcement.modified_at)}
+                  Deleted on {Utility.convertUTCToLocalDateTime(announcement.modified_at)}
                 </Typography>
               )}
             </Box>

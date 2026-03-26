@@ -7,12 +7,7 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import CircularProgress from '@mui/material/CircularProgress'
 import Icon from 'src/@core/components/icon'
-
-interface CommentInputProps {
-  onSubmit: (text: string) => void
-  isLoading?: boolean
-  placeholder?: string
-}
+import type { CommentInputProps } from 'src/types/announcement'
 
 const CommentInput = ({ onSubmit, isLoading = false, placeholder = 'Add a comment...' }: CommentInputProps) => {
   const [comment, setComment] = useState('')
@@ -84,7 +79,7 @@ const CommentInput = ({ onSubmit, isLoading = false, placeholder = 'Add a commen
         disabled={!comment.trim() || isLoading}
         sx={{
           backgroundColor: comment.trim() && !isLoading ? primaryColor : 'transparent',
-          color: comment.trim() && !isLoading ? '#fff' : textSecondary,
+          color: comment.trim() && !isLoading ? theme.palette.customColors.OnPrimary : textSecondary,
           '&:hover': {
             backgroundColor: comment.trim() && !isLoading ? primaryColor : 'transparent'
           },

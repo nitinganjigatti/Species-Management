@@ -7,14 +7,7 @@ import Avatar from '@mui/material/Avatar'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
-import type { AnnouncementComment } from 'src/types/announcement'
-
-interface CommentItemProps {
-  comment: AnnouncementComment
-  isOwner: boolean
-  onDelete?: () => void
-  isLast?: boolean
-}
+import type { CommentItemProps } from 'src/types/announcement'
 
 const CommentItem = ({ comment, isOwner, onDelete, isLast = false }: CommentItemProps) => {
   const theme = useTheme()
@@ -42,14 +35,11 @@ const CommentItem = ({ comment, isOwner, onDelete, isLast = false }: CommentItem
       }}
     >
       <Box sx={{ display: 'flex', gap: 2 }}>
-        {/* Avatar */}
         <Avatar src={comment.user_profile_pic || undefined} sx={{ width: 36, height: 36, flexShrink: 0 }}>
           {!comment.user_profile_pic && (comment.user_first_name?.charAt(0) || '')}
         </Avatar>
 
-        {/* Content */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          {/* Header - Name, Time, Actions */}
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography
@@ -87,7 +77,6 @@ const CommentItem = ({ comment, isOwner, onDelete, isLast = false }: CommentItem
             )}
           </Box>
 
-          {/* Comment text */}
           <Typography
             sx={{
               fontSize: '0.875rem',

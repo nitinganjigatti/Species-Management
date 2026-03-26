@@ -5,11 +5,7 @@ import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
 import Skeleton from '@mui/material/Skeleton'
 import Divider from '@mui/material/Divider'
-
-interface AnnouncementSkeletonProps {
-  showMedia?: boolean
-  showDescription?: boolean
-}
+import type { AnnouncementSkeletonProps } from 'src/types/announcement'
 
 const AnnouncementSkeleton = ({
   showMedia = false,

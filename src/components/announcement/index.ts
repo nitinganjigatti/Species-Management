@@ -1,9 +1,3 @@
-/**
- * Announcement Components
- *
- * Export all announcement-related components from this barrel file.
- */
-
 export { default as AnnouncementFeed } from './AnnouncementFeed'
 
 export { default as AnnouncementCard } from './AnnouncementCard'

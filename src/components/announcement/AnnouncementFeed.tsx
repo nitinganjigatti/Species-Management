@@ -10,6 +10,7 @@ import Tab from '@mui/material/Tab'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Icon from 'src/@core/components/icon'
+import { AddButton } from 'src/components/Buttons'
 import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
@@ -133,18 +134,14 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         px: 2
       }}
     >
-      {/* Header Card */}
       <Card
         sx={{
           mb: 6,
           p: 2,
           borderRadius: '8px',
           backgroundColor: theme.palette.customColors.OnPrimary
-          // boxShadow: 'none',
-          // border: `1px solid ${theme.palette.customColors.OutlineVariant}`
         }}
       >
-        {/* Title Row */}
         <Box
           sx={{
             display: 'flex',
@@ -162,30 +159,26 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
           >
             Announcements
           </Typography>
-          <Button
-            variant='contained'
-            startIcon={<Icon icon='mdi:plus' fontSize={18} />}
-            onClick={handleCreateAnnouncement}
-            sx={{
+          <AddButton
+            action={handleCreateAnnouncement}
+            title='Create'
+            disabled={false}
+            styles={{
               borderRadius: '8px',
               textTransform: 'none',
               fontWeight: 600,
               fontSize: '0.875rem',
-              px: 2,
-              py: 0.75,
               backgroundColor: theme.palette.primary.main,
-              boxShadow: 'none',
+              color: theme.palette.common.white,
+              border: 'none',
               '&:hover': {
                 backgroundColor: theme.palette.primary.dark,
-                boxShadow: 'none'
+                border: 'none'
               }
             }}
-          >
-            Create
-          </Button>
+          />
         </Box>
 
-        {/* Search Input */}
         <Search
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
@@ -197,7 +190,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
           textFielsSX={{ height: '40px' }}
         />
 
-        {/* Tabs */}
         <Tabs
           value={filter === 'all' ? 0 : 1}
           onChange={handleFilterChange}
@@ -232,7 +224,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         </Tabs>
       </Card>
 
-      {/* Loading State */}
       {isLoading && (
         <>
           <AnnouncementSkeleton showMedia />
@@ -241,7 +232,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         </>
       )}
 
-      {/* Error State */}
       {isError && (
         <Card
           sx={{
@@ -287,7 +277,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         </Card>
       )}
 
-      {/* Empty State */}
       {!isLoading && !isError && announcements.length === 0 && (
         <Card
           sx={{
@@ -310,7 +299,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         </Card>
       )}
 
-      {/* Announcements List */}
       {!isLoading &&
         announcements.map(announcement => (
           <AnnouncementCard
@@ -323,7 +311,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
           />
         ))}
 
-      {/* Load More Indicator */}
       {hasNextPage && (
         <Box
           ref={loadMoreRef}
@@ -338,7 +325,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         </Box>
       )}
 
-      {/* End of list */}
       {!hasNextPage && announcements.length > 0 && (
         <Typography
           sx={{ textAlign: 'center', py: 2, color: theme.palette.customColors.neutralSecondary, fontSize: '0.875rem' }}
@@ -347,7 +333,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         </Typography>
       )}
 
-      {/* Add/Edit Announcement Drawer */}
       <AddAnnouncementDrawer
         open={isDrawerOpen}
         onClose={handleDrawerClose}
@@ -355,7 +340,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         onSuccess={() => refetch()}
       />
 
-      {/* Announcement Details Drawer */}
       <AnnouncementDetailsDrawer
         open={detailsDrawer.open}
         onClose={handleDetailsDrawerClose}
@@ -364,7 +348,6 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         onEdit={handleEdit}
       />
 
-      {/* Confirmation Dialog */}
       <DeleteConfirmationDialog
         open={confirmDialog.open}
         handleClose={handleConfirmDialogClose}

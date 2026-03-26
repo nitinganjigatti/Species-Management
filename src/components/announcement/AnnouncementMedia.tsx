@@ -39,7 +39,8 @@ const AnnouncementMedia = ({ attachments }: AnnouncementMediaProps) => {
 
   if (!mediaToShow) return null
 
-  const handleMediaClick = () => {
+  const handleMediaClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setDialogOpen(true)
   }
 

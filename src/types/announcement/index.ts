@@ -5,225 +5,108 @@
  * Import types from 'src/types/announcement' for use throughout the application.
  */
 
-// ==================== User Types ====================
-export interface AnnouncementUser {
-  user_id: number
-  first_name: string
-  last_name: string
-  profile_pic: string
-}
+// ==================== Model Types ====================
+export type {
+  // User
+  AnnouncementUser,
 
-// ==================== Comment Types ====================
-export interface AnnouncementComment {
-  id: number
-  announcement_id: number
-  comment_text: string
-  user_id: number
-  user_first_name: string
-  user_last_name: string
-  user_profile_pic: string
-  created_at: string
-}
+  // Comment
+  AnnouncementComment,
 
-// ==================== Attachment Types ====================
-export interface AnnouncementAttachment {
-  id: number
-  file: string
-  file_type: 'image' | 'video' | 'document' | 'audio'
-  file_orginal_name: string
-}
+  // Attachment
+  AnnouncementAttachment,
+  AttachmentCount,
+  ExistingAttachment,
 
-export interface AttachmentCount {
-  image: number
-  video: number
-  document: number
-  audio: number
-}
+  // Reaction
+  ReactionsSummary,
+  ReactionUser,
 
-// ==================== Reaction Types ====================
-export interface ReactionsSummary {
-  like: number
-}
+  // Announcement
+  AnnouncementType,
+  AnnouncementStatus,
+  Announcement,
 
-export interface ReactionUser {
-  user_id: number
-  first_name: string
-  last_name: string
-  profile_pic: string
-  reacted_at: string
-}
+  // Site & Role
+  Site,
+  Role,
 
-// ==================== Announcement Types ====================
-export type AnnouncementType = 'general' | 'important'
+  // Target Groups
+  TargetGroupSite,
+  TargetGroupRole,
+  TargetGroupSiteRole,
+  TargetGroup,
 
-export type AnnouncementStatus = 'active' | 'cancelled' | 'scheduled'
+  // User Selection
+  SelectedUser
+} from './models'
 
-export interface Announcement {
-  announcement_id: number
-  title: string
-  description: string
-  type: AnnouncementType
-  status: AnnouncementStatus
-  created_user_id: number
-  created_by: AnnouncementUser
-  schedule_datetime: string
-  schedule_end_date?: string
-  is_scheduled: boolean | number | string
-  allow_comments: 0 | 1 | boolean | string
-  comment_count: number
-  comments: AnnouncementComment[]
-  user_reaction: 'like' | null
-  reactions_summary: ReactionsSummary
-  attachment_count: AttachmentCount
-  attachments: AnnouncementAttachment[]
-  is_deleted: 0 | 1 | '0' | '1' | boolean
-  is_edited: boolean
-  cancel_reason?: string
-  target_groups?: any[]
-  user_target_groups?: any[]
-  target_zoo_only?: boolean
-  end_date_flag?: boolean | number
-  created_at: string
-  modified_at: string
-}
+// ==================== API Types ====================
+export type {
+  // Generic
+  ApiResponse,
 
-// ==================== API Response Types ====================
-export interface AnnouncementListData {
-  announcement_details: Announcement[]
-  total_announcement_count: number
-}
+  // List
+  AnnouncementListData,
+  AnnouncementListParams,
+  AnnouncementListResponse,
 
-export interface AnnouncementListResponse {
-  success: boolean
-  data: AnnouncementListData
-}
+  // Details
+  AnnouncementDetailsResponse,
 
-export interface AnnouncementDetailsResponse {
-  success: boolean
-  data: Announcement
-}
+  // Reactions
+  AddReactionPayload,
+  ReactionUsersResponse,
 
-export interface ReactionUsersResponse {
-  success: boolean
-  data: ReactionUser[]
-}
+  // Comments
+  AddCommentPayload,
+  CommentResponse,
 
-export interface CommentResponse {
-  success: boolean
-  data: AnnouncementComment
-  message?: string
-}
+  // Actions
+  ActionResponse,
 
-export interface ActionResponse {
-  success: boolean
-  message?: string
-}
-
-// ==================== API Request Types ====================
-export interface AnnouncementListParams {
-  page?: number
-  limit?: number
-  q?: string
-  owned_by_me?: boolean
-}
-
-export interface AddReactionPayload {
-  announcement_id: number
-}
-
-export interface AddCommentPayload {
-  announcement_id: number
-  comment: string
-}
-
-export interface CreateAnnouncementPayload {
-  title: string
-  description?: string
-  type: AnnouncementType
-  allow_comments: boolean
-  is_scheduled: number
-  schedule_datetime?: string
-  schedule_end_date?: string
-  target_groups?: string
-  user_target_groups?: string
-  attachments?: File[]
-  deleted_attachments?: string
-}
-
-export interface CreateAnnouncementResponse {
-  success?: boolean
-  status?: boolean
-  message?: string
-  errors?: string[]
-  data?: Announcement
-}
+  // Create/Update
+  CreateAnnouncementPayload,
+  CreateAnnouncementResponse
+} from './api'
 
 // ==================== Component Props Types ====================
-export interface AnnouncementCardProps {
-  announcement: Announcement
-  onLike?: (id: number, isLiked: boolean) => void
-  onComment?: (id: number) => void
-  onShare?: (id: number) => void
-  onEdit?: (announcement: Announcement) => void
-  onDelete?: (id: number) => void
-  onCancel?: (id: number) => void
-  onClick?: () => void
-  currentUserId?: number
-}
+export type {
+  // Base
+  BaseDrawerProps,
 
-export interface AnnouncementFeedProps {
-  initialFilter?: 'all' | 'my_posts'
-}
+  // Card & Feed
+  AnnouncementCardProps,
+  AnnouncementFeedProps,
+  AnnouncementSkeletonProps,
 
-export interface AnnouncementHeaderProps {
-  user: AnnouncementUser
-  createdAt: string
-  isEdited: boolean
-  isOwner: boolean
-  onEdit?: () => void
-  onDelete?: () => void
-  onCancel?: () => void
-}
+  // Header & Content
+  AnnouncementHeaderProps,
+  AnnouncementContentProps,
 
-export interface AnnouncementContentProps {
-  title: string
-  description: string
-  type: AnnouncementType
-}
+  // Media
+  AnnouncementMediaProps,
 
-export interface AnnouncementMediaProps {
-  attachments: AnnouncementAttachment[]
-  maxVisible?: number
-}
+  // Reactions
+  AnnouncementReactionsProps,
+  ReactionUserListDialogProps,
 
-export interface AnnouncementReactionsProps {
-  likeCount: number
-  commentCount: number
-  attachmentCount: AttachmentCount
-  userReaction: 'like' | null
-  onLike: () => void
-  onCommentClick: () => void
-  onViewLikes?: () => void
-}
+  // Comments
+  AnnouncementCommentsProps,
+  CommentItemProps,
+  CommentInputProps,
 
-export interface AnnouncementCommentsProps {
-  comments: AnnouncementComment[]
-  announcementId: number
-  allowComments: boolean
-  onAddComment: (text: string) => void
-  onDeleteComment?: (commentId: number) => void
-  currentUserId?: number
-  isLoading?: boolean
-}
+  // Drawers
+  AddAnnouncementDrawerProps,
+  AnnouncementDetailsDrawerProps,
+  SelectSitesRolesDrawerProps,
+  SearchUsersDrawerProps,
 
-export interface CommentItemProps {
-  comment: AnnouncementComment
-  isOwner: boolean
-  onDelete?: () => void
-}
+  // Forms
+  FormValues
+} from './components'
 
-export interface ReactionUserListDialogProps {
-  open: boolean
-  onClose: () => void
-  announcementId: number
-}
+// ==================== Hook Types ====================
+export type {
+  UseAnnouncementListParams
+} from './hooks'

@@ -6,7 +6,7 @@
 
 // @ts-ignore - JS utility functions
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
-import { ANNOUNCEMENT_ENDPOINTS } from 'src/constants/AnnouncementConstants'
+import { ANNOUNCEMENT_ENDPOINTS } from 'src/constants/announcement'
 import type {
   AnnouncementListParams,
   AnnouncementListResponse,

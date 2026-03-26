@@ -25,40 +25,19 @@ import MUITimePicker from 'src/views/forms/form-fields/MUITimePicker'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useCreateAnnouncement, useUpdateAnnouncement } from 'src/hooks/announcement/useAnnouncements'
 import { useAuth } from 'src/hooks/useAuth'
-import SearchUsersDrawer, { SelectedUser } from './SearchUsersDrawer'
-import SelectSitesRolesDrawer, { Site, Role } from './SelectSitesRolesDrawer'
-import type { Announcement, AnnouncementType, CreateAnnouncementPayload } from 'src/types/announcement'
-
-interface ExistingAttachment {
-  id: number
-  file: string
-  file_orginal_name: string
-  file_type: string
-}
-
-interface AddAnnouncementDrawerProps {
-  open: boolean
-  onClose: () => void
-  onSuccess?: () => void
-  editAnnouncement?: Announcement | null
-}
-
-interface FormValues {
-  title: string
-  description: string
-  type: AnnouncementType
-  isEveryoneVisible: boolean
-  isPostNow: boolean
-  schedule_date: dayjs.Dayjs | null
-  schedule_time: dayjs.Dayjs | null
-  isAlwaysVisible: boolean
-  endDateTab: 'endDate' | 'duration'
-  schedule_end_date: dayjs.Dayjs | null
-  durationValue: string
-  durationUnit: 'Days' | 'Weeks' | 'Months'
-  allow_comments: boolean
-  attachments: File[]
-}
+import SearchUsersDrawer from './SearchUsersDrawer'
+import SelectSitesRolesDrawer from './SelectSitesRolesDrawer'
+import type {
+  Announcement,
+  AnnouncementType,
+  CreateAnnouncementPayload,
+  ExistingAttachment,
+  AddAnnouncementDrawerProps,
+  FormValues,
+  Site,
+  Role,
+  SelectedUser
+} from 'src/types/announcement'
 
 const validationSchema = yup.object().shape({
   title: yup.string().required('Title is required').max(200, 'Title must be at most 200 characters'),
@@ -95,53 +74,57 @@ const removeEmojis = (text: string): string => {
 const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: AddAnnouncementDrawerProps) => {
   const theme = useTheme()
   const auth = useAuth() as any
-  // Get zooId from userData (matching mobile: state.UserAuth.zoo_id)
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
-  // Get file icon settings (matching ControlledMultiFileUpload pattern)
   const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER || {}
   const createAnnouncement = useCreateAnnouncement()
   const updateAnnouncement = useUpdateAnnouncement()
 
-  // Edit mode detection (matching mobile)
   const isEdit = !!editAnnouncement
 
-  // Track existing attachments and deleted ones for edit mode
   const [existingAttachments, setExistingAttachments] = useState<ExistingAttachment[]>([])
   const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<number[]>([])
 
-  // Get file icon config based on file type (matching ControlledMultiFileUpload pattern)
-  // Uses customColors from theme for consistency
   const getFileIconConfig = (fileType: string) => {
     const type = fileType?.toLowerCase() || ''
     if (type.includes('pdf')) {
-      return imgPath.pdf || {
-        bg_color: theme.palette.customColors.ErrorContainer || theme.palette.customColors.BgTeritary,
-        icon_color: theme.palette.customColors.Tertiary
-      }
+      return (
+        imgPath.pdf || {
+          bg_color: theme.palette.customColors.ErrorContainer || theme.palette.customColors.BgTeritary,
+          icon_color: theme.palette.customColors.Tertiary
+        }
+      )
     }
     if (type.includes('video')) {
-      return imgPath.video || {
-        bg_color: theme.palette.customColors.TertiaryContainer || theme.palette.customColors.infoContainer,
-        icon_color: theme.palette.primary.main
-      }
+      return (
+        imgPath.video || {
+          bg_color: theme.palette.customColors.TertiaryContainer || theme.palette.customColors.infoContainer,
+          icon_color: theme.palette.primary.main
+        }
+      )
     }
     if (type.includes('audio')) {
-      return imgPath.audio || {
-        bg_color: theme.palette.customColors.warningContainer,
-        icon_color: theme.palette.warning.main
-      }
+      return (
+        imgPath.audio || {
+          bg_color: theme.palette.customColors.warningContainer,
+          icon_color: theme.palette.warning.main
+        }
+      )
     }
     if (type.includes('doc') || type.includes('document')) {
-      return imgPath.document || {
-        bg_color: theme.palette.customColors.primaryContainer,
-        icon_color: theme.palette.primary.main
-      }
+      return (
+        imgPath.document || {
+          bg_color: theme.palette.customColors.primaryContainer,
+          icon_color: theme.palette.primary.main
+        }
+      )
     }
 
-    return imgPath.default || {
-      bg_color: theme.palette.customColors.SurfaceVariant || theme.palette.customColors.OutlineVariant,
-      icon_color: theme.palette.customColors.OnSurfaceVariant
-    }
+    return (
+      imgPath.default || {
+        bg_color: theme.palette.customColors.SurfaceVariant || theme.palette.customColors.OutlineVariant,
+        icon_color: theme.palette.customColors.OnSurfaceVariant
+      }
+    )
   }
 
   const {
@@ -181,44 +164,29 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
   const scheduleDate = watch('schedule_date')
   const scheduleTime = watch('schedule_time')
 
-  // Sites, Roles and Users selection state
   const [selectedSites, setSelectedSites] = useState<Site[]>([])
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
   const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([])
-
-  // Drawer states
   const [isSitesRolesDrawerOpen, setIsSitesRolesDrawerOpen] = useState(false)
   const [isUsersDrawerOpen, setIsUsersDrawerOpen] = useState(false)
 
-  // Populate form when editing (matching mobile implementation)
   useEffect(() => {
     if (open && isEdit && editAnnouncement) {
-      // Title and description
       setValue('title', editAnnouncement.title || '')
       setValue('description', editAnnouncement.description || '')
 
-      // Type
       setValue('type', (editAnnouncement.type as AnnouncementType) || 'general')
 
-      // Visibility - check if target_zoo_only or target_groups indicates everyone
       const isEveryone = editAnnouncement.target_zoo_only ?? true
       setValue('isEveryoneVisible', isEveryone)
-
-      // Post now / scheduled - is_scheduled: true/1/'1' means "post now", false/0/'0' means "scheduled"
-      // API returns boolean, but we need to handle all possible types
       const isScheduledValue = editAnnouncement.is_scheduled
       const postNow = isScheduledValue === true || isScheduledValue === 1 || isScheduledValue === '1'
       setValue('isPostNow', postNow)
-
-      // Schedule date/time
       if (editAnnouncement.schedule_datetime) {
         setValue('schedule_date', dayjs(editAnnouncement.schedule_datetime))
         setValue('schedule_time', dayjs(editAnnouncement.schedule_datetime))
       }
 
-      // Always visible / end date - handle all possible types from API
-      // end_date_flag: true/1 means always visible (no end date)
-      // end_date_flag: false/0/undefined/null means has end date
       const endDateFlagValue = editAnnouncement.end_date_flag
       const alwaysVisible = endDateFlagValue === true || endDateFlagValue === 1
       setValue('isAlwaysVisible', alwaysVisible)
@@ -227,14 +195,12 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
         setValue('schedule_end_date', dayjs(editAnnouncement.schedule_end_date))
       }
 
-      // Allow comments
       const allowComments =
         editAnnouncement.allow_comments === 1 ||
         editAnnouncement.allow_comments === '1' ||
         editAnnouncement.allow_comments === true
       setValue('allow_comments', allowComments)
 
-      // Existing attachments
       if (editAnnouncement.attachments && editAnnouncement.attachments.length > 0) {
         setExistingAttachments(
           editAnnouncement.attachments.map(att => ({
@@ -246,14 +212,10 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
         )
       }
 
-      // Reset deleted attachments
       setDeletedAttachmentIds([])
-
-      // TODO: Parse and set target_groups, user_target_groups for sites/roles/users
     }
   }, [open, isEdit, editAnnouncement, setValue])
 
-  // Handle sites and roles selection from drawer
   const handleSitesRolesChange = (sites: Site[], roles: Role[]) => {
     setSelectedSites(sites)
     setSelectedRoles(roles)
@@ -285,13 +247,11 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
     onClose()
   }
 
-  // Handle removing existing attachment (for edit mode)
   const handleRemoveExistingAttachment = (attachmentId: number) => {
     setExistingAttachments(prev => prev.filter(att => att.id !== attachmentId))
     setDeletedAttachmentIds(prev => [...prev, attachmentId])
   }
 
-  // Calculate end date from duration
   const calculateEndDate = (): string => {
     if (isAlwaysVisible) return ''
 
@@ -301,7 +261,6 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       return endDate ? dayjs(endDate).format('YYYY-MM-DD') : ''
     }
 
-    // Calculate from duration
     const value = parseInt(durationValue)
     if (!value || isNaN(value) || value <= 0) return ''
 
@@ -324,7 +283,6 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
   }
 
   const onSubmit = async (data: FormValues) => {
-    // Combine date and time for schedule_datetime
     let scheduleDateTimeStr = dayjs().format('YYYY-MM-DD HH:mm:ss')
 
     if (!data.isPostNow && data.schedule_date && data.schedule_time) {
@@ -333,15 +291,11 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       scheduleDateTimeStr = `${date} ${time}`
     }
 
-    // Build target_groups based on selection
     let targetGroups: any[] = []
     if (data.isEveryoneVisible) {
-      // Everyone visible - target the whole zoo
       targetGroups = [{ group_type: 'zoo', values: zooId }]
     } else {
-      // Build target groups based on selected sites and roles
       if (selectedSites.length > 0 && selectedRoles.length > 0) {
-        // Both sites and roles selected - use site_role group type
         targetGroups = [
           {
             group_type: 'site_role',
@@ -352,7 +306,6 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
           }
         ]
       } else if (selectedSites.length > 0) {
-        // Only sites selected
         targetGroups = [
           {
             group_type: 'site',
@@ -360,7 +313,6 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
           }
         ]
       } else if (selectedRoles.length > 0) {
-        // Only roles selected
         targetGroups = [
           {
             group_type: 'role',
@@ -370,8 +322,6 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       }
     }
 
-    // Build user_target_groups if specific users are selected
-    // Mobile sends empty string when not targeting specific users, not undefined
     let userTargetGroups: string = ''
     if (!data.isEveryoneVisible && selectedUsers.length > 0) {
       userTargetGroups = JSON.stringify([
@@ -386,36 +336,30 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       title: data.title,
       description: data.description || '',
       type: data.type,
-      allow_comments: data.allow_comments, // Will be converted to 1/0 in API layer
-      is_scheduled: data.isPostNow ? 1 : 0, // Matching mobile: Post Now = 1, Scheduled for later = 0
+      allow_comments: data.allow_comments,
+      is_scheduled: data.isPostNow ? 1 : 0,
       schedule_datetime: scheduleDateTimeStr,
       schedule_end_date: calculateEndDate(),
       target_groups: JSON.stringify(targetGroups),
-      user_target_groups: userTargetGroups || undefined, // Send undefined if empty to avoid sending empty string
+      user_target_groups: userTargetGroups || undefined,
       attachments: data.attachments,
-      // Include deleted attachments for edit mode
       deleted_attachments: deletedAttachmentIds.length > 0 ? deletedAttachmentIds.join(',') : undefined
     }
 
     try {
       if (isEdit && editAnnouncement) {
-        // Update existing announcement
         await updateAnnouncement.mutateAsync({
           announcementId: editAnnouncement.announcement_id,
           payload
         })
       } else {
-        // Create new announcement
         await createAnnouncement.mutateAsync(payload)
       }
       handleDrawerClose()
       onSuccess?.()
-    } catch (error) {
-      // Error is handled by the hook
-    }
+    } catch (error) {}
   }
 
-  // Section card style
   const sectionCardSx = {
     backgroundColor: theme.palette.customColors.OnPrimary,
     borderRadius: '12px',
@@ -423,7 +367,6 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
     mb: 4
   }
 
-  // Section header style
   const sectionHeaderSx = {
     display: 'flex',
     alignItems: 'center',
@@ -431,17 +374,14 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
     mb: 3
   }
 
-  // Section title style
   const sectionTitleSx = {
     fontSize: '1rem',
     fontWeight: 600,
     color: theme.palette.customColors.OnSurfaceVariant
   }
 
-  // Input field background
   const inputBgColor = theme.palette.customColors.Background
 
-  // Switch row style
   const switchRowSx = {
     display: 'flex',
     alignItems: 'center',

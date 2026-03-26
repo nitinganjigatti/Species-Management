@@ -10,22 +10,18 @@ import {
   useQuery,
   useQueryClient
 } from '@tanstack/react-query'
-import toast from 'react-hot-toast'
+import Toaster from 'src/components/Toaster'
 import * as announcementApi from 'src/lib/api/announcement'
 import {
   ANNOUNCEMENT_QUERY_KEYS,
   ANNOUNCEMENT_PAGE_SIZE
-} from 'src/constants/AnnouncementConstants'
+} from 'src/constants/announcement'
 import type {
   Announcement,
   AnnouncementListParams,
-  AnnouncementListResponse
+  AnnouncementListResponse,
+  UseAnnouncementListParams
 } from 'src/types/announcement'
-
-interface UseAnnouncementListParams {
-  q?: string
-  owned_by_me?: boolean
-}
 
 /**
  * Hook for fetching paginated announcements with infinite scroll
@@ -150,7 +146,7 @@ export const useToggleReaction = () => {
           queryClient.setQueryData(queryKey, data)
         })
       }
-      toast.error('Failed to update reaction')
+      Toaster({ type: 'error', message: 'Failed to update reaction' })
     }
   })
 }
@@ -203,10 +199,10 @@ export const useAddComment = () => {
       )
       // Also invalidate the details query to refresh the drawer
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId] })
-      toast.success('Comment added')
+      Toaster({ type: 'success', message: 'Comment added' })
     },
     onError: () => {
-      toast.error('Failed to add comment')
+      Toaster({ type: 'error', message: 'Failed to add comment' })
     }
   })
 }
@@ -262,10 +258,10 @@ export const useDeleteComment = () => {
       )
       // Also invalidate the details query to refresh the drawer
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId] })
-      toast.success('Comment deleted')
+      Toaster({ type: 'success', message: 'Comment deleted' })
     },
     onError: () => {
-      toast.error('Failed to delete comment')
+      Toaster({ type: 'error', message: 'Failed to delete comment' })
     }
   })
 }
@@ -288,10 +284,10 @@ export const useDeleteAnnouncement = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
-      toast.success(data.message || 'Announcement deleted')
+      Toaster({ type: 'success', message: data.message || 'Announcement deleted' })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to delete announcement')
+      Toaster({ type: 'error', message: error.message || 'Failed to delete announcement' })
     }
   })
 }
@@ -314,10 +310,10 @@ export const useCancelAnnouncement = () => {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
-      toast.success(data.message || 'Announcement cancelled')
+      Toaster({ type: 'success', message: data.message || 'Announcement cancelled' })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to cancel announcement')
+      Toaster({ type: 'error', message: error.message || 'Failed to cancel announcement' })
     }
   })
 }
@@ -341,10 +337,10 @@ export const useCreateAnnouncement = () => {
     },
     onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
-      toast.success(data.message || 'Announcement created successfully')
+      Toaster({ type: 'success', message: data.message || 'Announcement created successfully' })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create announcement')
+      Toaster({ type: 'error', message: error.message || 'Failed to create announcement' })
     }
   })
 }
@@ -370,10 +366,10 @@ export const useUpdateAnnouncement = () => {
       // Invalidate both list and details queries
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
       queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, variables.announcementId] })
-      toast.success(data.message || 'Announcement updated successfully')
+      Toaster({ type: 'success', message: data.message || 'Announcement updated successfully' })
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update announcement')
+      Toaster({ type: 'error', message: error.message || 'Failed to update announcement' })
     }
   })
 }

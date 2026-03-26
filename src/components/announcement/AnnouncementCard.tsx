@@ -47,61 +47,24 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
   const likeCount = announcement.reactions_summary.like
   const isImportant = announcement.type === 'important'
   const isCancelled = announcement.status === 'cancelled'
-  // Use loose comparison like mobile (API may return string "1" or number 1)
-  // eslint-disable-next-line eqeqeq
 
   const isDeleted =
     announcement.is_deleted == 1 || announcement.is_deleted === '1' || String(announcement.is_deleted) === '1'
 
-  // Get the accent color based on type
   const accentColor = isImportant ? errorColor : primaryColor
 
-  // Format absolute date/time (e.g., "17 Feb 2026 • 07:08 PM")
-  const formatDateTime = (dateString: string) => {
-    const date = new Date(dateString)
-    const day = date.getDate()
-    const month = date.toLocaleString('en-US', { month: 'short' })
-    const year = date.getFullYear()
-
-    const time = date.toLocaleString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    })
-
-    return `${day} ${month} ${year} • ${time}`
-  }
-
-  // Format short date (e.g., "17 Feb" for current year, "17 Feb 2025" for other years)
-  const formatShortDate = (dateString: string) => {
-    const date = new Date(dateString)
-    const now = new Date()
-    const day = date.getDate()
-    const month = date.toLocaleString('en-US', { month: 'short' })
-    const year = date.getFullYear()
-
-    if (year === now.getFullYear()) {
-      return `${day} ${month}`
-    }
-
-    return `${day} ${month} ${year}`
-  }
-
-  // Calculate relative time - convert UTC to local first, then get relative time
-  // Matching mobile: AgeConverter(convertUtcToLocal(item?.schedule_datetime))
   const getRelativeTime = (dateString: string) => {
     if (!dateString) return ''
     const localDateTime = Utility.convertUTCToLocal(dateString)
 
-    return Utility.AgeConverter(localDateTime) || formatShortDate(dateString)
+    return Utility.AgeConverter(localDateTime) || Utility.convertUtcToLocalReadableDate(dateString)
   }
 
-  // Handle deleted announcements - show simplified card (not clickable)
   if (isDeleted) {
     return (
       <Card
         sx={{
-          mb: 2,
+          mb: 3,
           borderRadius: '8px',
           backgroundColor: theme.palette.customColors.BgTeritary,
           border: `1px solid ${errorLightBg}`,
@@ -129,7 +92,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
               This announcement was deleted.
             </Typography>
             <Typography sx={{ color: textSecondary, fontSize: '0.8125rem' }}>
-              {formatDateTime(announcement.created_at)}
+              {Utility.convertUTCToLocalDateTime(announcement.created_at)}
             </Typography>
           </Box>
         </Box>
@@ -153,12 +116,10 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
   const userName = `${announcement.created_by.first_name} ${announcement.created_by.last_name}`
   const relativeTime = getRelativeTime(announcement.created_at)
 
-  // Count attachments
   const videoCount = announcement.attachment_count.video
   const documentCount = announcement.attachment_count.document + announcement.attachment_count.audio
   const imageCount = announcement.attachment_count.image
 
-  // Build attachment string (e.g., "1 Image, 1 Video")
   const getAttachmentString = () => {
     const parts: string[] = []
     if (imageCount > 0) {
@@ -182,7 +143,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
       ? `${announcement.description.substring(0, DESCRIPTION_MAX_LENGTH)}...`
       : announcement.description
 
-  // Get title color based on status and type
   const getTitleColor = () => {
     if (isCancelled) return greyColor
     if (isImportant) return errorColor
@@ -190,14 +150,10 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
     return primaryColor
   }
 
-  // Handle card click - don't trigger when clicking interactive elements
   const handleCardClick = (e: React.MouseEvent) => {
-    // Only proceed if onClick is defined
     if (!onClick) return
 
     const target = e.target as HTMLElement
-    // Check if click is on an interactive element (button, icon button, link, menu)
-    // Using data attribute or specific class names for more reliable detection
 
     const isInteractive = target.closest(
       'button, a, [role="button"], [role="menuitem"], .MuiIconButton-root, .MuiMenu-root, .MuiMenuItem-root'
@@ -215,8 +171,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
         sx={{
           mb: 3,
           borderRadius: '8px',
-          // boxShadow: 'none',
-          // border: `1px solid ${borderColor}`,
           overflow: 'hidden',
           transition: 'box-shadow 0.2s ease',
           cursor: isDeleted ? 'default' : 'pointer',
@@ -226,7 +180,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
           ...(isDeleted ? { backgroundColor: 'rgba(255, 255, 255, 0.75)' } : {})
         }}
       >
-        {/* Deleted Announcement State */}
         {isDeleted ? (
           <Box
             sx={{
@@ -253,16 +206,14 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
             <Box>
               <Typography sx={{ color: textPrimary, fontSize: '0.9375rem' }}>This announcement was deleted.</Typography>
               <Typography sx={{ color: greyColor, fontSize: '0.8125rem' }}>
-                {formatDateTime(announcement.modified_at)}
+                {Utility.convertUTCToLocalDateTime(announcement.modified_at)}
               </Typography>
             </Box>
           </Box>
         ) : (
           <>
-            {/* Header - Different layout for IMPORTANT vs normal */}
             <Box sx={{ px: 4, pt: 4, pb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                {/* Icon - Red diamond for IMPORTANT, Teal circle for normal */}
                 {isImportant ? (
                   <Box
                     sx={{
@@ -310,15 +261,12 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
                   </Box>
                 )}
 
-                {/* Label - IMPORTANT or ANNOUNCEMENT */}
                 <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem', color: textPrimary, letterSpacing: '0.5px' }}>
                   {isImportant ? 'IMPORTANT' : 'ANNOUNCEMENT'}
                 </Typography>
               </Box>
 
-              {/* Right side - Badges and menu */}
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                {/* CANCELLED Badge */}
                 {isCancelled && (
                   <Chip
                     label='CANCELED'
@@ -335,11 +283,9 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
                   />
                 )}
 
-                {/* Menu for owner - show when not cancelled and not deleted (matching mobile condition) */}
                 {isOwner && !isCancelled && !isDeleted && (
                   <MenuWithDots
                     options={[
-                      // Cancel option
                       {
                         label: 'Cancel',
                         icon: <Icon icon='mdi:cancel' fontSize={18} />,
@@ -363,7 +309,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
 
             <Divider sx={{ mx: 4, mb: 1 }} />
 
-            {/* Title */}
             <Box sx={{ px: 4, pt: 2, pb: 1 }}>
               <Typography
                 sx={{
@@ -378,13 +323,10 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
               </Typography>
             </Box>
 
-            {/* Author, Time, and Edited badge */}
             <Box sx={{ px: 4, pt: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography sx={{ color: textSecondary, fontSize: '0.875rem' }}>
                 {userName} • {relativeTime}
               </Typography>
-
-              {/* Edited Badge */}
               {announcement.is_edited && (
                 <Chip
                   label='Edited'
@@ -402,7 +344,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
               )}
             </Box>
 
-            {/* Description with Read More */}
             {announcement.description && (
               <Box sx={{ px: 4, pt: 1, pb: 2 }}>
                 <Typography component='span' sx={{ color: textPrimary, fontSize: '0.875rem', lineHeight: 1.5 }}>
@@ -428,7 +369,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
               </Box>
             )}
 
-            {/* Attachment counts - single line with paperclip icon */}
             {(videoCount > 0 || documentCount > 0 || imageCount > 0) && (
               <Box sx={{ px: 4, pt: 1, pb: 2, display: 'flex', alignItems: 'center', gap: 0.75, color: textSecondary }}>
                 <Icon icon='mdi:paperclip' fontSize={18} />
@@ -436,12 +376,9 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
               </Box>
             )}
 
-            {/* Media Preview */}
             {announcement.attachments && announcement.attachments.length > 0 && (
               <AnnouncementMedia attachments={announcement.attachments} />
             )}
-
-            {/* Like and Comment row - only show if NOT cancelled */}
             {!isCancelled && (
               <>
                 <Divider sx={{ mx: 4, mt: 4 }} />
@@ -471,7 +408,6 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
                     )}
                   </Box>
 
-                  {/* Comment button - only show if comments are allowed */}
                   {Number(announcement.allow_comments) === 1 && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <IconButton size='small' sx={{ p: 0.5, color: textSecondary }}>

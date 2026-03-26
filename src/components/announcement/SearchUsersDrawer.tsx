@@ -1,15 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import {
-  Box,
-  Typography,
-  Drawer,
-  IconButton,
-  Button,
-  Checkbox,
-  Skeleton
-} from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Button, Checkbox, Skeleton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
@@ -17,42 +9,20 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Icon from 'src/@core/components/icon'
+import type { SelectedUser, SearchUsersDrawerProps } from 'src/types/announcement'
 
-export interface SelectedUser {
-  user_id: number | string
-  user_name: string
-  full_name?: string
-  user_profile_pic?: string
-  role_name?: string
-}
-
-interface SearchUsersDrawerProps {
-  open: boolean
-  onClose: () => void
-  selectedUsers: SelectedUser[]
-  onUsersSelected: (users: SelectedUser[]) => void
-}
-
-const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
-  open,
-  onClose,
-  selectedUsers,
-  onUsersSelected
-}) => {
+const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, selectedUsers, onUsersSelected }) => {
   const theme = useTheme()
   const auth = useAuth() as any
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id || auth?.user?.zoo_id
 
-  // Local state
   const [users, setUsers] = useState<SelectedUser[]>([])
   const [usersLoading, setUsersLoading] = useState(false)
   const [localSelectedUsers, setLocalSelectedUsers] = useState<SelectedUser[]>([])
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Track if drawer was previously open to avoid re-fetching on every render
   const prevOpenRef = useRef(false)
 
-  // Fetch users from API
   const fetchUsers = async () => {
     if (!zooId) return
 
@@ -60,35 +30,31 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
       setUsersLoading(true)
       const response = await getUserList({ zoo_id: zooId, q: '' })
 
-      const usersList: SelectedUser[] = response?.data?.map((item: any) => ({
-        user_id: item.user_id,
-        user_name: item.user_name,
-        full_name: item.full_name,
-        user_profile_pic: item.user_profile_pic || '',
-        role_name: item.role_name || ''
-      })) || []
+      const usersList: SelectedUser[] =
+        response?.data?.map((item: any) => ({
+          user_id: item.user_id,
+          user_name: item.user_name,
+          full_name: item.full_name,
+          user_profile_pic: item.user_profile_pic || '',
+          role_name: item.role_name || ''
+        })) || []
       setUsers(usersList)
-    } catch (error) {
-      console.error('Error fetching users:', error)
+    } catch {
       setUsers([])
     } finally {
       setUsersLoading(false)
     }
   }
 
-  // Initialize local state when drawer opens (only on open transition)
   useEffect(() => {
-    // Only run when drawer transitions from closed to open
     if (open && !prevOpenRef.current) {
       setLocalSelectedUsers([...selectedUsers])
       setSearchQuery('')
       fetchUsers()
     }
     prevOpenRef.current = open
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, zooId])
 
-  // Filter users based on search query
   const filteredUsers = useMemo(() => {
     if (searchQuery.trim().length < 2) return users
 
@@ -111,7 +77,6 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
     if (filteredUsers.length === 0) return false
 
     return filteredUsers.every(user => isUserSelected(user.user_id))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredUsers, localSelectedUsers])
 
   const handleToggleUser = (user: SelectedUser) => {
@@ -149,7 +114,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
       onClose={handleDrawerClose}
       sx={{
         '& .MuiDrawer-paper': {
-          width: ['100%', '560px'],
+          width: ['100%', '580px'],
           height: '100%'
         }
       }}
@@ -162,7 +127,6 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
           flexDirection: 'column'
         }}
       >
-        {/* Header */}
         <Box
           sx={{
             display: 'flex',
@@ -192,7 +156,6 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
           </IconButton>
         </Box>
 
-        {/* Search */}
         <Box sx={{ px: 5, pt: 5, pb: 3, flexShrink: 0 }}>
           <Search
             placeholder='Search Users'
@@ -204,7 +167,6 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
           />
         </Box>
 
-        {/* Select All Toggle */}
         {!usersLoading && filteredUsers.length > 0 && (
           <Box
             sx={{
@@ -232,7 +194,6 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
           </Box>
         )}
 
-        {/* Users List */}
         <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
           <Box sx={{ py: 3, px: 5, display: 'flex', flexDirection: 'column', gap: 2 }}>
             {usersLoading ? (
@@ -317,7 +278,6 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
           </Box>
         </Box>
 
-        {/* Footer */}
         <Box
           sx={{
             p: 4,
