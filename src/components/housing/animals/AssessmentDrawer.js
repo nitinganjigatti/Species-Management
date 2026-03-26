@@ -22,11 +22,8 @@ import { useInView } from 'react-intersection-observer'
 import moment from 'moment'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
-import {
-  getAssessmentTypes,
-  getAssessmentData,
-  getMeasurementUnits
-} from 'src/lib/api/necropsy/medicalHistory'
+import { getAssessmentTypes, getAssessmentData } from 'src/lib/api/necropsy/medicalHistory'
+import { getMeasurementUnits } from 'src/lib/api/necropsy'
 
 const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight' }) => {
   const theme = useTheme()
@@ -114,7 +111,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
         // console.log('All Measurement Units:', response.data)
         const weightUnits = response.data.filter(u => u?.measurement_type?.toLowerCase() === 'weight')
         // console.log('Weight Units Only:', weightUnits)
-        const baseUnit = weightUnits.find(u => u?.base_uom_name == "gram")
+        const baseUnit = weightUnits.find(u => u?.base_uom_name == 'gram')
         // console.log('Base Unit:', baseUnit)
       }
     } catch (error) {
@@ -310,7 +307,9 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
         <Box
           sx={{
             flex: 1,
-            backgroundColor: isEven ? theme.palette.customColors.Background : theme.palette.customColors.displaybgPrimary,
+            backgroundColor: isEven
+              ? theme.palette.customColors.Background
+              : theme.palette.customColors.displaybgPrimary,
             borderRadius: '4px',
             py: 2,
             px: 4
@@ -435,10 +434,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
             {/* Animal Card */}
             {animalData && (
               <Box sx={{ mt: 3 }}>
-                <AnimalParentCard
-                  data={animalData}
-                  backgroundColor={theme.palette.common.white}
-                />
+                <AnimalParentCard data={animalData} backgroundColor={theme.palette.common.white} />
               </Box>
             )}
 
@@ -498,7 +494,16 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 }
               }}
             >
-              <Box sx={{ px: 2, py: 1, borderBottom: `1px solid ${theme.palette.divider}`, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1,
+                  borderBottom: `1px solid ${theme.palette.divider}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap'
+                }}
+              >
                 <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
                   Total assessment types
                 </Typography>
@@ -514,8 +519,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                   sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    backgroundColor:
-                      selectedTypeIndex === index ? theme.palette.action.selected : 'transparent'
+                    backgroundColor: selectedTypeIndex === index ? theme.palette.action.selected : 'transparent'
                   }}
                 >
                   <Typography>{type?.assessment_name}</Typography>
@@ -575,12 +579,12 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 {/* Unit Selector for Weight */}
                 {(weightSubTab === 0 || weightSubTab === 1) && measurementUnits.length > 0 && (
                   <FormControl fullWidth sx={{ mb: 3 }}>
-                    <InputLabel id="unit-select-label">Unit of Measurement</InputLabel>
+                    <InputLabel id='unit-select-label'>Unit of Measurement</InputLabel>
                     <Select
-                      labelId="unit-select-label"
-                      id="unit-select"
+                      labelId='unit-select-label'
+                      id='unit-select'
                       value={selectedWeightUnit || ''}
-                      label="Unit of Measurement"
+                      label='Unit of Measurement'
                       onChange={e => setSelectedWeightUnit(parseInt(e.target.value))}
                     >
                       {measurementUnits
@@ -617,110 +621,107 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                   )}
                 </>
               )
+            ) : /* Trend Graph Tab Content */
+            assessmentData.length === 0 ? (
+              <Typography sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
+                No data found
+              </Typography>
             ) : (
-              /* Trend Graph Tab Content */
-              assessmentData.length === 0 ? (
-                <Typography sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
-                  No data found
-                </Typography>
-              ) : (
-                <Box key={`chart-${selectedWeightUnit}`}>
-                  <ReactApexcharts
-                    key={`apex-${selectedWeightUnit}`}
-                    type='line'
-                    height={280}
-                    options={{
-                      chart: {
-                        offsetY: 1,
-                        parentHeightOffset: 0,
-                        toolbar: { show: false }
-                      },
-                      stroke: {
-                        width: 3,
-                        curve: 'smooth',
-                        colors: [theme.palette.customColors.moderateSecondary]
-                      },
-                      grid: {
-                        show: true,
-                        padding: {
-                          left: 24,
-                          top: -4,
-                          right: 4
-                        }
-                      },
-                      markers: {
-                        size: 4,
-                        colors: [theme.palette.customColors.OnPrimary],
-                        strokeColors: theme.palette.customColors.moderateSecondary,
-                        strokeWidth: 2,
-                        hover: {
-                          size: 7
-                        }
-                      },
-                      dataLabels: {
-                        enabled: false
-                      },
-                      xaxis: {
-                        categories: [...assessmentData]
-                          .reverse()
-                          .map(item => moment(item.recorded_date_time).format('DD MMM YY')),
-                        labels: { rotate: -45, show: true }
-                      },
-                      yaxis: {
-                        title: {
-                          text: `Weight (${selectedWeightUnit ? getUnitAbbr(selectedWeightUnit) : getUnitAbbr(assessmentData[0]?.assessment_unit_id)})`
-                        }
-                      },
-                      tooltip: {
-                        custom: ({ dataPointIndex }) => {
-                          if (dataPointIndex >= 0 && dataPointIndex < assessmentData.length) {
-                            const reversedData = [...assessmentData].reverse()
-                            const item = reversedData[dataPointIndex]
-                            const { date, time } = formatDateTime(item.recorded_date_time)
+              <Box key={`chart-${selectedWeightUnit}`}>
+                <ReactApexcharts
+                  key={`apex-${selectedWeightUnit}`}
+                  type='line'
+                  height={280}
+                  options={{
+                    chart: {
+                      offsetY: 1,
+                      parentHeightOffset: 0,
+                      toolbar: { show: false }
+                    },
+                    stroke: {
+                      width: 3,
+                      curve: 'smooth',
+                      colors: [theme.palette.customColors.moderateSecondary]
+                    },
+                    grid: {
+                      show: true,
+                      padding: {
+                        left: 24,
+                        top: -4,
+                        right: 4
+                      }
+                    },
+                    markers: {
+                      size: 4,
+                      colors: [theme.palette.customColors.OnPrimary],
+                      strokeColors: theme.palette.customColors.moderateSecondary,
+                      strokeWidth: 2,
+                      hover: {
+                        size: 7
+                      }
+                    },
+                    dataLabels: {
+                      enabled: false
+                    },
+                    xaxis: {
+                      categories: [...assessmentData]
+                        .reverse()
+                        .map(item => moment(item.recorded_date_time).format('DD MMM YY')),
+                      labels: { rotate: -45, show: true }
+                    },
+                    yaxis: {
+                      title: {
+                        text: `Weight (${
+                          selectedWeightUnit
+                            ? getUnitAbbr(selectedWeightUnit)
+                            : getUnitAbbr(assessmentData[0]?.assessment_unit_id)
+                        })`
+                      }
+                    },
+                    tooltip: {
+                      custom: ({ dataPointIndex }) => {
+                        if (dataPointIndex >= 0 && dataPointIndex < assessmentData.length) {
+                          const reversedData = [...assessmentData].reverse()
+                          const item = reversedData[dataPointIndex]
+                          const { date, time } = formatDateTime(item.recorded_date_time)
 
-                            let value = parseFloat(item.assessment_value).toFixed(2)
-                            let unit = getUnitAbbr(item.assessment_unit_id)
+                          let value = parseFloat(item.assessment_value).toFixed(2)
+                          let unit = getUnitAbbr(item.assessment_unit_id)
 
-                            if (selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
-                              value = parseFloat(
-                                convertToUnit(item?.assessment_value, item?.assessment_unit_id, selectedWeightUnit)
-                              ).toFixed(2)
-                              unit = getUnitAbbr(selectedWeightUnit)
-                            }
+                          if (selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
+                            value = parseFloat(
+                              convertToUnit(item?.assessment_value, item?.assessment_unit_id, selectedWeightUnit)
+                            ).toFixed(2)
+                            unit = getUnitAbbr(selectedWeightUnit)
+                          }
 
-                            return `
+                          return `
                               <div style="padding: 8px; background: ${theme.palette.customColors.onPrimary}; border: 1px solid ${theme.palette.divider}; border-radius: 4px;">
                                 <div style="font-size: 12px; color: ${theme.palette.text.secondary}; margin-bottom: 4px;">${date} | ${time}</div>
                                 <div style="font-size: 14px; font-weight: 500; color: ${theme.palette.customColors.onPrimary};"><strong>${value} ${unit}</strong></div>
                               </div>
                             `
-                          }
-                          return ''
                         }
+                        return ''
                       }
-                    }}
-                    series={[
-                      {
-                        name: 'Weight',
-                        data: [...assessmentData]
-                          .reverse()
-                          .map(item => {
-                            const value = parseFloat(item?.assessment_value)
-                            if (selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
-                              return parseFloat(
-                                convertToUnit(value, item?.assessment_unit_id, selectedWeightUnit)
-                              )
-                            }
-                            return value
-                          })
-                      }
-                    ]}
-                  />
-                </Box>
-              )
+                    }
+                  }}
+                  series={[
+                    {
+                      name: 'Weight',
+                      data: [...assessmentData].reverse().map(item => {
+                        const value = parseFloat(item?.assessment_value)
+                        if (selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
+                          return parseFloat(convertToUnit(value, item?.assessment_unit_id, selectedWeightUnit))
+                        }
+                        return value
+                      })
+                    }
+                  ]}
+                />
+              </Box>
             )}
           </Box>
-
         </Box>
       </Drawer>
     </>
