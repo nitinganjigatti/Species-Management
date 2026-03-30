@@ -1,12 +1,9 @@
-// ** Third Party Import
-// import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 
 const Translations = ({ text }) => {
-  // ** Hook
-  // const { t } = useTranslation()
+  const { t } = useTranslation('navigation')
 
-  // return <>{`${t(text)}`}</>
-  return <>{text}</>
+  return <>{t(text, { defaultValue: text })}</>
 }
 
 export default Translations

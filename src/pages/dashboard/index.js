@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { Box, CircularProgress, Grid, Skeleton } from '@mui/material'
+import { useModuleTranslation } from 'src/hooks/useModuleTranslation'
 import DashboardStatsPanel from '../../components/dashboard/DashboardStatsPanel'
 import DashboardCardHeader from '../../components/dashboard/DashboardCardHeader'
 import EggChart from '../../components/dashboard/charts/EggChart'
@@ -25,6 +26,7 @@ import {
 import DashboardLabRequests from 'src/components/dashboard/DashboardLabRequests'
 
 function Dashboard() {
+  const { t } = useModuleTranslation('dashboard')
   const [loading, setLoading] = useState(false)
   const [firstLoad, setFirstLoad] = useState(true)
   const [dashboardAnalyticsData, setDashboardAnalyticsData] = useState([])
@@ -166,26 +168,26 @@ function Dashboard() {
               <KeenSliderWrapper>
                 <Grid container spacing={3} className='match-height'>
                   <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title='Key insights'>
+                    <DashboardCardHeader title={t('key_insights')}>
                       <Box sx={{ p: 6 }}>
                         <KeyInsights insights={keyInsightsData} />
                       </Box>
                     </DashboardCardHeader>
                   </Grid>
                   <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title='Animal activity'>
+                    <DashboardCardHeader title={t('animal_activity')}>
                       <AnimalActivityChart animalActivityData={animalActivityData} />
                     </DashboardCardHeader>
                   </Grid>
                   <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title='Animal transfer'>
+                    <DashboardCardHeader title={t('animal_transfer')}>
                       <Box sx={{ p: 6 }}>
                         <AnimalTransferProgress animalTransfer={animalTransfer} />
                       </Box>
                     </DashboardCardHeader>
                   </Grid>
                   <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title='Eggs'>
+                    <DashboardCardHeader title={t('eggs')}>
                       <EggChart eggAnalytics={eggAnalytics} height={332} />
                     </DashboardCardHeader>
                   </Grid>
@@ -193,17 +195,17 @@ function Dashboard() {
                     <DashboardPharmacyDetails pharmacyData={pharmacyData} />
                   </Grid>
                   <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
-                    <DashboardCardHeader title='Pending requests(Pharmacy)' isSmall={true}>
+                    <DashboardCardHeader title={t('pending_requests_pharmacy')} isSmall={true}>
                       <PharmacyPendingReqChart pendingRequests={pendingRequests} />
                     </DashboardCardHeader>
                   </Grid>
                   <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
-                    <DashboardCardHeader title='Notes'>
+                    <DashboardCardHeader title={t('notes')}>
                       <DashboardNotes notesData={notes} />
                     </DashboardCardHeader>
                   </Grid>
                   <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
-                    <DashboardCardHeader title='Lab requests'>
+                    <DashboardCardHeader title={t('lab_requests')}>
                       <DashboardLabRequests labRequests={labRequests} />
                     </DashboardCardHeader>
                   </Grid>

@@ -1,6 +1,9 @@
 // ** React Imports
 import { useState } from 'react'
 
+// ** i18n
+import { useModuleTranslation } from 'src/hooks/useModuleTranslation'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -182,6 +185,9 @@ const Slides = ({ sliderData }) => {
 }
 
 const DashboardPharmacyDetails = ({ pharmacyData }) => {
+  // ** Hooks
+  const { t } = useModuleTranslation('dashboard')
+
   // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -216,11 +222,11 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { color: 'success.main' } }}>
             {pharmacyData[currentSlide]?.title === 'Pharmacy' ? (
               <Typography variant='caption' sx={{ mr: 1.5, color: '#FFFFFF' }}>
-                {pharmacyData[currentSlide]?.title_value} recent requests
+                {pharmacyData[currentSlide]?.title_value} {t('recent_requests')}
               </Typography>
             ) : (
               <Typography variant='caption' sx={{ mr: 1.5, color: '#FFFFFF' }}>
-                Total sick animals : {pharmacyData[currentSlide]?.title_value}
+                {t('total_sick_animals')} : {pharmacyData[currentSlide]?.title_value}
               </Typography>
             )}
           </Box>
