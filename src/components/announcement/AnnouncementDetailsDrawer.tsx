@@ -16,6 +16,8 @@ import { ImageCarousel, CarouselImage } from 'src/components/common'
 import FileDialog from 'src/components/utility/FileDialog'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import { CommentItem, CommentInput } from './comments'
+import AnnouncementSentToCard from './AnnouncementSentToCard'
+import AnnouncementSentToDrawer from './AnnouncementSentToDrawer'
 import {
   useAnnouncementDetails,
   useToggleReaction,
@@ -51,6 +53,8 @@ const AnnouncementDetailsDrawer = ({
     url: string
     title: string
   }>({ open: false, url: '', title: '' })
+
+  const [sentToDrawerOpen, setSentToDrawerOpen] = useState(false)
 
   const commentsEndRef = useRef<HTMLDivElement>(null)
   const theme = useTheme()
@@ -133,6 +137,7 @@ const AnnouncementDetailsDrawer = ({
     if (!open) {
       setIsDescriptionExpanded(false)
       setImagePreview({ open: false, url: '', title: '' })
+      setSentToDrawerOpen(false)
     }
   }, [open])
 
@@ -457,6 +462,17 @@ const AnnouncementDetailsDrawer = ({
                 </Box>
               )}
 
+              {/* Announcement Sent To */}
+              {((announcement.target_groups?.length ?? 0) > 0 || (announcement.user_target_groups?.length ?? 0) > 0) && (
+                <Box sx={{ py: 1 }}>
+                  <AnnouncementSentToCard
+                    targetGroups={announcement.target_groups}
+                    userTargetGroups={announcement.user_target_groups}
+                    onClick={() => setSentToDrawerOpen(true)}
+                  />
+                </Box>
+              )}
+
               {/* Like and Comment Row */}
               <Box sx={{ px: 3, py: 2, display: 'flex', alignItems: 'center', gap: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -633,6 +649,16 @@ const AnnouncementDetailsDrawer = ({
         type='image'
         fileIcon={null}
       />
+
+      {/* Announcement Sent To Drawer */}
+      {announcement && (
+        <AnnouncementSentToDrawer
+          open={sentToDrawerOpen}
+          onClose={() => setSentToDrawerOpen(false)}
+          targetGroups={announcement.target_groups || []}
+          userTargetGroups={announcement.user_target_groups || []}
+        />
+      )}
     </>
   )
 }

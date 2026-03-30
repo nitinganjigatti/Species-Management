@@ -139,6 +139,35 @@ export interface SearchUsersDrawerProps {
   onUsersSelected: (users: SelectedUser[]) => void
 }
 
+// ==================== Sent To Card & Drawer Props ====================
+
+export interface SentToTargetGroup {
+  group_type: 'site' | 'role' | 'site_role' | 'users'
+  values: any[]
+}
+
+export interface SentToUserTargetGroup {
+  user_id: number | string
+  user_name?: string
+  full_name?: string
+  user_profile_pic?: string
+  profile_pic?: string
+  role_name?: string
+}
+
+export interface AnnouncementSentToCardProps {
+  targetGroups?: SentToTargetGroup[]
+  userTargetGroups?: SentToUserTargetGroup[]
+  onClick: () => void
+}
+
+export interface AnnouncementSentToDrawerProps {
+  open: boolean
+  onClose: () => void
+  targetGroups: SentToTargetGroup[]
+  userTargetGroups: SentToUserTargetGroup[]
+}
+
 // ==================== Form Types ====================
 
 export interface FormValues {

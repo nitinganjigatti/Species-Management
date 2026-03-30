@@ -20,7 +20,6 @@ export type {
 
   // Reaction
   ReactionsSummary,
-  ReactionUser,
 
   // Announcement
   AnnouncementType,
@@ -56,7 +55,6 @@ export type {
 
   // Reactions
   AddReactionPayload,
-  ReactionUsersResponse,
 
   // Comments
   AddCommentPayload,
@@ -89,7 +87,6 @@ export type {
 
   // Reactions
   AnnouncementReactionsProps,
-  ReactionUserListDialogProps,
 
   // Comments
   AnnouncementCommentsProps,
@@ -101,6 +98,12 @@ export type {
   AnnouncementDetailsDrawerProps,
   SelectSitesRolesDrawerProps,
   SearchUsersDrawerProps,
+
+  // Sent To
+  SentToTargetGroup,
+  SentToUserTargetGroup,
+  AnnouncementSentToCardProps,
+  AnnouncementSentToDrawerProps,
 
   // Forms
   FormValues
