@@ -1,3 +1,6 @@
+// ** i18n
+import { useModuleTranslation } from 'src/hooks/useModuleTranslation'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import { useTheme } from '@mui/material/styles'
@@ -13,8 +16,9 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 const AnimalActivityChart = ({ animalActivityData }) => {
-  // ** Hook
+  // ** Hooks
   const theme = useTheme()
+  const { t } = useModuleTranslation('dashboard')
 
   const seriesData = animalActivityData.map(item => item.value)
   const labels = animalActivityData.map(item => item.label)
@@ -67,7 +71,7 @@ const AnimalActivityChart = ({ animalActivityData }) => {
             },
             total: {
               show: true,
-              label: 'Today',
+              label: t('today'),
               fontSize: '1rem',
               color: theme.palette.text.secondary,
               formatter: value => `${value.globals.seriesTotals.reduce((total, num) => total + num)}`

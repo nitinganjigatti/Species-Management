@@ -16,7 +16,8 @@ import SelectParivesh from 'src/components/SelectParivesh'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-// import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
+import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
+import { useRouter } from 'next/router'
 import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 const AppBarContent = props => {

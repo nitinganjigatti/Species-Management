@@ -128,54 +128,6 @@ const AnimalParentCard = ({
           )}
 
           {/* Checkbox for multi selection */}
-          {checkbox && (
-            <Box>
-              <Checkbox
-                checked={checkbox?.checked}
-                sx={{
-                  width: 24,
-                  height: 24,
-                  p: 0,
-                  pointerEvents: 'none',
-                  color: theme.palette.customColors?.OutlineVariant,
-                  '&.Mui-checked': {
-                    color: '#37BD69'
-                  },
-                  '& .MuiSvgIcon-root': {
-                    fontSize: 24
-                  }
-                }}
-              />
-            </Box>
-          )}
-
-          {checkbox && (
-            <Box>
-              <Checkbox
-                checked={checkbox?.checked}
-                onChange={event => {
-                  event.stopPropagation()
-                  checkbox?.onChange?.()
-                }}
-                onClick={event => {
-                  event.stopPropagation()
-                }}
-                sx={{
-                  width: 24,
-                  height: 24,
-                  p: 0,
-                  pointerEvents: 'none',
-                  color: theme.palette.customColors?.OutlineVariant,
-                  '&.Mui-checked': {
-                    color: '#37BD69'
-                  },
-                  '& .MuiSvgIcon-root': {
-                    fontSize: 24
-                  }
-                }}
-              />
-            </Box>
-          )}
 
           {checkbox && (
             <Box>
