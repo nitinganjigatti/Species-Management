@@ -37,7 +37,7 @@ import { SettingsConsumer, SettingsProvider } from 'src/@core/context/settingsCo
 import ReactHotToast from 'src/@core/styles/libs/react-hot-toast'
 
 // ** Utils Imports
-import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
+// createEmotionCache is now imported from shared module
 
 // ** Prismjs Styles
 import 'prismjs'
@@ -65,23 +65,13 @@ import { Provider } from 'react-redux'
 import store from 'src/store/store'
 
 // Tanstack query
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { HospitalProvider } from 'src/context/HospitalContext'
 import { NecropsyProvider } from 'src/context/NecropsyContext'
 
-// Configure QueryClient
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes (data will be considered fresh for 5 minutes)
-      gcTime: 10 * 60 * 1000, // 10 minutes (cache data will be garbage collected after 10 minutes of inactivity)
-      refetchOnWindowFocus: false, // Prevent refetching on window focus
-      retry: false // Disable retrying failed queries
-    }
-  }
-})
-
-const clientSideEmotionCache = createEmotionCache()
+// Shared instances for both Page Router and App Router
+import { queryClient } from 'src/lib/shared/queryClient'
+import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
 
 // ** Pace Loader
 if (themeConfig.routingLoader) {
