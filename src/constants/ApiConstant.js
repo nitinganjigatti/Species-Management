@@ -1092,3 +1092,5 @@ export const ADD_NOTES_REACTION = 'v1/notes/add/reaction'
 export const REMOVE_NOTES_REACTION = 'v1/notes/remove/reaction'
 
 export const GET_NOTES_DETAILS ='v1/observation/details'
+
+export const ADD_NOTES_COMMENT = 'v1/observation/note/add'
