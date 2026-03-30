@@ -20,7 +20,7 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -32,9 +32,9 @@ const STORAGE_KEY = 'medical_record_data'
 
 const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const router = useRouter()
-  const { data } = useDynamicStateContext()
+  const hospitalData = useSelector(state => state.hospital.data)
   const { id, isCurrentMedicalRecordOnly } = router.query
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')

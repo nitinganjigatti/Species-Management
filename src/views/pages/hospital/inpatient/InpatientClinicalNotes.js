@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
@@ -33,8 +33,8 @@ const InpatientClinicalNotes = props => {
   } = props
   const theme = useTheme()
 
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const medical_record_id = medicalRecordData?.medical_record_id
   const hospital_case_id = medicalRecordData?.hospital_case_id
   const discharge_at = medicalRecordData?.discharge_at

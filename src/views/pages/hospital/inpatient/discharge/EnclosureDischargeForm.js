@@ -10,7 +10,8 @@ import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import moment from 'moment'
 import Utility from 'src/utility'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
@@ -62,7 +63,8 @@ const EnclosureDischargeForm = props => {
   const router = useRouter()
   const { id } = router.query
   const patientDetails = patientData?.animal_detail
-  const { data, updateState } = useDynamicStateContext()
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
 
   // Index medicines
   const indexedMedicines = useMemo(
@@ -331,9 +333,9 @@ const EnclosureDischargeForm = props => {
   const handleDeleteMedicine = useCallback(
     medId => {
       const updated = medicationData?.filter(med => med.id !== medId)
-      updateState('enclosure_medicines', updated)
+      dispatch(updateState({ key: 'enclosure_medicines', value: updated }))
     },
-    [medicationData, updateState]
+    [medicationData, dispatch]
   )
 
   // Add actions column to medications table

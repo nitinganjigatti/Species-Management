@@ -9,18 +9,18 @@ import { useTheme } from '@mui/material/styles'
 import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
 const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const router = useRouter()
-  const { data } = useDynamicStateContext()
+  const hospitalData = useSelector(state => state.hospital.data)
   const { id, isCurrentMedicalRecordOnly } = router.query
 
   const isDischared = overviewData?.status === 'discharge'
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')

@@ -9,7 +9,8 @@ import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import AddComplaintDrawer from 'src/components/hospital/drawer/AddComplaintDrawer'
 import Toaster from 'src/components/Toaster'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
@@ -45,9 +46,10 @@ const useDebounce = (callback, delay) => {
 function AddSymptoms() {
   const theme = useTheme()
   const router = useRouter()
-  const { data, updateState } = useDynamicStateContext()
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
   const { id } = router.query
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
@@ -274,12 +276,15 @@ function AddSymptoms() {
       try {
         const res = await getPatientDetails(id)
         if (res?.success === true) {
-          updateState(STORAGE_KEY, {
-            ...medicalRecordData,
-            animal_id: res.data?.animal_detail?.animal_id,
-            medical_record_id: res.data?.medical_record_id,
-            animal_admitted_date: res.data?.admitted_at
-          })
+          dispatch(updateState({
+            key: STORAGE_KEY,
+            value: {
+              ...medicalRecordData,
+              animal_id: res.data?.animal_detail?.animal_id,
+              medical_record_id: res.data?.medical_record_id,
+              animal_admitted_date: res.data?.admitted_at
+            }
+          }))
           setPatientData(res?.data)
         } else {
           setPatientData(null)

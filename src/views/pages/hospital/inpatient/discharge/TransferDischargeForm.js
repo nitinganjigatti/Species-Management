@@ -12,7 +12,8 @@ import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 
 import * as yup from 'yup'
@@ -74,9 +75,10 @@ const TransferDischargeForm = props => {
   const { id } = router.query
 
   const patientDetails = patientData?.animal_detail || {}
-  const { data, updateState } = useDynamicStateContext()
+  const dispatch = useDispatch()
+  const hospitalStoreData = useSelector(state => state.hospital.data)
 
-  const transferMedicines = useMemo(() => data.transfer_medicines || [], [data.transfer_medicines]) // medicine table data
+  const transferMedicines = useMemo(() => hospitalStoreData.transfer_medicines || [], [hospitalStoreData.transfer_medicines]) // medicine table data
 
   // Index medicines
   const indexedMedicines = useMemo(
@@ -142,10 +144,10 @@ const TransferDischargeForm = props => {
   const handleDeleteMedicine = useCallback(
     medId => {
       const updated = transferMedicines.filter(med => med.id !== medId)
-      updateState('transfer_medicines', updated)
+      dispatch(updateState({ key: 'transfer_medicines', value: updated }))
       onDirtyChange?.(true)
     },
-    [transferMedicines, updateState, onDirtyChange]
+    [transferMedicines, dispatch, onDirtyChange]
   )
 
   // Add actions column

@@ -30,7 +30,8 @@ import Utility from 'src/utility'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import dayjs from 'dayjs'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
@@ -44,11 +45,12 @@ export default function AddMedicineToPrescription() {
   const router = useRouter()
   const { id, medicine_edit_id, discharge_tab, fromPage, date, prescriptionId } = router.query
 
-  const { data, updateState } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const editingMedicine = useMemo(() => {
-    const list = discharge_tab === 'TransferEnclosure' ? data.enclosure_medicines : data.transfer_medicines
+    const list = discharge_tab === 'TransferEnclosure' ? hospitalData.enclosure_medicines : hospitalData.transfer_medicines
 
     if (!list) return null
 
@@ -60,7 +62,7 @@ export default function AddMedicineToPrescription() {
     }
 
     return null
-  }, [data, medicine_edit_id, discharge_tab])
+  }, [hospitalData, medicine_edit_id, discharge_tab])
 
   // Form validation schema
   const prescriptionSchema = yup.object({
@@ -970,12 +972,15 @@ export default function AddMedicineToPrescription() {
             ) {
               getPrescriptionList(res.data?.animal_detail?.animal_id, res.data?.medical_record_id)
             }
-            updateState(STORAGE_KEY, {
-              ...medicalRecordData,
-              animal_id: res.data?.animal_detail?.animal_id,
-              medical_record_id: res.data?.medical_record_id,
-              animal_admitted_date: res.data?.admitted_at
-            })
+            dispatch(updateState({
+              key: STORAGE_KEY,
+              value: {
+                ...medicalRecordData,
+                animal_id: res.data?.animal_detail?.animal_id,
+                medical_record_id: res.data?.medical_record_id,
+                animal_admitted_date: res.data?.admitted_at
+              }
+            }))
             setPatientLoading(false)
           } else {
             setPatientData(null)
@@ -2092,7 +2097,7 @@ export default function AddMedicineToPrescription() {
         const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
 
         // Get the existing array from context
-        const existing = data[tempKey] || []
+        const existing = hospitalData[tempKey] || []
         const alreadyExists = existing.some(med => med.id === newMedicine.id)
 
         // Merge new medicine into list (avoid duplicates)
@@ -2101,7 +2106,7 @@ export default function AddMedicineToPrescription() {
           : [newMedicine, ...existing]
 
         // Save to context under the correct key
-        updateState(tempKey, updatedList)
+        dispatch(updateState({ key: tempKey, value: updatedList }))
         router.back()
 
         return

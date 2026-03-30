@@ -15,7 +15,8 @@ import {
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -26,8 +27,9 @@ const STORAGE_KEY = 'medical_record_data'
 function AddClinicalAssessment({from = 'Inpatient'}) {
   const theme = useTheme()
   const router = useRouter()
-  const { data, updateState } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState(false)
@@ -391,12 +393,15 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
     try {
       await getPatientDetails(id).then(res => {
         if (res?.success === true) {
-          updateState(STORAGE_KEY, {
-            ...medicalRecordData,
-            animal_id: res.data?.animal_detail?.animal_id,
-            medical_record_id: res.data?.medical_record_id,
-            animal_admitted_date: res.data?.admitted_at
-          })
+          dispatch(updateState({
+            key: STORAGE_KEY,
+            value: {
+              ...medicalRecordData,
+              animal_id: res.data?.animal_detail?.animal_id,
+              medical_record_id: res.data?.medical_record_id,
+              animal_admitted_date: res.data?.admitted_at
+            }
+          }))
           setPatientData(res?.data)
           setPatientLoading(false)
         } else {
