@@ -204,29 +204,33 @@ const EggList = () => {
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -475,29 +479,33 @@ const EggList = () => {
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -718,29 +726,33 @@ const EggList = () => {
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px',
-                mt: '1px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px',
+                  mt: '1px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -751,17 +763,19 @@ const EggList = () => {
       field: 'animal_sex',
       headerName: 'GENDER',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px',
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row?.animal_sex}
-        </Typography>
+        <Tooltip title={params.row?.animal_sex || ''}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px',
+              textTransform: 'capitalize'
+            }}
+          >
+            {params.row?.animal_sex}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -771,17 +785,23 @@ const EggList = () => {
       headerName: 'IDENTIFIER',
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
+          <Tooltip
+            title={`${params.row.local_id_type} ${
+              params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'
+            }`}
           >
-            {params.row.local_id_type}{' '}
-            {params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'}
-          </Typography>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.local_id_type}{' '}
+              {params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'}
+            </Typography>
+          </Tooltip>
         </Box>
       )
     },
@@ -794,15 +814,17 @@ const EggList = () => {
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {/* {console.log(params.row.animal_id)} */}
           {params.row.animal_id ? (
-            <Typography
-              style={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600'
-              }}
-            >
-              AAID : {params.row.animal_id ? params.row.animal_id : '-'}
-            </Typography>
+            <Tooltip title={`AAID: ${params.row?.animal_id || '-'}`}>
+              <Typography
+                style={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '16px',
+                  fontWeight: '600'
+                }}
+              >
+                AAID : {params.row.animal_id ? params.row.animal_id : '-'}
+              </Typography>
+            </Tooltip>
           ) : checkAddPermission() ? (
             <Typography
               style={{
@@ -922,29 +944,33 @@ const EggList = () => {
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -1010,16 +1036,18 @@ const EggList = () => {
         </Box>
       ),
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.days_in_incubation ? params.row.days_in_incubation : '-'}
-        </Typography>
+        <Tooltip title={params.row.days_in_incubation ? params.row.days_in_incubation : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.days_in_incubation ? params.row.days_in_incubation : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -1458,29 +1486,33 @@ const EggList = () => {
       renderCell: params => (
         <Box>
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -1788,29 +1820,33 @@ const EggList = () => {
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )

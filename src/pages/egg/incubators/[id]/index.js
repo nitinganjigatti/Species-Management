@@ -49,7 +49,6 @@ import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { hatcheryStatus } from 'src/lib/api/egg'
 
-
 const IncubatorDetails = () => {
   const theme = useTheme()
   const router = useRouter()
