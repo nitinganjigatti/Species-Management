@@ -84,7 +84,7 @@ const formatStaffNames = list => {
   return names || '--'
 }
 
-function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false }) {
+function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false, category }) {
   const theme = useTheme()
   const router = useRouter()
   const scrollContainerRef = useRef(null)
@@ -771,6 +771,33 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
       </Typography>
     </Box>
   )
+  const handleRouterNavigation = () => {
+    if(category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else if(category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else if(category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else if(category === 'Outpatients'){
+      router.push({
+        pathname: `/hospital/outpatient/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+    else {
+      router.push({
+        pathname: `/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`
+      })
+    }
+  }
 
   if (isRecordsLoading) {
     return <LoadingSkeleton />
@@ -803,9 +830,18 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             </Box>
           </Box>
 
-          {!patientDischarged && anesthesiaRecords.length > 0 && (
+          {/* !patientDischarged && anesthesiaRecords.length > 0 && (
             <Button
               onClick={() => router.push(`/hospital/inpatient/${patientData?.hospital_case_id}/AddAnesthesiaRecord/`)}
+              variant='contained'
+              sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
+            >
+              Add Anesthesia
+            </Button>
+          ) */}
+          {anesthesiaRecords.length > 0 && (
+            <Button
+              onClick={handleRouterNavigation}
               variant='contained'
               sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
             >
@@ -825,8 +861,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             <NoMedicalData
               btnText={'ADD ANESTHESIA'}
               text={'All Added Anesthesia Will Appear here'}
-              isDischarged={isDischared}
-              btnAction={() => router.push(`/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`)}
+              // isDischarged={isDischared}
+              btnAction={handleRouterNavigation}
             />
           </Box>
         )}
@@ -875,7 +911,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                 </Box>
 
                 <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {!patientDischarged && (
+                  {/* !patientDischarged && (
                     <>
                       <Box
                         component='img'
@@ -898,7 +934,29 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                         onClick={handleDeleteClick}
                       />
                     </>
-                  )}
+                  ) */}
+                  <>
+                    <Box
+                      component='img'
+                      src='/icons/pencil_outlined.svg'
+                      alt='Edit'
+                      sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                      onClick={() => handleEditClick(anesthesiaDetail)}
+                    />
+
+                    <Box
+                      component='img'
+                      src='/icons/delete_outlined.svg'
+                      alt='Delete'
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        cursor: activeRecordAnesthesiaId ? 'pointer' : 'not-allowed',
+                        opacity: activeRecordAnesthesiaId ? 1 : 0.4
+                      }}
+                      onClick={handleDeleteClick}
+                    />
+                  </>
                 </Box>
               </Box>
             </Box>
@@ -985,7 +1043,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <Typography
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500 }}
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    whiteSpace: 'pre-wrap'
+                  }}
                 >
                   {notesText}
                 </Typography>

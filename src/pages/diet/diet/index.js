@@ -170,10 +170,6 @@ const Diet = () => {
             <Icon icon='mdi:add' fontSize={20} />
             &nbsp; Add New
           </Button>
-          {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add Recipe
-      </Button> */}
         </div>
       )}
     </>
@@ -189,7 +185,7 @@ const Diet = () => {
   const columns = [
     {
       //flex: 0.19,
-      width: 70,
+      width: 80,
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
@@ -235,7 +231,7 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 130,
+      width: 150,
       field: 'no_meals',
       headerName: 'No of mixes',
       renderCell: params => (
@@ -246,7 +242,7 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 120,
+      width: 160,
       field: 'no_recipe',
       headerName: 'No of Recipes',
       renderCell: params => (
@@ -255,47 +251,6 @@ const Diet = () => {
         </Typography>
       )
     },
-
-    // {
-    //   //flex: 0.6,
-    //   width: 260,
-    //   field: 'created_at',
-    //   headerName: 'CREATED BY',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Avatar
-    //         variant='square'
-    //         alt='Diet Image'
-    //         sx={{
-    //           width: 30,
-    //           height: 30,
-    //           mr: 4,
-    //           borderRadius: '50%',
-    //           background: theme.palette.customColors.tableHeaderBg,
-    //           overflow: 'hidden'
-    //         }}
-    //       >
-    //         {params.row.profile_pic ? (
-    //           <img
-    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //             src={params.row.profile_pic}
-    //             alt='Profile'
-    //           />
-    //         ) : (
-    //           <Icon icon='mdi:user' />
-    //         )}
-    //       </Avatar>
-    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-    //           {params.row.user_name ? params.row.user_name : '-'}
-    //         </Typography>
-    //         <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}>
-    //           {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
-    //         </Typography>
-    //       </Box>
-    //     </Box>
-    //   )
-    // },
 
     {
       //flex: 0.6,
@@ -311,13 +266,6 @@ const Diet = () => {
               role={params.row.dietitian_role_name}
               crby_width='200px'
             />
-            {/* {UserAvatarDetails({
-              profile_image: params.row.profile_pic,
-              user_name: params.row.user_name,
-              descriptors: params.row.dietitian_role_name
-
-              // date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD')
-            })} */}
           </Box>
         </>
       )
@@ -344,7 +292,7 @@ const Diet = () => {
 
     {
       //flex: 0.3,
-      width: 100,
+      width: 120,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -432,7 +380,7 @@ const Diet = () => {
           </>
         )}
       </>
-    );
+    )
   }
 
   return (

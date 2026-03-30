@@ -13,6 +13,10 @@ const UserInfoCard = ({ avatarUrl, name, description, textColor, fontWeight }) =
                 <Tooltip title={name}>
                   <Typography
                     sx={{
+                      maxWidth: '180px',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      overflow: 'hidden',
                       fontWeight: fontWeight ?? 600,
                       color: theme => textColor ?? theme.palette.common.white
                     }}

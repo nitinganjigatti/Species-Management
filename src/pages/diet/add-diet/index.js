@@ -386,6 +386,21 @@ const AddDiet = () => {
   const handleStepBillingSubmit = async () => {
     console.log(formData, 'formdata')
 
+    const deepCleanImages = data => {
+      if (Array.isArray(data)) {
+        return data.map(item => deepCleanImages(item))
+      } else if (data !== null && typeof data === 'object') {
+        const cleaned = {}
+        for (const [key, value] of Object.entries(data)) {
+          if (key !== 'recipe_image' && key !== 'ingredient_image') {
+            cleaned[key] = deepCleanImages(value)
+          }
+        }
+        return cleaned
+      }
+      return data
+    }
+
     let mealTypeError = false
     let genericError = false
 
@@ -440,6 +455,11 @@ const AddDiet = () => {
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              }).map(([key, value]) => {
+                if (Array.isArray(value)) {
+                  return [key, deepCleanImages(value)]
+                }
+                return [key, value]
               })
             )
 
@@ -496,6 +516,11 @@ const AddDiet = () => {
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              }).map(([key, value]) => {
+                if (Array.isArray(value)) {
+                  return [key, deepCleanImages(value)]
+                }
+                return [key, value]
               })
             )
 
@@ -562,6 +587,11 @@ const AddDiet = () => {
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              }).map(([key, value]) => {
+                if (Array.isArray(value)) {
+                  return [key, deepCleanImages(value)]
+                }
+                return [key, value]
               })
             )
 

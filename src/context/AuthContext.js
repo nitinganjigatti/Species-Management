@@ -16,6 +16,7 @@ import axios from 'axios'
 import authConfig from 'src/configs/auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { useHospital } from './HospitalContext'
+import { getDeviceInfo, setLastLoggedUser, saveDeviceId } from 'src/utility/deviceInfo'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
@@ -206,30 +207,27 @@ const AuthProvider = ({ children }) => {
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
   }
 
-  const handleLogin = (params, errorCallback) => {
+  const handleLogin = async (params, errorCallback) => {
     // dispatch(fetchData(params))
     setLoginLoading(true)
 
     const url = `${base_url}v1/auth/login`
 
-    //   axios
-    //     .post(authConfig.loginEndpoint, params)
-    //     .then(async response => {
-    //       params.rememberMe
-    //         ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-    //         : null
-    //       const returnUrl = router.query.returnUrl
-    //       setUser({ ...response.data.userData })
-    //       params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
-    //       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
-    //       router.replace(redirectURL)
-    //     })
-    //     .catch(err => {
-    //       if (errorCallback) errorCallback(err)
-    //     })
-    // }
+    // Get device details for login tracking
+    let deviceDetails = {}
+    try {
+      deviceDetails = await getDeviceInfo(params?.email)
+    } catch (err) {
+      console.error('Failed to get device info:', err)
+    }
+
+    const loginParams = {
+      ...params
+      // device_details: deviceDetails
+    }
+    console.log('device details for login:', deviceDetails)
     axios
-      .post(url, params)
+      .post(url, loginParams)
       .then(async response => {
         setLoginLoading(false)
 
@@ -260,6 +258,9 @@ const AuthProvider = ({ children }) => {
           write('userData', userData)
           setUserData({ ...resData })
           setUser({ ...userData })
+
+          // Save device ID and last logged user ONLY after successful login (encrypted)
+          await Promise.all([saveDeviceId(), setLastLoggedUser(resData?.user?.user_id, resData?.user?.user_email)])
 
           // ******** Pharmcy
           const options = resData?.modules?.pharmacy_data?.pharmacy
@@ -324,7 +325,13 @@ const AuthProvider = ({ children }) => {
       queryClient.getMutationCache().clear()
 
       // 3. Clear localStorage and sessionStorage
+      // Preserve device_id and last_logged_user (both encrypted)
+      // Cookie fallback for last_logged_user survives localStorage.clear() automatically
+      const deviceId = localStorage.getItem('antz_device_id')
+      const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
       localStorage.clear()
+      if (deviceId) localStorage.setItem('antz_device_id', deviceId)
+      if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
       sessionStorage.clear()
 
       // 4. Clear all state

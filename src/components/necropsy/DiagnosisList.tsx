@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import ClinicalAssessmentCard from 'src/views/pages/hospital/inpatient/ClinicalAssessmentCard'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 import { getMedicalCommonData } from 'src/lib/api/necropsy/medicalHistory'
+import { MedicalCommonDataParams } from 'src/types/necropsy/api'
 
 // ==================== Types ====================
 
@@ -23,16 +24,6 @@ interface DiagnosisRecord {
   id?: number | string
   clinical_assessment?: string
   [key: string]: unknown
-}
-
-interface MedicalCommonDataParams {
-  medical_type: string
-  type: string
-  page_no: number
-  limit: number
-  purpose: string
-  till_date?: string
-  mortality_id?: number | string
 }
 
 interface MedicalCommonDataResponse {
@@ -63,7 +54,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
   const [hasMore, setHasMore] = useState<boolean>(false)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
 
-  const getTypeParam = (tab: SubTabType): string => {
+  const getTypeParam = (tab: SubTabType): 'active' | 'closed' | 'all' => {
     switch (tab) {
       case 'Active':
         return 'active'

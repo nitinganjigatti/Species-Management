@@ -348,6 +348,11 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
         item => item.uom_abbr === data?.wastageUnit
       )
+      const selectedBatch = batchList?.find(item => {
+        const batchNo = typeof data?.batchNumber === 'object' ? data?.batchNumber?.batch_no : data?.batchNumber
+
+        return item?.batch_no === batchNo
+      })
 
       let time24 = new Date().toLocaleTimeString('en-GB', { hour12: false })
 
@@ -369,6 +374,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             ? JSON.stringify([
                 {
                   id: data?.batchNumber?.id || '1', // As per backend request default value is added
+                  batch_id: data?.batchNumber?.id || '1',
                   batch_no: data?.batchNumber?.batch_no,
                   animal_id: [animal_id],
                   wastage_quantity: data?.wastageQuantity,
@@ -379,7 +385,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             : JSON.stringify([]),
         administritive_time: time24,
         group_prescription_id: data?.group_prescription_id || data?.id,
-        1: data?.attachment?.[0] && data?.attachment[0]
+        [selectedBatch && selectedBatch.id]: data?.attachment?.[0]
       }
       const response = await administerDose(payload)
       if (response?.success) {
@@ -426,10 +432,23 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
     return moment(date).utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
   }
 
+  function toUTCISOString(date) {
+    if (!date) return ''
+
+    return moment(date).utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+  }
+
   const handleAdministerSubmit = async formData => {
     try {
       setIsAdministerSlotLoading(true)
 
+      // Find the selected batch from batchList
+      const selectedBatch = batchList?.find(item => {
+        const batchNo = typeof formData.batchNumber === 'object' ? formData.batchNumber?.batch_no : formData.batchNumber
+
+        return item?.batch_no === batchNo
+      })
+      
       const wastageUnit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
         item => item.uom_abbr === formData?.wastageUnit
       )
@@ -443,8 +462,8 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         prescription: JSON.stringify([
           {
             id: selectedSlotData?.data?.medicine_id,
-            start_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
-            end_date: toISTISOString(new Date()).replace('T', ' ').slice(0, 19),
+            start_date: toUTCISOString(new Date()),
+            end_date: toUTCISOString(new Date()),
             notes: data.notes || '',
             schedule_doses: [
               {
@@ -485,7 +504,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
                   ]
                 : [],
             files: formData.batchImage ? [formData.batchImage] : [],
-            1: formData?.attachment?.[0] && formData?.attachment[0]
+            // 1: formData?.attachment?.[0] && formData?.attachment[0]
           }
         ]),
         request_from: 'hospital_module',
@@ -496,7 +515,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
         medical_record_type: 'SINGLE',
         hospital_case_id: id,
         case_type: 1,
-        1: formData?.attachment?.[0] && formData?.attachment[0]
+        [selectedBatch ? `BATCH_${selectedBatch.id}` : 'BATCH_0']: formData.attachment?.[0] ? formData.attachment[0] : []
       }
 
       const response = await directAdministerForPatSlot(payload)

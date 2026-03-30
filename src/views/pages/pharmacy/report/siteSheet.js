@@ -4,6 +4,7 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { useEffect, useRef, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const SiteSheet = ({
   openSiteDrawer,
@@ -152,7 +153,8 @@ const SiteSheet = ({
             sx={{ mb: 2 }}
           />
 
-          {filteredSites.length > 0 && (
+          {filteredSites.length > 0 ? (
+            <>
             <FormControlLabel
               control={
                 <Checkbox
@@ -182,8 +184,10 @@ const SiteSheet = ({
               }
               sx={{ mb: 1, ml: 1 }}
             />
-          )}
-          <Divider sx={{ mb: 4 }} />
+              <Divider sx={{ mb: 4 }} />
+              </>
+          ) : <NoDataFound/>} 
+        
 
           <Box
             sx={{

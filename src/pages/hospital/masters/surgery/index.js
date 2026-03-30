@@ -28,6 +28,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 import {
   addSurgeryMaster,
@@ -473,8 +474,8 @@ const Surgery = () => {
   )
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumbs separator='/' sx={{ color: theme.palette.customColors.neutralSecondary }}>
+    <>
+      {/* <Breadcrumbs separator='/' sx={{ color: theme.palette.customColors.neutralSecondary }}>
         <Typography
           sx={{
             fontSize: '16px',
@@ -509,7 +510,11 @@ const Surgery = () => {
         >
           Surgery
         </Typography>
-      </Breadcrumbs>
+      </Breadcrumbs> */}
+      <DynamicBreadcrumbs
+        pageItems={[{ title: 'Hospital' }, { title: 'Masters' }, { title: 'Surgery' }]}
+        sx = {{mb: 6, color: theme.palette.customColors.neutralSecondary}}
+      />
 
       <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <CardHeader
@@ -635,7 +640,7 @@ const Surgery = () => {
           }}
         />
       )}
-    </Box>
+    </>
   )
 }
 

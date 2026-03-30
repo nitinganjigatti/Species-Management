@@ -4,6 +4,7 @@ import { alpha, useTheme } from '@mui/material/styles'
 import { FiberManualRecord, Timeline as FrequencyIcon, CalendarToday as CalendarIcon } from '@mui/icons-material'
 import Utility from 'src/utility'
 import { getMedicalCommonData } from 'src/lib/api/necropsy/medicalHistory'
+import { MedicalCommonDataParams } from 'src/types/necropsy/api'
 
 // ==================== Types ====================
 
@@ -69,7 +70,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
   const [hasMore, setHasMore] = useState<boolean>(false)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
 
-  const getTypeParam = (tab: SubTabType): string => {
+  const getTypeParam = (tab: SubTabType): 'active' | 'closed' | 'all' => {
     switch (tab) {
       case 'Active':
         return 'active'
@@ -87,12 +88,11 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
       if (page === 1) setLoading(true)
       else setLoadingMore(true)
 
-      const params = {
+      const params: MedicalCommonDataParams = {
         medical_type: 'prescription',
         type: getTypeParam(tab),
         page_no: page,
         limit: 10,
-        purpose: 'necropsy',
         ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
         ...(mortalityId && { mortality_id: mortalityId })
       }

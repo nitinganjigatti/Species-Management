@@ -54,7 +54,7 @@ export async function getComplianceDailyReport(params) {
   return response?.data
 }
 
-export async function getObservationMasterType(params) {
+export async function getObservationMasterType({ params } = {}) {
   const response = await axiosGet({ url: `${OBSERVATION_MASTER_TYPE}`, params })
 
   return response?.data

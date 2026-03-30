@@ -9,10 +9,22 @@ const SizeSelector = ({ size, cutsizelist, item, ingredient, handleChangeSize, s
       <FormControl fullWidth>
         <Select
           size='small'
-          value={size[item.id]?.[ingredient.ingredient_id]?.id || ''}
+          value={
+            size[item.id]?.[
+              ingredient.preparation_type_id
+                ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
+                : ingredient.ingredient_id
+            ]?.id || ''
+          }
           onChange={event => handleChangeSize(event, item, ingredient)}
           displayEmpty
-          error={!size[item.id]?.[ingredient.ingredient_id]?.id && showErrors}
+          error={
+            !size[item.id]?.[
+              ingredient.preparation_type_id
+                ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
+                : ingredient.ingredient_id
+            ]?.id && showErrors
+          }
           sx={{
             height: 51,
             borderRadius: '4px',
