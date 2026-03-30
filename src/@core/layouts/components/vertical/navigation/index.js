@@ -2,7 +2,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
 import List from '@mui/material/List'
@@ -70,7 +70,7 @@ const Navigation = props => {
   const scrollRef = useRef(null)
 
   // ** Hooks
-  const router = useRouter()
+  const router = useSafeRouter()
 
   // ** Var
   const { afterVerticalNavMenuContentPosition, beforeVerticalNavMenuContentPosition } = themeConfig

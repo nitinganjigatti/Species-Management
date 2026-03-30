@@ -34,6 +34,7 @@ export const getMedicalRecordsByFilter = async (params: MedicalRecordFilterParam
 
   return response?.data
 }
+
 export const getMedicalRecordReport = async (params: MedicalReportParams): Promise<ApiResponse> => {
   const response = await axiosGet({ url: `${MEDICAL_RECORD_REPORT}`, params, pharmacy: false })
 

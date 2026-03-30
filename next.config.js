@@ -9,6 +9,10 @@ const path = require('path')
 module.exports = {
   trailingSlash: true,
   reactStrictMode: false,
+  // Suppress Emotion SSR warnings for :first-child pseudo-class
+  compiler: {
+    emotion: true
+  },
   // devIndicators: false,
   images: {
     remotePatterns: [

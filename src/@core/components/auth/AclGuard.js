@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** Context Imports
 import { AbilityContext } from 'src/layouts/components/acl/Can'
@@ -28,7 +28,7 @@ const AclGuard = props => {
 
   // ** Hooks
   const auth = useAuth()
-  const router = useRouter()
+  const router = useSafeRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
   // const getPath = () => {

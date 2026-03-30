@@ -1043,7 +1043,12 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <Typography
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500 }}
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    whiteSpace: 'pre-wrap'
+                  }}
                 >
                   {notesText}
                 </Typography>

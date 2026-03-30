@@ -317,7 +317,8 @@ const EditTreatmentDrawer = ({
                             sx={{
                               color: theme.palette.customColors.OnSurfaceVariant,
                               fontWeight: 400,
-                              fontSize: '14px'
+                              fontSize: '14px',
+                              whiteSpace: 'pre-wrap'
                             }}
                           >
                             {activity.note}
@@ -421,7 +422,8 @@ const EditTreatmentDrawer = ({
                           sx={{
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontWeight: 400,
-                            fontSize: '14px'
+                            fontSize: '14px',
+                            whiteSpace: 'pre-wrap'
                           }}
                         >
                           {activity.note}

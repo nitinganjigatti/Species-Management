@@ -337,7 +337,15 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           )}
 
           {record?.latest_note?.note && (
-            <Tooltip title={record?.latest_note?.note} arrow placement='top'>
+            <Tooltip 
+              title={
+                <Box sx={{ whiteSpace: 'pre-wrap' }}>
+                  {record?.latest_note?.note}
+                </Box>
+              }
+              arrow 
+              placement='top'
+            >
               <Typography
                 sx={{
                   fontSize: '0.875rem',
@@ -348,7 +356,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                   display: '-webkit-box',
                   WebkitLineClamp: 1,
                   WebkitBoxOrient: 'vertical',
-                  lineHeight: '1.4'
+                  lineHeight: '1.4',
+                  whiteSpace: 'pre-wrap'
                 }}
               >
                 Notes : {record?.latest_note?.note}

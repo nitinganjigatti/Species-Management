@@ -1,0 +1,171 @@
+import { useMemo, useCallback } from 'react'
+
+/**
+ * Safe router hook that works in both Page Router and App Router contexts.
+ * Falls back to window.location for redirects if router is not available.
+ */
+export const useSafeRouter = () => {
+  // Try to use Page Router
+  let pageRouterInstance = null
+  let isPageRouter = false
+
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { useRouter } = require('next/router')
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    pageRouterInstance = useRouter()
+
+    // Check if we're actually in Page Router context
+    if (pageRouterInstance && pageRouterInstance.pathname !== undefined) {
+      isPageRouter = true
+    }
+  } catch (e) {
+    // Not in Page Router context or router not mounted
+    isPageRouter = false
+  }
+
+  // Try to use App Router
+  let appRouterInstance = null
+  let appPathname = null
+  let appSearchParams = null
+  let isAppRouter = false
+
+  try {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { useRouter, usePathname, useSearchParams } = require('next/navigation')
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    appRouterInstance = useRouter()
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    appPathname = usePathname()
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    appSearchParams = useSearchParams()
+
+    if (appRouterInstance && appPathname !== null) {
+      isAppRouter = true
+    }
+  } catch (e) {
+    // Not in App Router context
+    isAppRouter = false
+  }
+
+  const push = useCallback(
+    url => {
+      if (isPageRouter && pageRouterInstance) {
+        pageRouterInstance.push(url)
+      } else if (isAppRouter && appRouterInstance) {
+        appRouterInstance.push(url)
+      } else {
+        // Fallback to window.location
+        if (typeof window !== 'undefined') {
+          window.location.href = url
+        }
+      }
+    },
+    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance]
+  )
+
+  const replace = useCallback(
+    url => {
+      if (isPageRouter && pageRouterInstance) {
+        pageRouterInstance.replace(url)
+      } else if (isAppRouter && appRouterInstance) {
+        appRouterInstance.replace(url)
+      } else {
+        // Fallback to window.location
+        if (typeof window !== 'undefined') {
+          window.location.replace(url)
+        }
+      }
+    },
+    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance]
+  )
+
+  const back = useCallback(() => {
+    if (isPageRouter && pageRouterInstance) {
+      pageRouterInstance.back()
+    } else if (isAppRouter && appRouterInstance) {
+      appRouterInstance.back()
+    } else {
+      if (typeof window !== 'undefined') {
+        window.history.back()
+      }
+    }
+  }, [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance])
+
+  // Build query object
+  const query = useMemo(() => {
+    if (isPageRouter && pageRouterInstance) {
+      return pageRouterInstance.query || {}
+    }
+    if (isAppRouter && appSearchParams) {
+      const queryObj = {}
+      appSearchParams.forEach((value, key) => {
+        queryObj[key] = value
+      })
+
+      return queryObj
+    }
+
+    // Fallback: parse from window.location
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const queryObj = {}
+      params.forEach((value, key) => {
+        queryObj[key] = value
+      })
+
+      return queryObj
+    }
+
+    return {}
+  }, [isPageRouter, pageRouterInstance, isAppRouter, appSearchParams])
+
+  // Get pathname
+  const pathname = useMemo(() => {
+    if (isPageRouter && pageRouterInstance) {
+      return pageRouterInstance.pathname || ''
+    }
+    if (isAppRouter && appPathname) {
+      return appPathname
+    }
+    if (typeof window !== 'undefined') {
+      return window.location.pathname
+    }
+
+    return ''
+  }, [isPageRouter, pageRouterInstance, isAppRouter, appPathname])
+
+  // Get asPath
+  const asPath = useMemo(() => {
+    if (isPageRouter && pageRouterInstance) {
+      return pageRouterInstance.asPath || ''
+    }
+    if (isAppRouter && appPathname) {
+      const search = appSearchParams ? appSearchParams.toString() : ''
+
+      return appPathname + (search ? '?' + search : '')
+    }
+    if (typeof window !== 'undefined') {
+      return window.location.pathname + window.location.search
+    }
+
+    return ''
+  }, [isPageRouter, pageRouterInstance, isAppRouter, appPathname, appSearchParams])
+
+  return useMemo(
+    () => ({
+      push,
+      replace,
+      back,
+      query,
+      pathname,
+      asPath,
+      isReady: true,
+      isPageRouter,
+      isAppRouter
+    }),
+    [push, replace, back, query, pathname, asPath, isPageRouter, isAppRouter]
+  )
+}
+
+export default useSafeRouter
