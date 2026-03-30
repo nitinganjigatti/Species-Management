@@ -873,7 +873,11 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                           </Box>
 
                           <Tooltip
-                            title={treatment.noteSummary || ''}
+                            title={
+                              <Box sx={{ whiteSpace: 'pre-wrap' }}>
+                                {treatment.noteSummary || ''}
+                              </Box>
+                            }
                             placement='bottom-start'
                             arrow
                             slotProps={{
@@ -895,7 +899,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                                 WebkitLineClamp: 2,
                                 WebkitBoxOrient: 'vertical',
                                 overflow: 'hidden',
-                                textOverflow: 'ellipsis'
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'pre-wrap'
                               }}
                             >
                               {treatment.noteSummary}

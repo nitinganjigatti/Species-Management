@@ -225,7 +225,15 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
           )}
 
           {record.latest_note?.is_system_generated == true && mappedRecord.notes && (
-            <Tooltip title={mappedRecord.notes} arrow placement='top'>
+            <Tooltip 
+              title={
+                <Box sx={{ whiteSpace: 'pre-wrap' }}>
+                  {mappedRecord.notes}
+                </Box>
+              } 
+              arrow 
+              placement='top'
+            >
               <Typography
                 sx={{
                   fontSize: '0.875rem',
@@ -236,7 +244,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   display: '-webkit-box',
                   WebkitLineClamp: 1,
                   WebkitBoxOrient: 'vertical',
-                  lineHeight: '1.4'
+                  lineHeight: '1.4',
+                  whiteSpace: 'pre-wrap'
                 }}
               >
                 Notes : {mappedRecord.notes}
@@ -245,7 +254,15 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
           )}
 
           {record.latest_note?.is_system_generated == false && mappedRecord.description && (
-            <Tooltip title={mappedRecord.description} arrow placement='top'>
+            <Tooltip 
+              title={
+                <Box sx={{ whiteSpace: 'pre-wrap' }}>
+                  {mappedRecord.description}
+                </Box>
+              } 
+              arrow 
+              placement='top'
+            >
               <Typography
                 sx={{
                   fontSize: '0.875rem',
@@ -256,7 +273,8 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
-                  lineHeight: '1.4'
+                  lineHeight: '1.4',
+                  whiteSpace: 'pre-wrap'
                 }}
               >
                 {mappedRecord.description}
