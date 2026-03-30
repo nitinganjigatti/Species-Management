@@ -1,0 +1,14 @@
+{
+  "key_insights": "رؤى رئيسية",
+  "animal_activity": "نشاط الحيوان",
+  "animal_transfer": "نقل الحيوان",
+  "eggs": "البيض",
+  "pending_requests_pharmacy": "الطلبات المعلقة(الصيدلية)",
+  "notes": "ملاحظات",
+  "lab_requests": "طلبات المختبر",
+  "total_requests": "إجمالي الطلبات",
+  "completed": "مكتمل",
+  "today": "اليوم",
+  "recent_requests": "الطلبات الأخيرة",
+  "total_sick_animals": "إجمالي الحيوانات المريضة"
+}
