@@ -11,11 +11,11 @@ import { useTranslation } from 'react-i18next'
 import OptionsMenu from 'src/@core/components/option-menu'
 
 // ** Locale Config
-import { SUPPORTED_LANGUAGES } from 'src/utility/localeConfig'
+import { SupportedLanguages } from 'src/utility/localeConfig'
 import { isRtlLanguage } from 'src/configs/i18n'
 
 const LanguageDropdown = ({ settings, saveSettings }) => {
-  const { i18n } = useTranslation()
+  const { i18n, t } = useTranslation()
 
   const { layout } = settings
 
@@ -41,8 +41,8 @@ const LanguageDropdown = ({ settings, saveSettings }) => {
       icon={<Icon icon='mdi:translate' />}
       menuProps={{ sx: { '& .MuiMenu-paper': { mt: 4, minWidth: 130 } } }}
       iconButtonProps={{ color: 'inherit', sx: { ...(layout === 'vertical' ? { mr: 0.75 } : { mx: 0.75 }) } }}
-      options={SUPPORTED_LANGUAGES.map(lang => ({
-        text: lang.label,
+      options={SupportedLanguages.map(lang => ({
+        text: t(`languages.${lang.code}`, lang.label),
         menuItemProps: {
           sx: { py: 2 },
           selected: i18n.language === lang.code,

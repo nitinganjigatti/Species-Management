@@ -2,7 +2,7 @@
 
 ## Overview
 
-The app supports **6 languages** with automatic RTL (Right-to-Left) for Arabic, module-based lazy-loaded translations, MUI component localization, and encrypted language persistence.
+The app supports **6 languages** with automatic RTL (Right-to-Left) for Arabic, single-file translations per locale, MUI component localization, and localStorage language persistence.
 
 | Language         | Code    | Direction | Currency | Status     |
 | ---------------- | ------- | --------- | -------- | ---------- |
@@ -28,16 +28,16 @@ The app supports **6 languages** with automatic RTL (Right-to-Left) for Arabic, 
 │                                                                    │
 │  ┌────────────────────────────────────────────────────────────┐   │
 │  │  LanguageDropdown.js                                        │   │
-│  │  ├── Shows all 6 languages                                  │   │
-│  │  ├── i18n.changeLanguage(lang)                              │   │
-│  │  └── Auto-sets RTL for Arabic                               │   │
+│  │  ├── Shows supported languages from localeConfig.js         │   │
+│  │  ├── i18n.changeLanguage(lang) → saves to localStorage      │   │
+│  │  └── Auto-sets RTL direction for Arabic                     │   │
 │  └────────────────────────────────────────────────────────────┘   │
 │                                                                    │
 │  ┌────────────────────────────────────────────────────────────┐   │
 │  │  Components                                                 │   │
-│  │  ├── useModuleTranslation('pharmacy')  ◄── per-module hook  │   │
-│  │  ├── t('form.name_label')  ◄── module namespace             │   │
-│  │  └── tc('buttons.save')    ◄── common namespace             │   │
+│  │  ├── t('save')                    ◄── direct top-level key  │   │
+│  │  ├── t('pharmacy_module.dashboard_title') ◄── module key    │   │
+│  │  └── <Translations text="Dashboard" /> ◄── auto snake_case  │   │
 │  └────────────────────────────────────────────────────────────┘   │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -46,65 +46,236 @@ The app supports **6 languages** with automatic RTL (Right-to-Left) for Arabic, 
 
 ### Config & Utilities
 
-| File                                   | Purpose                                              |
-| -------------------------------------- | ---------------------------------------------------- |
-| `src/configs/i18n.js`                  | i18next initialization (backend, detection, formats)  |
-| `src/utility/localeConfig.js`          | Centralized language config (codes, dirs, currencies) |
-| `src/hooks/useModuleTranslation.js`    | Reusable hook for module-scoped translations          |
-| `src/utility/date-currency-formatter.js` | Non-hook formatters for use outside components      |
+| File                                          | Purpose                                              |
+| --------------------------------------------- | ---------------------------------------------------- |
+| `src/configs/i18n.js`                         | i18next initialization (backend, detection, formats)  |
+| `src/utility/localeConfig.js`                 | Centralized language config (codes, dirs, currencies) |
+| `src/layouts/components/Translations.js`      | Navigation text component with auto snake_case keys   |
 
 ### Translation Files
 
+All translations live in a **single `common.json` file per locale** — no separate namespace files.
+
 ```
 public/locales/
-  ├── en-IN/
-  │   ├── common.json        ← shared: buttons, labels, statuses, formats
-  │   ├── navigation.json    ← sidebar/nav menu items
-  │   ├── dashboard.json     ← dashboard-specific (add as needed)
-  │   ├── pharmacy.json      ← pharmacy-specific (add as needed)
-  │   └── ...                ← one file per module
-  ├── en-US/
-  ├── en/
-  ├── fr/
-  ├── hi/
-  └── ar/
+  ├── en-IN/common.json     ← English (India) — default/fallback
+  ├── en-US/common.json     ← English (US)
+  ├── en/common.json        ← English (generic)
+  ├── fr/common.json        ← French
+  ├── hi/common.json        ← Hindi
+  └── ar/common.json        ← Arabic
 ```
 
 ### Modified Core Files
 
 | File                                                              | Change                                |
 | ----------------------------------------------------------------- | ------------------------------------- |
-| `src/pages/_app.js`                                               | Uncommented `import 'src/configs/i18n'` |
-| `src/pages/_document.js`                                          | Changed `lang='en'` to `lang='en-IN'` |
-| `src/layouts/components/Translations.js`                          | Activated i18n for nav menu           |
-| `src/@core/layouts/.../LanguageDropdown.js`                       | 6 languages with auto-RTL            |
-| `src/@core/theme/ThemeComponent.js`                               | MUI locale integration                |
+| `src/pages/_app.js`                                               | `import 'src/configs/i18n'`           |
+| `src/layouts/components/Translations.js`                          | `toSnakeCase()` for navigation keys   |
+| `src/@core/layouts/.../LanguageDropdown.js`                       | Language selector with auto-RTL       |
+| `src/@core/layouts/.../UserDropdown.js`                           | `t('app.logout')`, `t('app.media')`   |
 | `src/views/forms/form-fields/MUIDatePicker.js`                    | Dynamic dayjs locale                  |
 | `src/views/forms/form-fields/MUIDateTimePicker.js`                | Dynamic dayjs locale                  |
 
 ---
 
+## Translation Key Structure
+
+All keys are organized in a **flat structure** inside `common.json`:
+
+```json
+{
+  // ── Top-level: shared reusable strings (no prefix needed) ──
+  "add": "Add",
+  "save": "Save",
+  "name": "Name",
+  "status": "Status",
+  "date": "Date",
+  "yes": "Yes",
+  "no": "No",
+  "male": "Male",
+
+  // ── Metadata fields ──
+  "metadata_added_by": "Added By",
+  "metadata_created_on": "Created on",
+
+  // ── Format patterns (with interpolation) ──
+  "formats_date": "{{value, intlDate}}",
+  "formats_currency": "{{value, currency}}",
+
+  // ── App-level (nested object) ──
+  "app": {
+    "media": "Media",
+    "activity_log": "Activity Log",
+    "logout": "Logout"
+  },
+
+  // ── Language selector labels (nested object) ──
+  "languages": {
+    "en-IN": "English",
+    "fr": "French",
+    "hi": "Hindi",
+    "ar": "Arabic"
+  },
+
+  // ── Navigation keys (snake_case, nested object) ──
+  "navigation": {
+    "dashboard": "Dashboard",
+    "pharmacy": "Pharmacy",
+    "egg_module": "Egg Module",
+    "doctors_and_staffs": "Doctors & Staffs"
+  },
+
+  // ── Dashboard page ──
+  "dashboard": {
+    "key_insights": "Key insights",
+    "animal_activity": "Animal activity",
+    "today": "Today"
+  },
+
+  // ── Module sections (flat keys with page prefix) ──
+  "pharmacy_module": {
+    "dashboard_title": "Pharmacy Dashboard",
+    "dashboard_pharmacies": "Pharmacies",
+    "products_title": "Product List",
+    "products_add_product": "Add Product",
+    "request_all_requests_title": "All Requests",
+    "tabs_pending": "Pending",
+    "reports_purchase_report": "Purchase Report"
+  },
+
+  "medical_module": {
+    "medical_records_title": "Medical Records",
+    "symptoms": "Symptoms",
+    "diagnosis": "Diagnosis"
+  },
+
+  "hospital_module": { ... },
+  "lab_module": { ... },
+  "diet_module": { ... },
+  "egg_module": { ... },
+  "housing_module": { ... },
+  "necropsy_module": { ... },
+  "compliance_module": { ... },
+  "parivesh_module": { ... },
+  "reports_module": { ... },
+  "settings_module": { ... },
+  "confirmation_module": { ... }
+}
+```
+
+### Key Naming Rules
+
+1. **Top-level keys** — shared strings used everywhere: `add`, `save`, `name`, `status`, `date`
+2. **Module keys** — use `<module>_module` suffix: `pharmacy_module`, `medical_module`
+3. **Inside modules** — flat with page prefix: `dashboard_title`, `products_add_product`
+4. **All keys** use `snake_case`
+5. **No nesting** inside modules — keys are flattened with `_` separator
+
+---
+
+## Usage Guide
+
+### Direct access — shared strings
+
+```jsx
+import { useTranslation } from 'react-i18next'
+
+const MyComponent = () => {
+  const { t } = useTranslation()
+
+  return (
+    <div>
+      <button>{t('add')}</button>          {/* → "Add" */}
+      <button>{t('save')}</button>         {/* → "Save" */}
+      <button>{t('cancel')}</button>       {/* → "Cancel" */}
+      <label>{t('name')}</label>           {/* → "Name" */}
+      <label>{t('status')}</label>         {/* → "Status" */}
+      <span>{t('yes')}</span>              {/* → "Yes" */}
+      <span>{t('metadata_created_on')}</span> {/* → "Created on" */}
+    </div>
+  )
+}
+```
+
+### Module-specific strings
+
+```jsx
+const PharmacyDashboard = () => {
+  const { t } = useTranslation()
+
+  return (
+    <>
+      <h1>{t('pharmacy_module.dashboard_title')}</h1>
+      <StatCard label={t('pharmacy_module.dashboard_total_skus')} />
+      <StatCard label={t('pharmacy_module.dashboard_medicines_out_of_stock')} />
+
+      <Table>
+        <TableHead>
+          <TableCell>{t('pharmacy_module.products_product_name')}</TableCell>
+          <TableCell>{t('status')}</TableCell>      {/* shared */}
+          <TableCell>{t('quantity')}</TableCell>     {/* shared */}
+        </TableHead>
+      </Table>
+
+      <Button>{t('add_new')}</Button>                {/* shared */}
+      <Button>{t('apply_filter')}</Button>           {/* shared */}
+    </>
+  )
+}
+```
+
+### Navigation (auto snake_case)
+
+Navigation items use the `<Translations>` component which auto-converts titles to snake_case keys:
+
+```jsx
+// In navigation config files — title stays human-readable
+{ title: 'Egg Module', path: '/egg/dashboard' }
+// Translations.js converts "Egg Module" → "egg_module"
+// Looks up: t('navigation.egg_module') → translated value
+// Falls back to: "Egg Module" if key not found
+```
+
+### Date & Currency Formatting
+
+```jsx
+const { t } = useTranslation()
+
+// Date formatting (uses Intl.DateTimeFormat with current language)
+<span>{t('formats_date', { value: new Date() })}</span>
+<span>{t('formats_date_long', { value: new Date() })}</span>
+<span>{t('formats_date_time', { value: new Date() })}</span>
+
+// Currency (auto-selects currency based on locale)
+<span>{t('formats_currency', { value: 1500 })}</span>
+
+// Number formatting
+<span>{t('formats_number', { value: 1234567 })}</span>
+```
+
+---
+
 ## How It Works
 
-### 1. Language Switching
+### Language Switching
 
 ```
 User clicks "French" in LanguageDropdown
          │
          ├── i18n.changeLanguage('fr')
-         │     └── i18next loads /locales/fr/common.json (+ any loaded namespaces)
+         │     └── Loads /locales/fr/common.json via HTTP backend
+         │     └── Saves 'fr' to localStorage key 'i18nextLng'
          │     └── All t() calls re-render with French translations
          │
          ├── saveSettings({ direction: 'ltr' })
-         │     └── Stored in localStorage
          │
          ├── document.documentElement.lang = 'fr'
          │
          └── ThemeComponent re-creates MUI theme with frFR locale
-               └── DataGrid, DatePicker UI text updates to French
 ```
 
-### 2. RTL Switching (Arabic)
+### RTL Switching (Arabic)
 
 ```
 User clicks "Arabic" in LanguageDropdown
@@ -117,239 +288,131 @@ User clicks "Arabic" in LanguageDropdown
          ├── Direction.js
          │     ├── document.dir = 'rtl'
          │     └── Wraps app with CacheProvider using stylis-plugin-rtl
-         │           └── All CSS automatically flipped (margin-left → margin-right, etc.)
+         │           └── All CSS automatically flipped
          │
          └── ThemeComponent creates theme with arSA locale + direction: 'rtl'
 ```
 
-### 3. Namespace Lazy Loading
-
-Namespaces are loaded on demand when a component requests them:
+### Language Persistence (Survives Refresh)
 
 ```
-User navigates to /pharmacy
-         │
-         ▼
-Component calls useModuleTranslation('pharmacy')
-         │
-         ▼
-i18next checks: is 'pharmacy' namespace loaded for current language?
-         │
-         ├── YES → returns translations immediately
-         │
-         └── NO → fetches /locales/fr/pharmacy.json via HTTP backend
-                   └── caches it for future use
+On language change:
+  i18n.changeLanguage('hi')
+    └── i18next-browser-languagedetector saves to localStorage['i18nextLng'] = 'hi'
+
+On page refresh:
+  i18next initializes
+    └── detection.order: ['localStorage', 'navigator']
+    └── Reads localStorage['i18nextLng'] → 'hi'
+    └── Loads /locales/hi/common.json
+    └── App renders in Hindi
 ```
 
 ---
 
-## Usage Guide
+## Persistence
 
-### In Components (Recommended Pattern)
+| Setting              | Storage      | Key            |
+| -------------------- | ------------ | -------------- |
+| Language code         | localStorage | `i18nextLng`   |
+| Direction (RTL/LTR)  | localStorage | `settings`     |
 
-```jsx
-import useModuleTranslation from 'src/hooks/useModuleTranslation'
-
-const PharmacyList = () => {
-  const { t, tc } = useModuleTranslation('pharmacy')
-
-  return (
-    <div>
-      <h1>{t('list.title')}</h1>           {/* → "All Pharmacies" from pharmacy.json */}
-      <button>{tc('buttons.add_new')}</button> {/* → "Add New" from common.json */}
-      <span>{tc('labels.status')}</span>     {/* → "Status" from common.json */}
-    </div>
-  )
-}
-```
-
-### For Common Labels Only
-
-```jsx
-import { useTranslation } from 'react-i18next'
-
-const MyComponent = () => {
-  const { t } = useTranslation('common')
-
-  return <button>{t('buttons.save')}</button>  // → "Save"
-}
-```
-
-### Date & Currency Formatting (Inside Components)
-
-```jsx
-import { useTranslation } from 'react-i18next'
-
-const OrderDetail = () => {
-  const { t } = useTranslation('common')
-
-  return (
-    <div>
-      {/* Uses i18next interpolation with Intl formatters */}
-      <span>{t('formats.date', { value: new Date() })}</span>
-      <span>{t('formats.currency', { value: 1500 })}</span>
-    </div>
-  )
-}
-```
-
-### Date & Currency Formatting (Outside Components)
-
-```js
-import { formatDate, formatCurrency, formatNumber } from 'src/utility/date-currency-formatter'
-
-// These use the current i18n language automatically
-formatDate('2024-03-25')                    // → "25/03/2024" (en-IN)
-formatDate('2024-03-25', 'long')            // → "25 Mar 2024"
-formatDate('2024-03-25', 'datetime')        // → "25/03/2024 00:00"
-formatCurrency(1500)                        // → "₹1,500.00" (en-IN) / "$1,500.00" (en-US)
-formatCurrency(1500, { currency: 'EUR' })   // → "€1,500.00"
-formatNumber(1234567)                       // → "12,34,567" (en-IN) / "1,234,567" (en-US)
-```
-
----
-
-## Translation Key Naming Convention
-
-### Namespace = Module Name
-
-| Module       | Namespace file         |
-| ------------ | ---------------------- |
-| Navigation   | `navigation.json`      |
-| Shared/Common| `common.json`          |
-| Dashboard    | `dashboard.json`       |
-| Pharmacy     | `pharmacy.json`        |
-| Diet         | `diet.json`            |
-| Egg Module   | `egg.json`             |
-| Parivesh     | `parivesh.json`        |
-| Hospital     | `hospital.json`        |
-
-### Key Structure
-
-```
-<section>.<element>
-
-Sections:
-  list     → list pages (titles, buttons, search)
-  detail   → detail/view pages
-  form     → form fields (labels, placeholders, validation)
-  table    → table columns, empty states
-  dialog   → dialog/modal text
-  toast    → success/error notification messages
-  error    → error messages
-```
-
-### Example
-
-```json
-{
-  "list": {
-    "title": "All Pharmacies",
-    "add_button": "Add Pharmacy",
-    "search_placeholder": "Search pharmacies..."
-  },
-  "form": {
-    "name_label": "Pharmacy Name",
-    "name_required": "Pharmacy name is required"
-  },
-  "table": {
-    "col_name": "Name",
-    "col_status": "Status",
-    "no_data": "No pharmacies found"
-  },
-  "toast": {
-    "create_success": "Pharmacy created successfully",
-    "delete_confirm": "Are you sure you want to delete?"
-  }
-}
-```
-
-### Rules
-
-1. Namespace = module folder name (lowercase)
-2. Top-level groups: `list`, `detail`, `form`, `table`, `dialog`, `toast`, `error`
-3. Keys use `snake_case`
-4. Reusable labels go in `common`, not duplicated per module
-5. Pluralization: `"item": "{{count}} item"`, `"item_plural": "{{count}} items"`
-6. Interpolation: `"greeting": "Hello, {{name}}"`
+- Language persists across page refreshes via `i18next-browser-languagedetector`
+- Direction persists via the settings context (`src/@core/context/settingsContext.js`)
 
 ---
 
 ## Adding a New Language
 
 1. Create directory: `public/locales/<code>/`
-2. Copy English files as starting point: `cp -r public/locales/en-IN/* public/locales/<code>/`
+2. Copy English file as starting point: `cp public/locales/en-IN/common.json public/locales/<code>/common.json`
 3. Add entry to `src/utility/localeConfig.js`:
    ```js
    { code: '<code>', label: '<Name>', dir: 'ltr', dayjsLocale: '<dayjs-code>', currency: '<ISO>' }
    ```
-4. If RTL, add to `RTL_LANGUAGES` array in `src/configs/i18n.js`
-5. Import dayjs locale in `MUIDatePicker.js` and `MUIDateTimePicker.js`
-6. Translate the JSON files
+4. Add to `supportedLngs` array in `src/configs/i18n.js`
+5. If RTL, add to `RTL_LANGUAGES` array in `src/configs/i18n.js`
+6. Import dayjs locale in `MUIDatePicker.js` and `MUIDateTimePicker.js`
+7. Translate the `common.json` file
 
 ---
 
-## Adding Translations to a New Module
+## Adding Translations to a Module
 
 ### Step-by-step
 
-1. **Create the translation file:**
-   ```
-   public/locales/en-IN/<module>.json
-   ```
-
-2. **Extract hardcoded strings from components:**
+1. **Add keys to `common.json`** under the module section:
    ```json
    {
-     "list": {
-       "title": "All Items",
-       "add_button": "Add Item"
+     "pharmacy_module": {
+       "new_page_title": "My New Page",
+       "new_page_description": "Description here"
      }
    }
    ```
 
-3. **Use the hook in components:**
+2. **Use in components:**
    ```jsx
-   import useModuleTranslation from 'src/hooks/useModuleTranslation'
-
-   const MyComponent = () => {
-     const { t, tc } = useModuleTranslation('<module>')
-     return <h1>{t('list.title')}</h1>
-   }
+   const { t } = useTranslation()
+   return <h1>{t('pharmacy_module.new_page_title')}</h1>
    ```
 
-4. **Copy to other locales:**
-   ```bash
-   for lang in en-US en fr hi ar; do
-     cp public/locales/en-IN/<module>.json public/locales/$lang/<module>.json
-   done
-   ```
-
-5. **Translate** the copied files (can be done later — English shows as fallback)
+3. **Add same keys to all locale files** with translations:
+   - `public/locales/fr/common.json` → French values
+   - `public/locales/hi/common.json` → Hindi values
+   - `public/locales/ar/common.json` → Arabic values
+   - English locales can share same values
 
 ---
 
-## Persistence
+## Module Key Reference
 
-| Setting       | Storage        | Key            |
-| ------------- | -------------- | -------------- |
-| Language code  | localStorage   | `i18nextLng`   |
-| Direction (RTL/LTR) | localStorage | `settings` (inside settings object) |
-
-- Language persists across page refreshes via `i18next-browser-languagedetector`
-- Direction persists via the existing settings context (`src/@core/context/settingsContext.js`)
+| Module | Key Prefix | Example |
+|---|---|---|
+| Shared | *(top-level)* | `t('save')`, `t('name')`, `t('status')` |
+| App | `app.*` | `t('app.logout')`, `t('app.media')` |
+| Dashboard | `dashboard.*` | `t('dashboard.key_insights')` |
+| Navigation | `navigation.*` | Auto via `<Translations text="..." />` |
+| Pharmacy | `pharmacy_module.*` | `t('pharmacy_module.dashboard_title')` |
+| Medical | `medical_module.*` | `t('medical_module.symptoms')` |
+| Hospital | `hospital_module.*` | `t('hospital_module.surgery_name_of_surgeon')` |
+| Lab | `lab_module.*` | `t('lab_module.lab_tests')` |
+| Diet | `diet_module.*` | `t('diet_module.meal_meal_name')` |
+| Egg | `egg_module.*` | `t('egg_module.eggs_stats')` |
+| Housing | `housing_module.*` | `t('housing_module.enclosure')` |
+| Necropsy | `necropsy_module.*` | `t('necropsy_module.carcass_transfer')` |
+| Compliance | `compliance_module.*` | `t('compliance_module.species')` |
+| Parivesh | `parivesh_module.*` | `t('parivesh_module.approved_batches')` |
+| Reports | `reports_module.*` | `t('reports_module.daily_report')` |
+| Settings | `settings_module.*` | `t('settings_module.zoo_settings')` |
+| Confirmation | `confirmation_module.*` | `t('confirmation_module.yes_delete')` |
 
 ---
 
 ## Dependencies
 
-| Package                          | Version | Purpose                         |
-| -------------------------------- | ------- | ------------------------------- |
-| `i18next`                        | 22.4.11 | Core i18n framework             |
-| `react-i18next`                  | 12.2.0  | React integration               |
-| `i18next-http-backend`           | 2.2.0   | Load translations via HTTP      |
-| `i18next-browser-languagedetector` | 7.0.1 | Auto-detect browser language    |
-| `stylis-plugin-rtl`              | 2.1.1   | CSS RTL transformation          |
-| `@mui/material` locale exports   | 7.3.8   | MUI component localization      |
+| Package                            | Version | Purpose                         |
+| ---------------------------------- | ------- | ------------------------------- |
+| `i18next`                          | 22.4.11 | Core i18n framework             |
+| `react-i18next`                    | 12.2.0  | React integration               |
+| `i18next-http-backend`             | 2.2.0   | Load translations via HTTP      |
+| `i18next-browser-languagedetector` | 7.0.1   | Auto-detect & persist language  |
+| `stylis-plugin-rtl`                | 2.1.1   | CSS RTL transformation          |
+| `@mui/material` locale exports     | 7.3.8   | MUI component localization      |
 
 All dependencies are **already installed** — no new packages needed.
+
+---
+
+## Console Logs (Development Only)
+
+In development mode, i18next logs are shown in the console:
+
+```
+i18next::backendConnector: loaded namespace common for language hi {...}
+i18next::backendConnector: loaded namespace common for language en-IN {...}
+i18next: languageChanged hi
+i18next: initialized {...}
+```
+
+These are controlled by `debug: process.env.NODE_ENV === 'development'` in `src/configs/i18n.js` and **do not appear in production builds**.
