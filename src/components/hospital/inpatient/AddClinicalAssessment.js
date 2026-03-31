@@ -20,6 +20,7 @@ import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -375,15 +376,15 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
 
   const breadcrumbs = useMemo(
     () => (
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
-        <Typography sx={{ color: 'inherit' }}>Patients</Typography>
-        <Typography sx={{ color: 'inherit' }}>{from}</Typography>
-        <Typography sx={{ color: 'text.primary', cursor: 'pointer' }} onClick={handleBack}>
-          Details
-        </Typography>
-        <Typography sx={{ color: 'text.primary' }}>Add Clinical Assessment</Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        pageItems={[
+            { title: 'Hospital' },
+            { title: 'Patients' },
+            { title: from },
+            { title: 'Details',onClick: handleBack},
+            { title: 'Add Clinical Assessment'}
+          ]}
+      />
     ),
     [handleBack]
   )

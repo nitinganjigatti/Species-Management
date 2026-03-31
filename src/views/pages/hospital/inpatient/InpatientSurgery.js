@@ -824,8 +824,21 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     if (resolvedHospitalCaseId) query.hospital_case_id = resolvedHospitalCaseId
                     if (medicalRecordId) query.medical_record_id = medicalRecordId
                     query.id = activeSurgeryRecordId
-
+                    if(category === 'Outpatients'){
+                      router.push({ pathname: '/hospital/outpatient/AddSurgeryRecord', query })
+                    }
+                    else if(category === 'Discharged'){
+                      router.push({ pathname: '/hospital/discharged/AddSurgeryRecord', query })
+                    }
+                    else if(category === 'Mortality'){
+                      router.push({ pathname: '/hospital/mortality/AddSurgeryRecord', query })
+                    }
+                     else if(category === 'Follow Up'){
+                      router.push({ pathname: '/hospital/followup/AddSurgeryRecord', query })
+                    }
+                    else {
                     router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
+                    }
                   }}
                 />
                 {/* !patientDischarged && (

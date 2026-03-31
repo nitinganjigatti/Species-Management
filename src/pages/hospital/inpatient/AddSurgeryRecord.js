@@ -37,6 +37,7 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledDateTimePicker from 'src/views/forms/form-fields/ControlledDateTimePicker'
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog/index'
@@ -46,6 +47,7 @@ import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import Utility from 'src/utility'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import useDebounce from 'src/hooks/useDebounce'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 import {
   addSurgeryMaster,
@@ -239,7 +241,6 @@ const schema = yup.object().shape({
     .when('date', (date, schema) =>
       schema.test('starttime', function (value) {
         if (!value || !date) return true
-        console.log('Time field value:', value)
 
         const selectedStartDate = dayjs(date)
         const selectedStartTime = dayjs(value)
@@ -1334,27 +1335,17 @@ const AddSurgeryRecord = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumbs aria-label='breadcrumb'>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Hospital</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Patients</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Inpatient</Typography>
-        <Typography
-          color={theme.palette.customColors.neutralSecondary}
-          sx={{ cursor: 'pointer' }}
-          onClick={handleNavigateBack}
-        >
-          Details
-        </Typography>
 
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            cursor: 'pointer'
-          }}
-        >
-          {isEditMode ? 'Edit Surgery' : 'Add Surgery'}
-        </Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        sx={{ mb: 0 }}
+        pageItems={[
+          { title: 'Hospital' },
+          { title: 'Patients' },
+          { title: 'Inpatient' },
+          { title: 'Details', onClick: () => router.back() },
+          { title: isEditMode ? 'Edit Surgery' : 'Add Surgery' }
+        ]}
+      />
 
       <Card
         sx={{

@@ -21,6 +21,7 @@ import { getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { write } from 'src/lib/windows/utils'
 import { AuthContext } from 'src/context/AuthContext'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -450,14 +451,19 @@ const PatientDetails = ({ category }) => {
   // Memoize breadcrumbs to prevent unnecessary re-renders
   const breadcrumbs = useMemo(
     () => (
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
-        <Typography sx={{ color: 'inherit' }}>Patients</Typography>
-        <Typography sx={{ color: 'inherit', cursor: 'pointer' }} onClick={handleBack}>
-          {category}
-        </Typography>
-        <Typography sx={{ color: 'text.primary' }}>Details</Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+            pageItems={[{
+              title: 'Hospital'
+            },
+            {
+              title: 'Patients'
+            },
+            {
+              title: category, onClick: handleBack
+            },
+            {
+              title: 'Details'
+            }]}/>
     ),
     [handleBack, category]
   )
