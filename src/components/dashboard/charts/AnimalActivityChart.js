@@ -1,5 +1,5 @@
 // ** i18n
-import { useModuleTranslation } from 'src/hooks/useModuleTranslation'
+import { useTranslation } from 'react-i18next'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -18,7 +18,7 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 const AnimalActivityChart = ({ animalActivityData }) => {
   // ** Hooks
   const theme = useTheme()
-  const { t } = useModuleTranslation('dashboard')
+  const { t } = useTranslation()
 
   const seriesData = animalActivityData.map(item => item.value)
   const labels = animalActivityData.map(item => item.label)
@@ -71,7 +71,7 @@ const AnimalActivityChart = ({ animalActivityData }) => {
             },
             total: {
               show: true,
-              label: t('today'),
+              label: t('dashboard.today'),
               fontSize: '1rem',
               color: theme.palette.text.secondary,
               formatter: value => `${value.globals.seriesTotals.reduce((total, num) => total + num)}`

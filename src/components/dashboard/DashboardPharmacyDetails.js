@@ -2,7 +2,7 @@
 import { useState } from 'react'
 
 // ** i18n
-import { useModuleTranslation } from 'src/hooks/useModuleTranslation'
+import { useTranslation } from 'react-i18next'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -186,7 +186,7 @@ const Slides = ({ sliderData }) => {
 
 const DashboardPharmacyDetails = ({ pharmacyData }) => {
   // ** Hooks
-  const { t } = useModuleTranslation('dashboard')
+  const { t } = useTranslation()
 
   // ** States
   const [loaded, setLoaded] = useState(false)
@@ -222,11 +222,11 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
           <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { color: 'success.main' } }}>
             {pharmacyData[currentSlide]?.title === 'Pharmacy' ? (
               <Typography variant='caption' sx={{ mr: 1.5, color: '#FFFFFF' }}>
-                {pharmacyData[currentSlide]?.title_value} {t('recent_requests')}
+                {pharmacyData[currentSlide]?.title_value} {t('dashboard.recent_requests')}
               </Typography>
             ) : (
               <Typography variant='caption' sx={{ mr: 1.5, color: '#FFFFFF' }}>
-                {t('total_sick_animals')} : {pharmacyData[currentSlide]?.title_value}
+                {t('dashboard.total_sick_animals')} : {pharmacyData[currentSlide]?.title_value}
               </Typography>
             )}
           </Box>
