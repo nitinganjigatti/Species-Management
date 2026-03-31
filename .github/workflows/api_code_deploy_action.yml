@@ -77,10 +77,11 @@ jobs:
       - name: Upload Next.js Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nextjs-build-output # Customize this name if needed
-          path: .next # Replace with the path to your build output directory
+          name: nextjs-build-output-${{ github.ref_name }}
+          path: .next
           retention-days: 1
           include-hidden-files: true
+          overwrite: true
       - name: Trigger Deploy Script
         run: |
           chmod u+x deploy/
