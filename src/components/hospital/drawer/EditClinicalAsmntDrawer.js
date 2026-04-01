@@ -71,17 +71,21 @@ const EditClinicalAsmntDrawer = ({
 
     // Set date range based on discharge status
     if (isDischarged && dischargedDate) {
-      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
-      setMaxDate(dayjs.utc(dischargedDate).local().endOf('day'))
+      // setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
+      // setMaxDate(dayjs.utc(dischargedDate).local().endOf('day'))
+      setMinDate(dayjs(Utility.convertUTCToLocal(admittedDate)))
+      setMaxDate(dayjs(Utility.convertUTCToLocal(dischargedDate)))
     } else {
-      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
+      setMinDate(admittedDate ? dayjs(Utility.convertUTCToLocal(admittedDate)): null)
       setMaxDate(dayjs()) // Set max date to current time for non-discharged animals
     }
 
     // Set recorded datetime from existing data or default
     if (selectedSymptom?.additional_info?.recorded_date_time) {
       // Load existing recorded datetime and convert from UTC to local
-      const existingDateTime = dayjs.utc(selectedSymptom.additional_info.recorded_date_time).local()
+      const existingDateTime = 
+      dayjs(Utility.convertUTCToLocal(selectedSymptom.additional_info.recorded_date_time))
+      // dayjs.utc(selectedSymptom.additional_info.recorded_date_time).local()
       setRecordedDateTime(existingDateTime)
     } else {
       // Set default to current time or discharge time
