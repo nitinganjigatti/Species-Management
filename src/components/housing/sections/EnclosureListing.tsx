@@ -253,21 +253,21 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
     },
     ...(insightsViewAccess
       ? [
-          // {
-          //   width: 160,
-          //   field: 'species_count',
-          //   headerName: 'SPECIES',
-          //   headerAlign: 'left',
-          //   align: 'left',
-          //   sortable: false,
-          //   renderCell: params => (
-          //     <Typography
-          //       sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-          //     >
-          //       {params.row.species_count || '-'}
-          //     </Typography>
-          //   )
-          // },
+          {
+            width: 160,
+            field: 'species_count',
+            headerName: 'SPECIES',
+            headerAlign: 'left' as const,
+            align: 'left' as const,
+            sortable: false,
+            renderCell: (params: GridCellParams) => (
+              <Typography
+                sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+              >
+                {params.row.species_count || 0}
+              </Typography>
+            )
+          },
           {
             width: 160,
             field: 'enclosure_wise_animal_count',

@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Card, Tab, Tabs, Typography, Skeleton } from '@mui/material'
+import { Breadcrumbs, Card, Tab, Tabs, Typography, Skeleton, CircularProgress } from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useContext, useEffect, useState } from 'react'
@@ -23,8 +23,9 @@ import AnimalQRCard from 'src/views/pages/housing/animals/AnimalQRCard'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import AnimalMedia from 'src/components/housing/animals/AnimalMedia'
-import { getAnimalDetailsOverview } from 'src/lib/api/housing'
+import { getAnimalDetailsOverview, getEntityPermissionCheck } from 'src/lib/api/housing'
 import Utility from 'src/utility'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 interface TabConfigItem {
   label: string
@@ -119,6 +120,10 @@ const AnimalDetais: React.FC = () => {
   const hasDietModulePermission = permissions?.diet_module
   const hasAccessMortalityModule = permissions?.access_mortality_module
   const hasApprovalMoveAnimalExternal = permissions?.approval_move_animal_external
+
+  // Entity permission check states
+  const [hasEntityPermission, setHasEntityPermission] = useState<boolean | null>(null)
+  const [showAccessRestricted, setShowAccessRestricted] = useState<boolean>(false)
 
   const [loading, setLoading] = useState<boolean>(false)
   const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
@@ -258,12 +263,69 @@ const AnimalDetais: React.FC = () => {
     }
   }, [filteredTabConfig.length, selectedTab, animalDetails.type, animalDetails.sex, animalDetails.isAlive])
 
+  // Fetch entity permission check
+  useEffect(() => {
+    const fetchEntityPermission = async (): Promise<void> => {
+      if (!id) return
+
+      try {
+        const response = await getEntityPermissionCheck({
+          entity_type: 'animal',
+          entity_id: Number(id)
+        })
+
+        if (response?.success) {
+          if (response?.data?.hasPermission === 1) {
+            setHasEntityPermission(true)
+          } else {
+            setHasEntityPermission(false)
+            setShowAccessRestricted(true)
+          }
+        } else {
+          setHasEntityPermission(false)
+          setShowAccessRestricted(true)
+        }
+      } catch (error) {
+        console.error('Error fetching entity permission:', error)
+        setHasEntityPermission(false)
+        setShowAccessRestricted(true)
+      }
+    }
+
+    fetchEntityPermission()
+  }, [id])
+
+  // Handle access restricted confirmation
+  const handleAccessRestrictedConfirmation = (): void => {
+    setShowAccessRestricted(false)
+    router.push('/housing/sites')
+  }
+
   const selected = filteredTabConfig.find(tab => tab.value === selectedTab)
 
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
   const handleQrClick = (): void => {
     setQrDialogOpen(true)
+  }
+
+  // Show loading state while checking permission
+  if (hasEntityPermission === null) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '400px',
+          width: '100%',
+          gap: 3
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
+    )
   }
 
   // Skeleton component for tabs
@@ -396,6 +458,39 @@ const AnimalDetais: React.FC = () => {
       </Box>
       {qrDialogOpen && (
         <AnimalQRCard open={qrDialogOpen} handleClose={() => setQrDialogOpen(false)} speciesData={qrData as any} />
+      )}
+      {showAccessRestricted && (
+        <ConfirmationDialog
+          dialogBoxStatus={showAccessRestricted}
+          onClose={() => setShowAccessRestricted(false)}
+          title={'Access Restricted'}
+          cancelBtnStyle={{
+            borderColor: theme.palette.grey[500],
+            color: theme.palette.grey[700]
+          }}
+          confirmBtnStyle={{
+            background: theme.palette.primary.main,
+            py: 2
+          }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{
+            background: theme.palette.grey[200],
+            p: 4
+          }}
+          confirmAction={handleAccessRestrictedConfirmation}
+          ConfirmationText={'OK'}
+          description={
+            <Box>
+              <Typography variant='body1' sx={{ mb: 1 }}>
+                You don't have permission to access this animal.
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Please contact your administrator or request access to proceed.
+              </Typography>
+            </Box>
+          }
+          allowCancel={false}
+        />
       )}
     </>
   )
