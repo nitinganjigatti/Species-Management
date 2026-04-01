@@ -1298,4 +1298,10 @@ export const OBSERVATION_TEMPLATE_CREATE = 'antz/observation/templates/create'
 
 export const OBSERVATION_TEMPLATE_UPDATE = 'antz/observation/templates/update'
 
+// Request Department
+export const REQUEST_DEPARTMENTS = 'v1/request/departments'
+export const REQUEST_DEPARTMENT = 'v1/request/department'
+export const REQUEST_DEPARTMENT_USERS = 'v1/request/department/users'
+export const REQUEST_LIST = 'v1/request/list'
+
 export const OBSERVATION_TEMPLATE_DELETE = 'antz/observation/templates/delete'
