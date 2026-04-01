@@ -4,7 +4,14 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 
-export default function SelectedClinicalAssessment({ selected, onRemove, clinicalAsmnt, onEdit, alreadySelectedIds = [] }) {
+export default function SelectedClinicalAssessment({
+  selected,
+  onRemove,
+  clinicalAsmnt,
+  onEdit,
+  alreadySelectedIds = [],
+  footer = null
+}) {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
 
@@ -15,7 +22,10 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
         textAlign: 'center',
         minHeight: '100%',
         background: theme.palette.customColors.OnBackground,
-        borderRadius: '8px'
+        borderRadius: '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3
       }}
     >
       <Typography
@@ -50,13 +60,12 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
       ) : (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3,
             background: theme.palette.common.white,
             height: 500,
             borderRadius: '8px',
             display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
             p: 7,
             overflow: 'auto'
           }}
@@ -164,6 +173,8 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
           })}
         </Box>
       )}
+
+      {footer}
     </Box>
   )
 }

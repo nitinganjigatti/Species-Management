@@ -21,7 +21,7 @@ import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
-import SelectionTemplatePanel from './SelectionTemplatePanel'
+import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -64,6 +64,7 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
   const [duplicateAssessments, setDuplicateAssessments] = useState([])
   const [alreadySelectedIds, setAlreadySelectedIds] = useState([])
+  const [templateRefreshToken, setTemplateRefreshToken] = useState(0)
 
   // Refs for intersection observer
   const observerRef = useRef(null)
@@ -542,7 +543,6 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
               selectedItems={selectedSymptoms}
               onApplyTemplate={setSelectedSymptoms}
               templateLabel='clinical assessment template'
-              itemLabel='clinical assessments'
               mapTemplateItem={item => ({
                 id: item?.id,
                 name: item?.name,
@@ -552,6 +552,8 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
                 notes: '',
                 status: 'active'
               })}
+              refreshToken={templateRefreshToken}
+              onTemplatesChanged={() => setTemplateRefreshToken(prev => prev + 1)}
             />
             <SelectedClinicalAssessment
               selected={selectedSymptoms}
@@ -559,6 +561,16 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
               onRemove={removeSymptom}
               clinicalAsmnt={clinicalAsmnt}
               alreadySelectedIds={alreadySelectedIds}
+              footer={
+                <SaveMedicalTemplateSection
+                  templateType='diagnosis'
+                  selectedItems={selectedSymptoms}
+                  templateLabel='clinical assessment template'
+                  itemLabel='clinical assessments'
+                  refreshToken={templateRefreshToken}
+                  onTemplateSaved={() => setTemplateRefreshToken(prev => prev + 1)}
+                />
+              }
             />
           </Box>
         </Grid>

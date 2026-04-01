@@ -15,7 +15,7 @@ import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
-import SelectionTemplatePanel from './SelectionTemplatePanel'
+import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -78,6 +78,7 @@ function AddSymptoms() {
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
   const [duplicateSymptoms, setDuplicateSymptoms] = useState([])
   const [alreadySelectedIds, setAlreadySelectedIds] = useState([])
+  const [templateRefreshToken, setTemplateRefreshToken] = useState(0)
   const medicalRecordId = medicalRecordData?.medical_record_id
 
   const initialLoadRef = useRef(false)
@@ -495,7 +496,6 @@ function AddSymptoms() {
               selectedItems={selectedSymptoms}
               onApplyTemplate={setSelectedSymptoms}
               templateLabel='symptom template'
-              itemLabel='symptoms'
               mapTemplateItem={item => ({
                 id: item?.id,
                 name: item?.name,
@@ -505,12 +505,24 @@ function AddSymptoms() {
                 notes: '',
                 status: 'active'
               })}
+              refreshToken={templateRefreshToken}
+              onTemplatesChanged={() => setTemplateRefreshToken(prev => prev + 1)}
             />
             <SelectedSymptoms
               selected={selectedSymptoms}
               onRemove={removeSymptom}
               severity={severity}
               alreadySelectedIds={alreadySelectedIds}
+              footer={
+                <SaveMedicalTemplateSection
+                  templateType='complaints'
+                  selectedItems={selectedSymptoms}
+                  templateLabel='symptom template'
+                  itemLabel='symptoms'
+                  refreshToken={templateRefreshToken}
+                  onTemplateSaved={() => setTemplateRefreshToken(prev => prev + 1)}
+                />
+              }
             />
           </Box>
         </Grid>

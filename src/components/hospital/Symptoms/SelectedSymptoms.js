@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 
-export default function SelectedSymptoms({ selected, onRemove, severity, alreadySelectedIds = [] }) {
+export default function SelectedSymptoms({ selected, onRemove, severity, alreadySelectedIds = [], footer = null }) {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
@@ -15,7 +15,10 @@ export default function SelectedSymptoms({ selected, onRemove, severity, already
         textAlign: 'center',
         minHeight: '100%',
         background: theme.palette.customColors.OnBackground,
-        borderRadius: '8px'
+        borderRadius: '8px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3
       }}
     >
       <Typography
@@ -50,13 +53,12 @@ export default function SelectedSymptoms({ selected, onRemove, severity, already
       ) : (
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3,
             background: theme.palette.common.white,
             height: 500,
             borderRadius: '8px',
             display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
             p: 7,
             overflow: 'auto'
 
@@ -121,6 +123,8 @@ export default function SelectedSymptoms({ selected, onRemove, severity, already
           })}
         </Box>
       )}
+
+      {footer}
     </Box>
   )
 }

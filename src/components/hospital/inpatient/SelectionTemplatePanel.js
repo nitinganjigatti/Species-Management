@@ -23,27 +23,200 @@ import {
   updateMedicalTemplate
 } from 'src/lib/api/hospital/clinicalAssessment'
 
-function SelectionTemplatePanel({
+export function SaveMedicalTemplateSection({
   templateType,
   selectedItems = [],
-  onApplyTemplate,
   templateLabel,
   itemLabel,
-  mapTemplateItem
+  refreshToken = 0,
+  onTemplateSaved = () => {}
 }) {
   const theme = useTheme()
-  const [templates, setTemplates] = useState([])
   const [showSaveTemplate, setShowSaveTemplate] = useState(false)
   const [templateName, setTemplateName] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [templates, setTemplates] = useState([])
+  const canSaveTemplate = selectedItems.length > 1
+  const responseKey = templateType === 'complaints' ? 'complaintsTemplates' : 'diagnosisTemplates'
+  const apiTemplateType = templateType === 'complaints' ? 'complaint' : 'diagnosis'
+  const selectedItemIdsKey = useMemo(
+    () =>
+      selectedItems
+        .map(item => Number(item?.id))
+        .filter(id => !Number.isNaN(id))
+        .sort((a, b) => a - b)
+        .join(','),
+    [selectedItems]
+  )
+  const mappedTemplates = useMemo(
+    () =>
+      templates.map(item => ({
+        id: item?.id,
+        name: item?.template_name ?? item?.name,
+        template_items: Array.isArray(item?.template_items) ? item.template_items : []
+      })),
+    [templates]
+  )
+  const activeTemplateId = useMemo(() => {
+    return (
+      mappedTemplates.find(template => {
+        const templateIdsKey = template.template_items
+          .map(item => Number(item?.id))
+          .filter(id => !Number.isNaN(id))
+          .sort((a, b) => a - b)
+          .join(',')
+
+        return templateIdsKey.length > 0 && templateIdsKey === selectedItemIdsKey
+      })?.id ?? null
+    )
+  }, [mappedTemplates, selectedItemIdsKey])
+  const shouldShowSaveTemplate = canSaveTemplate && !activeTemplateId
+
+  const loadTemplates = useCallback(async () => {
+    try {
+      const response = await getMedicalTemplates({ type: 'all' })
+      const list = Array.isArray(response?.data?.[responseKey]) ? response.data[responseKey] : []
+      setTemplates(list)
+    } catch (error) {
+      console.error(`Error loading ${templateType} templates:`, error)
+      Toaster({ type: 'error', message: `Failed to load ${templateLabel}s` })
+    }
+  }, [responseKey, templateLabel, templateType])
+
+  useEffect(() => {
+    loadTemplates()
+  }, [loadTemplates, refreshToken])
+
+  const handleSaveTemplate = async () => {
+    const trimmedName = templateName.trim()
+
+    if (!trimmedName) {
+      Toaster({ type: 'error', message: 'Please enter the template name' })
+
+      return
+    }
+
+    const duplicateName = mappedTemplates.some(item => item?.name?.toLowerCase() === trimmedName.toLowerCase())
+    if (duplicateName) {
+      Toaster({ type: 'error', message: 'Template name already exists' })
+
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const response = await createMedicalTemplate({
+        template_name: trimmedName,
+        type: apiTemplateType,
+        template_items: selectedItems.map(item => Number(item.id))
+      })
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
+        setTemplateName('')
+        setShowSaveTemplate(false)
+        await loadTemplates()
+        onTemplateSaved()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
+      }
+    } catch (error) {
+      console.error(`Error saving ${templateType} template:`, error)
+      Toaster({ type: 'error', message: 'Failed to save template' })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (selectedItems.length === 0) {
+    return (
+      <Typography variant='caption' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+        Add {itemLabel} to enable template saving.
+      </Typography>
+    )
+  }
+
+  if (!shouldShowSaveTemplate) {
+    return null
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 2,
+        p: 4,
+        borderRadius: '8px',
+        backgroundColor: theme.palette.common.white,
+        border: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.08)}`
+      }}
+    >
+      {!showSaveTemplate ? (
+        <Button
+          variant='text'
+          onClick={() => setShowSaveTemplate(true)}
+          startIcon={<Icon icon='material-symbols:save-outline-sharp' />}
+          sx={{
+            alignSelf: 'flex-start',
+            color: theme.palette.customColors.OnSurface,
+            px: 0.5
+          }}
+        >
+          Save as template
+        </Button>
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: { xs: 'stretch', md: 'center' },
+            flexDirection: { xs: 'column', md: 'row' },
+            gap: 2
+          }}
+        >
+          <TextField
+            fullWidth
+            size='small'
+            label='Template name'
+            placeholder={`Enter ${templateLabel} name`}
+            value={templateName}
+            onChange={event => setTemplateName(event.target.value)}
+            disabled={isSaving}
+          />
+          <LoadingButton
+            variant='contained'
+            onClick={handleSaveTemplate}
+            loading={isSaving}
+            disabled={!templateName.trim()}
+            sx={{ minWidth: 110 }}
+          >
+            Save
+          </LoadingButton>
+          <IconButton
+            onClick={() => {
+              setShowSaveTemplate(false)
+              setTemplateName('')
+            }}
+            disabled={isSaving}
+          >
+            <Icon icon='mdi:close' />
+          </IconButton>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTemplate, templateLabel, mapTemplateItem, refreshToken = 0, onTemplatesChanged = () => {} }) {
+  const theme = useTheme()
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [editingName, setEditingName] = useState('')
   const [editingItems, setEditingItems] = useState([])
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
+  const [templates, setTemplates] = useState([])
 
-  const canSaveTemplate = selectedItems.length > 1
   const responseKey = templateType === 'complaints' ? 'complaintsTemplates' : 'diagnosisTemplates'
   const apiTemplateType = templateType === 'complaints' ? 'complaint' : 'diagnosis'
   const selectedItemIdsKey = useMemo(
@@ -65,8 +238,6 @@ function SelectionTemplatePanel({
       })),
     [templates]
   )
-  const inlineTemplates = mappedTemplates.slice(0, 3)
-  const showTemplatesInDrawer = mappedTemplates.length > 3
 
   const activeTemplateId = useMemo(() => {
     return (
@@ -81,8 +252,17 @@ function SelectionTemplatePanel({
       })?.id ?? null
     )
   }, [mappedTemplates, selectedItemIdsKey])
+  const orderedTemplates = useMemo(() => {
+    if (!activeTemplateId) return mappedTemplates
 
-  const shouldShowSaveTemplate = canSaveTemplate && !activeTemplateId
+    const activeTemplate = mappedTemplates.find(item => item.id === activeTemplateId)
+
+    if (!activeTemplate) return mappedTemplates
+
+    return [activeTemplate, ...mappedTemplates.filter(item => item.id !== activeTemplateId)]
+  }, [activeTemplateId, mappedTemplates])
+  const inlineTemplates = orderedTemplates.slice(0, 3)
+  const showTemplatesInDrawer = orderedTemplates.length > 3
 
   const loadTemplates = useCallback(async () => {
     try {
@@ -97,7 +277,7 @@ function SelectionTemplatePanel({
 
   useEffect(() => {
     loadTemplates()
-  }, [loadTemplates])
+  }, [loadTemplates, refreshToken])
 
   const handleApplyTemplate = template => {
     const templateItems = Array.isArray(template?.template_items) ? template.template_items : []
@@ -178,6 +358,7 @@ function SelectionTemplatePanel({
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Template updated successfully' })
         await loadTemplates()
+        onTemplatesChanged()
         closeEditDialog()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to update template' })
@@ -200,6 +381,7 @@ function SelectionTemplatePanel({
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Template deleted successfully' })
         await loadTemplates()
+        onTemplatesChanged()
         closeEditDialog()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to delete template' })
@@ -209,46 +391,6 @@ function SelectionTemplatePanel({
       Toaster({ type: 'error', message: 'Failed to delete template' })
     } finally {
       setIsDeleting(false)
-    }
-  }
-
-  const handleSaveTemplate = async () => {
-    const trimmedName = templateName.trim()
-
-    if (!trimmedName) {
-      Toaster({ type: 'error', message: 'Please enter the template name' })
-
-      return
-    }
-
-    const duplicateName = mappedTemplates.some(item => item?.name?.toLowerCase() === trimmedName.toLowerCase())
-    if (duplicateName) {
-      Toaster({ type: 'error', message: 'Template name already exists' })
-
-      return
-    }
-
-    setIsSaving(true)
-    try {
-      const response = await createMedicalTemplate({
-        template_name: trimmedName,
-        type: apiTemplateType,
-        template_items: selectedItems.map(item => Number(item.id))
-      })
-
-      if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
-        setTemplateName('')
-        setShowSaveTemplate(false)
-        await loadTemplates()
-      } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
-      }
-    } catch (error) {
-      console.error(`Error saving ${templateType} template:`, error)
-      Toaster({ type: 'error', message: 'Failed to save template' })
-    } finally {
-      setIsSaving(false)
     }
   }
 
@@ -264,61 +406,7 @@ function SelectionTemplatePanel({
         border: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.08)}`
       }}
     >
-      {shouldShowSaveTemplate ? (
-        !showSaveTemplate ? (
-          <Button
-            variant='text'
-            onClick={() => setShowSaveTemplate(true)}
-            startIcon={<Icon icon='material-symbols:save-outline-sharp' />}
-            sx={{
-              alignSelf: 'flex-start',
-              color: theme.palette.customColors.OnSurface,
-              px: 0.5
-            }}
-          >
-            Save as template
-          </Button>
-        ) : (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: { xs: 'stretch', md: 'center' },
-              flexDirection: { xs: 'column', md: 'row' },
-              gap: 2
-            }}
-          >
-            <TextField
-              fullWidth
-              size='small'
-              label='Template name'
-              placeholder={`Enter ${templateLabel} name`}
-              value={templateName}
-              onChange={event => setTemplateName(event.target.value)}
-              disabled={isSaving}
-            />
-            <LoadingButton
-              variant='contained'
-              onClick={handleSaveTemplate}
-              loading={isSaving}
-              disabled={!templateName.trim()}
-              sx={{ minWidth: 110 }}
-            >
-              Save
-            </LoadingButton>
-            <IconButton
-              onClick={() => {
-                setShowSaveTemplate(false)
-                setTemplateName('')
-              }}
-              disabled={isSaving}
-            >
-              <Icon icon='mdi:close' />
-            </IconButton>
-          </Box>
-        )
-      ) : null}
-
-      {mappedTemplates.length > 0 ? (
+      {orderedTemplates.length > 0 ? (
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface }}>
@@ -372,12 +460,6 @@ function SelectionTemplatePanel({
             ))}
           </Box>
         </Box>
-      ) : null}
-
-      {selectedItems.length === 0 ? (
-        <Typography variant='caption' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-          Add {itemLabel} to enable template saving.
-        </Typography>
       ) : null}
 
       <Dialog open={Boolean(editingTemplate)} onClose={closeEditDialog} fullWidth maxWidth='sm'>
@@ -489,7 +571,7 @@ function SelectionTemplatePanel({
               gap: 3
             }}
           >
-            {mappedTemplates.map(item => (
+            {orderedTemplates.map(item => (
               <Box
                 key={item.id}
                 sx={{
