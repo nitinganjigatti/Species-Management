@@ -573,13 +573,6 @@ function SelectionTemplatePanel({
               <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
                 Template items ({editingItems.length})
               </Typography>
-              <Button
-                onClick={handleAddCurrentSelection}
-                disabled={isUpdating || isDeleting || availableItems.length === 0}
-                sx={{ px: 0.5 }}
-              >
-                {showSelectionPicker ? 'Hide picker' : 'Add current selection'}
-              </Button>
             </Box>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -591,6 +584,36 @@ function SelectionTemplatePanel({
                   disabled={isUpdating || isDeleting}
                 />
               ))}
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3, flexWrap: 'wrap' }}>
+              <Button
+                variant='text'
+                color='inherit'
+                onClick={() => setEditingItems([])}
+                disabled={isUpdating || isDeleting || editingItems.length === 0}
+                endIcon={<Icon icon='mdi:close-circle-outline' color={theme.palette.customColors.OnSurfaceVariant} />}
+                sx={{
+                  px: 0,
+                  minWidth: 'auto',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  '&:hover': { backgroundColor: 'transparent' }
+                }}
+              >
+                Clear
+              </Button>
+              <Button
+                variant='contained'
+                onClick={handleAddCurrentSelection}
+                disabled={isUpdating || isDeleting || availableItems.length === 0}
+                sx={{
+                  minWidth: 96,
+                  borderRadius: '8px',
+                  boxShadow: 'none'
+                }}
+              >
+                Add
+              </Button>
             </Box>
           </Box>
 
