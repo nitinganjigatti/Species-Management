@@ -1338,13 +1338,7 @@ const AddSurgeryRecord = () => {
 
       <DynamicBreadcrumbs
         sx={{ mb: 0 }}
-        pageItems={[
-          { title: 'Hospital' },
-          { title: 'Patients' },
-          { title: 'Inpatient' },
-          { title: 'Details', onClick: () => router.back() },
-          { title: isEditMode ? 'Edit Surgery' : 'Add Surgery' }
-        ]}
+        lastBreadcrumbLabel={isEditMode ? 'Edit Surgery' : 'Add Surgery' }
       />
 
       <Card
@@ -1645,6 +1639,7 @@ const AddSurgeryRecord = () => {
                       options={filteredAttendingDoctors}
                       value={field.value}
                       loading={staffLoading}
+                      clearOnBlur
                       filterSelectedOptions
                       getOptionLabel={option => option?.label || ''}
                       isOptionEqualToValue={(option, value) => option.value === value?.value}
