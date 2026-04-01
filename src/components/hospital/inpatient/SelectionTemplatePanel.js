@@ -3,10 +3,6 @@ import {
   Box,
   Button,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Drawer,
   IconButton,
   TextField,
@@ -16,6 +12,8 @@ import { LoadingButton } from '@mui/lab'
 import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import Search from 'src/views/utility/Search'
 import {
   createMedicalTemplate,
   deleteMedicalTemplate,
@@ -207,7 +205,21 @@ export function SaveMedicalTemplateSection({
   )
 }
 
-function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTemplate, templateLabel, mapTemplateItem, refreshToken = 0, onTemplatesChanged = () => {} }) {
+function SelectionTemplatePanel({
+  templateType,
+  selectedItems = [],
+  availableItems = [],
+  onApplyTemplate,
+  templateLabel,
+  mapTemplateItem,
+  pickerSearchValue = '',
+  onPickerSearchChange = () => {},
+  onPickerLoadMore = () => {},
+  pickerLoading = false,
+  pickerHasMore = false,
+  refreshToken = 0,
+  onTemplatesChanged = () => {}
+}) {
   const theme = useTheme()
   const [editingTemplate, setEditingTemplate] = useState(null)
   const [editingName, setEditingName] = useState('')
@@ -216,6 +228,8 @@ function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTempl
   const [isDeleting, setIsDeleting] = useState(false)
   const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
   const [templates, setTemplates] = useState([])
+  const [showSelectionPicker, setShowSelectionPicker] = useState(false)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   const responseKey = templateType === 'complaints' ? 'complaintsTemplates' : 'diagnosisTemplates'
   const apiTemplateType = templateType === 'complaints' ? 'complaint' : 'diagnosis'
@@ -263,6 +277,18 @@ function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTempl
   }, [activeTemplateId, mappedTemplates])
   const inlineTemplates = orderedTemplates.slice(0, 3)
   const showTemplatesInDrawer = orderedTemplates.length > 3
+  const editingItemIds = useMemo(() => new Set(editingItems.map(item => Number(item?.id))), [editingItems])
+  const pickerOptions = useMemo(() => {
+    const templateSourceItems = Array.isArray(availableItems) ? availableItems : []
+
+    return templateSourceItems
+      .map(item => ({
+        raw: item,
+        id: Number(item?.id),
+        name: item?.name || ''
+      }))
+      .filter(item => !Number.isNaN(item.id))
+  }, [availableItems])
 
   const loadTemplates = useCallback(async () => {
     try {
@@ -297,6 +323,7 @@ function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTempl
     setEditingTemplate(template)
     setEditingName(template?.name || '')
     setEditingItems(Array.isArray(template?.template_items) ? template.template_items : [])
+    setShowSelectionPicker(false)
   }
 
   const closeEditDialog = () => {
@@ -304,6 +331,8 @@ function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTempl
     setEditingTemplate(null)
     setEditingName('')
     setEditingItems([])
+    setShowSelectionPicker(false)
+    setDeleteConfirmOpen(false)
   }
 
   const handleRemoveEditingItem = itemId => {
@@ -311,14 +340,11 @@ function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTempl
   }
 
   const handleAddCurrentSelection = () => {
-    const currentMapped = selectedItems.map(item => mapTemplateItem(item)).filter(Boolean)
+    if (!showSelectionPicker) {
+      setShowSelectionPicker(true)
 
-    setEditingItems(prev => {
-      const existingIds = new Set(prev.map(item => item?.id))
-      const uniqueNewItems = currentMapped.filter(item => !existingIds.has(item?.id))
-
-      return [...prev, ...uniqueNewItems]
-    })
+      return
+    }
   }
 
   const handleUpdateTemplate = async () => {
@@ -462,52 +488,273 @@ function SelectionTemplatePanel({ templateType, selectedItems = [], onApplyTempl
         </Box>
       ) : null}
 
-      <Dialog open={Boolean(editingTemplate)} onClose={closeEditDialog} fullWidth maxWidth='sm'>
-        <DialogTitle>Edit Template</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '20px !important' }}>
-          <TextField
-            fullWidth
-            size='small'
-            label='Template name'
-            value={editingName}
-            onChange={event => setEditingName(event.target.value)}
-            disabled={isUpdating || isDeleting}
-          />
+      <Drawer
+        anchor='right'
+        open={Boolean(editingTemplate)}
+        onClose={closeEditDialog}
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100%', sm: '80%', md: 560 },
+              backgroundColor: theme.palette.common.white,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%'
+            }
+          }
+        }}
+      >
+        <Box
+          sx={{
+            p: 4,
+            position: 'sticky',
+            top: 0,
+            backgroundColor: theme.palette.common.white,
+            zIndex: 1,
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+            <Box>
+              <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                Edit Template
+              </Typography>
+              <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                Update template name and items
+              </Typography>
+            </Box>
+            <IconButton onClick={closeEditDialog} disabled={isUpdating || isDeleting}>
+              <Icon icon='mdi:close' />
+            </IconButton>
+          </Box>
+        </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
-            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface }}>
-              Template items ({editingItems.length})
-            </Typography>
-            <Button onClick={handleAddCurrentSelection} disabled={isUpdating || isDeleting || selectedItems.length === 0}>
-              Add current selection
-            </Button>
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3,
+            backgroundColor: theme.palette.customColors.Background
+          }}
+        >
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: '8px',
+              backgroundColor: theme.palette.common.white,
+              border: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.08)}`
+            }}
+          >
+            <TextField
+              fullWidth
+              size='small'
+              label='Template name'
+              value={editingName}
+              onChange={event => setEditingName(event.target.value)}
+              disabled={isUpdating || isDeleting}
+            />
           </Box>
 
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {editingItems.map(item => (
-              <Chip
-                key={item?.id}
-                label={item?.name}
-                onDelete={() => handleRemoveEditingItem(item?.id)}
+          <Box
+            sx={{
+              p: 4,
+              borderRadius: '8px',
+              backgroundColor: theme.palette.common.white,
+              border: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.08)}`,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3
+            }}
+          >
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+              <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
+                Template items ({editingItems.length})
+              </Typography>
+              <Button
+                onClick={handleAddCurrentSelection}
+                disabled={isUpdating || isDeleting || availableItems.length === 0}
+                sx={{ px: 0.5 }}
+              >
+                {showSelectionPicker ? 'Hide picker' : 'Add current selection'}
+              </Button>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {editingItems.map(item => (
+                <Chip
+                  key={item?.id}
+                  label={item?.name}
+                  onDelete={() => handleRemoveEditingItem(item?.id)}
+                  disabled={isUpdating || isDeleting}
+                />
+              ))}
+            </Box>
+          </Box>
+
+          {showSelectionPicker ? (
+            <Box
+              sx={{
+                p: 4,
+                borderRadius: '8px',
+                backgroundColor: theme.palette.common.white,
+                border: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.08)}`,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+                <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurface }}>
+                  Select items to add
+                </Typography>
+                <Button size='small' onClick={() => setShowSelectionPicker(false)}>
+                  Cancel
+                </Button>
+              </Box>
+
+              <Search
+                value={pickerSearchValue}
+                onChange={event => onPickerSearchChange(event.target.value)}
+                onClear={() => onPickerSearchChange('')}
+                placeholder={`Search ${templateType === 'complaints' ? 'symptoms' : 'clinical assessments'}`}
+                width='100%'
                 disabled={isUpdating || isDeleting}
+                sx={{
+                  width: '100%'
+                }}
+                textFielsSX={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px'
+                  }
+                }}
               />
-            ))}
-          </Box>
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: 'space-between', px: 6, pb: 4 }}>
-          <Button color='error' onClick={handleDeleteTemplate} disabled={isUpdating || isDeleting}>
+
+              <Box
+                onScroll={event => {
+                  const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
+
+                  if (pickerLoading || !pickerHasMore) return
+
+                  if (scrollHeight - scrollTop <= clientHeight + 80) {
+                    onPickerLoadMore()
+                  }
+                }}
+                sx={{
+                  maxHeight: 360,
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: '8px',
+                  border: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.12)}`
+                }}
+              >
+                {pickerOptions.length > 0 ? (
+                  pickerOptions.map(option => {
+                    const isAlreadyInTemplate = editingItemIds.has(option.id)
+
+                    return (
+                      <Box
+                        key={option.id}
+                        onClick={() => {
+                          if (isAlreadyInTemplate) return
+
+                          const candidate = selectedItems.concat(availableItems).find(item => Number(item?.id) === option.id)
+                          const mappedItem = mapTemplateItem(candidate)
+
+                          if (!mappedItem) return
+
+                          setEditingItems(prev => [...prev, mappedItem])
+                        }}
+                        sx={{
+                          px: 3,
+                          py: 2.5,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: 2,
+                          cursor: isAlreadyInTemplate ? 'not-allowed' : 'pointer',
+                          borderBottom: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.08)}`,
+                          opacity: isAlreadyInTemplate ? 0.5 : 1
+                        }}
+                      >
+                        <Typography sx={{ color: theme.palette.customColors.OnSurface }}>{option.name}</Typography>
+                        {isAlreadyInTemplate ? <Chip label='Added' size='small' /> : <Chip label='Add' size='small' />}
+                      </Box>
+                    )
+                  })
+                ) : (
+                  <Box sx={{ px: 3, py: 6, textAlign: 'center' }}>
+                    <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                      No items available in the current list.
+                    </Typography>
+                  </Box>
+                )}
+
+                {pickerLoading ? (
+                  <Box sx={{ px: 3, py: 2, textAlign: 'center' }}>
+                    <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                      Loading...
+                    </Typography>
+                  </Box>
+                ) : null}
+              </Box>
+            </Box>
+          ) : null}
+        </Box>
+
+        <Box
+          sx={{
+            p: 4,
+            borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            backgroundColor: theme.palette.common.white,
+            display: 'flex',
+            gap: 2
+          }}
+        >
+          <Button
+            variant='outlined'
+            color='error'
+            onClick={() => setDeleteConfirmOpen(true)}
+            disabled={isUpdating || isDeleting}
+            sx={{ flex: 1, height: 48 }}
+          >
             {isDeleting ? 'Deleting...' : 'Delete'}
           </Button>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button onClick={closeEditDialog} disabled={isUpdating || isDeleting}>
-              Cancel
-            </Button>
-            <LoadingButton variant='contained' onClick={handleUpdateTemplate} loading={isUpdating} disabled={isDeleting}>
-              Save
-            </LoadingButton>
-          </Box>
-        </DialogActions>
-      </Dialog>
+          <LoadingButton
+            variant='contained'
+            onClick={handleUpdateTemplate}
+            loading={isUpdating}
+            disabled={isDeleting}
+            sx={{ flex: 1, height: 48 }}
+          >
+            Save
+          </LoadingButton>
+        </Box>
+      </Drawer>
+
+      <ConfirmationDialog
+        dialogBoxStatus={deleteConfirmOpen}
+        onClose={() => {
+          if (isDeleting) return
+          setDeleteConfirmOpen(false)
+        }}
+        title='Delete template?'
+        description='Are you sure you want to delete this template?'
+        additionalDescription='This action cannot be undone.'
+        icon='mdi:delete-outline'
+        iconColor={theme.palette.error.main}
+        ConfirmationText='Delete'
+        confirmAction={handleDeleteTemplate}
+        loading={isDeleting}
+        confirmBtnStyle={{ backgroundColor: theme.palette.error.main }}
+        cancelBtnStyle={{
+          borderColor: theme.palette.customColors.OnSurfaceVariant,
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      />
 
       <Drawer
         anchor='right'

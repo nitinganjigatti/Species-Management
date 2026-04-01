@@ -43,6 +43,8 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   const [status, setStatus] = useState('')
   const [localSearch, setLocalSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [pickerSearch, setPickerSearch] = useState('')
+  const [pickerSearchTerm, setPickerSearchTerm] = useState('')
   const [isTabsLoading, setIsTabsLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
@@ -59,6 +61,10 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [page, setPage] = useState(1)
+  const [pickerItems, setPickerItems] = useState([])
+  const [pickerIsLoading, setPickerIsLoading] = useState(false)
+  const [pickerHasMore, setPickerHasMore] = useState(false)
+  const [pickerPage, setPickerPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
@@ -81,6 +87,17 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   useEffect(() => {
     return () => debouncedSearch.cancel()
   }, [debouncedSearch])
+
+  const debouncedPickerSearch = useRef(
+    debounce(searchValue => {
+      setPickerSearchTerm(searchValue)
+      setPickerPage(1)
+    }, 500)
+  ).current
+
+  useEffect(() => {
+    return () => debouncedPickerSearch.cancel()
+  }, [debouncedPickerSearch])
 
   // Fetch diagnosis types (categories)
   const fetchDiagnosisTypes = useCallback(async () => {
@@ -167,6 +184,46 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
     }
   }, [])
 
+  const fetchPickerDiagnosisItems = useCallback(async (pageNum = 1, search = '', categoryId = '') => {
+    setPickerIsLoading(true)
+
+    try {
+      const params = {
+        page_no: pageNum,
+        limit: PAGE_SIZE,
+        q: search,
+        category_id: categoryId,
+        type: 'diagnosis',
+        animal_id: animalId
+      }
+
+      const res = await getDiagnosysType(params)
+
+      if (res.success) {
+        const newItems = res.data?.result || []
+        const total = res.data?.totalRecords || 0
+
+        setPickerItems(prev => {
+          const merged = pageNum === 1 ? newItems : [...prev, ...newItems]
+          const unique = merged.filter((item, index, arr) => arr.findIndex(candidate => candidate.id === item.id) === index)
+          setPickerHasMore(unique.length < total)
+
+          return unique
+        })
+      } else {
+        throw new Error(res.message || 'Failed to fetch diagnosis list')
+      }
+    } catch (error) {
+      console.error('Error fetching picker diagnosis items:', error)
+      if (pageNum === 1) {
+        setPickerItems([])
+      }
+      setPickerHasMore(false)
+    } finally {
+      setPickerIsLoading(false)
+    }
+  }, [animalId])
+
   // Setup Intersection Observer for infinite scroll
   useEffect(() => {
     // Cleanup previous observer
@@ -224,6 +281,14 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
       fetchDiagnosisItems(1, searchTerm, currentTabId)
     }
   }, [currentTabId, searchTerm])
+
+  useEffect(() => {
+    if (currentTabId) {
+      setPickerItems([])
+      setPickerPage(1)
+      fetchPickerDiagnosisItems(1, pickerSearchTerm, currentTabId)
+    }
+  }, [currentTabId, pickerSearchTerm, fetchPickerDiagnosisItems])
 
   const handleTabChange = (tabValue, tabId) => {
     setCurrentTab(tabValue)
@@ -286,6 +351,19 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   const availableSymptoms = allAssessments?.filter(
     symptom => !selectedSymptoms.some(s => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
   )
+
+  const handleTemplatePickerSearchChange = value => {
+    setPickerSearch(value)
+    debouncedPickerSearch(value)
+  }
+
+  const handleTemplatePickerLoadMore = useCallback(() => {
+    if (pickerIsLoading || !pickerHasMore) return
+
+    const nextPage = pickerPage + 1
+    setPickerPage(nextPage)
+    fetchPickerDiagnosisItems(nextPage, pickerSearchTerm, currentTabId)
+  }, [currentTabId, fetchPickerDiagnosisItems, pickerHasMore, pickerIsLoading, pickerPage, pickerSearchTerm])
 
   const checkDuplicateAssessments = async () => {
     try {
@@ -541,6 +619,7 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
             <SelectionTemplatePanel
               templateType='diagnosis'
               selectedItems={selectedSymptoms}
+              availableItems={pickerItems}
               onApplyTemplate={setSelectedSymptoms}
               templateLabel='clinical assessment template'
               mapTemplateItem={item => ({
@@ -552,6 +631,11 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
                 notes: '',
                 status: 'active'
               })}
+              pickerSearchValue={pickerSearch}
+              onPickerSearchChange={handleTemplatePickerSearchChange}
+              onPickerLoadMore={handleTemplatePickerLoadMore}
+              pickerLoading={pickerIsLoading}
+              pickerHasMore={pickerHasMore}
               refreshToken={templateRefreshToken}
               onTemplatesChanged={() => setTemplateRefreshToken(prev => prev + 1)}
             />
