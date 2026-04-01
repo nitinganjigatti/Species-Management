@@ -733,6 +733,14 @@ export const DELETE_NOTE_CLINICAL_ASSESSMENT = 'medical/v2/delete-note/diagnosis
 
 export const GET_ANIMAL_STATUS_BY_TYPE = 'medical/v2/check-animal-status-by-type'
 
+export const GET_MEDICAL_TEMPLATE = 'medical/get-template'
+
+export const CREATE_MEDICAL_TEMPLATE = 'medical/create-template'
+
+export const UPDATE_MEDICAL_TEMPLATE = 'medical/update-template'
+
+export const DELETE_MEDICAL_TEMPLATE = 'medical/delete-template'
+
 // Hospital Analytics
 
 export const HOSPITAL_LISTING = 'v1/entity/types/withUserPermission'

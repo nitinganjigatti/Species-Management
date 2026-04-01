@@ -5,13 +5,13 @@ import { getAnimalJournalLogs } from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import GroupedTimeline from 'src/views/pages/hospital/inpatient/GroupedTimeline'
 import MedicalSummaryFilterDrawer from '../drawer/MedicalSummaryFilterDrawer'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 
 const STORAGE_KEY = 'medical_record_data'
 
 const InpatientMedicalSummary = () => {
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const animal_id = medicalRecordData?.animal_id
 
   const [filters, setFilters] = useState({

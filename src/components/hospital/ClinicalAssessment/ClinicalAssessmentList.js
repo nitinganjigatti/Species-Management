@@ -43,6 +43,7 @@ export default function ClinicalAssessmentList({
   const userSettings = authData?.userData?.permission?.user_settings
 
   const filteredSymptoms = symptoms
+  const listHeight = 620
 
   return (
     <Box sx={{ pt: 1 }}>
@@ -157,14 +158,14 @@ export default function ClinicalAssessmentList({
         <Box sx={{ minWidth: '192px', textAlign: 'left' }}>TYPE</Box>
       </Box>
 
-      <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }}>
+      <Box sx={{ maxHeight: listHeight, overflowY: 'auto', mt: 0 }}>
         {isTabsLoading || isInitialLoading ? (
           <ClinicalAssessmentListShimmer rows={8} />
         ) : filteredSymptoms.length === 0 ? (
           <Box
             sx={{
               background: theme.palette.common.white,
-              height: 500,
+              height: listHeight,
               borderRadius: '8px',
               display: 'flex',
               flexDirection: 'column',
