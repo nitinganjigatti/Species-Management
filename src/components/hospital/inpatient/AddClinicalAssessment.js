@@ -309,7 +309,7 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
 
   const handleAddAssessment = async () => {
     setIsSubmitLoading(true)
-    const duplicatesData = await checkDuplicateAssessments()
+    const submittableSymptoms = selectedSymptoms.filter(symptom => !alreadySelectedIds.includes(symptom?.id))
 
     if (selectedSymptoms.length === 0) {
       Toaster({ type: 'error', message: 'Please select at least one Assessment' })
@@ -317,14 +317,29 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
 
       return
     }
-    if (duplicatesData?.length > 0) {
-      setDuplicatesErrorModelOpen(true)
+
+    if (submittableSymptoms.length === 0) {
+      Toaster({ type: 'error', message: 'All selected clinical assessments are already prescribed' })
       setIsSubmitLoading(false)
 
       return
     }
 
-    const diagnosis = selectedSymptoms.map(symptom => ({
+    const duplicatesData = await checkAnimalStatusByType({
+      type: 'diagnosis',
+      animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
+      master_ids: JSON.stringify(submittableSymptoms.map(s => s.id))
+    })
+
+    if (duplicatesData?.success && duplicatesData?.data?.length > 0) {
+      setDuplicatesErrorModelOpen(true)
+      setDuplicateAssessments(duplicatesData?.data || [])
+      setIsSubmitLoading(false)
+
+      return
+    }
+
+    const diagnosis = submittableSymptoms.map(symptom => ({
       id: symptom?.id,
       name: symptom?.name,
       additional_info: {
@@ -543,6 +558,7 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
               onEdit={handleAssessmentEdit}
               onRemove={removeSymptom}
               clinicalAsmnt={clinicalAsmnt}
+              alreadySelectedIds={alreadySelectedIds}
             />
           </Box>
         </Grid>

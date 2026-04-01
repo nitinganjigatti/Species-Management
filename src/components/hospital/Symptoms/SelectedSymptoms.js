@@ -1,10 +1,10 @@
 import React from 'react'
-import { Box, Typography, IconButton, alpha } from '@mui/material'
+import { Box, Typography, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 
-export default function SelectedSymptoms({ selected, onRemove, severity }) {
+export default function SelectedSymptoms({ selected, onRemove, severity, alreadySelectedIds = [] }) {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
@@ -63,7 +63,10 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
             //py: 10
           }}
         >
-          {selected.map((symptom, idx) => (
+          {selected.map((symptom, idx) => {
+            const isAlreadyPrescribed = alreadySelectedIds.includes(symptom?.id)
+
+            return (
             <Box
               key={idx}
               sx={{
@@ -72,7 +75,8 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
                 borderRadius: '8px',
                 display: 'flex',
                 justifyContent: 'space-between',
-                alignItems: 'center'
+                alignItems: 'center',
+                opacity: isAlreadyPrescribed ? 0.7 : 1
               }}
             >
               <Box>
@@ -113,7 +117,8 @@ export default function SelectedSymptoms({ selected, onRemove, severity }) {
                 <CloseIcon sx={{ color: '#1F515B', fontSize: '22px' }} />
               </IconButton>
             </Box>
-          ))}
+            )
+          })}
         </Box>
       )}
     </Box>

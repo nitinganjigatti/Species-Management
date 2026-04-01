@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 
-export default function SelectedClinicalAssessment({ selected, onRemove, clinicalAsmnt, onEdit }) {
+export default function SelectedClinicalAssessment({ selected, onRemove, clinicalAsmnt, onEdit, alreadySelectedIds = [] }) {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
 
@@ -61,10 +61,15 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
             overflow: 'auto'
           }}
         >
-          {selected.map((symptom, idx) => (
+          {selected.map((symptom, idx) => {
+            const isAlreadyPrescribed = alreadySelectedIds.includes(symptom?.id)
+
+            return (
             <Box
               key={idx}
-              onClick={() => onEdit(symptom)}
+              onClick={() => {
+                if (!isAlreadyPrescribed) onEdit(symptom)
+              }}
               sx={{
                 backgroundColor: getSeverityColor(selected[idx]?.prognosisVal).bgColor,
                 p: 4,
@@ -73,7 +78,8 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 textAlign: 'left',
-                cursor: 'pointer'
+                cursor: isAlreadyPrescribed ? 'not-allowed' : 'pointer',
+                opacity: isAlreadyPrescribed ? 0.7 : 1
               }}
             >
               <Box>
@@ -154,7 +160,8 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
                 <CloseIcon sx={{ color: '#1F515B', fontSize: '22px' }} />
               </IconButton>
             </Box>
-          ))}
+            )
+          })}
         </Box>
       )}
     </Box>

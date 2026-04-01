@@ -320,12 +320,12 @@ function AddSymptoms() {
     fetchSymptoms(searchQuery, 1, false, tabId)
   }
 
-  const checkDuplicateSymptoms = async () => {
+  const checkDuplicateSymptoms = async symptomItems => {
     try {
       const payload = {
         type: 'complaint',
         animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
-        master_ids: JSON.stringify(selectedSymptoms.map(s => s.id))
+        master_ids: JSON.stringify((symptomItems || []).map(s => s.id))
       }
       const response = await checkAnimalStatusByType(payload)
 
@@ -343,7 +343,7 @@ function AddSymptoms() {
 
   const handleAddClick = async () => {
     setAddLoading(true)
-    const duplicatesData = await checkDuplicateSymptoms()
+    const submittableSymptoms = selectedSymptoms.filter(symptom => !alreadySelectedIds.includes(symptom?.id))
 
     try {
       if (selectedSymptoms.length === 0) {
@@ -352,13 +352,21 @@ function AddSymptoms() {
         return
       }
 
+      if (submittableSymptoms.length === 0) {
+        Toaster({ type: 'error', message: 'All selected symptoms are already prescribed' })
+
+        return
+      }
+
+      const duplicatesData = await checkDuplicateSymptoms(submittableSymptoms)
+
       if (duplicatesData?.length > 0) {
         setDuplicatesErrorModelOpen(true)
 
         return
       }
 
-      const complaints = selectedSymptoms.map(symptom => ({
+      const complaints = submittableSymptoms.map(symptom => ({
         id: symptom.id,
         name: symptom.name,
         additional_info: {
@@ -498,7 +506,12 @@ function AddSymptoms() {
                 status: 'active'
               })}
             />
-            <SelectedSymptoms selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
+            <SelectedSymptoms
+              selected={selectedSymptoms}
+              onRemove={removeSymptom}
+              severity={severity}
+              alreadySelectedIds={alreadySelectedIds}
+            />
           </Box>
         </Grid>
       </Grid>
