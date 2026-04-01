@@ -15,6 +15,7 @@ import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import SelectionTemplatePanel from './SelectionTemplatePanel'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -480,7 +481,25 @@ function AddSymptoms() {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SelectedSymptoms selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <SelectionTemplatePanel
+              templateType='complaints'
+              selectedItems={selectedSymptoms}
+              onApplyTemplate={setSelectedSymptoms}
+              templateLabel='symptom template'
+              itemLabel='symptoms'
+              mapTemplateItem={item => ({
+                id: item?.id,
+                name: item?.name,
+                severity: 'Mild',
+                durationValue: 0,
+                durationUnit: 'Days',
+                notes: '',
+                status: 'active'
+              })}
+            />
+            <SelectedSymptoms selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
+          </Box>
         </Grid>
       </Grid>
 

@@ -1,0 +1,543 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Drawer,
+  IconButton,
+  TextField,
+  Typography
+} from '@mui/material'
+import { LoadingButton } from '@mui/lab'
+import { alpha, useTheme } from '@mui/material/styles'
+import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
+import {
+  createMedicalTemplate,
+  deleteMedicalTemplate,
+  getMedicalTemplates,
+  updateMedicalTemplate
+} from 'src/lib/api/hospital/clinicalAssessment'
+
+function SelectionTemplatePanel({
+  templateType,
+  selectedItems = [],
+  onApplyTemplate,
+  templateLabel,
+  itemLabel,
+  mapTemplateItem
+}) {
+  const theme = useTheme()
+  const [templates, setTemplates] = useState([])
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false)
+  const [templateName, setTemplateName] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
+  const [editingTemplate, setEditingTemplate] = useState(null)
+  const [editingName, setEditingName] = useState('')
+  const [editingItems, setEditingItems] = useState([])
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState(false)
+
+  const canSaveTemplate = selectedItems.length > 1
+  const responseKey = templateType === 'complaints' ? 'complaintsTemplates' : 'diagnosisTemplates'
+  const apiTemplateType = templateType === 'complaints' ? 'complaint' : 'diagnosis'
+  const selectedItemIdsKey = useMemo(
+    () =>
+      selectedItems
+        .map(item => Number(item?.id))
+        .filter(id => !Number.isNaN(id))
+        .sort((a, b) => a - b)
+        .join(','),
+    [selectedItems]
+  )
+
+  const mappedTemplates = useMemo(
+    () =>
+      templates.map(item => ({
+        id: item?.id,
+        name: item?.template_name ?? item?.name,
+        template_items: Array.isArray(item?.template_items) ? item.template_items : []
+      })),
+    [templates]
+  )
+  const inlineTemplates = mappedTemplates.slice(0, 3)
+  const showTemplatesInDrawer = mappedTemplates.length > 3
+
+  const activeTemplateId = useMemo(() => {
+    return (
+      mappedTemplates.find(template => {
+        const templateIdsKey = template.template_items
+          .map(item => Number(item?.id))
+          .filter(id => !Number.isNaN(id))
+          .sort((a, b) => a - b)
+          .join(',')
+
+        return templateIdsKey.length > 0 && templateIdsKey === selectedItemIdsKey
+      })?.id ?? null
+    )
+  }, [mappedTemplates, selectedItemIdsKey])
+
+  const shouldShowSaveTemplate = canSaveTemplate && !activeTemplateId
+
+  const loadTemplates = useCallback(async () => {
+    try {
+      const response = await getMedicalTemplates({ type: 'all' })
+      const list = Array.isArray(response?.data?.[responseKey]) ? response.data[responseKey] : []
+      setTemplates(list)
+    } catch (error) {
+      console.error(`Error loading ${templateType} templates:`, error)
+      Toaster({ type: 'error', message: `Failed to load ${templateLabel}s` })
+    }
+  }, [responseKey, templateLabel, templateType])
+
+  useEffect(() => {
+    loadTemplates()
+  }, [loadTemplates])
+
+  const handleApplyTemplate = template => {
+    const templateItems = Array.isArray(template?.template_items) ? template.template_items : []
+
+    if (templateItems.length === 0) {
+      Toaster({ type: 'error', message: `This ${templateLabel} has no items` })
+
+      return
+    }
+
+    const mappedItems = templateItems.map(item => mapTemplateItem(item)).filter(Boolean)
+    onApplyTemplate(mappedItems)
+    Toaster({ type: 'success', message: 'Template applied successfully' })
+  }
+
+  const openEditDialog = template => {
+    setEditingTemplate(template)
+    setEditingName(template?.name || '')
+    setEditingItems(Array.isArray(template?.template_items) ? template.template_items : [])
+  }
+
+  const closeEditDialog = () => {
+    if (isUpdating || isDeleting) return
+    setEditingTemplate(null)
+    setEditingName('')
+    setEditingItems([])
+  }
+
+  const handleRemoveEditingItem = itemId => {
+    setEditingItems(prev => prev.filter(item => item?.id !== itemId))
+  }
+
+  const handleAddCurrentSelection = () => {
+    const currentMapped = selectedItems.map(item => mapTemplateItem(item)).filter(Boolean)
+
+    setEditingItems(prev => {
+      const existingIds = new Set(prev.map(item => item?.id))
+      const uniqueNewItems = currentMapped.filter(item => !existingIds.has(item?.id))
+
+      return [...prev, ...uniqueNewItems]
+    })
+  }
+
+  const handleUpdateTemplate = async () => {
+    const trimmedName = editingName.trim()
+
+    if (!editingTemplate?.id) return
+
+    if (!trimmedName) {
+      Toaster({ type: 'error', message: 'Please enter the template name' })
+
+      return
+    }
+
+    if (editingItems.length === 0) {
+      Toaster({ type: 'error', message: 'Template must contain at least one item' })
+
+      return
+    }
+
+    const duplicateName = mappedTemplates.some(
+      item => item?.id !== editingTemplate.id && item?.name?.toLowerCase() === trimmedName.toLowerCase()
+    )
+    if (duplicateName) {
+      Toaster({ type: 'error', message: 'Template name already exists' })
+
+      return
+    }
+
+    setIsUpdating(true)
+    try {
+      const response = await updateMedicalTemplate(editingTemplate.id, {
+        template_name: trimmedName,
+        type: apiTemplateType,
+        template_items: editingItems.map(item => Number(item?.id))
+      })
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Template updated successfully' })
+        await loadTemplates()
+        closeEditDialog()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to update template' })
+      }
+    } catch (error) {
+      console.error(`Error updating ${templateType} template:`, error)
+      Toaster({ type: 'error', message: 'Failed to update template' })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const handleDeleteTemplate = async () => {
+    if (!editingTemplate?.id) return
+
+    setIsDeleting(true)
+    try {
+      const response = await deleteMedicalTemplate(editingTemplate.id)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Template deleted successfully' })
+        await loadTemplates()
+        closeEditDialog()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to delete template' })
+      }
+    } catch (error) {
+      console.error(`Error deleting ${templateType} template:`, error)
+      Toaster({ type: 'error', message: 'Failed to delete template' })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const handleSaveTemplate = async () => {
+    const trimmedName = templateName.trim()
+
+    if (!trimmedName) {
+      Toaster({ type: 'error', message: 'Please enter the template name' })
+
+      return
+    }
+
+    const duplicateName = mappedTemplates.some(item => item?.name?.toLowerCase() === trimmedName.toLowerCase())
+    if (duplicateName) {
+      Toaster({ type: 'error', message: 'Template name already exists' })
+
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      const response = await createMedicalTemplate({
+        template_name: trimmedName,
+        type: apiTemplateType,
+        template_items: selectedItems.map(item => Number(item.id))
+      })
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
+        setTemplateName('')
+        setShowSaveTemplate(false)
+        await loadTemplates()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
+      }
+    } catch (error) {
+      console.error(`Error saving ${templateType} template:`, error)
+      Toaster({ type: 'error', message: 'Failed to save template' })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 3,
+        p: 4,
+        borderRadius: '8px',
+        backgroundColor: theme.palette.common.white,
+        border: `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.08)}`
+      }}
+    >
+      {shouldShowSaveTemplate ? (
+        !showSaveTemplate ? (
+          <Button
+            variant='text'
+            onClick={() => setShowSaveTemplate(true)}
+            startIcon={<Icon icon='material-symbols:save-outline-sharp' />}
+            sx={{
+              alignSelf: 'flex-start',
+              color: theme.palette.customColors.OnSurface,
+              px: 0.5
+            }}
+          >
+            Save as template
+          </Button>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: { xs: 'stretch', md: 'center' },
+              flexDirection: { xs: 'column', md: 'row' },
+              gap: 2
+            }}
+          >
+            <TextField
+              fullWidth
+              size='small'
+              label='Template name'
+              placeholder={`Enter ${templateLabel} name`}
+              value={templateName}
+              onChange={event => setTemplateName(event.target.value)}
+              disabled={isSaving}
+            />
+            <LoadingButton
+              variant='contained'
+              onClick={handleSaveTemplate}
+              loading={isSaving}
+              disabled={!templateName.trim()}
+              sx={{ minWidth: 110 }}
+            >
+              Save
+            </LoadingButton>
+            <IconButton
+              onClick={() => {
+                setShowSaveTemplate(false)
+                setTemplateName('')
+              }}
+              disabled={isSaving}
+            >
+              <Icon icon='mdi:close' />
+            </IconButton>
+          </Box>
+        )
+      ) : null}
+
+      {mappedTemplates.length > 0 ? (
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, mb: 2 }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface }}>
+              Your templates
+            </Typography>
+            {showTemplatesInDrawer ? (
+              <Button size='small' onClick={() => setTemplatesDrawerOpen(true)} sx={{ px: 0.5 }}>
+                View all
+              </Button>
+            ) : null}
+          </Box>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+            {inlineTemplates.map(item => (
+              <Box
+                key={item.id}
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  pl: 0.25,
+                  pr: 0.5,
+                  py: 0.25,
+                  borderRadius: '16px',
+                  border:
+                    activeTemplateId === item.id
+                      ? `1px solid ${theme.palette.primary.main}`
+                      : `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.18)}`,
+                  backgroundColor:
+                    activeTemplateId === item.id
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : theme.palette.common.white
+                }}
+              >
+                <Chip
+                  label={item.name}
+                  onClick={() => handleApplyTemplate(item)}
+                  clickable
+                  sx={{
+                    backgroundColor: 'transparent',
+                    color:
+                      activeTemplateId === item.id
+                        ? theme.palette.primary.main
+                        : theme.palette.customColors.OnSurface,
+                    '& .MuiChip-label': { px: 1.5 }
+                  }}
+                />
+                <IconButton size='small' onClick={() => openEditDialog(item)}>
+                  <Icon icon='mdi:pencil-outline' fontSize={16} />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      ) : null}
+
+      {selectedItems.length === 0 ? (
+        <Typography variant='caption' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+          Add {itemLabel} to enable template saving.
+        </Typography>
+      ) : null}
+
+      <Dialog open={Boolean(editingTemplate)} onClose={closeEditDialog} fullWidth maxWidth='sm'>
+        <DialogTitle>Edit Template</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: '20px !important' }}>
+          <TextField
+            fullWidth
+            size='small'
+            label='Template name'
+            value={editingName}
+            onChange={event => setEditingName(event.target.value)}
+            disabled={isUpdating || isDeleting}
+          />
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface }}>
+              Template items ({editingItems.length})
+            </Typography>
+            <Button onClick={handleAddCurrentSelection} disabled={isUpdating || isDeleting || selectedItems.length === 0}>
+              Add current selection
+            </Button>
+          </Box>
+
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {editingItems.map(item => (
+              <Chip
+                key={item?.id}
+                label={item?.name}
+                onDelete={() => handleRemoveEditingItem(item?.id)}
+                disabled={isUpdating || isDeleting}
+              />
+            ))}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'space-between', px: 6, pb: 4 }}>
+          <Button color='error' onClick={handleDeleteTemplate} disabled={isUpdating || isDeleting}>
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </Button>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button onClick={closeEditDialog} disabled={isUpdating || isDeleting}>
+              Cancel
+            </Button>
+            <LoadingButton variant='contained' onClick={handleUpdateTemplate} loading={isUpdating} disabled={isDeleting}>
+              Save
+            </LoadingButton>
+          </Box>
+        </DialogActions>
+      </Dialog>
+
+      <Drawer
+        anchor='right'
+        open={templatesDrawerOpen}
+        onClose={() => setTemplatesDrawerOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100%', sm: '80%', md: 560 },
+              backgroundColor: theme.palette.customColors.Background,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%'
+            }
+          }
+        }}
+      >
+        <Box
+          sx={{
+            p: 4,
+            position: 'sticky',
+            top: 0,
+            backgroundColor: theme.palette.customColors.OnPrimary,
+            zIndex: 1,
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Icon icon='mdi:view-grid-outline' fontSize={24} color={theme.palette.primary.main} />
+              <Box>
+                <Typography variant='h6' sx={{ fontWeight: 600 }}>
+                  All Templates
+                </Typography>
+                <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                  Select and manage saved templates
+                </Typography>
+              </Box>
+            </Box>
+            <IconButton onClick={() => setTemplatesDrawerOpen(false)}>
+              <Icon icon='mdi:close' />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            background: theme.palette.customColors.background,
+            p: 6
+          }}
+        >
+          <Box
+            sx={{
+              backgroundColor: theme.palette.customColors.OnPrimary,
+              p: 4,
+              borderRadius: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3
+            }}
+          >
+            {mappedTemplates.map(item => (
+              <Box
+                key={item.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  p: 3,
+                  borderRadius: '8px',
+                  border:
+                    activeTemplateId === item.id
+                      ? `1px solid ${theme.palette.primary.main}`
+                      : `1px solid ${alpha(theme.palette.customColors.OnSurfaceVariant, 0.18)}`,
+                  backgroundColor:
+                    activeTemplateId === item.id
+                      ? alpha(theme.palette.primary.main, 0.08)
+                      : theme.palette.customColors.Surface
+                }}
+              >
+                <Box
+                  onClick={() => {
+                    handleApplyTemplate(item)
+                    setTemplatesDrawerOpen(false)
+                  }}
+                  sx={{ flex: 1, cursor: 'pointer' }}
+                >
+                  <Typography
+                    sx={{
+                      color:
+                        activeTemplateId === item.id
+                          ? theme.palette.primary.main
+                          : theme.palette.customColors.OnSurface,
+                      fontWeight: 500
+                    }}
+                  >
+                    {item.name}
+                  </Typography>
+                </Box>
+                <IconButton size='small' onClick={() => openEditDialog(item)}>
+                  <Icon icon='mdi:pencil-outline' fontSize={18} />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      </Drawer>
+    </Box>
+  )
+}
+
+export default SelectionTemplatePanel

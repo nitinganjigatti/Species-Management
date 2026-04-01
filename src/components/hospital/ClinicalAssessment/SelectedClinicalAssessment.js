@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography, IconButton, alpha } from '@mui/material'
+import { Box, Typography, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
@@ -59,8 +59,6 @@ export default function SelectedClinicalAssessment({ selected, onRemove, clinica
             display: 'flex',
             p: 7,
             overflow: 'auto'
-
-            //py: 10
           }}
         >
           {selected.map((symptom, idx) => (

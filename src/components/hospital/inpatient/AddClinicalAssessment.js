@@ -21,6 +21,7 @@ import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import SelectionTemplatePanel from './SelectionTemplatePanel'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
@@ -520,12 +521,30 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SelectedClinicalAssessment
-            selected={selectedSymptoms}
-            onEdit={handleAssessmentEdit}
-            onRemove={removeSymptom}
-            clinicalAsmnt={clinicalAsmnt}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <SelectionTemplatePanel
+              templateType='diagnosis'
+              selectedItems={selectedSymptoms}
+              onApplyTemplate={setSelectedSymptoms}
+              templateLabel='clinical assessment template'
+              itemLabel='clinical assessments'
+              mapTemplateItem={item => ({
+                id: item?.id,
+                name: item?.name,
+                clinicalAsmnt: 'Tentative',
+                prognosisVal: '',
+                chronicVal: 'No',
+                notes: '',
+                status: 'active'
+              })}
+            />
+            <SelectedClinicalAssessment
+              selected={selectedSymptoms}
+              onEdit={handleAssessmentEdit}
+              onRemove={removeSymptom}
+              clinicalAsmnt={clinicalAsmnt}
+            />
+          </Box>
         </Grid>
       </Grid>
       <Box>
