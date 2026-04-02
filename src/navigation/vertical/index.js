@@ -16,6 +16,8 @@ import hospitalNavigation from 'src/components/navigation/hospital'
 import settingsNavigation from 'src/components/navigation/settings'
 import necropsyNavigation from 'src/components/navigation/necropsy'
 import announcementsNavigation from 'src/components/navigation/announcements'
+import notesNavigation from 'src/components/navigation/notes'
+
 import animalsNavigation from 'src/components/navigation/animals'
 
 const ComposeNavigation = () => {
@@ -64,6 +66,10 @@ const ComposeNavigation = () => {
   // Announcements module (App Router)
   const announcementsNav = announcementsNavigation()
   navigationArray.push(...announcementsNav)
+
+  // Notes module (App Router)
+  const notesNav = notesNavigation()
+  navigationArray.push(...notesNav)
 
   // Animals module (App Router)
   const animalsNav = animalsNavigation()
