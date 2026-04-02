@@ -23,7 +23,7 @@ import RenderUtility from 'src/utility/render'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 import { getAnimalFilterList } from 'src/lib/api/compliance/reports'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import { useAuth } from 'src/hooks/useAuth'
@@ -31,7 +31,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalFilterDrawer from './AnimalFilterDrawer'
 import { format } from 'date-fns'
-import { useRouter, usePathname } from 'next/navigation'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 interface NavigationItem {
   label: string
@@ -165,17 +165,19 @@ const AnimalAvatarCell = ({ src: initialSrc }: { src: string | undefined }) => {
 
 const AnimalsListing = () => {
   const theme = useTheme()
-  const router = useRouter()
-  const pathname = usePathname()
+  const router = useSafeRouter()
   const auth = useAuth()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
-  const [searchValue, setSearchValue] = useState<string>('')
+  const initialParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+
+  const [searchValue, setSearchValue] = useState<string>(initialParams?.get('q') || '')
   const [activeTab, setActiveTab] = useState<string>('')
   const [horizontalNavList, setHorizontalNavList] = useState<NavigationItem[]>([])
-  const [viewMode, setViewMode] = useState<'Grid' | 'List'>('Grid')
+  const [viewMode, setViewMode] = useState<'Grid' | 'List'>(
+    (initialParams?.get('view') as 'Grid' | 'List') || 'Grid'
+  )
 
-  // Filter drawer state
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
   const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({
@@ -184,51 +186,41 @@ const AnimalsListing = () => {
     'Animal Type': ''
   })
 
-  // Initialize filters from URL on mount only
-  const [filters, setFilters] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search)
-      return {
-        page: parseInt(params.get('page') || '1'),
-        limit: parseInt(params.get('limit') || '10'),
-        q: params.get('q') || ''
-      }
-    }
-    return { page: 1, limit: 10, q: '' }
+  const [filters, setFilters] = useState({
+    page: Number(initialParams?.get('page')) || 1,
+    limit: Number(initialParams?.get('limit')) || 10,
+    q: initialParams?.get('q') || ''
   })
 
   const [sortModel, setSortModel] = useState<any[]>([])
 
-  // Update URL without triggering navigation (state is source of truth)
-  const updateUrlParams = (updatedFilters: { page: number; limit: number; q: string }) => {
-    if (typeof window === 'undefined') return
-
+  const updateUrlParams = (updatedFilters: { page: number; limit: number; q: string }, view?: 'Grid' | 'List') => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
       if (value) {
         params.set(key, value.toString())
       }
     })
+    const currentView = view ?? viewMode
+    if (currentView) {
+      params.set('view', currentView)
+    }
     const queryString = params.toString()
-    window.history.replaceState({}, '', `${pathname}?${queryString}`)
+    router.replace(`${router.pathname}${queryString ? `?${queryString}` : ''}`)
   }
 
-  // Ref for updateUrlParams to use in debounced callback
   const updateUrlParamsRef = useRef(updateUrlParams)
   updateUrlParamsRef.current = updateUrlParams
 
   const handleViewModeChange = (_event: React.MouseEvent<HTMLElement>, newMode: 'Grid' | 'List' | null) => {
     if (newMode !== null) {
       setViewMode(newMode)
-      if (newMode === 'List') {
-        const updated = { ...filters, page: 1 }
-        setFilters(updated)
-        updateUrlParams(updated)
-      }
+      const updated = { ...filters, page: 1 }
+      setFilters(updated)
+      updateUrlParams(updated, newMode)
     }
   }
 
-  // Pagination handler (matching inpatient pattern - no useCallback)
   const handlePaginationModelChange = (model: { page: number; pageSize: number }) => {
     const updated = {
       ...filters,
@@ -269,7 +261,6 @@ const AnimalsListing = () => {
     setFilters(prev => ({ ...prev, page: 1 }))
   }
 
-  // Debounced search (matching inpatient pattern)
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
@@ -317,12 +308,10 @@ const AnimalsListing = () => {
     return params
   }, [appliedFilters])
 
-  // Grid view infinite scroll state
   const [gridPage, setGridPage] = useState(1)
   const [gridData, setGridData] = useState<any[]>([])
   const [gridTotalCount, setGridTotalCount] = useState(0)
 
-  // Reset grid data when filters/search/tab/view changes
   useEffect(() => {
     if (viewMode === 'Grid') {
       setGridPage(1)
@@ -330,7 +319,6 @@ const AnimalsListing = () => {
     }
   }, [activeTab, filters.q, appliedFilters, viewMode])
 
-  // Single query for both Grid and List views
   const { data: animalsData, isFetching } = useQuery({
     queryKey: [
       'animalsList',
@@ -344,6 +332,7 @@ const AnimalsListing = () => {
       sortModel
     ],
     enabled: !!activeTab && !!zooId,
+    placeholderData: keepPreviousData,
     queryFn: async () => {
       const filterParams = buildFilterParams()
       const activeSortModel = sortModel[0]
@@ -362,8 +351,8 @@ const AnimalsListing = () => {
             column: activeSortModel.field
           })
       }
-
       const res = await getNewAnimalListWithFilters(params)
+
       return {
         animals: res?.data || [],
         total_count: res?.total_count || 0
@@ -371,7 +360,6 @@ const AnimalsListing = () => {
     }
   })
 
-  // Accumulate data for Grid view infinite scroll
   useEffect(() => {
     if (viewMode === 'Grid' && animalsData?.animals) {
       setGridTotalCount(animalsData.total_count)
@@ -383,20 +371,16 @@ const AnimalsListing = () => {
     }
   }, [animalsData, viewMode, gridPage])
 
-  // Check if there are more pages for Grid view
   const hasNextPage = viewMode === 'Grid' && gridPage * 10 < gridTotalCount
 
-  // Load next page when user scrolls to bottom (Grid view)
   useEffect(() => {
     if (inView && hasNextPage && !isFetching && viewMode === 'Grid') {
       setGridPage(prev => prev + 1)
     }
   }, [inView, hasNextPage, isFetching, viewMode])
 
-  // Data for Grid view (infinite scroll)
   const gridList = gridData
 
-  // Data for List view (paginated)
   const tableList = animalsData?.animals || []
   const tableTotalCount = animalsData?.total_count || 0
 
@@ -422,11 +406,9 @@ const AnimalsListing = () => {
 
   const handleFilterChange = (_event: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue)
-    // Reset pagination when tab changes
     setFilters(prev => ({ ...prev, page: 1 }))
   }
 
-  // Calculate SL.NO with proper pagination offset for List view (matching inpatient pattern)
   const getSlNo = (index: number) => (filters.page - 1) * filters.limit + index + 1
 
   const indexedRows = tableList.map((item: any, idx: number) => ({
@@ -638,7 +620,6 @@ const AnimalsListing = () => {
                 <Tab key={index} label={item.label} value={item.type} />
               ))}
             </Tabs>
-            {/* Initial loading state for Grid view - skeleton cards */}
             {viewMode === 'Grid' && isFetching && gridList.length === 0 && (
               <Grid container spacing={6} sx={{ mt: 4 }}>
                 {Array.from({ length: 6 }).map((_, idx) => (
@@ -658,7 +639,6 @@ const AnimalsListing = () => {
                 ))}
               </Grid>
             )}
-            {/* Empty state for Grid view */}
             {viewMode === 'Grid' && gridList.length === 0 && !isFetching && (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
                 <Typography color='text.secondary'>No animals found</Typography>
@@ -692,7 +672,6 @@ const AnimalsListing = () => {
                     ))}
                   </Grid>
                 )}
-                {/* Infinite scroll sentinel – always rendered so observer can watch it */}
                 <Box ref={loaderRef} sx={{ display: 'flex', justifyContent: 'center', p: 2, minHeight: 1 }}>
                   {isFetching && gridList.length > 0 && <CircularProgress size={28} />}
                 </Box>
@@ -708,7 +687,6 @@ const AnimalsListing = () => {
                   paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
                   setPaginationModel={handlePaginationModelChange}
                   handleSortModel={handleSortModel}
-                  pageSizeOptions={[10, 25, 50, 100]}
                   onRowClick={handleRowClick}
                 />
               </Box>
@@ -717,7 +695,6 @@ const AnimalsListing = () => {
         </Card>
       </Box>
 
-      {/* Animal Filter Drawer */}
       <AnimalFilterDrawer
         open={filterDrawerOpen}
         onClose={handleFilterDrawerClose}
