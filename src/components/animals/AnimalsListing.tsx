@@ -174,9 +174,7 @@ const AnimalsListing = () => {
   const [searchValue, setSearchValue] = useState<string>(initialParams?.get('q') || '')
   const [activeTab, setActiveTab] = useState<string>('')
   const [horizontalNavList, setHorizontalNavList] = useState<NavigationItem[]>([])
-  const [viewMode, setViewMode] = useState<'Grid' | 'List'>(
-    (initialParams?.get('view') as 'Grid' | 'List') || 'Grid'
-  )
+  const [viewMode, setViewMode] = useState<'Grid' | 'List'>((initialParams?.get('view') as 'Grid' | 'List') || 'Grid')
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [filterCount, setFilterCount] = useState(0)
@@ -551,6 +549,7 @@ const AnimalsListing = () => {
       <Box>
         <Breadcrumbs>
           <Typography>Animals</Typography>
+          <Typography>Animals List</Typography>
         </Breadcrumbs>
         <Card sx={{ mt: 6 }}>
           <CardHeader title={RenderUtility.pageTitle('Animals')} />
