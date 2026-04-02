@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -60,9 +60,7 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
     owned_by_me: filter === 'my_posts' ? true : undefined
   })
 
-  const announcements = useMemo(() => {
-    return data?.pages.flatMap(page => page.data?.announcement_details || []) || []
-  }, [data])
+  const announcements = data?.pages.flatMap(page => page.data?.announcement_details || []) || []
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {

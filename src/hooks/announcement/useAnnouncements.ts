@@ -21,6 +21,7 @@ import type {
 export const useAnnouncementList = (params: UseAnnouncementListParams = {}) => {
   return useInfiniteQuery({
     queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST, params],
+    structuralSharing: false,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await announcementApi.getAnnouncementList({
         ...params,
@@ -129,7 +130,10 @@ export const useToggleReaction = () => {
 
       return { previousListData, previousDetailsData, announcementId }
     },
-    onSuccess: (_data, { isLiked }) => {
+    onSuccess: (_data, { announcementId, isLiked }) => {
+      // Invalidate both list and details queries to refetch from server
+      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId] })
+      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
       Toaster({
         type: 'success',
         message: isLiked ? 'Reaction removed' : 'Reaction added'
@@ -197,44 +201,29 @@ export const useAddComment = () => {
 
 /**
  * Hook for deleting a comment
+ * Matches mobile behavior: no optimistic updates, wait for API response,
+ * then invalidate queries to refetch from server
  */
 export const useDeleteComment = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async ({ commentId, announcementId }: { commentId: number; announcementId: number }) => {
-      return announcementApi.deleteComment(commentId)
-    },
-    onSuccess: (_response, { commentId, announcementId }) => {
-      // Remove comment from list cache and update count
-      queryClient.setQueriesData({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] }, (old: any) => {
-        if (!old?.pages) return old
+      const response = await announcementApi.deleteComment(commentId)
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to delete comment')
+      }
 
-        return {
-          ...old,
-          pages: old.pages.map((page: AnnouncementListResponse) => ({
-            ...page,
-            data: {
-              ...page.data,
-              announcement_details: page.data.announcement_details.map((announcement: Announcement) =>
-                announcement.announcement_id === announcementId
-                  ? {
-                      ...announcement,
-                      comment_count: Math.max(0, announcement.comment_count - 1),
-                      comments: announcement.comments.filter(c => c.id !== commentId)
-                    }
-                  : announcement
-              )
-            }
-          }))
-        }
-      })
-      // Also invalidate the details query to refresh the drawer
-      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId] })
-      Toaster({ type: 'success', message: 'Comment deleted' })
+      return response
     },
-    onError: () => {
-      Toaster({ type: 'error', message: 'Failed to delete comment' })
+    onSuccess: (data, { announcementId }) => {
+      // Invalidate both details and list queries to refetch from server (matching mobile invalidatesTags)
+      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.DETAILS, announcementId] })
+      queryClient.invalidateQueries({ queryKey: [ANNOUNCEMENT_QUERY_KEYS.LIST] })
+      Toaster({ type: 'success', message: data.message || 'Comment deleted' })
+    },
+    onError: (error: Error) => {
+      Toaster({ type: 'error', message: error.message || 'Failed to delete comment' })
     }
   })
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useState, useEffect, useRef } from 'react'
+import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import dayjs from 'dayjs'
@@ -12,20 +12,21 @@ import {
   Drawer,
   IconButton,
   Typography,
-  TextField,
   Tabs,
   Tab,
   Avatar,
   useTheme
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
-import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
-import MUITimePicker from 'src/views/forms/form-fields/MUITimePicker'
-import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useCreateAnnouncement, useUpdateAnnouncement } from 'src/hooks/announcement/useAnnouncements'
 import { useAuth } from 'src/hooks/useAuth'
-import SearchUsersDrawer from './SearchUsersDrawer'
+import SearchUsersDrawer from 'src/components/housing/sites/SearchUsersDrawer'
 import SelectSitesRolesDrawer from './SelectSitesRolesDrawer'
 import type {
   Announcement,
@@ -35,9 +36,9 @@ import type {
   AddAnnouncementDrawerProps,
   FormValues,
   Site,
-  Role,
-  SelectedUser
+  Role
 } from 'src/types/announcement'
+import type { User } from 'src/types/housing'
 
 const validationSchema = yup.object().shape({
   title: yup.string().required('Title is required').max(200, 'Title must be at most 200 characters'),
@@ -75,57 +76,12 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
   const theme = useTheme()
   const auth = useAuth() as any
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
-  const imgPath = auth?.userData?.settings?.DEFAULT_IMAGE_MASTER || {}
   const createAnnouncement = useCreateAnnouncement()
   const updateAnnouncement = useUpdateAnnouncement()
 
   const isEdit = !!editAnnouncement
 
   const [existingAttachments, setExistingAttachments] = useState<ExistingAttachment[]>([])
-  const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<number[]>([])
-
-  const getFileIconConfig = (fileType: string) => {
-    const type = fileType?.toLowerCase() || ''
-    if (type.includes('pdf')) {
-      return (
-        imgPath.pdf || {
-          bg_color: theme.palette.customColors.ErrorContainer || theme.palette.customColors.BgTeritary,
-          icon_color: theme.palette.customColors.Tertiary
-        }
-      )
-    }
-    if (type.includes('video')) {
-      return (
-        imgPath.video || {
-          bg_color: theme.palette.customColors.TertiaryContainer || theme.palette.customColors.infoContainer,
-          icon_color: theme.palette.primary.main
-        }
-      )
-    }
-    if (type.includes('audio')) {
-      return (
-        imgPath.audio || {
-          bg_color: theme.palette.customColors.warningContainer,
-          icon_color: theme.palette.warning.main
-        }
-      )
-    }
-    if (type.includes('doc') || type.includes('document')) {
-      return (
-        imgPath.document || {
-          bg_color: theme.palette.customColors.primaryContainer,
-          icon_color: theme.palette.primary.main
-        }
-      )
-    }
-
-    return (
-      imgPath.default || {
-        bg_color: theme.palette.customColors.SurfaceVariant || theme.palette.customColors.OutlineVariant,
-        icon_color: theme.palette.customColors.OnSurfaceVariant
-      }
-    )
-  }
 
   const {
     control,
@@ -166,18 +122,24 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
 
   const [selectedSites, setSelectedSites] = useState<Site[]>([])
   const [selectedRoles, setSelectedRoles] = useState<Role[]>([])
-  const [selectedUsers, setSelectedUsers] = useState<SelectedUser[]>([])
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([])
   const [isSitesRolesDrawerOpen, setIsSitesRolesDrawerOpen] = useState(false)
   const [isUsersDrawerOpen, setIsUsersDrawerOpen] = useState(false)
 
+  // Track open transition to avoid re-running on editAnnouncement reference changes
+  const prevOpenRef = useRef(false)
+
   useEffect(() => {
-    if (open && isEdit && editAnnouncement) {
+    // Only populate form on closed→open transition
+    if (open && !prevOpenRef.current && isEdit && editAnnouncement) {
       setValue('title', editAnnouncement.title || '')
       setValue('description', editAnnouncement.description || '')
 
       setValue('type', (editAnnouncement.type as AnnouncementType) || 'general')
 
-      const isEveryone = editAnnouncement.target_zoo_only ?? true
+      const hasTargetGroups =
+        (editAnnouncement.target_groups?.length ?? 0) > 0 || (editAnnouncement.user_target_groups?.length ?? 0) > 0
+      const isEveryone = hasTargetGroups ? false : editAnnouncement.target_zoo_only ?? true
       setValue('isEveryoneVisible', isEveryone)
       const isScheduledValue = editAnnouncement.is_scheduled
       const postNow = isScheduledValue === true || isScheduledValue === 1 || isScheduledValue === '1'
@@ -202,19 +164,61 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       setValue('allow_comments', allowComments)
 
       if (editAnnouncement.attachments && editAnnouncement.attachments.length > 0) {
-        setExistingAttachments(
-          editAnnouncement.attachments.map(att => ({
-            id: att.id,
-            file: att.file,
-            file_orginal_name: att.file_orginal_name || 'Attachment',
-            file_type: att.file_type || ''
-          }))
-        )
+        const mapped = editAnnouncement.attachments.map(att => ({
+          id: att.id,
+          file_path: att.file,
+          name: att.file_orginal_name || 'Attachment',
+          file_type: att.file_type || ''
+        }))
+        setExistingAttachments(mapped)
+        setValue('attachments', mapped)
       }
 
-      setDeletedAttachmentIds([])
+      // Pre-select sites and roles from target_groups
+      if (editAnnouncement.target_groups && editAnnouncement.target_groups.length > 0) {
+        const sites: Site[] = []
+        const roles: Role[] = []
+
+        editAnnouncement.target_groups.forEach((group: any) => {
+          if (group.group_type === 'site' && Array.isArray(group.values)) {
+            group.values.forEach((site: any) => {
+              sites.push({
+                site_id: site.site_id,
+                site_name: site.site_name || '',
+                site_image: site.site_image || ''
+              })
+            })
+          } else if (group.group_type === 'role' && Array.isArray(group.values)) {
+            group.values.forEach((role: any) => {
+              roles.push({
+                id: role.id,
+                role_name: role.role_name || '',
+                string_id: role.string_id || ''
+              })
+            })
+          }
+        })
+
+        setSelectedSites(sites)
+        setSelectedRoles(roles)
+      }
+
+      // Pre-select users from user_target_groups
+      // API returns a flat array of user objects (same as mobile's approver list)
+      if (editAnnouncement.user_target_groups && editAnnouncement.user_target_groups.length > 0) {
+        const users: User[] = editAnnouncement.user_target_groups.map((user: any) => ({
+          user_id: user.user_id,
+          user_name: user.user_name || user.full_name || '',
+          full_name: user.full_name || user.user_name || '',
+          user_profile_pic: user.user_profile_pic || user.profile_image || '',
+          role_name: user.role_name || ''
+        }))
+
+        setSelectedUsers(users)
+      }
     }
-  }, [open, isEdit, editAnnouncement, setValue])
+    prevOpenRef.current = open
+  }, [open])
 
   const handleSitesRolesChange = (sites: Site[], roles: Role[]) => {
     setSelectedSites(sites)
@@ -229,11 +233,11 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
     setSelectedRoles(selectedRoles.filter(r => r.id !== roleId))
   }
 
-  const handleUsersSelected = (users: SelectedUser[]) => {
+  const handleUsersSelected = (users: User[]) => {
     setSelectedUsers(users)
   }
 
-  const handleRemoveUser = (userId: number | string) => {
+  const handleRemoveUser = (userId: number) => {
     setSelectedUsers(selectedUsers.filter(u => u.user_id !== userId))
   }
 
@@ -243,13 +247,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
     setSelectedRoles([])
     setSelectedUsers([])
     setExistingAttachments([])
-    setDeletedAttachmentIds([])
     onClose()
-  }
-
-  const handleRemoveExistingAttachment = (attachmentId: number) => {
-    setExistingAttachments(prev => prev.filter(att => att.id !== attachmentId))
-    setDeletedAttachmentIds(prev => [...prev, attachmentId])
   }
 
   const calculateEndDate = (): string => {
@@ -332,6 +330,13 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       ])
     }
 
+    const allAttachments = data.attachments || []
+    const newFiles = allAttachments.filter((f: any) => f instanceof File)
+    const remainingExistingIds = new Set(
+      allAttachments.filter((f: any) => !(f instanceof File) && f.id).map((f: any) => f.id)
+    )
+    const removedIds = existingAttachments.filter(att => !remainingExistingIds.has(att.id)).map(att => att.id)
+
     const payload: CreateAnnouncementPayload = {
       title: data.title,
       description: data.description || '',
@@ -342,8 +347,8 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
       schedule_end_date: calculateEndDate(),
       target_groups: JSON.stringify(targetGroups),
       user_target_groups: userTargetGroups || undefined,
-      attachments: data.attachments,
-      deleted_attachments: deletedAttachmentIds.length > 0 ? deletedAttachmentIds.join(',') : undefined
+      attachments: newFiles,
+      deleted_attachments: removedIds.length > 0 ? removedIds.join(',') : undefined
     }
 
     try {
@@ -480,7 +485,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                     py: 3,
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    // transition: 'all 0.2s ease',
                     ...(selectedType === 'general'
                       ? {
                           backgroundColor: theme.palette.customColors.OnPrimaryContainer,
@@ -533,10 +538,10 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                     py: 3,
                     borderRadius: '8px',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    // transition: 'all 0.2s ease',
                     ...(selectedType === 'important'
                       ? {
-                          backgroundColor: theme.palette.customColors.Tertiary,
+                          backgroundColor: theme.palette.customColors.OnPrimaryContainer,
                           color: theme.palette.customColors.OnPrimary
                         }
                       : {
@@ -588,70 +593,59 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
               </Box>
 
               {/* Title Field */}
-              <Controller
+              <ControlledTextField
                 name='title'
                 control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    placeholder='Title *'
-                    error={!!errors.title}
-                    helperText={errors.title?.message}
-                    onChange={e => field.onChange(removeEmojis(e.target.value))}
-                    sx={{
-                      mb: 3,
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: inputBgColor,
-                        borderRadius: '8px',
-                        '& fieldset': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
-                      },
-                      '& .MuiInputBase-input': {
-                        py: 3,
-                        px: 4,
-                        fontSize: '0.9375rem',
-                        '&::placeholder': {
-                          color: theme.palette.customColors.neutralSecondary,
-                          opacity: 1
-                        }
-                      }
-                    }}
-                  />
-                )}
+                errors={errors}
+                placeholder='Title *'
+                onChangeOverride={(e: any) => {
+                  const cleaned = removeEmojis(e.target.value)
+                  setValue('title', cleaned)
+                }}
+                // inputBackgroundColor={inputBgColor}
+                borderRadius='8px'
+                sx={{
+                  mb: 3,
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
+                  },
+                  '& .MuiInputBase-input': {
+                    py: 3,
+                    px: 4,
+                    fontSize: '0.9375rem',
+                    '&::placeholder': {
+                      color: theme.palette.customColors.neutralSecondary,
+                      opacity: 1
+                    }
+                  }
+                }}
               />
 
               {/* Description Field */}
-              <Controller
+              <ControlledTextArea
                 name='description'
                 control={control}
-                render={({ field }) => (
-                  <TextField
-                    {...field}
-                    fullWidth
-                    multiline
-                    rows={4}
-                    placeholder='Description (Optional)'
-                    error={!!errors.description}
-                    helperText={errors.description?.message}
-                    onChange={e => field.onChange(removeEmojis(e.target.value))}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: inputBgColor,
-                        borderRadius: '8px',
-                        '& fieldset': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
-                      },
-                      '& .MuiInputBase-input': {
-                        // py: 3,
-                        // px: 4,
-                        fontSize: '0.9375rem',
-                        '&::placeholder': {
-                          color: theme.palette.customColors.neutralSecondary,
-                          opacity: 1
-                        }
-                      }
-                    }}
-                  />
-                )}
+                errors={errors}
+                rows={4}
+                placeholder='Description (Optional)'
+                onChangeOverride={(e: any) => {
+                  const cleaned = removeEmojis(e.target.value)
+                  setValue('description', cleaned)
+                }}
+                // inputBackgroundColor={inputBgColor}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    '& fieldset': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: '0.9375rem',
+                    '&::placeholder': {
+                      color: theme.palette.customColors.neutralSecondary,
+                      opacity: 1
+                    }
+                  }
+                }}
               />
             </Box>
 
@@ -670,30 +664,20 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 </Typography>
               </Box>
 
-              <Box sx={switchRowSx}>
-                <Typography
-                  sx={{
-                    fontSize: '0.9375rem',
-                    fontWeight: 500,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Everyone
-                </Typography>
-                <Controller
-                  name='isEveryoneVisible'
-                  control={control}
-                  render={({ field }) => (
-                    <MUISwitch
-                      checked={field.value}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        field.onChange(e.target.checked)
-                      }}
-                      switchColor={theme.palette.primary.main}
-                    />
-                  )}
-                />
-              </Box>
+              <ControlledSwitch
+                name='isEveryoneVisible'
+                control={control}
+                label='Everyone'
+                labelPosition='start'
+                spaceBetween
+                switchColor={theme.palette.primary.main}
+                labelStyle={{
+                  fontSize: '0.9375rem',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+                sx={switchRowSx}
+              />
 
               {/* Sites & Roles Section - shown when Everyone is OFF */}
               {!isEveryoneVisible && (
@@ -935,14 +919,14 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                               <Avatar
-                                src={user.user_profile_pic}
+                                src={user.user_profile_pic || user.profile_image}
                                 sx={{
                                   width: 40,
                                   height: 40,
                                   backgroundColor: theme.palette.primary.light
                                 }}
                               >
-                                {user.user_name?.charAt(0)}
+                                {(user.user_name || user.full_name)?.charAt(0)}
                               </Avatar>
                               <Box>
                                 <Typography
@@ -952,7 +936,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                                     color: theme.palette.customColors.OnSurfaceVariant
                                   }}
                                 >
-                                  {user.user_name}
+                                  {user.user_name || user.full_name}
                                 </Typography>
                                 {user.role_name && (
                                   <Typography
@@ -1004,28 +988,20 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 </Typography>
               </Box>
 
-              <Box sx={{ ...switchRowSx, mb: !isPostNow ? 3 : 0 }}>
-                <Typography
-                  sx={{
-                    fontSize: '0.9375rem',
-                    fontWeight: 500,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Post Now
-                </Typography>
-                <Controller
-                  name='isPostNow'
-                  control={control}
-                  render={({ field }) => (
-                    <MUISwitch
-                      checked={field.value}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.checked)}
-                      switchColor={theme.palette.primary.main}
-                    />
-                  )}
-                />
-              </Box>
+              <ControlledSwitch
+                name='isPostNow'
+                control={control}
+                label='Post Now'
+                labelPosition='start'
+                spaceBetween
+                switchColor={theme.palette.primary.main}
+                labelStyle={{
+                  fontSize: '0.9375rem',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+                sx={{ ...switchRowSx, mb: !isPostNow ? 3 : 0 }}
+              />
 
               {/* Schedule Date & Time Pickers - shown only when Post Now is OFF */}
               {!isPostNow && (
@@ -1043,41 +1019,17 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                   <Box sx={{ display: 'flex', gap: 3 }}>
                     {/* Date Picker */}
                     <Box sx={{ flex: 1 }}>
-                      <Controller
+                      <ControlledDatePicker
                         name='schedule_date'
                         control={control}
-                        render={({ field, fieldState }) => (
-                          // @ts-ignore - MUIDatePicker is a JS component
-                          <MUIDatePicker
-                            value={field.value}
-                            onChange={field.onChange}
-                            onAccept={() => {}}
-                            label='Select Date'
-                            minDate={dayjs()}
-                            views={['year', 'month', 'day']}
-                            error={!!fieldState.error}
-                            helperText={fieldState.error?.message}
-                          />
-                        )}
+                        label='Select Date'
+                        minDate={dayjs()}
+                        views={['year', 'month', 'day']}
                       />
                     </Box>
                     {/* Time Picker */}
                     <Box sx={{ flex: 1 }}>
-                      <Controller
-                        name='schedule_time'
-                        control={control}
-                        render={({ field, fieldState }) => (
-                          // @ts-ignore - MUITimePicker is a JS component
-                          <MUITimePicker
-                            value={field.value}
-                            onChange={field.onChange}
-                            label='Select Time'
-                            ampm
-                            error={!!fieldState.error}
-                            helperText={fieldState.error?.message}
-                          />
-                        )}
-                      />
+                      <ControlledTimePicker name='schedule_time' control={control} label='Select Time' ampm />
                     </Box>
                   </Box>
                 </Box>
@@ -1099,28 +1051,20 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 </Typography>
               </Box>
 
-              <Box sx={{ ...switchRowSx, mb: !isAlwaysVisible ? 3 : 0 }}>
-                <Typography
-                  sx={{
-                    fontSize: '0.9375rem',
-                    fontWeight: 500,
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                >
-                  Always Visible
-                </Typography>
-                <Controller
-                  name='isAlwaysVisible'
-                  control={control}
-                  render={({ field }) => (
-                    <MUISwitch
-                      checked={field.value}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.checked)}
-                      switchColor={theme.palette.primary.main}
-                    />
-                  )}
-                />
-              </Box>
+              <ControlledSwitch
+                name='isAlwaysVisible'
+                control={control}
+                label='Always Visible'
+                labelPosition='start'
+                spaceBetween
+                switchColor={theme.palette.primary.main}
+                labelStyle={{
+                  fontSize: '0.9375rem',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+                sx={{ ...switchRowSx, mb: !isAlwaysVisible ? 3 : 0 }}
+              />
 
               {/* End Date / Duration Tabs - shown only when Always Visible is OFF */}
               {!isAlwaysVisible && (
@@ -1134,17 +1078,22 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                       minHeight: 40,
                       '& .MuiTabs-indicator': {
                         backgroundColor: theme.palette.primary.main,
-                        height: 2
+                        height: 2,
+                        borderRadius: '3px 3px 0 0'
                       },
                       '& .MuiTab-root': {
                         textTransform: 'none',
                         fontWeight: 500,
                         fontSize: '0.875rem',
                         minHeight: 40,
+                        flex: 1,
+                        maxWidth: 'none',
                         color: theme.palette.customColors.neutralSecondary,
+                        borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         '&.Mui-selected': {
                           color: theme.palette.primary.main,
-                          fontWeight: 600
+                          fontWeight: 600,
+                          borderBottom: 'none'
                         }
                       }
                     }}
@@ -1154,48 +1103,37 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                   </Tabs>
 
                   {endDateTab === 'endDate' ? (
-                    <Controller
+                    <ControlledDatePicker
                       name='schedule_end_date'
                       control={control}
-                      render={({ field }) => (
-                        // @ts-ignore - MUIDatePicker is a JS component with flexible props
-                        <MUIDatePicker
-                          value={field.value}
-                          onChange={field.onChange}
-                          onAccept={() => {}}
-                          label='End Date'
-                          minDate={isPostNow ? dayjs() : scheduleDate || dayjs()}
-                          views={['year', 'month', 'day']}
-                        />
-                      )}
+                      label='End Date'
+                      minDate={isPostNow ? dayjs() : scheduleDate || dayjs()}
+                      views={['year', 'month', 'day']}
                     />
                   ) : (
                     <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-                      <Controller
+                      <ControlledTextField
                         name='durationValue'
                         control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            type='number'
-                            placeholder='0'
-                            inputProps={{ min: 1, max: 99999 }}
-                            sx={{
-                              width: '100px',
-                              '& .MuiOutlinedInput-root': {
-                                backgroundColor: inputBgColor,
-                                borderRadius: '8px',
-                                '& fieldset': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
-                              },
-                              '& .MuiInputBase-input': {
-                                py: 3,
-                                px: 3,
-                                fontSize: '0.9375rem',
-                                textAlign: 'center'
-                              }
-                            }}
-                          />
-                        )}
+                        errors={errors}
+                        type='number'
+                        placeholder='0'
+                        fullWidth={false}
+                        // inputBackgroundColor={inputBgColor}
+                        borderRadius='8px'
+                        inputProps={{ min: 1, max: 99999 }}
+                        sx={{
+                          width: '100px',
+                          '& .MuiOutlinedInput-root': {
+                            height: 48,
+                            '& fieldset': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
+                          },
+                          '& .MuiInputBase-input': {
+                            px: 3,
+                            fontSize: '0.9375rem',
+                            textAlign: 'center'
+                          }
+                        }}
                       />
 
                       {/* Duration Unit Selector */}
@@ -1203,6 +1141,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                         sx={{
                           display: 'flex',
                           flex: 1,
+                          height: 48,
                           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           overflow: 'hidden'
@@ -1214,8 +1153,9 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                             onClick={() => setValue('durationUnit', unit)}
                             sx={{
                               flex: 1,
-                              py: 3,
-                              textAlign: 'center',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
                               cursor: 'pointer',
                               borderRight:
                                 index < 2 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
@@ -1223,14 +1163,21 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                                 durationUnit === unit
                                   ? theme.palette.customColors.OnPrimaryContainer
                                   : theme.palette.customColors.SurfaceVariant,
-                              color:
-                                durationUnit === unit
-                                  ? theme.palette.customColors.OnPrimary
-                                  : theme.palette.customColors.OnSurfaceVariant,
-                              transition: 'all 0.2s ease'
+                              transition: 'background-color 0.2s ease'
                             }}
                           >
-                            <Typography sx={{ fontSize: '0.875rem', fontWeight: 500 }}>{unit}</Typography>
+                            <Typography
+                              sx={{
+                                fontSize: '0.875rem',
+                                fontWeight: 500,
+                                color:
+                                  durationUnit === unit
+                                    ? theme.palette.customColors.OnPrimary
+                                    : theme.palette.customColors.OnSurfaceVariant
+                              }}
+                            >
+                              {unit}
+                            </Typography>
                           </Box>
                         ))}
                       </Box>
@@ -1244,26 +1191,27 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
             <Box
               sx={{
                 ...sectionCardSx,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
                 py: 3
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Icon icon='mdi:comment-outline' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                <Typography sx={sectionTitleSx}>Allow Comments</Typography>
-              </Box>
-              <Controller
+              <ControlledSwitch
                 name='allow_comments'
                 control={control}
-                render={({ field }) => (
-                  <MUISwitch
-                    checked={field.value}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.checked)}
-                    switchColor={theme.palette.primary.main}
-                  />
-                )}
+                label={
+                  (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Icon
+                        icon='mdi:comment-outline'
+                        fontSize={24}
+                        color={theme.palette.customColors.OnSurfaceVariant}
+                      />
+                      <Typography sx={sectionTitleSx}>Allow Comments</Typography>
+                    </Box>
+                  ) as any
+                }
+                labelPosition='start'
+                spaceBetween
+                switchColor={theme.palette.primary.main}
               />
             </Box>
 
@@ -1274,105 +1222,6 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 <Typography sx={sectionTitleSx}>Attachments</Typography>
               </Box>
 
-              {/* Existing Attachments (for edit mode) - matching ControlledMultiFileUpload pattern */}
-              {isEdit && existingAttachments.length > 0 && (
-                <Box sx={{ mb: 4, display: 'flex', gap: { xs: 2, sm: '1.125rem' }, flexWrap: 'wrap' }}>
-                  {existingAttachments.map(attachment => {
-                    const isImage = attachment.file_type?.startsWith('image') || attachment.file_type === 'image'
-                    const iconConfig = getFileIconConfig(attachment.file_type)
-
-                    return (
-                      <Box
-                        key={attachment.id}
-                        sx={{
-                          position: 'relative',
-                          width: 100,
-                          height: 100,
-                          borderRadius: 1,
-                          backgroundColor: theme.palette.customColors.displaybgPrimary,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        {/* Attachment preview/icon */}
-                        {isImage ? (
-                          <Box
-                            component='img'
-                            src={attachment.file}
-                            alt={attachment.file_orginal_name}
-                            sx={{
-                              width: 80,
-                              height: 80,
-                              objectFit: 'cover',
-                              borderRadius: '8px'
-                            }}
-                          />
-                        ) : iconConfig.image_path ? (
-                          <Box
-                            component='img'
-                            src={iconConfig.image_path}
-                            alt='file icon'
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              backgroundColor: iconConfig.bg_color,
-                              borderRadius: '4px'
-                            }}
-                          />
-                        ) : (
-                          <Box
-                            sx={{
-                              width: 40,
-                              height: 40,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              backgroundColor: iconConfig.bg_color,
-                              borderRadius: '4px'
-                            }}
-                          >
-                            <Icon
-                              icon={
-                                attachment.file_type?.includes('pdf')
-                                  ? 'mdi:file-pdf-box'
-                                  : attachment.file_type?.includes('video')
-                                  ? 'mdi:play-circle'
-                                  : attachment.file_type?.includes('audio')
-                                  ? 'mdi:music-note'
-                                  : 'mdi:file-document-outline'
-                              }
-                              fontSize={40}
-                              color={iconConfig.icon_color}
-                            />
-                          </Box>
-                        )}
-                        {/* Remove button - matching ControlledMultiFileUpload style */}
-                        <IconButton
-                          size='small'
-                          onClick={() => handleRemoveExistingAttachment(attachment.id)}
-                          sx={{
-                            position: 'absolute',
-                            top: 5,
-                            right: 5,
-                            backgroundColor: theme.palette.customColors.secondaryBg,
-                            color: theme.palette.customColors.OnPrimary,
-                            width: 24,
-                            height: 24,
-                            zIndex: 1,
-                            '&:hover': {
-                              backgroundColor: theme.palette.customColors.OnSurfaceVariant
-                            }
-                          }}
-                        >
-                          <Icon icon='mdi:close' fontSize={18} />
-                        </IconButton>
-                      </Box>
-                    )
-                  })}
-                </Box>
-              )}
-
               <ControlledMultiFileUpload
                 name='attachments'
                 control={control}
@@ -1380,7 +1229,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 acceptedFileTypes='images,video,pdf,documents,audio'
                 maxFiles={10}
                 maxFileSize={25 * 1024 * 1024}
-                previewPlacement='bottom'
+                previewPlacement='top'
                 enableImageFullScreen
               />
             </Box>
@@ -1414,7 +1263,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 fontWeight: 600
               }}
             >
-              {isEdit ? 'Cancel' : 'Preview'}
+              Cancel
             </Button>
             <Button
               type='submit'

@@ -10,6 +10,7 @@ import type {
   AnnouncementType,
   AnnouncementUser,
   AttachmentCount,
+  ExistingAttachment,
   Role,
   SelectedUser,
   Site
@@ -184,5 +185,5 @@ export interface FormValues {
   durationValue: string
   durationUnit: 'Days' | 'Weeks' | 'Months'
   allow_comments: boolean
-  attachments: File[]
+  attachments: (File | ExistingAttachment)[]
 }

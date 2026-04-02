@@ -27,17 +27,16 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
   const auth = useAuth()
   const toggleReaction = useToggleReaction()
 
-  // Theme colors from customColors
-  const primaryColor = theme.palette.primary.main // #37BD69
-  const errorColor = theme.palette.customColors.Tertiary // #FA6140
-  const errorLightBg = theme.palette.customColors.ErrorContainer // #FFD3D3
-  const greyColor = theme.palette.customColors.neutralSecondary // #7A8684
-  const textPrimary = theme.palette.customColors.OnSurfaceVariant // #44544A
-  const textSecondary = theme.palette.customColors.neutralSecondary // #7A8684
-  const borderColor = theme.palette.customColors.OutlineVariant // #C3CEC7
-  const whiteColor = theme.palette.customColors.OnPrimary // #FFFFFF
-  const infoBg = theme.palette.customColors.SecondaryContainer // #AFEFEB
-  const infoColor = theme.palette.secondary.dark // #1F415B
+  const primaryColor = theme.palette.primary.main
+  const errorColor = theme.palette.customColors.Tertiary
+  const errorLightBg = theme.palette.customColors.ErrorContainer
+  const greyColor = theme.palette.customColors.neutralSecondary
+  const textPrimary = theme.palette.customColors.OnSurfaceVariant
+  const textSecondary = theme.palette.customColors.neutralSecondary
+  const borderColor = theme.palette.customColors.OutlineVariant
+  const whiteColor = theme.palette.customColors.OnPrimary
+  const infoBg = theme.palette.customColors.SecondaryContainer
+  const infoColor = theme.palette.secondary.dark
 
   const currentUserId = (auth?.userData as any)?.user?.user_id
   const isOwner = currentUserId && currentUserId === announcement.created_user_id
@@ -66,8 +65,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
           borderRadius: '8px',
           backgroundColor: theme.palette.customColors.BgTeritary,
           border: `1px solid ${errorLightBg}`,
-          overflow: 'hidden',
-          boxShadow: 'none'
+          overflow: 'hidden'
         }}
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -400,7 +398,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
 
                   {Number(announcement.allow_comments) === 1 && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <IconButton size='small' sx={{ p: 0.5, color: textSecondary }}>
+                      <IconButton size='small' onClick={onClick} sx={{ p: 0.5, color: textSecondary }}>
                         <Icon icon='mdi:comment-outline' fontSize={22} />
                       </IconButton>
                       <Typography
