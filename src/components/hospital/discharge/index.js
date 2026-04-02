@@ -24,7 +24,8 @@ import EnclosureDischargeForm from 'src/views/pages/hospital/inpatient/discharge
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState, resetState } from 'src/store/slices/hospital/hospitalSlice'
 import {
   getPrescriptionsByRecord,
   getSecurityCheckForTransfer,
@@ -48,18 +49,19 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const router = useRouter()
   const { id } = router.query
 
-  const { data, updateState, resetState } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const purpose_of_visit = medicalRecordData?.purpose_of_visit
   const status = medicalRecordData?.status
   const animal_id = medicalRecordData?.animal_id
 
   // Separate dynamic states for each medicine table discharge type
-  const transferMedicines = data.transfer_medicines || []
-  const transferTempMedicines = data.transfer_temp_medicines || []
-  const enclosureMedicines = data.enclosure_medicines || []
-  const enclosureTempMedicines = data.enclosure_temp_medicines || []
+  const transferMedicines = hospitalData.transfer_medicines || []
+  const transferTempMedicines = hospitalData.transfer_temp_medicines || []
+  const enclosureMedicines = hospitalData.enclosure_medicines || []
+  const enclosureTempMedicines = hospitalData.enclosure_temp_medicines || []
 
   const [prescription, setPrescription] = useState([])
   const [isPrescriptionLoading, setIsPrescriptionLoading] = useState(false)
@@ -631,7 +633,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   useEffect(() => {
     if (!Array.isArray(enclosureTempMedicines) || enclosureTempMedicines?.length === 0) return
 
-    const existing = data?.enclosure_medicines || []
+    const existing = hospitalData?.enclosure_medicines || []
     const merged = [...existing]
     let hasChanges = false
 
@@ -650,19 +652,19 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     })
 
     if (hasChanges) {
-      updateState('enclosure_medicines', merged)
+      dispatch(updateState({ key: 'enclosure_medicines', value: merged }))
     }
   }, [enclosureTempMedicines])
 
   const clearTransferHospitalData = () => {
-    resetState('transfer_medicines')
-    resetState('transfer_temp_medicines')
+    dispatch(resetState('transfer_medicines'))
+    dispatch(resetState('transfer_temp_medicines'))
     setIsTransferHospitalDirty(false)
   }
 
   const clearEnclosureData = () => {
-    resetState('enclosure_medicines')
-    resetState('enclosure_temp_medicines')
+    dispatch(resetState('enclosure_medicines'))
+    dispatch(resetState('enclosure_temp_medicines'))
     sessionStorage.removeItem(STORAGE_KEY_FORM)
     setIsTransferEnclosureDirty(false)
   }

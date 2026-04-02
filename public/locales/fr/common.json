@@ -68,7 +68,16 @@
     "en-IN": "Anglais",
     "fr": "Français",
     "hi": "Hindi",
-    "ar": "Arabe"
+    "ar": "Arabe",
+    "ta": "Tamoul",
+    "th": "Thaï",
+    "ka": "Kannada",
+    "ch": "Chinois",
+    "ru": "Russe",
+    "id": "Indonésien",
+    "gu": "Gujarati",
+    "te": "Télougou",
+    "bn": "Bengali"
   },
   "navigation": {
     "dashboard": "Tableau de bord",

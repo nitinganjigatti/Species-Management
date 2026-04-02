@@ -29,7 +29,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import utc from 'dayjs/plugin/utc'
 import Search from 'src/views/utility/Search'
 import { debounce, filter } from 'lodash'
-
+import ControlledDateTimePicker from 'src/views/forms/form-fields/ControlledDateTimePicker'
+import Utility from 'src/utility'
 dayjs.extend(utc)
 
 export default function BasicDetails({
@@ -317,7 +318,7 @@ export default function BasicDetails({
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
+          {/* <Controller
             name='basicDetails.anaesthesia_datetime'
             control={control}
             render={({ field }) => {
@@ -373,6 +374,16 @@ export default function BasicDetails({
                 </LocalizationProvider>
               )
             }}
+          /> */}
+          <ControlledDateTimePicker
+            name='basicDetails.anaesthesia_datetime'
+            control={control}
+            errors={errors}
+            label='Date & Time of Anesthesia*'
+            ampm
+            minDateTime={dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))}
+            maxDateTime={patientData?.discharge_at ? dayjs(Utility.convertUTCToLocal(patientData?.discharge_at)) : dayjs()}
+            helperText={errors.basicDetails?.anaesthesia_datetime?.message}
           />
         </Grid>
 

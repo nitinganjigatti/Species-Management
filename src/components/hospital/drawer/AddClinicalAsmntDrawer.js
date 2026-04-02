@@ -8,6 +8,7 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import Utility from 'src/utility'
 
 dayjs.extend(utc)
 
@@ -43,17 +44,22 @@ const AddClinicalAsmntDrawer = ({
     // Set default date based on discharge status
     if (isDischarged && dischargedDate) {
       // Convert UTC discharge date to local time
-      const localDischargeDateTime = dayjs.utc(dischargedDate).local()
-      const localAdmittedDateTime = dayjs.utc(admittedDate).local()
+      const localDischargeDateTime = dayjs(Utility.convertUTCToLocal(dischargedDate))
+      // dayjs.utc(dischargedDate).local()
+      const localAdmittedDateTime =  dayjs(Utility.convertUTCToLocal(admittedDate))
+      // dayjs.utc(admittedDate).local()
 
       setRecordedDateTime(localDischargeDateTime)
       setMinDate(localAdmittedDateTime)
       setMaxDate(localDischargeDateTime)
     } else {
       setRecordedDateTime(dayjs())
-      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
-      setMaxDate(dayjs()) // Set max date to current time for non-discharged animals
+      setMinDate(admittedDate ? dayjs(Utility.convertUTCToLocal(admittedDate)) : null)
+
+      setMaxDate(dayjs())
+      // Set max date to current time for non-discharged animals
     }
+    // dayjs.utc(admittedDate).local().
   }, [open, isDischarged, admittedDate, dischargedDate])
 
   const commonFieldStyles = {

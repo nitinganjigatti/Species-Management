@@ -474,7 +474,6 @@ export const REPORT_TYPE = 'v1/report/daily/report/type'
 
 export const COMPLIANCE_DAILY_REPORT = 'v1/get/daily/report'
 
-
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
@@ -520,7 +519,6 @@ export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
 export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
-
 
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
@@ -732,6 +730,14 @@ export const UPDATE_NOTES = 'medical/v2/update-diagnosis-prescription'
 export const DELETE_NOTE_CLINICAL_ASSESSMENT = 'medical/v2/delete-note/diagnosis'
 
 export const GET_ANIMAL_STATUS_BY_TYPE = 'medical/v2/check-animal-status-by-type'
+
+export const GET_MEDICAL_TEMPLATE = 'medical/get-template'
+
+export const CREATE_MEDICAL_TEMPLATE = 'medical/create-template'
+
+export const UPDATE_MEDICAL_TEMPLATE = 'medical/update-template'
+
+export const DELETE_MEDICAL_TEMPLATE = 'medical/delete-template'
 
 // Hospital Analytics
 
@@ -1025,3 +1031,14 @@ export const GET_ASSESSMENT_TEMPLATES_LIST = 'v1/assessment/templates/list'
 export const ASSIGN_ASSESSMENT_TEMPLATE = 'v1/assesment-assign-template'
 
 // Family Tree / Lineage and Observation Template constants have been moved to src/constants/housing/
+//Notes module
+
+export const GET_NOTES_LIST = 'v1/get-observation-list'
+
+export const ADD_NOTES_REACTION = 'v1/notes/add/reaction'
+
+export const REMOVE_NOTES_REACTION = 'v1/notes/remove/reaction'
+
+export const GET_NOTES_DETAILS = 'v1/observation/details'
+
+export const ADD_NOTES_COMMENT = 'v1/observation/note/add'

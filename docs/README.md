@@ -11,6 +11,10 @@ docs/
 │   ├── API_ENDPOINTS.md    # Complete endpoint list with params
 │   ├── API_COMPLETE_REFERENCE.md  # Detailed examples for all modules
 │   └── API_PARAMETERS.md   # Parameter patterns and structures
+├── component-library/      # Component Library documentation
+│   ├── README.md           # Overview, architecture, component coverage
+│   ├── adding-components.md # Step-by-step guide to add new components
+│   └── design-decisions.md  # Key decisions and rationale
 ├── migration/              # Upgrade and migration guides
 │   └── nextjs-15-to-16.md  # Next.js 15 → 16 migration guide
 └── modules/                # Module-specific documentation
@@ -33,6 +37,14 @@ docs/
 | [API Endpoints](./api/API_ENDPOINTS.md)                 | Complete list of 500+ endpoints with parameters             |
 | [API Complete Reference](./api/API_COMPLETE_REFERENCE.md) | Detailed examples with request/response for all modules   |
 | [API Parameters](./api/API_PARAMETERS.md)               | Parameter patterns, structures, and common use cases        |
+
+## Component Library
+
+| Guide | Description |
+|-------|-------------|
+| [README](./component-library/README.md) | Overview, architecture, routes, categories, theming, component coverage |
+| [Adding Components](./component-library/adding-components.md) | Step-by-step guide with checklist for registering new components |
+| [Design Decisions](./component-library/design-decisions.md) | Key decisions (App Router, real rendering, no Storybook, etc.) |
 
 ## Migration Guides
 

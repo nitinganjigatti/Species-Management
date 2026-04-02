@@ -28,11 +28,11 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [auth.loading, auth.user, router])
 
   if (auth.loading) {
-    return <Spinner sx={{}} />
+    return <Spinner sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }} />
   }
 
   if (!auth.user) {
-    return <Spinner sx={{}} />
+    return <Spinner sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }} />
   }
 
   return (

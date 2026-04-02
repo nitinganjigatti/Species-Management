@@ -16,6 +16,7 @@ import axios from 'axios'
 import authConfig from 'src/configs/auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { useHospital } from './HospitalContext'
+import { useLanguage } from './LanguageContext'
 import { getDeviceInfo, setLastLoggedUser, saveDeviceId } from 'src/utility/deviceInfo'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
@@ -46,6 +47,7 @@ const AuthProvider = ({ children }) => {
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
   const { updateSelectedHospital, updateHospitalStats } = useHospital()
+  const { resetLanguage } = useLanguage()
 
   const queryClient = useQueryClient()
 
@@ -205,6 +207,9 @@ const AuthProvider = ({ children }) => {
 
     // 5. Remove the specific auth token (optional, but good for consistency)
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
+
+    // 6. Reset language to default (mirrors mobile app logout behavior)
+    await resetLanguage()
   }
 
   const handleLogin = async (params, errorCallback) => {
@@ -346,7 +351,10 @@ const AuthProvider = ({ children }) => {
       // 5. Remove the specific auth token (optional, but good for consistency)
       window.localStorage.removeItem(authConfig.storageTokenKeyName)
 
-      // 6. Navigate to login
+      // 6. Reset language to default (mirrors mobile app logout behavior)
+      await resetLanguage()
+
+      // 7. Navigate to login
       router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
