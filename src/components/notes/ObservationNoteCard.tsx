@@ -1,5 +1,7 @@
+'use client'
+
 import React, { useState, useMemo } from 'react'
-import { Box, Card, Typography, Chip, Tooltip, CircularProgress } from '@mui/material'
+import { Box, Card, Typography, Chip, CircularProgress } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import {
   Description as NoteIcon,
@@ -8,31 +10,13 @@ import {
   Comment as CommentIcon
 } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
-import Utility from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { EXTENSION_TYPE_MAP } from 'src/constants/Constants'
-import FileDialog from 'src/components/utility/FileDialog'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
-import { NoteItem } from 'src/components/notes/NotesListing'
-import LocationInfoCard from './LocationInfoCard'
-
-export interface NoteCard1Props {
-  note: NoteItem
-  onClick?: (note: NoteItem) => void
-  onLikeClick?: (note: NoteItem) => void
-  onCommentClick?: (note: NoteItem) => void
-  sx?: any
-  isLikeLoading?: boolean
-  isCommentLoading?: boolean
-}
-type PriorityIcons = {
-  Low: string
-  Moderate: string
-  High: string
-  Critical: string
-}
+import LocationInfoCard from 'src/views/utility/LocationInfoCard'
+import { ChildObservationType ,Attachment,ObservationNoteCardProps,PriorityIcons} from 'src/types/notes'
 
 const priorityIcons: PriorityIcons = {
   Low: '/images/priority/flag_priority_low.svg',
@@ -41,39 +25,18 @@ const priorityIcons: PriorityIcons = {
   Critical: '/images/priority/flag_priority_critical.svg'
 }
 
-// Get background color based on priority
-const getPriorityBgColor = (priority: string, theme: any) => {
-  const { displaybgPrimary, moderateSecondary, TertiaryContainer, ErrorContainer, antzSecondaryBg } =
-    theme.palette.customColors
-
-  switch (priority) {
-    case 'Low':
-      return displaybgPrimary
-    case 'Moderate':
-      return alpha(moderateSecondary, 0.2)
-    case 'High':
-      return alpha(TertiaryContainer, 0.16)
-    case 'Critical':
-      return alpha(ErrorContainer, 0.4)
-    default:
-      return antzSecondaryBg
-  }
-}
-
-const NoteCard1 = ({
+const ObservationNoteCard = ({
   note,
   onClick = () => {},
   onLikeClick = () => {},
   onCommentClick = () => {},
   sx = {},
   isLikeLoading = false,
-  isCommentLoading = false
-}: NoteCard1Props) => {
+}: ObservationNoteCardProps) => {
   const theme = useTheme() as any
 
   const [showAllChildNoteTypes, setShowAllChildNoteTypes] = useState<boolean>(false)
   const [showFullNote, setShowFullNote] = useState<boolean>(false)
-  const [previewFile, setPreviewFile] = useState<any>(null)
 
   const {
     observation_name,
@@ -93,17 +56,6 @@ const NoteCard1 = ({
   const childNoteTypes = child_master_type?.child_observation_type || []
   const priorityIcon = (priority ? priorityIcons[priority as keyof PriorityIcons] : null) || null
 
-  // format date
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return ''
-
-    return Utility.convertUTCToLocalDateTime(dateStr)?.replace('|', '•') || ''
-  }
-
-  const handleCardClick = () => {
-    if (onClick) onClick(note)
-  }
-
   // Helper to determine file type based on extension
   const getFileType = (fileName: string) => {
     if (!fileName) return 'other'
@@ -111,12 +63,14 @@ const NoteCard1 = ({
     return (EXTENSION_TYPE_MAP as any)[ext] || 'other'
   }
 
-  const getAttachmentCounts = () => {
+  // get attachment counts
+  const attachmentCounts = useMemo(() => {
     if (!attachments?.length) return null
 
     const counts: { [key: string]: number } = {}
-    attachments.forEach((attachment: any) => {
-      const type = getFileType(attachment?.file_orginal_name || attachment?.file_original_name)
+    
+    attachments.forEach((attachment: Attachment) => {
+      const type = getFileType(attachment?.file_orginal_name)
 
       // Group subtypes into main categories for display
       let displayType = 'document'
@@ -130,12 +84,12 @@ const NoteCard1 = ({
     })
 
     return counts
-  }
+  }, [attachments])
 
   // Get the first image attachment for preview
   const firstImage = useMemo(() => {
-    return attachments?.find((a: any) => {
-      const fileName = a?.file_orginal_name || a?.file_original_name
+    return attachments?.find((item: Attachment) => {
+      const fileName = item?.file_orginal_name
 
       return getFileType(fileName) === 'image'
     })
@@ -157,31 +111,14 @@ const NoteCard1 = ({
     }
   }
 
-  // Handle image preview click
-  const handleImagePreview = () => {
-    if (firstImage) {
-      setPreviewFile({
-        src: firstImage?.file,
-        type: 'image',
-        name: firstImage.file_orginal_name,
-        fileIcon: 'mdi:image-outline'
-      })
-    }
-  }
-
-  const priorityBgColor = getPriorityBgColor(priority, theme)
-
   return (
     <Card
-      onClick={handleCardClick}
+      onClick={()=>{onClick(note)}}
       sx={{
         position: 'relative',
         overflow: 'hidden',
-        // cursor: onClick ? 'pointer' : 'default',
-        cursor: 'pointer',
         boxShadow: 'none',
         borderRadius: '8px',
-        // backgroundColor: priorityBgColor,
         backgroundColor: theme.palette.customColors.OnPrimary,
         ...sx
       }}
@@ -228,7 +165,7 @@ const NoteCard1 = ({
               <Box
                 sx={{
                   flex: 1,
-                  minWidth: 0
+                  minWidth: 0,
                 }}
               >
                 <TextEllipsisWithModal
@@ -238,7 +175,8 @@ const NoteCard1 = ({
                     color: theme.palette.customColors.OnSecondaryContainer,
                     fontSize: '1.5rem',
                     fontWeight: 600,
-                    maxWidth: '100%'
+                    maxWidth: '100%',
+                    cursor: 'pointer'
                   }}
                 />
               </Box>
@@ -248,10 +186,10 @@ const NoteCard1 = ({
           {childNoteTypes?.length > 0 && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
               {childNoteTypes
-                ?.slice(0, showAllChildNoteTypes ? childNoteTypes.length : 1)
-                .map((type: any, index: number) => (
+                ?.slice(0, showAllChildNoteTypes ? childNoteTypes.length : 5)
+                .map((type: ChildObservationType, index: number) => (
                   <Chip
-                    key={index}
+                    key={type?.child_id || index}
                     label={type?.type_name}
                     size='small'
                     sx={{
@@ -266,7 +204,7 @@ const NoteCard1 = ({
                     }}
                   />
                 ))}
-              {childNoteTypes?.length > 1 && (
+              {childNoteTypes?.length > 5 && (
                 <Typography
                   variant='caption'
                   onClick={e => {
@@ -280,20 +218,19 @@ const NoteCard1 = ({
                     textDecoration: 'underline'
                   }}
                 >
-                  {showAllChildNoteTypes ? 'Hide' : `+${childNoteTypes.length - 1} more`}
+                  {showAllChildNoteTypes ? 'Hide' : `+${childNoteTypes.length - 5} more`}
                 </Typography>
               )}
             </Box>
           )}
 
-          {/* User Section - Noted By */}
           <Box>
             <Typography
               sx={{
                 color: theme.palette.text.secondary,
                 fontSize: '0.75rem',
                 fontWeight: 500,
-                mb: 1
+                mb: 1,
               }}
             >
               Noted by
@@ -304,6 +241,7 @@ const NoteCard1 = ({
               date={created_at}
               show_time
               size='medium'
+              text_color={theme.palette.customColors.OnSurfaceVariant}
             />
           </Box>
 
@@ -327,7 +265,7 @@ const NoteCard1 = ({
                 }}
               >
                 {observation_name?.length > 120 && !showFullNote
-                  ? `${observation_name.substring(0, 115)}...`
+                  ? `${observation_name?.substring(0, 115)}...`
                   : observation_name}
                 {observation_name?.length > 120 && (
                   <Typography
@@ -354,10 +292,9 @@ const NoteCard1 = ({
             </Box>
           )}
 
-          {/* Attachment Icons/Counts */}
-          {getAttachmentCounts() && (
+          {attachmentCounts && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              {Object.entries(getAttachmentCounts() || {}).map(([type, count]) => (
+              {Object.entries(attachmentCounts).map(([type, count]) => (
                 <Box key={type} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Icon icon={getAttachmentIcon(type)} fontSize={18} style={{ color: theme.palette.text.secondary }} />
                   <Typography
@@ -390,47 +327,10 @@ const NoteCard1 = ({
           )}
 
           {/* Image Preview - First image only */}
-          {/* {firstImage && (
-            <Box
-              component='img'
-              src={firstImage?.file || firstImage.file}
-              onClick={(e: React.MouseEvent) => {
-                e.preventDefault()
-                e.stopPropagation()
-                handleImagePreview()
-              }}
-              sx={{
-                width: '100%',
-                height: '200px',
-                borderRadius: '8px',
-                objectFit: 'cover',
-                cursor: 'pointer'
-              }}
-            />
-          )} */}
-          {/* {previewFile && (
-            <Box onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-              <FileDialog
-                open={!!previewFile}
-                onClose={() => setPreviewFile(null)}
-                src={previewFile?.src}
-                type={previewFile?.type}
-                title={previewFile?.name}
-                fileIcon={previewFile?.fileIcon}
-              />
-              
-            </Box>
-          )} */}
           {firstImage && (
             <Box
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation()
-                handleImagePreview()
-              }}
-              sx={{
-                width: '100%',
-                cursor: 'pointer'
-              }}
+              onClick={(e:React.SyntheticEvent) => {e.stopPropagation()}}
+              sx={{width: '100%',cursor: 'pointer'}}
             >
               <FilePreviewCard
                 fileUrl={firstImage?.file}
@@ -450,7 +350,7 @@ const NoteCard1 = ({
         </Box>
       </Box>
 
-      {/* Footer - Actions Section */}
+      {/* Like and comment */}
       <Box
         sx={{
           borderTop: `1px solid ${alpha(theme.palette.common.black, 0.06)}`,
@@ -460,7 +360,6 @@ const NoteCard1 = ({
           gap: 2
         }}
       >
-        {/* Like Button */}
         <Box
           onClick={e => {
             e.stopPropagation()
@@ -532,4 +431,4 @@ const NoteCard1 = ({
   )
 }
 
-export default NoteCard1
+export default ObservationNoteCard

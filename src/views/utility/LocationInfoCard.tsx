@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect, useState } from 'react'
 import { Box, Typography, Avatar, useTheme, Skeleton } from '@mui/material'
 
@@ -33,8 +35,11 @@ const LocationInfoCard: React.FC<LocationInfoCardProps> = ({ data = [], variant 
     if (type === 'enclosure' && ref?.enclosureData) {
       title = `Enc: ${ref.enclosureData.user_enclosure_name || '-'}`
 
-      if (ref.enclosureData.section_name) subtitles.push(`Sec: ${ref.enclosureData.section_name}`)
-      if (ref.enclosureData.site_name) subtitles.push(`Site: ${ref.enclosureData.site_name}`)
+      const secName = ref.enclosureData.section_name || ref.sectionData?.section_name
+      const siteName = ref.enclosureData.site_name || ref.siteData?.site_name
+
+      if (secName) subtitles.push(`Sec: ${secName}`)
+      if (siteName) subtitles.push(`Site: ${siteName}`)
 
       imageUrl = ref.enclosureData.image
     }
@@ -43,7 +48,8 @@ const LocationInfoCard: React.FC<LocationInfoCardProps> = ({ data = [], variant 
     else if (type === 'section' && ref?.sectionData) {
       title = `Sec: ${ref.sectionData.section_name || '-'}`
 
-      if (ref.sectionData.site_name) subtitles.push(`Site: ${ref.sectionData.site_name}`)
+      const siteName = ref.sectionData.site_name || ref.siteData?.site_name
+      if (siteName) subtitles.push(`Site: ${siteName}`)
 
       imageUrl = ref.sectionData.image
     }

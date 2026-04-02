@@ -6,10 +6,19 @@ import {
   GET_NOTES_DETAILS,
   ADD_NOTES_COMMENT
 } from 'src/constants/ApiConstant'
+import {
+  GetNotesListParams,
+  GetNotesListResponse,
+  NotesReactionPayload,
+  NotesReactionResponse,
+  AddNotesCommentPayload,
+  AddNotesCommentResponse,
+  GetNotesDetailsResponse
+} from 'src/types/notes/api'
 
-export async function getNotesList({ params }) {
+export async function getNotesList({ params }: { params: GetNotesListParams }): Promise<GetNotesListResponse> {
   try {
-    const response = await axiosGet({ url: `${GET_NOTES_LIST}`, params: params })
+    const response = await axiosGet({ url: `${GET_NOTES_LIST}`, params: params, pharmacy: false })
 
     return response.data
   } catch (error: any) {
@@ -18,9 +27,9 @@ export async function getNotesList({ params }) {
   }
 }
 
-export async function addNotesReaction(payload: any) {
+export async function addNotesReaction(payload: NotesReactionPayload): Promise<NotesReactionResponse> {
   try {
-    const response = await axiosPost({ url: `${ADD_NOTES_REACTION}`, body: payload })
+    const response = await axiosPost({ url: `${ADD_NOTES_REACTION}`, body: payload, pharmacy: false })
 
     return response.data
   } catch (error: any) {
@@ -28,11 +37,10 @@ export async function addNotesReaction(payload: any) {
     throw error
   }
 }
-  
 
-export async function removeNotesReaction(payload: any) {
+export async function removeNotesReaction(payload: NotesReactionPayload): Promise<NotesReactionResponse> {
   try {
-    const response = await axiosPost({ url: `${REMOVE_NOTES_REACTION}`, body: payload })
+    const response = await axiosPost({ url: `${REMOVE_NOTES_REACTION}`, body: payload, pharmacy: false })
 
     return response.data
   } catch (error: any) {
@@ -41,10 +49,14 @@ export async function removeNotesReaction(payload: any) {
   }
 }
 
-export async function getNotesDetails(observationId: number | string) {
+export async function getNotesDetails(observationId: number | string): Promise<GetNotesDetailsResponse> {
   console.log('Fetching details for observation_id:', observationId)
   try {
-    const response = await axiosGet({ url: `${GET_NOTES_DETAILS}?observation_id=${observationId}` })
+    const response = await axiosGet({
+      url: `${GET_NOTES_DETAILS}?observation_id=${observationId}`,
+      params: {},
+      pharmacy: false
+    })
 
     return response.data
   } catch (error: any) {
@@ -53,9 +65,9 @@ export async function getNotesDetails(observationId: number | string) {
   }
 }
 
-export async function addNotesComment(payload: any) {
+export async function addNotesComment(payload: AddNotesCommentPayload): Promise<AddNotesCommentResponse> {
   try {
-    const response = await axiosFormPost({ url: `${ADD_NOTES_COMMENT}`, body: payload })
+    const response = await axiosFormPost({ url: `${ADD_NOTES_COMMENT}`, body: payload, pharmacy: false })
 
     return response.data
   } catch (error: any) {
