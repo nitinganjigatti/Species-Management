@@ -59,6 +59,7 @@ import { EggProvider } from 'src/context/EggContext'
 import { PariveshProvider } from 'src/context/PariveshContext'
 import { AnimalProvider } from 'src/context/AnimalContext'
 import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
+import { LanguageProvider } from 'src/context/LanguageContext'
 
 // Redux
 import { Provider } from 'react-redux'
@@ -137,7 +138,8 @@ const App = props => {
                     <DynamicStatesProvider>
                       <EggProvider>
                         <ForgotPasswordProvider>
-                          <AuthProvider>
+                          <LanguageProvider>
+                            <AuthProvider>
                             <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
                               <SettingsConsumer>
                                 {({ settings }) => {
@@ -164,7 +166,8 @@ const App = props => {
                                 }}
                               </SettingsConsumer>
                             </SettingsProvider>
-                          </AuthProvider>
+                            </AuthProvider>
+                          </LanguageProvider>
                         </ForgotPasswordProvider>
                       </EggProvider>
                     </DynamicStatesProvider>

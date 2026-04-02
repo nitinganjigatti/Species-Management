@@ -68,7 +68,16 @@
     "en-IN": "English",
     "fr": "French",
     "hi": "Hindi",
-    "ar": "Arabic"
+    "ar": "Arabic",
+    "ta": "Tamil",
+    "th": "Thai",
+    "ka": "Kannada",
+    "ch": "Chinese",
+    "ru": "Russian",
+    "id": "Indonesian",
+    "gu": "Gujarati",
+    "te": "Telugu",
+    "bn": "Bengali"
   },
   "navigation": {
     "dashboard": "Dashboard",
