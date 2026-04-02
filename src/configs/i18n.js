@@ -12,7 +12,7 @@ i18n
   .init({
     // No 'lng' — let LanguageDetector auto-detect from localStorage / browser
     fallbackLng: 'en-IN',
-    supportedLngs: ['en', 'en-IN', 'en-US', 'fr', 'hi', 'ar'],
+    supportedLngs: ['en', 'en-IN', 'en-US', 'fr', 'hi', 'ar', 'ta', 'th', 'ka', 'ch', 'ru', 'id', 'gu', 'te', 'bn'],
     debug: process.env.NODE_ENV === 'development',
 
     // Module-based namespaces — each page loads its own namespace on demand
