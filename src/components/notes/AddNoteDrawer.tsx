@@ -22,7 +22,6 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import LocationInfoCard from 'src/views/utility/LocationInfoCard'
 import { createObservation, editObservation } from 'src/lib/api/housing'
 import AddAnimalDrawer from './AddAnimalDrawer'
-import FilePreviewCard from 'src/views/utility/NewMediaCard'
 
 // Validation Schema
 const validationSchema = yup.object().shape({
@@ -59,7 +58,7 @@ interface AddNoteDrawerProps {
   editData?: any
 }
 
-const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerProps) => {
+const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDrawerProps) => {
   const theme = useTheme() as any
   const auth = useAuth()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
@@ -67,17 +66,14 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
   const [openSelectNoteTypeDrawer, setOpenSelectNoteTypeDrawer] = useState<boolean>(false)
   const [notifyMembersDrawerOpen, setNotifyMembersDrawerOpen] = useState<boolean>(false)
   const [animalDrawer, setAnimalDrawer] = useState<boolean>(false)
-  const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState<boolean>(false)
-  const [currentSort, setCurrentSort] = useState<any>({ column: 'animal_id', sort: 'asc' })
-
   const [observationType, setObservationType] = useState<any>(null)
   const [childTypes, setChildTypes] = useState<any[]>([])
   const [selectedAnimals, setSelectedAnimals] = useState<any[]>([])
   const [notifyMembers, setNotifyMembers] = useState<any[]>([])
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [showAllEntities, setShowAllEntities] = useState<boolean>(false)
-  const [existingAttachments, setExistingAttachments] = useState<any[]>([])
   const [deletedAttachmentIds, setDeletedAttachmentIds] = useState<string[]>([])
+  const [originalAttachmentIds, setOriginalAttachmentIds] = useState<string[]>([])
 
   // priority options
   const PRIORITY_OPTIONS = [
@@ -277,14 +273,17 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
         submitData.append('observation_id', String(editData.observation_id))
       }
 
-      // Append new files
-      if (!editData?.observation_id) {
+      // Append new files and existing files
+      if (payload.attachments && payload.attachments.length > 0) {
         payload.attachments.forEach((file: any) => {
-          submitData.append('observation_attachment[]', file)
+          // If it's a File object (new upload)
+          if (file instanceof File) {
+            submitData.append('observation_attachment[]', file)
+          }
         })
       }
 
-      // Send deleted IDs as a single JSON array string
+      // Send deleted IDs as a single JSON array string - only when editing
       if (editData?.observation_id && deletedAttachmentIds.length > 0) {
         submitData.append('deleted_attachment', JSON.stringify(deletedAttachmentIds))
       }
@@ -314,6 +313,8 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
         setSelectedAnimals([])
         setNotifyMembers([])
         setShowAllEntities(false)
+        setDeletedAttachmentIds([])
+        setOriginalAttachmentIds([])
 
         reset({
           observation_name: '',
@@ -352,6 +353,8 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
     setSelectedAnimals([])
     setNotifyMembers([])
     setShowAllEntities(false)
+    setDeletedAttachmentIds([])
+    setOriginalAttachmentIds([])
     reset({
       observation_name: '',
       priority: 'Low',
@@ -432,7 +435,6 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
         setSelectedAnimals(mappedEntities)
         setValue('selected_animals', mappedEntities, { shouldValidate: true })
       }
-
       // 4. Set Notify Members
       if (editData?.assign_to) {
         setNotifyMembers(editData.assign_to)
@@ -440,13 +442,37 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
 
       // 5. Set Existing Attachments
       if (editData?.attachments) {
-        setExistingAttachments(editData.attachments)
+        const mappedAttachments = editData.attachments.map((file: any) => ({
+          id: file.id,
+          url: file.file,
+          file: file.file,
+          file_path: file.file,
+          name: file.file_orginal_name
+        }))
+
+        // Track original attachment IDs for deletion tracking
+        const originalIds = editData.attachments.map((file: any) => file.id)
+        setOriginalAttachmentIds(originalIds)
         setDeletedAttachmentIds([])
+
+        setValue('attachments', mappedAttachments)
       }
     } else if (open) {
       handleClearForm()
     }
   }, [open, editData])
+
+  // Track deleted attachments when user removes them from the form
+  useEffect(() => {
+    const currentAttachments = watch('attachments') || []
+    const currentAttachmentIds = currentAttachments
+      .filter((file: any) => file.id) // Only existing files have IDs
+      .map((file: any) => file.id)
+
+    // Find attachments that were in original but not in current
+    const deleted = originalAttachmentIds.filter(id => !currentAttachmentIds.includes(id))
+    setDeletedAttachmentIds(deleted)
+  }, [watch('attachments')])
 
   return (
     <Drawer
@@ -690,7 +716,7 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
                       >
                         <UserAvatarDetails
                           profile_image={member?.user_profile_pic}
-                          user_name={member?.user_name}
+                          user_name={member?.full_name || member?.user_name}
                           role={member?.role_name}
                           size='large'
                           text_color={theme.palette.customColors.OnSurfaceVariant}
@@ -859,56 +885,6 @@ const AddNoteDrawer = ({open,onClose,refetchNotesList,editData}: AddNoteDrawerPr
                   previewPlacement='top'
                   maxFiles={20}
                 />
-
-                {/* Existing Attachments */}
-                {existingAttachments?.length > 0 && (
-                  <Box sx={{ mt: 4 }}>
-                    <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, mb: 2 }}>
-                      Existing Attachments
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                      {existingAttachments?.map((file: any, index: number) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            position: 'relative',
-                            width: 'calc(25% - 18px)',
-                            aspectRatio: '1/1'
-                          }}
-                        >
-                          <FilePreviewCard
-                            fileUrl={file.file}
-                            fileName={file.file_orginal_name}
-                            width='100%'
-                            height='100%'
-                          />
-                          <IconButton
-                            size='small'
-                            onClick={() => {
-                              const attachmentId = file.id || file.attachment_id
-                              if (attachmentId) {
-                                setDeletedAttachmentIds(prev => [...prev, String(attachmentId)])
-                              }
-                              setExistingAttachments(prev => prev.filter((_, i) => i !== index))
-                            }}
-                            sx={{
-                              position: 'absolute',
-                              top: -8,
-                              right: -8,
-                              backgroundColor: theme.palette.grey[600],
-                              color: theme.palette.common.white,
-                              padding: '2px',
-                              '&:hover': { backgroundColor: theme.palette.grey[700] },
-                              zIndex: 2
-                            }}
-                          >
-                            <Icon icon='mdi:close' fontSize={16} />
-                          </IconButton>
-                        </Box>
-                      ))}
-                    </Box>
-                  </Box>
-                )}
               </Grid>
 
               {/* Priority Selection */}

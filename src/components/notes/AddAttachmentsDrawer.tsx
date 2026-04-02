@@ -6,7 +6,15 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import { useTheme } from '@mui/material/styles'
 import { AddAttachmentsDrawerProps } from 'src/types/notes'
 
-const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({open,onClose,control,watch,reset,attachmentsLoading,onAttachmentsSubmit}) => {
+const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({
+  open,
+  onClose,
+  control,
+  watch,
+  reset,
+  attachmentsLoading,
+  onAttachmentsSubmit
+}) => {
   const theme = useTheme() as any
 
   return (

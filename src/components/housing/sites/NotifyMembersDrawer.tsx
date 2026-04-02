@@ -31,6 +31,7 @@ interface NotifyMembersDrawerProps {
   selectedMembers: User[]
   onMembersChange: (members: User[]) => void
   noteTypeId?: number
+  onMembersConfirmed?: (members: User[]) => void
 }
 
 const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
@@ -38,7 +39,8 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
   onClose,
   selectedMembers,
   onMembersChange,
-  noteTypeId
+  noteTypeId,
+  onMembersConfirmed
 }) => {
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
@@ -152,6 +154,10 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
 
   const handleAdd = () => {
     onMembersChange(localSelectedMembers)
+    // Call the onMembersConfirmed callback if provided
+    if (onMembersConfirmed) {
+      onMembersConfirmed(localSelectedMembers)
+    }
     handleDrawerClose()
   }
 

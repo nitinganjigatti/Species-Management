@@ -79,11 +79,12 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
   const [copied, setCopied] = useState<boolean>(false)
   const [notifyMembersDrawerOpen, setNotifyMembersDrawerOpen] = useState<boolean>(false)
   const [notifyMembers, setNotifyMembers] = useState<any[]>([])
+  const [isAddingMembersFromTagged, setIsAddingMembersFromTagged] = useState<boolean>(false)
+  const [confirmedMembersFromTagged, setConfirmedMembersFromTagged] = useState<any[]>([])
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
   const [editDrawerOpen, setEditDrawerOpen] = useState<boolean>(false)
-  const [searchUsersDrawerOpen, setSearchUsersDrawerOpen] = useState(false)
   const [updateMembersLoading, setUpdateMembersLoading] = useState(false)
   const [showAllEntities, setShowAllEntities] = useState<boolean>(false)
 
@@ -221,6 +222,31 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
     setNotifyMembers(newValue)
   }
 
+  const handleOpenEditWithNewMembers = (newMembers: any[]) => {
+    // Close the tagged members drawer and set flag to open edit drawer after members are confirmed
+    setTaggedMembersDrawerOpen(false)
+    setIsAddingMembersFromTagged(true)
+    // Initialize notifyMembers with existing tagged members so they display in NotifyMembersDrawer
+    if (notesDetailsData?.assign_to && notesDetailsData.assign_to.length > 0) {
+      setNotifyMembers(notesDetailsData.assign_to)
+    }
+    // Also open NotifyMembersDrawer so user can select members
+    setNotifyMembersDrawerOpen(true)
+  }
+
+  const handleMembersConfirmedFromTagged = (confirmedMembers: any[]) => {
+    if (isAddingMembersFromTagged) {
+      // Store the confirmed members for use in AddNoteDrawer
+      setConfirmedMembersFromTagged(confirmedMembers)
+      // Close NotifyMembersDrawer
+      setNotifyMembersDrawerOpen(false)
+      // Open the edit drawer
+      setEditDrawerOpen(true)
+      // Reset flag
+      setIsAddingMembersFromTagged(false)
+    }
+  }
+
   const handleClose = () => {
     setNotesDetailsData(null)
     setLikeState(null)
@@ -228,7 +254,8 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
     setDeleteDialogOpen(false)
     setEditDrawerOpen(false)
     setTaggedMembersDrawerOpen(false)
-    setSearchUsersDrawerOpen(false)
+    setIsAddingMembersFromTagged(false)
+    setConfirmedMembersFromTagged([])
     onClose()
     setShowAllChildNoteTypes(false)
     setShowAllMedia(false)
@@ -1004,6 +1031,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
         taggedMembers={taggedMembers}
         updateMembersLoading={updateMembersLoading}
         isCreator={isCreator}
+        onOpenEditWithNewMembers={handleOpenEditWithNewMembers}
       />
 
       <AddAttachmentsDrawer
@@ -1034,8 +1062,16 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
       {editDrawerOpen && (
         <AddNoteDrawer
           open={editDrawerOpen}
-          onClose={() => setEditDrawerOpen(false)}
-          editData={notesDetailsData}
+          onClose={() => {
+            setEditDrawerOpen(false)
+            setIsAddingMembersFromTagged(false)
+            setConfirmedMembersFromTagged([])
+          }}
+          editData={
+            confirmedMembersFromTagged.length > 0
+              ? { ...notesDetailsData, assign_to: confirmedMembersFromTagged }
+              : notesDetailsData
+          }
           refetchNotesList={() => {
             fetchObservationDetails()
             if (onUpdate) onUpdate()
@@ -1045,10 +1081,14 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
 
       <NotifyMembersDrawer
         open={notifyMembersDrawerOpen}
-        onClose={() => setNotifyMembersDrawerOpen(false)}
+        onClose={() => {
+          setNotifyMembersDrawerOpen(false)
+          setIsAddingMembersFromTagged(false)
+        }}
         selectedMembers={notifyMembers}
         onMembersChange={handleNotifyMembersChange}
         noteTypeId={Number(notesDetailsData?.observation_type_id)}
+        onMembersConfirmed={isAddingMembersFromTagged ? handleMembersConfirmedFromTagged : undefined}
       />
     </Drawer>
   )

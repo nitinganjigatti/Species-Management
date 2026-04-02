@@ -164,6 +164,7 @@ export interface TaggedMembersDrawerProps {
   taggedMembers: AssignedUserDetails[]
   updateMembersLoading: boolean
   isCreator: boolean
+  onOpenEditWithNewMembers?: (newMembers: any[]) => void
 }
 
 export interface NotesDetailsData {

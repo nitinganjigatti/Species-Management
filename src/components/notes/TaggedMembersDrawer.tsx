@@ -6,13 +6,15 @@ import { useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { AssignedUserDetails, TaggedMembersDrawerProps } from 'src/types/notes'
 
+
 const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
   open,
   onClose,
   setNotifyMembersDrawerOpen,
   taggedMembers,
   updateMembersLoading,
-  isCreator
+  isCreator,
+  onOpenEditWithNewMembers
 }) => {
   const theme = useTheme() as any
 
@@ -60,16 +62,24 @@ const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          {/* {isCreator && (
+          {isCreator && (
             <IconButton
               size='small'
-              onClick={() => setNotifyMembersDrawerOpen(true)}
+              onClick={() => {
+                // Call the callback to set the flag and open NotifyMembersDrawer
+                if (onOpenEditWithNewMembers) {
+                  onOpenEditWithNewMembers([])
+                } else {
+                  // Fallback: just open NotifyMembersDrawer
+                  setNotifyMembersDrawerOpen(true)
+                }
+              }}
               disabled={updateMembersLoading}
               sx={{ color: theme.palette.primary.main }}
             >
               <PersonAddIcon />
             </IconButton>
-          )} */}
+          )}
           <IconButton size='small' onClick={() => onClose()}>
             <CloseIcon />
           </IconButton>
