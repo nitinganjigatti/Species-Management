@@ -45,3 +45,18 @@ export async function getDepartmentRequests(params) {
   const response = await axiosGet({ url: REQUEST_LIST, params })
   return response.data
 }
+
+export async function getDepartmentVendors(departmentId, params) {
+  const response = await axiosGet({ url: 'v1/vendor/mappings/list', params: { department_id: departmentId, ...params } })
+  return response.data
+}
+
+export async function assignVendorsToDepartment(payload) {
+  const response = await axiosPost({ url: `${REQUEST_DEPARTMENT}/vendors`, body: payload })
+  return response?.data
+}
+
+export async function removeVendorFromDepartment(payload) {
+  const response = await axiosPost({ url: 'v1/vendor/mappings/remove', body: payload })
+  return response?.data
+}
