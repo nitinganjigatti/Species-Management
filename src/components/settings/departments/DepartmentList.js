@@ -39,9 +39,9 @@ const DepartmentList = () => {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editData, setEditData] = useState(null)
 
-  // Delete dialog state
-  const [deleteDialog, setDeleteDialog] = useState({ open: false, department: null })
-  const [deleteLoading, setDeleteLoading] = useState(false)
+  // Status dialog state (handles both deactivate and activate)
+  const [statusDialog, setStatusDialog] = useState({ open: false, department: null, action: 'deactivate' })
+  const [statusLoading, setStatusLoading] = useState(false)
 
   // Debounce ref for search
   const searchDebounceRef = useRef(null)
@@ -112,34 +112,40 @@ const DepartmentList = () => {
   }
 
   const handleDelete = row => {
-    setDeleteDialog({ open: true, department: row })
+    setStatusDialog({ open: true, department: row, action: 'deactivate' })
   }
 
-  const handleDeleteClose = () => {
-    setDeleteDialog({ open: false, department: null })
+  const handleActivate = row => {
+    setStatusDialog({ open: true, department: row, action: 'activate' })
   }
 
-  const handleDeleteConfirm = async () => {
-    const dept = deleteDialog.department
+  const handleStatusClose = () => {
+    setStatusDialog({ open: false, department: null, action: 'deactivate' })
+  }
+
+  const handleStatusConfirm = async () => {
+    const dept = statusDialog.department
     if (!dept) return
+    const isActivating = statusDialog.action === 'activate'
+    const actionLabel = isActivating ? 'activated' : 'deactivated'
 
-    setDeleteLoading(true)
+    setStatusLoading(true)
     try {
       const formData = new FormData()
-      formData.append('active', '0')
+      formData.append('active', isActivating ? '1' : '0')
       const response = await updateDepartment(dept.id, formData)
       if (response?.success || response?.status) {
-        toast.success('Department deactivated successfully')
-        handleDeleteClose()
+        toast.success(`Department ${actionLabel} successfully`)
+        handleStatusClose()
         fetchDepartments()
       } else {
-        toast.error(response?.message || 'Failed to deactivate department')
+        toast.error(response?.message || `Failed to ${statusDialog.action} department`)
       }
     } catch (error) {
-      console.error('Error deactivating department:', error)
-      toast.error('Failed to deactivate department')
+      console.error(`Error ${actionLabel.replace('ed', 'ing')} department:`, error)
+      toast.error(`Failed to ${statusDialog.action} department`)
     } finally {
-      setDeleteLoading(false)
+      setStatusLoading(false)
     }
   }
 
@@ -168,6 +174,7 @@ const DepartmentList = () => {
           onRowClick={handleRowClick}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onActivate={handleActivate}
           hasPermission={hasPermission}
         />
       </PageCardLayout>
@@ -179,24 +186,44 @@ const DepartmentList = () => {
         editData={editData}
       />
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialog.open} onClose={handleDeleteClose} maxWidth='xs' fullWidth>
+      {/* Status Change Confirmation Dialog */}
+      <Dialog open={statusDialog.open} onClose={handleStatusClose} maxWidth='xs' fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Icon icon='mdi:alert-circle-outline' fontSize={22} color={theme.palette.error.main} />
-          <Typography variant='h6'>Deactivate Department</Typography>
+          <Icon
+            icon={statusDialog.action === 'activate' ? 'mdi:check-circle-outline' : 'mdi:alert-circle-outline'}
+            fontSize={22}
+            color={
+              statusDialog.action === 'activate' ? theme.palette.success.main : theme.palette.error.main
+            }
+          />
+          <Typography variant='h6'>
+            {statusDialog.action === 'activate' ? 'Activate Department' : 'Deactivate Department'}
+          </Typography>
         </DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to deactivate{' '}
-            <strong>{deleteDialog.department?.name}</strong>? This will mark the department as inactive.
+            Are you sure you want to {statusDialog.action}{' '}
+            <strong>{statusDialog.department?.name}</strong>? This will mark the department as{' '}
+            {statusDialog.action === 'activate' ? 'active' : 'inactive'}.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDeleteClose} color='inherit' disabled={deleteLoading}>
+          <Button onClick={handleStatusClose} color='inherit' disabled={statusLoading}>
             Cancel
           </Button>
-          <Button onClick={handleDeleteConfirm} color='error' variant='contained' disabled={deleteLoading}>
-            {deleteLoading ? 'Deactivating...' : 'Deactivate'}
+          <Button
+            onClick={handleStatusConfirm}
+            color={statusDialog.action === 'activate' ? 'success' : 'error'}
+            variant='contained'
+            disabled={statusLoading}
+          >
+            {statusLoading
+              ? statusDialog.action === 'activate'
+                ? 'Activating...'
+                : 'Deactivating...'
+              : statusDialog.action === 'activate'
+                ? 'Activate'
+                : 'Deactivate'}
           </Button>
         </DialogActions>
       </Dialog>

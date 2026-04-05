@@ -16,6 +16,7 @@ const DepartmentListView = ({
   onRowClick,
   onEdit,
   onDelete,
+  onActivate,
   hasPermission
 }) => {
   const theme = useTheme()
@@ -104,6 +105,7 @@ const DepartmentListView = ({
       headerAlign: 'center',
       renderCell: ({ row }) => {
         if (!hasPermission) return null
+        const isActive = row.active === 1 || row.active === true || row.active === '1'
         return (
           <Box sx={{ display: 'flex', gap: 0.5 }}>
             <IconButton
@@ -116,19 +118,35 @@ const DepartmentListView = ({
             >
               <Icon icon='mdi:pencil-outline' fontSize={18} />
             </IconButton>
-            <IconButton
-              size='small'
-              onClick={e => {
-                e.stopPropagation()
-                onDelete(row)
-              }}
-              sx={{
-                color: theme.palette.customColors.neutralSecondary,
-                '&:hover': { color: theme.palette.error.main }
-              }}
-            >
-              <Icon icon='mdi:delete-outline' fontSize={18} />
-            </IconButton>
+            {isActive ? (
+              <IconButton
+                size='small'
+                onClick={e => {
+                  e.stopPropagation()
+                  onDelete(row)
+                }}
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  '&:hover': { color: theme.palette.error.main }
+                }}
+              >
+                <Icon icon='mdi:delete-outline' fontSize={18} />
+              </IconButton>
+            ) : (
+              <IconButton
+                size='small'
+                onClick={e => {
+                  e.stopPropagation()
+                  onActivate(row)
+                }}
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  '&:hover': { color: theme.palette.success.main }
+                }}
+              >
+                <Icon icon='mdi:restore' fontSize={18} />
+              </IconButton>
+            )}
           </Box>
         )
       }
