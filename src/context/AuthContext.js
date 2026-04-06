@@ -191,8 +191,13 @@ const AuthProvider = ({ children }) => {
     queryClient.getQueryCache().clear()
     queryClient.getMutationCache().clear()
 
-    // 3. Clear localStorage and sessionStorage
+    // 3. Clear localStorage and sessionStorage (preserve device data)
+    let deviceId
+    try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+    const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
     localStorage.clear()
+    if (deviceId) write('antz_device_id', deviceId)
+    if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
     sessionStorage.clear()
 
     // 4. Clear all state
@@ -264,7 +269,7 @@ const AuthProvider = ({ children }) => {
           setUserData({ ...resData })
           setUser({ ...userData })
 
-          // Save device ID and last logged user ONLY after successful login (encrypted)
+          // Save device ID (plain text hash) and last logged user (encrypted) ONLY after successful login
           await Promise.all([saveDeviceId(), setLastLoggedUser(resData?.user?.user_id, resData?.user?.user_email)])
 
           // ******** Pharmcy
@@ -330,12 +335,13 @@ const AuthProvider = ({ children }) => {
       queryClient.getMutationCache().clear()
 
       // 3. Clear localStorage and sessionStorage
-      // Preserve device_id and last_logged_user (both encrypted)
-      // Cookie fallback for last_logged_user survives localStorage.clear() automatically
-      const deviceId = localStorage.getItem('antz_device_id')
+      // Preserve device_id (plain text hash) and last_logged_user (encrypted)
+      // Cookie fallback survives localStorage.clear() automatically
+      let deviceId
+      try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
       const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
       localStorage.clear()
-      if (deviceId) localStorage.setItem('antz_device_id', deviceId)
+      if (deviceId) write('antz_device_id', deviceId)
       if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
       sessionStorage.clear()
 
@@ -359,8 +365,13 @@ const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error)
 
-      // Fallback: Force clear everything even if something fails
+      // Fallback: Force clear everything even if something fails (preserve device data)
+      let deviceId
+      try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+      const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
       localStorage.clear()
+      if (deviceId) write('antz_device_id', deviceId)
+      if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
       sessionStorage.clear()
       setUser(null)
       setUserData(null)

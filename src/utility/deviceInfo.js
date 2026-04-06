@@ -1,8 +1,12 @@
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import { setEncryptedItem, getEncryptedItem, setEncryptedCookie, getEncryptedCookie } from './cryptoStorage'
+import { read, write } from 'src/lib/windows/utils'
 
 const DEVICE_ID_KEY = 'antz_device_id'
 const LAST_USER_KEY = 'antz_last_logged_user'
+
+// Module-level cache so getDeviceInfo() and saveDeviceId() use the SAME device_id
+let _cachedDeviceId = null
 
 // Generate a UUID — crypto.randomUUID() if secure context, manual fallback otherwise
 const generateUUID = () => {
@@ -111,35 +115,59 @@ const parseOS = () => {
   }
 }
 
-// Get or create a persistent UUID (does NOT save — saving happens after login success)
-const getStoredUUID = async () => {
+// Get stored device_id (SHA-256 hash) from localStorage/cookie, returns null if not found
+const getStoredDeviceId = () => {
   try {
-    // Try localStorage first
-    let uuid = await getEncryptedItem(DEVICE_ID_KEY)
+    // Return cached device_id if available (ensures same ID across getDeviceInfo + saveDeviceId)
+    if (_cachedDeviceId) return _cachedDeviceId
+
+    // Try localStorage first (stored via write() as JSON-wrapped string)
+    let deviceId
+    try {
+      deviceId = read(DEVICE_ID_KEY)
+    } catch {
+      // Migration: old raw value stored without write() — JSON.parse fails on plain hex hash
+      const rawValue = localStorage.getItem(DEVICE_ID_KEY)
+      if (rawValue) {
+        deviceId = rawValue
+        write(DEVICE_ID_KEY, rawValue) // migrate to write() format
+      }
+    }
 
     // Fallback to cookie if localStorage was cleared
-    if (!uuid) {
-      uuid = await getEncryptedCookie(DEVICE_ID_KEY)
+    if (!deviceId) {
+      const cookies = document.cookie.split(';')
+      const cookie = cookies.find(c => c.trim().startsWith(`${DEVICE_ID_KEY}=`))
+      if (cookie) {
+        deviceId = cookie.split('=').slice(1).join('=').trim()
+      }
     }
 
-    // Generate new UUID if neither exists
-    if (!uuid) {
-      uuid = generateUUID()
+    if (deviceId) {
+      _cachedDeviceId = deviceId
     }
 
-    return uuid
+    return deviceId || null
   } catch (error) {
-    console.error('getStoredUUID failed:', error)
+    console.error('getStoredDeviceId failed:', error)
 
-    return generateUUID()
+    return null
   }
 }
 
-// Save device UUID to both localStorage and cookie (call after login success)
+// Save device_id (SHA-256 hash) to both localStorage and cookie (call after login success)
+// Stored as plain text — the hash itself is non-reversible, no need to encrypt
 export const saveDeviceId = async () => {
   try {
-    const uuid = await getStoredUUID()
-    await Promise.all([setEncryptedItem(DEVICE_ID_KEY, uuid), setEncryptedCookie(DEVICE_ID_KEY, uuid)])
+    if (!_cachedDeviceId) {
+      console.error('saveDeviceId: no device_id cached — getDeviceInfo() must be called first')
+
+      return
+    }
+
+    // Save SHA-256 hash via write() (same value as payload)
+    write(DEVICE_ID_KEY, _cachedDeviceId)
+    document.cookie = `${DEVICE_ID_KEY}=${_cachedDeviceId};max-age=${365 * 86400};path=/;SameSite=Strict`
   } catch (error) {
     console.error('saveDeviceId failed:', error)
   }
@@ -313,12 +341,21 @@ export const getDeviceInfo = async currentUserEmail => {
   try {
     const { browserName, browserVersion } = parseBrowser()
     const { osName, osVersion } = parseOS()
-    const [uuid, fingerprintId, lastUser] = await Promise.all([
-      getStoredUUID(),
-      getFingerprintId(),
-      getLastLoggedUser()
-    ])
-    const deviceId = await generateDeviceId(uuid, fingerprintId)
+
+    // Try to read existing device_id (SHA-256 hash) from storage
+    let deviceId = getStoredDeviceId()
+
+    // If no stored device_id, generate a new one from UUID + fingerprint
+    if (!deviceId) {
+      const uuid = generateUUID()
+      const fingerprintId = await getFingerprintId()
+      deviceId = await generateDeviceId(uuid, fingerprintId)
+    }
+
+    // Cache the device_id so saveDeviceId() saves the exact same value
+    _cachedDeviceId = deviceId
+
+    const lastUser = await getLastLoggedUser()
 
     const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
 
