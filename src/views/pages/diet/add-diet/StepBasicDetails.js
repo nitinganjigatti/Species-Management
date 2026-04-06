@@ -1384,7 +1384,7 @@ const StepBasicDetails = ({
                 allRecipeSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Recipes</Typography>
+                      <Typography variant='h6'>{t('diet_module.recipes')}</Typography>
                     </Box>
 
                     <Grid
@@ -1570,7 +1570,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -1581,7 +1581,7 @@ const StepBasicDetails = ({
                 allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Mix</Typography>
+                      <Typography variant='h6'>{t('navigation.mix')}</Typography>
                     </Box>
 
                     <Grid
@@ -1762,7 +1762,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -1772,7 +1772,7 @@ const StepBasicDetails = ({
                 {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Items</Typography>
+                      <Typography variant='h6'>{t('diet_module.items')}</Typography>
                     </Box>
 
                     <Grid
@@ -1938,7 +1938,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -1951,7 +1951,7 @@ const StepBasicDetails = ({
                 allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Items with choice</Typography>
+                      <Typography variant='h6'>{t('diet_module.items_with_choice')}</Typography>
                     </Box>
 
                     <Grid
@@ -2242,7 +2242,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -2370,10 +2370,10 @@ const StepBasicDetails = ({
                   sx={{ mr: 6 }}
                   onClick={cancelBack}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                  Next
+                  {t('next')}
                 </Button>
               </Box>
             </Grid>

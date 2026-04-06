@@ -44,10 +44,12 @@ import { useMediaQuery } from '@mui/material'
 import SpeciesAnimalsMapped from 'src/components/diet/Species_Animals_mapped'
 import EditAnimalSpeciesMapped from 'src/components/diet/EditAnimalsSpecies'
 import SelectSiteList from 'src/components/diet/SelectSiteList'
+import { useTranslation } from 'react-i18next'
 
 const DietDetail = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { t } = useTranslation()
   const { id } = router.query
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [loader, setLoader] = useState(true)
@@ -889,7 +891,7 @@ const DietDetail = () => {
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
                     <Typography sx={{ fontWeight: 500, fontSize: '20px' }}>
-                      Meals Plan - {dietDetails?.diet_type_name}
+                      {t('diet_module.meals_plan')} - {dietDetails?.diet_type_name}
                     </Typography>
                   </Box>
 
@@ -944,7 +946,7 @@ const DietDetail = () => {
                                         (!all?.combo || all?.combo?.length === 0)
                                     ) ? (
                                       <div style={{ width: '200px', float: 'left', paddingTop: '15px' }}>
-                                        No records to show
+                                        {t('diet_module.no_records')}
                                       </div>
                                     ) : (
                                       <TableHead
@@ -994,7 +996,7 @@ const DietDetail = () => {
                                                   fontWeight: 600
                                                 }}
                                               >
-                                                MEAL NAME & TIME
+                                                {t('diet_module.meal_name_time')}
                                               </Typography>
                                             </Box>
                                           </TableCell>
@@ -1024,7 +1026,7 @@ const DietDetail = () => {
                                                   fontWeight: 600
                                                 }}
                                               >
-                                                MEAL DETAILS
+                                                {t('diet_module.meal_details')}
                                               </Typography>
                                             </Box>
                                           </TableCell>
@@ -1177,7 +1179,7 @@ const DietDetail = () => {
                                               itemd?.ingredientwithchoice?.length <= 0 ||
                                               itemd?.recipe?.length <= 0 ? (
                                                 <Typography sx={{ pt: 5, display: 'none' }}>
-                                                  No records to show
+                                                  {t('diet_module.no_records')}
                                                 </Typography>
                                               ) : (
                                                 <TableRow
@@ -1362,7 +1364,7 @@ const DietDetail = () => {
                                                                               display: 'block'
                                                                             }}
                                                                           >
-                                                                            Recipe
+                                                                            {t('navigation.recipe')}
                                                                           </Typography>
                                                                           <Typography
                                                                             sx={{
@@ -1441,7 +1443,7 @@ const DietDetail = () => {
                                                                           mb: 1
                                                                         }}
                                                                       >
-                                                                        Items used
+                                                                        {t('diet_module.items_used')}
                                                                       </Typography>
                                                                       {item?.ingredients?.length > 0 && (
                                                                         <Box
@@ -1587,7 +1589,7 @@ const DietDetail = () => {
                                                                             fontSize: '14px'
                                                                           }}
                                                                         >
-                                                                          Remarks
+                                                                          {t('remarks')}
                                                                         </Typography>
                                                                         <Typography
                                                                           sx={{
@@ -2273,7 +2275,7 @@ const DietDetail = () => {
                                                                             fontSize: '14px'
                                                                           }}
                                                                         >
-                                                                          Remarks
+                                                                          {t('remarks')}
                                                                         </Typography>
                                                                         <Typography
                                                                           sx={{
@@ -2879,7 +2881,7 @@ const DietDetail = () => {
                                                                             fontSize: '14px'
                                                                           }}
                                                                         >
-                                                                          Remarks
+                                                                          {t('remarks')}
                                                                         </Typography>
                                                                         <Typography
                                                                           sx={{
@@ -3444,7 +3446,7 @@ const DietDetail = () => {
                                                                         fontSize: '14px'
                                                                       }}
                                                                     >
-                                                                      Remarks
+                                                                      {t('remarks')}
                                                                     </Typography>
                                                                     <Typography
                                                                       sx={{
@@ -3883,7 +3885,7 @@ const DietDetail = () => {
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        Remarks
+                        {t('remarks')}
                       </Typography>
                       <Typography
                         sx={{
