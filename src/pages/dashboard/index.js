@@ -23,6 +23,7 @@ import {
   getLabRequests
 } from 'src/lib/api/dashboard'
 import DashboardLabRequests from 'src/components/dashboard/DashboardLabRequests'
+import { getEncryptedItem } from 'src/utility/cryptoStorage'
 
 function Dashboard() {
   const [loading, setLoading] = useState(false)
@@ -31,6 +32,13 @@ function Dashboard() {
   const [keyInsightsData, setKeyInsightsData] = useState([])
   const [eggAnalytics, setEggAnalytics] = useState([])
   const [animalActivityData, setAnimalActivityData] = useState([])
+  const getUSer = async () => {
+    const decrypted = await getEncryptedItem('antz_last_logged_user')
+    console.log('Decrypted:', JSON.parse(decrypted))
+  }
+  useEffect(() => {
+    getUSer()
+  }, [])
 
   const [animalTransfer, setAnimalTransfer] = useState({
     totalTransfers: 0,
