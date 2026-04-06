@@ -12,7 +12,8 @@ import {
   Skeleton,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  Autocomplete
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/system'
 import { useRouter } from 'next/router'
@@ -40,6 +41,7 @@ import { useHospital } from 'src/context/HospitalContext'
 import { debounce } from 'lodash'
 import Utility from 'src/utility'
 import { getHospitalBedStats, getHospitalDetail } from 'src/lib/api/hospital/hospitalAnalytics'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { write } from 'src/lib/windows/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import AddRoomDrawer from './AddRoomDrawer'
@@ -67,7 +69,7 @@ const defaultValues = {
   admission_time: dayjs()
 }
 
-const PatientAdmitForm = () => {
+const PatientAdmitForm = ()=> {
   const theme = useTheme()
   const router = useRouter()
   const authData = useContext(AuthContext)
@@ -81,6 +83,8 @@ const PatientAdmitForm = () => {
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
   const [holdingEnclosures, setHoldingEnclosures] = useState([])
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState([])
 
   const createdAt = patientData?.transfer_details?.created_at
     ? dayjs(Utility.convertUTCToLocal(patientData?.transfer_details?.created_at))
@@ -141,11 +145,12 @@ const PatientAdmitForm = () => {
           .set('minute', dayjs(value).minute())
           .set('second', 0)
 
-        // Must not be before the transfer request time (on the same day)
+        // Must not be before the transfer request time minus 1 minute (on the same day)
         if (createdAt && dayjs(admission_date).isSame(createdAt, 'day')) {
-          if (selectedTime.isBefore(createdAt)) {
+          const minAllowedTime = createdAt.subtract(1, 'minute')
+          if (selectedTime.isBefore(minAllowedTime)) {
             return this.createError({
-              message: `Time cannot be before the transfer request time (${createdAt.format('hh:mm A')})`
+              message: `Time cannot be before the transfer request time (${minAllowedTime.format('hh:mm A')})`
             })
           }
         }
@@ -170,15 +175,16 @@ const PatientAdmitForm = () => {
     clearErrors,
     watch
   } = useForm({
-    defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
-    reValidateMode: 'onChange'
+    reValidateMode: 'onChange',
+    defaultValues
   })
 
   const [selectedDoctor, setSelectedDoctor] = useState(null)
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
+  const [doctors, setDoctors] = useState([])
   const [submitLoader, setSubmitLoader] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
   const [isRejectLoading, setIsSubmitLoading] = useState(false)
@@ -186,12 +192,20 @@ const PatientAdmitForm = () => {
   const [rooms, setRooms] = useState([])
   const [roomLoading, setRoomLoading] = useState(false)
   const [searchRoom, setSearchRoom] = useState('')
+  const [loading, setLoading] = useState(false)
   const [bedsLoading, setBedsLoading] = useState(false)
   const [searchEnclosure, setSearchEnclosure] = useState('')
+  const [searchAttendDoctor, setSearchAttendDoctor] = useState('')
   const [hasPermission, setHasPermission] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
+  const [attendingDoctors, setAttendingDoctors] = useState([])
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10
+  })
 
   const queryClient = useQueryClient()
 
@@ -321,7 +335,10 @@ const PatientAdmitForm = () => {
         admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
         admit_time: moment(data?.admission_time).format('HH:mm'),
         room_id: data?.room?.value,
-        health_status: data?.healthStatus
+        health_status: data?.healthStatus,
+ co_attend_doctor: data?.coAttendDoctor?.length
+  ? JSON.stringify(data.coAttendDoctor.map(doc => String(doc.value)))
+  : '[]'
       }
 
       const res = await admitHospitalPatient(params)
@@ -348,6 +365,85 @@ const PatientAdmitForm = () => {
     }
   }
 
+  const filteredAttendingDoctors = attendingDoctors.filter(item => item.value !== selectedDoctor?.id)
+
+  
+    const getUserLists = async () => {
+      setLoading(true)
+      try {
+        const res = await getHospitalStaff({
+          params: {
+            q: searchAttendDoctor,
+            page_no: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            hospital_id: selectedHospital?.id
+          }
+        })
+          if (res?.success === true) {
+            const chiefs = res?.data?.records
+              .filter(item => item?.is_hospital_chief_doctor === '1')
+              .map(item => ({
+                name: item?.user_full_name,
+                id: item?.user_id,
+                default_icon: item?.user_profile_pic,
+                role_name: item?.role_name
+              }))
+  
+            if (chiefs.length === 1 && selectedHospital?.id) {
+              const singleDoctor = chiefs[0]
+              setSelectedDoctor(singleDoctor)
+              setValue('selectedDoctor', singleDoctor)
+  
+              clearErrors('selectedDoctor')
+            }
+          } else {
+            setDoctors([])
+          }
+      } catch (error) {
+        console.log('user error', error)
+      }
+      setLoading(false)
+    }
+
+  useEffect(() => {
+    getUserLists()
+  }, [])
+
+  const getStaffList = async () => {
+    try {
+      const response = await getHospitalStaff({
+        params: {
+          q: searchAttendDoctor,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          hospital_id: selectedHospital?.id
+        }
+      })
+
+      if (response?.success && response?.data?.records) {
+        const mappedData = response.data.records.map(item => ({
+          label: item.user_full_name,
+          value: item.user_id
+        }))
+
+        setAttendingDoctors(mappedData)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital staff:', error?.message)
+      setStaffLoading(false)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'Failed to load hospital staff'
+      })
+    } finally {
+      setStaffLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    getStaffList()
+  }, [searchAttendDoctor])
+
   const selectedDate = watch('admission_date')
 
   const createdAtLocal = dayjs(Utility.convertUTCToLocal(patientData?.transfer_details?.created_at))
@@ -364,7 +460,7 @@ const PatientAdmitForm = () => {
     const isToday = dayjs(selectedDate).isSame(now, 'day')
 
     if (isCreatedDate) {
-      minTime = createdAtLocal
+      minTime = createdAtLocal.subtract(1, 'minute')
     }
     if (isToday) {
       maxTime = now
@@ -384,8 +480,13 @@ const PatientAdmitForm = () => {
     setSelectedDoctor(doctor)
     setValue('selectedDoctor', doctor)
     clearErrors('selectedDoctor')
-  }
 
+    setAttendingSelectedDoctors(prev => {
+      const filtered = prev.filter(item => item.value !== doctor.id)
+      setValue('coAttendDoctor', filtered)
+      return filtered
+    })
+  }
   const handlePatientRejection = async () => {
     setIsSubmitLoading(true)
     try {
@@ -456,6 +557,16 @@ const PatientAdmitForm = () => {
   const debouncedSearch = React.useMemo(() => debounce(val => setSearchRoom(val), 1000), [])
 
   const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
+
+  const debouncedAttendingVetSearch = React.useMemo(() => debounce(val => setSearchAttendDoctor(val), 1000), [])
+
+  useEffect(() => {
+    if (selectedDoctor && doctors.length === 1) {
+      handleDoctorSelection(doctors[0])
+      setAttendingDoctors(doctors)
+      setValue('doctors', doctors)
+    }
+  }, [doctors])
 
   return (
     <>
@@ -767,6 +878,47 @@ const PatientAdmitForm = () => {
                           {errors.selectedDoctor.message}
                         </Typography>
                       )}
+                    </Grid>
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, }}>
+                        <Typography
+                          sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                        >
+                          Attending Veterinarian
+                        </Typography>
+                        <Controller
+                          name='coAttendDoctor'
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field }) => (
+                            <Autocomplete
+                              multiple
+                              options={filteredAttendingDoctors}
+                              value={attendingSelectedDoctors}
+                              loading={staffLoading}
+                              filterSelectedOptions
+                              getOptionLabel={option => option?.label || ''}
+                              isOptionEqualToValue={(option, value) => option.value === value?.value}
+                              onChange={(event, newValue, reason) => {
+                                setAttendingSelectedDoctors(newValue)
+                                field.onChange(newValue)
+                              }}
+                              onInputChange={(event, value, reason) => {
+                                if (reason === 'clear') {
+                                  setAttendingSelectedDoctors([])
+                                  field.onChange([])
+                                  return
+                                }
+                                debouncedAttendingVetSearch(value)
+                              }}
+                              noOptionsText='No available attending vets...'
+                              renderInput={params => (
+                                <TextField {...params} label='Select Attending Veterinarian' placeholder='Search & Select' />
+                              )}
+                            />
+                          )}
+                        />
+                      </Box>
                     </Grid>
                   </Grid>
                   <Grid container spacing={6}>

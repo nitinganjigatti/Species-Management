@@ -1,26 +1,12 @@
-import {
-  Avatar,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  IconButton,
-  Tooltip,
-  Typography,
-  debounce
-} from '@mui/material'
+import { Box, Button, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
 import {
   addMedicalComplaintOrDiagnosis,
   getMedicalCategoryListById,
-  updateMedicalCategory,
   updateMedicalCategoryComplaint
 } from 'src/lib/api/medical/masters'
 import toast from 'react-hot-toast'
@@ -28,11 +14,17 @@ import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
 import AddCategories from 'src/views/pages/medical/AddCategories'
 import Error404 from 'src/pages/404'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { Grid } from '@mui/system'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import Utility from 'src/utility'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const ComplaintsDetails = () => {
   const theme = useTheme()
   const router = useRouter()
-  const { id } = router.query
+  const { id, label } = router.query
   const authData = useContext(AuthContext)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
@@ -47,6 +39,7 @@ const ComplaintsDetails = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [type, setType] = useState('')
+  const [exportLoading, setExportLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -54,7 +47,6 @@ const ComplaintsDetails = () => {
 
   const zoo_id = authData?.userData?.user?.zoos[0].zoo_id
   const complaints_permission = authData?.userData?.permission?.user_settings?.medical_add_complaints
-  console.log(id, 'id')
 
   const fetchTableData = useCallback(
     async q => {
@@ -64,12 +56,12 @@ const ComplaintsDetails = () => {
         const params = {
           q,
           sort,
+          columns: sortColumn,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
         await getMedicalCategoryListById(id, params).then(res => {
-          console.log(res, 'resqwe')
           setType(res?.data?.type)
           setTotal(parseInt(res?.data?.total))
           setRows(loadServerRows(paginationModel.page, res?.data?.list))
@@ -80,8 +72,31 @@ const ComplaintsDetails = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, sort, sortColumn]
   )
+
+  const handleExport = async ({ q = searchValue }) => {
+    const params = {
+      q,
+      sort,
+      columns: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize,
+      response_type: 'csv'
+    }
+    try {
+      setExportLoading(true)
+
+      const response = await getMedicalCategoryListById(id, params)
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response.data)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setExportLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (complaints_permission) {
@@ -95,8 +110,6 @@ const ComplaintsDetails = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(searchValue, newModel[0].field, status)
-    } else {
     }
   }
 
@@ -104,7 +117,7 @@ const ComplaintsDetails = () => {
     debounce(async (sort, q, column) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q, column)
+        await fetchTableData(q, column, sort)
       } catch (error) {
         console.error(error)
       }
@@ -124,8 +137,6 @@ const ComplaintsDetails = () => {
   }
 
   const handleSubmitData = async params => {
-    console.log(params, 'ghghhg')
-
     const payload = {
       label: params?.label,
       category_id: id
@@ -150,7 +161,6 @@ const ComplaintsDetails = () => {
         setSubmitLoader(false)
       }
     } catch (e) {
-      console.log(e)
       setSubmitLoader(false)
       toast.error(JSON.stringify(e))
     }
@@ -161,13 +171,11 @@ const ComplaintsDetails = () => {
     setResetForm(true)
     setEditParams(params)
     setOpenDrawer(true)
-    console.log('params >>', params)
   }
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 20,
+      width: 120,
       field: 'id',
       headerName: 'NO',
       align: 'center',
@@ -177,29 +185,30 @@ const ComplaintsDetails = () => {
     },
 
     {
-      flex: 0.6,
-      minWidth: 40,
-      sortable: false,
-      field: 'Complaints',
+      width: 350,
+      field: 'label',
       headerName: 'Complaints',
       align: 'left',
 
-      renderCell: params => <Typography noWrap>{params.row.label}</Typography>
+      renderCell: params => (
+        <Tooltip title={params.row.label}>
+          <Typography noWrap>{params.row.label}</Typography>
+        </Tooltip>
+      )
     },
     {
-      flex: 0.1,
-      minWidth: 10,
+      width: 150,
       field: 'Action',
       headerName: 'Action',
       sortable: false,
       renderCell: params => (
         <>
           {params.row.zoo_id === zoo_id && params?.row?.can_edit === 1 ? ( // Show only if the zoo_id matches
-            (<Box sx={{}}>
+            <Box sx={{}}>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
               </IconButton>
-            </Box>)
+            </Box>
           ) : null}
         </>
       )
@@ -231,42 +240,57 @@ const ComplaintsDetails = () => {
     <>
       {complaints_permission ? (
         <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Medical
-            </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-              Category
-            </Typography>
-            <Typography
-              sx={{
-                color: 'text.primary',
-                cursor: 'pointer'
-              }}
-            >
-              Symptoms
-            </Typography>
-          </Breadcrumbs>
-          <Card>
-            <CardHeader title='Symptoms List' action={headerAction} />
+          <DynamicBreadcrumbs
+            pageItems={[{ title: 'Medical' }, { title: 'Category', onClick: () => router.back() }, { title: label }]}
+          />
 
-            <CommonTable
-              indexedRows={indexedRows === undefined ? [] : indexedRows}
-              total={total}
-              columns={columns}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              pageSizeOptions={[7, 10, 25, 50]}
-              loading={loading}
-              searchValue={searchValue}
-              handleSearch={handleSearch}
-              onCellClick={handleCellClick}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-            />
-          </Card>
+          <PageCardLayout title={label || 'Symptoms List'} action={headerAction}>
+            <Grid container>
+              <Grid
+                container
+                item
+                size={{ xs: 12 }}
+                sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}
+              >
+                <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                  <MUISearch
+                    sx={{
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                    placeholder='Search...'
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    value={searchValue}
+                  />
+                </Grid>
+                <Grid item>
+                  <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                </Grid>
+              </Grid>
+
+              <Grid item size={{ xs: 12 }}>
+                <CommonTable
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  loading={loading}
+                  searchValue={searchValue}
+                  handleSearch={handleSearch}
+                  onCellClick={handleCellClick}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </PageCardLayout>
           {openDrawer && (
             <AddCategories
               openDrawer={openDrawer}
@@ -283,7 +307,7 @@ const ComplaintsDetails = () => {
         <Error404></Error404>
       )}
     </>
-  );
+  )
 }
 
 export default ComplaintsDetails

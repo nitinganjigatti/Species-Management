@@ -728,7 +728,7 @@ const IncubatorDetails = () => {
     <>
       {egg_nursery_permission || egg_collection_permission ? (
         <>
-          <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit'>Egg</Typography>
 
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/incubators/')}>
@@ -792,7 +792,7 @@ const IncubatorDetails = () => {
                 >
                   <Box
                     onClick={() => setTransferIncubatorSideBar(true)}
-                    externalTableStyle={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
                   >
                     <Typography
                       sx={{
@@ -820,7 +820,7 @@ const IncubatorDetails = () => {
                         }}
                       />
                     }
-                    externalTableStyle={{ m: 0 }}
+                    sx={{ m: 0 }}
                     labelPlacement='start'
                     label='Active'
                   />
@@ -914,7 +914,7 @@ const IncubatorDetails = () => {
                 <Box sx={{ width: 220, display: 'flex', position: 'relative' }}>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
-                      externalTableStyle={{
+                      sx={{
                         backgroundColor: theme.palette.primary.contrastText,
                         borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         width: '100%',
@@ -981,7 +981,7 @@ const IncubatorDetails = () => {
                           defaultSpecie?.taxonomy_id
                         )
                       }}
-                      externalTableStyle={{
+                      sx={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1001,7 +1001,7 @@ const IncubatorDetails = () => {
                 <Box sx={{ width: 220, display: 'flex', position: 'relative' }}>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
-                      externalTableStyle={{
+                      sx={{
                         backgroundColor: theme.palette.primary.contrastText,
                         borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         width: '100%',
@@ -1073,7 +1073,7 @@ const IncubatorDetails = () => {
                           defaultSpecie?.taxonomy_id
                         )
                       }}
-                      externalTableStyle={{
+                      sx={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -1096,7 +1096,7 @@ const IncubatorDetails = () => {
                     name='species'
                     value={defaultSpecie}
                     disablePortal
-                    externalTableStyle={{ width: 220 }}
+                    sx={{ width: 220 }}
                     id='species'
                     loading={speciesLoader}
                     options={speciesList?.length > 0 ? speciesList : []}

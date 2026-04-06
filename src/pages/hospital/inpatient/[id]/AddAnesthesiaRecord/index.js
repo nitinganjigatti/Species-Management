@@ -2146,7 +2146,8 @@ export default function AddAnesthesiaRecord() {
                 additionalFields={[
                   {
                     label:
-                      patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                      patientData?.animal_detail?.local_identifier_name &&
+                      patientData?.animal_detail?.local_identifier_value
                         ? patientData?.animal_detail?.local_identifier_name
                         : 'AID',
                     value: handleAIDDisplay()

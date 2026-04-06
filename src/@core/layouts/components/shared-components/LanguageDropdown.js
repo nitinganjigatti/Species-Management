@@ -10,18 +10,34 @@ import { useTranslation } from 'react-i18next'
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
 
-const LanguageDropdown = ({ settings, saveSettings }) => {
-  // ** Hook
-  const { i18n } = useTranslation()
+// ** Locale Config
+import { SupportedLanguages } from 'src/utility/localeConfig'
+import { isRtlLanguage } from 'src/configs/i18n'
 
-  // ** Vars
+// ** Language Context
+import { useLanguage } from 'src/context/LanguageContext'
+
+const LanguageDropdown = ({ settings, saveSettings }) => {
+  const { i18n, t } = useTranslation()
+  const { loadLanguage } = useLanguage()
+
   const { layout } = settings
 
-  const handleLangItemClick = lang => {
-    i18n.changeLanguage(lang)
+  const handleLangItemClick = async lang => {
+    // Use loadLanguage from context — fetches API translations + merges
+    // Mirrors mobile app's selectLanguage() in Profile.js
+    await loadLanguage(lang)
+
+    // Only update settings if direction actually changes (avoids unnecessary theme re-creation)
+    const newDirection = isRtlLanguage(lang) ? 'rtl' : 'ltr'
+    if (settings.direction !== newDirection) {
+      saveSettings({
+        ...settings,
+        direction: newDirection
+      })
+    }
   }
 
-  // ** Change html `lang` attribute when changing locale
   useEffect(() => {
     document.documentElement.setAttribute('lang', i18n.language)
   }, [i18n.language])
@@ -31,41 +47,14 @@ const LanguageDropdown = ({ settings, saveSettings }) => {
       icon={<Icon icon='mdi:translate' />}
       menuProps={{ sx: { '& .MuiMenu-paper': { mt: 4, minWidth: 130 } } }}
       iconButtonProps={{ color: 'inherit', sx: { ...(layout === 'vertical' ? { mr: 0.75 } : { mx: 0.75 }) } }}
-      options={[
-        {
-          text: 'English',
-          menuItemProps: {
-            sx: { py: 2 },
-            selected: i18n.language === 'en',
-            onClick: () => {
-              handleLangItemClick('en')
-              saveSettings({ ...settings, direction: 'ltr' })
-            }
-          }
-        },
-        {
-          text: 'French',
-          menuItemProps: {
-            sx: { py: 2 },
-            selected: i18n.language === 'fr',
-            onClick: () => {
-              handleLangItemClick('fr')
-              saveSettings({ ...settings, direction: 'ltr' })
-            }
-          }
-        },
-        {
-          text: 'Arabic',
-          menuItemProps: {
-            sx: { py: 2 },
-            selected: i18n.language === 'ar',
-            onClick: () => {
-              handleLangItemClick('ar')
-              saveSettings({ ...settings, direction: 'rtl' })
-            }
-          }
+      options={SupportedLanguages.map(lang => ({
+        text: t(`languages.${lang.code}`, { defaultValue: lang.nativeLabel || lang.label }),
+        menuItemProps: {
+          sx: { py: 2 },
+          selected: i18n.language === lang.code,
+          onClick: () => handleLangItemClick(lang.code)
         }
-      ]}
+      }))}
     />
   )
 }

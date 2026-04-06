@@ -15,6 +15,8 @@ import { alpha, useTheme } from '@mui/material/styles'
 import SearchIcon from '@mui/icons-material/Search'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 import { AuthContext } from 'src/context/AuthContext'
+import Search from 'src/views/utility/Search'
+import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 
 export default function ClinicalAssessmentList({
   symptoms,
@@ -45,28 +47,21 @@ export default function ClinicalAssessmentList({
   return (
     <Box sx={{ pt: 1 }}>
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 3 }}>
-        <TextField
-          placeholder='Search'
-          fullWidth
-          size='small'
-          sx={{
+        <Search
+          value = {searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          width={'100%'}
+          sx = {{
             flex: 1,
             borderRadius: '8px',
             '& .MuiOutlinedInput-root': {
               borderRadius: '8px'
             }
           }}
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon fontSize='small' sx={{ color: 'gray' }} />
-                </InputAdornment>
-              )
-            }
+          onClear={()=> {
+            setSearchTerm('')
           }}
+        
         />
 
         {userSettings?.medical_add_diagnosis && (
@@ -201,34 +196,30 @@ export default function ClinicalAssessmentList({
                     display: 'flex',
                     alignItems: 'center',
                     borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    justifyContent: 'space-between'
                     // opacity: isAlreadyPrescribed ? 0.5 : 1,
                     // pointerEvents: isAlreadyPrescribed ? 'none' : 'auto',
                     // backgroundColor: isAlreadyPrescribed ? alpha(theme.palette.action.disabledBackground, 0.1) : 'inherit'
                   }}
                 >
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={isSelected || isTemporarilySelected || isAlreadyPrescribed}
-                        disabled={isAlreadyPrescribed}
-                        onChange={() => onSelect(symptom)}
-                        sx={{
-                          transform: 'scale(0.8)',
-                          padding: '4px'
-                        }}
-                      />
-                    }
+                  <MUICheckbox
                     label={symptom.name}
-                    sx={{
-                      flex: 1,
-                      m: 0,
+                    checked={isSelected || isTemporarilySelected || isAlreadyPrescribed}
+                    disabled={isAlreadyPrescribed}
+                    onChange={() => onSelect(symptom)}
+                    checkboxStyle = {{
+                       transform: 'scale(0.8)',
+                        padding: '4px'
+                    }}
+                    formControlLabelStyle={{
                       '& .MuiFormControlLabel-label': {
                         color: theme.palette.customColors.OnSurfaceVariant,
                         fontSize: '16px',
-                        fontWeight: 600
-                      }
+                        fontWeight: 600,
+                      },
                     }}
-                  />
+
+                    />
                   <Typography
                     sx={{
                       width: '200px',

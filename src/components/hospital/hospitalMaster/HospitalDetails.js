@@ -16,6 +16,7 @@ import { StatusChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { addHospitalMaster, getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const statusOptions = [
   { label: 'All Status', value: 'all' },
@@ -259,7 +260,8 @@ const HospitalDetails = () => {
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,
-            maxWidth: '220px'
+            maxWidth: '220px',
+            cursor: 'pointer'
           }}
         />
       )
@@ -297,7 +299,8 @@ const HospitalDetails = () => {
             fontSize: '1rem',
             fontWeight: 400,
             pl: 1.4,
-            maxWidth: '230px'
+            maxWidth: '230px',
+            cursor: 'pointer'
           }}
         />
       )
@@ -392,6 +395,11 @@ const HospitalDetails = () => {
 
   return (
     <>
+      <DynamicBreadcrumbs
+        sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
+        pageItems={[{ title: 'Hospital' }, { title: 'Masters' }, { title: 'Hospital' }]}
+        
+      />
       <Card sx={{ p: 6 }}>
         <CardHeader
           sx={{

@@ -476,6 +476,8 @@ export const COMPLIANCE_DAILY_REPORT = 'v1/get/daily/report'
 
 export const OBSERVATION_MASTER_TYPE = 'observation/master-type'
 
+export const OBSERVATION_MASTER_LIST = 'master/observation/list'
+
 export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
 
 export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
@@ -538,6 +540,22 @@ export const SECTION_INSIGHTS = 'zoos/section/details'
 
 export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'
 
+export const ADD_NOTE_REACTION = 'v1/notes/add/reaction'
+
+export const REMOVE_NOTE_REACTION = 'v1/notes/remove/reaction'
+
+export const ADD_OBSERVATION_COMMENT = 'v1/observation/note/add'
+
+export const GET_OBSERVATION_DETAILS = 'v1/observation/details'
+
+export const CREATE_OBSERVATION = 'v1/observation2'
+
+export const DELETE_OBSERVATION = 'v1/observation/delete'
+
+export const EDIT_OBSERVATION = 'v1/observation2/edit'
+
+export const TRANSFER_AND_SECURITY_TEAM_LIST = `get-default-animal-movement-user-list-by-site-id`
+
 export const GET_ALL_SPECIES = 'v1/species/listing'
 
 export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'
@@ -547,6 +565,10 @@ export const GET_ANIMAL_TREATMENT = 'site-wise-animal-medical-data'
 export const SECTION_GET_ANIMAL_TREATMENT = 'section-wise-animal-medical-data'
 
 export const GET_MEDIA = 'zoos/all-type-media-list'
+
+export const ADD_MEDIA = 'zoos/all-type-add-media'
+
+export const ADD_ANIMAL_MEDIA = 'animal/add-media'
 
 export const GET_ANIMAL = 'v1/animal/listing'
 
@@ -558,6 +580,8 @@ export const GET_ENCLOSURE_LIST_SECTION_WISE = `v1/enclosure/sub/listing`
 
 export const GET_ENCLOSURE_WISE_STATS = `enclosure/get-enclosure`
 
+export const GET_ENCLOSURE_BASIC_INFO = `enclosure/get-enclosure-basic-info`
+
 export const GET_ENCLOSURE_WISE_SPECIES = `v1/enclosure/species/listing`
 
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
@@ -568,17 +592,103 @@ export const GET_SITES_LIST_CLUSTER_WISE = `cluster/get-site-list-for-cluster-as
 
 export const ADD_CLUSTER = `cluster/add-cluster`
 
+export const EDIT_CLUSTER = `cluster/edit-cluster`
+
+export const DELETE_CLUSTER = `cluster/delete-cluster`
+
+export const ASSIGN_SITES_FOR_CLUSTER = `cluster/assign-sites-for-cluster`
+
 export const ADD_SECTION = `/zoos/createsection`
+
+export const EDIT_SECTION = `/zoos/editsection`
+
+export const DELETE_SECTION = `/zoos/deletesection`
 
 export const CREATE_SITE = '/zoos/createZooSite'
 
+export const EDIT_SITE = '/zoos/editzoosite'
+
+export const DELETE_SITE = '/zoos/deletezoosite'
+
 export const ADD_ENCLOSURE_TO_HOUSING = `enclosure/create-enclosure`
+
+export const EDIT_ENCLOSURE = `enclosure/update-enclosure`
+
+export const DELETE_ENCLOSURE = `enclosure/remove`
 
 export const GET_ENCLOSURE_SETTINGS = `/enclosure/settings`
 
 export const GET_SECTION_FOR_ENCLOSURE = `zoos/getsections`
 
 export const GET_PARENT_ENCLOSURE = `/enclosures`
+
+export const GET_INCHARGE_LIST = 'get-incharge-list'
+
+export const ADD_INCHARGE = 'add-incharge'
+
+export const GET_USERS_LIST = 'get-userswith-access'
+
+export const GET_USERS_ROLE_LIST = 'role/list'
+
+// Site Team Management
+export const ADD_SITE_TEAM = 'zoos/site-team'
+
+export const EDIT_SITE_TEAM = 'zoos/edit-site-team'
+
+export const UPDATE_PERFORM_ACTION = 'zoos/update-perform-action'
+
+// Animal Transfer - Endpoints aligned with mobile implementation
+export const GET_ANIMAL_TRANSFER_LIST = 'v1/animal/get-transfer-list'
+
+// Animal Transfer Details APIs (from MoveAnimalService.js - used in ApprovalSummary.js)
+export const GET_ANIMAL_TRANSFER_SUMMARY = 'v1/animal/transfer/members'
+
+export const GET_ANIMAL_TRANSFER_BUTTON_STATUS = 'v1/animal/transfer/btn-status'
+
+export const GET_ANIMAL_TRANSFER_LOGS = 'antz/list-comments-logs'
+
+export const ADD_ANIMAL_TRANSFER_COMMENT = 'antz/transfer/addcomments'
+
+export const UPDATE_ANIMAL_TRANSFER_STATUS = 'antz/animal/update-transfer-status'
+
+// Hospital/Carcass Transfer APIs (from RTK Query transfer.js)
+export const GET_TRANSFER_SUMMARY = 'v1/get-transfer-summary'
+
+export const GET_TRANSFER_BUTTON_STATUS = 'v1/transfer'
+
+export const UPDATE_TRANSFER_STATUS = 'v1/transfer/update-btn-status'
+
+export const ADD_TRANSFER_COMMENT = 'v1/request/comment/create'
+
+export const GET_TRANSFER_ACTIVITY = 'v1/request'
+
+// Common Transfer APIs
+export const GET_TRANSFER_MEMBERS = 'v1/get-source-destination-wise-site-user-list-by-animal-movement-id'
+
+export const APPROVE_TRANSFER_REQUEST = 'antz/approve-transfer-request'
+
+export const REJECT_TRANSFER_REQUEST = 'animal/transfer/action'
+
+export const GET_ANIMAL_LIST_BY_SPECIES = 'v1/movement-animal-by-species'
+
+// Food Wastage APIs (matching mobile implementation)
+export const GET_SITE_FOOD_WASTAGE = 'v1/site/food/wastage'
+
+export const GET_SECTION_FOOD_WASTAGE = 'v1/section/food/wastage'
+
+export const GET_ENCLOSURE_FOOD_WASTAGE = 'v1/food/wastage' // Uses type=enclosure, type_id params
+
+export const GET_FOOD_WASTAGE_DETAILS = 'v1/food/wastage/details' // Details for a specific date
+
+// Taxonomy Hierarchy API
+export const GET_TAXONOMY_HIERARCHY = 'get-texonomy-hierarchy-list-by-species'
+
+// Vaccination/Deworming API
+export const GET_VACCINATION_LIST_ANIMAL_WISE = 'vaccination/get-animal-wise-list'
+
+export const GET_MEDICINE_SIDE_EFFECT = 'medical/medicine-side-effect'
+
+export const DELETE_MEDICINE_SIDE_EFFECT = 'medical/delete-medicine-side-effect'
 
 // Compliance  module
 
@@ -699,6 +809,12 @@ export const CARCASS_DEPOSITION = `masters/carcassDisposition`
 
 export const MEASUREMENT_UNITS = `masters/measurement-units`
 
+export const ADD_MEASUREMENT_UNITS = 'master/measurement-units/add'
+
+export const UPDATE_MEASUREMENT_UNITS = 'master/measurement-units/update'
+
+export const GET_MEASUREMENT_BASE_UOM = 'masters/measurement-unit-by-id'
+
 export const NECROPSY_CENTER = `v1/entity/types/necropsy_centre`
 
 export const ANIMAL_DIET_LIST = `diet/get-species-detail`
@@ -706,6 +822,8 @@ export const ANIMAL_DIET_LIST = `diet/get-species-detail`
 export const GENERATE_DIET_PDF = `diet/generate-attachment-by-diet`
 
 export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
+
+export const ANIMAL_JOURNAL_MODULES = `journal/get-animal-module-logs`
 
 export const ANIMAL_HISTORY = `animal-log-history`
 
@@ -877,6 +995,10 @@ export const GET_PATIENT_DISCHARGE_SUMMARY = `v1/hospital/report/hospital-discha
 
 export const GET_PATIENT_VISIT_SUMMARY = `v1/hospital/report/hospital-visit-report`
 
+export const DOWNLOAD_MORTALITY_LISTINGS = 'v1/hospital/get-mortality-discharge-list'
+
+export const DOWNLOAD_FOLLOWUP_LISTINGS = 'v1/hospital/get-followup-discharge-list'
+
 //Hospital rooms
 
 //Hospital masters
@@ -895,6 +1017,10 @@ export const HOSPITAL_STATUS_UPDATE = 'v1/hospital/status/update'
 
 export const GET_HOSPITAL_STAFF = 'v1/hospital/staff'
 
+export const ADD_CHIEF_DOCTOR = 'v1/hospital/chief/doctor'
+
+export const REMOVE_CHIEF_DOCTOR = 'v1/hospital/chief/doctor'
+
 //Hospital beds
 
 export const GET_HOSPITAL_BED = `v1/hospital/bed/list`
@@ -910,6 +1036,10 @@ export const GET_PATIENT_LIST_BY_ENCLOSURES = `v1/hospital/bed/admitted-animals`
 // Hospital inpatient discharge
 
 export const ADD_DISCHARGE = 'v1/hospital/discharge'
+
+export const DOWNLOAD_DISCHARGE_LISTINGS = 'v1/hospital/get-hospital-patients'
+
+
 
 //  Inpatient Treatment Monitoring
 
@@ -945,6 +1075,10 @@ export const UPDATE_TREATMENT = 'v1/hospital/treatment/update'
 
 export const DELETE_TREATMENT = 'v1/hospital/treatment/delete'
 
+export const ADD_TREATMENT_MASTERS = 'v1/hospital/treatment-master/create'
+
+export const UPDATE_TREATMENT_MASTERS = 'v1/hospital/treatment-master/update'
+
 export const ADD_ASSESSMENT_VALUE_TO_PARAMS = `v1/assessment/animal/add`
 
 export const GET_HOSPITAL_PARAMETERS_UNIT = `v1/hospital/get-assessment-details`
@@ -959,6 +1093,16 @@ export const DELETE_PARAMETER_ASSESSMENT_HISTORY = `v1/hospital/delete-assessmen
 
 export const GET_ASSESSMENT_LIST_ANESTHESIA = `v1/hospital/anaesthesia/assessment-items`
 
+export const ADD_ASSESSMENT_MASTERS_BY_TYPE = 'v1/hospital/anaesthesia/assessment-master-add'
+
+export const UPDATE_ASSESSMENT_MASTERS_BY_TYPE = 'v1/hospital/anaesthesia/assessment-master-update'
+
+export const ASSESSMENT_RESPONSE_TYPE = 'v1/assessment/masters/config'
+
+export const ADD_ASSESSMENT_MASTERS = 'v1/assessment/type/add'
+
+export const UPDATE_ASSESSMENT_MASTERS = 'v1/assessment/type/edit'
+
 export const ADD_ANESTHESIA = `v1/hospital/anaesthesia/save`
 
 export const GET_ANESTHESIA_SETUP_LIST = `v1/hospital/anaesthesia/sections`
@@ -970,6 +1114,14 @@ export const DELETE_ANESTHESIA = `v1/hospital/anaesthesia/delete`
 export const DELETE_MONITORING_MONITORING = `v1/hospital/delete-scheduled-monitoring-parameter`
 
 export const GET_MEDICAL_DELIVERY_ROUTE = `master/get-medical-delivery-route`
+
+export const GET_MEDICAL_DELIVERY_ROUTE_LIST = `master/list-medical-delivery-route`
+
+export const GET_MEASUREMENT_UNITS_MASTERS = `masters/measurement-units-v2`
+
+export const ADD_MEDICAL_DELIVERY_ROUTE = `master/add-medical-delivery-route`
+
+export const UPDATE_MEDICAL_DELIVERY_ROUTE = `master/edit-medical-delivery-route`
 
 export const GET_VITAL_MONITORING_LIST = `v1/hospital/anaesthesia/sections`
 
@@ -1050,12 +1202,98 @@ export const GET_LAB_REQUESTS_BY_ANIMAL = 'medical/get-lab-test-request-status-w
 
 // Lab Request Details
 export const LAB_REQUEST_DETAILS = 'v1/lab-request-details'
+
 export const LAB_REQUEST_SAMPLES = 'v1/lab-request/get-sample-details'
+
 export const LAB_REQUEST_NOTES = 'v1/lab-request-report-notes'
+
 export const LAB_REQUEST_REPORTS = 'v1/lab-request/get-attachment-list'
+
 export const LAB_SUB_TESTS = 'v1/labs/master-data'
+
 export const LAB_SAMPLE_LOGS = 'v1/lab-request/get-sample-logs'
 
 export const GET_ASSESSMENT_ANIMAL_TYPES = 'v1/assessment/animal/types'
 
 export const GET_ASSESSMENT_ANIMAL_DATA = 'v1/assessment/animal/defaultValue'
+
+// Entity Assessment (Site, Section, Enclosure)
+export const GET_ASSESSMENT_ENTITY_TYPES = 'v1/assessment/entity/type/list'
+
+export const ADD_ENTITY_ASSESSMENT_VALUE = 'v1/assessment/entity/add'
+
+export const UPDATE_ENTITY_ASSESSMENT_VALUE = 'v1/assessment/entity/update'
+
+export const GET_ENTITY_ASSESSMENT_HISTORY = 'v1/assessment/entity/defaultValue'
+
+export const ADD_ASSESSMENT_TYPES_TO_ENTITY = 'v1/assessment/entity/types/edit'
+
+export const GET_ASSESSMENT_TEMPLATES_LIST = 'v1/assessment/templates/list'
+
+export const ASSIGN_ASSESSMENT_TEMPLATE = 'v1/assesment-assign-template'
+
+// Family Tree / Lineage
+export const GET_FAMILY_TREE_PARENT_LIST = 'v1/familytree/parent/list'
+
+export const GET_FAMILY_TREE_PAIR_LIST = 'v1/familytree/pair/list'
+
+export const GET_FAMILY_TREE_SIBLING_LIST = 'v1/familytree/sibling/list'
+
+export const ADD_FAMILY_TREE_PARENT = 'v1/familytree/add/parent'
+
+export const EDIT_EXTERNAL_PARENT = 'v1/familytree/edit/external/parent'
+
+export const DELETE_FAMILY_TREE_PARENT = 'v1/familytree/delete/parent'
+
+export const ADD_FAMILY_TREE_PAIR = 'v1/familytree/add/pair'
+
+export const EDIT_FAMILY_TREE_PAIR = 'v1/familytree/pair/edit'
+
+export const DELETE_FAMILY_TREE_PAIR = 'v1/familytree/delete/pair'
+
+export const GET_USER_ACCESS_CHECK = 'zoo/users/access/check'
+
+export const GET_LINEAGE_ANIMAL_LIST = 'v1/familytree/animal/list'
+
+export const GET_FAMILY_TREE_CLUTCH_LIST = 'v1/familytree/clutch/list'
+
+export const GET_FAMILY_TREE_LITTER_LIST = 'v1/familytree/litter/list'
+
+export const GET_FETUS_LIST = 'fetus/list'
+
+export const GET_FAMILY_TREE_OFFSPRING_STATS = 'v1/familytree/stats'
+
+export const DELETE_FAMILY_TREE_OFFSPRINGS = 'v1/familytree/offspring/delete'
+
+export const ADD_FAMILY_TREE_OFFSPRING = 'v1/familytree/offspring/add'
+
+export const GET_FETUS_STATS = 'fetus/stats'
+
+export const GET_FETUS_DETAILS = 'fetus'
+
+export const GET_CLUTCH_DETAILS = 'egg/details'
+
+export const GET_CLUTCH_EGG_LIST = 'egg/detail/list'
+
+export const GET_EGG_PARENT_DETAILS = 'egg/parent/detail'
+
+export const GET_EGG_HISTORY = 'egg/history'
+
+export const EGG_ADD_COMMENT = 'egg/add-comment'
+
+export const EGG_UPLOAD_IMAGES = 'egg/upload-egg-media'
+
+export const EGG_STATUS_MASTER_DATA = 'egg/master/data/all'
+
+export const EGG_STATUS_UPDATE = 'egg/status/update'
+
+export const EGG_GET_MEDIA_LIST = 'egg/get-media-by-egg-id'
+
+// Observation Templates
+export const OBSERVATION_TEMPLATE_LIST = 'antz/observation/templates'
+
+export const OBSERVATION_TEMPLATE_CREATE = 'antz/observation/templates/create'
+
+export const OBSERVATION_TEMPLATE_UPDATE = 'antz/observation/templates/update'
+
+export const OBSERVATION_TEMPLATE_DELETE = 'antz/observation/templates/delete'

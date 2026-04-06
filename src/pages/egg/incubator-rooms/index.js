@@ -285,7 +285,7 @@ const RoomsList = () => {
           size='small'
           label={params.row?.active === '1' ? 'Active' : 'InActive'}
           color={params.row?.active === '1' ? 'success' : 'error'}
-          externalTableStyle={{
+          sx={{
             height: 20,
             fontWeight: 600,
             borderRadius: '5px',
@@ -422,7 +422,7 @@ const RoomsList = () => {
         ) : (
           <>
             <Box>
-              <Breadcrumbs aria-label='breadcrumb' externalTableStyle={{ mb: 5 }}>
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit'>
                   Egg
                 </Typography>
@@ -474,7 +474,7 @@ const RoomsList = () => {
                         value={defaultNursery}
                         disablePortal
                         loading={nurseryLoading}
-                        externalTableStyle={{ width: 220 }}
+                        sx={{ width: 220 }}
                         id='nursery'
                         options={nurseryList?.length > 0 ? nurseryList : []}
                         getOptionLabel={option => option.nursery_name}
@@ -523,7 +523,7 @@ const RoomsList = () => {
                         name='status'
                         value={defaultStatus}
                         disablePortal
-                        externalTableStyle={{ width: 220 }}
+                        sx={{ width: 220 }}
                         id='status'
                         options={[
                           { label: 'Active', key: 'active' },

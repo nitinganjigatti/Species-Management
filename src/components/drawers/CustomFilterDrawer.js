@@ -14,7 +14,8 @@ const CustomFilterDrawer = ({
   children,
   isSubmitting,
   selectedItem,
-  onSelectItem
+  onSelectItem,
+  zIndex
 }) => {
   const theme = useTheme()
 
@@ -27,6 +28,7 @@ const CustomFilterDrawer = ({
       anchor='right'
       open={open}
       onClose={onClose}
+      sx={{ ...(zIndex && { zIndex }) }}
       slotProps={{
         paper: {
           sx: {
