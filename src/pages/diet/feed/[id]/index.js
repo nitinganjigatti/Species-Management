@@ -37,6 +37,7 @@ import ActivityLogs from 'src/components/diet/activityLogs'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 // Styled TabList component
@@ -69,6 +70,7 @@ const FeedDetails = () => {
   const { id } = router.query
   const { query } = router
   const theme = useTheme()
+  const { t } = useTranslation()
   const [value, setValue] = useState('1')
   const [FeedDetailsValue, setFeedDetails] = useState([])
   const [loader, setLoader] = useState(true)
@@ -426,19 +428,19 @@ const FeedDetails = () => {
                               <Tab
                                 style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                                 value='1'
-                                label='OVERVIEW'
+                                label={t('overview')}
                               />
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='2'
-                                label='USED ITEMS'
+                                label={t('diet_module.used_items')}
                               />
                             </TabList>
                             <TabPanel sx={{ paddingLeft: 0 }} value='1'>
                               {FeedDetailsValue.desc ? (
                                 <div>
                                   <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>
-                                    Description
+                                    {t('description')}
                                   </Typography>
                                   <Typography
                                     variant='body2'
@@ -518,7 +520,7 @@ const FeedDetails = () => {
                                     <Typography
                                       sx={{ color: theme.palette.customColors.deepDark, my: 3, fontSize: 14 }}
                                     >
-                                      Activity Log
+                                      {t('activity_log')}
                                     </Typography>
                                     <Icon
                                       icon='ph:clock'
@@ -555,7 +557,9 @@ const FeedDetails = () => {
                             </TabPanel>
                             <TabPanel sx={{ p: 0, pt: 2 }} value='2'>
                               <Box sx={{ display: 'flex', mb: 4, height: '32px', justifyContent: 'space-between' }}>
-                                <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>Items</Typography>
+                                <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>
+                                  {t('diet_module.items')}
+                                </Typography>
                                 <Button
                                   onClick={() =>
                                     Router.push({
@@ -571,7 +575,7 @@ const FeedDetails = () => {
                                   variant='contained'
                                 >
                                   <Icon icon='mdi:add' fontSize={20} />
-                                  &nbsp; Add item
+                                  &nbsp; {t('diet_module.add_item')}
                                 </Button>
                               </Box>
                               <CommonTable
@@ -643,7 +647,7 @@ const FeedDetails = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default FeedDetails
