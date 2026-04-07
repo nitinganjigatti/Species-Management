@@ -49,6 +49,7 @@ import { NecropsyProvider } from 'src/context/NecropsyContext'
 // Shared instances (same as Page Router)
 import { queryClient } from 'src/lib/shared/queryClient'
 import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
+import { LanguageProvider } from 'src/context/LanguageContext'
 
 interface ProvidersProps {
   children: ReactNode
@@ -57,49 +58,51 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        <CacheProvider value={clientSideEmotionCache}>
-          <HospitalProvider>
-            <NecropsyProvider>
-              <PariveshProvider>
-                <AnimalProvider>
-                  <PharmacyProvider>
-                    <DynamicStatesProvider>
-                      <EggProvider>
-                        <ForgotPasswordProvider>
-                          <AuthProvider>
-                            <SettingsProvider pageSettings={null}>
-                              <SettingsConsumer>
-                                {({ settings }) => {
-                                  return (
-                                    <ThemeComponent settings={settings}>
-                                      <Suspense fallback={null}>
-                                        <NavigationProgress />
-                                      </Suspense>
-                                      {children}
-                                      <ReactHotToast>
-                                        <Toaster
-                                          position={settings.toastPosition as any}
-                                          containerClassName='react-hot-toast-container'
-                                          toastOptions={{ className: 'react-hot-toast' }}
-                                        />
-                                      </ReactHotToast>
-                                    </ThemeComponent>
-                                  )
-                                }}
-                              </SettingsConsumer>
-                            </SettingsProvider>
-                          </AuthProvider>
-                        </ForgotPasswordProvider>
-                      </EggProvider>
-                    </DynamicStatesProvider>
-                  </PharmacyProvider>
-                </AnimalProvider>
-              </PariveshProvider>
-            </NecropsyProvider>
-          </HospitalProvider>
-        </CacheProvider>
-      </Provider>
+      <LanguageProvider>
+        <Provider store={store}>
+          <CacheProvider value={clientSideEmotionCache}>
+            <HospitalProvider>
+              <NecropsyProvider>
+                <PariveshProvider>
+                  <AnimalProvider>
+                    <PharmacyProvider>
+                      <DynamicStatesProvider>
+                        <EggProvider>
+                          <ForgotPasswordProvider>
+                            <AuthProvider>
+                              <SettingsProvider pageSettings={null}>
+                                <SettingsConsumer>
+                                  {({ settings }) => {
+                                    return (
+                                      <ThemeComponent settings={settings}>
+                                        <Suspense fallback={null}>
+                                          <NavigationProgress />
+                                        </Suspense>
+                                        {children}
+                                        <ReactHotToast>
+                                          <Toaster
+                                            position={settings.toastPosition as any}
+                                            containerClassName='react-hot-toast-container'
+                                            toastOptions={{ className: 'react-hot-toast' }}
+                                          />
+                                        </ReactHotToast>
+                                      </ThemeComponent>
+                                    )
+                                  }}
+                                </SettingsConsumer>
+                              </SettingsProvider>
+                            </AuthProvider>
+                          </ForgotPasswordProvider>
+                        </EggProvider>
+                      </DynamicStatesProvider>
+                    </PharmacyProvider>
+                  </AnimalProvider>
+                </PariveshProvider>
+              </NecropsyProvider>
+            </HospitalProvider>
+          </CacheProvider>
+        </Provider>
+      </LanguageProvider>
     </QueryClientProvider>
   )
 }
