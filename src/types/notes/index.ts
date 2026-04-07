@@ -10,12 +10,15 @@ export interface ReactionCounts {
 export interface ChildObservationType {
   child_id: number
   type_name: string
+  string_id?: string
 }
 
 export interface ChildMasterType {
+  string_id?: string
   observation_id: number
   parent_observation_type_id: number
   parent_observation_type: string
+  parent_observation_string_id?: string
   child_observation_type: ChildObservationType[]
 }
 
@@ -53,7 +56,7 @@ export interface EnclosureData {
 export interface RefData {
   observation_id: number
   type?: string
-  ref_type?:string
+  ref_type?: string
   animalData?: AnimalData
   siteData?: SiteData
   sectionData?: SectionData
@@ -88,8 +91,8 @@ export interface NotesAttachment {
   id: number | string
   file_orginal_name: string
   file: string
-  created_at:string
-  modified_at:string
+  created_at: string
+  modified_at: string
 }
 
 export interface NoteDetails {
@@ -99,8 +102,8 @@ export interface NoteDetails {
   created_at: string
   created_by_name: string
   user_profile_pic: string | null
-  observation:string | null
-  notes_attachment: NotesAttachment[] 
+  observation: string | null
+  notes_attachment: NotesAttachment[]
 }
 
 export interface NoteItem {
@@ -116,10 +119,9 @@ export interface NoteItem {
   child_master_type: ChildMasterType | null
   attachments: Attachment[]
   assign_to: AssignedUserListing[]
-  note: {total_comments: number | string} | null
+  note: { total_comments: number | string } | null
   ref_data: RefData[]
 }
-
 
 export interface ObservationNoteCardProps {
   note: NoteItem
@@ -148,13 +150,13 @@ export interface NoteDetailsDrawerProps {
 }
 
 export interface AddAttachmentsDrawerProps {
-    open: boolean
-    onClose: () => void
-    control: Control<any>
-    watch: UseFormWatch<any>
-    reset: UseFormReset<any>
-    attachmentsLoading: boolean
-    onAttachmentsSubmit: () => void
+  open: boolean
+  onClose: () => void
+  control: Control<any>
+  watch: UseFormWatch<any>
+  reset: UseFormReset<any>
+  attachmentsLoading: boolean
+  onAttachmentsSubmit: () => void
 }
 
 export interface TaggedMembersDrawerProps {
@@ -169,21 +171,21 @@ export interface TaggedMembersDrawerProps {
 
 export interface NotesDetailsData {
   observation_id: number | string
-  observation_type_id:number | string
-  observation_name:string
-  create_date:string
-  create_time:string
-  created_by:string
+  observation_type_id: number | string
+  observation_name: string
+  create_date: string
+  create_time: string
+  created_by: string
   created_by_phone: string
-  created_by_id:number | string
-  priority:string
+  created_by_id: number | string
+  priority: string
   reaction_counts: ReactionCounts
   user_reaction: string | null
-  created_date:string
-  created_time:string
+  created_date: string
+  created_time: string
   assign_to: AssignedUserDetails[]
   attachments: Attachment[]
-  notes:NoteDetails[] 
-  child_master_type:ChildMasterType | null
+  notes: NoteDetails[]
+  child_master_type: ChildMasterType | null
   ref_data: RefData[]
 }

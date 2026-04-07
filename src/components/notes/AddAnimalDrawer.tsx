@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Drawer, IconButton, Button, useTheme } from '@mui/material'
 import { AddCircleOutline } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
@@ -20,6 +21,7 @@ const AddAnimalDrawer: React.FC<{
   handleAnimalSelect: (animals: any, options?: { isSelectAll?: boolean }) => void
   selectedAnimals?: any[]
 }> = ({ open, onClose, handleAnimalSelect, selectedAnimals }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const auth = useAuth()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
@@ -237,7 +239,7 @@ const AddAnimalDrawer: React.FC<{
         }}
       >
         <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-          Add Animal
+          {t('add_animal')}
         </Typography>
         <IconButton size='small' onClick={onClose} sx={{ color: theme.palette.text.primary }}>
           <Icon icon='mdi:close' fontSize={24} />
@@ -256,16 +258,16 @@ const AddAnimalDrawer: React.FC<{
           }}
           onClick={() => setAnimalDrawer(true)}
         >
-          <Typography>Select Animal</Typography>
+          <Typography>{t('select_animal')}</Typography>
           <IconButton size='small' sx={{ color: theme.palette.customColors.Secondary }}>
             <AddCircleOutline />
           </IconButton>
         </Box>
 
         {/* Site Selection Card */}
-        <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', width: '100%' }}>
+        <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', width: '100%' }}>
           <CardHeader
-            title='Select Site'
+            title={t('select_site')}
             onClick={() => {
               if (localSelections.Sections.length === 0 && localSelections.Enclosures.length === 0) {
                 setOpenSiteListDrawer(true)
@@ -273,13 +275,13 @@ const AddAnimalDrawer: React.FC<{
             }}
             sx={{
               background:
-                localSelections.Sections.length > 0 || localSelections.Enclosures.length > 0 ? '#0000000D' : '#E8F4F2',
+                localSelections.Sections.length > 0 || localSelections.Enclosures.length > 0 ? theme.palette.customColors.mdAntzNeutral : theme.palette.customColors.displaybgPrimary,
               p: 2,
               pl: 4,
               pr: 2,
               cursor:
                 localSelections.Sections.length > 0 || localSelections.Enclosures.length > 0 ? 'default' : 'pointer',
-              '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: '#1F515B' }
+              '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
             }}
             action={
               <IconButton
@@ -320,20 +322,20 @@ const AddAnimalDrawer: React.FC<{
 
         {/* Section Selection Card */}
         {localSelections.Sites.length === 1 && (
-          <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none' }}>
+          <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
             <CardHeader
-              title='Select Section'
+              title={t('select_section')}
               onClick={() => {
                 if (localSelections.Enclosures.length === 0) {
                   setOpenSectionsListDrawer(true)
                 }
               }}
               sx={{
-                background: localSelections.Enclosures.length > 0 ? '#0000000D' : '#E8F4F2',
+                background: localSelections.Enclosures.length > 0 ? theme.palette.customColors.mdAntzNeutral : theme.palette.customColors.displaybgPrimary,
                 p: 2,
                 pl: 4,
                 cursor: localSelections.Enclosures.length > 0 ? 'default' : 'pointer',
-                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: '#1F515B' }
+                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
               }}
               action={
                 <IconButton size='small' disabled={localSelections.Enclosures.length > 0}>
@@ -365,16 +367,16 @@ const AddAnimalDrawer: React.FC<{
 
         {/* Enclosure Selection Card */}
         {localSelections.Sections.length === 1 && (
-          <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none' }}>
+          <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
             <CardHeader
-              title='Select Enclosure'
+              title={t('select_enclosure')}
               onClick={() => setOpenEnclosuresListDrawer(true)}
               sx={{
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 p: 2,
                 pl: 4,
                 cursor: 'pointer',
-                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: '#1F515B' }
+                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
               }}
               action={
                 <IconButton size='small'>
@@ -382,17 +384,17 @@ const AddAnimalDrawer: React.FC<{
                 </IconButton>
               }
             />
-            {localSelections.Enclosures.length > 0 && (
+            {localSelections?.Enclosures?.length > 0 && (
               <CardContent sx={{ p: 4 }}>
-                {localSelections.Enclosures.map(enclosure => (
+                {localSelections?.Enclosures?.map(enclosure => (
                   <Box
                     key={enclosure.enclosure_id || enclosure.id}
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
                   >
-                    <Typography variant='body2'>{enclosure.user_enclosure_name}</Typography>
+                    <Typography variant='body2'>{enclosure?.user_enclosure_name}</Typography>
                     <IconButton
                       size='small'
-                      onClick={() => handleRemoveEnclosure(enclosure.enclosure_id || enclosure.id)}
+                      onClick={() => handleRemoveEnclosure(enclosure?.enclosure_id || enclosure.id)}
                     >
                       <Icon icon='mdi:close-circle-outline' color={theme.palette.error.main} />
                     </IconButton>
@@ -413,8 +415,8 @@ const AddAnimalDrawer: React.FC<{
             backgroundColor: theme.palette.background.paper
           }}
         >
-          <Button variant='contained' fullWidth onClick={handleFinalContinue} sx={{ py: 3, borderRadius: '10px' }}>
-            Submit
+          <Button variant='contained' fullWidth onClick={handleFinalContinue} sx={{ py: 3, borderRadius: '8px' }}>
+            {t('submit')}
           </Button>
         </Box>
       )}
@@ -447,7 +449,7 @@ const AddAnimalDrawer: React.FC<{
             handleAnimalSelect(finalEntities)
             onClose()
           }}
-          btnText='Add'
+          btnText={t('add') as string}
           showFilterAndSort
           handleFilterClick={() => setOpenFilterDrawer(true)}
           handleSortClick={() => setIsSortBottomSheetOpen(true)}

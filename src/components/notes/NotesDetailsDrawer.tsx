@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -54,9 +55,10 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
   onClose,
   noteDetails,
   openWithComment,
-  onUpdate,
+  // onUpdate,
   refetchNotesList
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const auth = useAuth()
   const currentUserId = (auth as any)?.userData?.user?.user_id
@@ -209,7 +211,8 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
         Toaster({ type: 'success', message: response?.message || 'Attachments added successfully' })
         reset({ attachments: [] })
         fetchObservationDetails()
-        if (onUpdate) onUpdate()
+        if (refetchNotesList) refetchNotesList()
+        // if (onUpdate) onUpdate()
       }
     } catch (error: any) {
       console.error('Error adding attachments:', error?.message || error)
@@ -276,7 +279,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
         Toaster({ type: 'success', message: 'Note deleted successfully' })
         setDeleteDialogOpen(false)
         handleClose()
-        if (onUpdate) onUpdate()
+        // if (onUpdate) onUpdate()
         if (refetchNotesList) refetchNotesList()
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to delete note' })
@@ -357,7 +360,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
             color: theme.palette.customColors?.OnSurfaceVariant
           }}
         >
-          Note
+          {t('note')}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {isCreator && (
@@ -441,7 +444,11 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                       maxWidth: '100%'
                     }}
                   >
-                    {notesDetailsData?.child_master_type?.parent_observation_type}
+                    {
+                      t(notesDetailsData?.child_master_type?.string_id || '', {
+                        defaultValue: notesDetailsData?.child_master_type?.parent_observation_type
+                      }) as string
+                    }
                   </Typography>
                 </Box>
               </Box>
@@ -458,7 +465,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                     .map((type: any, index: number) => (
                       <Chip
                         key={index}
-                        label={type?.type_name}
+                        label={t(type?.string_id || '', { defaultValue: type?.type_name }) as string}
                         size='small'
                         sx={{
                           bgcolor: theme.palette.customColors.mdAntzNeutral,
@@ -487,8 +494,8 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                       }}
                     >
                       {showAllChildNoteTypes
-                        ? 'Hide'
-                        : `+${notesDetailsData?.child_master_type?.child_observation_type?.length - 7} more`}
+                        ? t('hide')
+                        : `+${notesDetailsData?.child_master_type?.child_observation_type?.length - 7} ${t('more')}`}
                     </Typography>
                   )}
                 </Box>
@@ -503,7 +510,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                   fontWeight: 500
                 }}
               >
-                Noted by
+                {t('notes_module.noted_by')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 3 }}>
                 <UserAvatarDetails
@@ -587,7 +594,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                       {notesDetailsData?.created_by_phone}
                     </Typography>
 
-                    <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                    <Tooltip title={copied ? `${t('copied')}!` : t('copy_number')}>
                       <IconButton
                         size='small'
                         onClick={() => handleCopyNumber(notesDetailsData?.created_by_phone || '')}
@@ -642,8 +649,8 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                       }}
                     >
                       {notesDetailsData?.ref_data?.length == 1
-                        ? '1 Entity'
-                        : `${notesDetailsData?.ref_data?.length} Entities`}
+                        ? `1 ${t('notes_module.entity')}`
+                        : `${notesDetailsData?.ref_data?.length} ${t('notes_module.entities')}`}
                     </Typography>
                   </Box>
 
@@ -687,8 +694,8 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                           }}
                         >
                           {showAllEntities
-                            ? 'View Less'
-                            : `View More (${(notesDetailsData?.ref_data?.length || 0) - 3})`}
+                            ? t('view_less')
+                            : `${t('view_more')} (${(notesDetailsData?.ref_data?.length || 0) - 3})`}
                         </Button>
                       </Box>
                     )}
@@ -700,37 +707,35 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
               {notesDetailsData?.observation_name && (
                 <Box>
                   <Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
-                    Description
+                    {t('description')}
                   </Typography>
-                  <Tooltip title={notesDetailsData?.observation_name}>
-                    <Typography
-                      sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1rem' }}
-                    >
-                      {notesDetailsData?.observation_name?.length > 120 && !showFullNote
-                        ? `${notesDetailsData?.observation_name.substring(0, 115)}...`
-                        : notesDetailsData?.observation_name}
-                      {notesDetailsData?.observation_name?.length > 120 && (
-                        <Typography
-                          component='span'
-                          onClick={e => {
-                            setShowFullNote(prev => !prev)
-                          }}
-                          sx={{
-                            color: theme.palette.primary.main,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                            ml: 1,
-                            fontSize: '0.813rem',
-                            '&:hover': {
-                              textDecoration: 'underline'
-                            }
-                          }}
-                        >
-                          {showFullNote ? 'Show Less' : 'Show More'}
-                        </Typography>
-                      )}
-                    </Typography>
-                  </Tooltip>
+                  <Typography
+                    sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1rem' }}
+                  >
+                    {notesDetailsData?.observation_name?.length > 120 && !showFullNote
+                      ? `${notesDetailsData?.observation_name.substring(0, 115)}...`
+                      : notesDetailsData?.observation_name}
+                    {notesDetailsData?.observation_name?.length > 120 && (
+                      <Typography
+                        component='span'
+                        onClick={e => {
+                          setShowFullNote(prev => !prev)
+                        }}
+                        sx={{
+                          color: theme.palette.primary.main,
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          ml: 1,
+                          fontSize: '0.813rem',
+                          '&:hover': {
+                            textDecoration: 'underline'
+                          }
+                        }}
+                      >
+                        {showFullNote ? t('read_less') : t('read_more')}
+                      </Typography>
+                    )}
+                  </Typography>
                 </Box>
               )}
 
@@ -742,7 +747,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                       <Icon icon='ic:baseline-attach-file' width='20' height='20' />
                     </IconButton>
                     <Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
-                      Attachments
+                      {t('attachments')}
                     </Typography>
                   </Box>
                   <Grid container spacing={3}>
@@ -769,12 +774,12 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                         {showAllMedia ? (
                           <>
                             <Icon icon='mdi:chevron-up' fontSize={20} />
-                            Hide
+                            {t('hide')}
                           </>
                         ) : (
                           <>
                             <Icon icon='mdi:chevron-down' fontSize={20} />
-                            View More
+                            {t('view_more')}
                           </>
                         )}
                       </Button>
@@ -804,7 +809,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                   </>
                 ) : (
                   <Typography variant='body2' sx={{ color: theme.palette.error.main }}>
-                    No member Tagged
+                    {t('notes_module.no_member_tagged')}
                   </Typography>
                 )}
               </Box>
@@ -919,7 +924,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                                     }
                                   }}
                                 >
-                                  {showFullComment ? 'Read Less' : 'Read More'}
+                                  {showFullComment ? t('read_less') : t('read_more')}
                                 </Typography>
                               )}
                             </Typography>
@@ -944,7 +949,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                                       onClick={() => setShowAllMedia(prev => !prev)}
                                       sx={{ textTransform: 'none', fontWeight: 600 }}
                                     >
-                                      {showAllMedia ? 'Hide' : 'View More'}
+                                      {showAllMedia ? t('hide') : t('view_more')}
                                     </Button>
                                   </Box>
                                 )}
@@ -989,7 +994,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
         <TextField
           fullWidth
           size='small'
-          placeholder='Write a comment...'
+          placeholder={`${t('write_a_comment')}...`}
           value={comment}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
           onKeyPress={(e: React.KeyboardEvent) => {
@@ -1047,15 +1052,15 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
       <ConfirmationDialog
         dialogBoxStatus={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
-        title={'Delete Note?'}
-        cancelText={'CANCEL'}
+        title={`${t('delete_note')}?`}
+        cancelText={t('cancel')}
         confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
         confirmAction={handleDelete}
         loading={deleteLoading}
-        ConfirmationText={'DELETE'}
-        description={'Are you sure you want to permanently delete this note?'}
+        ConfirmationText={t('delete')}
+        description={`${t('notes_module.are_you_sure_you_want_to_permanently_delete_this_note')}?`}
       />
 
       {/* Edit Note Drawer */}
@@ -1074,7 +1079,8 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
           }
           refetchNotesList={() => {
             fetchObservationDetails()
-            if (onUpdate) onUpdate()
+            if (refetchNotesList) refetchNotesList()
+            // if (onUpdate) onUpdate()
           }}
         />
       )}

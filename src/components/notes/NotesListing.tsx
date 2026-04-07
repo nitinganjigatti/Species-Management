@@ -1,7 +1,9 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { Box, Typography, CircularProgress, Button, Card, useTheme, Tabs, Tab } from '@mui/material'
+import { useTranslation } from 'react-i18next'
+import { Box, Typography, CircularProgress, Button, Card, Tabs, Tab, Skeleton } from '@mui/material'
+import { useTheme, alpha } from '@mui/material/styles'
 import { useInView } from 'react-intersection-observer'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useAuth } from 'src/hooks/useAuth'
@@ -24,23 +26,23 @@ interface Filters {
 }
 
 const NotesListing: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const auth = useAuth()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
+  const [activeTab, setActiveTab] = useState<string>('my_notes')
   const [notesListLoading, setNotesListLoading] = useState<boolean>(false)
   const [notesList, setNotesList] = useState<NoteItem[]>([])
-  const [activeTab, setActiveTab] = useState<string>('my_notes')
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState<boolean>(true)
-  const [likeLoadingId, setLikeLoadingId] = useState<number | null>(null)
-
+  const [filterCount, setFilterCount] = useState<number>(0)
   const [filterDrawerOpen, setFilterDrawerOpen] = useState<boolean>(false)
   const [selectedNote, setSelectedNote] = useState<NoteItem | null>(null)
   const [detailsDrawerOpen, setDetailsDrawerOpen] = useState<boolean>(false)
-  const [openWithComment, setOpenWithComment] = useState<boolean>(false)
   const [addNoteDrawerOpen, setAddNoteDrawerOpen] = useState<boolean>(false)
-  const [filterCount, setFilterCount] = useState<number>(0)
+  const [openWithComment, setOpenWithComment] = useState<boolean>(false)
+  const [likeLoadingId, setLikeLoadingId] = useState<number | null>(null)
   const [filters, setFilters] = useState<Filters>({
     'Note Type': [],
     Priority: [],
@@ -50,56 +52,51 @@ const NotesListing: React.FC = () => {
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
-  // fetch notes list
-  const fetchNotesList = useCallback(
-    async (pageNo: number = 1) => {
-      setNotesListLoading(true)
+  const fetchNotesList = async (pageNo: number = 1) => {
+    setNotesListLoading(true)
 
-      if (pageNo === 1) {
-        setHasMore(true)
+    if (pageNo === 1) {
+      setHasMore(true)
+    }
+
+    try {
+      const payload = {
+        zoo_id: zooId,
+        page_no: pageNo,
+        ...(activeTab === 'all_notes' && { type: 'all' }),
+        ...(filters['Note Type']?.length > 0 && { note_type: filters['Note Type'].join(', ') }),
+        ...(filters['Priority']?.length > 0 && { priority: filters['Priority'].join(',') }),
+        ...(activeTab === 'all_notes' &&
+          filters['Created By']?.length > 0 && { created_by: filters['Created By'].join(',') }),
+        ...(activeTab === 'all_notes' &&
+          filters['Tagged To']?.length > 0 && { tagged_to: filters['Tagged To'].join(',') })
       }
+      const response = await getNotesList({ params: payload })
+      if (response?.success) {
+        const newData = response?.data
 
-      try {
-        const payload = {
-          zoo_id: zooId,
-          page_no: pageNo,
-          ...(activeTab === 'all_notes' && { type: 'all' }),
-          ...(filters['Note Type']?.length > 0 && { note_type: filters['Note Type'].join(', ') }),
-          ...(filters['Priority']?.length > 0 && { priority: filters['Priority'].join(',') }),
-          ...(activeTab === 'all_notes' &&
-            filters['Created By']?.length > 0 && { created_by: filters['Created By'].join(',') }),
-          ...(activeTab === 'all_notes' &&
-            filters['Tagged To']?.length > 0 && { tagged_to: filters['Tagged To'].join(',') })
-        }
-        const response = await getNotesList({ params: payload })
-        if (response?.success) {
-          const newData = response?.data
-
-          if (pageNo === 1) {
-            setNotesList(newData)
-          } else {
-            setNotesList(prev => [...prev, ...newData])
-          }
-
-          if (newData.length < 10) {
-            setHasMore(false)
-          }
+        if (pageNo === 1) {
+          setNotesList(newData)
         } else {
-          if (pageNo === 1) {
-            setNotesList([])
-          }
+          setNotesList(prev => [...prev, ...newData])
+        }
+
+        if (newData.length < 10) {
           setHasMore(false)
         }
-      } catch (error: any) {
-        console.error('Error fetching notes list:', error?.message || error)
-      } finally {
-        setNotesListLoading(false)
+      } else {
+        if (pageNo === 1) {
+          setNotesList([])
+        }
+        setHasMore(false)
       }
-    },
-    [activeTab, zooId, filters]
-  )
+    } catch (error: any) {
+      console.error('Error fetching notes list:', error?.message || error)
+    } finally {
+      setNotesListLoading(false)
+    }
+  }
 
-  // handle like click
   const handleLikeClick = async (note: NoteItem) => {
     setLikeLoadingId(note.observation_id)
 
@@ -151,7 +148,7 @@ const NotesListing: React.FC = () => {
     }
   }
 
-  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: string) => {
     setActiveTab(newValue)
 
     if (filterCount > 0) {
@@ -202,7 +199,7 @@ const NotesListing: React.FC = () => {
     setNotesList([])
     setHasMore(true)
     fetchNotesList(1)
-  }, [activeTab, fetchNotesList, filters])
+  }, [activeTab, filters])
 
   return (
     <Box sx={{ width: '100%', maxWidth: '568px', mx: 'auto' }}>
@@ -221,9 +218,9 @@ const NotesListing: React.FC = () => {
             p: 4
           }}
         >
-          <Typography sx={{ fontSize: '1.8rem', fontWeight: 600 }}>Notes</Typography>
+          <Typography sx={{ fontSize: '1.8rem', fontWeight: 600 }}>{t('notes')}</Typography>
           <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
-            Add Note
+            {t('notes_module.add_note')}
           </Button>
         </Box>
         <Tabs
@@ -239,8 +236,8 @@ const NotesListing: React.FC = () => {
             }
           }}
         >
-          <Tab label='My Notes' value='my_notes' />
-          <Tab label='All Notes' value='all_notes' />
+          <Tab label={t('notes_module.my_notes')} value='my_notes' />
+          <Tab label={t('notes_module.all_notes')} value='all_notes' />
         </Tabs>
       </Card>
 
@@ -260,16 +257,22 @@ const NotesListing: React.FC = () => {
           cursor: 'pointer'
         }}
       >
-        {notesList?.map((note: NoteItem, index: number) => (
-          <ObservationNoteCard
-            key={note?.observation_id || index}
-            note={note}
-            onClick={handleNoteClick}
-            onLikeClick={handleLikeClick}
-            onCommentClick={handleCommentClick}
-            isLikeLoading={likeLoadingId === note?.observation_id}
-          />
-        ))}
+        {notesListLoading && notesList?.length === 0 ? (
+          <ObservationNoteCardSkeleton />
+        ) : (
+          <>
+            {notesList?.map((note: NoteItem, index: number) => (
+              <ObservationNoteCard
+                key={note?.observation_id || `note-${index}`}
+                note={note}
+                onClick={handleNoteClick}
+                onLikeClick={handleLikeClick}
+                onCommentClick={handleCommentClick}
+                isLikeLoading={likeLoadingId === note?.observation_id}
+              />
+            ))}
+          </>
+        )}
 
         {notesListLoading && notesList?.length === 0 && (
           <Box display='flex' justifyContent='center' p={4}>
@@ -288,10 +291,10 @@ const NotesListing: React.FC = () => {
           >
             <NoDataFound />
             <Typography variant='h6' gutterBottom>
-              No notes found
+              {t('notes_module.no_notes_found')}
             </Typography>
             <Typography color='text.secondary' gutterBottom>
-              Create your first note to get started
+              {t('notes_module.create_your_first_note')}
             </Typography>
           </Card>
         )}
@@ -301,10 +304,20 @@ const NotesListing: React.FC = () => {
             <CircularProgress size={24} />
           </Box>
         )}
+        {/* {hasMore && notesList.length > 0 && (
+          <Box
+            ref={loaderRef}
+            sx={{
+              height: 20 // important smooth scrolling skeleton card is big
+            }}
+          >
+            {notesListLoading && <ObservationNoteCardSkeleton />}
+          </Box>
+        )} */}
 
         {!hasMore && notesList.length > 0 && (
           <Typography align='center' sx={{ mt: 4, color: 'text.disabled', pb: 4 }}>
-            No more notes to load
+            {t('notes_module.no_more_notes_to_load')}
           </Typography>
         )}
       </Box>
@@ -342,3 +355,89 @@ const NotesListing: React.FC = () => {
 }
 
 export default NotesListing
+
+const ObservationNoteCardSkeleton = () => {
+  const theme = useTheme() as any
+
+  return (
+    <Box sx={{ width: '100%', maxWidth: '568px', mx: 'auto' }}>
+      {[1, 2].map(i => (
+        <Card
+          key={i}
+          sx={{
+            boxShadow: 'none',
+            borderRadius: '8px',
+            backgroundColor: theme.palette.customColors.OnPrimary,
+            mb: 5
+          }}
+        >
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {/* Header */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '90%' }}>
+                  <Skeleton variant='rounded' width={30} height={30} />
+                  <Skeleton variant='text' width='60%' height={25} />
+                </Box>
+                <Skeleton variant='rounded' width={80} height={36} />
+              </Box>
+
+              {/* Chips */}
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <Skeleton key={i} variant='rounded' width={60} height={26} />
+                ))}
+              </Box>
+
+              {/* User info */}
+              <Box>
+                <Skeleton variant='text' width={120} height={15} />
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 1 }}>
+                  <Skeleton variant='circular' width={36} height={36} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+                    <Skeleton variant='text' width={150} height={20} />
+                    <Skeleton variant='text' width={150} height={20} />
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* Note text */}
+              <Box>
+                <Skeleton variant='text' width={100} height={15} />
+                <Skeleton variant='text' width='100%' />
+                <Skeleton variant='text' width='100%' />
+              </Box>
+
+              {/* Attachments */}
+              <Box sx={{ display: 'flex', gap: 3 }}>
+                {[1, 2, 3, 4].map(i => (
+                  <Skeleton key={i} variant='text' width={80} />
+                ))}
+              </Box>
+
+              {/* Animal / Location card */}
+              <Skeleton variant='rounded' width='100%' height={80} />
+
+              {/* Image preview */}
+              <Skeleton variant='rounded' width='100%' height={200} />
+            </Box>
+          </Box>
+
+          {/* Footer */}
+          <Box
+            sx={{
+              borderTop: `1px solid ${alpha(theme.palette.common.black, 0.06)}`,
+              p: 3,
+              display: 'flex',
+              gap: 2
+            }}
+          >
+            <Skeleton variant='rounded' width={80} height={36} />
+            <Skeleton variant='rounded' width={80} height={36} />
+          </Box>
+        </Card>
+      ))}
+    </Box>
+  )
+}

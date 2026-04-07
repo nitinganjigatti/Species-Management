@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { Drawer, Box, Typography, IconButton, Button } from '@mui/material'
 import { Close as CloseIcon, AttachFile } from '@mui/icons-material'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
@@ -15,6 +16,7 @@ const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({
   attachmentsLoading,
   onAttachmentsSubmit
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
 
   return (
@@ -57,7 +59,7 @@ const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <AttachFile sx={{ fontSize: 24, color: theme.palette.text.secondary }} />
-          <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>Add Attachments</Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>{t('add_attachments')}</Typography>
         </Box>
         <IconButton size='small' onClick={onClose}>
           <CloseIcon />
@@ -75,7 +77,7 @@ const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({
           <ControlledMultiFileUpload
             control={control}
             name='attachments'
-            label='Upload attachments'
+            label={t('upload_attachments') as string}
             acceptedFileTypes='*'
             preview
             previewPlacement='top'
@@ -93,7 +95,7 @@ const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({
         }}
       >
         <Button fullWidth variant='outlined' onClick={() => reset({ attachments: [] })} disabled={attachmentsLoading}>
-          Clear
+          {t('clear')}
         </Button>
         <Button
           fullWidth
@@ -101,7 +103,7 @@ const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({
           onClick={onAttachmentsSubmit}
           disabled={!watch('attachments')?.length || attachmentsLoading}
         >
-          Upload
+          {t('upload')}
         </Button>
       </Box>
     </Drawer>
