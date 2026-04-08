@@ -35,6 +35,7 @@ import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
+import { useTranslation } from 'react-i18next'
 import IngredientDetialDietListTabview from 'src/views/pages/ingredient/dietList-tabview'
 
 // Styled TabList component
@@ -64,6 +65,7 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
 
 const IngredientDetail = () => {
   const router = useRouter()
+  const { t } = useTranslation()
   const { id, source } = router.query
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
@@ -188,15 +190,13 @@ const IngredientDetail = () => {
                     }}
                     color='inherit'
                     onClick={() => Router.push('/diet/ingredient')}
-                  >
-                    Items
-                  </Typography>
+                  ></Typography>
                   <Typography
                     sx={{
                       color: 'text.primary'
                     }}
                   >
-                    Item Details
+                    {t('diet_module.item_details')}
                   </Typography>
                 </Breadcrumbs>
                 {Object.keys(IngredientsDetailsval).length !== 0 ? (
@@ -288,18 +288,24 @@ const IngredientDetail = () => {
                                 style={{ borderRadius: 0 }}
                                 value='2'
                                 // label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
-                                label={`USED IN RECIPE ${recipeListTotal > 0 ? ` - ${recipeListTotal}` : ''}`}
+                                label={`${t('diet_module.used_recipe')} ${
+                                  recipeListTotal > 0 ? ` - ${recipeListTotal}` : ''
+                                }`}
                               />
                               <Tab
                                 style={{ borderRadius: 0 }}
                                 value='4'
-                                label={`USED IN MIX ${comboListTotal > 0 ? ` - ${comboListTotal}` : ''}`}
+                                label={`${t('diet_module.used_mix')} ${
+                                  comboListTotal > 0 ? ` - ${comboListTotal}` : ''
+                                }`}
                               />
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='3'
                                 //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
-                                label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
+                                label={`${t('diet_module.used_diet')} ${
+                                  dietListTotal > 0 ? ` - ${dietListTotal}` : ''
+                                }`}
                               />
                             </TabList>
                             <TabPanel value='1'>
@@ -330,7 +336,7 @@ const IngredientDetail = () => {
                 ) : (
                   <Grid>
                     <Typography variant='h6' sx={{ background: '#fff', padding: 8, borderRadius: '6px' }}>
-                      Data Not Found
+                      {t('no_data')}
                     </Typography>
                   </Grid>
                 )}

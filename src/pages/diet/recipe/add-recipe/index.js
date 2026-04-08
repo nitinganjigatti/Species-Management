@@ -15,6 +15,7 @@ import { getUnitsForRecipe, addNewRecipe, getRecipeDetail, updateRecipe } from '
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const steps = [
@@ -34,6 +35,7 @@ const steps = [
 
 const AddRecipe = () => {
   const router = useRouter()
+  const { t } = useTranslation()
   const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
@@ -537,7 +539,7 @@ const AddRecipe = () => {
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Link underline='hover' color='inherit' href='/diet/recipe/'>
-          Recipe
+          {t('diet_module.recipe')}
         </Link>
 
         <Typography
@@ -545,7 +547,7 @@ const AddRecipe = () => {
             color: 'text.primary'
           }}
         >
-          {id ? 'Edit recipe' : 'Add new recipe'}
+          {id ? t('diet_module.edit_recipe') : t('diet_module.add_new_recipe')}
         </Typography>
       </Breadcrumbs>
       <Card>
@@ -553,7 +555,7 @@ const AddRecipe = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
               <Typography sx={{ mb: 1 }} variant='h6'>
-                {id ? 'Edit Recipe' : 'Add New Recipe'}
+                {id ? t('diet_module.edit_recipe') : t('diet_module.add_new_recipe')}
               </Typography>
               <Typography sx={{ mb: 1, fontSize: 14 }}>
                 Please provide the nutritional values, unit of measurement,water percentage, and dry item proportions

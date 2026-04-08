@@ -199,7 +199,7 @@ const IngredientsList = () => {
         <div>
           <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
             <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; Add New
+            &nbsp; {t('add_new')}
           </Button>
           {/* <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
         <Icon icon='mdi:add' fontSize={20} />
@@ -310,7 +310,7 @@ const IngredientsList = () => {
       //flex: 0.6,
       width: 140,
       field: 'id',
-      headerName: 'ITEM ID',
+      headerName: t('diet_module.item_id'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'ING' + params.row.id : '-'}
@@ -319,9 +319,9 @@ const IngredientsList = () => {
     },
     {
       //flex: 0.54,
-      width: 120,
+      width: 150,
       field: 'calorie',
-      headerName: 'CALORIES',
+      headerName: t('diet_module.calories'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.calorie ? params.row.calorie + ' Kcal' : '-'}
@@ -330,9 +330,9 @@ const IngredientsList = () => {
     },
     {
       //flex: 0.4,
-      width: 150,
+      width: 170,
       field: 'preparation_type_count',
-      headerName: 'PREPARATION TYPES',
+      headerName: t('diet_module.preparation_types'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
@@ -357,7 +357,7 @@ const IngredientsList = () => {
       //flex: 1,
       width: 260,
       field: 'user_name',
-      headerName: 'CREATED BY',
+      headerName: t('created_by'),
       renderCell: params => (
         <Box>
           {RenderUtility.renderUserAvatarDetails({
@@ -371,9 +371,9 @@ const IngredientsList = () => {
     },
     {
       //flex: 0.5,
-      minWidth: 10,
+      minWidth: 120,
       field: 'status',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <CustomChip
           skin='light'

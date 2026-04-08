@@ -20,10 +20,12 @@ import Button from '@mui/material/Button'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
+import { useTranslation } from 'react-i18next'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   const [loader, setLoader] = useState(false)
+  const { t } = useTranslation()
   const router = useRouter()
   const { id } = router.query
   const [total, setTotal] = useState(0)
@@ -154,7 +156,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
       flex: 0.5,
       minWidth: 40,
       field: 'diet_name',
-      headerName: 'DIET NAME',
+      headerName: t('diet_module.diet_name'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -180,7 +182,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
       flex: 0.3,
       minWidth: 40,
       field: 'diet_no',
-      headerName: 'DIET NO',
+      headerName: t('diet_module.diet_no'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
