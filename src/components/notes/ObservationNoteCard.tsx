@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Card, Typography, Chip, CircularProgress } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import {
@@ -16,7 +17,7 @@ import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import LocationInfoCard from 'src/views/utility/LocationInfoCard'
-import { ChildObservationType ,Attachment,ObservationNoteCardProps,PriorityIcons} from 'src/types/notes'
+import { ChildObservationType, Attachment, ObservationNoteCardProps, PriorityIcons } from 'src/types/notes'
 
 const priorityIcons: PriorityIcons = {
   Low: '/images/priority/flag_priority_low.svg',
@@ -31,8 +32,9 @@ const ObservationNoteCard = ({
   onLikeClick = () => {},
   onCommentClick = () => {},
   sx = {},
-  isLikeLoading = false,
+  isLikeLoading = false
 }: ObservationNoteCardProps) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
 
   const [showAllChildNoteTypes, setShowAllChildNoteTypes] = useState<boolean>(false)
@@ -52,7 +54,9 @@ const ObservationNoteCard = ({
   } = note || {}
 
   const totalComments = commentData?.total_comments || 0
-  const noteType = child_master_type?.parent_observation_type
+  const noteType = t(child_master_type?.string_id || '', {
+    defaultValue: child_master_type?.parent_observation_type
+  }) as string
   const childNoteTypes = child_master_type?.child_observation_type || []
   const priorityIcon = (priority ? priorityIcons[priority as keyof PriorityIcons] : null) || null
 
@@ -68,7 +72,7 @@ const ObservationNoteCard = ({
     if (!attachments?.length) return null
 
     const counts: { [key: string]: number } = {}
-    
+
     attachments.forEach((attachment: Attachment) => {
       const type = getFileType(attachment?.file_orginal_name)
 
@@ -77,7 +81,7 @@ const ObservationNoteCard = ({
       if (['image', 'video', 'audio'].includes(type)) {
         displayType = type
       } else if (type === 'other') {
-        displayType = 'attachment'
+        displayType = 'document'
       }
 
       counts[displayType] = (counts[displayType] || 0) + 1
@@ -111,9 +115,18 @@ const ObservationNoteCard = ({
     }
   }
 
+  const ATTACHMENT_LABEL_KEYS: Record<string, { singular: string; plural: string }> = {
+    image: { singular: t('image'), plural: t('images') },
+    video: { singular: t('video'), plural: t('videos') },
+    audio: { singular: t('audio'), plural: t('audios') },
+    document: { singular: t('document'), plural: t('documents') }
+  }
+
   return (
     <Card
-      onClick={()=>{onClick(note)}}
+      onClick={() => {
+        onClick(note)
+      }}
       sx={{
         position: 'relative',
         overflow: 'hidden',
@@ -165,7 +178,7 @@ const ObservationNoteCard = ({
               <Box
                 sx={{
                   flex: 1,
-                  minWidth: 0,
+                  minWidth: 0
                 }}
               >
                 <TextEllipsisWithModal
@@ -189,8 +202,8 @@ const ObservationNoteCard = ({
                 ?.slice(0, showAllChildNoteTypes ? childNoteTypes.length : 5)
                 .map((type: ChildObservationType, index: number) => (
                   <Chip
-                    key={type?.child_id || index}
-                    label={type?.type_name}
+                    key={type?.child_id || `type-${index}`}
+                    label={t(type?.string_id || '', { defaultValue: type?.type_name }) as string}
                     size='small'
                     sx={{
                       bgcolor: theme.palette.customColors.mdAntzNeutral,
@@ -218,7 +231,7 @@ const ObservationNoteCard = ({
                     textDecoration: 'underline'
                   }}
                 >
-                  {showAllChildNoteTypes ? 'Hide' : `+${childNoteTypes.length - 5} more`}
+                  {showAllChildNoteTypes ? t('hide') : `+${childNoteTypes.length - 5} ${t('more')}`}
                 </Typography>
               )}
             </Box>
@@ -230,10 +243,10 @@ const ObservationNoteCard = ({
                 color: theme.palette.text.secondary,
                 fontSize: '0.75rem',
                 fontWeight: 500,
-                mb: 1,
+                mb: 1
               }}
             >
-              Noted by
+              {t('notes_module.noted_by')}
             </Typography>
             <UserAvatarDetails
               // profile_image={created_by_profile_pic}
@@ -255,7 +268,7 @@ const ObservationNoteCard = ({
                   fontWeight: 500
                 }}
               >
-                Notes
+                {t('notes')}
               </Typography>
               <Typography
                 sx={{
@@ -285,7 +298,7 @@ const ObservationNoteCard = ({
                       }
                     }}
                   >
-                    {showFullNote ? 'Read Less' : 'Read More'}
+                    {showFullNote ? t('read_less') : t('read_more')}
                   </Typography>
                 )}
               </Typography>
@@ -305,8 +318,7 @@ const ObservationNoteCard = ({
                       fontSize: '0.813rem'
                     }}
                   >
-                    {count} {type}
-                    {count > 1 ? 's' : ''}
+                    {count} {count > 1 ? ATTACHMENT_LABEL_KEYS[type]?.plural : ATTACHMENT_LABEL_KEYS[type]?.singular}
                   </Typography>
                 </Box>
               ))}
@@ -329,8 +341,10 @@ const ObservationNoteCard = ({
           {/* Image Preview - First image only */}
           {firstImage && (
             <Box
-              onClick={(e:React.SyntheticEvent) => {e.stopPropagation()}}
-              sx={{width: '100%',cursor: 'pointer'}}
+              onClick={(e: React.SyntheticEvent) => {
+                e.stopPropagation()
+              }}
+              sx={{ width: '100%', cursor: 'pointer' }}
             >
               <FilePreviewCard
                 fileUrl={firstImage?.file}

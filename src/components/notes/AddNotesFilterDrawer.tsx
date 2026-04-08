@@ -1,17 +1,25 @@
 'use client'
 
-import React, { useEffect, useMemo, useState } from 'react'
-import { Radio, Typography, FormControlLabel, RadioGroup } from '@mui/material'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { Radio, Typography, FormControlLabel, RadioGroup, Box } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import Utility from 'src/utility'
+import { useTranslation } from 'react-i18next'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const LEFT_MENU = ['Gender', 'Accession Date', 'Animal Type']
+
+interface FilterDates {
+  startDate: Date | string | null
+  endDate: Date | string | null
+}
 
 interface SelectedOptions {
   Gender: string[]
   'Animal Type': string[]
-  'Accession Date': string[]
+  'Accession Date': FilterDates
 }
 
 interface AddNotesFilterDrawerProps {
@@ -20,96 +28,13 @@ interface AddNotesFilterDrawerProps {
   onSubmitLoading: boolean
   onApplyFilters: (filters: any) => void
   setFilterCount: (count: number) => void
-  initialSelectedOptions?: SelectedOptions
+  initialSelectedOptions?: any
 }
-
-const GENDER_OPTIONS = [
-  { label: 'Male', value: 'male' },
-  { label: 'Female', value: 'female' },
-  { label: 'Undetermined', value: 'undetermined' },
-  { label: 'Indeterminate', value: 'indeterminate' }
-]
-
-const ANIMAL_TYPE_OPTIONS = [
-  { label: 'Single', value: 'single' },
-  { label: 'Group', value: 'group' }
-]
-
-const ACCESSION_DATE_OPTIONS = [
-  { label: 'Today', value: 'today' },
-  { label: 'Yesterday', value: 'yesterday' },
-  { label: 'Last 7 Days', value: 'last_7_days' },
-  { label: 'This Month', value: 'this_month' },
-  { label: 'Last 3 Months', value: 'last_3_months' },
-  { label: 'Last 6 Months', value: 'last_6_months' },
-  { label: 'All time data', value: 'all_time' }
-]
 
 const DEFAULT_OPTIONS: SelectedOptions = {
   Gender: [],
   'Animal Type': [],
-  'Accession Date': []
-}
-
-// Helper function to convert date preset to start and end dates
-const getDateRangeFromPreset = (preset: string) => {
-  const today = new Date()
-  const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-  const endOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-
-  switch (preset) {
-    case 'today':
-      return {
-        start_date: Utility.formatDate(startOfToday),
-        end_date: Utility.formatDate(endOfToday)
-      }
-    case 'yesterday': {
-      const yesterday = new Date(today)
-      yesterday.setDate(yesterday.getDate() - 1)
-      const endYesterday = new Date(yesterday)
-      endYesterday.setDate(endYesterday.getDate() + 1)
-      return {
-        start_date: Utility.formatDate(yesterday),
-        end_date: Utility.formatDate(endYesterday)
-      }
-    }
-    case 'last_7_days': {
-      const sevenDaysAgo = new Date(today)
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
-      return {
-        start_date: Utility.formatDate(sevenDaysAgo),
-        end_date: Utility.formatDate(endOfToday)
-      }
-    }
-    case 'this_month':
-      return {
-        start_date: Utility.formatDate(new Date(today.getFullYear(), today.getMonth(), 1)),
-        end_date: Utility.formatDate(new Date(today.getFullYear(), today.getMonth() + 1, 0))
-      }
-    case 'last_3_months': {
-      const threeMonthsAgo = new Date(today)
-      threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
-      return {
-        start_date: Utility.formatDate(threeMonthsAgo),
-        end_date: Utility.formatDate(endOfToday)
-      }
-    }
-    case 'last_6_months': {
-      const sixMonthsAgo = new Date(today)
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
-      return {
-        start_date: Utility.formatDate(sixMonthsAgo),
-        end_date: Utility.formatDate(endOfToday)
-      }
-    }
-    case 'all_time':
-      return {
-        start_date: null,
-        end_date: null
-      }
-    default:
-      return { start_date: null, end_date: null }
-  }
+  'Accession Date': { startDate: null, endDate: null }
 }
 
 const AddNotesFilterDrawer = ({
@@ -120,92 +45,131 @@ const AddNotesFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }: AddNotesFilterDrawerProps) => {
-  const [selectedMenu, setSelectedMenu] = useState<string>('Gender')
+  const { t } = useTranslation()
+  const theme = useTheme()
+
+  const [selectedMenu, setSelectedMenu] = useState('Gender')
   const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>(DEFAULT_OPTIONS)
-
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchLoading, setSearchLoading] = useState(false)
+  const [localFilterCount, setLocalFilterCount] = useState(0)
 
-  // ================= FILTER COUNT =================
-  const calculateCount = (filters: SelectedOptions): number => {
-    return (
-      (filters.Gender?.length || 0) +
-      (filters['Animal Type']?.length ? 1 : 0) +
-      (filters['Accession Date']?.length ? 1 : 0)
-    )
+  const filterLabels: Record<string, string> = {
+    Gender: t('gender'),
+    'Accession Date': t('accession_date'),
+    'Animal Type': t('animal_type')
   }
 
-  // ================= SEARCH =================
-  const handleSearch = (query: string): void => {
-    setSearchQuery(query)
-  }
+  const GENDER_OPTIONS = [
+    { label: t('male'), value: 'male' },
+    { label: t('female'), value: 'female' },
+    { label: t('undetermined'), value: 'undetermined' },
+    { label: t('indeterminate'), value: 'indeterminate' }
+  ]
 
-  // ================= GENDER CHECKBOX =================
-  const handleGenderChange = (id: string): void => {
+  const ANIMAL_TYPE_OPTIONS = [
+    { label: t('single'), value: 'single' },
+    { label: t('group'), value: 'group' }
+  ]
+
+  const calculateCount = useCallback((filters: SelectedOptions) => {
+    let count = 0
+    count += filters.Gender?.length || 0
+    if (filters['Animal Type']?.length) count += 1
+    if (filters['Accession Date']?.startDate && filters['Accession Date']?.endDate) {
+      count += 1
+    }
+    return count
+  }, [])
+
+  const handleSearch = (query: string) => setSearchQuery(query)
+
+  const handleGenderChange = (id: string) => {
     setSelectedOptions(prev => {
-      const current = prev?.Gender || []
+      const updated = prev.Gender.includes(id) ? prev.Gender.filter(x => x !== id) : [...prev.Gender, id]
 
-      const updated = current.includes(id) ? current.filter(x => x !== id) : [...current, id]
-
-      return { ...prev, Gender: updated }
+      const newOptions = { ...prev, Gender: updated }
+      setLocalFilterCount(calculateCount(newOptions))
+      return newOptions
     })
   }
-  // Filter gender options based on search query
+
   const filteredGenderOptions = useMemo(() => {
     if (!searchQuery) return GENDER_OPTIONS
 
     return GENDER_OPTIONS.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
   }, [searchQuery])
 
-  // ================= RADIO HANDLER =================
-  const handleRadioChange = (menu: string, value: string): void => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [menu]: value ? [value] : []
-    }))
+  const handleRadioChange = (menu: string, value: string) => {
+    setSelectedOptions(prev => {
+      const newOptions = {
+        ...prev,
+        [menu]: value ? [value] : []
+      }
+      setLocalFilterCount(calculateCount(newOptions))
+      return newOptions
+    })
   }
 
-  // ================= APPLY =================
+  const handleDateRangeChange = (startDate: Date | string, endDate: Date | string) => {
+    setSelectedOptions(prev => {
+      const newOptions = {
+        ...prev,
+        'Accession Date': { startDate, endDate }
+      }
+      setLocalFilterCount(calculateCount(newOptions))
+      return newOptions
+    })
+  }
+
   const applyFilters = () => {
-    const count = calculateCount(selectedOptions)
+    setFilterCount(localFilterCount)
 
-    setFilterCount(count)
-
-    // Convert accession date preset to start/end dates
-    const accessionDatePreset = selectedOptions['Accession Date']?.[0]
-    const dateRange = accessionDatePreset
-      ? getDateRangeFromPreset(accessionDatePreset)
-      : { start_date: null, end_date: null }
+    const accessionDatePreset = selectedOptions['Accession Date']
 
     onApplyFilters({
       gender: selectedOptions.Gender,
       animal_type: selectedOptions['Animal Type']?.[0] || null,
-      accession_date: accessionDatePreset || null, // Send the preset value
-      accession_start_date: dateRange.start_date,
-      accession_end_date: dateRange.end_date
+      accession_start_date: accessionDatePreset.startDate
+        ? Utility.formatDate(new Date(accessionDatePreset.startDate))
+        : null,
+      accession_end_date: accessionDatePreset.endDate ? Utility.formatDate(new Date(accessionDatePreset.endDate)) : null
     })
 
     onClose()
   }
 
-  // ================= CLEAR =================
   const handleClearAll = () => {
     setSelectedOptions(DEFAULT_OPTIONS)
+    setLocalFilterCount(0)
     setFilterCount(0)
   }
 
-  // ================= INIT =================
+  const badgeSelectedOptions: Record<string, string[]> = {
+    Gender: selectedOptions.Gender,
+    'Animal Type': selectedOptions['Animal Type'],
+    'Accession Date':
+      selectedOptions['Accession Date']?.startDate && selectedOptions['Accession Date']?.endDate ? ['selected'] : []
+  }
+
   useEffect(() => {
     if (!open) return
 
-    const restored = initialSelectedOptions || DEFAULT_OPTIONS
-    setSelectedOptions(restored)
+    const restored = initialSelectedOptions || {}
 
-    //  always selects default
+    const normalized: SelectedOptions = {
+      Gender: restored?.Gender || [],
+      'Animal Type': restored?.['Animal Type'] || [],
+      'Accession Date': {
+        startDate: restored?.['Accession Date']?.startDate || restored?.accession_start_date || null,
+        endDate: restored?.['Accession Date']?.endDate || restored?.accession_end_date || null
+      }
+    }
+
+    setSelectedOptions(normalized)
+    setLocalFilterCount(calculateCount(normalized))
     setSelectedMenu('Gender')
-  }, [open])
+  }, [open, initialSelectedOptions, calculateCount])
 
-  // ================= UI =================
   return (
     <CustomFilterDrawer
       open={open}
@@ -213,12 +177,12 @@ const AddNotesFilterDrawer = ({
       onApply={applyFilters}
       onClearAll={handleClearAll}
       filterLists={LEFT_MENU}
-      selectedOptions={selectedOptions}
+      filterLabels={filterLabels}
+      selectedOptions={badgeSelectedOptions}
       selectedItem={selectedMenu}
       onSelectItem={setSelectedMenu}
       isSubmitting={onSubmitLoading}
     >
-      {/* ================= GENDER ================= */}
       {selectedMenu === 'Gender' && (
         <FilterContent
           menuName='Gender'
@@ -227,12 +191,10 @@ const AddNotesFilterDrawer = ({
           selectedOptions={selectedOptions.Gender}
           onOptionChange={handleGenderChange}
           items={filteredGenderOptions}
-          searchLoading={searchLoading}
-          placeholder='Search gender...'
+          placeholder={t('search_gender')}
         />
       )}
 
-      {/* ================= ANIMAL TYPE ================= */}
       {selectedMenu === 'Animal Type' && (
         <RadioGroup
           value={selectedOptions['Animal Type']?.[0] ?? ''}
@@ -249,21 +211,35 @@ const AddNotesFilterDrawer = ({
         </RadioGroup>
       )}
 
-      {/* ================= ACCESSION DATE ================= */}
       {selectedMenu === 'Accession Date' && (
-        <RadioGroup
-          value={selectedOptions['Accession Date']?.[0] ?? ''}
-          onChange={e => handleRadioChange('Accession Date', e.target.value)}
-        >
-          {ACCESSION_DATE_OPTIONS.map(item => (
-            <FormControlLabel
-              key={item.value}
-              value={item.value}
-              control={<Radio />}
-              label={<Typography fontSize='16px'>{item.label}</Typography>}
-            />
-          ))}
-        </RadioGroup>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.Outline, mb: 3 }}>
+            {t('select_date_range_accession')}
+          </Typography>
+
+          <CommonDateRangePickers
+            key={`${selectedOptions['Accession Date']?.startDate}-${selectedOptions['Accession Date']?.endDate}`}
+            onChange={handleDateRangeChange}
+            filterDates={{
+              startDate: selectedOptions['Accession Date']?.startDate,
+              endDate: selectedOptions['Accession Date']?.endDate
+            }}
+            showFutureDates={false}
+            showAllTime={true}
+          />
+
+          {selectedOptions['Accession Date']?.startDate && selectedOptions['Accession Date']?.endDate && (
+            <Box sx={{ mt: 4, p: 3, backgroundColor: theme.palette.customColors.Background, borderRadius: 1 }}>
+              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                {t('selected_range')}:{' '}
+                <strong>
+                  {Utility.formatDate(selectedOptions['Accession Date'].startDate)} -{' '}
+                  {Utility.formatDate(selectedOptions['Accession Date'].endDate)}
+                </strong>
+              </Typography>
+            </Box>
+          )}
+        </Box>
       )}
     </CustomFilterDrawer>
   )

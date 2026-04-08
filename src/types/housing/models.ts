@@ -449,6 +449,7 @@ export interface ObservationType {
   child_observation?: ObservationMasterItem[]
   is_active?: boolean
   order?: number
+  string_id?: string
 }
 
 export interface ObservationMasterItem {
@@ -460,6 +461,7 @@ export interface ObservationMasterItem {
   parent_id?: number | null
   parent_name?: string
   is_active?: boolean
+  string_id?: string
 }
 
 // ==================== Mortality ====================

@@ -1,11 +1,11 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { Drawer, Box, Typography, IconButton } from '@mui/material'
 import { Close as CloseIcon, Person as PersonIcon, PersonAdd as PersonAddIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { AssignedUserDetails, TaggedMembersDrawerProps } from 'src/types/notes'
-
 
 const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
   open,
@@ -16,6 +16,7 @@ const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
   isCreator,
   onOpenEditWithNewMembers
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
 
   return (
@@ -58,7 +59,8 @@ const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <PersonIcon sx={{ fontSize: 24, color: theme.palette.text.secondary }} />
           <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>
-            {taggedMembers?.length} Tagged Member{taggedMembers?.length !== 1 ? 's' : ''}
+            {taggedMembers?.length}
+            {taggedMembers?.length > 1 ? t('notes_module.tagged_members') : t('notes_module.tagged_member')}
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>

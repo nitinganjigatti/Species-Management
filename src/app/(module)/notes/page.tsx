@@ -1,14 +1,7 @@
-'use client'
-
-import Box from '@mui/material/Box'
 import NotesListing from 'src/components/notes/NotesListing'
 
 const NotesPage = () => {
-  return (
-    <Box>
-      <NotesListing />
-    </Box>
-  )
+  return <NotesListing />
 }
 
 export default NotesPage
