@@ -935,7 +935,10 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                               border: `1px solid ${
                                 isSelected ? option.bgColor : theme.palette.customColors.OnSurfaceVariant
                               }`,
-                              backgroundColor: isSelected ? option.bgColor : 'transparent'
+                              backgroundColor: isSelected ? option.bgColor : 'transparent',
+                              '&:hover': {
+                                backgroundColor: isSelected ? option.bgColor : 'transparent'
+                              }
                             }}
                           >
                             {option.iconType === 'text' ? (
