@@ -672,6 +672,7 @@
     "pre_defined_groups": "Pre-defined Groups",
     "search_groups": "Search Groups",
     "no_groups_found": "No groups found",
+    "no_members_have_been_tagged": "No members have been tagged",
     "no_pre_defined_groups_available": "No pre-defined groups available",
     "enter_new_group_name": "Enter new group name",
     "group_name": "Group name"
