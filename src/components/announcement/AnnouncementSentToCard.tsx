@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 // Types for target groups - matching the API response structure
 interface TargetGroup {
@@ -32,6 +33,7 @@ const AnnouncementSentToCard: React.FC<AnnouncementSentToCardProps> = ({
   userTargetGroups = [],
   onClick
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   // Theme colors
@@ -88,23 +90,23 @@ const AnnouncementSentToCard: React.FC<AnnouncementSentToCardProps> = ({
             mb: 0.5
           }}
         >
-          Announcement sent to
+          {t('announcement_module.announcement_sent_to')}
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
           <Typography sx={{ fontSize: '0.8125rem', color: textPrimary }}>
-            Sites -{' '}
+            {t('navigation.sites')} -{' '}
             <Typography component='span' sx={{ fontWeight: 600 }}>
               {counts.sites}
             </Typography>
           </Typography>
           <Typography sx={{ fontSize: '0.8125rem', color: textPrimary }}>
-            Roles -{' '}
+            {t('roles')} -{' '}
             <Typography component='span' sx={{ fontWeight: 600 }}>
               {counts.roles}
             </Typography>
           </Typography>
           <Typography sx={{ fontSize: '0.8125rem', color: textPrimary }}>
-            Users -{' '}
+            {t('lab_module.users')} -{' '}
             <Typography component='span' sx={{ fontWeight: 600 }}>
               {counts.users}
             </Typography>

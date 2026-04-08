@@ -16,28 +16,29 @@ import { useToggleReaction } from 'src/hooks/announcement/useAnnouncements'
 import { useAuth } from 'src/hooks/useAuth'
 import Utility from 'src/utility'
 import type { AnnouncementCardProps } from 'src/types/announcement'
+import { useTranslation } from 'react-i18next'
 
 // Constants
 const DESCRIPTION_MAX_LENGTH = 150
 
 const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }: AnnouncementCardProps) => {
+  const { t } = useTranslation()
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
 
   const theme = useTheme()
   const auth = useAuth()
   const toggleReaction = useToggleReaction()
 
-  // Theme colors from customColors
-  const primaryColor = theme.palette.primary.main // #37BD69
-  const errorColor = theme.palette.customColors.Tertiary // #FA6140
-  const errorLightBg = theme.palette.customColors.ErrorContainer // #FFD3D3
-  const greyColor = theme.palette.customColors.neutralSecondary // #7A8684
-  const textPrimary = theme.palette.customColors.OnSurfaceVariant // #44544A
-  const textSecondary = theme.palette.customColors.neutralSecondary // #7A8684
-  const borderColor = theme.palette.customColors.OutlineVariant // #C3CEC7
-  const whiteColor = theme.palette.customColors.OnPrimary // #FFFFFF
-  const infoBg = theme.palette.customColors.SecondaryContainer // #AFEFEB
-  const infoColor = theme.palette.secondary.dark // #1F415B
+  const primaryColor = theme.palette.primary.main
+  const errorColor = theme.palette.customColors.Tertiary
+  const errorLightBg = theme.palette.customColors.ErrorContainer
+  const greyColor = theme.palette.customColors.neutralSecondary
+  const textPrimary = theme.palette.customColors.OnSurfaceVariant
+  const textSecondary = theme.palette.customColors.neutralSecondary
+  const borderColor = theme.palette.customColors.OutlineVariant
+  const whiteColor = theme.palette.customColors.OnPrimary
+  const infoBg = theme.palette.customColors.SecondaryContainer
+  const infoColor = theme.palette.secondary.dark
 
   const currentUserId = (auth?.userData as any)?.user?.user_id
   const isOwner = currentUserId && currentUserId === announcement.created_user_id
@@ -66,8 +67,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
           borderRadius: '8px',
           backgroundColor: theme.palette.customColors.BgTeritary,
           border: `1px solid ${errorLightBg}`,
-          overflow: 'hidden',
-          boxShadow: 'none'
+          overflow: 'hidden'
         }}
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -87,7 +87,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
           </Box>
           <Box>
             <Typography sx={{ fontWeight: 500, color: textPrimary, fontSize: '0.9375rem' }}>
-              This announcement was deleted.
+              {t('announcement_module.this_announcement_was_deleted')}
             </Typography>
             <Typography sx={{ color: textSecondary, fontSize: '0.8125rem' }}>
               {Utility.convertUTCToLocalDateTime(announcement.created_at)}
@@ -115,13 +115,13 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
   const getAttachmentString = () => {
     const parts: string[] = []
     if (imageCount > 0) {
-      parts.push(`${imageCount} Image${imageCount > 1 ? 's' : ''}`)
+      parts.push(`${imageCount} ${imageCount > 1 ? t('images') : t('image')}`)
     }
     if (videoCount > 0) {
-      parts.push(`${videoCount} Video${videoCount > 1 ? 's' : ''}`)
+      parts.push(`${videoCount} ${videoCount > 1 ? t('videos') : t('video')}`)
     }
     if (documentCount > 0) {
-      parts.push(`${documentCount} Doc${documentCount > 1 ? 's' : ''}`)
+      parts.push(`${documentCount} ${documentCount > 1 ? t('documents') : t('document')}`)
     }
 
     return parts.join(', ')
@@ -196,7 +196,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
               <Icon icon='mdi:cancel' fontSize={24} color={errorColor} />
             </Box>
             <Box>
-              <Typography sx={{ color: textPrimary, fontSize: '0.9375rem' }}>This announcement was deleted.</Typography>
+              <Typography sx={{ color: textPrimary, fontSize: '0.9375rem' }}>{t('announcement_module.this_announcement_was_deleted')}</Typography>
               <Typography sx={{ color: greyColor, fontSize: '0.8125rem' }}>
                 {Utility.convertUTCToLocalDateTime(announcement.modified_at)}
               </Typography>
@@ -254,14 +254,14 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
                 )}
 
                 <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem', color: textPrimary, letterSpacing: '0.5px' }}>
-                  {isImportant ? 'IMPORTANT' : 'ANNOUNCEMENT'}
+                  {isImportant ? t('announcement_module.important_heading') : t('announcement_module.announcement_heading')}
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 {isCancelled && (
                   <Chip
-                    label='CANCELED'
+                    label={t('cancelled')}
                     size='small'
                     sx={{
                       backgroundColor: errorColor,
@@ -279,13 +279,13 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
                   <MenuWithDots
                     options={[
                       {
-                        label: 'Cancel',
+                        label: t('cancel'),
                         icon: <Icon icon='mdi:cancel' fontSize={18} />,
                         action: () => onCancel?.(announcement.announcement_id)
                       },
                       // Delete option
                       {
-                        label: 'Delete',
+                        label: t('delete'),
                         icon: <Icon icon='mdi:delete-outline' fontSize={18} color={errorColor} />,
                         action: () => onDelete?.(announcement.announcement_id)
                       }
@@ -321,7 +321,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
               </Typography>
               {announcement.is_edited && (
                 <Chip
-                  label='Edited'
+                  label={t('announcement_module.edited')}
                   size='small'
                   sx={{
                     backgroundColor: theme.palette.customColors.SurfaceVariant,
@@ -355,7 +355,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
                       '&:hover': { textDecoration: 'underline' }
                     }}
                   >
-                    {isDescriptionExpanded ? 'Show Less' : 'Read More'}
+                    {isDescriptionExpanded ? t('show_less') : t('read_more')}
                   </Link>
                 )}
               </Box>
@@ -400,7 +400,7 @@ const AnnouncementCard = ({ announcement, onEdit, onDelete, onCancel, onClick }:
 
                   {Number(announcement.allow_comments) === 1 && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <IconButton size='small' sx={{ p: 0.5, color: textSecondary }}>
+                      <IconButton size='small' onClick={onClick} sx={{ p: 0.5, color: textSecondary }}>
                         <Icon icon='mdi:comment-outline' fontSize={22} />
                       </IconButton>
                       <Typography

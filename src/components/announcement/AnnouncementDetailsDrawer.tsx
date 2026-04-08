@@ -9,11 +9,11 @@ import IconButton from '@mui/material/IconButton'
 import Divider from '@mui/material/Divider'
 import Avatar from '@mui/material/Avatar'
 import CircularProgress from '@mui/material/CircularProgress'
-import Link from '@mui/material/Link'
 import Icon from 'src/@core/components/icon'
 import MenuWithDots from 'src/components/MenuWithDots'
 import { ImageCarousel, CarouselImage } from 'src/components/common'
 import FileDialog from 'src/components/utility/FileDialog'
+import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import DeleteConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
 import { CommentItem, CommentInput } from './comments'
 import AnnouncementSentToCard from './AnnouncementSentToCard'
@@ -29,9 +29,7 @@ import {
 import { useAuth } from 'src/hooks/useAuth'
 import Utility from 'src/utility'
 import type { AnnouncementAttachment, AnnouncementDetailsDrawerProps } from 'src/types/announcement'
-
-// Constants
-const DESCRIPTION_MAX_LENGTH = 300
+import { useTranslation } from 'react-i18next'
 
 const AnnouncementDetailsDrawer = ({
   open,
@@ -40,7 +38,7 @@ const AnnouncementDetailsDrawer = ({
   onAnnouncementUpdated,
   onEdit
 }: AnnouncementDetailsDrawerProps) => {
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
+  const { t } = useTranslation()
 
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
@@ -82,8 +80,6 @@ const AnnouncementDetailsDrawer = ({
   const textPrimary = theme.palette.customColors.OnSurfaceVariant
   const textSecondary = theme.palette.customColors.neutralSecondary
   const borderColor = theme.palette.customColors.OutlineVariant
-  const whiteColor = theme.palette.customColors.OnPrimary
-  const surfaceVariant = theme.palette.customColors.SurfaceVariant
 
   // User info
   const currentUserId = (auth?.userData as any)?.user?.user_id
@@ -135,7 +131,6 @@ const AnnouncementDetailsDrawer = ({
   // Reset state when drawer closes
   useEffect(() => {
     if (!open) {
-      setIsDescriptionExpanded(false)
       setImagePreview({ open: false, url: '', title: '' })
       setSentToDrawerOpen(false)
     }
@@ -223,17 +218,20 @@ const AnnouncementDetailsDrawer = ({
         }
       })
     } else if (confirmDialog.type === 'deleteComment' && announcement) {
-      deleteComment.mutate({
-        commentId: confirmDialog.id,
-        announcementId: announcement.announcement_id
-      })
+      deleteComment.mutate(
+        {
+          commentId: confirmDialog.id,
+          announcementId: announcement.announcement_id
+        },
+        {
+          onSuccess: () => {
+            onAnnouncementUpdated?.()
+          }
+        }
+      )
     }
 
     handleConfirmDialogClose()
-  }
-
-  const handleDocumentClick = (doc: AnnouncementAttachment) => {
-    window.open(doc.file, '_blank')
   }
 
   // Build menu options based on mobile conditions
@@ -244,7 +242,7 @@ const AnnouncementDetailsDrawer = ({
       // Only delete option for cancelled announcements
       return [
         {
-          label: 'Delete',
+          label: t('delete'),
           icon: <Icon icon='mdi:delete-outline' fontSize={18} color={errorColor} />,
           action: handleDelete
         }
@@ -254,17 +252,17 @@ const AnnouncementDetailsDrawer = ({
     // Full menu for active announcements (Edit, Cancel, Delete - matching mobile)
     return [
       {
-        label: 'Edit',
+        label: t('edit'),
         icon: <Icon icon='mdi:pencil-outline' fontSize={18} />,
         action: handleEdit
       },
       {
-        label: 'Cancel',
+        label: t('cancel'),
         icon: <Icon icon='mdi:cancel' fontSize={18} />,
         action: handleCancel
       },
       {
-        label: 'Delete',
+        label: t('delete'),
         icon: <Icon icon='mdi:delete-outline' fontSize={18} color={errorColor} />,
         action: handleDelete
       }
@@ -274,13 +272,7 @@ const AnnouncementDetailsDrawer = ({
   const menuOptions = getMenuOptions()
   const userName = announcement ? `${announcement.created_by?.first_name} ${announcement.created_by?.last_name}` : ''
 
-  // Check if description needs truncation
-  const needsTruncation = announcement?.description && announcement.description.length > DESCRIPTION_MAX_LENGTH
-
-  const displayDescription =
-    needsTruncation && !isDescriptionExpanded
-      ? `${announcement?.description?.substring(0, DESCRIPTION_MAX_LENGTH)}...`
-      : announcement?.description
+  const displayDescription = announcement?.description
 
   // Get title color based on status and type
   const getTitleColor = () => {
@@ -299,18 +291,22 @@ const AnnouncementDetailsDrawer = ({
         PaperProps={{
           sx: {
             width: { xs: '100%', sm: 580 },
-            maxWidth: '100%'
+            maxWidth: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
           }
         }}
       >
-        {/* Header */}
+        {/* Header - sticky top */}
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             p: 3,
-            borderBottom: `1px solid ${borderColor}`
+            borderBottom: `1px solid ${borderColor}`,
+            flexShrink: 0
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -318,7 +314,7 @@ const AnnouncementDetailsDrawer = ({
               <Icon icon='mdi:close' fontSize={24} />
             </IconButton>
             <Typography variant='h6' sx={{ fontWeight: 600, color: textPrimary }}>
-              {isImportant ? 'Important Announcement' : 'Announcement'}
+              {isImportant ? t('announcement_module.important_announcement') : t('announcement_module.announcement')}
             </Typography>
           </Box>
 
@@ -378,11 +374,11 @@ const AnnouncementDetailsDrawer = ({
                 <Icon icon='mdi:cancel' fontSize={32} color={errorColor} />
               </Box>
               <Typography sx={{ fontWeight: 600, color: textPrimary, fontSize: '1rem', mb: 1 }}>
-                This announcement was deleted.
+                {t('announcement_module.this_announcement_was_deleted')}
               </Typography>
               {announcement?.modified_at && (
                 <Typography sx={{ color: textSecondary, fontSize: '0.875rem' }}>
-                  Deleted on {Utility.convertUTCToLocalDateTime(announcement.modified_at)}
+                  {t('deleted_on')} {Utility.convertUTCToLocalDateTime(announcement.modified_at)}
                 </Typography>
               )}
             </Box>
@@ -442,23 +438,6 @@ const AnnouncementDetailsDrawer = ({
                   <Typography component='span' sx={{ color: textPrimary, fontSize: '0.875rem', lineHeight: 1.6 }}>
                     {displayDescription}
                   </Typography>
-                  {needsTruncation && (
-                    <Link
-                      component='button'
-                      onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                      sx={{
-                        color: accentColor,
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        ml: 0.5,
-                        textDecoration: 'none',
-                        cursor: 'pointer',
-                        '&:hover': { textDecoration: 'underline' }
-                      }}
-                    >
-                      {isDescriptionExpanded ? 'Show Less' : 'Read More'}
-                    </Link>
-                  )}
                 </Box>
               )}
 
@@ -513,70 +492,22 @@ const AnnouncementDetailsDrawer = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <Icon icon='mdi:paperclip' fontSize={18} color={textSecondary} />
                       <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: textPrimary }}>
-                        Attachments
+                        {t('attachments')}
                       </Typography>
                     </Box>
 
-                    {/* Documents */}
-                    {documents.map((doc: AnnouncementAttachment, index: number) => (
-                      <Box
-                        key={doc.id}
-                        onClick={() => handleDocumentClick(doc)}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          p: 1.5,
-                          mb: index < documents.length - 1 ? 1 : 0,
-                          borderRadius: '8px',
-                          backgroundColor: surfaceVariant,
-                          cursor: 'pointer',
-                          '&:hover': { backgroundColor: borderColor }
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: '8px',
-                            backgroundColor: primaryColor,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <Icon
-                            icon={
-                              doc.file_type?.includes('video')
-                                ? 'mdi:video-outline'
-                                : doc.file_type?.includes('audio')
-                                ? 'mdi:music-note'
-                                : 'mdi:file-document-outline'
-                            }
-                            fontSize={20}
-                            color={whiteColor}
-                          />
-                        </Box>
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                          <Typography
-                            sx={{
-                              fontSize: '0.875rem',
-                              fontWeight: 500,
-                              color: textPrimary,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {doc.file_orginal_name || 'Document'}
-                          </Typography>
-                          <Typography sx={{ fontSize: '0.75rem', color: textSecondary, textTransform: 'uppercase' }}>
-                            {doc.file_type}
-                          </Typography>
-                        </Box>
-                        <Icon icon='mdi:download' fontSize={20} color={textSecondary} />
-                      </Box>
-                    ))}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                      {documents.map((doc: AnnouncementAttachment) => (
+                        <FilePreviewCard
+                          key={doc.id}
+                          fileUrl={doc.file}
+                          fileName={doc.file_orginal_name || 'Document'}
+                          width='240px'
+                          showTitle
+                          // ondownloadaction
+                        />
+                      ))}
+                    </Box>
                   </Box>
                 </>
               )}
@@ -587,7 +518,7 @@ const AnnouncementDetailsDrawer = ({
                   <Divider sx={{ mx: 3 }} />
                   <Box sx={{ px: 3, py: 2 }}>
                     <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: textPrimary, mb: 1.5 }}>
-                      Comments ({announcement.comments.length})
+                      {t('comments')} ({announcement.comments.length})
                     </Typography>
                     {announcement.comments.map((comment, index) => (
                       <CommentItem
@@ -603,24 +534,20 @@ const AnnouncementDetailsDrawer = ({
                 </>
               )}
 
-              {/* Spacer for comment input */}
-              {Number(announcement.allow_comments) === 1 && <Box sx={{ height: 80 }} />}
             </>
           )}
         </Box>
 
-        {/* Comment Input - sticky at bottom, only if comments allowed and not deleted */}
+        {/* Comment Input - sticky bottom */}
         {!isLoading && !isDeleted && announcement && Number(announcement.allow_comments) === 1 && (
           <Box
             sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
+              flexShrink: 0,
+              borderTop: `1px solid ${borderColor}`,
               backgroundColor: theme.palette.background.paper
             }}
           >
-            <CommentInput onSubmit={handleAddComment} isLoading={addComment.isPending} placeholder='Add a comment...' />
+            <CommentInput onSubmit={handleAddComment} isLoading={addComment.isPending} placeholder={t('add_a_comment') as string} />
           </Box>
         )}
       </Drawer>
@@ -631,10 +558,10 @@ const AnnouncementDetailsDrawer = ({
         handleClose={handleConfirmDialogClose}
         message={
           confirmDialog.type === 'delete'
-            ? 'Are you sure you want to delete this announcement?'
+            ? t('announcement_module.are_you_sure_you_want_to_delete_this_announcement') as string
             : confirmDialog.type === 'cancel'
-            ? 'Are you sure you want to cancel this announcement?'
-            : 'Are you sure you want to delete this comment?'
+            ? t('announcement_module.are_you_sure_you_want_to_cancel_this_announcement') as string
+            : t('announcement_module.are_you_sure_you_want_to_delete_this_comment') as string
         }
         action={handleConfirmAction}
         loading={deleteAnnouncement.isPending || cancelAnnouncement.isPending || deleteComment.isPending}

@@ -13,6 +13,7 @@ import Tabs from '@mui/material/Tabs'
 import InputBase from '@mui/material/InputBase'
 import Icon from 'src/@core/components/icon'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useTranslation } from 'react-i18next'
 
 // Types for target groups
 interface SiteValue {
@@ -73,6 +74,7 @@ const AnnouncementSentToDrawer: React.FC<AnnouncementSentToDrawerProps> = ({
   targetGroups,
   userTargetGroups
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [activeTab, setActiveTab] = useState<'sites_roles' | 'users'>('sites_roles')
   const [searchTerm, setSearchTerm] = useState('')
@@ -226,7 +228,7 @@ const AnnouncementSentToDrawer: React.FC<AnnouncementSentToDrawerProps> = ({
         {item.role_id && item.role_id.length > 0 && (
           <Typography sx={{ fontSize: '0.8125rem', color: textSecondary, mt: 0.5 }}>
             <Typography component='span' sx={{ fontWeight: 600, color: textPrimary, fontSize: '0.8125rem' }}>
-              Roles:{' '}
+              {t('roles')}:{' '}
             </Typography>
             {item.role_id.map((role: RoleValue) => role?.role_name).join(', ')}
           </Typography>
@@ -354,7 +356,7 @@ const AnnouncementSentToDrawer: React.FC<AnnouncementSentToDrawerProps> = ({
             pb: 1.5
           }}
         >
-          <Typography sx={{ fontSize: '1.125rem', fontWeight: 600, color: textPrimary }}>Announcement sent to</Typography>
+          <Typography sx={{ fontSize: '1.125rem', fontWeight: 600, color: textPrimary }}>{t('announcement_module.announcement_sent_to')}</Typography>
           <IconButton size='small' onClick={onClose}>
             <Icon icon='mdi:close' fontSize={22} />
           </IconButton>
@@ -384,8 +386,8 @@ const AnnouncementSentToDrawer: React.FC<AnnouncementSentToDrawerProps> = ({
               }
             }}
           >
-            <Tab label='Sites & Roles' value='sites_roles' sx={{ flex: 1 }} />
-            <Tab label={`Users${userCount > 0 ? ` - ${userCount}` : ''}`} value='users' sx={{ flex: 1 }} />
+            <Tab label={t('announcement_module.sites_roles')} value='sites_roles' sx={{ flex: 1 }} />
+            <Tab label={`${t('lab_module.users')}${userCount > 0 ? ` - ${userCount}` : ''}`} value='users' sx={{ flex: 1 }} />
           </Tabs>
         </Box>
 
@@ -404,7 +406,7 @@ const AnnouncementSentToDrawer: React.FC<AnnouncementSentToDrawerProps> = ({
           >
             <Icon icon='mdi:magnify' fontSize={20} color={textSecondary} />
             <InputBase
-              placeholder='Search'
+              placeholder={t('search') as string}
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               sx={{

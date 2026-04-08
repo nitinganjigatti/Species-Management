@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Drawer, IconButton, Grid, useTheme, Card, FormHelperText } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Person as PersonIcon, AttachFile, AddCircleOutline, Check } from '@mui/icons-material'
@@ -23,7 +24,6 @@ import LocationInfoCard from 'src/views/utility/LocationInfoCard'
 import { createObservation, editObservation } from 'src/lib/api/housing'
 import AddAnimalDrawer from './AddAnimalDrawer'
 
-// Validation Schema
 const validationSchema = yup.object().shape({
   observation_type_id: yup.string().required('Note type is required'),
   observation_name: yup.string().optional(),
@@ -59,6 +59,7 @@ interface AddNoteDrawerProps {
 }
 
 const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const auth = useAuth()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
@@ -77,24 +78,30 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
 
   // priority options
   const PRIORITY_OPTIONS = [
-    { value: 'Low', label: 'Low', bgColor: theme.palette.customColors.Secondary, iconType: 'text', icon: '!' },
+    {
+      value: 'Low',
+      label: t('priority_low'),
+      bgColor: theme.palette.customColors.Secondary,
+      iconType: 'text',
+      icon: '!'
+    },
     {
       value: 'Moderate',
-      label: 'Moderate',
+      label: t('priority_moderate'),
       bgColor: theme.palette.customColors.antzNotes80,
       iconType: 'text',
       icon: '!!'
     },
     {
       value: 'High',
-      label: 'High',
+      label: t('priority_high'),
       bgColor: theme.palette.customColors.customDropdownColor,
       iconType: 'text',
       icon: '!!!'
     },
     {
       value: 'Critical',
-      label: 'Critical',
+      label: t('priority_critical'),
       bgColor: theme.palette.customColors.Error,
       iconType: 'icon',
       icon: 'boxicons:fire'
@@ -152,7 +159,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
 
   const handleOpenNotifyMembersDrawer = () => {
     if (!observationType) {
-      Toaster({ type: 'warning', message: 'Please select the note type first to add members' })
+      Toaster({ type: 'warning', message: t('notes_module.please_select_the_note_type_first_to_add_members') })
       return
     }
     setNotifyMembersDrawerOpen(true)
@@ -187,7 +194,6 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
         enclosure_id: type === 'enclosure' ? item?.enclosure_id || item?.id : item?.enclosure_id,
         section_id: type === 'section' ? item?.section_id || item?.id : item?.section_id,
         site_id: type === 'site' ? item?.site_id || item?.id : item?.site_id,
-        // Nested data for LocationInfoCard
         siteData: item?.siteData,
         sectionData: item?.sectionData,
         enclosureData: item?.enclosureData
@@ -368,7 +374,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
   // Reset form when drawer opens or editData changes
   useEffect(() => {
     if (open && editData) {
-      // 1. Reset form fields
+      // Reset form fields
       reset({
         observation_name: editData?.observation_name || '',
         priority: editData?.priority || 'Low',
@@ -377,24 +383,26 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
         attachments: []
       })
 
-      // 2. Set Note Type
+      // Set Note Type
       if (editData?.child_master_type) {
         setObservationType({
           id: editData.child_master_type.parent_observation_type_id,
-          type_name: editData.child_master_type.parent_observation_type
+          type_name: editData.child_master_type.parent_observation_type,
+          string_id: editData.child_master_type.string_id
         })
         setChildTypes(
           editData.child_master_type.child_observation_type
             ?.filter((t: any) => t.child_id || t.type_id)
             .map((t: any) => ({
               id: t.child_id || t.type_id,
-              type_name: t.type_name
+              type_name: t.type_name,
+              string_id: t.string_id
             })) || []
         )
         setValue('observation_type_id', editData.child_master_type.parent_observation_type_id, { shouldValidate: true })
       }
 
-      // 3. Set Entities (selectedAnimals)
+      // Set Entities (selectedAnimals)
       if (editData?.ref_data && Array.isArray(editData.ref_data)) {
         const mappedEntities = editData.ref_data.map((item: any) => {
           if (item?.animalData) {
@@ -435,12 +443,12 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
         setSelectedAnimals(mappedEntities)
         setValue('selected_animals', mappedEntities, { shouldValidate: true })
       }
-      // 4. Set Notify Members
+      // Set Notify Members
       if (editData?.assign_to) {
         setNotifyMembers(editData.assign_to)
       }
 
-      // 5. Set Existing Attachments
+      // Set Existing Attachments
       if (editData?.attachments) {
         const mappedAttachments = editData.attachments.map((file: any) => ({
           id: file.id,
@@ -503,7 +511,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
         }}
       >
         <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-          {editData?.observation_id ? 'Edit Note' : 'New Notes'}
+          {editData?.observation_id ? t('notes_module.edit_note') : t('notes_module.new_notes')}
         </Typography>
         <IconButton size='small' onClick={onClose} sx={{ color: theme.palette.text.primary }}>
           <Icon icon='mdi:close' fontSize={24} />
@@ -545,7 +553,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                           fontSize: '1rem'
                         }}
                       >
-                        Note Type
+                        {t('notes_module.note_type')}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -557,7 +565,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                             fontSize: '1rem'
                           }}
                         >
-                          {(observationType as any).type_name || observationType.name}
+                          {t(observationType.string_id || '', { defaultValue: observationType.type_name })}
                         </Typography>
                         {!editData?.observation_id && (
                           <IconButton
@@ -582,7 +590,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                                   fontSize: '14px'
                                 }}
                               >
-                                {(childType as any).type_name || childType.name}
+                                {t(childType.string_id || '', { defaultValue: childType.type_name })}
                               </Typography>
                             </Box>
                           ))}
@@ -606,7 +614,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                       }}
                       onClick={() => setOpenSelectNoteTypeDrawer(true)}
                     >
-                      <Typography>Note Type*</Typography>
+                      <Typography>{t('notes_module.note_type')}*</Typography>
                       <IconButton size='small' sx={{ color: theme.palette.customColors.Secondary }}>
                         <AddCircleOutline />
                       </IconButton>
@@ -653,7 +661,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                     <IconButton size='small'>
                       <PersonIcon sx={{ fontSize: 24, color: theme.palette.customColors.neutralSecondary }} />
                     </IconButton>
-                    <Typography>Notify members</Typography>
+                    <Typography>{t('notes_module.notify_members')}</Typography>
                   </Box>
 
                   <MUISwitch
@@ -683,7 +691,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                       >
                         <Icon icon='fluent-mdl2:add-home' />
                       </IconButton>
-                      <Typography sx={{ fontWeight: 500 }}>Add members to be notified </Typography>
+                      <Typography sx={{ fontWeight: 500 }}>{t('notes_module.add_members_to_be_notified')} </Typography>
                     </Box>
 
                     <IconButton size='small' sx={{ color: theme.palette.customColors.Secondary }}>
@@ -762,7 +770,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                           fontSize: '1rem'
                         }}
                       >
-                        {selectedAnimals?.length} Entities
+                        {selectedAnimals?.length} {t('notes_module.entities')}
                       </Typography>
                       {!editData?.observation_id && (
                         <IconButton
@@ -843,7 +851,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                       cursor: 'pointer'
                     }}
                   >
-                    <Typography>Select Entity*</Typography>
+                    <Typography>{t('notes_module.select_entity')}*</Typography>
                     <IconButton size='small' sx={{ color: theme.palette.customColors.Secondary }}>
                       <AddCircleOutline />
                     </IconButton>
@@ -862,7 +870,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Notes related to an animal, enclosure or a section
+                  {t('notes_module.notes_to_related_to_animal')}
                 </Typography>
               </Grid>
 
@@ -873,7 +881,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                     <AttachFile sx={{ color: theme.palette.customColors.neutralSecondary }} />
                   </IconButton>
                   <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-                    Attachments
+                    {t('attachments')}
                   </Typography>
                 </Box>
                 <ControlledMultiFileUpload
@@ -900,7 +908,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                   }}
                 >
                   <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-                    Priority
+                    {t('priority')}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
                     {PRIORITY_OPTIONS?.map(option => {
@@ -990,7 +998,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
           sx={{ flex: 1, py: 3 }}
           disabled={submitLoader}
         >
-          Clear
+          {t('clear')}
         </LoadingButton>
         <LoadingButton
           variant='contained'
@@ -999,7 +1007,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
           sx={{ flex: 1, py: 3 }}
           disabled={submitLoader}
         >
-          Submit
+          {t('submit')}
         </LoadingButton>
       </Box>
 

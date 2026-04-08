@@ -10,8 +10,10 @@ import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Icon from 'src/@core/components/icon'
 import type { SelectedUser, SearchUsersDrawerProps } from 'src/types/announcement'
+import { useTranslation } from 'react-i18next'
 
 const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, selectedUsers, onUsersSelected }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const auth = useAuth() as any
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id || auth?.user?.zoo_id
@@ -148,7 +150,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              Search Users
+              {t('search_user')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -158,7 +160,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
 
         <Box sx={{ px: 5, pt: 5, pb: 3, flexShrink: 0 }}>
           <Search
-            placeholder='Search Users'
+            placeholder={t('search_user') as string}
             value={searchQuery}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
             onClear={() => setSearchQuery('')}
@@ -188,7 +190,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              {isAllSelected ? 'Deselect all' : 'Select all'}
+              {isAllSelected ? t('deselect_all') : t('select_all')}
             </Typography>
             <Checkbox checked={isAllSelected} />
           </Box>
@@ -232,7 +234,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
                         fontSize: '0.875rem'
                       }}
                     >
-                      {searchQuery ? 'No users found' : 'No users available'}
+                      {searchQuery ? t('no_users_found') : t('no_users_available')}
                     </Typography>
                   </Box>
                 ) : (
@@ -297,7 +299,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
               color: theme.palette.customColors?.OnSurface
             }}
           >
-            Selected - {localSelectedUsers.length}
+            {t('selected')} - {localSelectedUsers.length}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Button
@@ -312,7 +314,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
                 fontWeight: 600
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               variant='contained'
@@ -324,7 +326,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
                 fontWeight: 600
               }}
             >
-              Add
+              {t('add')}
             </Button>
           </Box>
         </Box>

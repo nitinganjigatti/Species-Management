@@ -2,13 +2,15 @@ import React from 'react'
 import { Box, Typography, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Divider, Paper } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const sortOptions = [
-    { value: 'recent', label: 'Recent most first (default)', icon: '/images/hospital/clock_arrow_down.svg' },
-    { value: 'oldest', label: 'Oldest First', icon: '/images/hospital/clock_arrow_up.svg' }
+    { value: 'recent', label: t('recent_most_first'), icon: '/images/hospital/clock_arrow_down.svg' },
+    { value: 'oldest', label: t('oldest_first'), icon: '/images/hospital/clock_arrow_up.svg' }
   ]
 
   const handleSortChange = event => {
@@ -65,7 +67,7 @@ const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }) => {
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVarient }}
               >
-                Sort by
+                {t('sort_by')}
               </Typography>
             </Box>
             <IconButton onClick={onClose} height={14} width={14}>

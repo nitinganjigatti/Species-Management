@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, useTheme, Button, IconButton } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
@@ -11,13 +12,6 @@ import { Check } from '@mui/icons-material'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
 
-const PRIORITY_OPTIONS = [
-  { label: 'Low', value: 'Low' },
-  { label: 'Moderate', value: 'Moderate' },
-  { label: 'High', value: 'High' },
-  { label: 'Critical', value: 'Critical' }
-]
-
 const NotesListingFilterDrawer = ({
   open,
   onClose,
@@ -27,11 +21,21 @@ const NotesListingFilterDrawer = ({
   initialSelectedOptions,
   activeTab
 }: any) => {
+  const { t } = useTranslation()
   const auth = useAuth()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
+  const PRIORITY_OPTIONS = [
+    { label: t('priority_low'), value: 'Low' },
+    { label: t('priority_moderate'), value: 'Moderate' },
+    { label: t('priority_high'), value: 'High' },
+    { label: t('priority_critical'), value: 'Critical' }
+  ]
+
   const LEFT_MENU = useMemo(() => {
-    return activeTab === 'all_notes' ? ['Note Type', 'Priority', 'Created By', 'Tagged To'] : ['Note Type', 'Priority']
+    return activeTab === 'all_notes'
+      ? [t('notes_module.note_type'), t('priority'), t('created_by'), t('tagged_to')]
+      : [t('notes_module.note_type'), t('priority')]
   }, [activeTab])
 
   const DEFAULT_OPTIONS: { 'Note Type': any[]; Priority: any[]; 'Created By': any[]; 'Tagged To': any[] } = {
@@ -42,7 +46,7 @@ const NotesListingFilterDrawer = ({
   }
 
   const theme = useTheme() as any
-  const [selectedMenu, setSelectedMenu] = useState('Note Type')
+  const [selectedMenu, setSelectedMenu] = useState<string>('Note Type')
   const [selectedOptions, setSelectedOptions] = useState(DEFAULT_OPTIONS)
 
   const [observationType, setObservationType] = useState<any>(null)
@@ -53,7 +57,7 @@ const NotesListingFilterDrawer = ({
   const [searchLoading, setSearchLoading] = useState(false)
   const [userList, setUserList] = useState<any[]>([])
 
-  // ================= FILTER COUNT =================
+  // filter count
   const calculateCount = (filters: any) => {
     return (
       (filters['Note Type']?.length || 0) +
@@ -63,10 +67,7 @@ const NotesListingFilterDrawer = ({
     )
   }
 
-  // ================= SEARCH =================
-  const handleSearch = (query: string) => {
-    setSearchQuery(query)
-  }
+  const handleSearch = (query: string) => setSearchQuery(query)
   const handleNoteTypeSelect = (result: any) => {
     const { observationType: parent, childTypes: children } = result
     setObservationType(parent)
@@ -79,7 +80,7 @@ const NotesListingFilterDrawer = ({
     }))
   }
 
-  // ================= PRIORITY =================
+  // handle priority
   const handlePriorityChange = (value: string) => {
     setSelectedOptions(prev => {
       const current = prev?.Priority || []
@@ -144,8 +145,6 @@ const NotesListingFilterDrawer = ({
   const applyFilters = () => {
     const count = calculateCount(selectedOptions)
 
-    console.log('[DEBUG] ApplyFilters - selectedOptions:', selectedOptions)
-
     setFilterCount(count)
 
     onApplyFilters({
@@ -161,7 +160,6 @@ const NotesListingFilterDrawer = ({
     setSelectedOptions(DEFAULT_OPTIONS)
     setObservationType(null)
     setChildTypes([])
-
   }
 
   useEffect(() => {
@@ -182,8 +180,7 @@ const NotesListingFilterDrawer = ({
       setChildTypes([])
     }
 
-    //  always selects default
-    setSelectedMenu('Note Type')
+    setSelectedMenu('Note Type') //  always selects default
   }, [open, initialSelectedOptions])
 
   useEffect(() => {
@@ -273,7 +270,7 @@ const NotesListingFilterDrawer = ({
               }}
               startIcon={<Icon icon='mdi:plus' fontSize='20px' />}
             >
-              Select Note Type
+              {t('notes_module.select_note_type')}
             </Button>
           )}
 
@@ -298,10 +295,10 @@ const NotesListingFilterDrawer = ({
           onOptionChange={handlePriorityChange}
           items={filteredPriorityOptions}
           searchLoading={searchLoading}
-          placeholder='Search priority...'
+          placeholder={`${t('search')} ${t('priority')}`}
         />
       )}
- 
+
       {selectedMenu === 'Created By' && (
         <FilterContent
           menuName='Created By'
@@ -311,7 +308,7 @@ const NotesListingFilterDrawer = ({
           onOptionChange={id => handleUserChange(id, 'Created By')}
           items={userList}
           searchLoading={searchLoading}
-          placeholder='Search User'
+          placeholder={t('search_user')}
         />
       )}
 
@@ -324,7 +321,7 @@ const NotesListingFilterDrawer = ({
           onOptionChange={id => handleUserChange(id, 'Tagged To')}
           items={userList}
           searchLoading={searchLoading}
-          placeholder='Search User'
+          placeholder={t('search_user')}
         />
       )}
     </CustomFilterDrawer>
