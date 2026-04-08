@@ -14,7 +14,8 @@ import {
   ToggleButton,
   Avatar,
   Skeleton,
-  Tooltip
+  Tooltip,
+  alpha
 } from '@mui/material'
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { debounce } from 'lodash'
@@ -166,7 +167,7 @@ const AnimalAvatarCell = ({ src: initialSrc }: { src: string | undefined }) => {
 }
 
 const AnimalsListing = () => {
-  const theme = useTheme()
+  const theme = useTheme() as any
   const router = useSafeRouter()
   const auth = useAuth()
   const { t } = useTranslation()
@@ -660,10 +661,13 @@ const AnimalsListing = () => {
                           onClick={() => handleAnimalCardClick(animal.animal_id)}
                           sx={{
                             p: 4,
-                            border: `1px solid ${theme.palette.divider}`,
+                            // border: `1px solid ${theme.palette.divider}`,
                             borderRadius: 1,
                             height: '100%',
-                            backgroundColor: theme.palette.background.paper,
+                            background: `linear-gradient(90deg, ${alpha(
+                              theme.palette.customColors.SecondaryContainer,
+                              0.25
+                            )}, ${alpha(theme.palette.customColors.TertiaryContainer, 0.25)})`,
                             cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
