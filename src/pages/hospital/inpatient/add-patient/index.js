@@ -13,7 +13,6 @@ const AddPatient = () => {
       <DynamicBreadcrumbs
           pageItems={[
             { title: 'Hospital' },
-            { title: 'Patients' },
             { title: 'Inpatient', onClick: () => router.back() },
             { title: 'Add Patient' },
           ]}/>

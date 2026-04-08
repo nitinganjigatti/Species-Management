@@ -16,6 +16,7 @@ import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -44,7 +45,7 @@ const useDebounce = (callback, delay) => {
   )
 }
 
-function AddSymptoms() {
+function AddSymptoms({ category }) {
   const theme = useTheme()
   const router = useRouter()
   const dispatch = useDispatch()
@@ -396,6 +397,7 @@ function AddSymptoms() {
   }, [patientData?.medical_record_id, fetchDiagnosisTypes])
 
   const handleTabChange = (tabValue, tabId) => {
+    if(tabValue === currentTab) return
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
@@ -521,9 +523,36 @@ function AddSymptoms() {
       return patientData?.animal_detail?.animal_id
     }
   }
+  
+   const handleBreadCrumbNavigation = () => {
+    if (category === 'Inpatient'){
+      router.push('/hospital/inpatient')
+    }
+    else if (category === 'Outpatients'){
+      router.push('/hospital/outpatient')
+    }
+    else if (category === 'Discharged'){
+      router.push('/hospital/discharged')
+    }
+    else if (category === 'Mortality'){
+      router.push('/hospital/mortality')
+    }
+    else if (category === 'Follow Up'){
+      router.push('/hospital/followup')
+    }
+  }
+
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
+    <DynamicBreadcrumbs
+      pageItems={[
+        { title: 'Hospital' },
+        { title: category, onClick: handleBreadCrumbNavigation },
+        { title: 'Details', onClick: handleRouterNavigation },
+        { title: 'Add Symptoms' }
+      ]}
+    />
       <AnimalInfoCard
         image={patientData?.animal_detail?.default_icon}
         name={patientData?.animal_detail?.common_name}

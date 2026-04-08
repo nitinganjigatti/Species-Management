@@ -1,7 +1,10 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import MUIDateTimePicker from './MUIDateTimePicker'
-import { LocalizationProvider, AdapterDayjs } from '@mui/x-date-pickers'
+// import { LocalizationProvider, AdapterDayjs } from '@mui/x-date-pickers'
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+
 import dayjs from 'dayjs'
 import { useTheme } from '@mui/material/styles'
 
@@ -67,7 +70,7 @@ const ControlledDateTimePicker = ({
                   }
                 },
                 '& .MuiInputLabel-root': {
-                  color: error ? theme.palette.error.main: theme.palette.customColors.Outline
+                  color: error ? theme.palette.error.main: theme.palette.customColors.Outline,
                 },
                 ...sx
               }}

@@ -11,12 +11,6 @@ const AddPatient = () => {
   return (
     <>
       <DynamicBreadcrumbs
-        pageItems={[
-          { title: 'Hospital' },
-          { title: 'Patients' },
-          { title: 'Outpatients', onClick: () => router.back() },
-          { title: 'Add Patient' }
-        ]}
       />
       <AddPatientForm defaultTreatmentType='opd' />
     </>

@@ -451,19 +451,7 @@ const PatientDetails = ({ category }) => {
   // Memoize breadcrumbs to prevent unnecessary re-renders
   const breadcrumbs = useMemo(
     () => (
-      <DynamicBreadcrumbs
-            pageItems={[{
-              title: 'Hospital'
-            },
-            {
-              title: 'Patients'
-            },
-            {
-              title: category, onClick: handleBack
-            },
-            {
-              title: 'Details'
-            }]}/>
+      <DynamicBreadcrumbs lastBreadcrumbLabel={'Details'}/>
     ),
     [handleBack, category]
   )

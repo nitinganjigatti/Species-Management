@@ -533,7 +533,7 @@ const HospitalBedDetails = () => {
         pageItems={[
           { title: 'Hospital' },
           { title: 'Masters' },
-          { title: 'Hospital List' },
+          { title: 'Hospital List', onClick: () => router.push('/hospital/masters/hospital') },
           { title: 'Hospital Detail', onClick: () => router.back() },
           { title: 'Room Detail' }
         ]}

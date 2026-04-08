@@ -47,6 +47,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 dayjs.extend(customParseFormat)
 
@@ -288,7 +289,18 @@ export const anesthesiaSchema = yup.object({
     .object({
       location: yup.string().trim().required('Location is required'),
       anaesthesia_datetime: yup.string().trim().required('Date & time is required'),
-      estimated_time_required: yup.string().trim().required('Estimated time is required'),
+      estimated_time_required: yup
+        .string()
+        .test('required', 'Estimated time is required', value => Boolean(value?.toString().trim()))
+        .test('estimated-time', function (value) {
+          if (Number(value) > 0) {
+            return true
+          }
+
+          return this.createError({
+            message: 'Value must be greater than 0'
+          })
+        }),
       veterinarian_id: yup.array().min(1, 'Select at least one veterinarian'),
       anesthetist_id: yup.array().min(1, 'Select at least one anesthetist'),
       selected: yup.array().of(yup.string()).default([]),
@@ -2060,15 +2072,15 @@ export default function AddAnesthesiaRecord() {
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
-        <Breadcrumbs aria-label='breadcrumb'>
-          <Typography color={theme.palette.text.secondary}>Hospital</Typography>
-          <Typography color={theme.palette.text.secondary}>Patients</Typography>
-          <Typography color={theme.palette.text.secondary}>Discharged</Typography>
-          <Typography color={theme.palette.text.secondary} sx={{ cursor: 'pointer' }} onClick={handleCancel}>
-            Details
-          </Typography>
-          <Typography color={theme.palette.text.primary}>Add Anesthesia</Typography>
-        </Breadcrumbs>
+        <DynamicBreadcrumbs
+          sx={{ mb: 0 }}
+          pageItems={[
+            { title: 'Hospital' },
+            { title: 'Discharged', onClick: () => router.push('/hospital/discharged') },
+            { title: 'Details', onClick: handleCancel },
+            { title: 'Add Anesthesia' }
+          ]}
+        />
 
         <Box
           position='relative'

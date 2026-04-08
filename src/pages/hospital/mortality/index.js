@@ -556,7 +556,6 @@ const HospitalMortality = () => {
       <Box>
         <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Mortality' }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
