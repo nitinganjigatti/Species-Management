@@ -11,6 +11,7 @@ import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Icon from 'src/@core/components/icon'
 import type { Site, Role, SelectSitesRolesDrawerProps } from 'src/types/announcement'
+import { useTranslation } from 'react-i18next'
 
 const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
   open,
@@ -19,6 +20,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
   selectedRoles,
   onSelectionChange
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const auth = useAuth() as any
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id || auth?.user?.zoo_id
@@ -203,7 +205,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Select Sites & Roles
+                {t('select')} {t('sites_roles')}
               </Typography>
             </Box>
           </Box>
@@ -225,7 +227,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                   mb: 3
                 }}
               >
-                Choose Sites
+                {t('choose_sites')}
               </Typography>
 
               <Box sx={switchRowSx}>
@@ -236,7 +238,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                     color: theme.palette.customColors?.OnSurfaceVariant
                   }}
                 >
-                  All Sites
+                  {t('all_sites')}
                 </Typography>
                 <MUISwitch
                   checked={isAllSites}
@@ -275,7 +277,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                         color: theme.palette.customColors?.OnSurfaceVariant
                       }}
                     >
-                      Selected sites - {localSelectedSites.length}
+                      {t('selected_sites')} - {localSelectedSites.length}
                     </Typography>
                     <IconButton size='small' sx={{ color: theme.palette.primary.main }}>
                       <Icon icon='mdi:plus-circle-outline' fontSize={24} />
@@ -351,7 +353,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                   mb: 3
                 }}
               >
-                Choose Roles
+                {t('choose_roles')}
               </Typography>
 
               <Box sx={switchRowSx}>
@@ -362,7 +364,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                     color: theme.palette.customColors?.OnSurfaceVariant
                   }}
                 >
-                  All Roles
+                  {t('all_roles')}
                 </Typography>
                 <MUISwitch
                   checked={isAllRoles}
@@ -401,7 +403,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                         color: theme.palette.primary.main
                       }}
                     >
-                      Add Roles
+                      {t('add_roles')}
                     </Typography>
                     <IconButton size='small' sx={{ color: theme.palette.primary.main }}>
                       <Icon icon='mdi:plus-circle-outline' fontSize={24} />
@@ -480,7 +482,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                 fontWeight: 600
               }}
             >
-              Done
+              {t('done')}
             </Button>
           </Box>
         </Box>
@@ -528,7 +530,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Choose site
+                {t('choose_sites')}
               </Typography>
               <Typography
                 sx={{
@@ -536,7 +538,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                   color: theme.palette.customColors?.neutralSecondary
                 }}
               >
-                Select a site from the list below
+                {t('announcement_module.select_a_site_from_the_list_below')}
               </Typography>
             </Box>
             <IconButton size='small' onClick={() => setSitesDrawerOpen(false)}>
@@ -546,7 +548,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
 
           <Box sx={{ px: 4, py: 3, backgroundColor: theme.palette.customColors?.OnPrimary }}>
             <Search
-              placeholder='Search'
+              placeholder={t('search') as string}
               value={sitesSearchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSitesSearchTerm(e.target.value)}
               onClear={() => setSitesSearchTerm('')}
@@ -630,7 +632,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                 '&:hover': { backgroundColor: '#218838' }
               }}
             >
-              Continue
+              {t('continue')}
             </Button>
           </Box>
         </Box>
@@ -677,7 +679,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Choose role
+                {t('choose_roles')}
               </Typography>
               <Typography
                 sx={{
@@ -685,7 +687,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                   color: theme.palette.customColors?.neutralSecondary
                 }}
               >
-                Select a role from the list below
+                {t('announcement_module.select_a_role_from_the_list_below')}
               </Typography>
             </Box>
             <IconButton size='small' onClick={() => setRolesDrawerOpen(false)}>
@@ -695,7 +697,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
 
           <Box sx={{ px: 4, py: 3, backgroundColor: theme.palette.customColors?.OnPrimary }}>
             <Search
-              placeholder='Search'
+              placeholder={t('search') as string}
               value={rolesSearchTerm}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRolesSearchTerm(e.target.value)}
               onClear={() => setRolesSearchTerm('')}
@@ -778,7 +780,7 @@ const SelectSitesRolesDrawer: React.FC<SelectSitesRolesDrawerProps> = ({
                 '&:hover': { backgroundColor: '#218838' }
               }}
             >
-              Continue
+              {t('continue')}
             </Button>
           </Box>
         </Box>

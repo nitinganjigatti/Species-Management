@@ -39,30 +39,7 @@ import type {
   Role
 } from 'src/types/announcement'
 import type { User } from 'src/types/housing'
-
-const validationSchema = yup.object().shape({
-  title: yup.string().required('Title is required').max(200, 'Title must be at most 200 characters'),
-  description: yup.string().max(5000, 'Description must be at most 5000 characters'),
-  type: yup.string().oneOf(['general', 'important'], 'Please select a valid type').required('Type is required'),
-  isEveryoneVisible: yup.boolean(),
-  isPostNow: yup.boolean(),
-  schedule_date: yup.mixed().when('isPostNow', {
-    is: false,
-    then: schema => schema.required('Schedule date is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  schedule_time: yup.mixed().when('isPostNow', {
-    is: false,
-    then: schema => schema.required('Schedule time is required'),
-    otherwise: schema => schema.nullable()
-  }),
-  isAlwaysVisible: yup.boolean(),
-  schedule_end_date: yup.mixed(),
-  durationValue: yup.string(),
-  durationUnit: yup.string(),
-  allow_comments: yup.boolean(),
-  attachments: yup.array()
-})
+import { useTranslation } from 'react-i18next'
 
 // Emoji removal regex
 const removeEmojis = (text: string): string => {
@@ -73,6 +50,7 @@ const removeEmojis = (text: string): string => {
 }
 
 const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: AddAnnouncementDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const auth = useAuth() as any
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
@@ -82,6 +60,30 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
   const isEdit = !!editAnnouncement
 
   const [existingAttachments, setExistingAttachments] = useState<ExistingAttachment[]>([])
+
+  const validationSchema = yup.object().shape({
+  title: yup.string().required(t('announcement_module.title_is_required') as string).max(200, t('announcement_module.title_must_be_at_most_200_characters') as string),
+  description: yup.string().max(5000, t('announcement_module.description_must_be_at_most_5000_characters') as string),
+  type: yup.string().oneOf(['general', 'important'], t('announcement_module.please_select_a_valid_type') as string).required(t('announcement_module.type_is_required') as string),
+  isEveryoneVisible: yup.boolean(),
+  isPostNow: yup.boolean(),
+  schedule_date: yup.mixed().when('isPostNow', {
+    is: false,
+    then: schema => schema.required(t('announcement_module.schedule_date_is_required') as string),
+    otherwise: schema => schema.nullable()
+  }),
+  schedule_time: yup.mixed().when('isPostNow', {
+    is: false,
+    then: schema => schema.required(t('announcement_module.schedule_time_is_required') as string),
+    otherwise: schema => schema.nullable()
+  }),
+  isAlwaysVisible: yup.boolean(),
+  schedule_end_date: yup.mixed(),
+  durationValue: yup.string(),
+  durationUnit: yup.string(),
+  allow_comments: yup.boolean(),
+  attachments: yup.array()
+})
 
   const {
     control,
@@ -442,7 +444,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              {isEdit ? 'Edit Announcement' : 'Create Announcement'}
+              {isEdit ? t('announcement_module.edit_announcement') : t('announcement_module.create_announcement')}
             </Typography>
             <IconButton
               size='small'
@@ -469,7 +471,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
             <Box sx={sectionCardSx}>
               <Box sx={sectionHeaderSx}>
                 <Icon icon='mdi:bullhorn-outline' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                <Typography sx={sectionTitleSx}>Type of announcement</Typography>
+                <Typography sx={sectionTitleSx}>{t('announcement_module.type_of_announcement')}</Typography>
               </Box>
 
               <Box sx={{ display: 'flex', gap: 3 }}>
@@ -498,7 +500,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                         })
                   }}
                 >
-                  <Typography sx={{ fontWeight: 500, fontSize: '0.9375rem', color: 'inherit' }}>General</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.9375rem', color: 'inherit' }}>{t('announcement_module.general')}</Typography>
                   <Box
                     sx={{
                       width: 24,
@@ -551,7 +553,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                         })
                   }}
                 >
-                  <Typography sx={{ fontWeight: 500, fontSize: '0.9375rem', color: 'inherit' }}>Important</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.9375rem', color: 'inherit' }}>{t('announcement_module.important')}</Typography>
                   <Box
                     sx={{
                       width: 24,
@@ -589,7 +591,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                   fontSize={24}
                   color={theme.palette.customColors.OnSurfaceVariant}
                 />
-                <Typography sx={sectionTitleSx}>Details</Typography>
+                <Typography sx={sectionTitleSx}>{t('details')}</Typography>
               </Box>
 
               {/* Title Field */}
@@ -597,7 +599,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 name='title'
                 control={control}
                 errors={errors}
-                placeholder='Title *'
+                placeholder={t('title') + ' *'}
                 onChangeOverride={(e: any) => {
                   const cleaned = removeEmojis(e.target.value)
                   setValue('title', cleaned)
@@ -627,7 +629,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 control={control}
                 errors={errors}
                 rows={4}
-                placeholder='Description (Optional)'
+                placeholder={t('description') + ' (' + t('optional') + ')'}
                 onChangeOverride={(e: any) => {
                   const cleaned = removeEmojis(e.target.value)
                   setValue('description', cleaned)
@@ -654,7 +656,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
               <Box sx={sectionHeaderSx}>
                 <Icon icon='mdi:eye-outline' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                 <Typography sx={sectionTitleSx}>
-                  Who can see this announcement?
+                  {t('announcement_module.who_can_see_this_announcement')}
                   {!isEveryoneVisible && (
                     <Typography component='span' sx={{ color: theme.palette.customColors.Tertiary }}>
                       {' '}
@@ -667,7 +669,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
               <ControlledSwitch
                 name='isEveryoneVisible'
                 control={control}
-                label='Everyone'
+                label={t('everyone') as string}
                 labelPosition='start'
                 spaceBetween
                 switchColor={theme.palette.primary.main}
@@ -714,7 +716,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        Sites & Roles
+                        {t('announcement_module.sites_roles')}
                       </Typography>
                       <IconButton size='small' sx={{ color: theme.palette.primary.main }}>
                         <Icon icon='mdi:plus-circle-outline' fontSize={24} />
@@ -733,7 +735,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                             textTransform: 'uppercase'
                           }}
                         >
-                          Sites ({selectedSites.length})
+                          {t('navigation.sites')} ({selectedSites.length})
                         </Typography>
                         {selectedSites.map(site => (
                           <Box
@@ -799,7 +801,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                             textTransform: 'uppercase'
                           }}
                         >
-                          Roles ({selectedRoles.length})
+                          {t('roles')} ({selectedRoles.length})
                         </Typography>
                         {selectedRoles.map(role => (
                           <Box
@@ -892,7 +894,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        Users
+                        {t('lab_module.users')}
                       </Typography>
                       <IconButton size='small' sx={{ color: theme.palette.primary.main }}>
                         <Icon icon='mdi:plus-circle-outline' fontSize={24} />
@@ -978,7 +980,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                   color={theme.palette.customColors.OnSurfaceVariant}
                 />
                 <Typography sx={sectionTitleSx}>
-                  When do you want to post it?
+                  {t('announcement_module.when_do_you_want_to_post_it')}
                   {!isPostNow && (
                     <Typography component='span' sx={{ color: theme.palette.customColors.Tertiary }}>
                       {' '}
@@ -991,7 +993,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
               <ControlledSwitch
                 name='isPostNow'
                 control={control}
-                label='Post Now'
+                label={t('announcement_module.post_now') as string}
                 labelPosition='start'
                 spaceBetween
                 switchColor={theme.palette.primary.main}
@@ -1014,7 +1016,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                       mb: 2
                     }}
                   >
-                    Schedule announcement
+                   {t('announcement_module.schedule_announcement')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 3 }}>
                     {/* Date Picker */}
@@ -1022,14 +1024,14 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                       <ControlledDatePicker
                         name='schedule_date'
                         control={control}
-                        label='Select Date'
+                        label={t('select_date') as string}
                         minDate={dayjs()}
                         views={['year', 'month', 'day']}
                       />
                     </Box>
                     {/* Time Picker */}
                     <Box sx={{ flex: 1 }}>
-                      <ControlledTimePicker name='schedule_time' control={control} label='Select Time' ampm />
+                      <ControlledTimePicker name='schedule_time' control={control} label={t('diet_module.select_time') as string} ampm />
                     </Box>
                   </Box>
                 </Box>
@@ -1041,7 +1043,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
               <Box sx={sectionHeaderSx}>
                 <Icon icon='mdi:clock-outline' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                 <Typography sx={sectionTitleSx}>
-                  How long should it be visible?
+                  {t('announcement_module.how_long_should_it_be_visible')}
                   {!isAlwaysVisible && (
                     <Typography component='span' sx={{ color: theme.palette.customColors.Tertiary }}>
                       {' '}
@@ -1054,7 +1056,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
               <ControlledSwitch
                 name='isAlwaysVisible'
                 control={control}
-                label='Always Visible'
+                label={t('announcement_module.always_visible') as string}
                 labelPosition='start'
                 spaceBetween
                 switchColor={theme.palette.primary.main}
@@ -1098,15 +1100,15 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                       }
                     }}
                   >
-                    <Tab label='Choose End Date' />
-                    <Tab label='Set Duration' />
+                    <Tab label={t('announcement_module.choose_end_date') as string} />
+                    <Tab label={t('announcement_module.set_duration') as string} />
                   </Tabs>
 
                   {endDateTab === 'endDate' ? (
                     <ControlledDatePicker
                       name='schedule_end_date'
                       control={control}
-                      label='End Date'
+                      label={t('end_date') as string}
                       minDate={isPostNow ? dayjs() : scheduleDate || dayjs()}
                       views={['year', 'month', 'day']}
                     />
@@ -1205,7 +1207,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                         fontSize={24}
                         color={theme.palette.customColors.OnSurfaceVariant}
                       />
-                      <Typography sx={sectionTitleSx}>Allow Comments</Typography>
+                      <Typography sx={sectionTitleSx}>{t('announcement_module.allow_comments')}</Typography>
                     </Box>
                   ) as any
                 }
@@ -1219,13 +1221,13 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
             <Box sx={sectionCardSx}>
               <Box sx={sectionHeaderSx}>
                 <Icon icon='mdi:attachment' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                <Typography sx={sectionTitleSx}>Attachments</Typography>
+                <Typography sx={sectionTitleSx}>{t('attachments')}</Typography>
               </Box>
 
               <ControlledMultiFileUpload
                 name='attachments'
                 control={control}
-                label='Drop your files here or click to upload'
+                label={t('upload_attachments') as string}
                 acceptedFileTypes='images,video,pdf,documents,audio'
                 maxFiles={10}
                 maxFileSize={25 * 1024 * 1024}
@@ -1263,7 +1265,7 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
                 fontWeight: 600
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               type='submit'
@@ -1281,9 +1283,9 @@ const AddAnnouncementDrawer = ({ open, onClose, onSuccess, editAnnouncement }: A
               {(isEdit ? updateAnnouncement.isPending : createAnnouncement.isPending) ? (
                 <CircularProgress size={24} color='inherit' />
               ) : isEdit ? (
-                'Update'
+                t('update')
               ) : (
-                'Publish'
+                t('publish')
               )}
             </Button>
           </Box>

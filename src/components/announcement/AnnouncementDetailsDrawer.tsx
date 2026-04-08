@@ -29,6 +29,7 @@ import {
 import { useAuth } from 'src/hooks/useAuth'
 import Utility from 'src/utility'
 import type { AnnouncementAttachment, AnnouncementDetailsDrawerProps } from 'src/types/announcement'
+import { useTranslation } from 'react-i18next'
 
 const AnnouncementDetailsDrawer = ({
   open,
@@ -37,6 +38,8 @@ const AnnouncementDetailsDrawer = ({
   onAnnouncementUpdated,
   onEdit
 }: AnnouncementDetailsDrawerProps) => {
+  const { t } = useTranslation()
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
     type: 'delete' | 'cancel' | 'deleteComment' | null
@@ -239,7 +242,7 @@ const AnnouncementDetailsDrawer = ({
       // Only delete option for cancelled announcements
       return [
         {
-          label: 'Delete',
+          label: t('delete'),
           icon: <Icon icon='mdi:delete-outline' fontSize={18} color={errorColor} />,
           action: handleDelete
         }
@@ -249,17 +252,17 @@ const AnnouncementDetailsDrawer = ({
     // Full menu for active announcements (Edit, Cancel, Delete - matching mobile)
     return [
       {
-        label: 'Edit',
+        label: t('edit'),
         icon: <Icon icon='mdi:pencil-outline' fontSize={18} />,
         action: handleEdit
       },
       {
-        label: 'Cancel',
+        label: t('cancel'),
         icon: <Icon icon='mdi:cancel' fontSize={18} />,
         action: handleCancel
       },
       {
-        label: 'Delete',
+        label: t('delete'),
         icon: <Icon icon='mdi:delete-outline' fontSize={18} color={errorColor} />,
         action: handleDelete
       }
@@ -311,7 +314,7 @@ const AnnouncementDetailsDrawer = ({
               <Icon icon='mdi:close' fontSize={24} />
             </IconButton>
             <Typography variant='h6' sx={{ fontWeight: 600, color: textPrimary }}>
-              {isImportant ? 'Important Announcement' : 'Announcement'}
+              {isImportant ? t('announcement_module.important_announcement') : t('announcement_module.announcement')}
             </Typography>
           </Box>
 
@@ -371,11 +374,11 @@ const AnnouncementDetailsDrawer = ({
                 <Icon icon='mdi:cancel' fontSize={32} color={errorColor} />
               </Box>
               <Typography sx={{ fontWeight: 600, color: textPrimary, fontSize: '1rem', mb: 1 }}>
-                This announcement was deleted.
+                {t('announcement_module.this_announcement_was_deleted')}
               </Typography>
               {announcement?.modified_at && (
                 <Typography sx={{ color: textSecondary, fontSize: '0.875rem' }}>
-                  Deleted on {Utility.convertUTCToLocalDateTime(announcement.modified_at)}
+                  {t('deleted_on')} {Utility.convertUTCToLocalDateTime(announcement.modified_at)}
                 </Typography>
               )}
             </Box>
@@ -489,7 +492,7 @@ const AnnouncementDetailsDrawer = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                       <Icon icon='mdi:paperclip' fontSize={18} color={textSecondary} />
                       <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: textPrimary }}>
-                        Attachments
+                        {t('attachments')}
                       </Typography>
                     </Box>
 
@@ -501,7 +504,7 @@ const AnnouncementDetailsDrawer = ({
                           fileName={doc.file_orginal_name || 'Document'}
                           width='240px'
                           showTitle
-                          ondownloadaction
+                          // ondownloadaction
                         />
                       ))}
                     </Box>
@@ -515,7 +518,7 @@ const AnnouncementDetailsDrawer = ({
                   <Divider sx={{ mx: 3 }} />
                   <Box sx={{ px: 3, py: 2 }}>
                     <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: textPrimary, mb: 1.5 }}>
-                      Comments ({announcement.comments.length})
+                      {t('comments')} ({announcement.comments.length})
                     </Typography>
                     {announcement.comments.map((comment, index) => (
                       <CommentItem
@@ -544,7 +547,7 @@ const AnnouncementDetailsDrawer = ({
               backgroundColor: theme.palette.background.paper
             }}
           >
-            <CommentInput onSubmit={handleAddComment} isLoading={addComment.isPending} placeholder='Add a comment...' />
+            <CommentInput onSubmit={handleAddComment} isLoading={addComment.isPending} placeholder={t('add_a_comment') as string} />
           </Box>
         )}
       </Drawer>
@@ -555,10 +558,10 @@ const AnnouncementDetailsDrawer = ({
         handleClose={handleConfirmDialogClose}
         message={
           confirmDialog.type === 'delete'
-            ? 'Are you sure you want to delete this announcement?'
+            ? t('announcement_module.are_you_sure_you_want_to_delete_this_announcement') as string
             : confirmDialog.type === 'cancel'
-            ? 'Are you sure you want to cancel this announcement?'
-            : 'Are you sure you want to delete this comment?'
+            ? t('announcement_module.are_you_sure_you_want_to_cancel_this_announcement') as string
+            : t('announcement_module.are_you_sure_you_want_to_delete_this_comment') as string
         }
         action={handleConfirmAction}
         loading={deleteAnnouncement.isPending || cancelAnnouncement.isPending || deleteComment.isPending}
