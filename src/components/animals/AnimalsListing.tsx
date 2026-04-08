@@ -32,10 +32,12 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalFilterDrawer from './AnimalFilterDrawer'
 import { format } from 'date-fns'
 import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 
 interface NavigationItem {
   label: string
   type: string
+  string_id?: string
 }
 
 interface FilterDates {
@@ -167,6 +169,7 @@ const AnimalsListing = () => {
   const theme = useTheme()
   const router = useSafeRouter()
   const auth = useAuth()
+  const { t } = useTranslation()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
   const initialParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
@@ -419,7 +422,7 @@ const AnimalsListing = () => {
     {
       width: 80,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       sortable: false,
       renderCell: (params: any) => (
         <Typography
@@ -432,7 +435,7 @@ const AnimalsListing = () => {
     {
       width: 80,
       field: 'default_icon',
-      headerName: 'Image',
+      headerName: t('image'),
       sortable: false,
       renderCell: (params: any) => <AnimalAvatarCell src={params.row?.default_icon} />
     },
@@ -440,7 +443,7 @@ const AnimalsListing = () => {
       minWidth: 150,
       width: 200,
       field: 'common_name',
-      headerName: 'Common Name',
+      headerName: t('common_name'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell
@@ -454,7 +457,7 @@ const AnimalsListing = () => {
       minWidth: 160,
       width: 200,
       field: 'scientific_name',
-      headerName: 'Scientific Name',
+      headerName: t('scientific_name'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell
@@ -467,7 +470,7 @@ const AnimalsListing = () => {
     {
       width: 150,
       field: 'animal_id',
-      headerName: 'AID',
+      headerName: t('aid'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell
@@ -481,7 +484,7 @@ const AnimalsListing = () => {
       minWidth: 160,
       width: 200,
       field: 'primary_identifier',
-      headerName: 'Identifier',
+      headerName: t('primary_identifier'),
       sortable: false,
       renderCell: (params: any) => {
         const name = params.row?.local_identifier_name || params.row?.primary_identifier_name
@@ -516,7 +519,7 @@ const AnimalsListing = () => {
       minWidth: 120,
       width: 200,
       field: 'site_name',
-      headerName: 'Site',
+      headerName: t('site'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.site_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -526,7 +529,7 @@ const AnimalsListing = () => {
       minWidth: 120,
       width: 200,
       field: 'section_name',
-      headerName: 'Section',
+      headerName: t('section'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.section_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -536,7 +539,7 @@ const AnimalsListing = () => {
       minWidth: 130,
       width: 200,
       field: 'user_enclosure_name',
-      headerName: 'Enclosure',
+      headerName: t('enclosure'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.user_enclosure_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -548,23 +551,27 @@ const AnimalsListing = () => {
     <>
       <Box>
         <Breadcrumbs>
-          <Typography>Animals</Typography>
-          <Typography>Animals List</Typography>
+          <Typography>{t('animals_module.animals')}</Typography>
+          <Typography>{t('animals_module.animals_list')}</Typography>
         </Breadcrumbs>
         <Card sx={{ mt: 6 }}>
-          <CardHeader title={RenderUtility.pageTitle('Animals')} />
+          <CardHeader title={RenderUtility.pageTitle(t('animals_module.animals'))} />
           <CardContent>
             <Box sx={{ display: ' flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Search
                 value={searchValue}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                 onClear={handleSearchClear}
-                placeholder='Search animals...'
+                placeholder={t('animals_module.search_animals')}
                 width='100%'
                 borderRadius='8px'
               />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <FilterButtonWithNotification appliedFiltersCount={filterCount} onClick={handleFilterDrawerOpen} />
+                <FilterButtonWithNotification
+                  appliedFiltersCount={filterCount}
+                  onClick={handleFilterDrawerOpen}
+                  label={t('filter')}
+                />
                 <ToggleButtonGroup
                   value={viewMode}
                   exclusive
@@ -616,7 +623,7 @@ const AnimalsListing = () => {
               }}
             >
               {horizontalNavList.map((item, index) => (
-                <Tab key={index} label={item.label} value={item.type} />
+                <Tab key={index} label={t(item.string_id || '', { defaultValue: item.label })} value={item.type} />
               ))}
             </Tabs>
             {viewMode === 'Grid' && isFetching && gridList.length === 0 && (
@@ -640,7 +647,7 @@ const AnimalsListing = () => {
             )}
             {viewMode === 'Grid' && gridList.length === 0 && !isFetching && (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <Typography color='text.secondary'>No animals found</Typography>
+                <Typography color='text.secondary'>{t('animals_module.no_animals_found')}</Typography>
               </Box>
             )}
             {viewMode === 'Grid' ? (
