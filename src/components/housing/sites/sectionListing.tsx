@@ -1,7 +1,8 @@
 import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { getAllSections } from 'src/lib/api/housing'
@@ -43,7 +44,8 @@ const SectionListing: React.FC<SectionListingProps> = ({
   setDrawerData,
   addSuccessCheck
 }) => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as Theme & { palette: any }
 
@@ -147,13 +149,16 @@ const SectionListing: React.FC<SectionListingProps> = ({
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: SectionFilters = {
-          ...filters,
-          search: value,
-          page: 1
-        }
-        setFilters(updated)
-        updateUrlParams(updated)
+        setFilters(prev => {
+          const updated: SectionFilters = {
+            ...prev,
+            search: value,
+            page: 1
+          }
+          updateUrlParams(updated)
+
+          return updated
+        })
       }, 500),
     []
   )
@@ -208,7 +213,8 @@ const SectionListing: React.FC<SectionListingProps> = ({
       params.field !== 'enclosures'
     ) {
       const query = { ...router.query }
-      query.tab && delete query.tab
+      delete query.tab
+      delete query.id
       router.push(
         {
           pathname: `/housing/sections/${(params.row as IndexedSectionRow).section_id}`,
@@ -259,7 +265,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
     {
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -289,7 +295,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
     {
       width: 350,
       field: 'section_name',
-      headerName: 'Section Name',
+      headerName: t('housing_module.section_name'),
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <CellInfo
@@ -310,7 +316,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
           {
             width: 180,
             field: 'species',
-            headerName: 'Species',
+            headerName: t('species'),
             align: 'left' as const,
             headerAlign: 'left' as const,
             sortable: false,
@@ -354,7 +360,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
           {
             width: 150,
             field: 'animals',
-            headerName: 'Animals',
+            headerName: t('animals'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -399,7 +405,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
           {
             width: 150,
             field: 'enclosures',
-            headerName: 'Enclosures',
+            headerName: t('enclosures'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -436,7 +442,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
     {
       width: 180,
       field: 'incharge',
-      headerName: 'In-Charge',
+      headerName: t('in_charge'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -447,7 +453,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
     {
       width: 150,
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -458,7 +464,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
         const handleLongPress = (): void => {
           if (phoneNumber) {
             navigator.clipboard.writeText(phoneNumber)
-            alert('Number copied to clipboard')
+            alert(t('housing_module.number_copied_to_clipboard'))
           }
         }
 
@@ -517,14 +523,14 @@ const SectionListing: React.FC<SectionListingProps> = ({
 
   return (
     <>
-      <ListingHeader title='All Sections' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_sections')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search...'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

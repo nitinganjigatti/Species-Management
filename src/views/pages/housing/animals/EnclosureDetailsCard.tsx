@@ -3,6 +3,7 @@ import { Grid, Box, Typography, IconButton, Tooltip } from '@mui/material'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useTheme } from '@emotion/react'
 import Image from 'next/image'
+import { useTranslation } from 'react-i18next'
 
 interface EnclosureData {
   enclusreId?: string
@@ -24,26 +25,27 @@ interface InfoItem {
 
 const EnclosureDetailsCard: React.FC<EnclosureDetailsCardProps> = ({ enclosureData, onEditClick }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const info: InfoItem[] = [
     {
       icon: '/images/housing/enclosure-icon-colored.svg',
-      label: 'Enclosure Name',
+      label: t('housing_module.enclosure_name'),
       value: `${enclosureData?.enclusreId}`
     },
     {
       icon: '/images/housing/enclosre-type-colored-icon.svg',
-      label: 'Enclosure Type',
+      label: t('housing_module.enclosure_type'),
       value: `${enclosureData?.enclusreType}`
     },
     {
       icon: '/images/housing/section-colored-icon.svg',
-      label: 'Section Name',
+      label: t('housing_module.section_name'),
       value: `${enclosureData?.sectionName}`
     },
     {
       icon: '/images/housing/site-icon-colored.svg',
-      label: 'Site Name',
+      label: t('housing_module.site_name'),
       value: `${enclosureData?.siteName}`
     }
   ]
@@ -73,7 +75,7 @@ const EnclosureDetailsCard: React.FC<EnclosureDetailsCardProps> = ({ enclosureDa
             letterSpacing: 0
           }}
         >
-          Enclosure Details
+          {t('housing_module.enclosure_details')}
         </Typography>
         {/* <IconButton sx={{ p: 1 }} onClick={onEditClick}>
           <EditOutlinedIcon sx={{ fontSize: '24px', color: '#6b7a7a' }} />

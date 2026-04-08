@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Drawer, Typography, IconButton, Button, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useInView } from 'react-intersection-observer'
@@ -42,6 +43,7 @@ const AssessmentSummaryDrawer: React.FC<AssessmentSummaryDrawerProps> = ({
   onViewClick
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   // Selected tab (assessment type)
   const [selectedTypeId, setSelectedTypeId] = useState<string>('')
@@ -283,7 +285,7 @@ const AssessmentSummaryDrawer: React.FC<AssessmentSummaryDrawerProps> = ({
               color: theme.palette.text.primary
             }}
           >
-            Assessment
+            {t('animals_module.assessment')}
           </Typography>
         </Box>
 
@@ -383,7 +385,7 @@ const AssessmentSummaryDrawer: React.FC<AssessmentSummaryDrawerProps> = ({
                   textAlign: 'center'
                 }}
               >
-                No history available for this assessment
+                {t('animals_module.no_assessment_history')}
               </Typography>
             </Box>
           ) : (
@@ -501,7 +503,7 @@ const AssessmentSummaryDrawer: React.FC<AssessmentSummaryDrawerProps> = ({
                 }
               }}
             >
-              Add New {selectedAssessment.assessment_name}
+              {t('animals_module.add_new')} {selectedAssessment.assessment_name}
             </Button>
           </Box>
         )}

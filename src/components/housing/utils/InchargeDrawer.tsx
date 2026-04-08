@@ -11,7 +11,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { addIncharge } from 'src/lib/api/housing'
 import { assignAnimalIncharges } from 'src/lib/api/caretaker'
 import Toaster from 'src/components/Toaster'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { FilterButton } from 'src/views/utility/render-snippets'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
@@ -19,6 +19,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import InchargeRoleFilterDrawer from './InchargeRoleFilterDrawer'
 import { Incharge, InchargeDrawerProps, InchargeRoleFilters, User } from 'src/types/housing/incharge'
+import { useTranslation } from 'react-i18next'
 
 const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   openDrawer,
@@ -31,9 +32,10 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   onSubmit,
   refType = 'site'
 }) => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme: any = useTheme()
+  const { t } = useTranslation()
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchInput, setSearchInput] = useState<string>('')
@@ -166,7 +168,7 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   const handleToggleSelection = (user: User) => {
     const isSelected = selectedIncharges.some((item: Incharge) => item.user_id === user.user_id)
     if (!isSelected && selectedIncharges.length >= 10) {
-      Toaster({ type: 'error', message: 'Maximum 10 users can be selected' })
+      Toaster({ type: 'error', message: t('housing_module.max_users_selected') })
       
 return
     }
@@ -184,7 +186,7 @@ return
   // Submit selected users
   const handleConfirm = async () => {
     if (selectedIncharges.length > 10) {
-      Toaster({ type: 'error', message: 'Maximum 10 users can be selected' })
+      Toaster({ type: 'error', message: t('housing_module.max_users_selected') })
       
 return
     }
@@ -221,11 +223,11 @@ return
       }
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Added successfully' })
+        Toaster({ type: 'success', message: res?.message || t('housing_module.added_successfully') })
         onSelect(selectedIncharges)
         closeDrawer()
       } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to add' })
+        Toaster({ type: 'error', message: res?.message || t('housing_module.failed_to_add') })
       }
     } catch (error: any) {
       console.error(error?.message)
@@ -287,7 +289,7 @@ return
           <Box sx={{ flex: 1 }}>
             <Search
               width='100%'
-              placeholder='Search by name and email'
+              placeholder={t('housing_module.search_by_name_email') as string}
               value={searchInput}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
@@ -375,7 +377,7 @@ return
               ) : (
                 list.length > 0 && (
                   <Typography variant='body2' sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
-                    No more data to load
+                    {t('no_more_data')}
                   </Typography>
                 )
               )}
@@ -406,7 +408,7 @@ return
             sx={{ flex: 1, py: 4 }}
             disabled={submitLoader}
           >
-            Cancel
+            {t('cancel')}
           </LoadingButton>
           <LoadingButton
             variant='contained'

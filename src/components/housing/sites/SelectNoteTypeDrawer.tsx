@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -53,6 +54,7 @@ interface SelectNoteTypeDrawerProps {
 }
 
 const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClose, selectedTypes, onAddSelected }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
 
@@ -269,7 +271,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              Select Note Type
+              {t('housing_module.select_note_type')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -280,7 +282,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
         {/* Search */}
         <Box sx={{ px: 6, pt: 6, pb: 3, flexShrink: 0 }}>
           <Search
-            placeholder='Search Note Types'
+            placeholder={t('housing_module.search_note_types') as string}
             value={search}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             onClear={() => setSearch('')}
@@ -376,7 +378,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              {isAllSelected ? 'Deselect all' : 'Select all'}
+              {isAllSelected ? t('deselect_all') : t('select_all')}
             </Typography>
             <Checkbox checked={isAllSelected} />
           </Box>
@@ -482,7 +484,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
               color: theme.palette.customColors?.OnSurface
             }}
           >
-            Selected - {localSelected.length}
+            {t('selected')} - {localSelected.length}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
             <Button
@@ -495,7 +497,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                 height: '56px'
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               variant='contained'
@@ -504,7 +506,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
               sx={{ height: '56px' }}
               disabled={localSelected.length === 0}
             >
-              Add
+              {t('add')}
             </Button>
           </Box>
         </Box>

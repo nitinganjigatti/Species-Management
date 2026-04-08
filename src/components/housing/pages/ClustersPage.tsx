@@ -1,10 +1,12 @@
+'use client'
+
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Grid, Typography, useMediaQuery } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
-import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
 import AnimalsDrawer from 'src/components/housing/utils/AnimalDrawer'
 import { useAuth } from 'src/hooks/useAuth'
@@ -18,10 +20,10 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import AddCluster from 'src/views/pages/housing/AddCluster/AddCluster'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import Error404 from 'src/pages/404'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { GridCellParams, GridSortModel } from '@mui/x-data-grid'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 
 interface Filters {
   page: number
@@ -69,10 +71,12 @@ interface IndexedRow extends ClusterRow {
   sl_no: number
 }
 
-const Clusters: React.FC = () => {
+const ClustersPage: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
-  const { query } = router
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
   const auth = useAuth()
@@ -133,7 +137,11 @@ const Clusters: React.FC = () => {
   }
 
   useEffect(() => {
-    const { page = '1', pageSize = '10', search = '', sortBy = '', sortOrder = 'asc' } = query as Record<string, string>
+    const page = searchParams?.get('page') || '1'
+    const pageSize = searchParams?.get('pageSize') || '10'
+    const search = searchParams?.get('search') || ''
+    const sortBy = searchParams?.get('sortBy') || ''
+    const sortOrder = searchParams?.get('sortOrder') || 'asc'
 
     setFilters({
       page: parseInt(page),
@@ -144,7 +152,7 @@ const Clusters: React.FC = () => {
     })
 
     setSearchValue(search)
-  }, [query])
+  }, [searchParams])
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['clusters', filters],
@@ -172,26 +180,26 @@ const Clusters: React.FC = () => {
 
   const clusterStats: StatItem[] = [
     {
-      label: 'Species',
+      label: t('species'),
       value: zooStats?.total_species || 0,
       imagePath: '/images/housing/species.svg',
       onClick: () => console.log('Species')
     },
     {
-      label: 'Animals',
+      label: t('animals'),
       value: zooStats?.total_animals || 0,
       imagePath: '/images/housing/animals.svg',
       onClick: handleClusterAnimalsInsightClick
     },
     {
-      label: 'Sections',
+      label: t('sections'),
       value: zooStats?.total_sections || 0,
       imagePath: '/images/housing/sections.svg',
       onClick: () => console.log('Sections')
     },
 
     {
-      label: 'Enclosures',
+      label: t('enclosures'),
       value: zooStats?.total_enclosures || 0,
       imagePath: '/images/housing/enclosures.svg',
       onClick: handleClusterInsightClick
@@ -208,7 +216,8 @@ const Clusters: React.FC = () => {
         params.set(key, value.toString())
       }
     })
-    router.replace({ query: params.toString() }, undefined, { shallow: true })
+    const search = params.toString()
+    router.replace(`${pathname}${search ? '?' + search : ''}`)
   }
 
   const handlePaginationModelChange = (model: PaginationModel): void => {
@@ -224,16 +233,23 @@ const Clusters: React.FC = () => {
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
-        const updated = {
-          ...filters,
-          search: value,
-          page: 1
-        }
-        setFilters(updated)
-        updateUrlParams(updated)
+        setFilters(prev => {
+          const updated = {
+            ...prev,
+            search: value,
+            page: 1
+          }
+          updateUrlParams(updated)
+
+          return updated
+        })
       }, 500),
-    [filters]
+    []
   )
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
 
   const handleSearch = useCallback(
     (value: string): void => {
@@ -285,13 +301,14 @@ const Clusters: React.FC = () => {
       params?.field !== 'site_count' &&
       params?.field !== 'incharge'
     ) {
-      const detailUrl = {
-        pathname: `/housing/cluster/${params.row.cluster_id}`,
-        query: {
-          ...filters
-        } // preserve current filters
-      }
-      router.push(detailUrl)
+      const queryParams = new URLSearchParams()
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== null && value !== undefined) {
+          queryParams.set(key, value.toString())
+        }
+      })
+      const search = queryParams.toString()
+      router.push(`/housing/cluster/${params.row.cluster_id}${search ? '?' + search : ''}`)
     }
   }
 
@@ -308,7 +325,7 @@ const Clusters: React.FC = () => {
     {
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       sortable: false,
       align: 'left' as const,
       headerAlign: 'left' as const,
@@ -330,7 +347,7 @@ const Clusters: React.FC = () => {
     {
       width: 280,
       field: 'cluster_name',
-      headerName: 'Cluster Name',
+      headerName: t('housing_module.cluster_name'),
       headerAlign: 'left' as const,
       align: 'left' as const,
       sortable: false,
@@ -357,7 +374,7 @@ const Clusters: React.FC = () => {
           {
             width: 160,
             field: 'species_count',
-            headerName: 'Species',
+            headerName: t('species'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -395,7 +412,7 @@ const Clusters: React.FC = () => {
           {
             width: 150,
             field: 'animal_count',
-            headerName: 'Animals',
+            headerName: t('animals'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -435,7 +452,7 @@ const Clusters: React.FC = () => {
           {
             width: 150,
             field: 'site_count',
-            headerName: 'Sites',
+            headerName: t('housing_module.sites'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -463,7 +480,7 @@ const Clusters: React.FC = () => {
     {
       width: 180,
       field: 'incharge',
-      headerName: 'In-Charge',
+      headerName: t('in_charge'),
       headerAlign: 'left' as const,
       align: 'left' as const,
       sortable: false,
@@ -478,7 +495,7 @@ const Clusters: React.FC = () => {
     {
       width: 150,
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -489,7 +506,7 @@ const Clusters: React.FC = () => {
         const handleLongPress = (): void => {
           if (phoneNumber) {
             navigator.clipboard.writeText(phoneNumber)
-            alert('Number copied to clipboard')
+            alert(t('housing_module.number_copied_to_clipboard'))
           }
         }
 
@@ -530,7 +547,7 @@ const Clusters: React.FC = () => {
               {/* Message Icon */}
               <Box
                 component='img'
-                src='/images/message.png' // <-- Replace with your message icon path
+                src='/images/message.png'
                 alt='Message'
                 sx={{ width: 20, height: 20, cursor: 'pointer' }}
                 onClick={() => window.open(`sms:${phoneNumber}`)}
@@ -555,16 +572,16 @@ const Clusters: React.FC = () => {
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
-            Housing
+            {t('housing_module.housing')}
           </Typography>
 
           <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-            Cluster List
+            {t('housing_module.cluster_list')}
           </Typography>
         </Breadcrumbs>
         <Box>
           <InsightsCard
-            pageTitle={'All Sites Insights'}
+            pageTitle={t('housing_module.all_site_insights')}
             data={statsData as any}
             loading={statsFetching}
             haveInsightsViewAccess={insightsViewAccess}
@@ -585,20 +602,8 @@ const Clusters: React.FC = () => {
           />
           <Box sx={{ mt: 6 }}>
             <Card sx={{ p: { xs: 3, md: 5 } }}>
-              <ListingHeader title='All Clusters' totalCount={total} />
+              <ListingHeader title={t('housing_module.all_clusters')} totalCount={total} />
               <Box>
-                {/* <Box
-                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}
-                >
-                  <Search
-                    value={serachValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    onClear={() => handleSearch('')}
-                    placeholder='Search…'
-                    sx={{ justifyContent: 'flex-end' }}
-                  />
-                  <ExportButton loading={downloading} onClick={handleDownload} />
-                </Box> */}
                 <Grid
                   sx={{
                     '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
@@ -658,4 +663,4 @@ const Clusters: React.FC = () => {
   )
 }
 
-export default enforceModuleAccess(Clusters, 'enable_housing_in_web')
+export default ClustersPage

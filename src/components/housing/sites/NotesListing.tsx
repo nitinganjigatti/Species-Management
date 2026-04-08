@@ -1,9 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Typography, CircularProgress, Button, Chip } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useDispatch, useSelector } from 'react-redux'
 import { useInView } from 'react-intersection-observer'
 import { FilterList as FilterIcon, Add as AddIcon } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 
 import NoteCard from 'src/views/utility/NoteCard'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
@@ -51,9 +52,10 @@ interface NotesQueryParams {
 }
 
 const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData }) => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
+  const { t } = useTranslation()
   const { id } = router.query
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
@@ -249,11 +251,11 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   return (
     <Box>
-      <ListingHeader title='Notes' totalCount={total} />
+      <ListingHeader title={t('notes')} totalCount={total} />
 
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, mt: 3, mb: 2 }}>
         <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
-          Add Note
+          {t('housing_module.add_note')}
         </Button>
         <Button
           variant={hasActiveFilters ? 'contained' : 'outlined'}
@@ -261,7 +263,7 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
           onClick={() => setFilterDrawerOpen(true)}
           sx={{ minWidth: 100 }}
         >
-          Filters
+          {t('filters')}
           {hasActiveFilters && (
             <Chip
               size='small'
@@ -299,14 +301,14 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
             }}
           >
             <Typography variant='h6' color='text.secondary' gutterBottom>
-              No notes found
+              {t('housing_module.no_notes_found')}
             </Typography>
             <Typography variant='body2' color='text.secondary'>
-              {hasActiveFilters ? 'Try adjusting your filters' : 'No notes have been added yet'}
+              {hasActiveFilters ? t('housing_module.adjust_filters') : t('housing_module.no_notes_added')}
             </Typography>
             {!hasActiveFilters && (
               <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote} sx={{ mt: 2 }}>
-                Add First Note
+                {t('housing_module.add_first_note')}
               </Button>
             )}
           </Box>
@@ -320,7 +322,7 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
         {noteList.length > 0 && noteList.length >= total && (
           <Typography align='center' sx={{ mt: 4, color: 'text.disabled' }}>
-            No more notes to load
+            {t('housing_module.no_more_notes')}
           </Typography>
         )}
       </Box>

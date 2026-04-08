@@ -11,8 +11,9 @@ import { getAllEnclosures } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import SectionCard from 'src/views/pages/housing/section/SectionCard'
 import EnclosureCard from 'src/views/pages/housing/enclosures/EnclosureCard'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { Enclosure } from 'src/types/housing'
+import { useTranslation } from 'react-i18next'
 
 interface EnclosureDrawerData {
   queryKey: string
@@ -36,8 +37,9 @@ interface PageResult {
 
 const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
@@ -100,7 +102,7 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
   const list = useMemo(() => queryData?.pages?.flatMap((page: PageResult) => page?.result) || [], [queryData])
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
-  const enclosureLabel = Number(total) === (0 || 1) ? 'Enclosure' : 'Enclosures'
+  const enclosureLabel = Number(total) === (0 || 1) ? t('navigation.enclosure') : t('enclosures')
   const enclosureHeading = total ? `${enclosureLabel} (${total})` : enclosureLabel
 
   // cooldownRef to prevent multiple rapid calls
@@ -139,15 +141,7 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
   const handleEnclosureClick = useCallback(
     (enclosure: Enclosure) => {
       if (!enclosure?.enclosure_id) return
-      const query = { ...router.query }
-      query.tab && delete query.tab
-      router.push({
-        pathname: `/housing/enclosure/${enclosure.enclosure_id}`,
-        query: {
-          ...query,
-          enclosureTab: 'enclosures'
-        }
-      })
+      router.push(`/housing/enclosure/${enclosure.enclosure_id}?enclosureTab=enclosures`)
     },
     [router]
   )
@@ -156,7 +150,7 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Enclosures'
+      title={t('enclosures')}
       icon='/images/housing/enclosure-icon-colored.svg'
       iconColor={theme.palette.primary.main}
     >
@@ -176,12 +170,12 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
         >
           <CellInfo
             value={data?.name}
-            subtitle=""
+            subtitle=''
             imgUrl={data?.image}
-            avatarUrl=""
-            inchagename=""
+            avatarUrl=''
+            inchagename=''
             defaultImage={'/images/housing/enclosure-icon-colored.svg'}
-            defaultImageAlt={'Enclosure'}
+            defaultImageAlt={t('enclosure')}
             color={(theme.palette as any).customColors?.OnSurfaceVariant}
             subtitleColor={(theme.palette as any).customColors?.secondaryBg}
           />
@@ -199,7 +193,7 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
             borderRadius: '8px',
             backgroundColor: theme.palette.customColors?.OnPrimary
           }}
-          placeholder='Search for a Enclosure'
+          placeholder={t('housing_module.search_for_enclosure') as string}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -242,13 +236,13 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
 
         {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No Enclosures found
+            {t('housing_module.no_enclosure_found')}
           </Typography>
         )}
 
         {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more Enclosures to load
+            {t('housing_module.no_more_enclosure_to_load')}
           </Typography>
         )}
       </Box>

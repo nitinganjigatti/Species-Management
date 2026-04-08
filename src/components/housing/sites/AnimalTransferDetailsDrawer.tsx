@@ -28,7 +28,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import React, { useEffect, useState, useCallback, useMemo, memo, FC } from 'react'
 import { styled, alpha, Theme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -147,7 +147,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
   onStatusChange
 }) => {
   const theme = useTheme<ExtendedTheme>()
-  const router = useRouter()
+  const router = useSafeRouter()
   const auth = useAuth()
   const settings = (auth as any)?.userData?.settings
 
@@ -409,7 +409,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
 
   const handleAnimalClick = (animalId?: number): void => {
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 

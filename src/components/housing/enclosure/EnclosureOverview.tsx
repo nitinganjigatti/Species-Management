@@ -1,11 +1,12 @@
 import React from 'react'
 import { Box, Grid, Typography, Tooltip, CircularProgress } from '@mui/material'
 import { useTheme } from '@emotion/react'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useQuery } from '@tanstack/react-query'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import { getEnclosureBasicInfo, EnclosureBasicInfo } from 'src/lib/api/housing'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useTranslation } from 'react-i18next'
 
 interface DetailItem {
   label: string
@@ -17,8 +18,9 @@ interface EnclosureOverviewProps {
 }
 
 const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
 
   const effectiveId = enclosureId || (id as string)
@@ -33,20 +35,20 @@ const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId }) =>
 
   // Left column data - Enclosure Information
   const leftColumn: DetailItem[] = [
-    { label: 'Enclosure Name', value: basicInfo?.user_enclosure_name },
-    { label: 'Parent Enclosure', value: basicInfo?.parent_enclosure_name },
-    { label: 'Section', value: basicInfo?.section_name },
-    { label: 'Site', value: basicInfo?.site_name }
+    { label: t('housing_module.enclosure_name') as string, value: basicInfo?.user_enclosure_name },
+    { label: t('housing_module.parent_enclosure') as string, value: basicInfo?.parent_enclosure_name },
+    { label: t('housing_module.section') as string, value: basicInfo?.section_name },
+    { label: t('housing_module.site') as string, value: basicInfo?.site_name }
   ]
 
   // Right column data - Enclosure Characteristics
   const rightColumn: DetailItem[] = [
-    { label: 'Enclosure Type', value: basicInfo?.enclosure_type },
-    { label: 'Sunlight', value: basicInfo?.enclosure_sunlight },
-    { label: 'Environment Type', value: basicInfo?.enclosure_environment },
+    { label: t('housing_module.enclosure_type') as string, value: basicInfo?.enclosure_type },
+    { label: t('housing_module.sunlight') as string, value: basicInfo?.enclosure_sunlight },
+    { label: t('housing_module.environment_type') as string, value: basicInfo?.enclosure_environment },
     {
-      label: 'Movable',
-      value: basicInfo?.enclosure_is_movable === '0' || basicInfo?.enclosure_is_movable === 0 ? 'No' : 'Yes'
+      label: t('housing_module.movable') as string,
+      value: basicInfo?.enclosure_is_movable === '0' || basicInfo?.enclosure_is_movable === 0 ? t('no') as string : t('yes') as string
     }
   ]
 
@@ -68,7 +70,7 @@ const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId }) =>
 
   return (
     <Box sx={{ mt: 4 }}>
-      <ListingHeader title='Enclosure Details' />
+      <ListingHeader title={t('housing_module.enclosure_details')} />
 
       {/* Enclosure Information Card */}
       <Box
@@ -87,7 +89,7 @@ const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId }) =>
             mb: 3
           }}
         >
-          Enclosure Information
+          {t('housing_module.enclosure_information')}
         </Typography>
 
         <Grid container rowGap={1} spacing={0} alignItems='stretch'>
@@ -234,7 +236,7 @@ const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId }) =>
               mb: 2
             }}
           >
-            Description
+            {t('housing_module.description')}
           </Typography>
           <Typography
             sx={{

@@ -1,9 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Button, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import debounce from 'lodash/debounce'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -20,7 +21,8 @@ interface InchargeListingProps {
 }
 
 const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme()
   const authData: any = useAuth()
@@ -58,12 +60,18 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
   // Determine access based on refType
   const getAddAccess = () => {
     switch (refType) {
-      case 'site': return addSiteAccess
-      case 'section': return addSectionAccess
-      case 'enclosure': return addEnclosureAccess
-      case 'cluster': return addClusterAccess
-      case 'animal': return addAnimalAccess
-      default: return false
+      case 'site':
+        return addSiteAccess
+      case 'section':
+        return addSectionAccess
+      case 'enclosure':
+        return addEnclosureAccess
+      case 'cluster':
+        return addClusterAccess
+      case 'animal':
+        return addAnimalAccess
+      default:
+        return false
     }
   }
   const hasAddAccess = getAddAccess()
@@ -71,12 +79,18 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
   // Get label based on refType
   const getEntityLabel = () => {
     switch (refType) {
-      case 'site': return 'Site'
-      case 'section': return 'Section'
-      case 'enclosure': return 'Enclosure'
-      case 'cluster': return 'Cluster'
-      case 'animal': return 'Animal'
-      default: return 'Site'
+      case 'site':
+        return 'Site'
+      case 'section':
+        return 'Section'
+      case 'enclosure':
+        return 'Enclosure'
+      case 'cluster':
+        return 'Cluster'
+      case 'animal':
+        return 'Animal'
+      default:
+        return 'Site'
     }
   }
   const entityLabel = getEntityLabel()
@@ -118,7 +132,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
     },
     {
       field: 'name',
-      headerName: 'Inchargers Name',
+      headerName: t('housing_module.incharge_name') as string,
       minWidth: 500,
       sortable: false,
       renderCell: params => (
@@ -133,7 +147,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
     },
     {
       field: 'role',
-      headerName: 'Role',
+      headerName: t('role') as string,
       minWidth: 300,
       sortable: false,
       renderCell: params => (
@@ -144,7 +158,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
     },
     {
       field: 'phone',
-      headerName: 'Phone',
+      headerName: t('phone') as string,
       minWidth: 180,
       sortable: false,
       renderCell: params => {
@@ -154,7 +168,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
         const handleLongPress = () => {
           if (phoneNumber) {
             navigator.clipboard.writeText(phoneNumber)
-            alert('Number copied to clipboard')
+            alert(t('housing_module.number_copied_to_clipboard'))
           }
         }
 
@@ -240,7 +254,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
           value={searchInput}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
-          placeholder='Search incharges...'
+          placeholder={t('housing_module.search_incharges') as string}
         />
 
         {(userInList || hasAddAccess) && (
@@ -256,7 +270,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
             }}
             onClick={() => setOpenDrawer(true)}
           >
-            {`Choose ${entityLabel} Manager`}
+            {t('housing_module.choose_manager', { entity: entityLabel })}
           </Button>
         )}
       </Box>
@@ -276,8 +290,8 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
           openDrawer={openDrawer}
           closeDrawer={() => setOpenDrawer(false)}
           selectedUsers={rows}
-          title={`Select ${entityLabel} Manager`}
-          confirmLabel={`Choose ${entityLabel} Manager`}
+          title={t('housing_module.select_manager', { entity: entityLabel }) as string}
+          confirmLabel={t('housing_module.choose_manager', { entity: entityLabel }) as string}
           showFilter={true}
           refType={refType}
           onSelect={(selectedUsers: Incharge[]) => {

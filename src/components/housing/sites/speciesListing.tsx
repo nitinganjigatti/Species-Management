@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useMemo, useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
@@ -17,6 +17,7 @@ import AnimalDrawer from '../utils/AnimalDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import { DrawerType, DrawerData, SpeciesFilters, IndexedSpeciesRow } from 'src/types/housing'
 import { GridCellParams, GridSortModel } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface SpeciesRow {
   tsn_id: number
@@ -48,8 +49,9 @@ interface PaginationModel {
 }
 
 const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
@@ -71,7 +73,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
   const [totalCount, setTotalCount] = useState<number>(0)
 
   const { data, isLoading } = useQuery({
-    queryKey: ['species', id, filters],
+    queryKey: ['site-species', id, filters],
     queryFn: () =>
       getAllSpeciesList({
         site_id: Number(id),
@@ -169,7 +171,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
     {
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no') as string,
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -199,7 +201,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
     {
       width: 350,
       field: 'common_name',
-      headerName: 'Species',
+      headerName: t('species') as string,
       headerAlign: 'left' as const,
       align: 'left' as const,
       sortable: false,
@@ -229,7 +231,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 180,
             field: 'animals',
-            headerName: 'Population',
+            headerName: t('housing_module.population') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -275,7 +277,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'male',
-            headerName: 'MALE',
+            headerName: t('male') as string,
             headerAlign: 'center' as const,
             align: 'left' as const,
             sortable: false,
@@ -300,7 +302,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'female',
-            headerName: 'FEMALE',
+            headerName: t('female') as string,
             headerAlign: 'center' as const,
             align: 'center' as const,
             sortable: false,
@@ -325,7 +327,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'undetermined',
-            headerName: 'UNDETERMINED',
+            headerName: t('housing_module.undetermined') as string,
             headerAlign: 'center' as const,
             align: 'center' as const,
             sortable: false,
@@ -350,7 +352,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'indeterminate',
-            headerName: 'INDETERMINATE',
+            headerName: t('housing_module.indeterminate') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -379,14 +381,14 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
 
   return (
     <>
-      <ListingHeader title='All Species' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search...'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

@@ -2,7 +2,7 @@ import { CircularProgress, Tab, Tabs, Typography, Skeleton, Button } from '@mui/
 import { Box, Grid } from '@mui/system'
 import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { getAnimalMedia } from 'src/lib/api/housing'
@@ -12,6 +12,7 @@ import Search from 'src/views/utility/Search'
 import { Media } from 'src/types/housing'
 import Icon from 'src/@core/components/icon'
 import AddMediaDrawer from '../sites/AddMediaDrawer'
+import { useTranslation } from 'react-i18next'
 
 interface MediaPageResult {
   result: Media[]
@@ -20,8 +21,9 @@ interface MediaPageResult {
 }
 
 const AnimalMedia: React.FC = () => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
+  const { t } = useTranslation()
 
   const [activeTab, setActiveTab] = useState<string>('image')
   const [localSearch, setLocalSearch] = useState<string>('')
@@ -164,9 +166,9 @@ const AnimalMedia: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
           <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={activeTab} onChange={handleTabChange} sx={{ minHeight: 48 }}>
-              <Tab value='image' label={getTabLabel('image', 'Images')} />
-              <Tab value='document' label={getTabLabel('document', 'Documents')} />
-              <Tab value='video' label={getTabLabel('video', 'Videos')} />
+              <Tab value='image' label={getTabLabel('image', t('animals_module.images'))} />
+              <Tab value='document' label={getTabLabel('document', t('animals_module.documents'))} />
+              <Tab value='video' label={getTabLabel('video', t('animals_module.videos'))} />
             </Tabs>
           </Box>
           <Button
@@ -175,7 +177,7 @@ const AnimalMedia: React.FC = () => {
             onClick={() => setAddMediaDrawerOpen(true)}
             sx={{ height: 44 }}
           >
-            Add Media
+            {t('animals_module.add_media')}
           </Button>
         </Box>
 
@@ -184,7 +186,7 @@ const AnimalMedia: React.FC = () => {
             value={localSearch}
             onChange={handleSearchChange}
             onClear={handleSearchClear}
-            placeholder='Search media…'
+            placeholder={t('animals_module.search_media') as string}
           />
         </Box>
 
@@ -216,7 +218,7 @@ const AnimalMedia: React.FC = () => {
 
           {!hasNextPage && media.length > 0 && (
             <Typography align='center' sx={{ mt: 6, color: 'text.disabled' }}>
-              No more media files to load.
+              {t('animals_module.no_more_media_files_to_load')}
             </Typography>
           )}
         </Box>

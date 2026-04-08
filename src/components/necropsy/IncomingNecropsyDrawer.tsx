@@ -339,7 +339,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
 
   const handleAnimalClick = (animalId?: number): void => {
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 

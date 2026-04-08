@@ -30,7 +30,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
@@ -51,6 +51,7 @@ import Toaster from 'src/components/Toaster'
 import { useQuery } from '@tanstack/react-query'
 import EggStatusDrawer from './EggStatusDrawer'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 interface EggDrawerProps {
   open: boolean
@@ -60,7 +61,8 @@ interface EggDrawerProps {
 
 const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
 
   const [isEggFetching, setIsEggFetching] = useState<boolean>(false)
   const [eggData, setEggData] = useState<any | null>(null)
@@ -260,7 +262,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 <Icon icon='mdi:arrow-left' fontSize={24} />
               </IconButton>
               <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnPrimary }}>
-                Egg Details
+                {t('animals_module.egg_details')}
               </Typography>
             </Box>
             <IconButton size='small' onClick={onClose} sx={{ color: theme.palette.customColors.OnPrimary }}>
@@ -333,7 +335,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography>
                 {' '}
-                <b>{getDaysFromToday(eggData?.collection_date)}</b> Day
+                <b>{getDaysFromToday(eggData?.collection_date)}</b> {t('animals_module.day')}
               </Typography>
               <Typography>{Utility.convertUtcToLocalReadableDate(eggData?.created_at)}</Typography>
             </Box>
@@ -378,7 +380,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
               }}
               onClick={() => setEggStatusOpen(true)}
             >
-              Change
+              {t('animals_module.change')}
             </Button>
           </Box>
         </Box>
@@ -413,7 +415,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 }}
               >
                 <StyledTypography fontSize={'18px'} fontWeight={500}>
-                  Found Details
+                  {t('animals_module.found_details')}
                 </StyledTypography>
               </AccordionSummary>
               <AccordionDetails sx={{ p: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -433,7 +435,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                           p: 3
                         }}
                       >
-                        <StyledTypography fontWeight={600}>Mother</StyledTypography>
+                        <StyledTypography fontWeight={600}>{t('animals_module.mother')}</StyledTypography>
                       </Box>
                       <Box sx={{ p: 3 }}>
                         <AnimalCard data={eggParentData?.parent_list?.mother_list?.[0]} />
@@ -450,7 +452,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                         p: 3
                       }}
                     >
-                      <StyledTypography fontWeight={600}>Father</StyledTypography>
+                      <StyledTypography fontWeight={600}>{t('animals_module.father')}</StyledTypography>
                     </Box>
                     <Box sx={{ p: 3 }}>
                       <AnimalCard data={eggParentData?.parent_list?.father_list?.[0]} />
@@ -459,29 +461,29 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 )}
 
                 <Grid container spacing={4} mt={4}>
-                  <Grid size={{ xs: 6 }}>{renderInfoItem('Site', (eggParentData as any)?.site_name)}</Grid>
-                  <Grid size={{ xs: 6 }}>{renderInfoItem('Section', (eggParentData as any)?.section_name)}</Grid>
+                  <Grid size={{ xs: 6 }}>{renderInfoItem(t('housing_module.site'), (eggParentData as any)?.site_name)}</Grid>
+                  <Grid size={{ xs: 6 }}>{renderInfoItem(t('section'), (eggParentData as any)?.section_name)}</Grid>
                   <Grid size={{ xs: 6 }}>
-                    {renderInfoItem('Enclosure', (eggParentData as any)?.user_enclosure_name)}
+                    {renderInfoItem(t('housing_module.enclosure'), (eggParentData as any)?.user_enclosure_name)}
                   </Grid>
                   <Grid size={{ xs: 6 }}>
                     {renderInfoItem(
-                      'Collected on',
+                      t('animals_module.collected_on'),
                       (eggParentData as any)?.collection_date
                         ? Utility.convertUtcToLocalReadableDate((eggParentData as any)?.collection_date)
                         : 'NA'
                     )}
                   </Grid>
-                  <Grid size={{ xs: 6 }}>{renderInfoItem('Clutch No', (eggParentData as any)?.clutch_number)}</Grid>
+                  <Grid size={{ xs: 6 }}>{renderInfoItem(t('animals_module.clutch_no'), (eggParentData as any)?.clutch_number)}</Grid>
                   <Grid size={{ xs: 6 }}>
                     {renderInfoItem(
-                      'Lay Date',
+                      t('animals_module.lay_date'),
                       (eggParentData as any)?.lay_date
                         ? Utility.convertUtcToLocalReadableDate((eggParentData as any)?.lay_date)
                         : 'NA'
                     )}
                   </Grid>
-                  <Grid size={{ xs: 6 }}>{renderInfoItem('Collected by', (eggParentData as any)?.collected_by)}</Grid>
+                  <Grid size={{ xs: 6 }}>{renderInfoItem(t('animals_module.collected_by'), (eggParentData as any)?.collected_by)}</Grid>
                 </Grid>
               </AccordionDetails>
             </Accordion>
@@ -493,15 +495,15 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <StyledTypography fontWeight={500} color={theme.palette.customColors?.OnPrimaryContainer}>
-                        Egg Journey -
+                        {t('animals_module.egg_journey')} -
                       </StyledTypography>
-                      <StyledTypography color={theme.palette.customColors.secondaryBg}>Current stage</StyledTypography>
+                      <StyledTypography color={theme.palette.customColors.secondaryBg}>{t('animals_module.current_stage')}</StyledTypography>
                     </Box>
                     <Button
                       onClick={() => setShowChecklistComment(prev => !prev)}
                       sx={{ textTransform: 'none', fontWeight: 600 }}
                     >
-                      {showChecklistComment ? 'Hide' : 'View All'}
+                      {showChecklistComment ? t('animals_module.hide') : t('animals_module.view_all')}
                     </Button>
                   </Box>
                   {isEggHistoryFetching ? (
@@ -654,7 +656,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
           <Card sx={{ p: 4, boxShadow: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <StyledTypography fontWeight={500} color={theme.palette.customColors?.OnPrimaryContainer}>
-                Image Gallery
+                {t('animals_module.image_gallery')}
               </StyledTypography>
               <Button
                 sx={{
@@ -676,12 +678,12 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 {showImageUpload ? (
                   <>
                     {/* <Icon icon='mdi:close' fontSize={18} /> */}
-                    Cancel
+                    {t('cancel')}
                   </>
                 ) : (
                   <>
                     {/* <Icon icon='mdi:plus' fontSize={18} /> */}
-                    Add
+                    {t('add')}
                   </>
                 )}
               </Button>
@@ -691,13 +693,13 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 <ControlledMultiFileUpload
                   control={control}
                   name='images'
-                  label='Upload Images'
+                  label={t('upload_images') as string}
                   acceptedFileTypes='images'
                   preview
                   previewPlacement='top'
                 />
                 <Button variant='contained' onClick={handleUploadImages} disabled={!images || images.length === 0}>
-                  Upload
+                  {t('upload')}
                 </Button>
               </Box>
             )}
@@ -731,12 +733,12 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                   {showAllMedia ? (
                     <>
                       <Icon icon='mdi:chevron-up' fontSize={20} />
-                      Hide
+                      {t('hide')}
                     </>
                   ) : (
                     <>
                       <Icon icon='mdi:chevron-down' fontSize={20} />
-                      View More
+                      {t('view_more')}
                     </>
                   )}
                 </Button>
@@ -754,7 +756,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                 />
 
                 <StyledTypography fontSize={'14px'} fontWeight={500}>
-                  Comments
+                  {t('comments')}
                 </StyledTypography>
               </Box>
 
@@ -762,7 +764,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
               <TextField
                 fullWidth
                 size='small'
-                placeholder='Add your comment'
+                placeholder={t('add_your_comment') as string}
                 value={comment}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
                 sx={{
@@ -865,7 +867,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
               }}
             >
               <StyledTypography fontSize={'18px'} fontWeight={600}>
-                Egg Status
+                {t('animals_module.egg_status')}
               </StyledTypography>
               <IconButton onClick={() => setStatusDrawerOpen(false)}>
                 <Icon icon='mdi:close' />
@@ -883,7 +885,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                   {selectedTimelineItem?.action?.split('_').join(' ')}
                 </StyledTypography>
                 <StyledTypography fontSize={'12px'}>
-                  Reported on {Utility.convertUtcToLocalReadableDate(selectedTimelineItem?.created_at)} •{' '}
+                  {t('animals_module.reported_on')} {Utility.convertUtcToLocalReadableDate(selectedTimelineItem?.created_at)} •{' '}
                   {Utility.convertUTCToLocaltime(selectedTimelineItem?.created_at)}
                 </StyledTypography>
               </Box>
@@ -895,7 +897,7 @@ const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
                   p: 3
                 }}
               >
-                <StyledTypography fontWeight={600}>Notes</StyledTypography>
+                <StyledTypography fontWeight={600}>{t('notes')}</StyledTypography>
                 <StyledTypography>{selectedTimelineItem?.comments}</StyledTypography>
               </Box>
             </Box>

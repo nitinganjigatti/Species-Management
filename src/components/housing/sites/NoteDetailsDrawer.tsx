@@ -22,6 +22,7 @@ import {
   editObservation
 } from 'src/lib/api/housing'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import moment from 'moment'
 import NewMediaCard from 'src/views/utility/NewMediaCard'
 import { useAuth } from 'src/hooks/useAuth'
@@ -106,6 +107,7 @@ interface NoteDetailsDrawerProps {
 const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, note, onUpdate }) => {
   const theme = useTheme()
   const auth = useAuth()
+  const { t } = useTranslation()
   const currentUserId = (auth as any)?.userData?.user?.user_id
 
   const [loading, setLoading] = useState(false)
@@ -436,7 +438,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             color: theme.palette.customColors?.OnSurfaceVariant
           }}
         >
-          Note
+          {t('note')}
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           {isCreator && (
@@ -523,7 +525,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
               <Typography variant='body2' color='text.secondary'>
-                By
+                {t('by')}
               </Typography>
               <Chip
                 icon={<PersonIcon sx={{ fontSize: 18 }} />}
@@ -571,7 +573,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                       fontSize: '1rem'
                     }}
                   >
-                    {entities.length} Entity
+                    {entities.length} {t('housing_module.entity')}
                   </Typography>
                 </Box>
 
@@ -612,7 +614,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             {(data as any)?.observation_name && (
               <Box sx={{ mb: 3 }}>
                 <Typography variant='body2' color='text.secondary' sx={{ mb: 0.5 }}>
-                  Description
+                  {t('description')}
                 </Typography>
                 <Typography sx={{ fontSize: '1rem', fontWeight: 500 }}>{(data as any)?.observation_name}</Typography>
               </Box>
@@ -659,7 +661,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                 </>
               ) : (
                 <Typography variant='body2' sx={{ color: theme.palette.error.main }}>
-                  No member Tagged
+                  {t('housing_module.no_member_tagged')}
                 </Typography>
               )}
             </Box>
@@ -768,7 +770,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                 </Box>
               ) : (
                 <Typography variant='body2' color='text.secondary' sx={{ textAlign: 'center', py: 4 }}>
-                  No comments yet
+                  {t('housing_module.no_comments_yet')}
                 </Typography>
               )}
             </Box>
@@ -793,7 +795,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         <TextField
           fullWidth
           size='small'
-          placeholder='Write a comment...'
+          placeholder={t('housing_module.write_comment_placeholder') as string}
           value={comment}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
           onKeyPress={(e: React.KeyboardEvent) => {

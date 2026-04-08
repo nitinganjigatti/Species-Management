@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardContent, CardHeader, IconButton, Typography, Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -37,6 +38,7 @@ interface LineageEntityFilterProps {
 
 const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelections, setLocalSelections }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const [openSiteListDrawer, setSiteListDrawer] = useState(false)
   const [openSectionsListDrawer, setOpenSectionsListDrawer] = useState(false)
@@ -98,7 +100,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
       {/* Site Selection Card */}
       <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', width: '100%' }}>
         <CardHeader
-          title='Select Site'
+          title={t('housing_module.select_site')}
           onClick={() => {
             if (!isSiteDisabled) {
               setSiteListDrawer(true)
@@ -164,7 +166,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
       {localSelections?.Sites?.length === 1 && (
         <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', mt: '6%' }}>
           <CardHeader
-            title='Select Section'
+            title={t('housing_module.select_section')}
             onClick={() => {
               if (!isSectionDisabled) {
                 setOpenSectionsListDrawer(true)
@@ -231,7 +233,7 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
       {localSelections?.Sites?.length === 1 && localSelections?.Sections?.length === 1 && (
         <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', mt: '6%' }}>
           <CardHeader
-            title='Select Enclosure'
+            title={t('housing_module.select_enclosure')}
             onClick={() => setOpenEnclosuresListDrawer(true)}
             sx={{
               background: theme.palette.customColors.displaybgPrimary,

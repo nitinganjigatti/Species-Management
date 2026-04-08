@@ -1,8 +1,9 @@
 import React, { useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, useTheme, useMediaQuery, Theme } from '@mui/material'
 import styled from '@emotion/styled'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
@@ -17,7 +18,8 @@ interface UsersListingProps {
 }
 
 const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme()
 
@@ -77,7 +79,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
   const columns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl No',
+      headerName: t('s_no') as string,
       minWidth: 50,
       sortable: false,
       renderCell: params => (
@@ -88,7 +90,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
     },
     {
       field: 'name',
-      headerName: 'Users Name',
+      headerName: t('housing_module.users_name') as string,
       minWidth: 400,
       sortable: false,
       renderCell: params => (
@@ -103,7 +105,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
     },
     {
       field: 'role',
-      headerName: 'Role',
+      headerName: t('role') as string,
       minWidth: 300,
       sortable: false,
       renderCell: params => (
@@ -114,7 +116,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
     },
     {
       field: 'phone',
-      headerName: 'Phone',
+      headerName: t('phone') as string,
       minWidth: 200,
       sortable: false,
       renderCell: params => {
@@ -126,7 +128,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
         const handleLongPress = () => {
           if (phoneNumber) {
             navigator.clipboard.writeText(phoneNumber)
-            alert('Number copied to clipboard')
+            alert(t('housing_module.number_copied_to_clipboard'))
           }
         }
 
@@ -200,7 +202,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', my: 4 }}>
-        <ListingHeader title='Users List' totalCount={total} />
+        <ListingHeader title={t('housing_module.users_list')} totalCount={total} />
         <Box
           sx={{
             display: 'flex',
@@ -212,7 +214,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
         >
           <Search
             width='300px'
-            placeholder='Search by name'
+            placeholder={t('housing_module.search_by_name') as string}
             value={searchInput}
             onChange={handleSearchChange}
             onClear={handleSearchClear}

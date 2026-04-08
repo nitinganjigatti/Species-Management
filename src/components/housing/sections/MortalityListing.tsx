@@ -1,6 +1,6 @@
 import { useTheme, Theme } from '@emotion/react'
 import { Box, Grid, Typography } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -13,6 +13,7 @@ import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getMortalityList } from 'src/lib/api/housing'
 import { debounce, DebouncedFunc } from 'lodash'
 import type { GridSortModel, GridCellParams, GridColDef, GridRowParams } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface MortalityFilters {
   page: number
@@ -46,8 +47,9 @@ interface PaginationModel {
 }
 
 const MortalityListing: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
-  const router: NextRouter = useRouter()
+  const router: any = useSafeRouter()
   const { id } = router.query
 
   const [downloading, setDownloading] = useState<boolean>(false)
@@ -145,7 +147,7 @@ const MortalityListing: React.FC = () => {
 
   const handleRowClick = (params: GridRowParams): void => {
     if (params.row.animal_id) {
-      router.push(`/housing/animals/${params.row.animal_id}`)
+      router.push(`/animals/${params.row.animal_id}`)
     }
   }
 
@@ -153,7 +155,7 @@ const MortalityListing: React.FC = () => {
     {
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no') as string,
       align: 'left',
       headerAlign: 'left',
       sortable: false,
@@ -183,7 +185,7 @@ const MortalityListing: React.FC = () => {
     {
       width: 350,
       field: 'common_name',
-      headerName: 'SPECIES',
+      headerName: t('species') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -200,7 +202,7 @@ const MortalityListing: React.FC = () => {
     {
       width: 250,
       field: 'identifier',
-      headerName: 'IDENTIFIER',
+      headerName: t('housing_module.identifier') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -230,7 +232,7 @@ const MortalityListing: React.FC = () => {
       align: 'left',
       headerAlign: 'left',
       sortable: false,
-      headerName: 'Primary Identifier',
+      headerName: t('housing_module.primary_identifier') as string,
       renderCell: (params: GridCellParams) => {
         const localIdentifierName = params.row.local_identifier_name
         const localIdentifierValue = params.row.local_identifier_value
@@ -266,7 +268,7 @@ const MortalityListing: React.FC = () => {
     },
     {
       field: 'died_on',
-      headerName: 'DIED ON',
+      headerName: t('housing_module.died_on') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -288,7 +290,7 @@ const MortalityListing: React.FC = () => {
     },
     {
       field: 'reported_on',
-      headerName: 'REPORTED ON',
+      headerName: t('housing_module.reported_on') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -304,14 +306,14 @@ const MortalityListing: React.FC = () => {
             pl: 2
           }}
         >
-          <DateInfoDisplay date={params.row.discovered_date} />
+          <DateInfoDisplay date={params.row.created_at || params.row.reported_date} />
         </Box>
       )
     },
     {
       width: 300,
       field: 'reason',
-      headerName: 'REASON',
+      headerName: t('housing_module.reason') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -347,14 +349,14 @@ const MortalityListing: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title='Mortality' totalCount={total} />
+      <ListingHeader title={t('navigation.mortality')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

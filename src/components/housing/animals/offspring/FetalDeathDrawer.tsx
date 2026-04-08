@@ -22,10 +22,12 @@ import Utility from 'src/utility'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { getFetusDetails } from 'src/lib/api/housing'
+import { useTranslation } from 'react-i18next'
 import type { StyledTypographyProps, FetalDeathDrawerProps } from 'src/types/housing/animalsOffspring'
 
 const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetusId }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const [showMobileNumber, setShowMobileNumber] = useState<boolean>(false)
   const [copied, setCopied] = useState<boolean>(false)
 
@@ -80,7 +82,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
             >
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 4 }}>
                 <StyledTypography fontWeight={500} fontSize={'20px'} color={theme.palette.customColors.rusticRed}>
-                  Fetus Death Summary
+                  {t('animals_module.fetus_death_summary')}
                 </StyledTypography>
                 <IconButton onClick={onClose} sx={{ color: theme.palette.customColors.rusticRed }}>
                   <Icon icon='mdi:close' />
@@ -163,7 +165,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                   }}
                 >
                   <StyledTypography color={theme.palette.customColors?.rusticRed} fontSize={'12px'}>
-                    Reported by
+                    {t('animals_module.reported_by')}
                   </StyledTypography>
                   <UserAvatarDetails
                     user_name={fetusDetailsData?.user_full_name}
@@ -279,7 +281,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                 <Card sx={{ p: 4, boxShadow: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                      Obstetric estimate of gestation at delivery
+                      {t('animals_module.obstetric_estimate')}
                     </StyledTypography>
                     <StyledTypography fontSize={'14px'} fontWeight={500}>
                       {fetusDetailsData?.obstetric_estimate_of_gestation}
@@ -288,7 +290,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                      Estimated date and time of fetal death
+                      {t('animals_module.estimated_fetal_death_time')}
                     </StyledTypography>
                     <StyledTypography fontSize={'14px'} fontWeight={500}>
                       {Utility.convertUtcToLocalReadableDate(fetusDetailsData?.estimated_fetus_death_day_time)}{' '}
@@ -298,7 +300,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                      Date and time of discovery
+                      {t('animals_module.discovery_datetime')}
                     </StyledTypography>
                     <StyledTypography fontSize={'14px'} fontWeight={500}>
                       {Utility.convertUtcToLocalReadableDate(fetusDetailsData?.discovery_of_fetus_death_day_time)}{' '}
@@ -308,7 +310,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <StyledTypography fontSize={'14px'} color={theme.palette.customColors?.neutralSecondary}>
-                      Notes
+                      {t('notes')}
                     </StyledTypography>
                     <StyledTypography fontSize={'14px'} fontWeight={500}>
                       {fetusDetailsData?.notes || '--'}
@@ -337,7 +339,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                       }}
                     >
                       <StyledTypography fontSize={'18px'} fontWeight={600}>
-                        Parents
+                        {t('animals_module.parents')}
                       </StyledTypography>
                     </AccordionSummary>
                     <AccordionDetails sx={{ p: 0 }}>
@@ -351,7 +353,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                             p: 3
                           }}
                         >
-                          <StyledTypography fontWeight={600}>Mother</StyledTypography>
+                          <StyledTypography fontWeight={600}>{t('animals_module.mother')}</StyledTypography>
                         </Box>
                         {/* Mother List */}
                         {fetusDetailsData?.parent_list?.mother_list?.map((parent: any, index: number) => (

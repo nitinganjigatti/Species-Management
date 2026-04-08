@@ -30,7 +30,8 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import React from 'react'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 
 interface SiteData {
   site_id: number
@@ -45,7 +46,7 @@ interface AddSiteDrawerProps {
   open: boolean
   setSiteDrawer: (open: boolean) => void
   refetch: () => void
-  siteData?: SiteData | null  // If provided, drawer is in edit mode
+  siteData?: SiteData | null // If provided, drawer is in edit mode
 }
 
 interface FormValues {
@@ -53,7 +54,7 @@ interface FormValues {
   siteDescription: string
   latitude: string
   longitude: string
-  images: (File | string)[]  // Can be File objects or URL strings for existing images
+  images: (File | string)[] // Can be File objects or URL strings for existing images
   image?: { file: File; preview: string }
 }
 
@@ -70,9 +71,10 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false)
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const authData = useContext(AuthContext) as any
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const zooId = authData?.userData?.user?.zoos[0].zoo_id
   const isEditMode = !!siteData
@@ -199,10 +201,10 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
           site_image: newImages.length > 0 ? newImages : undefined
         }
 
-        const response = await editSite(params) as any
+        const response = (await editSite(params)) as any
 
         if (response?.success) {
-          Toaster({ type: 'success', message: 'Site Updated Successfully' })
+          Toaster({ type: 'success', message: t('housing_module.site_updated') })
           setSiteDrawer(false)
           refetch()
         } else {
@@ -219,10 +221,10 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
           site_image: data.images.filter(img => img instanceof File) as File[]
         }
 
-        const response = await AddNewSite(params) as any
+        const response = (await AddNewSite(params)) as any
 
         if (response?.success) {
-          Toaster({ type: 'success', message: 'New Site Is Created Successfully' })
+          Toaster({ type: 'success', message: t('housing_module.site_created') })
           setSiteDrawer(false)
           refetch()
         } else {
@@ -231,7 +233,9 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
       }
     } catch (error) {
       console.error('Submission Error:', error)
-      toast.error(isEditMode ? 'An error occurred while updating the site' : 'An error occurred while creating the site')
+      toast.error(
+        isEditMode ? 'An error occurred while updating the site' : 'An error occurred while creating the site'
+      )
       setSiteDrawer(false)
     } finally {
       setLoading(false)
@@ -243,10 +247,10 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
 
     setDeleteLoading(true)
     try {
-      const response = await deleteSite({ site_id: siteData.site_id }) as any
+      const response = (await deleteSite({ site_id: siteData.site_id })) as any
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Site Deleted Successfully' })
+        Toaster({ type: 'success', message: t('housing_module.site_deleted') })
         setShowDeleteDialog(false)
         setSiteDrawer(false)
         router.push('/housing/sites')
@@ -319,10 +323,10 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
           bgcolor: theme.palette.customColors.lightBg
         }}
       >
-        <form id="site-form" onSubmit={handleSubmit(onSubmit)}>
+        <form id='site-form' onSubmit={handleSubmit(onSubmit)}>
           {/* Site Name & Image */}
           <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500 }}>
-            Site Name & Image
+            {t('housing_module.site_name_image')}
           </Typography>
 
           <Card
@@ -365,7 +369,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
             /> */}
             <ControlledTextField
               name='siteName'
-              label='Site Name'
+              label={t('housing_module.site_name') as string}
               control={control}
               errors={errors}
               required={false}
@@ -394,7 +398,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
 
             <ControlledTextField
               name='siteDescription'
-              label='Site Description'
+              label={t('housing_module.site_description') as string}
               control={control}
               errors={errors}
               required={false}
@@ -487,7 +491,9 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                 <Box>
                   <Box
                     sx={{
-                      border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
+                      border: `2px dashed ${
+                        error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant
+                      }`,
                       borderRadius: 1.2,
                       p: 2,
                       textAlign: 'center',
@@ -520,7 +526,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
                     >
                       <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
                       <Typography variant='body2' color='textSecondary' sx={{ fontWeight: 400 }}>
-                        Drop your images here
+                        {t('drop_images_here')}
                       </Typography>
                     </Box>
 
@@ -544,7 +550,9 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
 
           {/* Add Location */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 5 }}>
-            <Typography sx={{ fontFamily: 'Inter', ml: 1, fontSize: '20px', fontWeight: 500 }}>Add Location</Typography>
+            <Typography sx={{ fontFamily: 'Inter', ml: 1, fontSize: '20px', fontWeight: 500 }}>
+              {t('housing_module.add_location')}
+            </Typography>
 
             <Box
               onClick={handleClick}
@@ -562,7 +570,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
             >
               <Icon icon='ic:baseline-my-location' fontSize={20} />
               <Typography variant='caption' sx={{ fontSize: '16px', color: theme.palette.primary.OnSurface }}>
-                Current Location
+                {t('housing_module.current_location')}
               </Typography>
             </Box>
           </Box>
@@ -572,7 +580,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
           >
             <ControlledTextField
               name='longitude'
-              label='Add Longitude'
+              label={t('housing_module.add_longitude') as string}
               control={control}
               errors={errors}
               sx={{
@@ -594,7 +602,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
 
             <ControlledTextField
               name='latitude'
-              label='Add Latitude'
+              label={t('housing_module.add_latitude') as string}
               control={control}
               errors={errors}
               sx={{
@@ -648,8 +656,8 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
         <ConfirmationDialog
           dialogBoxStatus={showDeleteDialog}
           onClose={() => setShowDeleteDialog(false)}
-          title='Delete Site'
-          description='Are you sure you want to delete this site? This action cannot be undone.'
+          title={t('housing_module.delete_site')}
+          description={t('housing_module.confirm_delete_site')}
           image='/images/warning-icon.svg'
           imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
           confirmAction={handleDeleteSite}

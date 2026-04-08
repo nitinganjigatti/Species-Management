@@ -11,6 +11,7 @@ import { getAllSpeciesList } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import HousingSpeciesCard from 'src/views/pages/housing/species/HousingSpeciesCard'
 import { Species } from 'src/types/housing'
+import { useTranslation } from 'react-i18next'
 
 interface SpeciesDrawerData {
   queryKey: string
@@ -34,6 +35,7 @@ interface PageResult {
 
 const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   const [localSearch, setLocalSearch] = useState<string>('')
@@ -97,7 +99,7 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
   const list = useMemo(() => queryData?.pages?.flatMap((page: PageResult) => page?.result) || [], [queryData])
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
-  const speciesLabel = Number(total) === (0 || 1) ? 'Specie' : 'Species'
+  const speciesLabel = Number(total) === (0 || 1) ? t('specie') : t('species')
   const speciesHeading = total ? `${speciesLabel} (${total})` : speciesLabel
 
   // cooldownRef to prevent multiple rapid calls
@@ -137,7 +139,7 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Species'
+      title={t('species')}
       icon='/images/housing/Enclosure icon.png'
       iconColor={theme.palette.primary.main}
     >
@@ -178,7 +180,7 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
             borderRadius: '8px',
             backgroundColor: theme.palette.customColors?.OnPrimary
           }}
-          placeholder='Search for species'
+          placeholder={t('housing_module.search_species') as string}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -223,13 +225,13 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
 
         {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No species found
+            {t('housing_module.no_species_found')}
           </Typography>
         )}
 
         {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more species to load
+            {t('housing_module.no_more_species')}
           </Typography>
         )}
       </Box>

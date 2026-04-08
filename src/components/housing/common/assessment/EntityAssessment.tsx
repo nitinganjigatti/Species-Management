@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { Box, Typography, CircularProgress, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
@@ -53,6 +54,7 @@ const EntityAssessment: React.FC<EntityAssessmentProps> = ({
   entityImage
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const auth = useAuth() as any
   const userData = auth?.userData
 
@@ -263,7 +265,7 @@ const EntityAssessment: React.FC<EntityAssessmentProps> = ({
           value={searchQuery}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
-          placeholder='Search assessments...'
+          placeholder={t('animals_module.search_assessments') as string}
           width={250}
         />
 
@@ -283,7 +285,7 @@ const EntityAssessment: React.FC<EntityAssessmentProps> = ({
               minHeight: '40px'
             }}
           >
-            Add Assessment
+            {t('animals_module.add_assessment')}
           </Button>
         )}
       </Box>
@@ -311,7 +313,7 @@ const EntityAssessment: React.FC<EntityAssessmentProps> = ({
           >
             <Icon icon='mdi:clipboard-text-off-outline' fontSize={48} />
             <Typography variant='body1' sx={{ mt: 2 }}>
-              {searchQuery ? 'No assessments found matching your search' : 'No assessments available'}
+              {searchQuery ? t('animals_module.no_assessments_found') : t('animals_module.no_assessments_available')}
             </Typography>
           </Box>
         ) : (

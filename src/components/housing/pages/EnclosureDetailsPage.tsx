@@ -1,9 +1,11 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Card, Tab, Tabs, Typography, CircularProgress } from '@mui/material'
+import { Breadcrumbs, Card, Typography, CircularProgress } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useTabSync from 'src/hooks/useTabSync'
 import EnclosureOverview from 'src/components/housing/enclosure/EnclosureOverview'
 import EnclosureWiseEnclosure from 'src/components/housing/enclosure/EnclosureWiseEnclosure'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
@@ -11,16 +13,16 @@ import MediaListing from 'src/components/housing/enclosure/MediaListing'
 import NotesListing from 'src/components/housing/sites/NotesListing'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureWiseStat, getEnclosureBasicInfo, getEntityPermissionCheck } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
 
 interface TabConfigItem {
-  label: string
+  labelKey: string
   value: string
   component: React.ComponentType<any>
   requiresPermission?: string
@@ -40,12 +42,15 @@ interface StatItem {
   onClick?: () => void
 }
 
-const EnclsouerDetails: React.FC = () => {
+interface EnclosureDetailsPageProps {
+  id: string
+}
+
+const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
-  const { id } = router.query as { id?: string }
 
-  // Entity permission check states
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [showAccessRestricted, setShowAccessRestricted] = useState<boolean>(false)
 
@@ -59,7 +64,6 @@ const EnclsouerDetails: React.FC = () => {
   const addEnclosureAccess = (auth as any)?.userData?.roles?.settings?.housing_add_enclosure
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
-  // Merge permissions from both sources (matching mobile implementation)
   const userSettingsPermissions = (auth as any)?.userData?.permission?.user_settings || {}
   const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
   const permissions: Record<string, boolean> = { ...userSettingsPermissions, ...rolesSettingsPermissions }
@@ -73,7 +77,6 @@ const EnclsouerDetails: React.FC = () => {
     enabled: !!id
   })
 
-  // Fetch enclosure basic info for edit mode
   const { data: enclosureBasicInfo } = useQuery({
     queryKey: ['enclosure-basic-info', id],
     queryFn: () =>
@@ -83,34 +86,25 @@ const EnclsouerDetails: React.FC = () => {
     enabled: !!id && showEditEnclosureDrawer
   })
 
-  // Tab order follows mobile implementation (OccupantScreen.js)
-  // Permission checks match mobile: collection_animal_records, medical_records
   const allTabConfig: TabConfigItem[] = [
-    { label: 'Overview', value: 'overview', component: EnclosureOverview },
-    { label: 'Species', value: 'species', component: EnclosureWiseSpecies, requiresPermission: 'collection_animal_records' },
-    { label: 'Enclosures', value: 'enclosures', component: EnclosureWiseEnclosure },
-    { label: 'Notes', value: 'notes', component: NotesListing },
-    { label: 'Assessment', value: 'assessment', component: EntityAssessment },
-    // TODO: Uncomment when Medical tab component is implemented
-    // { label: 'Medical', value: 'medical', component: MedicalListing, requiresPermission: 'medical_records' },
-    { label: 'Media', value: 'media', component: MediaListing },
-    { label: 'Incharges', value: 'incharges', component: InchargeListing },
-    { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing }
+    { labelKey: 'overview', value: 'overview', component: EnclosureOverview },
+    { labelKey: 'species', value: 'species', component: EnclosureWiseSpecies, requiresPermission: 'collection_animal_records' },
+    { labelKey: 'enclosures', value: 'enclosures', component: EnclosureWiseEnclosure },
+    { labelKey: 'notes', value: 'notes', component: NotesListing },
+    { labelKey: 'housing_module.assessment', value: 'assessment', component: EntityAssessment },
+    { labelKey: 'media', value: 'media', component: MediaListing },
+    { labelKey: 'housing_module.incharges', value: 'incharges', component: InchargeListing },
+    { labelKey: 'housing_module.food_wastage', value: 'foodWastage', component: FoodWastageListing }
   ]
 
-  const [selectedTab, setSelectedTab] = useState<string>(allTabConfig[0].value)
-
-  // Filter tabs based on permissions and data conditions
   const tabConfig = useMemo(() => {
     return allTabConfig.filter(tab => {
-      // Check permission requirement
       if (tab.requiresPermission) {
         if (permissions?.[tab.requiresPermission] !== true) {
           return false
         }
       }
 
-      // Hide Enclosures tab if no sub-enclosures
       if (tab.value === 'enclosures' && !((data?.data as any)?.total_sub_enclosure_count > 0)) {
         return false
       }
@@ -119,15 +113,18 @@ const EnclsouerDetails: React.FC = () => {
     })
   }, [permissions, data])
 
+  const availableTabs = useMemo(() => tabConfig.map(t => t.value), [tabConfig])
+  const [selectedTab, setSelectedTab] = useTabSync(allTabConfig[0].value, availableTabs)
+
   const statsData: StatItem[] = [
     {
-      label: 'Species',
+      label: t('species'),
       value: (data?.data as any)?.total_species || 0,
       imagePath: '/images/housing/species.svg',
       onClick: () => setSelectedTab('species')
     },
     {
-      label: 'Animals',
+      label: t('animals'),
       value: (data?.data as any)?.total_occupants || 0,
       imagePath: '/images/housing/animals.svg',
       onClick: () => console.log('Animals')
@@ -138,39 +135,8 @@ const EnclsouerDetails: React.FC = () => {
     setSelectedTab(newValue)
   }
 
-  const handleEnclosureListingClick = (): void => {
-    router.back()
-  }
-
   const selected = tabConfig.find(tab => tab.value === selectedTab)
-  const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
-
-  useEffect(() => {
-    // Updating URL with tab parameter when tab changes
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: selectedTab }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }, [selectedTab])
-
-  // To read the tab parameter on component mount
-  useEffect(() => {
-    if (router.query.tab) {
-      setSelectedTab(router.query.tab as string)
-    }
-  }, [router.query.tab])
-
-  // Reset to first available tab if selected tab becomes unavailable due to permissions
-  useEffect(() => {
-    const isSelectedTabAvailable = tabConfig.some(tab => tab.value === selectedTab)
-    if (!isSelectedTabAvailable && tabConfig.length > 0) {
-      setSelectedTab(tabConfig[0].value)
-    }
-  }, [tabConfig, selectedTab])
+  const SelectedComponent = selected?.component || (() => <Box>{t('no_component_found')}</Box>)
 
   const sectionId = (data?.data as any)?.section_id
   const sectionName = (data?.data as any)?.section_name
@@ -183,7 +149,6 @@ const EnclsouerDetails: React.FC = () => {
     }
   }
 
-  // Fetch entity permission check
   useEffect(() => {
     const fetchEntityPermission = async (): Promise<void> => {
       if (!id) return
@@ -215,13 +180,11 @@ const EnclsouerDetails: React.FC = () => {
     fetchEntityPermission()
   }, [id])
 
-  // Handle access restricted confirmation
   const handleAccessRestrictedConfirmation = (): void => {
     setShowAccessRestricted(false)
     router.push('/housing/sites')
   }
 
-  // Show loading state while checking permission
   if (hasPermission === null) {
     return (
       <Box
@@ -248,9 +211,9 @@ const EnclsouerDetails: React.FC = () => {
             onClick={handleBreadcrumbClick}
             sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}
           >
-            {sectionName || 'Section Details'}
+            {sectionName || t('housing_module.section_details')}
           </Typography>
-          <Typography color={theme.palette.text.primary}>Enclosure Details</Typography>
+          <Typography color={theme.palette.text.primary}>{t('housing_module.enclosure_details')}</Typography>
         </Breadcrumbs>
         <InsightsCard
           data={data?.data as any}
@@ -263,12 +226,12 @@ const EnclsouerDetails: React.FC = () => {
           userName={(data?.data as any)?.incharge_name}
           userImage=""
           description=""
-          pageTitle="Enclosure Details"
+          pageTitle={t('housing_module.enclosure_details')}
           haveInsightsViewAccess={insightsViewAccess}
           actions={{
             onEdit: addEnclosureAccess ? () => setShowEditEnclosureDrawer(true) : null
           }}
-          editTooltip='Edit enclosure'
+          editTooltip={t('housing_module.edit_enclosure') as string}
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_phone_no || ''
             if (phoneNumber) {
@@ -288,15 +251,8 @@ const EnclsouerDetails: React.FC = () => {
           entityId={(data?.data as any)?.enclosure_id}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-              {tabConfig.map(tab => (
-                <Tab key={tab.value} label={tab.label} value={tab.value} />
-              ))}
-            </Tabs>
-          </Box>
+          <TabsWithMenu tabs={tabConfig} selectedTab={selectedTab} onTabChange={handleTabChange} />
 
-          {/* Selected Tab Content */}
           <Box>
             <SelectedComponent
               selectedTab={selectedTab}
@@ -351,7 +307,7 @@ const EnclsouerDetails: React.FC = () => {
         <ConfirmationDialog
           dialogBoxStatus={showAccessRestricted}
           onClose={() => setShowAccessRestricted(false)}
-          title={'Access Restricted'}
+          title={t('housing_module.access_restricted')}
           cancelBtnStyle={{
             borderColor: theme.palette.grey[500],
             color: theme.palette.grey[700]
@@ -366,14 +322,14 @@ const EnclsouerDetails: React.FC = () => {
             p: 4
           }}
           confirmAction={handleAccessRestrictedConfirmation}
-          ConfirmationText={'OK'}
+          ConfirmationText={t('ok')}
           description={
             <Box>
               <Typography variant='body1' sx={{ mb: 1 }}>
-                You don't have permission to access this enclosure.
+                {t('housing_module.you_dont_have_permission_to_access_this_enclosure')}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                Please contact your administrator or request access to proceed.
+                {t('housing_module.please_contact_your_administrator_or_request_access_to_proceed')}
               </Typography>
             </Box>
           }
@@ -384,4 +340,4 @@ const EnclsouerDetails: React.FC = () => {
   )
 }
 
-export default enforceModuleAccess(EnclsouerDetails, 'enable_housing_in_web')
+export default EnclosureDetailsPage

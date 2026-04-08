@@ -3,8 +3,9 @@ import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter, NextRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -65,8 +66,9 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
   setDrawerData,
   refetchEnclosure
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
-  const router: NextRouter = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const auth = useAuth()
 
@@ -147,13 +149,16 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
   const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: EnclosureFilters = {
-          ...filters,
-          search: value,
-          page: 1
-        }
-        setFilters(updated)
-        updateUrlParams(updated)
+        setFilters(prev => {
+          const updated: EnclosureFilters = {
+            ...prev,
+            search: value,
+            page: 1
+          }
+          updateUrlParams(updated)
+
+          return updated
+        })
       }, 500),
     []
   )
@@ -219,7 +224,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <Typography
@@ -239,7 +244,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
       field: 'user_enclosure_name',
       headerAlign: 'left',
       align: 'left',
-      headerName: 'Enclosures',
+      headerName: t('enclosures') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <SpeciesCard
@@ -256,7 +261,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
           {
             width: 160,
             field: 'species_count',
-            headerName: 'SPECIES',
+            headerName: t('species'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -271,7 +276,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
           {
             width: 160,
             field: 'enclosure_wise_animal_count',
-            headerName: 'ANIMALS',
+            headerName: t('animals'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -314,7 +319,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
           {
             width: 160,
             field: 'sub_enclosure_count',
-            headerName: 'SUB ENCLOSURES',
+            headerName: t('housing_module.sub_enclosures'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -346,7 +351,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
           {
             width: 250,
             field: 'site_name',
-            headerName: 'SITE',
+            headerName: t('housing_module.site'),
             sortable: false,
             renderCell: (params: GridCellParams) => (
               <Typography
@@ -377,28 +382,20 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
       params.field !== 'sub_enclosure_count' &&
       params.field !== 'site_name'
     ) {
-      const query = { ...router.query }
-      query.tab && delete query.tab
-      router.push({
-        pathname: `/housing/enclosure/${params.row.enclosure_id}`,
-        query: {
-          ...query,
-          enclosureTab: 'enclosures'
-        }
-      })
+      router.push(`/housing/enclosure/${params.row.enclosure_id}?enclosureTab=enclosures`)
     }
   }
 
   return (
     <>
-      <ListingHeader title='All Enclosures' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_enclosures')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

@@ -1,9 +1,10 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Card, Tab, Tabs, Typography, Skeleton, CircularProgress } from '@mui/material'
+import { Breadcrumbs, Card, Typography, Skeleton, CircularProgress } from '@mui/material'
 import { Box } from '@mui/system'
-import { useRouter } from 'next/router'
-import React, { useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import useTabSync from 'src/hooks/useTabSync'
 import AnimalAssessment from 'src/components/housing/animals/AnimalAssessment'
 import AnimalDiet from 'src/components/housing/animals/AnimalDiet'
 import AnimalHistory from 'src/components/housing/animals/AnimalHistory'
@@ -20,15 +21,16 @@ import AnimalTaxonomy from 'src/components/housing/animals/AnimalTaxonomy'
 import NotesListing from 'src/components/housing/sites/NotesListing'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import AnimalQRCard from 'src/views/pages/housing/animals/AnimalQRCard'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import AnimalMedia from 'src/components/housing/animals/AnimalMedia'
 import { getAnimalDetailsOverview, getEntityPermissionCheck } from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
+import { useTranslation } from 'react-i18next'
 
 interface TabConfigItem {
-  label: string
+  labelKey: string
   value: string
   component: React.ComponentType<any>
 }
@@ -88,30 +90,34 @@ interface ApiResponse {
   }
 }
 
+interface AnimalDetailsPageProps {
+  id: string
+}
+
 // Tab configuration matching mobile order and structure
 const tabConfig: TabConfigItem[] = [
-  { label: 'Overview', value: 'overview', component: AnimalOverview },
-  { label: 'Taxonomy', value: 'taxonomy', component: AnimalTaxonomy },
-  { label: 'Assessment', value: 'assessment', component: AnimalAssessment },
-  { label: 'Notes', value: 'notes', component: NotesListing },
-  { label: 'Journal', value: 'journal', component: AnimalJournals },
-  { label: 'Medical', value: 'medical', component: AnimalMedical },
-  { label: 'Mortality', value: 'mortality', component: AnimalMortality },
-  { label: 'Media', value: 'media', component: AnimalMedia },
-  { label: 'Identifier', value: 'identifier', component: AnimalIdentifier },
-  { label: 'History', value: 'history', component: AnimalHistory },
-  { label: 'Incidents', value: 'incidents', component: AnimalIncidents },
-  { label: 'Diet', value: 'diet', component: AnimalDiet },
-  { label: 'Lineage', value: 'lineage', component: AnimalLineage },
-  { label: 'Offspring', value: 'offspring', component: AnimalOffspring },
-  { label: 'Hospital Transfer', value: 'hospital', component: AnimalHospitalTransfer },
-  { label: 'Incharges', value: 'incharges', component: InchargeListing }
+  { labelKey: 'animals_module.overview', value: 'overview', component: AnimalOverview },
+  { labelKey: 'animals_module.taxonomy', value: 'taxonomy', component: AnimalTaxonomy },
+  { labelKey: 'housing_module.assessment', value: 'assessment', component: AnimalAssessment },
+  { labelKey: 'notes', value: 'notes', component: NotesListing },
+  { labelKey: 'animals_module.journal', value: 'journal', component: AnimalJournals },
+  { labelKey: 'animals_module.medical', value: 'medical', component: AnimalMedical },
+  { labelKey: 'navigation.mortality', value: 'mortality', component: AnimalMortality },
+  { labelKey: 'media', value: 'media', component: AnimalMedia },
+  { labelKey: 'identifier', value: 'identifier', component: AnimalIdentifier },
+  { labelKey: 'animals_module.history', value: 'history', component: AnimalHistory },
+  { labelKey: 'animals_module.incidents', value: 'incidents', component: AnimalIncidents },
+  { labelKey: 'animals_module.diet', value: 'diet', component: AnimalDiet },
+  { labelKey: 'animals_module.lineage', value: 'lineage', component: AnimalLineage },
+  { labelKey: 'animals_module.offspring', value: 'offspring', component: AnimalOffspring },
+  { labelKey: 'animals_module.hospital_transfer', value: 'hospital', component: AnimalHospitalTransfer },
+  { labelKey: 'housing_module.incharges', value: 'incharges', component: InchargeListing }
 ]
 
-const AnimalDetais: React.FC = () => {
+const AnimalDetailsPage: React.FC<AnimalDetailsPageProps> = ({ id }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
-  const { id } = router.query as { id?: string }
   const authData = useContext(AuthContext) as any
 
   // Permission checks (matching mobile implementation)
@@ -126,7 +132,6 @@ const AnimalDetais: React.FC = () => {
   const [showAccessRestricted, setShowAccessRestricted] = useState<boolean>(false)
 
   const [loading, setLoading] = useState<boolean>(false)
-  const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
   const [qrDialogOpen, setQrDialogOpen] = useState<boolean>(false)
   const [qrData, setQrData] = useState<QRData>({})
   const [data, setData] = useState<ApiResponse>({})
@@ -202,7 +207,7 @@ const AnimalDetais: React.FC = () => {
     fetchAnimalOverviewData()
   }, [id])
 
-  console.log(data, 'animalData')
+
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string): void => {
     setSelectedTab(newValue)
@@ -210,29 +215,24 @@ const AnimalDetais: React.FC = () => {
 
   // Filter tabs based on permissions and animal conditions (matching mobile implementation)
   const filteredTabConfig = tabConfig.filter(tab => {
-    // Medical tab - requires medical_records permission
     if (tab.value === 'medical' && !hasMedicalRecordsPermission) {
       return false
     }
 
-    // Diet tab - requires diet_module permission
     if (tab.value === 'diet' && !hasDietModulePermission) {
       return false
     }
 
-    // Mortality tab - requires access_mortality_module permission AND animal must be dead
     if (tab.value === 'mortality') {
       if (!hasAccessMortalityModule || animalDetails.isAlive !== '0') {
         return false
       }
     }
 
-    // Lineage tab - hide for group animals
     if (tab.value === 'lineage' && animalDetails.type === 'group') {
       return false
     }
 
-    // Offspring tab - hide for group animals AND indeterminate/undetermined sex
     if (tab.value === 'offspring') {
       if (animalDetails.type === 'group') {
         return false
@@ -242,12 +242,10 @@ const AnimalDetais: React.FC = () => {
       }
     }
 
-    // Hospital Transfer tab - requires approval_move_animal_external permission
     if (tab.value === 'hospital' && !hasApprovalMoveAnimalExternal) {
       return false
     }
 
-    // Assessment tab - hide for group animals (when type is not 'single')
     if (tab.value === 'assessment' && animalDetails.type !== 'single' && animalDetails.type !== '') {
       return false
     }
@@ -255,13 +253,8 @@ const AnimalDetais: React.FC = () => {
     return true
   })
 
-  // Switch to overview tab if currently selected tab is no longer available
-  useEffect(() => {
-    const isTabAvailable = filteredTabConfig.some(tab => tab.value === selectedTab)
-    if (!isTabAvailable && filteredTabConfig.length > 0) {
-      setSelectedTab('overview')
-    }
-  }, [filteredTabConfig.length, selectedTab, animalDetails.type, animalDetails.sex, animalDetails.isAlive])
+  const availableTabs = useMemo(() => filteredTabConfig.map(t => t.value), [filteredTabConfig])
+  const [selectedTab, setSelectedTab] = useTabSync(tabConfig[0].value, availableTabs)
 
   // Fetch entity permission check
   useEffect(() => {
@@ -303,7 +296,7 @@ const AnimalDetais: React.FC = () => {
 
   const selected = filteredTabConfig.find(tab => tab.value === selectedTab)
 
-  const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
+  const SelectedComponent = selected?.component || (() => <Box>{t('no_component_found')}</Box>)
 
   const handleQrClick = (): void => {
     setQrDialogOpen(true)
@@ -342,13 +335,9 @@ const AnimalDetais: React.FC = () => {
   // Skeleton component for overview content (AnimalDetails + EnclosureDetails)
   const OverviewSkeleton: React.FC = () => (
     <Box sx={{ p: 4 }}>
-      {/* Animal Details Section */}
       <Card sx={{ p: 4, mb: 4 }}>
         <Skeleton variant='text' width={180} height={28} sx={{ mb: 3 }} />
-
-        {/* Animal details grid */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
-          {/* Left column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[1, 2, 3, 4, 5, 6].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -357,8 +346,6 @@ const AnimalDetais: React.FC = () => {
               </Box>
             ))}
           </Box>
-
-          {/* Right column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[1, 2, 3, 4, 5, 6].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -369,14 +356,9 @@ const AnimalDetais: React.FC = () => {
           </Box>
         </Box>
       </Card>
-
-      {/* Enclosure Details Section */}
       <Card sx={{ p: 4 }}>
         <Skeleton variant='text' width={200} height={28} sx={{ mb: 3 }} />
-
-        {/* Enclosure details grid */}
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
-          {/* Left column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[1, 2, 3].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -385,8 +367,6 @@ const AnimalDetais: React.FC = () => {
               </Box>
             ))}
           </Box>
-
-          {/* Right column */}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[1, 2, 3].map(item => (
               <Box key={item} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -405,9 +385,9 @@ const AnimalDetais: React.FC = () => {
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
-            Animals
+            {t('animals')}
           </Typography>
-          <Typography color='text.primary'>Animal Details</Typography>
+          <Typography color='text.primary'>{t('animals_module.animal_details')}</Typography>
         </Breadcrumbs>
         <AnimalInsightsCard
           isAnimalDetailsPage={true}
@@ -425,21 +405,12 @@ const AnimalDetais: React.FC = () => {
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           {loading ? (
             <>
-              {/* Show skeleton for tabs */}
               <TabsSkeleton />
-              {/* Show skeleton for content */}
               <OverviewSkeleton />
             </>
           ) : (
             <>
-              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-                  {filteredTabConfig.map(tab => (
-                    <Tab key={tab.value} label={tab.label} value={tab.value} />
-                  ))}
-                </Tabs>
-              </Box>
-              {/* Selected Tab Content */}
+              <TabsWithMenu tabs={filteredTabConfig} selectedTab={selectedTab} onTabChange={handleTabChange} />
               <Box>
                 <SelectedComponent
                   selectedTab={selectedTab}
@@ -463,7 +434,7 @@ const AnimalDetais: React.FC = () => {
         <ConfirmationDialog
           dialogBoxStatus={showAccessRestricted}
           onClose={() => setShowAccessRestricted(false)}
-          title={'Access Restricted'}
+          title={t('housing_module.access_restricted')}
           cancelBtnStyle={{
             borderColor: theme.palette.grey[500],
             color: theme.palette.grey[700]
@@ -478,14 +449,14 @@ const AnimalDetais: React.FC = () => {
             p: 4
           }}
           confirmAction={handleAccessRestrictedConfirmation}
-          ConfirmationText={'OK'}
+          ConfirmationText={t('ok')}
           description={
             <Box>
               <Typography variant='body1' sx={{ mb: 1 }}>
-                You don't have permission to access this animal.
+                {t('animals_module.you_dont_have_permission_to_access_this_animal')}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                Please contact your administrator or request access to proceed.
+                {t('housing_module.please_contact_your_administrator_or_request_access_to_proceed')}
               </Typography>
             </Box>
           }
@@ -496,4 +467,4 @@ const AnimalDetais: React.FC = () => {
   )
 }
 
-export default enforceModuleAccess(AnimalDetais, 'enable_housing_in_web')
+export default AnimalDetailsPage

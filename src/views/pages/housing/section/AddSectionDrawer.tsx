@@ -13,7 +13,8 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { AuthContext } from 'src/context/AuthContext'
 import { addSection, editSection, deleteSection } from 'src/lib/api/housing'
 import * as yup from 'yup'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 
 interface SectionData {
   section_id: number
@@ -30,13 +31,13 @@ interface AddSectionDrawerProps {
   selectedSiteId: string
   setAddSuccessCheck: (check: boolean) => void
   addSuccessCheck: boolean
-  sectionData?: SectionData | null  // If provided, drawer is in edit mode
+  sectionData?: SectionData | null // If provided, drawer is in edit mode
   refetch?: () => void
 }
 
 interface FormValues {
   sectionName: string
-  images: (File | string)[]  // Can be File objects or URL strings for existing images
+  images: (File | string)[] // Can be File objects or URL strings for existing images
   latitude: string
   longitude: string
 }
@@ -47,9 +48,18 @@ const schema = yup.object().shape({
   longitude: yup.string()
 })
 
-const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSectionDrawer, selectedSiteId, setAddSuccessCheck, addSuccessCheck, sectionData, refetch }) => {
+const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({
+  open,
+  setShowAddSectionDrawer,
+  selectedSiteId,
+  setAddSuccessCheck,
+  addSuccessCheck,
+  sectionData,
+  refetch
+}) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const router = useSafeRouter()
+  const { t } = useTranslation()
 
   const authData = useContext(AuthContext) as any
 
@@ -171,10 +181,10 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
           section_image: newImages.length > 0 ? newImages : undefined
         }
 
-        const response = await editSection(payload) as any
+        const response = (await editSection(payload)) as any
 
         if (response?.success) {
-          Toaster({ type: 'success', message: 'Section Updated Successfully' })
+          Toaster({ type: 'success', message: t('housing_module.section_updated') })
           setShowAddSectionDrawer(false)
           if (refetch) refetch()
           setAddSuccessCheck(!addSuccessCheck)
@@ -192,7 +202,7 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
           section_image: data.images.filter(img => img instanceof File) as File[]
         }
 
-        const response = await addSection(payload) as any
+        const response = (await addSection(payload)) as any
         if (response?.success) {
           Toaster({ type: 'success', message: response?.message })
           setShowAddSectionDrawer(false)
@@ -207,7 +217,9 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
       }
     } catch (error) {
       console.error('Error submitting form:', error)
-      toast.error(isEditMode ? 'An error occurred while updating the section' : 'An error occurred while creating the section')
+      toast.error(
+        isEditMode ? 'An error occurred while updating the section' : 'An error occurred while creating the section'
+      )
     } finally {
       setLoading(false)
     }
@@ -218,10 +230,10 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
 
     setDeleteLoading(true)
     try {
-      const response = await deleteSection({ section_id: sectionData.section_id }) as any
+      const response = (await deleteSection({ section_id: sectionData.section_id })) as any
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Section Deleted Successfully' })
+        Toaster({ type: 'success', message: t('housing_module.section_deleted') })
         setShowDeleteDialog(false)
         setShowAddSectionDrawer(false)
         router.push(`/housing/sites/${sectionData.section_site_id}`)
@@ -304,243 +316,247 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
           py: 4
         }}
       >
-        <form id="section-form" onSubmit={handleSubmit(onSubmit)}>
-              <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
-                Section Name & Image
-              </Typography>
-              <Box
-                sx={{
-                  p: 4,
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderRadius: 1,
-                  bgcolor: theme.palette.customColors?.OnPrimary,
-                  mb: 6
-                }}
-              >
-                <Controller
-                  name='sectionName'
-                  control={control}
-                  rules={{
-                    required: 'Section Name is required'
-                  }}
-                  render={({ field, fieldState: { error } }) => (
-                    <TextField
-                      {...field}
-                      label='Enter Section Name'
-                      variant='outlined'
-                      fullWidth
-                      sx={{ mb: 4 }}
-                      placeholder='Enter Section Name'
-                      error={!!error}
-                      helperText={error ? error.message : null}
-                    />
-                  )}
+        <form id='section-form' onSubmit={handleSubmit(onSubmit)}>
+          <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
+            {t('housing_module.section_name_image')}
+          </Typography>
+          <Box
+            sx={{
+              p: 4,
+              border: `1px solid ${theme.palette.divider}`,
+              borderRadius: 1,
+              bgcolor: theme.palette.customColors?.OnPrimary,
+              mb: 6
+            }}
+          >
+            <Controller
+              name='sectionName'
+              control={control}
+              rules={{
+                required: 'Section Name is required'
+              }}
+              render={({ field, fieldState: { error } }) => (
+                <TextField
+                  {...field}
+                  label={t('housing_module.enter_section_name')}
+                  variant='outlined'
+                  fullWidth
+                  sx={{ mb: 4 }}
+                  placeholder={t('housing_module.enter_section_name') as string}
+                  error={!!error}
+                  helperText={error ? error.message : null}
                 />
-                {images.length > 0 && (
-                  <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                    {images.map((img, index) => {
-                      const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
+              )}
+            />
+            {images.length > 0 && (
+              <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                {images.map((img, index) => {
+                  const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
 
-                      return (
-                        <Box
-                          key={index}
-                          sx={{
-                            position: 'relative',
-                            width: 100,
-                            height: 100,
-                            borderRadius: 1,
-                            bgcolor: theme.palette.customColors?.displaybgPrimary,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                        >
-                          <img
-                            src={previewUrl}
-                            alt={`Cluster ${index}`}
-                            style={{
-                              width: 80,
-                              height: 80,
-                              objectFit: 'cover',
-                              borderRadius: '50%',
-                              display: 'block'
-                            }}
-                          />
-                          <IconButton
-                            size='small'
-                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                              e.stopPropagation()
-                              handleRemoveImage(index)
-                            }}
-                            sx={{
-                              position: 'absolute',
-                              top: 6,
-                              right: 6,
-                              background: theme.palette.customColors?.secondaryBg,
-                              color: theme.palette.customColors?.OnPrimary,
-                              width: 24,
-                              height: 24,
-                              zIndex: 1,
-                              '&:hover': {
-                                background: theme.palette.customColors?.OnSurfaceVariant
-                              }
-                            }}
-                          >
-                            <Icon icon='mdi:close' fontSize={18} />
-                          </IconButton>
-                        </Box>
-                      )
-                    })}
-                  </Box>
-                )}
-                <Controller
-                  name='images'
-                  control={control}
-                  render={({ fieldState: { error } }) => (
-                    <Box>
-                      <Box
+                  return (
+                    <Box
+                      key={index}
+                      sx={{
+                        position: 'relative',
+                        width: 100,
+                        height: 100,
+                        borderRadius: 1,
+                        bgcolor: theme.palette.customColors?.displaybgPrimary,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <img
+                        src={previewUrl}
+                        alt={`Cluster ${index}`}
+                        style={{
+                          width: 80,
+                          height: 80,
+                          objectFit: 'cover',
+                          borderRadius: '50%',
+                          display: 'block'
+                        }}
+                      />
+                      <IconButton
+                        size='small'
+                        onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                          e.stopPropagation()
+                          handleRemoveImage(index)
+                        }}
                         sx={{
-                          border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
-                          borderRadius: 1.2,
-                          p: 2,
-                          textAlign: 'center',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 2,
+                          position: 'absolute',
+                          top: 6,
+                          right: 6,
+                          background: theme.palette.customColors?.secondaryBg,
+                          color: theme.palette.customColors?.OnPrimary,
+                          width: 24,
+                          height: 24,
+                          zIndex: 1,
                           '&:hover': {
-                            bgcolor: theme.palette.grey[100],
-                            borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
+                            background: theme.palette.customColors?.OnSurfaceVariant
                           }
                         }}
-                        onClick={() => fileInputRef.current?.click()}
-                        onDrop={(e: React.DragEvent<HTMLDivElement>) => {
-                          e.preventDefault()
-                          handleFilesChange(e.dataTransfer.files)
-                        }}
-                        onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
                       >
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            opacity: 0.6,
-                            gap: 2
-                          }}
-                        >
-                          <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
-                          <Typography variant='body2' color='textSecondary' sx={{ fontWeight: 400 }}>
-                            Drop your images here
-                          </Typography>
-                        </Box>
-
-                        <input
-                          type='file'
-                          accept='image/*'
-                          multiple
-                          ref={fileInputRef}
-                          style={{ display: 'none' }}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilesChange(e.target.files)}
-                        />
-                      </Box>
-                      {error && (
-                        <Typography variant='caption' color='error' sx={{ mt: 1, display: 'block' }}>
-                          {error.message}
-                        </Typography>
-                      )}
+                        <Icon icon='mdi:close' fontSize={18} />
+                      </IconButton>
                     </Box>
-                  )}
-                />
+                  )
+                })}
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 5 }}>
-                <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary', mt: 4 }}>
-                  Add Location
-                </Typography>
+            )}
+            <Controller
+              name='images'
+              control={control}
+              render={({ fieldState: { error } }) => (
+                <Box>
+                  <Box
+                    sx={{
+                      border: `2px dashed ${
+                        error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant
+                      }`,
+                      borderRadius: 1.2,
+                      p: 2,
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 2,
+                      '&:hover': {
+                        bgcolor: theme.palette.grey[100],
+                        borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
+                      }
+                    }}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDrop={(e: React.DragEvent<HTMLDivElement>) => {
+                      e.preventDefault()
+                      handleFilesChange(e.dataTransfer.files)
+                    }}
+                    onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: 0.6,
+                        gap: 2
+                      }}
+                    >
+                      <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
+                      <Typography variant='body2' color='textSecondary' sx={{ fontWeight: 400 }}>
+                        {t('drop_images_here')}
+                      </Typography>
+                    </Box>
 
-                <Box
-                  onClick={handleClick}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    cursor: 'pointer',
-                    fontFamily: 'Inter',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    mt: 4,
-                    color: 'success.main'
-                  }}
-                >
-                  <Icon icon='ic:baseline-my-location' fontSize={20} />
-                  <Typography variant='caption' sx={{ fontSize: '16px', color: theme.palette.primary.dark }}>
-                    Current Location
-                  </Typography>
+                    <input
+                      type='file'
+                      accept='image/*'
+                      multiple
+                      ref={fileInputRef}
+                      style={{ display: 'none' }}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilesChange(e.target.files)}
+                    />
+                  </Box>
+                  {error && (
+                    <Typography variant='caption' color='error' sx={{ mt: 1, display: 'block' }}>
+                      {error.message}
+                    </Typography>
+                  )}
                 </Box>
-              </Box>
-              <Card sx={{ p: 3, boxShadow: 'none', mt: 3, border: `1px solid ${theme.palette.customColors?.OutlineVariant}` }}>
-                <Controller
-                  name='longitude'
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label='Add Longitude'
-                      variant='outlined'
-                      error={!!errors.longitude}
-                      helperText={errors.longitude?.message}
-                      sx={{
-                        mb: 3,
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '4px',
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: theme.palette.customColors?.OutlineVariant
-                          }
-                        },
-                        '& .MuiInputBase-input': {
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          fontFamily: 'Inter',
-                          color: theme.palette.customColors?.Outline
-                        }
-                      }}
-                    />
-                  )}
-                />
+              )}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 5 }}>
+            <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary', mt: 4 }}>
+              {t('housing_module.add_location')}
+            </Typography>
 
-                <Controller
-                  name='latitude'
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      fullWidth
-                      label='Add Latitude'
-                      variant='outlined'
-                      error={!!errors.latitude}
-                      helperText={errors.latitude?.message}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: '4px',
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: theme.palette.customColors?.OutlineVariant
-                          }
-                        },
-                        '& .MuiInputBase-input': {
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          fontFamily: 'Inter',
-                          color: theme.palette.customColors?.Outline
-                        }
-                      }}
-                    />
-                  )}
+            <Box
+              onClick={handleClick}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                cursor: 'pointer',
+                fontFamily: 'Inter',
+                fontSize: '14px',
+                fontWeight: 500,
+                mt: 4,
+                color: 'success.main'
+              }}
+            >
+              <Icon icon='ic:baseline-my-location' fontSize={20} />
+              <Typography variant='caption' sx={{ fontSize: '16px', color: theme.palette.primary.dark }}>
+                {t('housing_module.current_location')}
+              </Typography>
+            </Box>
+          </Box>
+          <Card
+            sx={{ p: 3, boxShadow: 'none', mt: 3, border: `1px solid ${theme.palette.customColors?.OutlineVariant}` }}
+          >
+            <Controller
+              name='longitude'
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label={t('housing_module.add_longitude')}
+                  variant='outlined'
+                  error={!!errors.longitude}
+                  helperText={errors.longitude?.message}
+                  sx={{
+                    mb: 3,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.customColors?.OutlineVariant
+                      }
+                    },
+                    '& .MuiInputBase-input': {
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      fontFamily: 'Inter',
+                      color: theme.palette.customColors?.Outline
+                    }
+                  }}
                 />
-              </Card>
-            </form>
+              )}
+            />
+
+            <Controller
+              name='latitude'
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  fullWidth
+                  label={t('housing_module.add_latitude')}
+                  variant='outlined'
+                  error={!!errors.latitude}
+                  helperText={errors.latitude?.message}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.customColors?.OutlineVariant
+                      }
+                    },
+                    '& .MuiInputBase-input': {
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      fontFamily: 'Inter',
+                      color: theme.palette.customColors?.Outline
+                    }
+                  }}
+                />
+              )}
+            />
+          </Card>
+        </form>
       </Box>
 
       {/* Footer - Sticky */}
@@ -575,8 +591,8 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({ open, setShowAddSec
         <ConfirmationDialog
           dialogBoxStatus={showDeleteDialog}
           onClose={() => setShowDeleteDialog(false)}
-          title='Delete Section'
-          description='Are you sure you want to delete this section? This action cannot be undone.'
+          title={t('housing_module.delete_section')}
+          description={t('housing_module.confirm_delete_section')}
           image='/images/warning-icon.svg'
           imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
           confirmAction={handleDeleteSection}

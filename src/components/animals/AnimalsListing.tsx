@@ -32,6 +32,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalFilterDrawer from './AnimalFilterDrawer'
 import { format } from 'date-fns'
 import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 
 interface NavigationItem {
   label: string
@@ -168,6 +169,7 @@ const AnimalsListing = () => {
   const router = useSafeRouter()
   const auth = useAuth()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
+  const { t } = useTranslation()
 
   const initialParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
 
@@ -236,13 +238,13 @@ const AnimalsListing = () => {
   const handleRowClick = (params: any) => {
     const animalId = params?.row?.animal_id || params?.id
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 
   const handleAnimalCardClick = (animalId: number | string) => {
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 
@@ -419,7 +421,7 @@ const AnimalsListing = () => {
     {
       width: 80,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       sortable: false,
       renderCell: (params: any) => (
         <Typography
@@ -432,7 +434,7 @@ const AnimalsListing = () => {
     {
       width: 80,
       field: 'default_icon',
-      headerName: 'Image',
+      headerName: t('image'),
       sortable: false,
       renderCell: (params: any) => <AnimalAvatarCell src={params.row?.default_icon} />
     },
@@ -440,7 +442,7 @@ const AnimalsListing = () => {
       minWidth: 150,
       width: 200,
       field: 'common_name',
-      headerName: 'Common Name',
+      headerName: t('common_name'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell
@@ -454,7 +456,7 @@ const AnimalsListing = () => {
       minWidth: 160,
       width: 200,
       field: 'scientific_name',
-      headerName: 'Scientific Name',
+      headerName: t('scientific_name'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell
@@ -467,7 +469,7 @@ const AnimalsListing = () => {
     {
       width: 150,
       field: 'animal_id',
-      headerName: 'AID',
+      headerName: t('animals_module.aid'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell
@@ -481,7 +483,7 @@ const AnimalsListing = () => {
       minWidth: 160,
       width: 200,
       field: 'primary_identifier',
-      headerName: 'Identifier',
+      headerName: t('identifier'),
       sortable: false,
       renderCell: (params: any) => {
         const name = params.row?.local_identifier_name || params.row?.primary_identifier_name
@@ -516,7 +518,7 @@ const AnimalsListing = () => {
       minWidth: 120,
       width: 200,
       field: 'site_name',
-      headerName: 'Site',
+      headerName: t('housing_module.site'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.site_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -526,7 +528,7 @@ const AnimalsListing = () => {
       minWidth: 120,
       width: 200,
       field: 'section_name',
-      headerName: 'Section',
+      headerName: t('section'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.section_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -536,7 +538,7 @@ const AnimalsListing = () => {
       minWidth: 130,
       width: 200,
       field: 'user_enclosure_name',
-      headerName: 'Enclosure',
+      headerName: t('housing_module.enclosure'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.user_enclosure_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -548,18 +550,18 @@ const AnimalsListing = () => {
     <>
       <Box>
         <Breadcrumbs>
-          <Typography>Animals</Typography>
-          <Typography>Animals List</Typography>
+          <Typography>{t('animals')}</Typography>
+          <Typography>{t('animals_module.animals_list')}</Typography>
         </Breadcrumbs>
         <Card sx={{ mt: 6 }}>
-          <CardHeader title={RenderUtility.pageTitle('Animals')} />
+          <CardHeader title={RenderUtility.pageTitle(t('animals'))} />
           <CardContent>
             <Box sx={{ display: ' flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Search
                 value={searchValue}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                 onClear={handleSearchClear}
-                placeholder='Search animals...'
+                placeholder={t('animals_module.search_animals') as string}
                 width='100%'
                 borderRadius='8px'
               />
@@ -640,7 +642,7 @@ const AnimalsListing = () => {
             )}
             {viewMode === 'Grid' && gridList.length === 0 && !isFetching && (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-                <Typography color='text.secondary'>No animals found</Typography>
+                <Typography color='text.secondary'>{t('animals_module.no_animals_found')}</Typography>
               </Box>
             )}
             {viewMode === 'Grid' ? (
@@ -687,6 +689,7 @@ const AnimalsListing = () => {
                   setPaginationModel={handlePaginationModelChange}
                   handleSortModel={handleSortModel}
                   onRowClick={handleRowClick}
+                  pageSizeOptions={[filters.limit]}
                 />
               </Box>
             )}

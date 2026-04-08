@@ -10,7 +10,7 @@ import {
   FormControl,
   SelectChangeEvent
 } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { getAnimalTransferList, AnimalTransferItem } from 'src/lib/api/housing'
 import AnimalTransferDetailsDrawer from './AnimalTransferDetailsDrawer'
@@ -21,6 +21,7 @@ import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { debounce } from 'lodash'
 import Search from 'src/views/utility/Search'
 import { useAuth } from 'src/hooks/useAuth'
+import { useTranslation } from 'react-i18next'
 
 type TransferTabType = 'intra' | 'inter' | 'external'
 
@@ -38,17 +39,17 @@ interface AnimalTransferListingProps {
 
 // Transfer status configuration matching mobile Config.js TRANSFER_STATUS
 // Basic config for dropdown and name lookup
-const TRANSFER_STATUS = [
-  { id: -1, name: 'Show All', value: 'ALL' },
-  { id: 0, name: 'Awaiting Approval', value: 'PENDING' },
-  { id: 1, name: 'Approved', value: 'APPROVED' },
-  { id: 2, name: 'Rejected', value: 'REJECTED' },
-  { id: 3, name: 'Canceled', value: 'CANCELED' },
-  { id: 4, name: 'Completed', value: 'COMPLETED' },
-  { id: 5, name: 'Allocate', value: 'REACHED_DESTINATION', value1: 'ALLOCATE' },
-  { id: 6, name: 'Received Animals', value: 'RECEIVED_ANIMALS' },
-  { id: 7, name: 'SECURITY CHECKOUT CLEARED', value: 'SECURITY_CHECKOUT_ALLOWED' },
-  { id: 8, name: 'SECURITY CHECKIN CLEARED', value: 'SECURITY_CHECKIN_ALLOWED' }
+const getTransferStatusList = (t: (key: string) => string) => [
+  { id: -1, name: t('show_all'), value: 'ALL' },
+  { id: 0, name: t('housing_module.awaiting_approval'), value: 'PENDING' },
+  { id: 1, name: t('approved'), value: 'APPROVED' },
+  { id: 2, name: t('rejected'), value: 'REJECTED' },
+  { id: 3, name: t('canceled'), value: 'CANCELED' },
+  { id: 4, name: t('completed'), value: 'COMPLETED' },
+  { id: 5, name: t('housing_module.allocate'), value: 'REACHED_DESTINATION', value1: 'ALLOCATE' },
+  { id: 6, name: t('housing_module.received_animals'), value: 'RECEIVED_ANIMALS' },
+  { id: 7, name: t('housing_module.security_checkout_cleared'), value: 'SECURITY_CHECKOUT_ALLOWED' },
+  { id: 8, name: t('housing_module.security_checkin_cleared'), value: 'SECURITY_CHECKIN_ALLOWED' }
 ]
 
 // Returns status colors based on theme
@@ -77,10 +78,10 @@ const getStatusColorsFromTheme = (status: string, theme: Theme): { backgroundCol
 }
 
 // Sub-tabs configuration
-const TRANSFER_TABS = [
-  { id: 'intra', label: 'In-House', icon: 'mdi:arrow-down' },
-  { id: 'inter', label: 'Inter-Site', icon: 'mdi:swap-horizontal' },
-  { id: 'external', label: 'External', icon: 'mdi:location-exit' }
+const getTransferTabs = (t: (key: string) => string) => [
+  { id: 'intra', label: t('housing_module.in_house'), icon: 'mdi:arrow-down' },
+  { id: 'inter', label: t('housing_module.inter_site'), icon: 'mdi:swap-horizontal' },
+  { id: 'external', label: t('housing_module.external'), icon: 'mdi:location-exit' }
 ]
 
 // Mobile allocateButtonCheck function (TransferListCard.js lines 55-66)
@@ -110,7 +111,7 @@ const allocateButtonCheck = (
 
 // Mobile allocateText function (TransferListCard.js lines 68-91)
 // Get status text matching mobile implementation
-const getStatusText = (item: AnimalTransferItem, loggedInUserId?: number | string): string => {
+const getStatusText = (item: AnimalTransferItem, loggedInUserId?: number | string, t?: (key: string) => string): string => {
   const activityStatus = item.activity_status || ''
   const comments = item.comments || ''
   const transferType = item.transfer_type
@@ -122,20 +123,20 @@ const getStatusText = (item: AnimalTransferItem, loggedInUserId?: number | strin
       const userDetails = item.user_details ? JSON.parse(item.user_details) : []
       const userIdNum = loggedInUserId ? parseInt(String(loggedInUserId), 10) : null
       if (userIdNum !== null && userDetails.includes(userIdNum)) {
-        return 'Allocate'
+        return t ? t('housing_module.allocate') : 'Allocate'
       }
     } catch {
       // Ignore JSON parse errors
     }
     // 2. If comments is "Received Animals" and transfer_type is "intra"
     if (transferType === 'intra') {
-      return 'Allocate'
+      return t ? t('housing_module.allocate') : 'Allocate'
     }
   }
 
   // 3. If activity_status is "REACHED_DESTINATION" (independent of comments)
   if (activityStatus === 'REACHED_DESTINATION') {
-    return 'Allocate'
+    return t ? t('housing_module.allocate') : 'Allocate'
   }
 
   // Otherwise use comments field (matching mobile behavior)
@@ -145,14 +146,15 @@ const getStatusText = (item: AnimalTransferItem, loggedInUserId?: number | strin
   }
 
   // Fallback to status name from config
-  const statusConfig = TRANSFER_STATUS.find(s => s.value === activityStatus || (s as any).value1 === activityStatus)
+  const statusList = t ? getTransferStatusList(t) : []
+  const statusConfig = statusList.find(s => s.value === activityStatus || (s as any).value1 === activityStatus)
 
   if (statusConfig) {
     return statusConfig.name
   }
 
   // Final fallback - format the activity_status
-  return activityStatus?.replace(/_/g, ' ') || 'Pending'
+  return activityStatus?.replace(/_/g, ' ') || (t ? t('pending') : 'Pending')
 }
 
 // Get status colors using theme (matching mobile)
@@ -168,11 +170,15 @@ const getStatusColors = (
 }
 
 const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id: siteId } = router.query
   const auth = useAuth()
   const loggedInUserId = (auth as any)?.userData?.user?.user_id
+
+  const TRANSFER_STATUS = useMemo(() => getTransferStatusList(t), [t])
+  const TRANSFER_TABS = useMemo(() => getTransferTabs(t), [t])
 
   const [activeTab, setActiveTab] = useState<TransferTabType>('intra')
   const [loading, setLoading] = useState<boolean>(false)
@@ -339,7 +345,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
     {
       minWidth: 200,
       field: 'request_id',
-      headerName: 'Transfer ID',
+      headerName: t('housing_module.transfer_id'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -369,7 +375,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       minWidth: 150,
       width: 220,
       field: 'destination_name',
-      headerName: 'Destination',
+      headerName: t('housing_module.destination'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -402,7 +408,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       minWidth: 100,
       width: 140,
       field: 'animal_count',
-      headerName: 'Animals',
+      headerName: t('animals'),
       align: 'center' as const,
       headerAlign: 'center' as const,
       sortable: false,
@@ -426,7 +432,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       minWidth: 150,
       width: 180,
       field: 'requested_on',
-      headerName: 'Requested On',
+      headerName: t('housing_module.requested_on'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -450,13 +456,13 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       minWidth: 150,
       width: 300,
       field: 'activity_status',
-      headerName: 'Status',
+      headerName: t('status'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const row = params.row as IndexedTransferItem
-        const statusText = getStatusText(row, loggedInUserId)
+        const statusText = getStatusText(row, loggedInUserId, t)
         const statusColors = getStatusColors(row, loggedInUserId, theme)
 
         return (

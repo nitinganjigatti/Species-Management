@@ -27,6 +27,7 @@ import Image from 'next/image'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { useTranslation } from 'react-i18next'
 
 interface PreparedByUser {
   user_id: string
@@ -69,6 +70,7 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
   fetchAnimalIncidents
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const authData = useContext(AuthContext)
 
@@ -231,7 +233,7 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
             whiteSpace: 'nowrap'
           }}
         >
-          Report Escaped/missing
+          {t('animals_module.report_escaped_missing')}
         </Typography>
       </Box>
       <IconButton
@@ -310,14 +312,14 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
                         <Autocomplete
-                          options={['Found', 'Missing']} // Static options
+                          options={[t('animals_module.found') as string, t('animals_module.missing') as string]} // Static options
                           value={value || null} // Bind to form value
                           onChange={(e: React.SyntheticEvent, val: string | null) => onChange(val || '')} // Update on selection
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Incident Type *'
-                              placeholder='Search & Select'
+                              label={t('animals_module.incident_type') as string}
+                              placeholder={t('search_and_select') as string}
                               error={Boolean(errors.incidentType)}
                               helperText={errors?.incidentType?.message}
                               sx={{
@@ -349,8 +351,8 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Misreported by *'
-                              placeholder='Search & Select'
+                              label={t('animals_module.misreported_by') as string}
+                              placeholder={t('search_and_select') as string}
                               error={Boolean(errors.misReportedBy)}
                               helperText={errors?.misReportedBy?.message}
                               sx={{
@@ -375,7 +377,7 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Notes
+                  {t('notes')}
                 </Typography>
 
                 <Box
@@ -399,8 +401,8 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
                           {...field}
                           multiline
                           rows={3}
-                          label='Write notes here'
-                          placeholder='Write notes here'
+                          label={t('animals_module.write_notes_placeholder') as string}
+                          placeholder={t('animals_module.write_notes_placeholder') as string}
                           error={Boolean(errors.notes)}
                           helperText={errors.notes?.message}
                           sx={{
@@ -464,7 +466,7 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
             disabled={uploadingAttachment}
             loading={uploadingAttachment}
           >
-            Submit
+            {t('submit')}
           </LoadingButton>
         </Box>
       </form>

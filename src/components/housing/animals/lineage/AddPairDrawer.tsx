@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Button, CircularProgress, IconButton, Drawer, Card } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import {
@@ -68,6 +69,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
   editData = null
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   // Form state
   const [selectedAnimal, setSelectedAnimal] = useState<SelectedAnimal | null>(null)
@@ -265,7 +267,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
     site_name: animal.site_name
   })
 
-  const title = editMode ? 'Edit Pair' : 'Add Pair'
+  const title = editMode ? t('animals_module.edit_pair') : t('animals_module.add_pair')
   const isFormValid = selectedAnimal || editMode
 
   return (
@@ -337,7 +339,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                {selectedAnimal ? 'Paired With' : 'Pair'}
+                {selectedAnimal ? t('animals_module.paired_with') : t('animals_module.pair')}
               </Typography>
             </Box>
 
@@ -366,7 +368,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
                       }
                 }}
               >
-                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.primary.main }}>Select Animal</Typography>
+                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.primary.main }}>{t('animals_module.select_animal')}</Typography>
                 <AddIcon sx={{ color: theme.palette.primary.main }} />
               </Box>
             ) : (
@@ -421,7 +423,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Paired Duration
+                {t('animals_module.paired_duration')}
               </Typography>
             </Box>
 
@@ -441,7 +443,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
               <ControlledSwitch
                 name='isCurrentlyPaired'
                 control={control}
-                label='Currently Paired'
+                label={t('animals_module.currently_paired') as string}
                 labelPosition='start'
                 spaceBetween
                 sx={{ width: '100%', m: 0 }}
@@ -456,13 +458,13 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
             {/* Date Pickers - Side by Side */}
             <Box sx={{ display: 'flex', gap: 3 }}>
               <Box sx={{ flex: 1 }}>
-                <ControlledDatePicker name='startDate' control={control} label='Start Date' size='medium' />
+                <ControlledDatePicker name='startDate' control={control} label={t('start_date') as string} size='medium' />
               </Box>
               <Box sx={{ flex: 1 }}>
                 <ControlledDatePicker
                   name='endDate'
                   control={control}
-                  label='End Date'
+                  label={t('end_date') as string}
                   disabled={isCurrentlyPaired}
                   minDate={startDate || undefined}
                   size='medium'
@@ -501,7 +503,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
             }}
             onClick={onClose}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
           <Button
             variant='contained'
@@ -511,7 +513,7 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
             disabled={loading || !isFormValid}
             sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.customColors?.OnPrimaryContainer }}
           >
-            {loading ? <CircularProgress size={24} color='inherit' /> : 'DONE'}
+            {loading ? <CircularProgress size={24} color='inherit' /> : t('done')}
           </Button>
         </Box>
       </Drawer>
@@ -521,8 +523,8 @@ const AddPairDrawer: React.FC<AddPairDrawerProps> = ({
         open={animalDrawerOpen}
         onClose={() => setAnimalDrawerOpen(false)}
         onSelect={handleAnimalSelect}
-        title='Select Animal'
-        btnText='SELECT'
+        title={t('animals_module.select_animal') as string}
+        btnText={t('select') as string}
         selectionMode='single'
         extraParams={animalDrawerParams}
         zIndex={1300}

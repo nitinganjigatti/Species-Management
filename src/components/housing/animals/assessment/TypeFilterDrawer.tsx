@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Drawer,
@@ -28,6 +29,7 @@ const TypeFilterDrawer: React.FC<TypeFilterDrawerProps> = ({
   onApplyFilter
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   // Local state for selection (before applying)
   const [localSelectedIds, setLocalSelectedIds] = useState<string[]>([])
@@ -104,7 +106,7 @@ const TypeFilterDrawer: React.FC<TypeFilterDrawerProps> = ({
                 color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              Filter by Type
+              {t('animals_module.filter_by_type')}
             </Typography>
             <Typography
               sx={{
@@ -114,7 +116,7 @@ const TypeFilterDrawer: React.FC<TypeFilterDrawerProps> = ({
                 mt: 0.5
               }}
             >
-              Total assessment types: {assessmentTypes.length}
+              {t('animals_module.total_assessment_types')} {assessmentTypes.length}
             </Typography>
           </Box>
           <IconButton onClick={onClose}>
@@ -148,7 +150,7 @@ const TypeFilterDrawer: React.FC<TypeFilterDrawerProps> = ({
             onClick={allSelected ? handleClearAll : handleSelectAll}
             sx={{ textTransform: 'none' }}
           >
-            {allSelected ? 'Clear All' : 'Select All'}
+            {allSelected ? t('clear_all') : t('select_all')}
           </Button>
         </Box>
 
@@ -235,7 +237,7 @@ const TypeFilterDrawer: React.FC<TypeFilterDrawerProps> = ({
               }}
             >
               <Typography sx={{ color: theme.palette.text.secondary }}>
-                No assessment types available
+                {t('animals_module.no_assessment_types')}
               </Typography>
             </Box>
           )}
@@ -261,7 +263,7 @@ const TypeFilterDrawer: React.FC<TypeFilterDrawerProps> = ({
             }}
             sx={{ p: 3 }}
           >
-            Clear All
+            {t('clear_all')}
           </Button>
           <Button
             variant='contained'
@@ -269,7 +271,7 @@ const TypeFilterDrawer: React.FC<TypeFilterDrawerProps> = ({
             onClick={handleApply}
             sx={{ p: 3 }}
           >
-            Apply Filter
+            {t('apply_filter')}
           </Button>
         </Box>
       </Box>

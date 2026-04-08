@@ -1,6 +1,6 @@
 import { useTheme, Theme } from '@emotion/react'
 import { Box, Grid, Typography } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
@@ -15,6 +15,7 @@ import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getAnimalTreatmentList, getSectionAnimalTreatmentList } from 'src/lib/api/housing'
 import { useQuery } from '@tanstack/react-query'
 import type { GridSortModel, GridCellParams, GridColDef, GridRowParams } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface TreatmentFilters {
   page: number
@@ -60,7 +61,8 @@ interface GenderLabelsMap {
 }
 
 const AnimalTreatmentListing: React.FC = () => {
-  const router: NextRouter = useRouter()
+  const { t } = useTranslation()
+  const router: any = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as Theme & { palette: any }
 
@@ -157,14 +159,14 @@ const AnimalTreatmentListing: React.FC = () => {
   }
 
   const handleRowClick = (params: GridRowParams): void => {
-    router.push(`/housing/animals/${params.row.animal_id}`)
+    router.push(`/animals/${params.row.animal_id}`)
   }
 
   const columns: GridColDef[] = [
     {
       width: 90,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('s_no') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <Box
@@ -187,7 +189,7 @@ const AnimalTreatmentListing: React.FC = () => {
     {
       width: 350,
       field: 'common_name',
-      headerName: 'SPECIES',
+      headerName: t('species') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -216,7 +218,7 @@ const AnimalTreatmentListing: React.FC = () => {
     {
       width: 250,
       field: 'identifier',
-      headerName: 'ANTZ ANIMAL ID',
+      headerName: t('housing_module.antz_animal_id') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <Box
@@ -245,7 +247,7 @@ const AnimalTreatmentListing: React.FC = () => {
       align: 'left',
       headerAlign: 'left',
       sortable: false,
-      headerName: 'Primary Identifier',
+      headerName: t('housing_module.primary_identifier') as string,
       renderCell: (params: GridCellParams) => {
         const localIdentifierName = params.row.local_identifier_name
         const localIdentifierValue = params.row.local_identifier_value
@@ -283,7 +285,7 @@ const AnimalTreatmentListing: React.FC = () => {
     {
       width: 160,
       field: 'sex',
-      headerName: 'Gender',
+      headerName: t('housing_module.gender') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const gender: string = params.row.sex?.toLowerCase() || ''
@@ -339,7 +341,7 @@ const AnimalTreatmentListing: React.FC = () => {
     {
       width: 250,
       field: 'section_name',
-      headerName: 'Section Name',
+      headerName: t('housing_module.section_name') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -364,7 +366,7 @@ const AnimalTreatmentListing: React.FC = () => {
     {
       width: 250,
       field: 'user_enclosure_name',
-      headerName: 'Enclosure Name',
+      headerName: t('housing_module.enclosure_name') as string,
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -389,14 +391,14 @@ const AnimalTreatmentListing: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title='Animals Under Treatment' totalCount={total} />
+      <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

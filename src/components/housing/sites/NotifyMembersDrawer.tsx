@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -42,6 +43,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
   noteTypeId,
   onMembersConfirmed
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
@@ -215,7 +217,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Add Users
+                {t('housing_module.add_users')}
               </Typography>
             </Box>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -244,7 +246,9 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Icon icon='mdi:magnify' fontSize={24} color={theme.palette.text.secondary} />
-                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '1rem' }}>Search People</Typography>
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '1rem' }}>
+                  {t('housing_module.search_people')}
+                </Typography>
               </Box>
               {/* <Icon icon='mdi:qrcode-scan' fontSize={24} color={theme.palette.text.secondary} /> */}
             </Box>
@@ -277,7 +281,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                         color: theme.palette.customColors?.OnSurfaceVariant
                       }}
                     >
-                      Selected Users - {localSelectedMembers.length}
+                      {t('housing_module.selected_users')} - {localSelectedMembers.length}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -334,7 +338,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                     fontSize: '0.875rem'
                   }}
                 >
-                  Save new group
+                  {t('housing_module.save_new_group')}
                 </Button>
                 <Button
                   size='small'
@@ -346,7 +350,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                     fontSize: '0.875rem'
                   }}
                 >
-                  Clear Selection
+                  {t('clear_selection')}
                 </Button>
               </Box>
             )}
@@ -361,13 +365,13 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                   mb: 3
                 }}
               >
-                Pre-defined Groups
+                {t('housing_module.predefined_groups')}
               </Typography>
 
               {/* Search Templates */}
               <Box sx={{ mb: 3 }}>
                 <Search
-                  placeholder='Search Groups'
+                  placeholder={t('housing_module.search_groups') as string}
                   value={searchQuery}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                   onClear={() => setSearchQuery('')}
@@ -408,7 +412,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                       fontSize: '0.875rem'
                     }}
                   >
-                    {searchQuery ? 'No groups found' : 'No pre-defined groups available'}
+                    {searchQuery ? t('housing_module.no_groups_found') : t('housing_module.no_predefined_groups')}
                   </Typography>
                 </Box>
               ) : (
@@ -476,7 +480,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                 color: theme.palette.customColors?.OnSurface
               }}
             >
-              Selected - {localSelectedMembers.length}
+              {t('selected')} - {localSelectedMembers.length}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
               <Button
@@ -489,10 +493,10 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                   height: '56px'
                 }}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button variant='contained' fullWidth onClick={handleAdd} sx={{ height: '56px' }}>
-                Add
+                {t('add')}
               </Button>
             </Box>
           </Box>
@@ -528,13 +532,13 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
               color: theme.palette.customColors?.OnSurfaceVariant
             }}
           >
-            Enter new group name
+            {t('housing_module.enter_group_name')}
           </Typography>
           <TextField
             autoFocus
             fullWidth
             size='small'
-            placeholder='Group name'
+            placeholder={t('housing_module.group_name') as string}
             value={groupName}
             onChange={e => setGroupName(e.target.value)}
           />
@@ -550,10 +554,10 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
               color: theme.palette.customColors?.OnPrimaryContainer
             }}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleSaveGroup} variant='contained' disabled={savingGroup} sx={{ textTransform: 'none' }}>
-            {savingGroup ? <CircularProgress size={20} color='inherit' /> : 'Confirm'}
+            {savingGroup ? <CircularProgress size={20} color='inherit' /> : t('confirm')}
           </Button>
         </DialogActions>
       </Dialog>

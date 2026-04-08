@@ -16,6 +16,7 @@ import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import {
   StyledTypographyProps,
   LitterItem,
@@ -32,14 +33,15 @@ export interface AddOffspringPayload {
   father_id?: string | number
 }
 
-const options = [
-  { label: 'Existing', value: 'existing' },
-  { label: 'Create new', value: 'createNew' }
-]
-
 const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsDetails }: AddOffspringDrawerProps) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const authData = useContext(AuthContext)
+
+  const options = [
+    { label: t('animals_module.existing'), value: 'existing' },
+    { label: t('animals_module.create_new'), value: 'createNew' }
+  ]
 
   const zooId = (authData as any)?.userData?.user?.zoos[0]?.zoo_id
 
@@ -244,7 +246,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
             <Typography
               sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Add Offspring
+              {t('animals_module.add_offspring')}
             </Typography>
 
             <IconButton size='small' onClick={onClose} sx={{ color: theme.palette.text.primary }}>
@@ -271,12 +273,12 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
               <Card sx={{ padding: 4, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
                   <Icon icon='ph:paw-print' fontSize={24} />
-                  <StyledTypography fontWeight={600}>Add Litter Details</StyledTypography>
+                  <StyledTypography fontWeight={600}>{t('animals_module.add_litter_details')}</StyledTypography>
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   {recentLitter?.litter_id ? (
                     <>
-                      <StyledTypography fontSize={'14px'}>Recent Litter Details</StyledTypography>
+                      <StyledTypography fontSize={'14px'}>{t('animals_module.recent_litter_details')}</StyledTypography>
                       <Box
                         sx={{
                           display: 'flex',
@@ -326,7 +328,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                     {selectedOption === 'existing' && (
                       <Grid size={12}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                          <StyledTypography fontWeight={600}>Litter*</StyledTypography>
+                          <StyledTypography fontWeight={600}>{t('animals_module.litter')}*</StyledTypography>
                           <Box
                             sx={{
                               display: 'flex',
@@ -402,7 +404,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                                       color: theme.palette.customColors.OnPrimaryContainer
                                     }}
                                   >
-                                    Select Litter
+                                    {t('animals_module.select_litter')}
                                   </Typography>
                                   <Icon icon={'iconamoon:arrow-down-2-duotone'} />
                                 </Box>
@@ -416,7 +418,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                                 color: theme.palette.error.main
                               }}
                             >
-                              Please select litter
+                              {t('animals_module.please_select_litter')}
                             </Typography>
                           )}
                         </Box>
@@ -463,7 +465,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                         <Box sx={{ px: 4, pb: 4 }}>
                           <Search
                             width={'100%'}
-                            placeholder='Search '
+                            placeholder={t('search') as string}
                             value={searchInput}
                             onChange={handleSearchLitter}
                             onClear={handleSearchLitterClear}
@@ -516,7 +518,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                                             color: theme.palette.customColors.OnPrimaryContainer
                                           }}
                                         >
-                                          Litter {item?.litter_id}
+                                          {t('animals_module.litter')} {item?.litter_id}
                                         </Typography>
                                         <Box
                                           sx={{
@@ -563,7 +565,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                             sx={{ flex: 1, py: 4 }}
                             disabled={!tempSelectedLitter?.litter_id}
                           >
-                            Select
+                            {t('select')}
                           </LoadingButton>
                         </Box>
                       </Drawer>
@@ -575,7 +577,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
               <Card sx={{ padding: 4, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
                   <Icon icon='mynaui:male' fontSize={24} />
-                  <StyledTypography fontWeight={600}>Select Sire (optional)</StyledTypography>
+                  <StyledTypography fontWeight={600}>{t('animals_module.select_sire_optional')}</StyledTypography>
                 </Box>
                 {!selectedSire && (
                   <Box
@@ -601,7 +603,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                         color: theme.palette.customColors.OnPrimaryContainer
                       }}
                     >
-                      Select Animal
+                      {t('animals_module.select_animal')}
                     </Typography>
                     <Icon icon={'simple-line-icons:plus'} color={theme.palette.customColors.addPrimary} />
                   </Box>
@@ -648,7 +650,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
               <Card sx={{ padding: 4, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
                   <Icon icon='ph:paw-print' fontSize={24} />
-                  <StyledTypography fontWeight={600}>Offspring*</StyledTypography>
+                  <StyledTypography fontWeight={600}>{t('animals_module.offspring')}*</StyledTypography>
                 </Box>
                 {!selectedOffspring.length && (
                   <>
@@ -675,7 +677,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                           color: theme.palette.customColors.OnPrimaryContainer
                         }}
                       >
-                        Select Animal
+                        {t('animals_module.select_animal')}
                       </Typography>
                       <Icon icon={'simple-line-icons:plus'} color={theme.palette.customColors.addPrimary} />
                     </Box>
@@ -687,7 +689,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                           color: theme.palette.error.main
                         }}
                       >
-                        Please select offspring
+                        {t('animals_module.please_select_offspring')}
                       </Typography>
                     )}
                   </>
@@ -718,7 +720,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                           fontSize: '1rem'
                         }}
                       >
-                        Selected - {selectedOffspring.length}
+                        {t('selected')} - {selectedOffspring.length}
                       </Typography>
                       <IconButton
                         size='small'
@@ -798,7 +800,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                 (selectedOption === 'existing' && (!selectedLitter || !selectedOffspring.length))
               }
             >
-              Done
+              {t('done')}
             </LoadingButton>
           </Box>
         </Box>
