@@ -9,7 +9,7 @@ import NProgress from 'nprogress'
 import { CacheProvider } from '@emotion/react'
 
 // ** Config Imports
-// import 'src/configs/i18n'
+import 'src/configs/i18n'
 import { defaultACLObj } from 'src/configs/acl'
 import themeConfig from 'src/configs/themeConfig'
 
@@ -59,6 +59,7 @@ import { EggProvider } from 'src/context/EggContext'
 import { PariveshProvider } from 'src/context/PariveshContext'
 import { AnimalProvider } from 'src/context/AnimalContext'
 import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
+import { LanguageProvider } from 'src/context/LanguageContext'
 
 // Redux
 import { Provider } from 'react-redux'
@@ -112,59 +113,61 @@ const App = props => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        <CacheProvider value={emotionCache}>
-          <Head>
-            <title>{`${themeConfig.templateName}`}</title>
-            <meta name='description' content={`${themeConfig.templateName}`} />
-            <meta name='viewport' content='initial-scale=1, width=device-width' />
-          </Head>
-          <HospitalProvider>
-            <NecropsyProvider>
-              <PariveshProvider>
-                <AnimalProvider>
-                  <PharmacyProvider>
-                    <DynamicStatesProvider>
-                      <EggProvider>
-                        <ForgotPasswordProvider>
-                          <AuthProvider>
-                            <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-                              <SettingsConsumer>
-                                {({ settings }) => {
-                                  return (
-                                    <ThemeComponent settings={settings}>
-                                      <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                                        <AclGuard
-                                          aclAbilities={aclAbilities}
-                                          guestGuard={guestGuard}
-                                          authGuard={authGuard}
-                                        >
-                                          {getLayout(<Component {...pageProps} />)}
-                                        </AclGuard>
-                                      </Guard>
-                                      <ReactHotToast>
-                                        <Toaster
-                                          position={settings.toastPosition}
-                                          containerClassName='react-hot-toast-container'
-                                          toastOptions={{ className: 'react-hot-toast' }}
-                                        />
-                                      </ReactHotToast>
-                                    </ThemeComponent>
-                                  )
-                                }}
-                              </SettingsConsumer>
-                            </SettingsProvider>
-                          </AuthProvider>
-                        </ForgotPasswordProvider>
-                      </EggProvider>
-                    </DynamicStatesProvider>
-                  </PharmacyProvider>
-                </AnimalProvider>
-              </PariveshProvider>
-            </NecropsyProvider>
-          </HospitalProvider>
-        </CacheProvider>
-      </Provider>
+      <LanguageProvider>
+        <Provider store={store}>
+          <CacheProvider value={emotionCache}>
+            <Head>
+              <title>{`${themeConfig.templateName}`}</title>
+              <meta name='description' content={`${themeConfig.templateName}`} />
+              <meta name='viewport' content='initial-scale=1, width=device-width' />
+            </Head>
+            <HospitalProvider>
+              <NecropsyProvider>
+                <PariveshProvider>
+                  <AnimalProvider>
+                    <PharmacyProvider>
+                      <DynamicStatesProvider>
+                        <EggProvider>
+                          <ForgotPasswordProvider>
+                            <AuthProvider>
+                              <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+                                <SettingsConsumer>
+                                  {({ settings }) => {
+                                    return (
+                                      <ThemeComponent settings={settings}>
+                                        <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                                          <AclGuard
+                                            aclAbilities={aclAbilities}
+                                            guestGuard={guestGuard}
+                                            authGuard={authGuard}
+                                          >
+                                            {getLayout(<Component {...pageProps} />)}
+                                          </AclGuard>
+                                        </Guard>
+                                        <ReactHotToast>
+                                          <Toaster
+                                            position={settings.toastPosition}
+                                            containerClassName='react-hot-toast-container'
+                                            toastOptions={{ className: 'react-hot-toast' }}
+                                          />
+                                        </ReactHotToast>
+                                      </ThemeComponent>
+                                    )
+                                  }}
+                                </SettingsConsumer>
+                              </SettingsProvider>
+                            </AuthProvider>
+                          </ForgotPasswordProvider>
+                        </EggProvider>
+                      </DynamicStatesProvider>
+                    </PharmacyProvider>
+                  </AnimalProvider>
+                </PariveshProvider>
+              </NecropsyProvider>
+            </HospitalProvider>
+          </CacheProvider>
+        </Provider>
+      </LanguageProvider>
     </QueryClientProvider>
   )
 }

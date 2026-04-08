@@ -55,6 +55,7 @@ import {
 } from 'src/lib/api/hospital/surgeryMaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { borderRadius } from '@mui/system'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const FORM_ID = 'add-surgery-record-form'
 
@@ -236,7 +237,6 @@ const schema = yup.object().shape({
   startTime: yup.mixed().test('start-required', 'Start time is required', value => Boolean(value)).when('date', (date, schema) =>
       schema.test('starttime', function (value) {
         if (!value || !date) return true
-        console.log("Time field value:", value)
   
         const selectedStartDate = dayjs(date)
         const selectedStartTime = dayjs(value)
@@ -244,8 +244,10 @@ const schema = yup.object().shape({
         const patientData = this.options?.context?.patientData
         if (!patientData) return true
   
-        const admittedAt = dayjs.utc(patientData.admitted_at).local()
-        const dischargeAt = dayjs.utc(patientData.discharge_at).local()
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData.admitted_at))
+        // dayjs.utc(patientData.admitted_at).local()
+        const dischargeAt = dayjs(Utility.convertUTCToLocal(patientData.discharge_at))
+        // dayjs.utc(patientData.discharge_at).local()
         const now = dayjs()
   
         const selectedDateTime = selectedStartDate.hour(selectedStartTime.hour()).minute(selectedStartTime.minute()).second(0)
@@ -887,14 +889,16 @@ const AddSurgeryRecord = () => {
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
   const maxDate = useMemo(
-    () => (patientData?.discharge_at ? dayjs.utc(patientData.discharge_at).local() : dayjs()),
+    () => (patientData?.discharge_at ? dayjs(Utility.convertUTCToLocal(patientData.discharge_at)): dayjs()),
+      // dayjs.utc(patientData.discharge_at).local()
     [patientData?.discharge_at]
   )
 
     const minTime = useMemo(() => {
     if (!patientData?.admitted_at || !selectedDate) return null
   
-    const admitted = dayjs.utc(patientData.admitted_at).local()
+    const admitted = dayjs(Utility.convertUTCToLocal(patientData.admitted_at))
+    // dayjs.utc(patientData.admitted_at).local()
   
     if (dayjs(selectedDate).isSame(admitted, 'day')) {
       return dayjs()
@@ -909,7 +913,8 @@ const AddSurgeryRecord = () => {
   const maxTime = useMemo(() => {
     if (!patientData?.discharge_at || !selectedDate) return null
   
-    const discharge = dayjs.utc(patientData.discharge_at).local()
+    const discharge = dayjs(Utility.convertUTCToLocal(patientData.discharge_at))
+    // dayjs.utc(patientData.discharge_at).local()
   
     if (dayjs(selectedDate).isSame(discharge, 'day')) {
       const startLimit = discharge.subtract(1, 'hour')
@@ -927,7 +932,8 @@ const AddSurgeryRecord = () => {
   useEffect(() => {
     if (!isEditMode && patientData && !isDefaultDateSetRef.current) {
       if (patientData.discharge_at) {
-        const dischargeDt = dayjs.utc(patientData.discharge_at).local()
+        const dischargeDt = dayjs(Utility.convertUTCToLocal(patientData.discharge_at))
+        // dayjs.utc(patientData.discharge_at).local()
         setValue('date', dischargeDt, { shouldValidate: true })
         // Start time should be 1 hour before discharge time
         // End time should be exact discharge time
@@ -1325,27 +1331,10 @@ const AddSurgeryRecord = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumbs aria-label='breadcrumb'>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Hospital</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Patients</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Mortality</Typography>
-        <Typography
-          color={theme.palette.customColors.neutralSecondary}
-          sx={{ cursor: 'pointer' }}
-          onClick={handleNavigateBack}
-        >
-          Details
-        </Typography>
-
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            cursor: 'pointer'
-          }}
-        >
-          {isEditMode ? 'Edit Surgery' : 'Add Surgery'}
-        </Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        sx={{ mb: 0 }}
+        lastBreadcrumbLabel={isEditMode ? 'Edit Surgery' : 'Add Surgery' }
+      />
 
       <Card
         sx={{

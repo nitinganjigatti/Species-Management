@@ -1,4 +1,4 @@
-import { Box, Breadcrumbs, Typography, Tabs, Tab, Card, useTheme } from '@mui/material'
+import { Box, Breadcrumbs, Typography, Tabs, Tab, Card, useTheme, CircularProgress } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useMemo, useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -11,7 +11,7 @@ import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
 
 import { useQuery } from '@tanstack/react-query'
-import { getSectionAnalytics } from 'src/lib/api/housing'
+import { getSectionAnalytics, getEntityPermissionCheck } from 'src/lib/api/housing'
 import EnclosureListing from 'src/components/housing/sections/EnclosureListing'
 import MediaListing from 'src/components/housing/sections/MediaListing'
 import MortalityListing from 'src/components/housing/sections/MortalityListing'
@@ -23,6 +23,7 @@ import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureD
 import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 interface TabConfigItem {
   label: string
@@ -72,6 +73,10 @@ const SectionDetails: React.FC = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query as { id?: string }
+
+  // Entity permission check states
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null)
+  const [showAccessRestricted, setShowAccessRestricted] = useState<boolean>(false)
 
   const [selectedTab, setSelectedTab] = useState<string>(allTabConfig[0].value)
   const [drawerType, setDrawerType] = useState<string | null>(null)
@@ -228,6 +233,63 @@ const SectionDetails: React.FC = () => {
     }
   }, [tabConfig, selectedTab])
 
+  // Fetch entity permission check
+  useEffect(() => {
+    const fetchEntityPermission = async (): Promise<void> => {
+      if (!id) return
+
+      try {
+        const response = await getEntityPermissionCheck({
+          entity_type: 'section',
+          entity_id: Number(id)
+        })
+
+        if (response?.success) {
+          if (response?.data?.hasPermission === 1) {
+            setHasPermission(true)
+          } else {
+            setHasPermission(false)
+            setShowAccessRestricted(true)
+          }
+        } else {
+          setHasPermission(false)
+          setShowAccessRestricted(true)
+        }
+      } catch (error) {
+        console.error('Error fetching entity permission:', error)
+        setHasPermission(false)
+        setShowAccessRestricted(true)
+      }
+    }
+
+    fetchEntityPermission()
+  }, [id])
+
+  // Handle access restricted confirmation
+  const handleAccessRestrictedConfirmation = (): void => {
+    setShowAccessRestricted(false)
+    router.push('/housing/sites')
+  }
+
+  // Show loading state while checking permission
+  if (hasPermission === null) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '400px',
+          width: '100%',
+          gap: 3
+        }}
+      >
+        <CircularProgress size={60} />
+      </Box>
+    )
+  }
+
   return (
     <>
       <Box>
@@ -349,6 +411,39 @@ const SectionDetails: React.FC = () => {
             section_longitude: (data?.data as any)?.section_longitude,
             images: (data?.data as any)?.images
           } : null}
+        />
+      )}
+      {showAccessRestricted && (
+        <ConfirmationDialog
+          dialogBoxStatus={showAccessRestricted}
+          onClose={() => setShowAccessRestricted(false)}
+          title={'Access Restricted'}
+          cancelBtnStyle={{
+            borderColor: theme.palette.grey[500],
+            color: theme.palette.grey[700]
+          }}
+          confirmBtnStyle={{
+            background: theme.palette.primary.main,
+            py: 2
+          }}
+          image={'/images/warning-icon.svg'}
+          imgStyle={{
+            background: theme.palette.grey[200],
+            p: 4
+          }}
+          confirmAction={handleAccessRestrictedConfirmation}
+          ConfirmationText={'OK'}
+          description={
+            <Box>
+              <Typography variant='body1' sx={{ mb: 1 }}>
+                You don't have permission to access this section.
+              </Typography>
+              <Typography variant='body2' color='text.secondary'>
+                Please contact your administrator or request access to proceed.
+              </Typography>
+            </Box>
+          }
+          allowCancel={false}
         />
       )}
     </>

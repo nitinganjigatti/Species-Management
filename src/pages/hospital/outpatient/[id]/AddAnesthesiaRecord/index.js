@@ -2066,7 +2066,7 @@ export default function AddAnesthesiaRecord() {
           pageItems={[
             { title: 'Hospital' },
             { title: 'Patients' },
-            { title: 'Discharged' },
+            { title: 'Outpatients' },
             { title: 'Details', onClick: handleCancel },
             { title: 'Add Anesthesia' }
           ]}

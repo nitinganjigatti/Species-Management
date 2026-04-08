@@ -41,6 +41,7 @@ export default function SymptomsList({
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const userSettings = authData?.userData?.permission?.user_settings
+  const listHeight = 620
 
   return (
     <Box sx={{ pt: 1 }}>
@@ -169,14 +170,14 @@ export default function SymptomsList({
         <Box sx={{ minWidth: '177px', textAlign: 'left' }}>TYPE</Box>
       </Box>
 
-      <Box sx={{ maxHeight: 500, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
+      <Box sx={{ maxHeight: listHeight, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
         {searching ? (
           <ClinicalAssessmentListShimmer rows={8} />
         ) : symptoms.length === 0 && !loading ? (
           <Box
             sx={{
               background: theme.palette.common.white,
-              height: 500,
+              height: listHeight,
               borderRadius: '8px',
               display: 'flex',
               flexDirection: 'column',

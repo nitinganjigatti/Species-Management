@@ -1,13 +1,13 @@
 import {
-  GET_ALL_USERS,
   GET_ANIMAL_FILTERS_LISTS,
   GET_ANIMAL_LIST_FOR_OBSERVATION_REPORT,
   GET_KEEPER_REPORT,
   GET_OBSERVATION_REPORT,
   GET_ANIMAL_COUNT_REGISTER,
-  COMPLIANCE_DAILY_REPORT,
-  OBSERVATION_MASTER_TYPE
+  COMPLIANCE_DAILY_REPORT
 } from 'src/constants/ApiConstant'
+import { GET_ALL_USERS } from 'src/constants/housing/commonConstants'
+import { OBSERVATION_MASTER_TYPE } from 'src/constants/housing/observationConstants'
 import { axiosGet, axiosPost } from '../../utility'
 
 export async function getUserListing(params) {

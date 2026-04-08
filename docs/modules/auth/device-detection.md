@@ -30,11 +30,13 @@ Non-secure context (HTTP + IP):
 - **Fingerprint alone** — Could match on identical hardware setups (e.g., team with same laptops).
 - **Combined (hash)** — Single unique `device_id` that leverages both: the UUID ensures uniqueness per browser, and the fingerprint adds hardware-level differentiation. Even if the UUID is regenerated, the fingerprint component keeps the ID partially consistent.
 
-### Encryption
+### Storage
 
-All values stored in `localStorage` and cookies are **encrypted using AES-256-GCM** via the Web Crypto API. This prevents casual inspection of stored data.
+`antz_device_id` is stored as a **plain text SHA-256 hash** in both localStorage and cookies. The hash is the same value sent in the login API payload — no encryption or encoding is applied. Since the device_id is already a non-reversible SHA-256 hash, there is no sensitive data to protect.
 
-**Utility:** `src/utility/cryptoStorage.js`
+`antz_last_logged_user` is **encrypted using AES-256-GCM** via the Web Crypto API (`src/utility/cryptoStorage.js`). This prevents casual inspection of user data.
+
+**Utility:** `src/utility/cryptoStorage.js` (used for `antz_last_logged_user` only)
 
 | Function                               | Description                                                        |
 | -------------------------------------- | ------------------------------------------------------------------ |
@@ -49,7 +51,7 @@ All values stored in `localStorage` and cookies are **encrypted using AES-256-GC
 | `getEncryptedCookie(key)`              | Reads and decrypts a value from a cookie                           |
 | `removeEncryptedCookie(key)`           | Removes a cookie by key                                            |
 
-**How it works (secure context — HTTPS / localhost):**
+**How encryption works for `antz_last_logged_user` (secure context — HTTPS / localhost):**
 
 1. A key is derived from a passphrase using **PBKDF2** (100,000 iterations, SHA-256)
 2. Data is encrypted with **AES-GCM** using a random 12-byte IV
@@ -82,12 +84,12 @@ The Web Crypto API (`crypto.subtle`, `crypto.randomUUID`) is **only available in
 | ---------------------- | -------------------------------------- | ------------------------------------------------------- |
 | UUID generation        | `crypto.randomUUID()`                  | Manual UUID v4 via `Math.random()`                      |
 | Device ID hashing      | SHA-256 via `crypto.subtle.digest()`   | `simpleHash()` — non-cryptographic dual-hash function   |
-| Storage encryption     | AES-256-GCM via `crypto.subtle`        | Base64 obfuscation (readable if inspected, but functional) |
-| Decryption             | AES-GCM first, Base64 fallback         | Base64 decode                                           |
+| device_id storage      | Plain text SHA-256 hash (same as payload) | Plain text simpleHash (same as payload)              |
+| last_logged_user storage | AES-256-GCM via `crypto.subtle`      | Base64 obfuscation (readable if inspected, but functional) |
 | Error handling         | try-catch with fallback                | try-catch with fallback                                 |
 | Login on total failure | Returns minimal device details object  | Login still works, device tracking is degraded          |
 
-> **Important:** The fallback keeps device detection **fully functional** on LAN/dev environments — the device_id is still unique and persistent. The only difference is that stored data is obfuscated (Base64) rather than encrypted (AES). Production should always use HTTPS.
+> **Important:** The fallback keeps device detection **fully functional** on LAN/dev environments — the device_id is still unique and persistent. The `antz_device_id` is stored as plain text (the hash itself is non-reversible). Only `antz_last_logged_user` uses encryption/obfuscation. Production should always use HTTPS.
 
 **Fallback functions in `deviceInfo.js`:**
 
@@ -123,18 +125,17 @@ The Web Crypto API (`crypto.subtle`, `crypto.randomUUID`) is **only available in
 Both `antz_device_id` and `antz_last_logged_user` are stored in **both** localStorage and a cookie:
 
 ```
-┌─────────────────────────┐     ┌──────────────────────────┐
-│   localStorage           │     │      Cookie               │
-│  (encrypted)             │     │   (encrypted)             │
-│  antz_device_id          │     │  antz_device_id           │
-│  antz_last_logged_user   │     │  antz_last_logged_user    │
-│                          │     │  (both survive            │
-│                          │     │   localStorage.clear())   │
-└─────────────────────────┘     └──────────────────────────┘
+┌──────────────────────────────┐     ┌──────────────────────────────┐
+│   localStorage                │     │      Cookie                   │
+│  antz_device_id (plain text)  │     │  antz_device_id (plain text)  │
+│  antz_last_logged_user (enc.) │     │  antz_last_logged_user (enc.) │
+│                               │     │  (both survive                │
+│                               │     │   localStorage.clear())       │
+└──────────────────────────────┘     └──────────────────────────────┘
 ```
 
-**Why?** If the user clears localStorage, the cookies still have both the device UUID and the last logged user info. This means:
-- The **device_id stays the same** (same UUID recovered from cookie + same fingerprint = same hash)
+**Why?** If the user clears localStorage, the cookies still have both the device_id hash and the last logged user info. This means:
+- The **device_id stays the same** (same SHA-256 hash recovered directly from cookie)
 - The system can still **detect user changes** on the same device
 
 ## Utility: `src/utility/deviceInfo.js`
@@ -145,7 +146,7 @@ Returns a device details object:
 
 ```js
 {
-  device_id: string,              // SHA-256 hash of UUID + fingerprint_id
+  device_id: string,              // SHA-256 hash (stored as plain text in localStorage + cookie, same value as payload)
   device_type: string,            // 'web' | 'mobile' | 'tablet' (auto-detected)
   browser_name: string,           // Chrome, Firefox, Safari, Edge
   browser_version: string,        // e.g., '120.0.6099.109'
@@ -169,8 +170,8 @@ Returns a device details object:
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
 | `generateUUID()`                        | Creates UUID — `crypto.randomUUID()` if secure context, manual v4 via `Math.random()` fallback             |
 | `simpleHash(str)`                       | Non-cryptographic dual-hash function for non-secure contexts, returns 16-char hex string                   |
-| `getStoredUUID()`                       | Gets or creates encrypted UUID (localStorage first, cookie fallback), does NOT save. try-catch wrapped     |
-| `saveDeviceId()`                        | Saves device UUID to both localStorage and cookie (called only after login success). try-catch wrapped      |
+| `getStoredDeviceId()`                   | Reads stored device_id hash via `read()` (JSON-wrapped), falls back to raw `localStorage.getItem()` for migration, then cookie fallback. Returns `null` if not found |
+| `saveDeviceId()`                        | Saves the cached device_id hash via `write()` to localStorage and raw to cookie. Called only after login success |
 | `getFingerprintId()`                    | Loads FingerprintJS and returns `visitorId`. Returns `null` on failure                                     |
 | `generateDeviceId(uuid, fingerprintId)` | SHA-256 hash in secure context, `simpleHash()` fallback in non-secure context. try-catch wrapped           |
 | `getDeviceType()`                       | Detects device type: `'web'`, `'mobile'`, or `'tablet'`. Returns `'web'` on failure                        |
@@ -179,12 +180,16 @@ Returns a device details object:
 | `getLastLoggedUser()`                   | Returns the last logged-in user (checks localStorage first, falls back to cookie). Returns `null` on failure |
 | `setLastLoggedUser(userId, userEmail)`  | Saves the current user encrypted in both localStorage and cookie. try-catch wrapped                        |
 
+> **Module-level cache:** A `_cachedDeviceId` variable ensures `getDeviceInfo()` and `saveDeviceId()` always use the exact same device_id. The cache is populated when `getDeviceInfo()` runs and consumed by `saveDeviceId()`.
+
 > **Error handling:** Every function is wrapped in try-catch. No function throws — they all return safe default values on failure. `getDeviceInfo()` itself has a top-level try-catch that returns a minimal device details object if everything fails, ensuring login is never blocked.
 
 ### Dependencies
 
 - `@fingerprintjs/fingerprintjs` (npm package)
-- `crypto.subtle` (Web Crypto API — AES-GCM encryption + SHA-256 hashing + PBKDF2 key derivation) — **optional, with fallbacks for non-secure contexts**
+- `src/lib/windows/utils.js` — `read()` / `write()` for JSON-wrapped localStorage access (used for `antz_device_id`)
+- `src/utility/cryptoStorage.js` — encrypted storage (used for `antz_last_logged_user`)
+- `crypto.subtle` (Web Crypto API — SHA-256 hashing for device_id + AES-GCM encryption for last_logged_user + PBKDF2 key derivation) — **optional, with fallbacks for non-secure contexts**
 - `crypto.randomUUID()` — **optional, with manual UUID v4 fallback**
 - **IP address** — should be captured server-side from request headers (`X-Forwarded-For` / `req.ip`), not from the frontend
 
@@ -211,16 +216,20 @@ const handleLogin = async params => {
 
 > **Important:** Nothing is saved to localStorage or cookies until login succeeds. If login fails (wrong password, suspended account, etc.), no device data is stored.
 
-**Logout** — encrypted UUID and last logged user preserved across `localStorage.clear()`, cookie survives automatically:
+**Logout** — device_id (plain text hash) and last logged user (encrypted) preserved across `localStorage.clear()`, cookie survives automatically:
 
 ```js
-const deviceId = localStorage.getItem('antz_device_id')
-const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
+// read() uses JSON.parse — try-catch handles old raw format migration
+let deviceId
+try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+const lastLoggedUser = localStorage.getItem('antz_last_logged_user') // raw AES encrypted, not JSON
 localStorage.clear()
-if (deviceId) localStorage.setItem('antz_device_id', deviceId)
+if (deviceId) write('antz_device_id', deviceId)                     // write() uses JSON.stringify
 if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
-// Cookies "antz_device_id" and "antz_last_logged_user" survive localStorage.clear() automatically
+// Cookies survive localStorage.clear() automatically
 ```
+
+> **Important:** Both `handleLogout()` and `logOutUser()` (called during `initAuth()` on token expiry) preserve device data during `localStorage.clear()`. This ensures the device_id persists across all logout scenarios.
 
 ## Device Type Detection Rules
 
@@ -239,15 +248,15 @@ if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser
 
 | Scenario                            | device_id                                 | Reason                                                                  |
 | ----------------------------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
-| Normal browsing                     | Consistent                                | Same UUID + same fingerprint = same hash                                |
-| After logout                        | Same                                      | UUID preserved across logout                                            |
+| Normal browsing                     | Consistent                                | Same hash read from localStorage/cookie                                 |
+| After logout                        | Same                                      | Hash preserved across logout (plain text in storage)                    |
 | Logout + different user login       | Same device_id, `is_different_user: true` | Same device, but `previous_user_email` differs from current login email |
-| After clearing localStorage         | Same                                      | UUID recovered from cookie fallback                                     |
-| After clearing all browser data     | Changes                                   | New UUID generated, fingerprint same but hash differs                   |
-| Incognito mode                      | Different                                 | Separate UUID, fingerprint may also differ                              |
-| Different browser (same device)     | Different                                 | Different UUID per browser                                              |
-| Same hardware, different user       | Different                                 | Different UUID + different plugins/fonts/extensions                     |
-| HTTP + IP address (non-secure)      | Consistent (fallback hash)                | Uses `simpleHash()` + `Math.random()` UUID, stored via Base64 obfuscation |
+| After clearing localStorage         | Same                                      | Hash recovered from cookie fallback (plain text)                        |
+| After clearing all browser data     | Changes                                   | No stored hash, new UUID + fingerprint → new device_id                  |
+| Incognito mode                      | Different                                 | No stored hash, isolated session                                        |
+| Different browser (same device)     | Different                                 | No stored hash, separate storage per browser                            |
+| Same hardware, different user       | Different                                 | Different stored hash per browser profile                               |
+| HTTP + IP address (non-secure)      | Consistent (fallback hash)                | Uses `simpleHash()` fallback, stored as plain text                      |
 | HTTP + IP, total crypto failure     | `'unknown'`                               | All try-catch exhausted, minimal object returned, login still works     |
 
 ## Important: Where Data Comes From
@@ -328,21 +337,23 @@ AuthContext.js ── handleLogin({ email: "user@a.com", password: "..." })
          ▼
 deviceInfo.js ── getDeviceInfo("user@a.com")  ◄── email from form, NOT from API
          │
-         ├── getStoredUUID()
+         ├── getStoredDeviceId()
          │     └── localStorage "antz_device_id" = empty
          │     └── Cookie "antz_device_id" = empty
-         │     └── Creates new UUID in memory (NOT saved yet)
+         │     └── Returns null  ◄── no stored device_id
          │
-         ├── getFingerprintId()
-         │     └── FingerprintJS scans hardware/browser → returns visitorId
+         ├── No stored device_id → generate a new one:
+         │     ├── generateUUID() → creates UUID in memory
+         │     ├── getFingerprintId() → FingerprintJS scans hardware/browser → visitorId
+         │     └── generateDeviceId(uuid, fingerprintId)
+         │           └── SHA-256(uuid + "_" + fingerprintId) → device_id
+         │
+         ├── _cachedDeviceId = device_id  ◄── cached for saveDeviceId() to use
          │
          ├── getLastLoggedUser()
          │     └── localStorage "antz_last_logged_user" = empty
          │     └── Cookie "antz_last_logged_user" = empty
          │     └── Returns null  ◄── no one has ever logged in on this device
-         │
-         ├── generateDeviceId(uuid, fingerprintId)
-         │     └── SHA-256(uuid + "_" + fingerprintId) → device_id
          │
          └── Returns device_details (nothing saved to storage yet):
                previous_user_id: null       ◄── no previous login exists
@@ -365,9 +376,9 @@ AuthContext.js ── POST /v1/auth/login { email, password, device_details }
 AuthContext.js ── Promise.all([saveDeviceId(), setLastLoggedUser(5, "user@a.com")])
          │
          ├── saveDeviceId()
-         │     ├── Encrypts UUID
-         │     ├── Saves to localStorage "antz_device_id" (encrypted)
-         │     └── Saves to Cookie "antz_device_id" (encrypted, 365 days)
+         │     ├── Uses _cachedDeviceId (same hash sent in payload)
+         │     ├── Saves to localStorage "antz_device_id" (plain text hash)
+         │     └── Saves to Cookie "antz_device_id" (plain text hash, 365 days)
          │
          └── setLastLoggedUser(5, "user@a.com")
                ├── Encrypts { user_id: 5, user_email: "user@a.com" }
@@ -381,9 +392,9 @@ AuthContext.js ── Promise.all([saveDeviceId(), setLastLoggedUser(5, "user@a.
 
 | Storage      | Key                     | Value                                                |
 | ------------ | ----------------------- | ---------------------------------------------------- |
-| localStorage | `antz_device_id`        | `encrypted(UUID)`                                    |
+| localStorage | `antz_device_id`        | `"a3f8b2c1d4e5...64-char-hex-hash"` (plain text)    |
 | localStorage | `antz_last_logged_user` | `encrypted({user_id: 5, user_email: "user@a.com"})` |
-| Cookie       | `antz_device_id`        | `encrypted(UUID)`                                    |
+| Cookie       | `antz_device_id`        | `"a3f8b2c1d4e5...64-char-hex-hash"` (plain text)    |
 | Cookie       | `antz_last_logged_user` | `encrypted({user_id: 5, user_email: "user@a.com"})` |
 
 **Backend receives:** New device, no previous user, first login.
@@ -403,10 +414,10 @@ AuthContext.js ── handleLogout()
          ├── Cancel all TanStack queries
          ├── Clear query cache
          │
-         ├── Save: deviceId = localStorage.getItem("antz_device_id")        ◄── encrypted value preserved
-         ├── Save: lastUser = localStorage.getItem("antz_last_logged_user") ◄── encrypted value preserved
+         ├── Save: deviceId = read("antz_device_id")                          ◄── JSON-wrapped hash preserved
+         ├── Save: lastUser = localStorage.getItem("antz_last_logged_user") ◄── raw encrypted value preserved
          ├── localStorage.clear()                                            ◄── everything else GONE
-         ├── Restore: localStorage.setItem("antz_device_id", deviceId)
+         ├── Restore: write("antz_device_id", deviceId)
          ├── Restore: localStorage.setItem("antz_last_logged_user", lastUser)
          │   (Cookies "antz_device_id" and "antz_last_logged_user" are NOT affected by localStorage.clear())
          │
@@ -419,9 +430,9 @@ AuthContext.js ── handleLogout()
 
 | Storage      | Key                     | Value                                                | Status    |
 | ------------ | ----------------------- | ---------------------------------------------------- | --------- |
-| localStorage | `antz_device_id`        | `encrypted(UUID)`                                    | Preserved |
+| localStorage | `antz_device_id`        | `"a3f8b2c1d4e5...64-char-hex-hash"` (plain text)    | Preserved |
 | localStorage | `antz_last_logged_user` | `encrypted({user_id: 5, user_email: "user@a.com"})` | Preserved |
-| Cookie       | `antz_device_id`        | `encrypted(UUID)`                                    | Untouched |
+| Cookie       | `antz_device_id`        | `"a3f8b2c1d4e5...64-char-hex-hash"` (plain text)    | Untouched |
 | Cookie       | `antz_last_logged_user` | `encrypted({user_id: 5, user_email: "user@a.com"})` | Untouched |
 | localStorage | auth tokens, userData   | -                                                    | CLEARED   |
 
@@ -431,19 +442,15 @@ Same user types "user@a.com" in login form
          ▼
 deviceInfo.js ── getDeviceInfo("user@a.com")  ◄── email from LOGIN FORM
          │
-         ├── getStoredUUID()
-         │     └── localStorage "antz_device_id" = encrypted(UUID) ◄── SAME UUID (preserved)
-         │     └── Decrypts → returns same UUID
+         ├── getStoredDeviceId()
+         │     └── localStorage "antz_device_id" = "a3f8b2c1..." ◄── SAME hash (preserved, plain text)
+         │     └── Returns same device_id directly (no decryption needed)
          │
-         ├── getFingerprintId()
-         │     └── Same hardware → same fingerprintId
+         ├── _cachedDeviceId = stored hash  ◄── cached for saveDeviceId()
          │
          ├── getLastLoggedUser()
          │     └── localStorage "antz_last_logged_user" exists (preserved during logout)
          │     └── Decrypts → { user_id: 5, user_email: "user@a.com" }  ◄── FROM LAST LOGIN
-         │
-         ├── generateDeviceId(same_uuid, same_fingerprint)
-         │     └── Same hash → SAME device_id
          │
          └── Compare login form email vs stored email:
                "user@a.com" (form) === "user@a.com" (stored)
@@ -477,12 +484,9 @@ User B types "user@b.com" in login form
          ▼
 deviceInfo.js ── getDeviceInfo("user@b.com")  ◄── email from LOGIN FORM
          │
-         ├── getStoredUUID()
-         │     └── localStorage has User A's UUID (preserved) ◄── SAME UUID
-         │     └── Decrypts → returns same UUID
-         │
-         ├── getFingerprintId()
-         │     └── Same browser, same hardware → same fingerprintId
+         ├── getStoredDeviceId()
+         │     └── localStorage "antz_device_id" = "a3f8b2c1..." ◄── SAME hash (plain text)
+         │     └── Returns same device_id directly
          │
          ├── getLastLoggedUser()
          │     └── localStorage "antz_last_logged_user" exists
@@ -490,9 +494,6 @@ deviceInfo.js ── getDeviceInfo("user@b.com")  ◄── email from LOGIN FOR
          │                      ▲                        ▲
          │                      │                        │
          │                      └── User A's id ─────────┘── saved during User A's LAST login
-         │
-         ├── generateDeviceId(same_uuid, same_fingerprint)
-         │     └── Same hash → SAME device_id
          │
          └── Compare login form email vs stored email:
                "user@b.com" (form) !== "user@a.com" (stored from last login)
@@ -540,7 +541,7 @@ User clears localStorage from browser settings
          ▼
 ┌──────────────────────────────────────────────────────┐
 │  localStorage: EMPTY (all keys deleted)               │
-│  Cookie: antz_device_id = encrypted(UUID)             │  ◄── STILL EXISTS!
+│  Cookie: antz_device_id = "a3f8b2c1..." (plain text)  │  ◄── STILL EXISTS!
 │  Cookie: antz_last_logged_user = encrypted(User A)    │  ◄── STILL EXISTS!
 │          Cookies are NOT affected by localStorage.clear│
 └──────────────────────────────────────────────────────┘
@@ -551,22 +552,17 @@ Same user types "user@a.com" in login form
          ▼
 deviceInfo.js ── getDeviceInfo("user@a.com")  ◄── email from LOGIN FORM
          │
-         ├── getStoredUUID()
+         ├── getStoredDeviceId()
          │     └── localStorage "antz_device_id" = EMPTY
          │     └── FALLBACK → Check Cookie "antz_device_id"
-         │     └── Cookie exists! Decrypts → SAME UUID  ◄── RECOVERED!
-         │     └── Restores to localStorage + cookie
+         │     └── Cookie exists! Returns "a3f8b2c1..." ◄── RECOVERED! (plain text, no decryption)
          │
-         ├── getFingerprintId()
-         │     └── Same hardware → same fingerprintId
+         ├── _cachedDeviceId = recovered hash  ◄── cached for saveDeviceId()
          │
          ├── getLastLoggedUser()
          │     └── localStorage "antz_last_logged_user" = EMPTY
          │     └── FALLBACK → Check Cookie "antz_last_logged_user"
          │     └── Cookie exists! Decrypts → { user_id: 5, user_email: "user@a.com" }  ◄── RECOVERED!
-         │
-         ├── generateDeviceId(same_uuid, same_fingerprint)
-         │     └── Same hash → SAME device_id  ◄── cookie saved the UUID!
          │
          └── Compare login form email vs cookie email:
                "user@a.com" (form) === "user@a.com" (from cookie)
@@ -581,7 +577,7 @@ AuthContext.js ── POST /v1/auth/login with device_details
 AuthContext.js ── setLastLoggedUser(5, "user@a.com")  ◄── restores localStorage + updates cookie
 ```
 
-**Backend receives:** SAME device_id (UUID recovered from cookie), same user. Everything intact.
+**Backend receives:** SAME device_id (hash recovered from cookie as plain text), same user. Everything intact.
 
 ---
 
@@ -605,19 +601,21 @@ User types "user@a.com" in login form
          ▼
 deviceInfo.js ── getDeviceInfo("user@a.com")  ◄── email from LOGIN FORM
          │
-         ├── getStoredUUID()
-         │     └── localStorage = EMPTY → Creates NEW UUID
+         ├── getStoredDeviceId()
+         │     └── localStorage = EMPTY
+         │     └── Cookie = EMPTY
+         │     └── Returns null  ◄── no stored device_id
          │
-         ├── getFingerprintId()
-         │     └── Same hardware → same fingerprintId
+         ├── No stored device_id → generate a new one:
+         │     ├── generateUUID() → NEW UUID
+         │     ├── getFingerprintId() → same hardware → same fingerprintId
+         │     └── generateDeviceId(NEW_uuid, same_fingerprint)
+         │           └── Different hash → DIFFERENT device_id
          │
          ├── getLastLoggedUser()
          │     └── localStorage = EMPTY
          │     └── Cookie = EMPTY
          │     └── Returns null  ◄── NO FALLBACK AVAILABLE
-         │
-         ├── generateDeviceId(NEW_uuid, same_fingerprint)
-         │     └── Different hash → DIFFERENT device_id
          │
          └── No previous user to compare
                previous_user_id: null
@@ -643,16 +641,17 @@ User opens incognito window and types "user@a.com" in login form
          ▼
 deviceInfo.js ── getDeviceInfo("user@a.com")  ◄── email from LOGIN FORM
          │
-         ├── getStoredUUID()
-         │     └── Incognito has SEPARATE localStorage → NEW UUID
-         │
-         ├── getFingerprintId()
-         │     └── May differ (incognito can block some fingerprint signals)
-         │
-         ├── getLastLoggedUser()
+         ├── getStoredDeviceId()
          │     └── Incognito localStorage = EMPTY
          │     └── Incognito cookies = EMPTY (isolated from normal session)
-         │     └── Returns null
+         │     └── Returns null  ◄── no stored device_id
+         │
+         ├── No stored device_id → generate new one:
+         │     ├── generateUUID() → NEW UUID
+         │     ├── getFingerprintId() → may differ (incognito can block some signals)
+         │     └── generateDeviceId() → NEW device_id
+         │
+         ├── getLastLoggedUser() → Returns null
          │
          └── Returns: new device_id, no previous user
                is_different_user: false
@@ -676,17 +675,17 @@ User normally uses Chrome, now opens Firefox and types "user@a.com"
          ▼
 deviceInfo.js ── getDeviceInfo("user@a.com")  ◄── email from LOGIN FORM
          │
-         ├── getStoredUUID()
-         │     └── Firefox has its OWN localStorage → NEW UUID
-         │
-         ├── getFingerprintId()
-         │     └── Different browser = different fingerprint
-         │          (different plugins, fonts, canvas rendering)
-         │
-         ├── getLastLoggedUser()
+         ├── getStoredDeviceId()
          │     └── Firefox localStorage = EMPTY (separate from Chrome)
          │     └── Firefox cookies = EMPTY (separate from Chrome)
-         │     └── Returns null
+         │     └── Returns null  ◄── no stored device_id
+         │
+         ├── No stored device_id → generate new one:
+         │     ├── generateUUID() → NEW UUID
+         │     ├── getFingerprintId() → different browser = different fingerprint
+         │     └── generateDeviceId() → completely NEW device_id
+         │
+         ├── getLastLoggedUser() → Returns null
          │
          └── Returns: completely new device_id, no previous user
                is_different_user: false
@@ -706,26 +705,20 @@ User opens http://10.247.153.177:3000 and types "user@a.com" in login form
          ▼
 deviceInfo.js ── getDeviceInfo("user@a.com")
          │
-         ├── getStoredUUID()
-         │     └── getEncryptedItem("antz_device_id")
-         │           └── cryptoStorage.js detects: isSecureContext() = false
-         │           └── decrypt() uses fallbackDecode() (Base64) instead of AES
-         │     └── If no stored UUID → generateUUID()
-         │           └── crypto.randomUUID() → FAILS (try-catch catches it)
-         │           └── Fallback: manual UUID v4 via Math.random()
-         │
-         ├── getFingerprintId()
-         │     └── FingerprintJS works normally (does NOT require crypto.subtle)
-         │     └── Returns visitorId as usual
+         ├── getStoredDeviceId()
+         │     └── localStorage "antz_device_id" = plain text (if exists)
+         │     └── No decryption needed — reads hash directly
+         │     └── If not found → generate new one:
+         │           ├── generateUUID() → crypto.randomUUID() FAILS → fallback Math.random() UUID
+         │           ├── getFingerprintId() → FingerprintJS works normally
+         │           └── generateDeviceId(uuid, fingerprintId)
+         │                 └── crypto.subtle.digest('SHA-256') → FAILS (try-catch catches it)
+         │                 └── Fallback: simpleHash(uuid + "_" + fingerprintId)
+         │                 └── Returns 16-char hex string (not 64-char like SHA-256)
          │
          ├── getLastLoggedUser()
          │     └── decrypt() uses fallbackDecode() (Base64)
          │     └── Returns stored user data normally
-         │
-         ├── generateDeviceId(uuid, fingerprintId)
-         │     └── crypto.subtle.digest('SHA-256') → FAILS (try-catch catches it)
-         │     └── Fallback: simpleHash(uuid + "_" + fingerprintId)
-         │     └── Returns 16-char hex string (not 64-char like SHA-256)
          │
          └── Returns complete device_details object
                device_id: "0a3f8b2c1d4e5f67"  ◄── shorter hash but still unique + consistent
@@ -736,8 +729,7 @@ AuthContext.js ── POST /v1/auth/login with device_details
          ▼ (success)
          │
          ├── saveDeviceId()
-         │     └── encrypt() uses fallbackEncode() (Base64) instead of AES
-         │     └── Saves Base64-encoded UUID to localStorage + cookie
+         │     └── Saves plain text hash to localStorage + cookie (same as secure context)
          │
          └── setLastLoggedUser(5, "user@a.com")
                └── encrypt() uses fallbackEncode() (Base64)
@@ -748,12 +740,12 @@ AuthContext.js ── POST /v1/auth/login with device_details
 
 | Storage      | Key                     | Value                                                    | Encoding       |
 | ------------ | ----------------------- | -------------------------------------------------------- | -------------- |
-| localStorage | `antz_device_id`        | `Base64(URI_encode(UUID))`                               | Base64 (not encrypted) |
+| localStorage | `antz_device_id`        | `"0a3f8b2c1d4e5f67"` (16-char hex)                      | Plain text     |
 | localStorage | `antz_last_logged_user` | `Base64(URI_encode({user_id: 5, email: "user@a.com"}))` | Base64 (not encrypted) |
-| Cookie       | `antz_device_id`        | `Base64(URI_encode(UUID))`                               | Base64 (not encrypted) |
+| Cookie       | `antz_device_id`        | `"0a3f8b2c1d4e5f67"` (16-char hex)                      | Plain text     |
 | Cookie       | `antz_last_logged_user` | `Base64(URI_encode({user_id: 5, email: "user@a.com"}))` | Base64 (not encrypted) |
 
-**Backend receives:** Valid device_id (fallback hash), all device details present. Functionally identical to secure context — only storage encryption is degraded to obfuscation.
+**Backend receives:** Valid device_id (fallback hash), all device details present. Functionally identical to secure context — only `antz_last_logged_user` storage is degraded to obfuscation. `antz_device_id` is plain text in both contexts.
 
 > **Note:** If the same user later accesses via `https://` or `localhost`, the device_id will be **different** because the hashing algorithm changes (SHA-256 vs simpleHash) and the UUID may have been generated differently. This is expected — treat secure and non-secure access as separate device contexts.
 
@@ -791,14 +783,14 @@ getDeviceInfo("user@a.com")
 
 | #   | Scenario                                | device_id              | previous_user  | is_different_user | How detected                                  |
 | --- | --------------------------------------- | ---------------------- | -------------- | ----------------- | --------------------------------------------- |
-| 1   | First login (fresh browser)             | New                    | `null`         | `false`           | New device, first login                       |
-| 2   | Same user, normal logout + login        | Same                   | Same email     | `false`           | localStorage preserved during logout          |
+| 1   | First login (fresh browser)             | New                    | `null`         | `false`           | New device, hash generated and stored as plain text |
+| 2   | Same user, normal logout + login        | Same                   | Same email     | `false`           | Hash read from localStorage (plain text)      |
 | 3   | Different user after logout             | Same                   | Old user email | **`true`**        | Login form email vs stored email              |
-| 4   | Same user clears localStorage           | Same                   | From cookie    | `false`           | Both UUID and last user recovered from cookie |
+| 4   | Same user clears localStorage           | Same                   | From cookie    | `false`           | Hash recovered from cookie (plain text)       |
 | 5   | Same user clears localStorage + cookies | Changes                | `null`         | `false`           | Both layers wiped, unavoidable                |
 | 6   | Incognito mode                          | Different              | `null`         | `false`           | Isolated session, no persistence              |
 | 7   | Different browser (same device)         | Different              | `null`         | `false`           | Each browser has separate storage             |
-| 8   | HTTP + IP address (non-secure context)  | Consistent (fallback)  | Works normally | Works normally    | Uses simpleHash + Math.random UUID + Base64   |
+| 8   | HTTP + IP address (non-secure context)  | Consistent (fallback)  | Works normally | Works normally    | Uses simpleHash, stored as plain text         |
 | 9   | Total crypto failure                    | `'unknown'`            | `null`         | `false`           | All try-catch exhausted, minimal object returned |
 
 ## Data Flow Across Files
@@ -814,11 +806,12 @@ getDeviceInfo("user@a.com")
 │  │     ├── getDeviceInfo(params.email)  ──→  deviceInfo.js            │
 │  │     │     │         ▲                                              │
 │  │     │     │         └── email from LOGIN FORM (params.email)       │
-│  │     │     ├── getStoredUUID()        ──→  cryptoStorage.js         │
-│  │     │     │     ├── getEncryptedItem("antz_device_id")  (read)     │
-│  │     │     │     └── getEncryptedCookie("antz_device_id")  fallback │
-│  │     │     │     └── (generates new UUID if neither exists, NOT saved)│
-│  │     │     ├── getFingerprintId()     ──→  FingerprintJS            │
+│  │     │     ├── getStoredDeviceId()    ──→  localStorage / cookie     │
+│  │     │     │     ├── localStorage.getItem("antz_device_id") (plain) │
+│  │     │     │     └── Cookie "antz_device_id" fallback (plain text)  │
+│  │     │     │     └── If null → generateUUID + getFingerprintId      │
+│  │     │     │           └── generateDeviceId() → SHA-256 hash        │
+│  │     │     ├── _cachedDeviceId = device_id (for saveDeviceId)       │
 │  │     │     ├── getLastLoggedUser()    ──→  cryptoStorage.js         │
 │  │     │     │     ├── getEncryptedItem("antz_last_logged_user")      │
 │  │     │     │     └── getEncryptedCookie("antz_last_logged_user")    │
@@ -831,18 +824,21 @@ getDeviceInfo("user@a.com")
 │  │     │  STEP 3: Save ONLY after login success (AFTER API call)      │
 │  │     └── Promise.all([saveDeviceId(), setLastLoggedUser()])         │
 │  │           ├── saveDeviceId()         ──→  deviceInfo.js            │
-│  │           │     ├── setEncryptedItem("antz_device_id")             │
-│  │           │     └── setEncryptedCookie("antz_device_id")           │
+│  │           │     ├── Uses _cachedDeviceId (same as payload)         │
+│  │           │     ├── write("antz_device_id", hash)  (JSON-wrapped) │
+│  │           │     └── document.cookie = "antz_device_id=" + hash    │
 │  │           └── setLastLoggedUser()    ──→  deviceInfo.js            │
 │  │                 ├── setEncryptedItem("antz_last_logged_user")      │
 │  │                 └── setEncryptedCookie("antz_last_logged_user")    │
 │  │                                                                     │
 │  ├── handleLogout()                                                    │
 │  │     ├── Cancel TanStack queries                                     │
-│  │     ├── Preserve "antz_device_id" from localStorage                 │
-│  │     ├── Preserve "antz_last_logged_user" from localStorage          │
+│  │     ├── Preserve: deviceId = read("antz_device_id")                 │
+│  │     │     └── try-catch fallback: localStorage.getItem() for old fmt│
+│  │     ├── Preserve: lastUser = localStorage.getItem("antz_last_...") │
 │  │     ├── localStorage.clear()                                        │
-│  │     ├── Restore both preserved values                               │
+│  │     ├── Restore: write("antz_device_id", deviceId)                  │
+│  │     ├── Restore: localStorage.setItem("antz_last_...", lastUser)   │
 │  │     ├── (Cookie survives automatically)                             │
 │  │     └── Redirect to /login                                          │
 └──────────────────────────────────────────────────────────────────────┘
@@ -850,10 +846,10 @@ getDeviceInfo("user@a.com")
 
 ## What's Stored Where
 
-| Key                     | localStorage | Cookie | Secure Context (HTTPS)  | Non-Secure (HTTP+IP)  | Survives logout | Survives localStorage.clear() |
-| ----------------------- | ------------ | ------ | ----------------------- | --------------------- | --------------- | ----------------------------- |
-| `antz_device_id`        | Yes          | Yes    | AES-256-GCM encrypted   | Base64 obfuscated     | Yes (preserved) | Yes (cookie fallback)         |
-| `antz_last_logged_user` | Yes          | Yes    | AES-256-GCM encrypted   | Base64 obfuscated     | Yes (preserved) | Yes (cookie fallback)         |
+| Key                     | localStorage                          | Cookie              | Secure Context (HTTPS)           | Non-Secure (HTTP+IP)         | Survives logout | Survives localStorage.clear() |
+| ----------------------- | ------------------------------------- | ------------------- | -------------------------------- | ---------------------------- | --------------- | ----------------------------- |
+| `antz_device_id`        | Yes (via `write()`, JSON-wrapped)     | Yes (raw plain text) | SHA-256 hash                    | simpleHash                   | Yes (preserved) | Yes (cookie fallback)         |
+| `antz_last_logged_user` | Yes (via `setEncryptedItem()`)        | Yes (encrypted)      | AES-256-GCM encrypted           | Base64 obfuscated            | Yes (preserved) | Yes (cookie fallback)         |
 
 ## Login API Payload
 
@@ -880,3 +876,55 @@ getDeviceInfo("user@a.com")
   }
 }
 ```
+
+## Reading Stored Data
+
+### Device ID
+
+`antz_device_id` is stored via `write()` (JSON-wrapped). Use `read()` from the utility:
+
+```js
+import { read } from 'src/lib/windows/utils'
+
+const deviceId = read('antz_device_id')
+// Returns: "79ecc114a178bb52e3ab6c8ab93ffe9fb695d995f319422141e05b3ea26f505c"
+```
+
+### Last Logged User
+
+`antz_last_logged_user` is AES-256-GCM encrypted. Use `getEncryptedItem()` to decrypt:
+
+```js
+import { getEncryptedItem } from 'src/utility/cryptoStorage'
+
+const decrypted = await getEncryptedItem('antz_last_logged_user')
+const lastUser = JSON.parse(decrypted)
+
+console.log(lastUser)
+// Returns: { user_id: 5, user_email: "user@a.com" }
+```
+
+**Example usage in a component/page:**
+
+```js
+import { useEffect, useState } from 'react'
+import { getEncryptedItem } from 'src/utility/cryptoStorage'
+
+const MyComponent = () => {
+  const [lastUser, setLastUser] = useState(null)
+
+  useEffect(() => {
+    const fetchLastUser = async () => {
+      const decrypted = await getEncryptedItem('antz_last_logged_user')
+      if (decrypted) {
+        setLastUser(JSON.parse(decrypted))
+      }
+    }
+    fetchLastUser()
+  }, [])
+
+  // lastUser?.user_id, lastUser?.user_email
+}
+```
+
+> **Note:** `getEncryptedItem()` returns `null` if the key doesn't exist or decryption fails. Always check for `null` before parsing.

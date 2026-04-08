@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
-import { Box, Button, Typography, CircularProgress } from '@mui/material'
+import { Box, Button, Typography, CircularProgress, Skeleton } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
@@ -20,7 +20,7 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -32,9 +32,9 @@ const STORAGE_KEY = 'medical_record_data'
 
 const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const router = useRouter()
-  const { data } = useDynamicStateContext()
+  const hospitalData = useSelector(state => state.hospital.data)
   const { id, isCurrentMedicalRecordOnly } = router.query
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
@@ -56,6 +56,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [isNotesOpen, setIsNotesOpen] = useState(false)
   const [activityLoader, setActivityLoader] = useState(false)
   const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
+  const [isSwitchToggle, setIsSwitchToggle] = useState(false)
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -463,10 +464,10 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       })
     }
   }
-
   const handleRecordOnlyChange = e => {
     setRecords([])
     setPage(1)
+    setIsSwitchToggle(true);
     setCurrentRecordOnly(e.target.checked)
 
     // Update URL query parameter
@@ -483,7 +484,16 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   return (
     <Box sx={{ mt: 6 }}>
       {/* Header with Tabs and Controls */}
-      {tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
+      {isSwitchToggle  && isLoading && currentRecordOnly  && !searchQuery.trim() ? (
+        <>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 6 }}>
+          <Skeleton width={250} height={30} variant='rounded' />
+        </Box>
+        <Box sx = {{display: 'flex', flexDirection: 'column', m: 0}}>
+          <ClinicalAssessmentShimmer count = {3}/>
+        </Box>
+        </>
+      ) : tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
         <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Box
             sx={{

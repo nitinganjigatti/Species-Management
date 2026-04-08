@@ -56,6 +56,7 @@ import {
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { borderRadius } from '@mui/system'
 import { minTime } from 'date-fns'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const FORM_ID = 'add-surgery-record-form'
 
@@ -245,8 +246,10 @@ const schema = yup.object().shape({
         const patientData = this.options?.context?.patientData
         if (!patientData) return true
   
-        const admittedAt = dayjs.utc(patientData.admitted_at).local()
-        const dischargeAt = dayjs.utc(patientData.discharge_at).local()
+        const admittedAt = dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))
+        // dayjs.utc(patientData.admitted_at).local()
+        const dischargeAt = dayjs(Utility.convertUTCToLocal(patientData?.discharge_at))
+        // dayjs.utc(patientData.discharge_at).local()
         const now = dayjs()
   
         const selectedDateTime = selectedStartDate.hour(selectedStartTime.hour()).minute(selectedStartTime.minute()).second(0)
@@ -888,10 +891,10 @@ const AddSurgeryRecord = () => {
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
   const maxDate = useMemo(
-    () => (patientData?.discharge_at ? dayjs.utc(patientData.discharge_at).local() : dayjs()),
+    () => (patientData?.discharge_at ? dayjs(Utility.convertUTCToLocal(patientData.discharge_at)): dayjs()),
     [patientData?.discharge_at]
   )
-
+  //dayjs.utc(patientData.discharge_at).local() 
   const isDefaultDateSetRef = useRef(false)
 
   useEffect(() => {
@@ -1329,27 +1332,10 @@ const AddSurgeryRecord = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumbs aria-label='breadcrumb'>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Hospital</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Patients</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Follow Up</Typography>
-        <Typography
-          color={theme.palette.customColors.neutralSecondary}
-          sx={{ cursor: 'pointer' }}
-          onClick={handleNavigateBack}
-        >
-          Details
-        </Typography>
-
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            cursor: 'pointer'
-          }}
-        >
-          {isEditMode ? 'Edit Surgery' : 'Add Surgery'}
-        </Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        sx={{ mb: 0 }}
+        lastBreadcrumbLabel={isEditMode ? 'Edit Surgery' : 'Add Surgery' }
+      />
 
       <Card
         sx={{

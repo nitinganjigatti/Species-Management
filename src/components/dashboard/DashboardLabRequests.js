@@ -1,3 +1,6 @@
+// ** i18n
+import { useTranslation } from 'react-i18next'
+
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -23,6 +26,8 @@ import { bgcolor } from '@mui/system'
 const data = ['#FA6140', '#E4B819']
 
 const DashboardLabRequests = ({ labRequests }) => {
+  const { t } = useTranslation()
+
   return (
     <>
       {/* <CardHeader
@@ -45,7 +50,7 @@ const DashboardLabRequests = ({ labRequests }) => {
               {labRequests.total_requests}
             </Typography>
             <Typography variant='caption' sx={{ color: '#44544A', fontSize: '14px', fontWeight: 400 }}>
-              Total requests
+              {t('dashboard.total_requests')}
             </Typography>
           </Box>
         </Box>
@@ -53,7 +58,7 @@ const DashboardLabRequests = ({ labRequests }) => {
         <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '16px', color: '#44544A' }}>
             {' '}
-            Completed - {labRequests.completed_request}
+            {t('dashboard.completed')} - {labRequests.completed_request}
           </Typography>
           <Typography sx={{ fontWeight: 600, fontSize: '20px', color: '#37BD69' }}>
             {labRequests.completed_requests_percentage}%
