@@ -13,6 +13,7 @@
   "download": "Download",
   "continue": "Continue",
   "search": "Search",
+  "type_to_search": "Type to search",
   "go_back": "Go Back",
   "next": "Next",
   "deleted_on": "Deleted on",
@@ -37,6 +38,7 @@
   "sections": "Sections",
   "enclosure": "Enclosure",
   "enclosures": "Enclosures",
+  "site_not_found": "Site Not Found",
   "common_name": "Common Name",
   "scientific_name": "Scientific Name",
   "aid": "AID",
@@ -49,6 +51,9 @@
   "all": "All",
   "name": "Name",
   "description": "Description",
+  "enter_description": "Enter description",
+  "enter_description_optional": "Enter description (optional)",
+  "description_must_not_exceed_500_characters": "Description must not exceed 500 characters",
   "details": "Details",
   "title": "Title",
   "status": "Status",
@@ -583,14 +588,6 @@
     "enclosure": "Enclosure",
     "enclosure_qr_codes": "Enclosure QR Codes"
   },
-  "necropsy_module": {
-    "necropsy": "Necropsy",
-    "necropsy_dashboard": "Necropsy Dashboard",
-    "carcass_transfer": "Carcass Transfer",
-    "necropsy_center": "Necropsy Center",
-    "discard": "Discard",
-    "rotten": "Rotten"
-  },
   "compliance_module": {
     "compliance": "Compliance",
     "species": "Species",
@@ -727,5 +724,17 @@
     "no_animals_found": "No animals found",
     "select_date_range_accession": "Select a date range for accession date",
     "selected_range": "Selected Range"
+  },
+  "necropsy_module": {
+    "edit_necropsy_center": "Edit Necropsy Center",
+    "add_necropsy_center": "Add Necropsy Center",
+    "search_by_necropsy_center": "Search by necropsy center",
+    "necropsy_center_name": "Necropsy Center Name",
+    "enter_necropsy_center_name": "Enter necropsy center name",
+    "necropsy_center_name_is_required": "Necropsy Center Name is required",
+    "necropsy_center_name_must_be_at_least_3_characters": "Necropsy Center Name must be at least 3 characters",
+    "necropsy_center_name_must_not_exceed_100_characters": "Necropsy Center Name must not exceed 100 characters",
+    "discard": "Discard",
+    "rotten": "Rotten"
   }
 }

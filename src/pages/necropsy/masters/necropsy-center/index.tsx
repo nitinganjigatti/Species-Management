@@ -23,6 +23,8 @@ import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { useTranslation } from 'react-i18next'
 
 interface NecropsyCenterFilters {
   page: number
@@ -54,6 +56,7 @@ interface NecropsyCenterApiResponse {
 }
 
 const NecropsyCenters: NextPage = () => {
+  const { t } = useTranslation()
   const theme: Theme = useTheme()
   const router: NextRouter = useRouter()
 
@@ -102,8 +105,6 @@ const NecropsyCenters: NextPage = () => {
       setLoading(false)
     }
   }
-
-  console.log(rows, 'rows')
 
   useEffect(() => {
     fetchNecropsyCenters()
@@ -169,7 +170,7 @@ const NecropsyCenters: NextPage = () => {
       width: 100,
       sortable: false,
       field: 'sl_no',
-      headerName: 'SL. NO',
+      headerName: t('s_no'),
       renderCell: (params: GridRenderCellParams<IndexedNecropsyCenterRow>): ReactNode => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -181,7 +182,7 @@ const NecropsyCenters: NextPage = () => {
       minWidth: 20,
       field: 'name',
       sortable: false,
-      headerName: 'Necropsy Center',
+      headerName: t('navigation.necropsy_center'),
       renderCell: (params: GridRenderCellParams<IndexedNecropsyCenterRow>): ReactNode => (
         <>
           <Tooltip title={params?.row?.name}>
@@ -199,7 +200,7 @@ const NecropsyCenters: NextPage = () => {
       minWidth: 20,
       field: 'site_name',
       sortable: false,
-      headerName: 'Site',
+      headerName: t('site'),
       renderCell: (params: GridRenderCellParams<IndexedNecropsyCenterRow>): ReactNode => (
         <>
           <Tooltip title={params?.row?.site_name}>
@@ -217,7 +218,7 @@ const NecropsyCenters: NextPage = () => {
       minWidth: 20,
       field: 'created_by',
       sortable: false,
-      headerName: 'Created By',
+      headerName: t('created_by'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: GridRenderCellParams<IndexedNecropsyCenterRow>): ReactNode => {
@@ -234,10 +235,10 @@ const NecropsyCenters: NextPage = () => {
       minWidth: 20,
       field: 'action',
       sortable: false,
-      headerName: 'Action',
+      headerName: t('action'),
       renderCell: (params: GridRenderCellParams<IndexedNecropsyCenterRow>): ReactNode => {
         return (
-          <Tooltip title='Edit Necropsy Center'>
+          <Tooltip title={t('necropsy_module.edit_necropsy_center')}>
             <IconButton
               onClick={() => {
                 setEditData(params.row)
@@ -255,7 +256,7 @@ const NecropsyCenters: NextPage = () => {
   const headerAction: ReactNode = (
     <>
       <Button variant='contained' onClick={() => setOpenAddNecropsyDrawer(true)}>
-        ADD NECROPSY CENTER
+        {t('necropsy_module.add_necropsy_center')}
       </Button>
     </>
   )
@@ -263,20 +264,23 @@ const NecropsyCenters: NextPage = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Necropsy</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Masters</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Necropsy Center</Typography>
-        </Breadcrumbs>
+        <DynamicBreadcrumbs
+          pageItems={[
+            { title: t('navigation.necropsy') },
+            { title: t('navigation.masters') },
+            { title: t('navigation.necropsy_center') }
+          ]}
+          sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
+        />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Necropsy Center')} action={headerAction} />
+            <CardHeader title={RenderUtility?.pageTitle(t('navigation.necropsy_center'))} action={headerAction} />
             <CardContent>
               <Box>
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by necropsy center'
+                  placeholder={t('necropsy_module.search_by_necropsy_center')}
                   value={searchValue}
                   onClear={handleSearchClear}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
