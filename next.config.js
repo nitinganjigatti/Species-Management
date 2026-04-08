@@ -23,7 +23,7 @@ module.exports = {
     ]
   },
   async rewrites() {
-    return [
+    const rules = [
       {
         source: '/reports/keyinsights',
         destination: '/reports/keyinsights/index.html'
@@ -49,6 +49,16 @@ module.exports = {
         destination: '/reports/assessment-dashboard/index.html'
       }
     ]
+
+    // Proxy API calls to local backend in development to avoid CORS
+    if (process.env.NODE_ENV === 'development') {
+      rules.push({
+        source: '/api/:path*',
+        destination: 'http://localhost:8080/api/:path*'
+      })
+    }
+
+    return rules
   },
   turbopack: {
     resolveAlias: {
