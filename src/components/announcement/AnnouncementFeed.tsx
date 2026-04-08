@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Box from '@mui/material/Box'
 import Card from '@mui/material/Card'
@@ -26,8 +26,10 @@ import {
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import useDebounce from 'src/hooks/useDebounce'
 import type { AnnouncementFeedProps, Announcement } from 'src/types/announcement'
+import { useTranslation } from 'react-i18next'
 
 const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
+  const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'my_posts'>(initialFilter)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
@@ -60,9 +62,7 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
     owned_by_me: filter === 'my_posts' ? true : undefined
   })
 
-  const announcements = useMemo(() => {
-    return data?.pages.flatMap(page => page.data?.announcement_details || []) || []
-  }, [data])
+  const announcements = data?.pages.flatMap(page => page.data?.announcement_details || []) || []
 
   const handleLoadMore = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -157,11 +157,11 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Announcements
+            {t('announcement_module.announcements')}
           </Typography>
           <AddButton
             action={handleCreateAnnouncement}
-            title='Create'
+            title={t('Create')}
             disabled={false}
             styles={{
               borderRadius: '8px',
@@ -183,7 +183,7 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           onClear={() => setSearchQuery('')}
-          placeholder='Search announcements...'
+          placeholder={t('search') as string}
           width='100%'
           backgroundColor={theme.palette.customColors.SurfaceVariant}
           borderRadius='8px'
@@ -219,8 +219,8 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
             }
           }}
         >
-          <Tab label='All' />
-          <Tab label='My Posts' />
+          <Tab label={t('all')} />
+          <Tab label={t('announcement_module.my_posts')} />
         </Tabs>
       </Card>
 
@@ -258,10 +258,10 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
             <Icon icon='mdi:alert-circle-outline' fontSize={32} color={theme.palette.customColors.Tertiary} />
           </Box>
           <Typography sx={{ mb: 0.5, fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Failed to load announcements
+            {t('announcement_module.failed_to_load_announcements')}
           </Typography>
           <Typography sx={{ mb: 2, fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-            Something went wrong. Please try again.
+            {t('something_went_wrong')}
           </Typography>
           <Button
             variant='outlined'
@@ -272,7 +272,7 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
               px: 3
             }}
           >
-            Retry
+            {t('retry')}
           </Button>
         </Card>
       )}
@@ -287,14 +287,14 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         >
           <NoDataFound variant='Meerkat' height={120} width={120} />
           <Typography sx={{ mt: 1, fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {filter === 'my_posts' ? 'No announcements yet' : 'No announcements found'}
+            {filter === 'my_posts' ? t('announcement_module.no_announcements_yet') : t('announcement_module.no_announcements_found')}
           </Typography>
           <Typography sx={{ mt: 0.5, fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
             {filter === 'my_posts'
-              ? 'Create your first announcement to get started.'
+              ? t('announcement_module.create_your_first_announcement_to_get_started')
               : searchQuery
-              ? 'Try adjusting your search terms.'
-              : 'Check back later for new announcements.'}
+              ? t('announcement_module.try_adjusting_your_search_terms')
+              : t('announcement_module.check_back_later_for_new_announcements')}
           </Typography>
         </Card>
       )}
@@ -329,7 +329,7 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         <Typography
           sx={{ textAlign: 'center', py: 2, color: theme.palette.customColors.neutralSecondary, fontSize: '0.875rem' }}
         >
-          You have reached the end
+          {t('you_have_reached_the_end')}
         </Typography>
       )}
 
@@ -353,8 +353,8 @@ const AnnouncementFeed = ({ initialFilter = 'all' }: AnnouncementFeedProps) => {
         handleClose={handleConfirmDialogClose}
         message={
           confirmDialog.type === 'delete'
-            ? 'Are you sure you want to delete this announcement?'
-            : 'Are you sure you want to cancel this announcement?'
+            ? (t('announcement_module.are_you_sure_you_want_to_delete_this_announcement') as string)
+            : (t('announcement_module.are_you_sure_you_want_to_cancel_this_announcement') as string)
         }
         action={handleConfirmAction}
         loading={deleteAnnouncement.isPending || cancelAnnouncement.isPending}
