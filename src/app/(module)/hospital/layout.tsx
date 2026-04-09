@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect } from 'react'
+import { ReactNode, useEffect, Suspense } from 'react'
 import { useAuth } from 'src/hooks/useAuth'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import Spinner from 'src/@core/components/spinner'
@@ -8,6 +8,8 @@ import Spinner from 'src/@core/components/spinner'
 interface HospitalLayoutProps {
   children: ReactNode
 }
+
+const LoadingFallback = () => <div style={{ padding: '20px', textAlign: 'center' }}>Loading...</div>
 
 export default function HospitalLayout({ children }: HospitalLayoutProps) {
   const authData = useAuth()
@@ -29,5 +31,5 @@ export default function HospitalLayout({ children }: HospitalLayoutProps) {
     return null
   }
 
-  return <>{children}</>
+  return <Suspense fallback={<LoadingFallback />}>{children}</Suspense>
 }

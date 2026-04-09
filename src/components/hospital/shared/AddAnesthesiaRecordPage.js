@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { alpha, useTheme } from '@mui/material/styles'
-import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useForm, FormProvider } from 'react-hook-form'
 import dayjs from 'dayjs'
 import BasicDetails from 'src/components/hospital/inpatient/Anesthesia/BasicDetails'
@@ -333,9 +333,14 @@ export default function AddAnesthesiaRecord() {
   const appRouter = useRouter()
   const routerParams = useParams()
   const searchParams = useSearchParams()
+  const pathname = usePathname()
   const id = routerParams?.id
   const queryClient = useQueryClient()
   const { selectedHospital } = useHospital()
+
+  // Auto-detect module slug from pathname
+  const moduleSlug = pathname.split('/')[2] // 'inpatient' | 'outpatient' | 'followup' | 'mortality' | 'discharged'
+  const moduleLabel = moduleSlug ? moduleSlug.charAt(0).toUpperCase() + moduleSlug.slice(1) : 'Inpatient'
 
   // Store anaesthesia_id in state to ensure it's available throughout component lifecycle
   const [anaesthesia_id, setAnaesthesia_id] = useState(null)
@@ -350,6 +355,7 @@ export default function AddAnesthesiaRecord() {
       id_param = urlParams.get('anaesthesia_id')
     }
 
+    console.log('[DEBUG] Setting anaesthesia_id from searchParams:', id_param, 'window.location.search:', typeof window !== 'undefined' ? window.location.search : 'N/A')
     setAnaesthesia_id(id_param)
   }, [searchParams])
 
@@ -840,7 +846,7 @@ export default function AddAnesthesiaRecord() {
   })
 
   const handleCancel = async () => {
-    appRouter.push(`/hospital/inpatient/${id}/?tab=anesthesia`)
+    appRouter.push(`/hospital/${moduleSlug}/${id}/?tab=anesthesia`)
     await queryClient.invalidateQueries(['anesthesiaRecords', id, patientData?.medical_record_id])
   }
 
@@ -1413,35 +1419,12 @@ export default function AddAnesthesiaRecord() {
       }
     }
 
-    // DEBUG: Log what data is being set
-    console.log('[AddAnesthesia] Resetting form with data:', {
-      hasBasicDetails: !!basicDetailsForm,
-      hasMedications: medicationsFromApi?.length || 0,
-      hasGases: gasFromApi?.length || 0,
-      hasPreAnesthesia: !!preAnesthesiaForm,
-      hasRecoveryForm: !!recoveryForm,
-      hasReversalDrugs: reversalFromApi?.length || 0,
-      preAnesthesiaFields: preAnesthesiaForm ? Object.keys(preAnesthesiaForm) : []
-    })
-
     console.log('[DEBUG] Resetting form with data:', {
-
-
       hasPreAnesthesia: !!preAnesthesiaForm,
-
-
       preAnesthesiaForm,
-
-
       medicationsCount: medicationsFromApi?.length || 0,
-
-
       gasCount: gasFromApi?.length || 0
-
-
     })
-
-
 
     reset(formData)
   }, [anesthesiaDetail, reset])
@@ -1583,16 +1566,6 @@ export default function AddAnesthesiaRecord() {
         hasPreAnesthesia: !!data.preAnesthesia,
         preAnesthesiaData: data.preAnesthesia
       })
-      // DEBUG: Log what data is being submitted
-      console.log('[AddAnesthesia] Form submission - onValid called', {
-        isEdit,
-        anaesthesia_id,
-        hasBasicDetails: !!data.basicDetails,
-        hasMedicationsGas: !!data.medicationsGas,
-        hasPreAnesthesia: !!data.preAnesthesia,
-        hasRecoveryAndReversal: !!data.recoveryAndReversal,
-        preAnesthesiaData: data.preAnesthesia
-      })
 
       const purposePayload = {
         selected: Array.from(new Set(data.basicDetails.selected || [])),
@@ -1725,16 +1698,6 @@ export default function AddAnesthesiaRecord() {
           }
         }
 
-        // DEBUG: Log pre-anesthesia payload
-        console.log('[AddAnesthesia] Pre-anesthesia payload:', {
-          hasTemperature: !!preAnaesthesiaPayload.temperature,
-          hasHumidity: !!preAnaesthesiaPayload.humidity,
-          hasWeight: !!preAnaesthesiaPayload.weight,
-          hasPhysicalHealth: !!preAnaesthesiaPayload.physical_health_status,
-          hasFastingTime: !!preAnaesthesiaPayload.fasting_time,
-          selectedClinPathIds: clinPathSelectedIds,
-          fullPayload: preAnaesthesiaPayload
-        })
 
         // VITAL BLOCKS
         const columns = methods.getValues('vitalMonitoring') || []
@@ -1914,31 +1877,6 @@ export default function AddAnesthesiaRecord() {
         }
       }
 
-      // DEBUG: Log final payload being sent
-      const finalPayload = {
-        hospital_case_id: id || '',
-        medical_record_id: patientData?.medical_record_id || '',
-        location: data.basicDetails.location,
-        anaesthesia_datetime: data.basicDetails.anaesthesia_datetime,
-        estimated_time_required: data.basicDetails.estimated_time_required,
-        estimated_time_unit: data.basicDetails.estimated_time_unit,
-        veterinarian_id: data.basicDetails.veterinarian_id,
-        anesthetist_id: data.basicDetails.anesthetist_id,
-        notes: data.basicDetails.notes,
-        purpose: purposePayload,
-        ...(isEdit && {
-          hasPreAnaesthesia: hasPreAnesthesiaData(data.preAnesthesia),
-          hasMedicationsGas: hasMedicationsGasData(medsPayload, gasPayload),
-          hasRecoveryAndReversal: hasRecoveryAndReversalData(recoveryPayload, reversalPayload),
-          hasVitalMonitoring: hasVitalBlocksData(blocks),
-          hasAnesthesiaSetup: hasAnesthesiaSetupData(anaesthesiaSetupPayload),
-          preAnaesthesiaPayload: preAnaesthesiaPayload,
-          medsCount: medsPayload?.length || 0,
-          gasCount: gasPayload?.length || 0
-        })
-      }
-
-      console.log('[AddAnesthesia] Final payload before API call:', finalPayload)
 
       const response = await addAnesthesia(formData)
 
@@ -1956,7 +1894,7 @@ export default function AddAnesthesiaRecord() {
 
         // Update URL with the new anaesthesia_id so user can add other sections
         appRouter.push(
-          `/hospital/discharged/${id}/AddAnesthesiaRecord/?tab=anesthesia&anaesthesia_id=${response?.data?.anaesthesia_id}`
+          `/hospital/${moduleSlug}/${id}/AddAnesthesiaRecord/?tab=anesthesia&anaesthesia_id=${response?.data?.anaesthesia_id}`
         )
       } else {
         Toaster({ type: 'error', message: response?.message || 'Failed to save record' })
@@ -2141,7 +2079,7 @@ export default function AddAnesthesiaRecord() {
           <Typography color={theme.palette.text.primary}>Add Anesthesia</Typography>
         </Breadcrumbs> */}
         <DynamicBreadcrumbs
-          pageItems={[{title: 'Hospital'}, {title: 'Patients'}, {title: 'Inpatient'}, {title: 'Details', onClick: () => appRouter.push(`/hospital/inpatient/${id}`)}, {title: 'Add Anesthesia'}]}
+          pageItems={[{title: 'Hospital'}, {title: 'Patients'}, {title: moduleLabel}, {title: 'Details', onClick: () => appRouter.push(`/hospital/${moduleSlug}/${id}`)}, {title: 'Add Anesthesia'}]}
           sx = {{mb: 1}}/>
 
         <Box position='relative' display='flex' flexDirection='column' borderRadius='8px'>

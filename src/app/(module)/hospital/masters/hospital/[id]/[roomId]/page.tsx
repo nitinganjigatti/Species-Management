@@ -1,9 +1,7 @@
 'use client'
 
-import { useParams } from 'next/navigation'
-import HospitalRoom from 'src/components/hospital/masters/HospitalRoom'
-
+import HospitalBedDetails from 'src/components/hospital/hospitalMaster/HospitalBedDetails'
 
 export default function Page() {
-  return <HospitalRoom />
+  return <HospitalBedDetails />
 }

@@ -1,8 +1,7 @@
 'use client'
 
-import Hospital from 'src/components/hospital/masters/Hospital'
-
+import HospitalDetails from 'src/components/hospital/hospitalMaster/HospitalDetails'
 
 export default function Page() {
-  return <Hospital />
+  return <HospitalDetails />
 }

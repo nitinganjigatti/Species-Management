@@ -772,13 +772,7 @@ const EnclosureDischargeForm = props => {
 
                   window.location.hash = 'medications-section'
 
-                  router.push({
-                    pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-                    query: {
-                      tab: 'discharge',
-                      discharge_tab: 'TransferEnclosure'
-                    }
-                  })
+                  router.push(`/hospital/inpatient/${id}/schedule-prescription?tab=discharge&discharge_tab=TransferEnclosure`)
                 }}
                 variant='contained'
                 disabled={isPrescriptionLoading}

@@ -1,17 +1,7 @@
 'use client'
 
-import { Suspense } from 'react'
-import AddAnesthesiaRecordPage from 'src/components/hospital/followup/AddAnesthesiaRecordPage'
-
-
-function AddAnesthesiaRecordPageWrapper() {
-  return <AddAnesthesiaRecordPage />
-}
+import AddAnesthesiaRecordPage from 'src/components/hospital/shared/AddAnesthesiaRecordPage'
 
 export default function Page() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AddAnesthesiaRecordPageWrapper />
-    </Suspense>
-  )
+  return <AddAnesthesiaRecordPage />
 }
