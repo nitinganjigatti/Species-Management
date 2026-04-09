@@ -46,6 +46,9 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { HospitalProvider } from 'src/context/HospitalContext'
 import { NecropsyProvider } from 'src/context/NecropsyContext'
 
+// Search Params Provider (isolates useSearchParams in its own Suspense boundary)
+import { SearchParamsInner } from 'src/context/SearchParamsContext'
+
 // Shared instances (same as Page Router)
 import { queryClient } from 'src/lib/shared/queryClient'
 import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
@@ -56,9 +59,11 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Provider store={store}>
-        <CacheProvider value={clientSideEmotionCache}>
+    <Suspense fallback={null}>
+      <SearchParamsInner>
+        <QueryClientProvider client={queryClient}>
+          <Provider store={store}>
+            <CacheProvider value={clientSideEmotionCache}>
           <HospitalProvider>
             <NecropsyProvider>
               <PariveshProvider>
@@ -98,8 +103,10 @@ export function Providers({ children }: ProvidersProps) {
               </PariveshProvider>
             </NecropsyProvider>
           </HospitalProvider>
-        </CacheProvider>
-      </Provider>
-    </QueryClientProvider>
+            </CacheProvider>
+          </Provider>
+        </QueryClientProvider>
+      </SearchParamsInner>
+    </Suspense>
   )
 }

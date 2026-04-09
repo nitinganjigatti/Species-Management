@@ -1,16 +1,17 @@
 'use client'
 
 import { useMemo, useCallback, useEffect, useState } from 'react'
-import { useRouter as useAppRouter, usePathname, useSearchParams } from 'next/navigation'
+import { useRouter as useAppRouter, usePathname } from 'next/navigation'
+import { useSafeSearchParams } from 'src/context/SearchParamsContext'
 
 /**
- * Safe router hook for App Router with Pages Router API compatibility.
- * Provides both new App Router and old Pages Router interfaces.
- */
+* Safe router hook for App Router with Pages Router API compatibility.
+* Provides both new App Router and old Pages Router interfaces.
+*/
 export const useSafeRouter = () => {
   const appRouterInstance = useAppRouter()
   const appPathname = usePathname()
-  const appSearchParams = useSearchParams()
+  const appSearchParams = useSafeSearchParams()
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
