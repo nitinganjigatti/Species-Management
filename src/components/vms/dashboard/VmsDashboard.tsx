@@ -30,7 +30,7 @@ const peakHourLabels = [
   '6 PM', '7 PM', '8 PM', '9 PM', '10 PM',
 ]
 
-const dailyChartBaseOptions: ApexCharts.ApexOptions = {
+const dailyChartBaseOptions = {
   chart: { type: 'bar', toolbar: { show: false }, fontFamily: FONT, background: 'transparent' },
   colors: ['#37BD69'],
   plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
@@ -48,7 +48,7 @@ const dailyChartBaseOptions: ApexCharts.ApexOptions = {
   states: { hover: { filter: { type: 'darken', value: 0.85 } } },
 }
 
-const peakChartOptions: ApexCharts.ApexOptions = {
+const peakChartOptions = {
   chart: { type: 'bar', toolbar: { show: false }, fontFamily: FONT, background: 'transparent' },
   colors: ['#00AEA4'],
   plotOptions: { bar: { borderRadius: 4, columnWidth: '60%' } },
@@ -65,7 +65,7 @@ const peakChartOptions: ApexCharts.ApexOptions = {
   states: { hover: { filter: { type: 'darken', value: 0.88 } } },
 }
 
-const sitesChartOptions: ApexCharts.ApexOptions = {
+const sitesChartOptions = {
   chart: { type: 'bar', toolbar: { show: false }, fontFamily: FONT, background: 'transparent' },
   colors: ['#37BD69'],
   fill: {
@@ -124,7 +124,7 @@ const VmsDashboard = () => {
     ...(dateRange.startDate && { start_date: dateRange.startDate }),
     ...(dateRange.endDate && { end_date: dateRange.endDate }),
     ...(statusFilter && { status: statusFilter }),
-    ...(siteFilter && { site_id: siteFilter }),
+    ...(siteFilter && { site_id: Number(siteFilter) }),
   }
   const { data: summaryResponse, isLoading } = useReportSummary(reportParams)
   const summary = summaryResponse?.data

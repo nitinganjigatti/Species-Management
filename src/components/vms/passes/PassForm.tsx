@@ -25,7 +25,8 @@ import Divider from '@mui/material/Divider'
 
 import Icon from 'src/@core/components/icon'
 import SelectSites from 'src/components/report/SelectSite'
-import FallbackAvatar from 'src/views/utility/FallbackAvatar'
+import FallbackAvatarRaw from 'src/views/utility/FallbackAvatar'
+const FallbackAvatar = FallbackAvatarRaw as any
 import { GADGET_STANDARD_FIELDS } from 'src/constants/vms'
 import { useGadgetsList } from 'src/hooks/vms/useVmsGadgets'
 import { useCreatePass, useUpdatePass } from 'src/hooks/vms/useVmsPasses'
@@ -322,7 +323,7 @@ const PassForm = ({ passId }: PassFormProps) => {
     const timer = setTimeout(async () => {
       setUserSearchLoading(true)
       try {
-        const res = await getAllUsers({ page_no: 1, limit: 10, q: userSearchQuery, ref_type: 'total_user', role_key: 'all_users' } as any)
+        const res: any = await getAllUsers({ page_no: 1, limit: 10, q: userSearchQuery, ref_type: 'total_user', role_key: 'all_users' } as any)
         const users = (res?.data?.result ?? []).map((u: any) => ({
           user_id: Number(u.user_id),
           user_name: u.user_name,

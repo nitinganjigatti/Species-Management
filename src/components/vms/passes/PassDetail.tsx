@@ -211,7 +211,7 @@ const GadgetRow = ({ gadget }: { gadget: VmsPassGadget }) => {
       {allEntries.length > 0 && (
         <Grid container spacing={2} sx={{ p: '16px' }}>
           {allEntries.map(entry => (
-            <Grid item xs={6} key={entry.label}>
+            <Grid size={6} key={entry.label}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary', lineHeight: 1.4 }}>
                   {entry.label}
@@ -394,16 +394,16 @@ const PassDetail = ({ passId }: PassDetailProps) => {
           <Box sx={{ px: '24px', py: '20px' }}>
             <SectionTitle>Visitor Information</SectionTitle>
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair label='Name' value={pass.visitor_name} />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair label='Contact' value={pass.visitor_contact} />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair label='Department' value={pass.department} />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair label='Purpose' value={pass.purpose_of_visit} />
               </Grid>
             </Grid>
@@ -415,20 +415,20 @@ const PassDetail = ({ passId }: PassDetailProps) => {
           <Box sx={{ px: '24px', py: '20px' }}>
             <SectionTitle>Schedule</SectionTitle>
             <Grid container spacing={2}>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <InfoPair
                   label='Valid'
                   value={`${formatDate(pass.start_date)} — ${formatDate(pass.end_date)}`}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair
                   label='Time In'
                   value={pass.time_in ? formatDateTime(pass.time_in) : '—'}
                   italic={!pass.time_in}
                 />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair
                   label='Time Out'
                   value={pass.time_out ? formatDateTime(pass.time_out) : '—'}
@@ -444,17 +444,17 @@ const PassDetail = ({ passId }: PassDetailProps) => {
           <Box sx={{ px: '24px', py: '20px' }}>
             <SectionTitle>Created By</SectionTitle>
             <Grid container spacing={2}>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair label='Created by' value={pass.created_by_name ?? '—'} />
               </Grid>
-              <Grid item xs={6}>
+              <Grid size={6}>
                 <InfoPair
                   label='On behalf of'
                   value={pass.on_behalf_of_name ?? '—'}
                   italic={!pass.on_behalf_of_name}
                 />
               </Grid>
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <InfoPair label='Created at' value={formatDateTime(pass.created_at)} />
               </Grid>
             </Grid>

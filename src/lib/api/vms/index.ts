@@ -51,7 +51,7 @@ export const updatePass = async (
   id: string,
   payload: Partial<CreatePassPayload>
 ): Promise<VmsApiResponse<VmsPass>> => {
-  const headers = await GetAPIHeader({ pharmacy: false })
+  const headers: any = await GetAPIHeader({ pharmacy: false })
   headers['Content-Type'] = 'application/json'
   const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${VMS_ENDPOINTS.UPDATE_PASS(id)}`
 
@@ -94,7 +94,7 @@ export const updateGadget = async (
   id: number,
   payload: Partial<CreateGadgetPayload>
 ): Promise<VmsApiResponse<VmsMasterGadget>> => {
-  const headers = await GetAPIHeader({ pharmacy: false })
+  const headers: any = await GetAPIHeader({ pharmacy: false })
   headers['Content-Type'] = 'application/json'
   const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${VMS_ENDPOINTS.UPDATE_GADGET(id)}`
 

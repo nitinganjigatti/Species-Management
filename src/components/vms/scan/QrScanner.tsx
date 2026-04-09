@@ -550,7 +550,7 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
                 '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'success.main' },
               }}
             >
-              {sites.map(site => (
+              {sites.map((site: any) => (
                 <MenuItem key={site.value} value={site.value} sx={{ fontSize: '14px' }}>
                   {site.label}
                 </MenuItem>
