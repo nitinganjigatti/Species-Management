@@ -1035,13 +1035,8 @@
   },
   "animals_module": {
     "animals": "Animals",
-    "animals_list": "Animals List",
-    "search_animals": "Search Animals",
-    "no_animals_found": "No animals found",
     "select_date_range_accession": "Select a date range for accession date",
-    "selected_range": "Selected Range"
-  },
-  "animals_module": {
+    "selected_range": "Selected Range",
     "animals_list": "Animals List",
     "search_animals": "Search animals...",
     "no_animals_found": "No animals found",
