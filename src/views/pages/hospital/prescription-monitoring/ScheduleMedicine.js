@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Typography, Button, Grid, Paper, IconButton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
@@ -15,9 +17,10 @@ import dayjs from 'dayjs'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import Utility from 'src/utility'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import moment from 'moment'
 import { useSelector } from 'react-redux'
+import { useSearchParams } from 'next/navigation'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -52,12 +55,16 @@ export default function ScheduleMedicine({
   const hasSetDefaults = useRef(false)
 
   const now = new Date()
-  const router = useRouter()
+  const router = useSafeRouter()
+  const searchParams = useSearchParams()
   const hospitalData = useSelector(state => state.hospital.data)
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const animal_admitted_date = medicalRecordData?.animal_admitted_date
-  const { medicine_edit_id, fromPage, date } = router.query
+  const medicine_edit_id = searchParams.get('medicine_edit_id')
+  const fromPage = searchParams.get('fromPage')
+  const date = searchParams.get('date')
+  const discharge_tab = searchParams.get('discharge_tab')
 
   const editIdStr = medicine_edit_id?.toString()
   const enclosureMedicines = hospitalData?.enclosure_medicines || []
@@ -358,7 +365,6 @@ export default function ScheduleMedicine({
       <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
         {isMedicineSelected ? (
           <Box
-            container
             sx={{
               background: theme.palette.common.white,
               minHeight: 'fit-content',

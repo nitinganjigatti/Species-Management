@@ -1,3 +1,5 @@
+'use client'
+
 import { useEffect } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'

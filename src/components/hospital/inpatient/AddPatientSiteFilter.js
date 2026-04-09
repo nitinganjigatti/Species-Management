@@ -1,3 +1,5 @@
+'use client'
+
 import { useTheme } from '@emotion/react'
 import { Card, CardContent, CardHeader, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'

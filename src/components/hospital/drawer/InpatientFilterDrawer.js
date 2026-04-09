@@ -1,3 +1,5 @@
+'use client'
+
 import { debounce } from 'lodash'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'

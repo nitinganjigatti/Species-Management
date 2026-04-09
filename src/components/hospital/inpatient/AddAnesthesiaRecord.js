@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, Drawer, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'

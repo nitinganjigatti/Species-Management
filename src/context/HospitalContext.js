@@ -1,3 +1,5 @@
+'use client'
+
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { read, write } from 'src/lib/windows/utils'
 

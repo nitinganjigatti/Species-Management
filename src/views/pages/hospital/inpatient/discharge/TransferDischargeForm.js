@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
@@ -19,7 +21,7 @@ import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
-import { useRouter } from 'next/router'
+import { useParams, useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 
@@ -71,8 +73,9 @@ const TransferDischargeForm = props => {
   } = props
 
   const theme = useTheme()
+  const params = useParams()
   const router = useRouter()
-  const { id } = router.query
+  const { id } = params
 
   const patientDetails = patientData?.animal_detail || {}
   const dispatch = useDispatch()
@@ -127,17 +130,11 @@ const TransferDischargeForm = props => {
   // Edit medicine – go to schedule-prescription
   const handleEditMedicine = useCallback(
     med => {
-      router.push({
-        pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-        query: {
-          animal_id: patientData?.animal_detail?.animal_id,
-          medical_record_id: patientData?.medical_record_id,
-          discharge_tab: 'TransferHospital',
-          edit_id: med.id
-        }
-      })
+      dispatch(updateState({ key: 'transfer_medicines', value: transferMedicines }))
+
+      router.push(`/hospital/inpatient/${id}/schedule-prescription?animal_id=${patientData?.animal_detail?.animal_id}&medical_record_id=${patientData?.medical_record_id}&discharge_tab=TransferHospital&edit_id=${med.id}`)
     },
-    [router, id, patientData]
+    [router, id, patientData, dispatch, transferMedicines]
   )
 
   // Delete a medicine: update context state

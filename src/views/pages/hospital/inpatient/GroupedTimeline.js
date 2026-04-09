@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'

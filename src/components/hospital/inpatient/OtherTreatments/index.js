@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Avatar, Box, Button, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'

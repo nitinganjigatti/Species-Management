@@ -1,3 +1,5 @@
+'use client'
+
 import { Box, Button, CircularProgress, Drawer, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useContext, useEffect, useState } from 'react'
@@ -18,7 +20,7 @@ import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Utility from 'src/utility'
 import { editAnimalAdmissionDetails } from 'src/lib/api/hospital/inpatient'
 import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
@@ -42,7 +44,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }) =
   const authData = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
   const { selectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } = useHospital()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)

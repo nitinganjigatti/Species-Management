@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
 import { Box, Grid, Typography, Button, useMediaQuery } from '@mui/material'
 import AnimalDetails from 'src/views/pages/hospital/symptoms/AnimalDetails'
@@ -10,7 +12,8 @@ import PrescriptionMedicineList from 'src/views/pages/hospital/prescription-moni
 import ScheduleMedicine from 'src/views/pages/hospital/prescription-monitoring/ScheduleMedicine'
 import { getSymptomsListForAdding, addSymptoms } from 'src/lib/api/hospital/symptoms'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useSearchParams } from 'next/navigation'
 import { getMedicineList } from 'src/lib/api/hospital/medicineList'
 import { debounce } from 'lodash'
 import { getMedicalMasterData } from 'src/lib/api/hospital/medicalMaster'
@@ -40,10 +43,17 @@ import { AuthContext } from 'src/context/AuthContext'
 
 const STORAGE_KEY = 'medical_record_data'
 
-export default function AddMedicineToPrescription() {
+export default function AddMedicineToPrescription({ from, params }) {
   const theme = useTheme()
-  const router = useRouter()
-  const { id, medicine_edit_id, discharge_tab, fromPage, date, prescriptionId } = router.query
+  const router = useSafeRouter()
+  const searchParams = useSearchParams()
+  const id = params?.id
+  const medicine_edit_id = searchParams.get('medicine_edit_id')
+  const discharge_tab = searchParams.get('discharge_tab')
+  const date = searchParams.get('date')
+  const prescriptionId = searchParams.get('prescriptionId')
+  const edit_id = searchParams.get('edit_id')
+  const fromPage = searchParams.get('fromPage')
 
   const dispatch = useDispatch()
   const hospitalData = useSelector(state => state.hospital.data)
@@ -54,15 +64,16 @@ export default function AddMedicineToPrescription() {
 
     if (!list) return null
 
-    // fallback to id matching
-    if (medicine_edit_id) {
-      const result = list.find(med => med.id?.toString() === medicine_edit_id?.toString())
+    // Handle both medicine_edit_id (from EnclosureDischargeForm) and edit_id (from TransferDischargeForm)
+    const idToFind = medicine_edit_id || edit_id
+    if (idToFind) {
+      const result = list.find(med => med.id?.toString() === idToFind?.toString())
 
       return result
     }
 
     return null
-  }, [hospitalData, medicine_edit_id, discharge_tab])
+  }, [hospitalData, medicine_edit_id, edit_id, discharge_tab])
 
   // Form validation schema
   const prescriptionSchema = yup.object({
@@ -955,6 +966,8 @@ export default function AddMedicineToPrescription() {
   }, [])
 
   useEffect(() => {
+    if (!id) return
+
     const getPatientInfo = async () => {
       setPatientLoading(true)
       try {
@@ -2107,7 +2120,7 @@ export default function AddMedicineToPrescription() {
 
         // Save to context under the correct key
         dispatch(updateState({ key: tempKey, value: updatedList }))
-        router.back()
+        router.replace(`/hospital/inpatient/${id}/?tab=discharge&discharge_tab=${discharge_tab}`)
 
         return
       } else if (fromPage === 'editPrescription') {
@@ -2162,7 +2175,8 @@ export default function AddMedicineToPrescription() {
   const calculateEndDate = (startDate, dosageDuration, interval, includeTime = true) => {
     if (!startDate || !dosageDuration?.value) return ''
 
-    const start = moment(startDate.toISOString ? startDate.toISOString() : startDate)
+    const start = moment(startDate)
+    if (!start.isValid()) return ''
     let endDate = start.clone()
     const durationValue = parseInt(dosageDuration.value)
     const intervalValue = parseInt(interval)

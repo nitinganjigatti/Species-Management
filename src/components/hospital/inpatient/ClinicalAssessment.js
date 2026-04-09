@@ -1,10 +1,13 @@
+'use client'
+
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { Box, Button, Typography, CircularProgress, Skeleton } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import { useParams, useSearchParams } from 'next/navigation'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import ClinicalAssessmentCard from '../../../views/pages/hospital/inpatient/ClinicalAssessmentCard'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import debounce from 'lodash/debounce'
@@ -31,9 +34,11 @@ const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
 const ClinicalAssessment = ({ overviewData, patientData, category }) => {
-  const router = useRouter()
+  const router = useSafeRouter()
+  const routerParams = useParams()
   const hospitalData = useSelector(state => state.hospital.data)
-  const { id, isCurrentMedicalRecordOnly } = router.query
+  const id = routerParams?.id
+  const { isCurrentMedicalRecordOnly } = router.query
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
@@ -439,29 +444,19 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
 
   const handleRouterNavigation = () => {
     if (category === 'Outpatients') {
-      router.push({
-        pathname: `/hospital/outpatient/${id}/add-clinical-assessment`
-      })
-    } 
+      router.push(`/hospital/outpatient/${id}/add-clinical-assessment`)
+    }
     else if(category === 'Discharged') {
-      router.push({
-        pathname: `/hospital/discharged/${id}/add-clinical-assessment`
-      })
+      router.push(`/hospital/discharged/${id}/add-clinical-assessment`)
     }
     else if(category === 'Mortality') {
-      router.push({
-        pathname: `/hospital/mortality/${id}/add-clinical-assessment`
-      })
+      router.push(`/hospital/mortality/${id}/add-clinical-assessment`)
     }
     else if(category === 'Follow Up') {
-      router.push({
-        pathname: `/hospital/followup/${id}/add-clinical-assessment`
-      })
+      router.push(`/hospital/followup/${id}/add-clinical-assessment`)
     }
     else {
-      router.push({
-        pathname: `/hospital/inpatient/${id}/add-clinical-assessment`
-      })
+      router.push(`/hospital/inpatient/${id}/add-clinical-assessment`)
     }
   }
   const handleRecordOnlyChange = e => {
@@ -680,6 +675,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           admittedDate={patientData?.admitted_at}
           dischargedDate={patientData?.discharge_at}
           isDischarged={patientData?.status === 'discharge'}
+          medical_record_id={medical_record_id}
         />
       )}
 

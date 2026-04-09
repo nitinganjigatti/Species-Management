@@ -1,7 +1,10 @@
+'use client'
+
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, Grid, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import { useParams, useSearchParams } from 'next/navigation'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { getSymptomsListForAdding, addSymptoms } from 'src/lib/api/hospital/symptoms'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import SymptomsList from 'src/components/hospital/Symptoms/SymptomsList'
@@ -46,10 +49,12 @@ const useDebounce = (callback, delay) => {
 
 function AddSymptoms() {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
+  const routerParams = useParams()
   const dispatch = useDispatch()
   const hospitalData = useSelector(state => state.hospital.data)
-  const { id } = router.query
+  // Get id from dynamic route params (App Router) or from router.query fallback
+  const id = routerParams?.id || router.query?.id
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)

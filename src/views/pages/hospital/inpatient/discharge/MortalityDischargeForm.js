@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect } from 'react'
 import { Box, Divider, Grid, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
@@ -5,7 +7,7 @@ import { alpha, styled } from '@mui/system'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
-import { useRouter } from 'next/router'
+import { useParams } from 'next/navigation'
 import dayjs from 'dayjs'
 import moment from 'moment'
 
@@ -42,8 +44,8 @@ const MortalityDischargeForm = props => {
     refetchPatient
   } = props
   const theme = useTheme()
-  const router = useRouter()
-  const { id } = router.query
+  const params = useParams()
+  const { id } = params
 
   const mortalitySchema = yup.object({
     date_of_death: yup

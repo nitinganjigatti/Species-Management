@@ -1,3 +1,4 @@
+'use client'
 import React, { useMemo, useState } from 'react'
 import {
   Box,
@@ -16,7 +17,8 @@ import {
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useFormContext } from 'react-hook-form'
 import { alpha, useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 
 const getTextFieldStyles = theme => {
   const outline = theme.palette.customColors?.SurfaceVariant || theme.palette.divider
@@ -178,8 +180,10 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
     formState: { errors }
   } = useFormContext()
   const theme = useTheme()
-  const router = useRouter()
-  const { id, animal_id } = router.query
+  const router = useSafeRouter()
+  const routerParams = useParams()
+  const id = routerParams?.id
+  const { animal_id } = router.query
 
   const textFieldStyles = useMemo(() => getTextFieldStyles(theme), [theme])
   const radioTileButtonStyles = useMemo(() => getRadioTileButtonStyles(theme), [theme])

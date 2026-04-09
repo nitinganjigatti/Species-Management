@@ -1,10 +1,12 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useParams } from 'next/navigation'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
-import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import AddEditSymptomDrawer from 'src/components/hospital/drawer/AddEditSymptomDrawer'
 import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/symptoms'
@@ -14,8 +16,9 @@ import dayjs from 'dayjs'
 
 const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData, isDischared }) => {
   const theme = useTheme()
-  const router = useRouter()
-  const { id, animal_id } = router.query
+  const params = useParams()
+  const { id } = params
+  
   const [symptomDrawerNewOpen, setSymptomDrawerNewOpen] = useState(false)
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [severity, setSeverity] = useState('Mild')

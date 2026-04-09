@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { Card, Grid, Box, alpha, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'

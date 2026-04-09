@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { Typography, Box, Button, IconButton, Skeleton, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'

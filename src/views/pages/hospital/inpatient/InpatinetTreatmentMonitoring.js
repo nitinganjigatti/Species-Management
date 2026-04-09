@@ -1,3 +1,5 @@
+'use client'
+
 import { Button } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useState } from 'react'

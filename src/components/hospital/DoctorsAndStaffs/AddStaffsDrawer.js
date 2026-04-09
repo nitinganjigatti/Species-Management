@@ -1,6 +1,8 @@
+'use client'
+
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Box, Button, CircularProgress, Drawer, IconButton, Typography, useTheme } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
@@ -29,7 +31,7 @@ const schema = yup.object().shape({
 const AddStaffsDrawer = ({ open, setOpen }) => {
   const theme = useTheme()
   const { selectedHospital } = useHospital()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const {
     control,

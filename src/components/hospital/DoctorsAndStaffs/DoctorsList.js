@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Badge,
   Box,
@@ -27,9 +29,7 @@ import { addChiefDoctor } from 'src/lib/api/hospital/staff'
 import { removeChiefDoctor } from 'src/lib/api/hospital/staff'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
-import hospital from 'src/pages/hospital/masters/hospital'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
@@ -38,7 +38,7 @@ const DoctorsList = () => {
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
   const { selectedHospital } = useHospital()
-  const router = useRouter()
+  const router = useSafeRouter()
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [openDrawer, setOpenDrawer] = useState(false)

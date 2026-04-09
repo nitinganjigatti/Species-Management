@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useMemo, useCallback, useEffect, useContext } from 'react'
 import { Box, Typography, CircularProgress, Skeleton, Chip, Button } from '@mui/material'
 import { Grid } from '@mui/system'

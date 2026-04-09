@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import PropTypes from 'prop-types'
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Typography } from '@mui/material'

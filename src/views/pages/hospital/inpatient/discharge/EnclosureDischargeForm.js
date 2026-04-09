@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme, CircularProgress } from '@mui/material'
 import { alpha, styled } from '@mui/system'
@@ -6,7 +8,7 @@ import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
-import { useRouter } from 'next/router'
+import { useParams, useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
 import moment from 'moment'
 import Utility from 'src/utility'
@@ -60,8 +62,10 @@ const EnclosureDischargeForm = props => {
   const isRestoring = useRef(true) // Flag to prevent Autocomplete search API calls while restoring form values from sessionStorage
 
   const theme = useTheme()
+  const params = useParams()
   const router = useRouter()
-  const { id } = router.query
+  const { id } = params
+  
   const patientDetails = patientData?.animal_detail
   const dispatch = useDispatch()
   const hospitalData = useSelector(state => state.hospital.data)
@@ -314,19 +318,13 @@ const EnclosureDischargeForm = props => {
   const handleEditMedicine = useCallback(
     med => {
       sessionStorage.setItem(STORAGE_KEY_FORM, JSON.stringify(getValues()))
+      dispatch(updateState({ key: 'enclosure_medicines', value: medicationData }))
 
       window.location.hash = 'medications-section'
 
-      router.push({
-        pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-        query: {
-          tab: 'discharge',
-          discharge_tab: 'TransferEnclosure',
-          medicine_edit_id: med.id
-        }
-      })
+      router.push(`/hospital/inpatient/${id}/schedule-prescription?tab=discharge&discharge_tab=TransferEnclosure&medicine_edit_id=${med.id}`)
     },
-    [router, id]
+    [router, id, medicationData, dispatch]
   )
 
   // Delete a medicine update context state

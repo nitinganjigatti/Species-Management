@@ -1,3 +1,5 @@
+'use client'
+
 import { yupResolver } from '@hookform/resolvers/yup'
 import {
   Box,
@@ -16,7 +18,8 @@ import {
   Autocomplete
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/system'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
@@ -72,14 +75,16 @@ const defaultValues = {
 
 const PatientAdmitForm = ()=> {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
+  const routerParams = useParams()
   const authData = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
   const { selectedHospital, updateSelectedHospital, updateHospitalStats, hospitalStats, isHospitalStatsLoading } =
     useHospital()
 
-  const { id } = router.query
+  // Get id from dynamic route params (App Router) or from router.query (Pages Router fallback)
+  const id = routerParams?.id || router.query?.id
 
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)

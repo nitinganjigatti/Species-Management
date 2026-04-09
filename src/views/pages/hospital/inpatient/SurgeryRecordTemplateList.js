@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useMemo, useEffect, useCallback } from 'react'
 import { Drawer, IconButton, Typography, TextField, CircularProgress } from '@mui/material'
 import { alpha, Box } from '@mui/system'

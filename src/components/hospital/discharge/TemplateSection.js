@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Box, Avatar, Typography, TextField, useTheme } from '@mui/material'
 import { alpha, styled, textTransform } from '@mui/system'

@@ -1,7 +1,9 @@
-import React from 'react'
+'use client'
+
+import React, { useEffect, useState } from 'react'
 import { Breadcrumbs, Typography } from '@mui/material'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { usePathname } from 'next/navigation'
 
 const DynamicBreadcrumbs = ({
   pageItems,
@@ -11,11 +13,21 @@ const DynamicBreadcrumbs = ({
   hiddenSegments = [],
   nonClickableSegments = []
 }) => {
-  const router = useRouter()
+  const pathname = usePathname()
+  const [currentPath, setCurrentPath] = useState('')
+
+  useEffect(() => {
+    // For SSR compatibility, also use window.location as fallback
+    if (typeof window !== 'undefined' && !pathname) {
+      setCurrentPath(window.location.pathname)
+    } else {
+      setCurrentPath(pathname)
+    }
+  }, [pathname])
 
   // Helper to process URL segments
   const generateBreadcrumbs = () => {
-    const asPathWithoutQuery = router.asPath.split('?')[0]
+    const asPathWithoutQuery = (currentPath || pathname).split('?')[0]
     const asPathNestedRoutes = asPathWithoutQuery.split('/').filter(v => v.length > 0)
 
     return asPathNestedRoutes
@@ -33,7 +45,7 @@ const DynamicBreadcrumbs = ({
 
         return { href, title, segment: subpath }
       })
-      .filter(item => !hiddenSegments.includes(item.segment));
+      .filter(item => !hiddenSegments.includes(item.segment))
   }
 
   const itemsToRender = pageItems || generateBreadcrumbs()

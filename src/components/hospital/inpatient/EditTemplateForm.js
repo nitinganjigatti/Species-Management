@@ -1,3 +1,4 @@
+'use client'
 import React from 'react'
 import { Dialog, DialogContent, IconButton, Box, Typography, FormControl, FormHelperText } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'

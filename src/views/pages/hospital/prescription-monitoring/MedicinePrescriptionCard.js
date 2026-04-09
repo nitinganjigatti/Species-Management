@@ -1,3 +1,5 @@
+'use client'
+
 /* eslint-disable lines-around-comment */
 import React, { useCallback, useEffect, useState } from 'react'
 import {
@@ -27,7 +29,7 @@ import Utility from 'src/utility'
 import { LoadingButton } from '@mui/lab'
 import DoDisturbIcon from '@mui/icons-material/DoDisturb'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import { useRouter } from 'next/router'
+import { useParams, useSearchParams } from 'next/navigation'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import RenderUtility from 'src/utility/render'
 // for controlle substance
@@ -260,9 +262,10 @@ const MedicinePrescriptionCard = ({
   }
 
   const actionType = watch('action')
-  const router = useRouter()
-  const { id, date } = router.query
-
+  const params = useParams()
+  const searchParams = useSearchParams()
+  const { id } = params
+  const date = searchParams.get('date')
   const [activeTab, setActiveTab] = useState(medicineData?.defaultTab || 1)
   const [stopMedicineModalOpen, setStopMedicineModalOpen] = useState(false)
 
@@ -1731,8 +1734,8 @@ const DateTabsShimmer = ({ theme }) => (
         '&::-webkit-scrollbar': {
           display: 'none'
         },
-        '-ms-overflow-style': 'none',
-        'scrollbar-width': 'none'
+        msOverflowStyle: 'none',
+        scrollbarWidth: 'none'
       }}
     >
       {/* Date Buttons Shimmer */}

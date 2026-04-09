@@ -1,11 +1,13 @@
+'use client'
+
 import { Tooltip, Typography, useTheme, CircularProgress, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useState } from 'react'
+import { useParams } from 'next/navigation'
 import MoreMediaListing from 'src/components/MoreMediaListing'
 import HealthcareOverview from './TreatmentOverview'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { useRouter } from 'next/router'
 import {
   getAnimalTotalHospitalVisits,
   getMediaItems,
@@ -33,7 +35,7 @@ const InpatientOverview = ({
   setVisitFilters,
   patientData
 }) => {
-  const router = useRouter()
+  const params = useParams()
   const theme = useTheme()
   const hospitalData = useSelector(state => state.hospital.data)
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
@@ -96,7 +98,7 @@ const InpatientOverview = ({
   }
 
   const { selectedHospital } = useHospital()
-  const { id } = router.query
+  const { id } = params
   const animal_id = medicalRecordData?.animal_id
 
   const [openDrawer, setOpenDrawer] = useState(false)

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useState } from 'react'
 import { Box, Radio, Typography, FormControlLabel, RadioGroup } from '@mui/material'
 import { useTheme } from '@mui/material/styles'

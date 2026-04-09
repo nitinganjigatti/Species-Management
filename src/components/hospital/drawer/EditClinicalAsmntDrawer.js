@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import {
   Box,
@@ -17,7 +19,6 @@ import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 // import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
-import { useRouter } from 'next/router'
 import Utility from 'src/utility'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import EditNotes from '../inpatient/EditNotes'
@@ -56,13 +57,12 @@ const EditClinicalAsmntDrawer = ({
   recordedDateTime,
   setRecordedDateTime,
   isDischarged,
-  isChanged
+  isChanged,
+  medical_record_id
 }) => {
   const theme = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
-  const router = useRouter()
-  const { medical_record_id } = router.query
   const [minDate, setMinDate] = useState(null)
   const [maxDate, setMaxDate] = useState(null)
 

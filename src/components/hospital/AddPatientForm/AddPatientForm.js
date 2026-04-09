@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Breadcrumbs,
   Typography,
@@ -14,7 +16,8 @@ import {
   Autocomplete,
   TextField
 } from '@mui/material'
-import { useRouter } from 'next/router'
+
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import RenderUtility from 'src/utility/render'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
@@ -133,7 +136,7 @@ const schema = yup.object().shape({
 const AddPatientForm = ({ defaultTreatmentType }) => {
   const theme = useTheme()
 
-  const router = useRouter()
+  const router = useSafeRouter()
   const authData = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 

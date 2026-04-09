@@ -1,3 +1,5 @@
+'use client'
+
 import { Box, Button, Divider, Grid, Typography, useTheme } from '@mui/material'
 import React, { useState } from 'react'
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'

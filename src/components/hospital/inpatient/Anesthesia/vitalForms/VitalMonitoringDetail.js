@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useMemo } from 'react'
 import { Box, Divider, Typography } from '@mui/material'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'

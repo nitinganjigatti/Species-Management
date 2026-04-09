@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Icon, Avatar } from '@mui/material'
 import { useTheme } from '@mui/material/styles'

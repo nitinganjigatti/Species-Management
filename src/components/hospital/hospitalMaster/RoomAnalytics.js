@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { Box, Card, CardContent, Typography, Grid, useTheme, CircularProgress } from '@mui/material'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'

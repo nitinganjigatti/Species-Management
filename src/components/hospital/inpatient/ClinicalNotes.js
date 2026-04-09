@@ -1,7 +1,10 @@
+'use client'
+
 import React, { useState, useMemo, useCallback, useRef } from 'react'
 import { useTheme } from '@emotion/react'
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { addClinicalNotes, deleteClinicalNotes, getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
@@ -16,8 +19,10 @@ const ClinicalNotes = ({ patientData }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const theme = useTheme()
-  const router = useRouter()
-  const { id } = router.query
+  const router = useSafeRouter()
+  const routerParams = useParams()
+  // Get id from dynamic route params (App Router) or from router.query fallback
+  const id = routerParams?.id || router.query?.id
 
   const queryClient = useQueryClient()
   const hospitalData = useSelector(state => state.hospital.data)

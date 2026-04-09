@@ -1,3 +1,5 @@
+'use client'
+
 /* eslint-disable lines-around-comment */
 import React, { useCallback, useEffect, useState } from 'react'
 import {

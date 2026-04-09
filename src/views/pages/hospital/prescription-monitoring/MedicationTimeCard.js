@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Box, Typography, Checkbox, Radio, Paper } from '@mui/material'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'

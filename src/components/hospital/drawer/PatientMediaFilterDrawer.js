@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useCallback, useEffect, useState } from 'react'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import MediaFilterContent from './MediaFilterContent'

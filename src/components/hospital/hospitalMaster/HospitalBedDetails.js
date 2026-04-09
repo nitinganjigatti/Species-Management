@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
@@ -19,7 +21,7 @@ import {
 import { Add as AddIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { debounce } from 'lodash'
 import styled from '@emotion/styled'
 
@@ -51,9 +53,19 @@ const statusOptions = [
 const HospitalBedDetails = () => {
   const theme = useTheme()
   const router = useRouter()
+  const routerParams = useParams()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
 
-  const { page, limit, q, status, id, roomId } = router.query
+  // Get id and roomId from dynamic route parameters, fall back to prop
+  const id = routerParams?.id || params?.id
+  const roomId = routerParams?.roomId || params?.roomId
+  
+  // Get query string parameters
+  const page = searchParams.get('page') || ''
+  const limit = searchParams.get('limit') || ''
+  const q = searchParams.get('q') || ''
+  const status = searchParams.get('status')
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -88,7 +100,7 @@ const HospitalBedDetails = () => {
       const basePath = `/hospital/masters/hospital/${id}/${roomId}`
       const queryString = params.toString()
       const newUrl = queryString ? `${basePath}?${queryString}` : basePath
-      router.replace(newUrl)
+      router.push(newUrl)
     },
     [router, id, roomId]
   )
@@ -515,9 +527,9 @@ const HospitalBedDetails = () => {
 
   // refetch on when filters updates
   useEffect(() => {
-    if (!router.isReady || !id || !roomId) return
+    if (!id || !roomId) return
     refetchBeds()
-  }, [filters, id, router.isReady])
+  }, [filters, id, roomId, refetchBeds])
 
   const handleAnimalColumnClick = params => {
     if (params?.field === 'occupant' && params?.row?.animal_count > 1) {
@@ -534,7 +546,7 @@ const HospitalBedDetails = () => {
           { title: 'Hospital' },
           { title: 'Masters' },
           { title: 'Hospital List' },
-          { title: 'Hospital Detail', onClick: () => router.back() },
+          { title: 'Hospital Detail', onClick: () => router.push(`/hospital/masters/hospital/${id}`) },
           { title: 'Room Detail' }
         ]}
       />

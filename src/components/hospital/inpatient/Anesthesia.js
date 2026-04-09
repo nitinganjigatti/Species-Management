@@ -1,5 +1,6 @@
+'use client'
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import {
   Button,
@@ -86,7 +87,7 @@ const formatStaffNames = list => {
 
 function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false, category }) {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
   const scrollContainerRef = useRef(null)
   const queryClient = useQueryClient()
 
@@ -595,13 +596,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
     const caseId = resolvedHospitalCaseId || router?.query?.id
 
     if (value?.anaesthesia_id && caseId) {
-      router.push({
-        pathname: `/hospital/inpatient/${caseId}/AddAnesthesiaRecord`,
-        query: {
-          tab: 'anesthesia',
-          anaesthesia_id: value?.anaesthesia_id
-        }
-      })
+      router.push(`/hospital/inpatient/${caseId}/AddAnesthesiaRecord?tab=anesthesia&from_tab=anesthesia&anaesthesia_id=${value?.anaesthesia_id}`)
     }
   }
 
@@ -773,29 +768,19 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
   )
   const handleRouterNavigation = () => {
     if(category === 'Discharged') {
-      router.push({
-        pathname: `/hospital/discharged/${hospitalCaseId}/AddAnesthesiaRecord`
-      })
+      router.push(`/hospital/discharged/${hospitalCaseId}/AddAnesthesiaRecord`)
     }
     else if(category === 'Mortality') {
-      router.push({
-        pathname: `/hospital/mortality/${hospitalCaseId}/AddAnesthesiaRecord`
-      })
+      router.push(`/hospital/mortality/${hospitalCaseId}/AddAnesthesiaRecord`)
     }
     else if(category === 'Follow Up') {
-      router.push({
-        pathname: `/hospital/followup/${hospitalCaseId}/AddAnesthesiaRecord`
-      })
+      router.push(`/hospital/followup/${hospitalCaseId}/AddAnesthesiaRecord`)
     }
     else if(category === 'Outpatients'){
-      router.push({
-        pathname: `/hospital/outpatient/${hospitalCaseId}/AddAnesthesiaRecord`
-      })
+      router.push(`/hospital/outpatient/${hospitalCaseId}/AddAnesthesiaRecord`)
     }
     else {
-      router.push({
-        pathname: `/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`
-      })
+      router.push(`/hospital/inpatient/${hospitalCaseId}/AddAnesthesiaRecord`)
     }
   }
 

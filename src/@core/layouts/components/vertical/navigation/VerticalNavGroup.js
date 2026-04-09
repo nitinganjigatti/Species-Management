@@ -1,7 +1,10 @@
+'use client'
+
 // ** React Imports
 import { useEffect, Fragment } from 'react'
 
 // ** Next Import
+import { usePathname } from 'next/navigation'
 import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
@@ -61,7 +64,8 @@ const VerticalNavGroup = props => {
 
   // ** Hooks & Vars
   const router = useSafeRouter()
-  const currentURL = router.asPath
+  const pathname = usePathname()
+  const currentURL = pathname || router.asPath
   const { direction, navCollapsed, verticalNavToggleType } = settings
 
   // ** Use unique key instead of title for tracking
@@ -138,7 +142,7 @@ const VerticalNavGroup = props => {
       setGroupActive([])
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [router.asPath])
+  }, [pathname, router.asPath])
 
   useEffect(() => {
     if (navCollapsed && !navHover) {

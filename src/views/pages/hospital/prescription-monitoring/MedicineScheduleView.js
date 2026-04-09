@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState } from 'react'
 import { Drawer, Box, Typography, IconButton, Button, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'

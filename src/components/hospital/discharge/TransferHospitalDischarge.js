@@ -1,3 +1,5 @@
+'use client'
+
 // import { useState, useEffect, useCallback } from 'react'
 // import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
 // import Toaster from 'src/components/Toaster'

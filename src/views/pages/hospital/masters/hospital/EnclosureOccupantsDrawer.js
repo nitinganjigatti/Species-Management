@@ -1,3 +1,5 @@
+'use client'
+
 import { Box, Drawer, IconButton, Skeleton, Typography, useTheme } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'

@@ -1,3 +1,5 @@
+'use client'
+
 /* eslint-disable lines-around-comment */
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { Box, Typography, IconButton, Grid, Button } from '@mui/material'
@@ -9,8 +11,8 @@ import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import TimeSlotCell from 'src/views/pages/hospital/prescription-monitoring/TimeSlotCell'
 import MetricCard from 'src/views/pages/hospital/prescription-monitoring/MetricCard'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import ActionButtonsWithSelection from '../ActionButtonsWithSelection'
 import AdministerOrSkipModal from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipModal'
@@ -62,7 +64,9 @@ const ScrollableContainer = styled(Box)(({ theme }) => ({
   msOverflowStyle: 'none'
 }))
 
-const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
+const TimeSlotGrid = styled(Box, {
+  shouldForwardProp: prop => prop !== 'numColumns'
+})(({ theme, numColumns }) => ({
   display: 'grid',
   gridTemplateColumns: `repeat(${numColumns}, minmax(160px, 1fr))`,
   gap: theme.spacing(2),
@@ -112,7 +116,7 @@ const MetricLabel = styled(Box, {
 }))
 
 const TimeSlot = styled(Box, {
-  shouldForwardProp: prop => prop !== 'config'
+  shouldForwardProp: prop => !['config', 'disabled', 'reduceOpacity'].includes(prop)
 })(({ theme, config, disabled, reduceOpacity }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -285,8 +289,10 @@ const PrescriptionMonitoringGrid = ({
   category
 }) => {
   const theme = useTheme()
-  const router = useRouter()
-  const { id } = router.query
+  const router = useSafeRouter()
+  const routerParams = useParams()
+  // Get id from dynamic route params (App Router) or from router.query fallback
+  const id = routerParams?.id || router.query?.id
 
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})

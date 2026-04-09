@@ -1,3 +1,4 @@
+'use client'
 import React, { useEffect, useMemo, useState } from 'react'
 import { Drawer, Box, Typography, IconButton, Button, Radio, Skeleton } from '@mui/material'
 import { Icon } from '@iconify/react'

@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Box,
@@ -18,7 +19,6 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import { useTheme, alpha } from '@mui/material/styles'
-import { Router, useRouter } from 'next/router'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
@@ -31,6 +31,9 @@ import Search from 'src/views/utility/Search'
 import { debounce, filter } from 'lodash'
 import ControlledDateTimePicker from 'src/views/forms/form-fields/ControlledDateTimePicker'
 import Utility from 'src/utility'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
+
 dayjs.extend(utc)
 
 export default function BasicDetails({
@@ -59,7 +62,7 @@ export default function BasicDetails({
     trigger,
     formState: { errors }
   } = useFormContext()
-  const router = useRouter()
+  const router = useSafeRouter()
   const theme = useTheme()
   const [newPurpose, setNewPurpose] = useState('')
   const [expanded, setExpanded] = useState(false)
@@ -70,7 +73,9 @@ export default function BasicDetails({
   const [loading, setLoading] = useState(true)
   const [newPurposeError, setNewPurposeError] = useState('')
   const contentRef = useRef(null)
-  const { id, anaesthesia_id } = router.query
+  const routerParams = useParams()
+  const id = routerParams?.id
+  const { anaesthesia_id } = router.query
   const effectiveAnesthesiaId = anesthesiaId || anaesthesia_id
   const timeUnits = [
     { label: 'hr', value: 'hr' },
@@ -527,12 +532,14 @@ export default function BasicDetails({
         >
           <Box>
             <Typography
+              component="div"
               fontWeight={600}
               sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
             >
               Purpose of Anesthesia*{' '}
               <Box sx={{ display: 'inline-flex', pl: { sm: 4 } }}>
                 <Typography
+                  component="span"
                   sx={{
                     justifyContent: 'flex-start',
                     fontWeight: 400,

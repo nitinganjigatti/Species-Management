@@ -1,8 +1,9 @@
+'use client'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { Box, Button, Typography, CircularProgress, Skeleton } from '@mui/material'
 import { debounce } from 'lodash'
 import { Add as AddIcon } from '@mui/icons-material'
-import { useRouter } from 'next/router'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
@@ -14,10 +15,13 @@ import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
-const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
+const Symptoms = ({ selectedTab, patientData, overviewData, category } = {}) => {
   const router = useRouter()
+  const params = useParams()
+  const searchParams = useSearchParams()
   const hospitalData = useSelector(state => state.hospital.data)
-  const { id, isCurrentMedicalRecordOnly } = router.query
+  const id = params?.id
+  const isCurrentMedicalRecordOnly = searchParams?.get('isCurrentMedicalRecordOnly')
 
   const isDischared = overviewData?.status === 'discharge'
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
@@ -151,25 +155,15 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
 
   const handleRouterNavigation = () => {
     if (category === 'Outpatients') {
-      router.push({
-        pathname: `/hospital/outpatient/${id}/symptoms`
-      })
+      router.push(`/hospital/outpatient/${id}/add-symptoms`)
     } else if (category === 'Discharged') {
-      router.push({
-        pathname: `/hospital/discharged/${id}/symptoms`
-      })
+      router.push(`/hospital/discharged/${id}/add-symptoms`)
     } else if (category === 'Mortality') {
-      router.push({
-        pathname: `/hospital/mortality/${id}/symptoms`
-      })
+      router.push(`/hospital/mortality/${id}/add-symptoms`)
     } else if (category === 'Follow Up') {
-      router.push({
-        pathname: `/hospital/followup/${id}/symptoms`
-      })
+      router.push(`/hospital/followup/${id}/add-symptoms`)
     } else {
-      router.push({
-        pathname: `/hospital/inpatient/${id}/symptoms`
-      })
+      router.push(`/hospital/inpatient/${id}/add-symptoms`)
     }
   }
 
@@ -179,17 +173,9 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
     setIsSwitchToggle(true);
     setCurrentRecordOnly(e.target.checked)
 
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          isCurrentMedicalRecordOnly: e.target.checked
-        }
-      },
-      undefined,
-      { shallow: true }
-    )
+    const newSearchParams = new URLSearchParams(searchParams.toString())
+    newSearchParams.set('isCurrentMedicalRecordOnly', e.target.checked)
+    router.push(`/hospital/inpatient/${id}?${newSearchParams.toString()}`)
   }
 
   return (

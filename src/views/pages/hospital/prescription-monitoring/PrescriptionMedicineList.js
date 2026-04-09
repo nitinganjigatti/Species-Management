@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import {
   Box,
@@ -19,8 +21,8 @@ import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutoco
 
 import { keyframes } from '@emotion/react'
 import { useSelector } from 'react-redux'
-import { useRouter } from 'next/router'
 import RenderUtility from 'src/utility/render'
+import { useSearchParams } from 'next/navigation'
 
 // Shimmer animation
 const shimmerAnimation = keyframes`
@@ -63,8 +65,11 @@ export default function PrescriptionMedicineList({
   setValue
 }) {
   const theme = useTheme()
-  const router = useRouter()
-  const { fromPage, medicine_edit_id, tab } = router.query
+  const searchParams = useSearchParams()
+  const fromPage = searchParams.get('fromPage')
+  const medicine_edit_id = searchParams.get('medicine_edit_id')
+  const tab = searchParams.get('tab')
+  const discharge_tab = searchParams.get('discharge_tab')
   const editIdStr = medicine_edit_id?.toString()
   const hospitalData = useSelector(state => state.hospital.data)
   const enclosureMedicines = hospitalData.enclosure_medicines || []

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useMemo } from 'react'
 import { alpha, Box, Typography, useTheme } from '@mui/material'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'

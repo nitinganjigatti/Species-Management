@@ -1,7 +1,9 @@
+'use client'
+
 import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
 import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'

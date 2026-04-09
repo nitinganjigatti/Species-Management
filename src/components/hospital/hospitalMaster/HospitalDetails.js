@@ -1,9 +1,12 @@
+'use client'
+
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Box, Button, Card, CardHeader, Typography, useTheme, MenuItem, Select, alpha } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { debounce } from 'lodash'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -26,10 +29,17 @@ const statusOptions = [
 
 const HospitalDetails = () => {
   const theme = useTheme()
-  const router = useRouter()
+  const appRouter = useRouter()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
 
-  const { page, limit, q, active, sort_order, sort_by } = router.query
+  // Get query string parameters from App Router
+  const page = searchParams.get('page') || ''
+  const limit = searchParams.get('limit') || ''
+  const q = searchParams.get('q') || ''
+  const active = searchParams.get('active')
+  const sort_order = searchParams.get('sort_order') || ''
+  const sort_by = searchParams.get('sort_by') || ''
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -41,7 +51,7 @@ const HospitalDetails = () => {
     page: page ? Number(page) : 1,
     limit: limit ? Number(limit) : 50,
     q: q || '',
-    active: active !== undefined ? Number(active) : undefined,
+    active: active ? Number(active) : undefined,
     sort_order: sort_order || 'desc',
     sort_by: sort_by || 'occupants'
   })
@@ -57,11 +67,12 @@ const HospitalDetails = () => {
         }
       })
 
-      router.replace({ pathname: router.pathname, query: params.toString() }, undefined, {
-        shallow: true
-      })
+      const basePath = '/hospital/masters/hospital'
+      const queryString = params.toString()
+      const newUrl = queryString ? `${basePath}?${queryString}` : basePath
+      appRouter.push(newUrl)
     },
-    [router]
+    [appRouter]
   )
 
   // Fetch sites
@@ -366,9 +377,7 @@ const HospitalDetails = () => {
   }
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/hospital/masters/hospital/${params?.row?.id}`
-    })
+    appRouter.push(`/hospital/masters/hospital/${params?.row?.id}`)
   }
 
   // Fetch sites when drawer opens
@@ -389,9 +398,8 @@ const HospitalDetails = () => {
 
   // refetch on when filters updates
   useEffect(() => {
-    if (!router.isReady) return
     refetchHospitals()
-  }, [filters, router.isReady])
+  }, [filters, refetchHospitals])
 
   return (
     <>

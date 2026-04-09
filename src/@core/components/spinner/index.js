@@ -14,6 +14,7 @@ const FallbackSpinner = ({ sx }) => {
 
   return (
     <Box
+      suppressHydrationWarning
       sx={{
         height: '100vh',
         display: 'flex',

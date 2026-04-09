@@ -1,3 +1,5 @@
+'use client'
+
 // components/HospitalDropdown.jsx
 import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } from 'react'
 import { Box, Typography, Menu, MenuItem, CircularProgress, useTheme, Tooltip, Avatar } from '@mui/material'
@@ -474,7 +476,6 @@ const HospitalDropdown = ({ disabled = false }) => {
               hospitalList.map(hospital => (
                 <MenuItem
                   key={hospital.id}
-                  fullWidth
                   onClick={() => handleHospitalSelect(hospital)}
                   selected={selectedHospital?.id === hospital.id}
                   sx={{

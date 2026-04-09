@@ -1,3 +1,4 @@
+'use client'
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Box, Breadcrumbs, Grid, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -13,7 +14,8 @@ import {
   getDiagnosysType
 } from 'src/lib/api/hospital/clinicalAssessment'
 import Toaster from 'src/components/Toaster'
-import { useRouter } from 'next/router'
+import { useParams, useSearchParams } from 'next/navigation'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateState } from 'src/store/slices/hospital/hospitalSlice'
@@ -28,7 +30,8 @@ const STORAGE_KEY = 'medical_record_data'
 
 function AddClinicalAssessment({from = 'Inpatient'}) {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
+  const routerParams = useParams()
   const dispatch = useDispatch()
   const hospitalData = useSelector(state => state.hospital.data)
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
@@ -49,7 +52,8 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
 
-  const { id } = router.query
+  // Get id from dynamic route params (App Router) or from router.query fallback
+  const id = routerParams?.id || router.query?.id
   const animalId = medicalRecordData?.animal_id
   const medicalRecordId = medicalRecordData?.medical_record_id
 

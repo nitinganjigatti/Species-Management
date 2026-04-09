@@ -1,3 +1,5 @@
+'use client'
+
 import { useTheme } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'

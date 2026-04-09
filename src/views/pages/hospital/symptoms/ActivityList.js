@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { Box, Typography, Paper, IconButton, alpha, CircularProgress } from '@mui/material'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'

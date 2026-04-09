@@ -1,12 +1,15 @@
+'use client'
+
 import React from 'react'
 import { Box, Typography, Grid, Avatar, Divider, Tooltip } from '@mui/material'
 import { MonitorHeart, Assignment, LocalPharmacy, Image, PictureAsPdf, Add } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import { useParams } from 'next/navigation'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, navigateTo }) => {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   return (
     <Box
@@ -79,8 +82,8 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, nav
 
 const HealthcareOverview = ({ data }) => {
   const theme = useTheme()
-  const router = useRouter()
-  const { id } = router.query
+  const params = useParams()
+  const { id } = params
 
   const statsData = [
     {

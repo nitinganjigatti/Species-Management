@@ -75,23 +75,24 @@ const MedicalRecords = () => {
       })
 
       if (res?.success) {
+        const data = res?.data as any
         setSelectedAnimals([
           {
-            animal_id: Number(res?.data?.animal_details?.animal_id),
-            default_common_name: res?.data?.animal_details?.common_name,
-            scientific_name: res?.data?.animal_details?.scientific_name ?? res?.data?.animal_details?.complete_name,
-            user_enclosure_name: res?.data?.animal_details?.user_enclosure_name,
-            section_name: res?.data?.animal_details?.section_name,
-            site_name: res?.data?.animal_details?.site_name,
-            type: res?.data?.animal_details?.type,
-            sex: res?.data?.animal_details?.sex,
-            default_icon: res?.data?.animal_details?.default_icon,
-            total_animal: res?.data?.animal_details?.total_animal,
-            local_identifier_name: res?.data?.animal_details?.local_identifier_name,
-            local_identifier_value: res?.data?.animal_details?.local_identifier_value,
-            enclosure_id: res?.data?.animal_details?.enclosure_id,
-            section_id: res?.data?.animal_details?.section_id,
-            site_id: res?.data?.animal_details?.site_id
+            animal_id: Number(data?.animal_details?.animal_id),
+            default_common_name: data?.animal_details?.common_name,
+            scientific_name: data?.animal_details?.scientific_name ?? data?.animal_details?.complete_name,
+            user_enclosure_name: data?.animal_details?.user_enclosure_name,
+            section_name: data?.animal_details?.section_name,
+            site_name: data?.animal_details?.site_name,
+            type: data?.animal_details?.type,
+            sex: data?.animal_details?.sex,
+            default_icon: data?.animal_details?.default_icon,
+            total_animal: data?.animal_details?.total_animal,
+            local_identifier_name: data?.animal_details?.local_identifier_name,
+            local_identifier_value: data?.animal_details?.local_identifier_value,
+            enclosure_id: data?.animal_details?.enclosure_id,
+            section_id: data?.animal_details?.section_id,
+            site_id: data?.animal_details?.site_id
           }
         ])
       }

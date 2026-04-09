@@ -1,3 +1,5 @@
+'use client'
+
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Box, Avatar, Typography, Grid, Tooltip, CircularProgress } from '@mui/material'

@@ -1,3 +1,5 @@
+'use client'
+
 import { alpha, Box, Tooltip, Typography, useTheme } from '@mui/material'
 import React from 'react'
 import Utility from 'src/utility'

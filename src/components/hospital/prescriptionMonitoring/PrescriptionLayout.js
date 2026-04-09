@@ -1,9 +1,12 @@
+'use client'
+
 import { Grid, Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import PrescriptionMonitoringGrid from './PrescriptionMonitoringGrid'
 import { AdministerMedicineModal, MedicineScheduleView } from 'src/views/pages/hospital/prescription-monitoring'
 import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-monitoring/MedicinePrescriptionCard'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams, useSearchParams } from 'next/navigation'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
 import { useSelector } from 'react-redux'
@@ -33,13 +36,17 @@ import dayjs from 'dayjs'
 const STORAGE_KEY = 'medical_record_data'
 
 function PrescriptionLayout({ drawerType, overviewData, category }) {
-  const router = useRouter()
+  const router = useSafeRouter()
+  const routerParams = useParams()
+  const searchParams = useSearchParams()
   const hospitalData = useSelector(state => state.hospital.data)
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
-  // Get ID from router (with fallback during initial render before router is ready)
-  const { id, date, isCurrentMedicalRecordOnly } = router.query
+  // Get ID from dynamic route params (App Router)
+  const id = routerParams?.id
+  const date = searchParams.get('date')
+  const isCurrentMedicalRecordOnly = searchParams.get('isCurrentMedicalRecordOnly')
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
 

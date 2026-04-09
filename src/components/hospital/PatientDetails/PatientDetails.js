@@ -1,6 +1,8 @@
+'use client'
+
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Tab, Tabs, Typography, Box, Tooltip } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect, useContext } from 'react'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -26,7 +28,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 const STORAGE_KEY = 'medical_record_data'
 
 const useDrawerState = () => {
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
@@ -50,21 +52,21 @@ const useDrawerState = () => {
     setDrawerData
   }
 }
-const InpatientOverview = lazy(() => import('src/views/pages/hospital/inpatient/InpatientOverview'))
-const InpatientMedicalSummary = lazy(() => import('src/components/hospital/inpatient/InpatientMedicalSummary'))
-const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'))
-const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'))
-const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/ClinicalAssessment'))
-const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'))
-const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/OtherTreatments/index'))
-const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'))
-const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'))
-const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'))
-const PatientMedia = lazy(() => import('src/components/hospital/inpatient/PatientMedia'))
-const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'))
+const InpatientOverview = lazy(() => import('src/views/pages/hospital/inpatient/InpatientOverview'), { ssr: false })
+const InpatientMedicalSummary = lazy(() => import('src/components/hospital/inpatient/InpatientMedicalSummary'), { ssr: false })
+const TreatmentLayout = lazy(() => import('src/components/hospital/TreatmentMonitoring/TreatmentLayout'), { ssr: false })
+const Symptoms = lazy(() => import('src/components/hospital/inpatient/Symptoms'), { ssr: false })
+const ClinicalAssessment = lazy(() => import('src/components/hospital/inpatient/ClinicalAssessment'), { ssr: false })
+const ClinicalNotes = lazy(() => import('src/components/hospital/inpatient/ClinicalNotes'), { ssr: false })
+const OtherTreatments = lazy(() => import('src/components/hospital/inpatient/OtherTreatments/index'), { ssr: false })
+const PrescriptionLayout = lazy(() => import('src/components/hospital/prescriptionMonitoring/PrescriptionLayout'), { ssr: false })
+const Anesthesia = lazy(() => import('src/components/hospital/inpatient/Anesthesia'), { ssr: false })
+const InpatientSurgery = lazy(() => import('src/views/pages/hospital/inpatient/InpatientSurgery'), { ssr: false })
+const PatientMedia = lazy(() => import('src/components/hospital/inpatient/PatientMedia'), { ssr: false })
+const InpatientDischarge = lazy(() => import('src/components/hospital/discharge'), { ssr: false })
 
-const PatientDetails = ({ category }) => {
-  const router = useRouter()
+const PatientDetails = ({ category, params }) => {
+  const router = useSafeRouter()
   const theme = useTheme()
   const authData = useContext(AuthContext)
 
@@ -76,7 +78,10 @@ const PatientDetails = ({ category }) => {
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
 
-  const { id, tab: urlTab } = router.query
+  // Support both app router (params prop) and pages router (router.query)
+  const { id: idFromParams } = params || {}
+  const { id: idFromQuery, tab: urlTab } = router.query
+  const id = idFromParams || idFromQuery
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -166,7 +171,7 @@ const PatientDetails = ({ category }) => {
 
     if (!selectedHospital?.id && patientHospitalId) {
       updateSelectedHospital({ id: patientHospitalId })
-
+      // setPermissionStatus('allowed')
       return
     }
 
@@ -291,7 +296,6 @@ const PatientDetails = ({ category }) => {
             pathname: router.pathname,
             query: {
               ...query,
-              id: router.query.id,
               tab: 'discharge',
               discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
@@ -320,7 +324,6 @@ const PatientDetails = ({ category }) => {
             pathname: router.pathname,
             query: {
               ...updated,
-              id: router.query.id,
               tab: newValue
             }
           },
@@ -338,7 +341,6 @@ const PatientDetails = ({ category }) => {
           query: {
             ...router.query,
             tab: newValue,
-            id: router.query.id,
             ...(router.query.hasOwnProperty('isCurrentMedicalRecordOnly') && {
               isCurrentMedicalRecordOnly: 'false'
             })
@@ -366,7 +368,6 @@ const PatientDetails = ({ category }) => {
             pathname: router.pathname,
             query: {
               ...query,
-              id: router.query.id,
               tab: 'discharge',
               discharge_tab: discharge_tab || 'TransferEnclosure' // default
             }
@@ -395,7 +396,6 @@ const PatientDetails = ({ category }) => {
             pathname: router.pathname,
             query: {
               ...updated,
-              id: router.query.id,
               tab: newValue
             }
           },

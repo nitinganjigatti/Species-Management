@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import {
   Box,
@@ -13,7 +15,8 @@ import {
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 
 import useMortalityDischarge from './MortalityDischarge'
 import TransferHospitalDischarge from './TransferHospitalDischarge'
@@ -46,8 +49,10 @@ const dischargeTypeOptions = [
 
 const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const theme = useTheme()
-  const router = useRouter()
-  const { id } = router.query
+  const router = useSafeRouter()
+  const routerParams = useParams()
+  // Get id from dynamic route params (App Router) or from router.query fallback
+  const id = routerParams?.id || router.query?.id
 
   const dispatch = useDispatch()
   const hospitalData = useSelector(state => state.hospital.data)

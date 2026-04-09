@@ -1,3 +1,4 @@
+'use client'
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import {
   Box,
@@ -16,7 +18,8 @@ import Icon from 'src/@core/components/icon'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import AddScheduleDrawer from 'src/views/pages/hospital/treatment-monitoring/AddScheduleDrawer'
 import AddParameterDrawer from 'src/views/pages/hospital/treatment-monitoring/AddParameterDrawer'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import {
   deleteMonitoringParameter,
   getMonitoringParameters,
@@ -179,10 +182,12 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
-  const router = useRouter()
+  const router = useSafeRouter()
   const isPatientDischarged = patientData?.status === 'discharge' ? true : false
 
-  const { id } = router.query
+  const routerParams = useParams()
+  // Get id from dynamic route params (App Router) or from router.query fallback
+  const id = routerParams?.id || router.query?.id
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
   const today = new Date().toISOString().split('T')[0]
@@ -398,7 +403,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
 
   const renderedMetrics = useMemo(() => {
     return displayMetrics?.map(metric => (
-      <TimeSlotGrid key={metric?.id} numColumns={timeSlots.length}>
+      <TimeSlotGrid key={metric.assessment_type_id} numColumns={timeSlots.length}>
         {metric?.timeSlots.map((timeSlot, index) => {
           const slotKey = `${metric.assessment_type_id}-${index}`
           const durationMinutes = metric?.duration_minutes
@@ -937,7 +942,9 @@ const ScrollableContainer = styled(Box)(({ theme }) => ({
   msOverflowStyle: 'none'
 }))
 
-const TimeSlotGrid = styled(Box)(({ theme, numColumns }) => ({
+const TimeSlotGrid = styled(Box, {
+  shouldForwardProp: prop => prop !== 'numColumns'
+})(({ theme, numColumns }) => ({
   display: 'grid',
   gridTemplateColumns: `repeat(${numColumns}, minmax(160px, 1fr))`,
   gap: theme.spacing(2),

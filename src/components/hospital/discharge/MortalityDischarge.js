@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import { getMannerOfDeath, getCarcassCondition, getCarcassDeposition } from 'src/lib/api/housing'

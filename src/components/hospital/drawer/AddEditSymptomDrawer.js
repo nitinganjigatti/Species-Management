@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import {
   Box,
@@ -22,7 +24,8 @@ import { deleteNoteSymptoms } from 'src/lib/api/hospital/symptoms'
 import Utility from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import EditNotes from '../inpatient/EditNotes'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
@@ -68,8 +71,11 @@ const AddEditSymptomDrawer = ({
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
-  const router = useRouter()
-  const { id } = router.query
+  const router = useSafeRouter()
+  const routerParams = useParams()
+  // Get id from dynamic route params (App Router) or from router.query fallback
+  const id = routerParams?.id || router.query?.id
+  
   const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
   const [minDate, setMinDate] = useState(null)
   const [maxDate, setMaxDate] = useState(null)

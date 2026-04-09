@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useEffect } from 'react'
 import dayjs from 'dayjs'
 import { Box, Button, Drawer, IconButton, Typography } from '@mui/material'

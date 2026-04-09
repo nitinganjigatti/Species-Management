@@ -1,3 +1,5 @@
+'use client'
+
 import { alpha, Box, Button, CircularProgress, Drawer, Grid, IconButton, Typography, useTheme } from '@mui/material'
 import dayjs from 'dayjs'
 import React, { useEffect, useMemo, useState } from 'react'

@@ -1,5 +1,7 @@
+'use client'
+
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import { Button, Tooltip, Typography, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
@@ -228,7 +230,7 @@ const MediaScroller = ({ items = [] }) => {
 function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false, category }) {
   const theme = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
-  const router = useRouter()
+  const router = useSafeRouter()
   const headerBackground = alpha(theme.palette.customColors.displaybgPrimary, 153 / 255)
   const [surgeryRecords, setSurgeryRecords] = useState([])
   const [activeSurgeryId, setActiveSurgeryId] = useState('')
@@ -309,16 +311,16 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   if (Object.keys(query).length > 0) {
     if (category === 'Outpatients') {
       router.push({ pathname: '/hospital/outpatient/AddSurgeryRecord', query })
-    } 
+    }
     else if (category === 'Discharged') {
       router.push({ pathname: '/hospital/discharged/AddSurgeryRecord', query })
-    } 
+    }
     else if (category === 'Mortality') {
       router.push({ pathname: '/hospital/mortality/AddSurgeryRecord', query })
-    } 
+    }
     else if (category === 'Follow Up') {
       router.push({ pathname: '/hospital/followup/AddSurgeryRecord', query })
-    } 
+    }
     else {
       router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
     }

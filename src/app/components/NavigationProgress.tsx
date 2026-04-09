@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { usePathname, useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { usePathname } from 'next/navigation'
 // @ts-ignore
 import NProgress from 'nprogress'
 
@@ -10,11 +10,15 @@ NProgress.configure({ showSpinner: false })
 
 export default function NavigationProgress() {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   useEffect(() => {
     NProgress.done()
-  }, [pathname, searchParams])
+  }, [pathname])
 
   // Start progress on link click
   useEffect(() => {

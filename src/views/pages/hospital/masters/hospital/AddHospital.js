@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useContext, useMemo, useCallback } from 'react'
 import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'

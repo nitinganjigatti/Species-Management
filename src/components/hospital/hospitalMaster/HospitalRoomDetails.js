@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import {
   Box,
@@ -19,7 +21,7 @@ import { Add as AddIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import { useParams, useSearchParams, useRouter } from 'next/navigation'
 import { debounce } from 'lodash'
 
 import AddHospitalRoom from 'src/views/pages/hospital/masters/hospital/AddHospitalRoom'
@@ -48,8 +50,21 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 const HospitalRoomDetails = () => {
   const theme = useTheme()
   const router = useRouter()
+  const routerParams = useParams()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
-  const { page, limit, q, availability, status, id, sort_by, sort_order } = router.query
+
+  // Get id from dynamic route parameter, fall back to prop
+  const id = routerParams?.id || params?.id
+
+  // Get query string parameters
+  const page = searchParams.get('page') || ''
+  const limit = searchParams.get('limit') || ''
+  const q = searchParams.get('q') || ''
+  const availability = searchParams.get('availability')
+  const status = searchParams.get('status')
+  const sort_by = searchParams.get('sort_by') || ''
+  const sort_order = searchParams.get('sort_order') || ''
 
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -72,8 +87,8 @@ const HospitalRoomDetails = () => {
     page: Number(page) || 1,
     limit: Number(limit) || 50,
     q: q || '',
-    availability: availability || '',
-    status: status || '',
+    availability: availability ? availability : '',
+    status: status ? status : '',
     sort_by: sort_by || 'occupants',
     sort_order: sort_order || 'desc'
   })
@@ -96,7 +111,7 @@ const HospitalRoomDetails = () => {
       const basePath = `/hospital/masters/hospital/${id}`
       const queryString = params.toString()
       const newUrl = queryString ? `${basePath}?${queryString}` : basePath
-      router.replace(newUrl)
+      router.push(newUrl)
     },
     [router, id]
   )
@@ -115,7 +130,7 @@ const HospitalRoomDetails = () => {
     // Update filter count
     const count = Object.values(syncedFilters).reduce((acc, arr) => acc + arr.length, 0)
     setFilterCount(count)
-  }, [])
+  }, [availability, status])
 
   // Fetch sites
   const fetchSites = useCallback(async (q = '') => {
@@ -164,7 +179,7 @@ const HospitalRoomDetails = () => {
 
       return getHospitalRooms({ params: queryParams })
     },
-    enabled: router.isReady && !!id,
+    enabled: !!id,
     select: response => {
       if (!response?.success) {
         return {
@@ -656,10 +671,7 @@ const HospitalRoomDetails = () => {
 
   // Navigate to bed detail on Row click
   const handleRowClick = params => {
-    router.push({
-      pathname: '/hospital/masters/hospital/[id]/[roomId]',
-      query: { id: id, roomId: params?.row?.id }
-    })
+    router.push(`/hospital/masters/hospital/${id}/${params?.row?.id}`)
   }
 
   // Fetch sites when drawer opens
@@ -684,9 +696,9 @@ const HospitalRoomDetails = () => {
 
   // refetch on when filters updates
   useEffect(() => {
-    if (!router.isReady || !id) return
+    if (!id) return
     refetchRooms()
-  }, [filters, id, router.isReady])
+  }, [filters, id, refetchRooms])
 
   return (
     <>
@@ -694,7 +706,7 @@ const HospitalRoomDetails = () => {
         pageItems={[
           { title: 'Hospital' },
           { title: 'Masters' },
-          { title: 'Hospital List', onClick: () => router.back() },
+          { title: 'Hospital List', onClick: () => router.push('/hospital/masters/hospital') },
           { title: 'Hospital Detail' }
         ]}
         sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
