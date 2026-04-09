@@ -1036,7 +1036,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
         open={animalDrawer}
         onClose={() => setAnimalDrawer(false)}
         handleAnimalSelect={handleAnimalSelect}
-        selectedAnimals={undefined}
+        selectedAnimals={selectedAnimals}
       />
     </Drawer>
   )

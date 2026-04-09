@@ -40,7 +40,8 @@ const AnimalDrawer = ({
   filterCount,
   multiSelect = false,
   defaultSelected = [],
-  customQueryParams = null
+  customQueryParams = null,
+  disabledIds = []
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -351,9 +352,11 @@ const AnimalDrawer = ({
 
   const selectableList = useMemo(() => {
     return list.filter(
-      animal => !(module === 'hospital' && (animal?.in_transit === '1' || animal?.is_hospitalized === '1'))
+      animal =>
+        !(module === 'hospital' && (animal?.in_transit === '1' || animal?.is_hospitalized === '1')) &&
+        !disabledIds.includes(animal?.animal_id)
     )
-  }, [list, module])
+  }, [list, module, disabledIds])
 
   const isAllSelected =
     selectableList.length > 0 &&
@@ -643,7 +646,8 @@ const AnimalDrawer = ({
               )}
               {list.map(animal => {
                 const isDisabled =
-                  module === 'hospital' && (animal?.in_transit === '1' || animal?.is_hospitalized === '1')
+                  (module === 'hospital' && (animal?.in_transit === '1' || animal?.is_hospitalized === '1')) ||
+                  disabledIds.includes(animal?.animal_id)
 
                 return (
                   <AnimalParentCard

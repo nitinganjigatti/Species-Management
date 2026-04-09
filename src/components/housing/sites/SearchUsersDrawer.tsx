@@ -29,7 +29,7 @@ interface SearchUsersDrawerProps {
   onUsersSelected: (users: User[]) => void
 }
 
-const DEFAULT_FILTERS: UserSearchFilters = { Site: '', Role: '' }
+const DEFAULT_FILTERS: UserSearchFilters = { Site: [], Role: [] }
 
 const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
   open,
@@ -54,16 +54,16 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
   const prevOpenRef = useRef(false)
 
   // Calculate filter count
-  const filterCount = (appliedFilters.Site ? 1 : 0) + (appliedFilters.Role ? 1 : 0)
+  const filterCount = (appliedFilters.Site?.length > 0 ? 1 : 0) + (appliedFilters.Role?.length > 0 ? 1 : 0)
 
-  // Fetch users with filters
+  // Fetch users with filters (sends comma-separated IDs)
   const fetchUsersWithFilters = (filters: UserSearchFilters) => {
     if (zooId) {
       dispatch(
         fetchUsers({
           zoo_id: zooId,
-          site_id: filters.Site ? String(filters.Site) : undefined,
-          role_id: filters.Role ? String(filters.Role) : undefined
+          site_id: filters.Site?.length > 0 ? filters.Site.join(',') : undefined,
+          role_id: filters.Role?.length > 0 ? filters.Role.join(',') : undefined
         })
       )
     }
@@ -256,11 +256,11 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
           {/* Active Filter Chips */}
           {filterCount > 0 && (
             <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {appliedFilters.Site && (
+              {appliedFilters.Site?.length > 0 && (
                 <Chip
-                  label='Site Filter'
+                  label={`Site (${appliedFilters.Site.length})`}
                   onDelete={() => {
-                    const newFilters = { ...appliedFilters, Site: '' }
+                    const newFilters = { ...appliedFilters, Site: [] }
                     setAppliedFilters(newFilters)
                     fetchUsersWithFilters(newFilters)
                   }}
@@ -269,11 +269,11 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
                   variant='outlined'
                 />
               )}
-              {appliedFilters.Role && (
+              {appliedFilters.Role?.length > 0 && (
                 <Chip
-                  label='Role Filter'
+                  label={`Role (${appliedFilters.Role.length})`}
                   onDelete={() => {
-                    const newFilters = { ...appliedFilters, Role: '' }
+                    const newFilters = { ...appliedFilters, Role: [] }
                     setAppliedFilters(newFilters)
                     fetchUsersWithFilters(newFilters)
                   }}

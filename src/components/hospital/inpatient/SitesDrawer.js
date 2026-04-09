@@ -8,7 +8,7 @@ import Search from 'src/views/utility/Search'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 
-const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
+const SitesDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [] }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -121,25 +121,27 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
     })
   }
 
-  // Handle select all/deselect all
+  // Handle select all/deselect all (excludes disabled items)
+  const selectableList = useMemo(() => list.filter(site => !disabledIds.includes(site.site_id)), [list, disabledIds])
+
   const handleSelectAll = () => {
     if (isAllSelected) {
       setSelectedSites([])
     } else {
-      setSelectedSites([...list])
+      setSelectedSites([...selectableList])
     }
     setIsAllSelected(!isAllSelected)
   }
 
   // Update select all state when selection changes
   useEffect(() => {
-    if (list.length > 0) {
-      const allSelected = list.every(site => selectedSites.some(selectedSite => selectedSite.site_id === site.site_id))
+    if (selectableList.length > 0) {
+      const allSelected = selectableList.every(site => selectedSites.some(selectedSite => selectedSite.site_id === site.site_id))
       setIsAllSelected(allSelected)
     } else {
       setIsAllSelected(false)
     }
-  }, [selectedSites, list])
+  }, [selectedSites, selectableList])
 
   // Handle continue button click
   const handleContinue = () => {
@@ -200,6 +202,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
         {list.map(site => {
           // Check if site is selected by comparing site_id
           const isSelected = selectedSites.some(selectedSite => selectedSite.site_id === site.site_id)
+          const isDisabled = disabledIds.includes(site.site_id)
 
           return (
             <Box
@@ -211,11 +214,12 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 0.8,
-                bgcolor: theme.palette.common.white,
+                bgcolor: isDisabled ? theme.palette.action.disabledBackground : theme.palette.common.white,
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                cursor: isDisabled ? 'default' : 'pointer',
+                transition: 'all 0.2s ease',
+                opacity: isDisabled ? 0.6 : 1
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -242,7 +246,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
                   )}
                 </Box>
               </Box>
-              <Checkbox checked={isSelected} onChange={() => handleSiteSelect(site)} sx={{ mt: 0.5 }} />
+              <Checkbox checked={isDisabled || isSelected} disabled={isDisabled} onChange={() => handleSiteSelect(site)} sx={{ mt: 0.5 }} />
             </Box>
           )
         })}

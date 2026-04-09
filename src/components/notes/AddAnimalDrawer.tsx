@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, Typography, Drawer, IconButton, Button, useTheme } from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Button, useTheme, Avatar } from '@mui/material'
 import { AddCircleOutline } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
@@ -14,6 +14,7 @@ import SitesDrawer from '../hospital/inpatient/SitesDrawer'
 import EnclosuresDrawer from '../hospital/inpatient/EnclosuresDrawer'
 import { Card, CardHeader, CardContent } from '@mui/material'
 import SortBottomSheet from '../hospital/inpatient/SortBottomSheet'
+import AnimalCard from 'src/views/utility/AnimalCard'
 
 const AddAnimalDrawer: React.FC<{
   open: boolean
@@ -43,6 +44,7 @@ const AddAnimalDrawer: React.FC<{
   }
 
   const [animalDrawer, setAnimalDrawer] = useState<boolean>(false)
+  const [directAnimalDrawer, setDirectAnimalDrawer] = useState<boolean>(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState<boolean>(false)
 
@@ -63,40 +65,34 @@ const AddAnimalDrawer: React.FC<{
   const [openEnclosuresListDrawer, setOpenEnclosuresListDrawer] = useState(false)
   const [localAnimals, setLocalAnimals] = useState<any[]>([])
 
-  // Initialize hierarchical and animal state from selectedAnimals when drawer opens
+  // Always start fresh when drawer opens for adding new entities
   useEffect(() => {
-    if (open && selectedAnimals && selectedAnimals.length > 0) {
-      const sites = selectedAnimals
-        .filter(a => a.type === 'site')
-        .map(a => a.siteData)
-        .filter(Boolean)
-      const sections = selectedAnimals
-        .filter(a => a.type === 'section')
-        .map(a => a.sectionData)
-        .filter(Boolean)
-      const enclosures = selectedAnimals
-        .filter(a => a.type === 'enclosure')
-        .map(a => a.enclosureData)
-        .filter(Boolean)
-      const animals = selectedAnimals.filter(a => a.type === 'animal' || !a.type)
-
-      setLocalAnimals(animals)
-
-      if (sites.length > 0 || sections.length > 0 || enclosures.length > 0) {
-        setLocalSelections({
-          Sites: sites,
-          Sections: sections,
-          Enclosures: enclosures
-        })
-      } else {
-        setLocalSelections({ Sites: [], Sections: [], Enclosures: [] })
-      }
-    } else if (open) {
-      // Clear selections if drawer is opening with empty/new state
+    if (open) {
       setLocalSelections({ Sites: [], Sections: [], Enclosures: [] })
       setLocalAnimals([])
     }
-  }, [open, selectedAnimals])
+  }, [open])
+
+  // Compute disabled IDs from previously selected entities (already committed in parent)
+  const disabledSiteIds = useMemo(() => {
+    if (!selectedAnimals) return []
+    return selectedAnimals.filter(a => a.type === 'site').map(a => a.site_id).filter(Boolean)
+  }, [selectedAnimals])
+
+  const disabledSectionIds = useMemo(() => {
+    if (!selectedAnimals) return []
+    return selectedAnimals.filter(a => a.type === 'section').map(a => a.section_id).filter(Boolean)
+  }, [selectedAnimals])
+
+  const disabledEnclosureIds = useMemo(() => {
+    if (!selectedAnimals) return []
+    return selectedAnimals.filter(a => a.type === 'enclosure').map(a => a.enclosure_id).filter(Boolean)
+  }, [selectedAnimals])
+
+  const disabledAnimalIds = useMemo(() => {
+    if (!selectedAnimals) return []
+    return selectedAnimals.filter(a => a.type === 'animal' || !a.type).map(a => a.animal_id).filter(Boolean)
+  }, [selectedAnimals])
 
   // Handle remove site
   const handleRemoveSite = (siteId: any) => {
@@ -105,6 +101,7 @@ const AddAnimalDrawer: React.FC<{
       Sections: [],
       Enclosures: []
     }))
+    setLocalAnimals([])
   }
 
   // Handle remove section
@@ -114,6 +111,7 @@ const AddAnimalDrawer: React.FC<{
       Sections: prev.Sections.filter(section => section.section_id !== sectionId),
       Enclosures: []
     }))
+    setLocalAnimals([])
   }
 
   // Handle remove enclosure
@@ -122,6 +120,12 @@ const AddAnimalDrawer: React.FC<{
       ...prev,
       Enclosures: prev.Enclosures.filter(enclosure => enclosure.enclosure_id !== enclosureId)
     }))
+    setLocalAnimals([])
+  }
+
+  // Handle remove animal
+  const handleRemoveAnimal = (animalId: any) => {
+    setLocalAnimals(prev => prev.filter(a => (a.animal_id || a.id) !== animalId))
   }
 
   // Handle continue from drawers
@@ -131,6 +135,7 @@ const AddAnimalDrawer: React.FC<{
       Sections: [],
       Enclosures: []
     })
+    setLocalAnimals([])
     setOpenSiteListDrawer(false)
   }
 
@@ -147,10 +152,64 @@ const AddAnimalDrawer: React.FC<{
       ...prev,
       Enclosures: selectedData.selectedEnclosureData
     }))
+    setLocalAnimals([])
     setOpenEnclosuresListDrawer(false)
   }
 
+  // Handle animal selection from hierarchy cascade
+  const handleAnimalFromHierarchy = (animals: any, options: any) => {
+    const animalList = Array.isArray(animals) ? animals : [animals]
+    const mappedAnimals = animalList.map((item: any) => ({
+      animal_id: item?.animal_id || item?.id,
+      default_common_name: item?.default_common_name || item?.common_name,
+      scientific_name: item?.scientific_name ?? item?.complete_name,
+      user_enclosure_name: item?.user_enclosure_name || item?.enclosure_name,
+      section_name: item?.section_name,
+      site_name: item?.site_name,
+      type: 'animal',
+      sex: item?.sex || item?.gender,
+      default_icon: item?.default_icon || item?.animal_image || item?.image,
+      total_animal: item?.total_animal,
+      local_identifier_name: item?.local_identifier_name,
+      local_identifier_value: item?.local_identifier_value,
+      enclosure_id: item?.enclosure_id || item?.id,
+      section_id: item?.section_id || item?.id,
+      site_id: item?.site_id || item?.id
+    }))
+    setLocalAnimals(mappedAnimals)
+    setAnimalDrawer(false)
+  }
+
+  // Handle direct animal search — selects animals and closes immediately
+  const handleDirectAnimalSelect = (animals: any, options: any) => {
+    const animalList = Array.isArray(animals) ? animals : [animals]
+    const mappedAnimals = animalList.map((item: any) => ({
+      animal_id: item?.animal_id || item?.id,
+      default_common_name: item?.default_common_name || item?.common_name,
+      scientific_name: item?.scientific_name ?? item?.complete_name,
+      user_enclosure_name: item?.user_enclosure_name || item?.enclosure_name,
+      section_name: item?.section_name,
+      site_name: item?.site_name,
+      type: 'animal',
+      sex: item?.sex || item?.gender,
+      default_icon: item?.default_icon || item?.animal_image || item?.image,
+      total_animal: item?.total_animal,
+      local_identifier_name: item?.local_identifier_name,
+      local_identifier_value: item?.local_identifier_value,
+      enclosure_id: item?.enclosure_id || item?.id,
+      section_id: item?.section_id || item?.id,
+      site_id: item?.site_id || item?.id
+    }))
+    handleAnimalSelect(mappedAnimals)
+    onClose()
+  }
+
   const resolveHierarchicalEntities = () => {
+    // If animals are selected in the hierarchy, return them directly
+    if (localAnimals.length > 0) {
+      return localAnimals
+    }
+
     const entities: any[] = []
 
     if (localSelections.Enclosures.length > 0) {
@@ -191,8 +250,7 @@ const AddAnimalDrawer: React.FC<{
   }
 
   const handleFinalContinue = () => {
-    const hierarchyEntities = resolveHierarchicalEntities()
-    const finalEntities = [...localAnimals, ...hierarchyEntities]
+    const finalEntities = resolveHierarchicalEntities()
     handleAnimalSelect(finalEntities)
     onClose()
   }
@@ -246,6 +304,7 @@ const AddAnimalDrawer: React.FC<{
         </IconButton>
       </Box>
       <Box sx={{ p: 6, flexGrow: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {/* Direct Animal Search */}
         <Box
           sx={{
             display: 'flex',
@@ -256,7 +315,7 @@ const AddAnimalDrawer: React.FC<{
             padding: '10px',
             cursor: 'pointer'
           }}
-          onClick={() => setAnimalDrawer(true)}
+          onClick={() => setDirectAnimalDrawer(true)}
         >
           <Typography>{t('select_animal')}</Typography>
           <IconButton size='small' sx={{ color: theme.palette.customColors.Secondary }}>
@@ -301,12 +360,19 @@ const AddAnimalDrawer: React.FC<{
           />
           {localSelections.Sites.length > 0 && (
             <CardContent sx={{ p: 4 }}>
-              {localSelections.Sites.map(site => (
+              {localSelections.Sites.map((site: any) => (
                 <Box
                   key={site.site_id}
                   sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
                 >
-                  <Typography variant='body2'>{site.site_name}</Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar
+                      src={site.site_image}
+                      alt={site.site_name}
+                      sx={{ width: 36, height: 36, borderRadius: '50%' }}
+                    />
+                    <Typography variant='body2'>{site.site_name}</Typography>
+                  </Box>
                   <IconButton
                     size='small'
                     onClick={() => handleRemoveSite(site.site_id)}
@@ -345,12 +411,21 @@ const AddAnimalDrawer: React.FC<{
             />
             {localSelections.Sections.length > 0 && (
               <CardContent sx={{ p: 4 }}>
-                {localSelections.Sections.map(section => (
+                {localSelections.Sections.map((section: any) => (
                   <Box
                     key={section.section_id}
                     sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
                   >
-                    <Typography variant='body2'>{section.section_name}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar
+                        src={section.images?.[0]?.file}
+                        alt={section.section_name}
+                        sx={{ width: 36, height: 36, borderRadius: '50%' }}
+                      >
+                        {section.section_name?.[0]}
+                      </Avatar>
+                      <Typography variant='body2'>{section.section_name}</Typography>
+                    </Box>
                     <IconButton
                       size='small'
                       onClick={() => handleRemoveSection(section.section_id)}
@@ -370,7 +445,61 @@ const AddAnimalDrawer: React.FC<{
           <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
             <CardHeader
               title={t('select_enclosure')}
-              onClick={() => setOpenEnclosuresListDrawer(true)}
+              onClick={() => {
+                if (localAnimals.length === 0) {
+                  setOpenEnclosuresListDrawer(true)
+                }
+              }}
+              sx={{
+                background: localAnimals.length > 0 ? theme.palette.customColors.mdAntzNeutral : theme.palette.customColors.displaybgPrimary,
+                p: 2,
+                pl: 4,
+                cursor: localAnimals.length > 0 ? 'default' : 'pointer',
+                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
+              }}
+              action={
+                <IconButton size='small' disabled={localAnimals.length > 0}>
+                  <Icon fontSize={20} icon={localAnimals.length > 0 ? 'mdi:lock' : 'mdi:chevron-down'} />
+                </IconButton>
+              }
+            />
+            {localSelections?.Enclosures?.length > 0 && (
+              <CardContent sx={{ p: 4 }}>
+                {localSelections?.Enclosures?.map((enclosure: any) => (
+                  <Box
+                    key={enclosure.enclosure_id || enclosure.id}
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Avatar
+                        src={enclosure.images?.[0]?.file}
+                        alt={enclosure?.user_enclosure_name}
+                        sx={{ width: 36, height: 36, borderRadius: '50%' }}
+                      >
+                        {enclosure?.user_enclosure_name?.[0]}
+                      </Avatar>
+                      <Typography variant='body2'>{enclosure?.user_enclosure_name}</Typography>
+                    </Box>
+                    <IconButton
+                      size='small'
+                      onClick={() => handleRemoveEnclosure(enclosure?.enclosure_id || enclosure.id)}
+                      disabled={localAnimals.length > 0}
+                    >
+                      <Icon icon='mdi:close-circle-outline' color={theme.palette.error.main} />
+                    </IconButton>
+                  </Box>
+                ))}
+              </CardContent>
+            )}
+          </Card>
+        )}
+
+        {/* Animal Selection Card - 4th level in hierarchy */}
+        {localSelections.Enclosures.length === 1 && (
+          <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
+            <CardHeader
+              title={t('select_animal')}
+              onClick={() => setAnimalDrawer(true)}
               sx={{
                 background: theme.palette.customColors.displaybgPrimary,
                 p: 2,
@@ -384,17 +513,20 @@ const AddAnimalDrawer: React.FC<{
                 </IconButton>
               }
             />
-            {localSelections?.Enclosures?.length > 0 && (
-              <CardContent sx={{ p: 4 }}>
-                {localSelections?.Enclosures?.map(enclosure => (
+            {localAnimals.length > 0 && (
+              <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                {localAnimals.map((animal: any) => (
                   <Box
-                    key={enclosure.enclosure_id || enclosure.id}
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+                    key={animal.animal_id || animal.id}
+                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
                   >
-                    <Typography variant='body2'>{enclosure?.user_enclosure_name}</Typography>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <AnimalCard data={animal} size='14px' />
+                    </Box>
                     <IconButton
                       size='small'
-                      onClick={() => handleRemoveEnclosure(enclosure?.enclosure_id || enclosure.id)}
+                      onClick={() => handleRemoveAnimal(animal.animal_id || animal.id)}
+                      sx={{ flexShrink: 0, mt: 1 }}
                     >
                       <Icon icon='mdi:close-circle-outline' color={theme.palette.error.main} />
                     </IconButton>
@@ -424,31 +556,7 @@ const AddAnimalDrawer: React.FC<{
         <AnimalDrawer
           open={animalDrawer}
           onClose={() => setAnimalDrawer(false)}
-          handleAnimalClick={(animals: any, options: any) => {
-            const animalList = Array.isArray(animals) ? animals : [animals]
-            const mappedAnimals = animalList.map(item => ({
-              animal_id: item?.animal_id || item?.id,
-              default_common_name: item?.default_common_name || item?.common_name,
-              scientific_name: item?.scientific_name ?? item?.complete_name,
-              user_enclosure_name: item?.user_enclosure_name || item?.enclosure_name,
-              section_name: item?.section_name,
-              site_name: item?.site_name,
-              type: 'animal',
-              sex: item?.sex || item?.gender,
-              default_icon: item?.default_icon || item?.animal_image || item?.image,
-              total_animal: item?.total_animal,
-              local_identifier_name: item?.local_identifier_name,
-              local_identifier_value: item?.local_identifier_value,
-              enclosure_id: item?.enclosure_id || item?.id,
-              section_id: item?.section_id || item?.id,
-              site_id: item?.site_id || item?.id
-            }))
-
-            const hierarchyEntities = resolveHierarchicalEntities()
-            const finalEntities = [...mappedAnimals, ...hierarchyEntities]
-            handleAnimalSelect(finalEntities)
-            onClose()
-          }}
+          handleAnimalClick={handleAnimalFromHierarchy}
           btnText={t('add') as string}
           showFilterAndSort
           handleFilterClick={() => setOpenFilterDrawer(true)}
@@ -457,6 +565,40 @@ const AddAnimalDrawer: React.FC<{
           sortType={currentSort}
           filterCount={filterCount}
           multiSelect={true}
+          defaultSelected={localAnimals as never[]}
+          disabledIds={disabledAnimalIds as never[]}
+          customQueryParams={
+            (({ activeTab, filters: drawerFilters, sortType: drawerSort }: any) => ({
+              list_type: activeTab,
+              gender: drawerFilters?.Gender || [],
+              accession_start_date:
+                drawerFilters?.accession_start_date && Utility.formatDate(drawerFilters?.accession_start_date),
+              accession_end_date:
+                drawerFilters?.accession_end_date && Utility.formatDate(drawerFilters?.accession_end_date),
+              type: drawerFilters?.type || 'single',
+              sort: drawerSort?.sort || 'asc',
+              column: drawerSort?.column || 'animal_id',
+              zoo_id: zooId,
+              enclosure_id: localSelections.Enclosures[0]?.enclosure_id || localSelections.Enclosures[0]?.id
+            })) as any
+          }
+        />
+      )}
+
+      {directAnimalDrawer && (
+        <AnimalDrawer
+          open={directAnimalDrawer}
+          onClose={() => setDirectAnimalDrawer(false)}
+          handleAnimalClick={handleDirectAnimalSelect}
+          btnText={t('add') as string}
+          showFilterAndSort
+          handleFilterClick={() => setOpenFilterDrawer(true)}
+          handleSortClick={() => setIsSortBottomSheetOpen(true)}
+          filters={selectedOptions}
+          sortType={currentSort}
+          filterCount={filterCount}
+          multiSelect={true}
+          disabledIds={disabledAnimalIds as never[]}
           customQueryParams={
             (({ activeTab, filters: drawerFilters, sortType: drawerSort }: any) => ({
               list_type: activeTab,
@@ -481,6 +623,7 @@ const AddAnimalDrawer: React.FC<{
           localSelections={localSelections.Sites}
           onContinue={handleSitesContinue}
           data={{ queryKey: 'hospital-sites', params: {} }}
+          disabledIds={disabledSiteIds as never[]}
         />
       )}
 
@@ -496,6 +639,7 @@ const AddAnimalDrawer: React.FC<{
             queryKey: 'hospital-sections',
             params: { site_id: localSelections.Sites[0]?.site_id, list_all_sections: true }
           }}
+          disabledIds={disabledSectionIds as never[]}
         />
       )}
 
@@ -511,6 +655,7 @@ const AddAnimalDrawer: React.FC<{
             queryKey: 'hospital-enclosures',
             params: { section_id: localSelections.Sections[0]?.section_id, filter_user_enclosure: 0 }
           }}
+          disabledIds={disabledEnclosureIds as never[]}
         />
       )}
 
