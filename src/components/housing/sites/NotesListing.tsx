@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Typography, CircularProgress, Button, Chip } from '@mui/material'
+import { useTheme, alpha } from '@mui/material/styles'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useDispatch, useSelector } from 'react-redux'
 import { useInView } from 'react-intersection-observer'
 import { FilterList as FilterIcon, Add as AddIcon } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 
-import NoteCard from 'src/views/utility/NoteCard'
+import ObservationNoteCard from 'src/components/notes/ObservationNoteCard'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import NoteCommentDialog from './NoteCommentDialog'
 import NoteDetailsDrawer from './NoteDetailsDrawer'
@@ -51,8 +52,24 @@ interface NotesQueryParams {
   tagged_to?: string | number
 }
 
+const getPriorityBgColor = (priority: string | undefined, theme: any) => {
+  switch (priority) {
+    case 'Low':
+      return theme.palette.customColors?.displaybgPrimary
+    case 'Moderate':
+      return alpha(theme.palette.customColors?.moderateSecondary, 0.2)
+    case 'High':
+      return alpha(theme.palette.customColors?.TertiaryContainer, 0.16)
+    case 'Critical':
+      return alpha(theme.palette.customColors?.ErrorContainer, 0.4)
+    default:
+      return theme.palette.customColors?.antzSecondaryBg
+  }
+}
+
 const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData }) => {
   const router = useSafeRouter()
+  const theme = useTheme() as any
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
   const { t } = useTranslation()
@@ -251,38 +268,45 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   return (
     <Box>
-      <ListingHeader title={t('notes')} totalCount={total} />
-
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, mt: 3, mb: 2 }}>
-        <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
-          {t('housing_module.add_note')}
-        </Button>
-        <Button
-          variant={hasActiveFilters ? 'contained' : 'outlined'}
-          startIcon={<FilterIcon />}
-          onClick={() => setFilterDrawerOpen(true)}
-          sx={{ minWidth: 100 }}
-        >
-          {t('filters')}
-          {hasActiveFilters && (
-            <Chip
-              size='small'
-              label={Object.values(filters).filter(v => v !== null).length}
-              sx={{ ml: 1, height: 20, minWidth: 20 }}
-              color='primary'
-            />
-          )}
-        </Button>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <ListingHeader title={t('notes')} totalCount={total} />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, mt: 3, mb: 2 }}>
+          <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
+            {t('housing_module.add_note')}
+          </Button>
+          <Button
+            variant={hasActiveFilters ? 'contained' : 'outlined'}
+            startIcon={<FilterIcon />}
+            onClick={() => setFilterDrawerOpen(true)}
+            sx={{ minWidth: 100 }}
+          >
+            {t('filters')}
+            {hasActiveFilters && (
+              <Chip
+                size='small'
+                label={Object.values(filters).filter(v => v !== null).length}
+                sx={{ ml: 1, height: 20, minWidth: 20 }}
+                color='primary'
+              />
+            )}
+          </Button>
+        </Box>
       </Box>
 
-      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
         {noteList?.map((note: Note) => (
-          <NoteCard
+          <ObservationNoteCard
             key={note.observation_id}
-            note={note}
-            onClick={handleNoteClick}
-            onLikeClick={handleLikeClick}
-            onCommentClick={handleCommentClick}
+            note={note as any}
+            onClick={handleNoteClick as any}
+            onLikeClick={handleLikeClick as any}
+            onCommentClick={handleCommentClick as any}
+            sx={{
+              width: '100%',
+              maxWidth: 568,
+              backgroundColor: getPriorityBgColor(note.priority, theme),
+              border: `1px solid ${theme.palette.divider}`
+            }}
           />
         ))}
 
