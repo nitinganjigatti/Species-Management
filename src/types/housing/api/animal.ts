@@ -36,7 +36,7 @@ export interface GetAnimalDetailsOverviewParams {
   animal_id: number
 }
 
-export interface GetAnimalDetailsOverviewResponse extends ApiResponse<AnimalOverview> {}
+export interface GetAnimalDetailsOverviewResponse extends ApiResponse<{ animal_details: AnimalOverview; enclosure_details?: any }> {}
 
 export interface GetAnimalHistoryParams {
   animal_id: number

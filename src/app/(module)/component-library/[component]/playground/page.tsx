@@ -65,7 +65,8 @@ import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGro
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
-import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+import _ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+const ControlledSelectWithTextField = _ControlledSelectWithTextField as any
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import SingleDatePicker from 'src/components/SingleDatePicker'
 // CommonDateRangePickers & CustomOptionDateRangePickers use next/router — no preview in App Router

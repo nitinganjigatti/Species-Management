@@ -81,7 +81,7 @@ echo "Running npm install:"; pwd
 #rm package-lock.json
 #npm update
 #npm install --legacy-peer-deps
-npm install --production
+npm install --production --loglevel info
 #### BACKUP the existing FOLDER as ZIP(SITE FOLDER)
 
 #Create build
@@ -92,7 +92,7 @@ npm install --production
 echo "Downloading artifact"
 
 # Download the artifact using artifact name and workflow run ID (replace placeholders)
-ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
+ARTIFACT_NAME="nextjs-build-output-${BRANCH}"  # Must match workflow artifact name
 
 echo $GITHUB_RUN_ID
 echo $ANTZ_DEPLOYMENT_TOKEN

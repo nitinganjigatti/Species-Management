@@ -36,6 +36,7 @@ interface CategoryTab {
   id: string
   label: string
   count: number
+  string_id?: string
 }
 
 interface ActiveType {
@@ -44,6 +45,7 @@ interface ActiveType {
   parentId: string
   parentLabel?: string
   parentType: ObservationType
+  string_id?: string
 }
 
 interface SelectNoteTypeDrawerProps {
@@ -101,7 +103,8 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
       tabs.push({
         id: String(parent.id),
         label: parent.type_name || parent.name || '',
-        count: parent.child_observation?.length || 0
+        count: parent.child_observation?.length || 0,
+        string_id: parent.string_id
       })
     })
 
@@ -131,6 +134,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
     return (category.child_observation || []).map(child => ({
       id: child.id,
       type_name: child.type_name,
+      string_id: child.string_id,
       parentId,
       parentLabel,
       parentType: category
@@ -349,7 +353,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                       }
                     }}
                   >
-                    {tab.label} ({tab.count})
+                    {t(tab.string_id || '', { defaultValue: tab.label })} ({tab.count})
                   </Button>
                 )
               })}
@@ -451,7 +455,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                               color: theme.palette.customColors?.OnSurfaceVariant
                             }}
                           >
-                            {typeLabel}
+                            {t(type?.string_id || '', { defaultValue: typeLabel })}
                           </Typography>
                         </Box>
                         <Checkbox checked={isSelected} />

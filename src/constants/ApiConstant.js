@@ -935,7 +935,11 @@ export const DELETE_VITAL_MONITORING = `v1/hospital/anaesthesia/vital-monitoring
 
 export const UPDATE_ANIMAL_HEALTH_STATUS = 'v1/hospital/update-animal-health-status'
 
-export const GET_UPCOMING_VACCINATION_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
+export const GET_UPCOMING_VACCINATION_DEWORMING_RECORDS = 'v1/vaccination/deworming/animal/upcoming/report'
+
+export const GET_PENDING_VACCINATION_DEWORMING_RECORDS = 'v1/vaccination/deworming/animal/pending/report'
+
+export const GET_COMPLETED_VACCINATION_DEWORMING_RECORDS = 'v1/vaccination/deworming/animal/completed/report'
 
 // Necropsy
 
@@ -1042,3 +1046,9 @@ export const REMOVE_NOTES_REACTION = 'v1/notes/remove/reaction'
 export const GET_NOTES_DETAILS = 'v1/observation/details'
 
 export const ADD_NOTES_COMMENT = 'v1/observation/note/add'
+
+// Request Department
+export const REQUEST_DEPARTMENTS = 'v1/request/departments'
+export const REQUEST_DEPARTMENT = 'v1/request/department'
+export const REQUEST_DEPARTMENT_USERS = 'v1/request/department/users'
+export const REQUEST_LIST = 'v1/request/list'

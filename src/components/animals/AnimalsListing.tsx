@@ -37,6 +37,7 @@ import { useTranslation } from 'react-i18next'
 interface NavigationItem {
   label: string
   type: string
+  string_id?: string
 }
 
 interface FilterDates {
@@ -168,6 +169,7 @@ const AnimalsListing = () => {
   const theme = useTheme()
   const router = useSafeRouter()
   const auth = useAuth()
+  const { t } = useTranslation()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
   const { t } = useTranslation()
 
@@ -469,7 +471,7 @@ const AnimalsListing = () => {
     {
       width: 150,
       field: 'animal_id',
-      headerName: t('animals_module.aid'),
+      headerName: t('aid'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell
@@ -483,7 +485,7 @@ const AnimalsListing = () => {
       minWidth: 160,
       width: 200,
       field: 'primary_identifier',
-      headerName: t('identifier'),
+      headerName: t('primary_identifier'),
       sortable: false,
       renderCell: (params: any) => {
         const name = params.row?.local_identifier_name || params.row?.primary_identifier_name
@@ -518,7 +520,7 @@ const AnimalsListing = () => {
       minWidth: 120,
       width: 200,
       field: 'site_name',
-      headerName: t('housing_module.site'),
+      headerName: t('site'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.site_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -538,7 +540,7 @@ const AnimalsListing = () => {
       minWidth: 130,
       width: 200,
       field: 'user_enclosure_name',
-      headerName: t('housing_module.enclosure'),
+      headerName: t('enclosure'),
       sortable: true,
       renderCell: (params: any) => (
         <EllipsisCell text={params.row?.user_enclosure_name} color={theme.palette.customColors.OnSurfaceVariant} />
@@ -550,11 +552,11 @@ const AnimalsListing = () => {
     <>
       <Box>
         <Breadcrumbs>
-          <Typography>{t('animals')}</Typography>
+          <Typography>{t('animals_module.animals')}</Typography>
           <Typography>{t('animals_module.animals_list')}</Typography>
         </Breadcrumbs>
         <Card sx={{ mt: 6 }}>
-          <CardHeader title={RenderUtility.pageTitle(t('animals'))} />
+          <CardHeader title={RenderUtility.pageTitle(t('animals_module.animals'))} />
           <CardContent>
             <Box sx={{ display: ' flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Search
@@ -562,11 +564,16 @@ const AnimalsListing = () => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                 onClear={handleSearchClear}
                 placeholder={t('animals_module.search_animals') as string}
+                placeholder={t('animals_module.search_animals')}
                 width='100%'
                 borderRadius='8px'
               />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <FilterButtonWithNotification appliedFiltersCount={filterCount} onClick={handleFilterDrawerOpen} />
+                <FilterButtonWithNotification
+                  appliedFiltersCount={filterCount}
+                  onClick={handleFilterDrawerOpen}
+                  label={t('filter')}
+                />
                 <ToggleButtonGroup
                   value={viewMode}
                   exclusive
@@ -618,7 +625,7 @@ const AnimalsListing = () => {
               }}
             >
               {horizontalNavList.map((item, index) => (
-                <Tab key={index} label={item.label} value={item.type} />
+                <Tab key={index} label={t(item.string_id || '', { defaultValue: item.label })} value={item.type} />
               ))}
             </Tabs>
             {viewMode === 'Grid' && isFetching && gridList.length === 0 && (

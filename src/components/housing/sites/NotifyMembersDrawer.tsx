@@ -92,7 +92,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
 
   const handleOpenSaveGroup = () => {
     if (!noteTypeId) {
-      Toaster({ type: 'warning', message: 'Please select a note type first to create a new template' })
+      Toaster({ type: 'warning', message: t('notes_module.please_select_a_note_type_first_to_create_a_new_template') })
 
       return
     }
@@ -102,7 +102,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
 
   const handleSaveGroup = async () => {
     if (!groupName.trim()) {
-      Toaster({ type: 'warning', message: 'Please enter a valid group name' })
+      Toaster({ type: 'warning', message: t('notes_module.please_enter_a_valid_group_name') })
 
       return
     }
@@ -110,7 +110,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
     // Check if template name already exists
     const nameExists = templates.some(t => (t.template_name || '').toLowerCase() === groupName.trim().toLowerCase())
     if (nameExists) {
-      Toaster({ type: 'warning', message: 'Template name already exists!' })
+      Toaster({ type: 'warning', message: `${t('notes_module.template_name_already_exists')}!` })
 
       return
     }
@@ -140,7 +140,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
       }
     } catch (error: any) {
       console.error('Failed to save group:', error)
-      Toaster({ type: 'error', message: error?.message || 'Failed to save group' })
+      Toaster({ type: 'error', message: error?.message || error?.template_name || error || 'Failed to save group' })
     } finally {
       setSavingGroup(false)
     }

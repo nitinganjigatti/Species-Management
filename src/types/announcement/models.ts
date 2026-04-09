@@ -42,8 +42,8 @@ export interface AttachmentCount {
 
 export interface ExistingAttachment {
   id: number
-  file: string
-  file_orginal_name: string
+  file_path: string
+  name: string
   file_type: string
 }
 

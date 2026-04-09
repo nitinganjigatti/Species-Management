@@ -1,14 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Box,
-  Drawer,
-  Typography,
-  IconButton,
-  Avatar,
-  Card,
-  Checkbox,
-  CircularProgress
-} from '@mui/material'
+import { Box, Drawer, Typography, IconButton, Avatar, Card, Checkbox, CircularProgress } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { useInView } from 'react-intersection-observer'
@@ -27,9 +18,9 @@ const MultiUserCard = ({ name, image, role, checked, onChange }) => {
     <Card
       sx={{
         boxShadow: 'none',
-        backgroundColor: checked ? '#F2FFF8' : 'white',
+        backgroundColor: checked ? theme.palette.customColors.Surface : 'white',
         display: 'flex',
-        border: checked ? '1px solid #37BD69' : '1px solid white',
+        border: checked ? `1px solid ${theme.palette.primary.main}` : '1px solid white',
         alignItems: 'center',
         justifyContent: 'space-between',
         width: '100%',
@@ -42,7 +33,10 @@ const MultiUserCard = ({ name, image, role, checked, onChange }) => {
       tabIndex={0}
       role='button'
       onKeyDown={e => {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onChange() }
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onChange()
+        }
       }}
     >
       <Box display='flex' alignItems='center' gap={4}>
@@ -58,12 +52,15 @@ const MultiUserCard = ({ name, image, role, checked, onChange }) => {
       </Box>
       <Checkbox
         checked={checked}
-        onChange={e => { e.stopPropagation(); onChange() }}
+        onChange={e => {
+          e.stopPropagation()
+          onChange()
+        }}
         onClick={e => e.stopPropagation()}
         sx={{
           p: 0,
-          color: '#64748B',
-          '&.Mui-checked': { color: '#37BD69' }
+          color: theme.palette.customColors.neutralSecondary,
+          '&.Mui-checked': { color: theme.palette.primary.main }
         }}
       />
     </Card>
@@ -134,10 +131,16 @@ const MultiUserDrawer = ({
   const loadMore = useCallback(() => {
     if (cooldownRef.current || isFetchingNextPage || !hasNextPage) return
     cooldownRef.current = true
-    fetchNextPage().finally(() => setTimeout(() => { cooldownRef.current = false }, 300))
+    fetchNextPage().finally(() =>
+      setTimeout(() => {
+        cooldownRef.current = false
+      }, 300)
+    )
   }, [isFetchingNextPage, hasNextPage, fetchNextPage])
 
-  useEffect(() => { if (inView) loadMore() }, [inView, loadMore])
+  useEffect(() => {
+    if (inView) loadMore()
+  }, [inView, loadMore])
 
   const handleSearchChange = e => {
     setLocalSearch(e.target.value)
@@ -148,9 +151,7 @@ const MultiUserDrawer = ({
 
   const toggleUser = user => {
     setSelected(prev =>
-      isSelected(user.user_id)
-        ? prev.filter(u => String(u.user_id) !== String(user.user_id))
-        : [...prev, user]
+      isSelected(user.user_id) ? prev.filter(u => String(u.user_id) !== String(user.user_id)) : [...prev, user]
     )
   }
 
@@ -166,11 +167,20 @@ const MultiUserDrawer = ({
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', '562px'] } }}
     >
-      <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.customColors.bodyBg }}>
-
+      <Box
+        sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: theme.palette.customColors.bodyBg }}
+      >
         {/* Header */}
         <Box sx={{ p: 4, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography sx={{ fontSize: '24px', fontWeight: 500, fontFamily: 'Inter', color: theme.palette.customColors.OnSurfaceVariant, ml: 2 }}>
+          <Typography
+            sx={{
+              fontSize: '24px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              ml: 2
+            }}
+          >
             {headerText}
           </Typography>
           <IconButton onClick={onClose}>
@@ -184,7 +194,10 @@ const MultiUserDrawer = ({
             width='100%'
             onChange={handleSearchChange}
             placeholder={placeholder}
-            onClear={() => { setLocalSearch(''); debouncedSearch('') }}
+            onClear={() => {
+              setLocalSearch('')
+              debouncedSearch('')
+            }}
             inputStyle={{ py: '18px', px: '12px' }}
           />
         </Box>
@@ -195,11 +208,20 @@ const MultiUserDrawer = ({
             <CircularProgress />
           </Box>
         ) : (
-          <Box sx={{
-            flex: 1, overflowY: 'auto', px: 4,
-            display: 'flex', flexDirection: 'column', gap: 4, minHeight: 0,
-            '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none', pb: selected.length ? '122px' : 4
-          }}>
+          <Box
+            sx={{
+              flex: 1,
+              overflowY: 'auto',
+              px: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 4,
+              minHeight: 0,
+              '&::-webkit-scrollbar': { display: 'none' },
+              scrollbarWidth: 'none',
+              pb: selected.length ? '122px' : 4
+            }}
+          >
             {list.map(user => (
               <MultiUserCard
                 key={user?.user_id}
@@ -223,11 +245,19 @@ const MultiUserDrawer = ({
 
         {/* Footer CTA */}
         {selected.length > 0 && (
-          <Box sx={{
-            position: 'fixed', bottom: 0, right: 0, width: ['100%', '562px'],
-            px: 4, py: '24px', bgcolor: 'white', zIndex: 1234,
-            borderTop: '1px solid #DAE7DF'
-          }}>
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: 0,
+              right: 0,
+              width: ['100%', '562px'],
+              px: 4,
+              py: '24px',
+              bgcolor: 'white',
+              zIndex: 1234,
+              borderTop: `1px solid ${theme.palette.customColors.SurfaceVariant}`
+            }}
+          >
             <LoadingButton fullWidth onClick={handleConfirm} variant='contained' size='large' sx={{ height: '58px' }}>
               {confirmText} ({selected.length} selected)
             </LoadingButton>

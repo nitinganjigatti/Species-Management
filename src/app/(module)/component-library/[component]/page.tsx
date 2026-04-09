@@ -68,7 +68,8 @@ import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGro
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
-import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+import _ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
+const ControlledSelectWithTextField = _ControlledSelectWithTextField as any
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import CustomDateRangePicker from 'src/components/custom-date-picker/CustomDateRangePicker'
 import EmptyStateBox from 'src/components/EmptyStateBox'
@@ -318,7 +319,7 @@ function ComponentPreview({ comp, theme }: { comp: ComponentEntry; theme: any })
     ),
     'controlled-select-with-text-field': (
       <Box sx={{ width: 400 }}>
-        <ControlledSelectWithTextField textFieldName='demoValue' selectFieldName='demoUnit' control={control} errors={errors} label='Weight' placeholder='Enter value' options={['kg', 'g', 'lb'] as any} />
+<ControlledSelectWithTextField textFieldName='demoValue' selectFieldName='demoUnit' control={control} errors={errors} label='Weight' placeholder='Enter value' options={['kg', 'g', 'lb'] as any} />
       </Box>
     ),
     'confirmation-checkbox': (
