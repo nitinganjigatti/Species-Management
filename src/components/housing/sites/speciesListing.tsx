@@ -255,7 +255,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
                     name: (params.row as SpeciesRow).common_name,
                     image: (params.row as SpeciesRow).images?.[0]?.file,
                     params: {
-                      taxonomy_id: (params.row as SpeciesRow & { id: number }).id,
+                      tsn_id: (params.row as SpeciesRow & { id: number }).id,
                       site_id: id
                     }
                   })

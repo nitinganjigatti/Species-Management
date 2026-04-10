@@ -147,7 +147,7 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
       id: zooId,
       name: data?.data?.section_name,
       params: {
-        section_id: id
+        section_id: [id]
       }
     })
   }

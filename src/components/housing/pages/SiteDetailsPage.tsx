@@ -196,7 +196,7 @@ const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({ id }) => {
       id: zooId,
       name: data?.data?.site_name,
       params: {
-        site_id: id
+        site_id: [id]
       }
     })
   }

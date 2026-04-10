@@ -48,9 +48,7 @@ const SitesPage: React.FC = () => {
       id: zooId,
       name: '',
       params: {
-        ref_type: 'zoo',
-        data_type: 'animal',
-        ref_id: zooId
+        animal_list_type: 'allAnimals'
       }
     })
   }

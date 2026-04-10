@@ -7,7 +7,7 @@ import { useInView } from 'react-intersection-observer'
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import { CellInfo } from 'src/utility/render'
 import Search from 'src/views/utility/Search'
-import { getAllAnimalList } from 'src/lib/api/housing'
+import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
@@ -88,15 +88,16 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
   } = useInfiniteQuery<PageResult>({
     queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam }) => {
-      const res = await getAllAnimalList({
+      const res = await getNewAnimalListWithFilters({
         ...data?.params,
         page_no: pageParam as number,
-        limit: PAGE_SIZE,
+        list_type: 'animals',
         q: search
       })
 
-      const resultData = ((res?.data as any)?.result || res?.data || []) as unknown as Animal[]
-      const totalCount = (res?.data as any)?.total_count || 0
+      // v3 API returns { data: [...], total_count } at top level
+      const resultData = (res?.data || []) as unknown as Animal[]
+      const totalCount = res?.total_count || 0
 
       return {
         result: resultData,

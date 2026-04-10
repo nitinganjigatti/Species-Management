@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getAllAnimalList, getAllSites, getAllSpeciesList } from 'src/lib/api/housing'
+import { getAllSpeciesList } from 'src/lib/api/housing'
 import RenderUtility, { CellInfo, GenderInfoCard } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -197,7 +197,7 @@ const ClusterSpecies: React.FC = () => {
       name: row?.common_name || row?.complete_name || '',
       params: {
         id: id,
-        taxonomy_id: row.tsn_id,
+        tsn_id: row.tsn_id,
         cluster_id: id
       }
     })

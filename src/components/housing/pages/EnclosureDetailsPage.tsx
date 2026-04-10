@@ -16,6 +16,7 @@ import FoodWastageListing from 'src/components/housing/sites/FoodWastageListing'
 import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureWiseStat, getEnclosureBasicInfo, getEntityPermissionCheck } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
+import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -116,6 +117,23 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
   const availableTabs = useMemo(() => tabConfig.map(t => t.value), [tabConfig])
   const [selectedTab, setSelectedTab] = useTabSync(allTabConfig[0].value, availableTabs)
 
+  const handleAnimalsInsightClick = (): void => {
+    setDrawerType('animals-insights')
+    setDrawerData({
+      queryKey: 'enclosure-insights-animals-drawer',
+      id,
+      name: (data?.data as any)?.user_enclosure_name,
+      params: {
+        enclosure_id: [id]
+      }
+    })
+  }
+
+  const handleDrawerClose = (): void => {
+    setDrawerType(null)
+    setDrawerData(null)
+  }
+
   const statsData: StatItem[] = [
     {
       label: t('species'),
@@ -127,7 +145,7 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
       label: t('animals'),
       value: (data?.data as any)?.total_occupants || 0,
       imagePath: '/images/housing/animals.svg',
-      onClick: () => console.log('Animals')
+      onClick: handleAnimalsInsightClick
     }
   ]
 
@@ -271,6 +289,15 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
           </Box>
         </Card>
       </Box>
+      {drawerType === 'animals-insights' && (
+        <AnimalDrawer
+          totalCount={(data?.data as any)?.total_occupants}
+          open={!!drawerData}
+          onClose={handleDrawerClose}
+          data={drawerData as any}
+          defaultImage={'/images/housing/Enclosure icon.png'}
+        />
+      )}
       {showEditEnclosureDrawer && (
         <AddEnclosureDrawer
           open={showEditEnclosureDrawer}

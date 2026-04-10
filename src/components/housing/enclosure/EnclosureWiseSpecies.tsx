@@ -265,7 +265,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
                     image: params.row.default_icon,
                     params: {
                       enclosure_id: id,
-                      taxonomy_id: params.row.tsn_id
+                      tsn_id: params.row.tsn_id
                     }
                   })
                   setTotalCount(params.row.animal_count || 0)
