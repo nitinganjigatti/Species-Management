@@ -3,34 +3,26 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
-import Select from '@mui/material/Select'
+import TextField from '@mui/material/TextField'
 import MenuItem from '@mui/material/MenuItem'
-import FormControl from '@mui/material/FormControl'
-import CircularProgress from '@mui/material/CircularProgress'
-import { DataGrid, GridColDef } from '@mui/x-data-grid'
+import { useTheme } from '@mui/material/styles'
+import { GridColDef } from '@mui/x-data-grid'
 import Icon from 'src/@core/components/icon'
 import { VMS_STATUS_CONFIG, VMS_STATUS_OPTIONS } from 'src/constants/vms'
-import type { VmsPass } from 'src/types/vms'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Utility from 'src/utility'
 import { useReportVisitors } from 'src/hooks/vms/useVmsReports'
 import { exportReportCsv } from 'src/lib/api/vms'
-
-// ─── Status → theme token mappings ───────────────────────────────────────────
-
-// Status colors come from VMS_STATUS_CONFIG directly (hex is acceptable for status-specific colors)
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-const formatDate = (dateStr: string) => {
-  const d = new Date(dateStr)
-
-  return d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
-}
+const formatDate = (dateStr: string) =>
+  new Date(dateStr).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' })
 
 const formatTime = (dateStr: string | null): string => {
   if (!dateStr) return ''
@@ -39,43 +31,20 @@ const formatTime = (dateStr: string | null): string => {
   return d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true })
 }
 
-// ─── Sub-components ────────────────────────────────────────────────────────────
+// ─── StatusChip ────────────────────────────────────────────────────────────────
 
 const StatusChip = ({ status }: { status: string }) => {
   const cfg = VMS_STATUS_CONFIG[status] ?? { label: status, color: '#616161', bgColor: '#F0F0F0' }
 
   return (
     <Chip
+      label={cfg.label}
       size='small'
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Box
-            component='span'
-            sx={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              flexShrink: 0,
-              bgcolor: cfg.color,
-            }}
-          />
-          <Typography
-            component='span'
-            sx={{ fontSize: 12, fontWeight: 500, lineHeight: 1.4, color: 'inherit' }}
-          >
-            {cfg.label}
-          </Typography>
-        </Box>
-      }
       sx={{
-        height: 'auto',
-        maxHeight: 24,
-        borderRadius: '100px',
-        px: '10px',
-        py: '4px',
+        fontWeight: 500,
+        fontSize: '12px',
+        backgroundColor: cfg.bgColor,
         color: cfg.color,
-        bgcolor: cfg.bgColor,
-        '& .MuiChip-label': { px: 0, display: 'flex', alignItems: 'center' },
       }}
     />
   )
@@ -101,6 +70,7 @@ const SITE_OPTIONS = [
 // ─── Main Component ────────────────────────────────────────────────────────────
 
 const VisitorReports = () => {
+  const theme = useTheme()
   const [filters, setFilters] = useState<ReportFilters>({
     startDate: '',
     endDate: '',
@@ -148,7 +118,7 @@ const VisitorReports = () => {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `visitors_report_${new Date().toISOString().slice(0,10)}.csv`
+      a.download = `visitors_report_${new Date().toISOString().slice(0, 10)}.csv`
       a.click()
       URL.revokeObjectURL(url)
       toast.success('CSV exported')
@@ -166,13 +136,14 @@ const VisitorReports = () => {
       field: 'pass_id',
       headerName: 'Pass ID',
       width: 120,
+      sortable: false,
       renderCell: ({ value }) => (
         <Typography
+          variant='caption'
           title={value}
           sx={{
             fontFamily: "'Courier New', Courier, monospace",
-            fontSize: 12,
-            color: 'text.secondary',
+            color: theme.palette.customColors.neutralSecondary,
             whiteSpace: 'nowrap',
           }}
         >
@@ -185,8 +156,16 @@ const VisitorReports = () => {
       headerName: 'Visitor Name',
       flex: 1,
       minWidth: 140,
+      sortable: false,
       renderCell: ({ value }) => (
-        <Typography sx={{ fontWeight: 500, color: 'text.primary', fontSize: 14, whiteSpace: 'nowrap' }}>
+        <Typography
+          sx={{
+            fontWeight: 500,
+            fontSize: '14px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+            whiteSpace: 'nowrap',
+          }}
+        >
           {value}
         </Typography>
       ),
@@ -195,13 +174,13 @@ const VisitorReports = () => {
       field: 'visitor_contact',
       headerName: 'Contact',
       width: 130,
+      sortable: false,
       renderCell: ({ value }) => (
         <Typography
           sx={{
-            fontSize: 13,
-            color: 'text.secondary',
+            fontSize: '14px',
+            color: theme.palette.customColors.neutralSecondary,
             fontVariantNumeric: 'tabular-nums',
-            letterSpacing: '0.3px',
             whiteSpace: 'nowrap',
           }}
         >
@@ -213,25 +192,26 @@ const VisitorReports = () => {
       field: 'department',
       headerName: 'Department',
       width: 130,
+      sortable: false,
       renderCell: ({ value }) => (
-        <Typography sx={{ fontSize: 14, color: 'text.primary' }}>{value}</Typography>
+        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {value}
+        </Typography>
       ),
     },
     {
       field: 'purpose_of_visit',
       headerName: 'Purpose',
       width: 160,
+      sortable: false,
       renderCell: ({ value }) => (
         <Typography
+          noWrap
           title={value}
           sx={{
-            fontSize: 13,
-            color: 'text.primary',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            maxWidth: '160px',
-            display: 'block',
+            fontSize: '14px',
+            color: theme.palette.customColors.neutralSecondary,
+            maxWidth: 160,
           }}
         >
           {value}
@@ -242,18 +222,16 @@ const VisitorReports = () => {
       field: 'status',
       headerName: 'Status',
       width: 130,
-      renderCell: ({ value }) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-          <StatusChip status={value} />
-        </Box>
-      ),
+      sortable: false,
+      renderCell: ({ value }) => <StatusChip status={value} />,
     },
     {
       field: 'start_date',
       headerName: 'Start Date',
       width: 100,
+      sortable: false,
       renderCell: ({ value }) => (
-        <Typography sx={{ fontSize: 13, color: 'text.primary', whiteSpace: 'nowrap' }}>
+        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, whiteSpace: 'nowrap' }}>
           {formatDate(value)}
         </Typography>
       ),
@@ -262,8 +240,9 @@ const VisitorReports = () => {
       field: 'end_date',
       headerName: 'End Date',
       width: 100,
+      sortable: false,
       renderCell: ({ value }) => (
-        <Typography sx={{ fontSize: 13, color: 'text.primary', whiteSpace: 'nowrap' }}>
+        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, whiteSpace: 'nowrap' }}>
           {formatDate(value)}
         </Typography>
       ),
@@ -272,23 +251,14 @@ const VisitorReports = () => {
       field: 'time_in',
       headerName: 'Time In',
       width: 110,
+      sortable: false,
       renderCell: ({ value }) =>
         value ? (
-          <Typography
-            sx={{
-              fontSize: 13,
-              color: 'text.primary',
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
             {formatTime(value)}
           </Typography>
         ) : (
-          <Typography
-            component='span'
-            sx={{ fontStyle: 'italic', color: 'customColors.OutlineVariant', fontSize: 13 }}
-          >
+          <Typography variant='body2' sx={{ fontStyle: 'italic', color: theme.palette.customColors.neutralSecondary }}>
             —
           </Typography>
         ),
@@ -297,23 +267,14 @@ const VisitorReports = () => {
       field: 'time_out',
       headerName: 'Time Out',
       width: 110,
+      sortable: false,
       renderCell: ({ value }) =>
         value ? (
-          <Typography
-            sx={{
-              fontSize: 13,
-              color: 'text.primary',
-              fontVariantNumeric: 'tabular-nums',
-              whiteSpace: 'nowrap',
-            }}
-          >
+          <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
             {formatTime(value)}
           </Typography>
         ) : (
-          <Typography
-            component='span'
-            sx={{ fontStyle: 'italic', color: 'customColors.OutlineVariant', fontSize: 13 }}
-          >
+          <Typography variant='body2' sx={{ fontStyle: 'italic', color: theme.palette.customColors.neutralSecondary }}>
             —
           </Typography>
         ),
@@ -322,8 +283,9 @@ const VisitorReports = () => {
       field: 'created_by_name',
       headerName: 'Created By',
       width: 130,
+      sortable: false,
       renderCell: ({ value }) => (
-        <Typography sx={{ fontSize: 13, color: 'text.primary', whiteSpace: 'nowrap' }}>
+        <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap' }}>
           {value}
         </Typography>
       ),
@@ -331,143 +293,64 @@ const VisitorReports = () => {
   ]
 
   return (
-    <Card
-      sx={{
-        borderRadius: '10px',
-        boxShadow: theme =>
-          `0 1px 3px ${theme.palette.divider}, 0 1px 2px ${theme.palette.divider}`,
-        overflow: 'hidden',
-      }}
-    >
-      {/* ── Header ────────────────────────────────────────────────────────── */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          px: 6,
-          py: 5,
-          borderBottom: '1px solid',
-          borderColor: 'customColors.OutlineVariant',
-          flexWrap: 'wrap',
-          gap: 2,
-        }}
-      >
-        <Typography sx={{ fontSize: 18, fontWeight: 600, color: 'text.primary', lineHeight: 1.4 }}>
-          Visitor Reports
-        </Typography>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <PageCardLayout
+      title='Visitor Reports'
+      action={
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Button
             variant='outlined'
             onClick={handleExportCsv}
             startIcon={<Icon icon='mdi:download' fontSize={16} />}
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              textTransform: 'none',
-              color: 'text.primary',
-              borderColor: 'customColors.OutlineVariant',
-              borderRadius: '8px',
-              px: '14px',
-              py: '7px',
-              minWidth: 'unset',
-              lineHeight: 1.5,
-              '&:hover': {
-                bgcolor: 'customColors.Surface',
-                borderColor: 'text.secondary',
-              },
-            }}
+            sx={{ textTransform: 'none' }}
           >
             Export CSV
           </Button>
-
           <Button
             variant='outlined'
             onClick={handleExportPdf}
             startIcon={<Icon icon='mdi:file-pdf-box' fontSize={16} />}
-            sx={{
-              fontSize: 13,
-              fontWeight: 500,
-              textTransform: 'none',
-              color: 'text.primary',
-              borderColor: 'customColors.OutlineVariant',
-              borderRadius: '8px',
-              px: '14px',
-              py: '7px',
-              minWidth: 'unset',
-              lineHeight: 1.5,
-              '&:hover': {
-                bgcolor: 'customColors.Surface',
-                borderColor: 'text.secondary',
-              },
-            }}
+            sx={{ textTransform: 'none' }}
           >
             Export PDF
           </Button>
         </Box>
-      </Box>
-
+      }
+    >
       {/* ── Filters ───────────────────────────────────────────────────────── */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 3,
-          px: 6,
-          py: 4,
-          borderBottom: '1px solid',
-          borderColor: 'customColors.OutlineVariant',
-          flexWrap: 'wrap',
-        }}
-      >
-        <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={dateRange} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4, flexWrap: { xs: 'wrap', md: 'nowrap' } }}>
+        <TextField
+          select
+          size='small'
+          value={filters.status}
+          onChange={e => handleFilterChange('status', e.target.value)}
+          sx={{ minWidth: 140 }}
+          label='Status'
+        >
+          {VMS_STATUS_OPTIONS.map(opt => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </TextField>
 
-        <FormControl size='small' sx={{ minWidth: 130 }}>
-          <Select
-            value={filters.status}
-            onChange={e => handleFilterChange('status', e.target.value)}
-            displayEmpty
-            sx={{
-              fontSize: 14,
-              color: 'text.primary',
-              borderRadius: '8px',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'customColors.OutlineVariant' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'text.secondary' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
-              '& .MuiSelect-icon': { color: 'text.secondary' },
-            }}
-          >
-            {VMS_STATUS_OPTIONS.map(opt => (
-              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: 14 }}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <TextField
+          select
+          size='small'
+          value={filters.siteId}
+          onChange={e => handleFilterChange('siteId', e.target.value)}
+          sx={{ minWidth: 140 }}
+          label='Site'
+        >
+          {SITE_OPTIONS.map(opt => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </TextField>
 
-        <FormControl size='small' sx={{ minWidth: 130 }}>
-          <Select
-            value={filters.siteId}
-            onChange={e => handleFilterChange('siteId', e.target.value)}
-            displayEmpty
-            sx={{
-              fontSize: 14,
-              color: 'text.primary',
-              borderRadius: '8px',
-              '& .MuiOutlinedInput-notchedOutline': { borderColor: 'customColors.OutlineVariant' },
-              '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'text.secondary' },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'primary.main' },
-              '& .MuiSelect-icon': { color: 'text.secondary' },
-            }}
-          >
-            {SITE_OPTIONS.map(opt => (
-              <MenuItem key={opt.value} value={opt.value} sx={{ fontSize: 14 }}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+        <Box sx={{ ml: 'auto', maxWidth: { xs: '50%', sm: 300 }, minWidth: { xs: '45%', sm: 280 } }}>
+          <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={dateRange} />
+        </Box>
 
         {hasActiveFilters && (
           <Button
@@ -476,14 +359,8 @@ const VisitorReports = () => {
             onClick={handleClear}
             startIcon={<Icon icon='mdi:filter-off-outline' fontSize={16} />}
             sx={{
-              color: 'text.secondary',
-              fontSize: 14,
-              fontWeight: 400,
+              color: theme.palette.customColors.neutralSecondary,
               textTransform: 'none',
-              borderRadius: '6px',
-              px: 2,
-              py: 1.5,
-              '&:hover': { bgcolor: 'customColors.Surface', color: 'text.primary' },
             }}
           >
             Clear
@@ -491,101 +368,19 @@ const VisitorReports = () => {
         )}
       </Box>
 
-      {/* ── DataGrid ──────────────────────────────────────────────────────── */}
-      <DataGrid
-        rows={visitors}
+      {/* ── Table ─────────────────────────────────────────────────────────── */}
+      <CommonTable
         columns={columns}
+        indexedRows={visitors}
+        total={visitors.length}
         loading={isLoading}
-        getRowId={row => row.pass_id}
         paginationModel={paginationModel}
-        onPaginationModelChange={setPaginationModel}
+        setPaginationModel={(model: any) => setPaginationModel({ page: model.page, pageSize: model.pageSize })}
         pageSizeOptions={[10, 25, 50]}
-        disableRowSelectionOnClick
-        autoHeight
-        sx={{
-          border: 'none',
-          fontFamily: 'inherit',
-
-          // ── Column headers ──────────────────────────────────────────
-          '& .MuiDataGrid-columnHeaders': {
-            bgcolor: 'customColors.Surface',
-            borderBottom: '1px solid',
-            borderColor: 'customColors.OutlineVariant',
-            minHeight: '44px !important',
-            maxHeight: '44px !important',
-          },
-          '& .MuiDataGrid-columnHeader': {
-            px: 4,
-            bgcolor: 'customColors.Surface',
-            '&:focus, &:focus-within': { outline: 'none' },
-          },
-          '& .MuiDataGrid-columnHeaderTitle': {
-            fontSize: '11px !important',
-            fontWeight: '600 !important',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-            color: 'text.secondary',
-          },
-          '& .MuiDataGrid-columnSeparator': { display: 'none' },
-          '& .MuiDataGrid-sortIcon': { color: 'text.secondary' },
-          '& .MuiDataGrid-menuIconButton': { color: 'text.secondary' },
-
-          // ── Rows ────────────────────────────────────────────────────
-          '& .MuiDataGrid-row': {
-            cursor: 'default',
-            '&:hover': { bgcolor: 'customColors.Surface' },
-            '&.Mui-selected': {
-              bgcolor: 'transparent',
-              '&:hover': { bgcolor: 'customColors.Surface' },
-            },
-            '&:last-child .MuiDataGrid-cell': { borderBottom: 'none' },
-          },
-
-          // ── Cells ───────────────────────────────────────────────────
-          '& .MuiDataGrid-cell': {
-            px: 4,
-            fontSize: '14px',
-            color: 'text.primary',
-            borderBottom: '1px solid',
-            borderColor: 'customColors.OutlineVariant',
-            display: 'flex',
-            alignItems: 'center',
-            '&:focus, &:focus-within': { outline: 'none' },
-          },
-
-          // ── Footer / pagination ─────────────────────────────────────
-          '& .MuiDataGrid-footerContainer': {
-            px: 6,
-            borderTop: '1px solid',
-            borderColor: 'customColors.OutlineVariant',
-            minHeight: '52px',
-          },
-          '& .MuiTablePagination-root': {
-            fontSize: '13px',
-            color: 'text.secondary',
-          },
-          '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-            fontSize: '13px',
-            color: 'text.secondary',
-            margin: 0,
-          },
-          '& .MuiTablePagination-select': {
-            fontSize: '13px',
-            color: 'text.primary',
-            padding: '4px 24px 4px 8px',
-          },
-          '& .MuiTablePagination-actions .MuiIconButton-root': {
-            color: 'text.secondary',
-            '&:hover': { bgcolor: 'customColors.Surface' },
-            '&.Mui-disabled': { opacity: 0.4 },
-          },
-
-          // ── Misc ────────────────────────────────────────────────────
-          '& .MuiDataGrid-virtualScroller': { overflowX: 'auto' },
-          '& .MuiDataGrid-overlay': { bgcolor: 'background.paper' },
-        }}
+        rowHeight={52}
+        getRowId={(row: any) => row.pass_id}
       />
-    </Card>
+    </PageCardLayout>
   )
 }
 

@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useContext } from 'react'
 import { useRouter } from 'next/navigation'
-import { useContext } from 'react'
 import { useScanQr } from 'src/hooks/vms/useVmsScan'
 import { AuthContext } from 'src/context/AuthContext'
 import { usePassSearch } from 'src/hooks/vms/useVmsPasses'
@@ -17,6 +16,7 @@ import MenuItem from '@mui/material/MenuItem'
 import FormControl from '@mui/material/FormControl'
 import TextField from '@mui/material/TextField'
 import InputAdornment from '@mui/material/InputAdornment'
+import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { VMS_STATUS_CONFIG } from 'src/constants/vms'
 
@@ -35,9 +35,7 @@ interface ScanResult {
   end_date: string
 }
 
-// Sites loaded from API in component
-
-// ─── Sub-components ───────────────────────────────────────────────────────────
+// ─── StatusChip ──────────────────────────────────────────────────────────────
 
 const StatusChip = ({ status }: { status: string }) => {
   const config = VMS_STATUS_CONFIG[status] ?? { label: status, color: '#616161', bgColor: '#F0F0F0' }
@@ -45,31 +43,12 @@ const StatusChip = ({ status }: { status: string }) => {
   return (
     <Chip
       size='small'
-      label={
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <Box
-            component='span'
-            sx={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              flexShrink: 0,
-              bgcolor: config.color,
-            }}
-          />
-          {config.label}
-        </Box>
-      }
+      label={config.label}
       sx={{
         bgcolor: config.bgColor,
         color: config.color,
         fontWeight: 500,
         fontSize: '12px',
-        height: 'auto',
-        py: '3px',
-        px: '4px',
-        borderRadius: '100px',
-        '& .MuiChip-label': { px: 0 },
       }}
     />
   )
@@ -85,13 +64,13 @@ const QR_READER_ID = 'vms-qr-reader'
 
 const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
   const router = useRouter()
+  const theme = useTheme()
 
   const [scanState, setScanState] = useState<ScanState>('scanning')
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
   const [scanError, setScanError] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectedSite, setSelectedSite] = useState<string>(defaultSite)
-  const [isProcessing, setIsProcessing] = useState<boolean>(false)
   const [cameraError, setCameraError] = useState<string>('')
   const authData = useContext(AuthContext)
   const sites = ((authData as any)?.userData?.user?.zoos?.[0]?.sites ?? [])
@@ -130,14 +109,13 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
       await scanner.start(
         { facingMode: 'environment' },
         { fps: 10, qrbox: { width: 220, height: 220 }, aspectRatio: 1.0 },
-        (decodedText) => {
-          // QR decoded — pause scanner, process result
+        decodedText => {
           scanner.pause(true)
 
           scanMutation.mutate(
             { qr_data: decodedText, site_id: selectedSite ? Number(selectedSite) : null },
             {
-              onSuccess: (response) => {
+              onSuccess: response => {
                 setScanResult({
                   pass_id: response.data.pass.pass_id,
                   visitor_name: response.data.pass.visitor_name,
@@ -157,9 +135,7 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
             }
           )
         },
-        () => {
-          // QR scan error (not found in frame) — ignore, scanner keeps trying
-        }
+        () => {}
       )
 
       setCameraError('')
@@ -175,23 +151,17 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
     if (scanner) {
       try {
         const state = scanner.getState()
-        if (state === 2 || state === 3) { // SCANNING or PAUSED
+        if (state === 2 || state === 3) {
           scanner.stop().catch(() => {})
         }
-      } catch {
-        // ignore
-      }
+      } catch {}
       try {
         scanner.clear()
-      } catch {
-        // ignore
-      }
+      } catch {}
       scannerRef.current = null
       isInitRef.current = false
     }
   }, [])
-
-  // ── Init scanner when in scanning state ────────────────────────────────────
 
   useEffect(() => {
     if (scanState === 'scanning') {
@@ -204,13 +174,9 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
     }
   }, [scanState, startScanner, stopScanner])
 
-  // ── Cleanup on unmount — belt and suspenders ───────────────────────────────
-
   useEffect(() => {
     return () => {
       stopScanner()
-
-      // Force-kill any remaining video tracks as a fallback
       try {
         const el = document.getElementById(QR_READER_ID)
         const video = el?.querySelector('video')
@@ -219,13 +185,9 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
           tracks.forEach(t => t.stop())
           video.srcObject = null
         }
-      } catch {
-        // ignore
-      }
+      } catch {}
     }
   }, [stopScanner])
-
-  // ── Search filtering ───────────────────────────────────────────────────────
 
   const searchResults = searchResponse?.data ?? []
 
@@ -266,13 +228,14 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
   const InfoCell = ({ label, children }: { label: string; children: React.ReactNode }) => (
     <Box>
       <Typography
+        variant='caption'
         sx={{
-          fontSize: '11px',
           fontWeight: 600,
           textTransform: 'uppercase',
           letterSpacing: '0.5px',
-          color: 'text.secondary',
+          color: theme.palette.customColors.neutralSecondary,
           mb: '3px',
+          display: 'block',
         }}
       >
         {label}
@@ -284,26 +247,20 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
   // ── Scanner card ─────────────────────────────────────────────────────────────
 
   const renderScanner = () => (
-    <Card
-      sx={{
-        borderRadius: '10px',
-        boxShadow: theme => theme.shadows[1],
-        overflow: 'hidden',
-      }}
-    >
+    <Card sx={{ borderRadius: '10px', overflow: 'hidden' }}>
       {/* Card header */}
       <Box
         sx={{
-          px: '20px',
-          py: '18px',
+          px: 5,
+          py: 4,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: '1px solid',
-          borderColor: 'divider',
+          borderColor: theme.palette.customColors.OutlineVariant,
         }}
       >
-        <Typography sx={{ fontSize: '16px', fontWeight: 600, color: 'text.primary' }}>
+        <Typography variant='subtitle1' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
           Scan QR Code
         </Typography>
         <Button
@@ -312,13 +269,8 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
           onClick={handleSwitchToManual}
           sx={{
             fontWeight: 500,
-            fontSize: '14px',
-            color: 'success.dark',
+            color: theme.palette.primary.dark,
             textTransform: 'none',
-            px: 1,
-            py: '6px',
-            borderRadius: '8px',
-            '&:hover': { bgcolor: 'success.light' },
           }}
         >
           Manual Search
@@ -326,11 +278,9 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
       </Box>
 
       {/* Card body */}
-      <Box sx={{ padding: '24px 20px' }}>
-        {/* Camera frame wrap */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
-          {/* Camera frame — html5-qrcode renders inside #vms-qr-reader */}
-          {/* Keyframes injected once, only for animation definition */}
+      <Box sx={{ p: 5 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          {/* QR reader styles */}
           <style>{`
             @keyframes scanLine {
               0%, 100% { top: 0; }
@@ -346,23 +296,19 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
           `}</style>
 
           <Box
-            sx={theme => ({
+            sx={{
               position: 'relative',
               width: '280px',
               height: '280px',
               bgcolor: '#111',
               border: '2px solid',
-              borderColor: 'success.main',
+              borderColor: theme.palette.primary.main,
               borderRadius: '10px',
               overflow: 'hidden',
               flexShrink: 0,
-            })}
+            }}
           >
-            {/* QR reader element — html5-qrcode injects camera here */}
-            <Box
-              id={QR_READER_ID}
-              sx={{ width: '100%', height: '100%' }}
-            />
+            <Box id={QR_READER_ID} sx={{ width: '100%', height: '100%' }} />
 
             {/* Scan line */}
             <Box
@@ -371,187 +317,89 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
                 left: 0,
                 right: 0,
                 height: '2px',
-                bgcolor: 'success.main',
-                boxShadow: theme => `0 0 8px ${theme.palette.success.main}, 0 0 16px ${theme.palette.success.main}30`,
+                bgcolor: theme.palette.primary.main,
+                boxShadow: `0 0 8px ${theme.palette.primary.main}, 0 0 16px ${theme.palette.primary.main}30`,
                 animation: 'scanLine 2s ease-in-out infinite',
                 zIndex: 10,
               }}
             />
 
-            {/* Corner brackets — top-left */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 8,
-                left: 8,
-                width: 20,
-                height: 20,
-                zIndex: 20,
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '20px',
-                  height: '3px',
-                  bgcolor: 'success.main',
-                  borderRadius: '2px 0 0 0',
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '3px',
-                  height: '20px',
-                  bgcolor: 'success.main',
-                  borderRadius: '2px 0 0 0',
-                },
-              }}
-            />
+            {/* Corner brackets */}
+            {(['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).map(corner => {
+              const isTop = corner.includes('top')
+              const isLeft = corner.includes('left')
 
-            {/* Corner brackets — top-right */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 8,
-                right: 8,
-                width: 20,
-                height: 20,
-                zIndex: 20,
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  width: '20px',
-                  height: '3px',
-                  bgcolor: 'success.main',
-                  borderRadius: '0 2px 0 0',
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  top: 0,
-                  right: 0,
-                  width: '3px',
-                  height: '20px',
-                  bgcolor: 'success.main',
-                  borderRadius: '0 2px 0 0',
-                },
-              }}
-            />
-
-            {/* Corner brackets — bottom-left */}
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 8,
-                left: 8,
-                width: 20,
-                height: 20,
-                zIndex: 20,
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  width: '20px',
-                  height: '3px',
-                  bgcolor: 'success.main',
-                  borderRadius: '0 0 0 2px',
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  width: '3px',
-                  height: '20px',
-                  bgcolor: 'success.main',
-                  borderRadius: '0 0 0 2px',
-                },
-              }}
-            />
-
-            {/* Corner brackets — bottom-right */}
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 8,
-                right: 8,
-                width: 20,
-                height: 20,
-                zIndex: 20,
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  right: 0,
-                  width: '20px',
-                  height: '3px',
-                  bgcolor: 'success.main',
-                  borderRadius: '0 0 2px 0',
-                },
-                '&::after': {
-                  content: '""',
-                  position: 'absolute',
-                  bottom: 0,
-                  right: 0,
-                  width: '3px',
-                  height: '20px',
-                  bgcolor: 'success.main',
-                  borderRadius: '0 0 2px 0',
-                },
-              }}
-            />
+              return (
+                <Box
+                  key={corner}
+                  sx={{
+                    position: 'absolute',
+                    [isTop ? 'top' : 'bottom']: 8,
+                    [isLeft ? 'left' : 'right']: 8,
+                    width: 20,
+                    height: 20,
+                    zIndex: 20,
+                    '&::before': {
+                      content: '""',
+                      position: 'absolute',
+                      [isTop ? 'top' : 'bottom']: 0,
+                      [isLeft ? 'left' : 'right']: 0,
+                      width: '20px',
+                      height: '3px',
+                      bgcolor: theme.palette.primary.main,
+                    },
+                    '&::after': {
+                      content: '""',
+                      position: 'absolute',
+                      [isTop ? 'top' : 'bottom']: 0,
+                      [isLeft ? 'left' : 'right']: 0,
+                      width: '3px',
+                      height: '20px',
+                      bgcolor: theme.palette.primary.main,
+                    },
+                  }}
+                />
+              )
+            })}
           </Box>
 
           {/* Hint / error text */}
           {cameraError ? (
             <Box sx={{ textAlign: 'center', maxWidth: '280px' }}>
               <Icon icon='mdi:camera-off' fontSize={20} />
-              <Typography sx={{ mt: '4px', fontSize: '13px', color: 'error.main' }}>
+              <Typography variant='caption' sx={{ mt: 1, display: 'block', color: theme.palette.error.main }}>
                 {cameraError}
               </Typography>
             </Box>
           ) : (
-            <Typography sx={{ fontSize: '13px', color: 'text.secondary', textAlign: 'center' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary, textAlign: 'center' }}>
               Point camera at visitor&apos;s QR code
             </Typography>
           )}
         </Box>
 
-        {/* Site selector row */}
+        {/* Site selector */}
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            mt: '18px',
-            pt: '18px',
+            gap: 2,
+            mt: 4,
+            pt: 4,
             borderTop: '1px solid',
-            borderColor: 'divider',
+            borderColor: theme.palette.customColors.OutlineVariant,
           }}
         >
-          <Typography sx={{ fontSize: '13px', color: 'text.secondary', whiteSpace: 'nowrap', flexShrink: 0 }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary, whiteSpace: 'nowrap', flexShrink: 0 }}>
             Scanning at:
           </Typography>
           <FormControl size='small' sx={{ flex: 1 }}>
             <Select
               value={selectedSite}
               onChange={e => setSelectedSite(e.target.value)}
-              sx={{
-                fontSize: '14px',
-                color: 'text.primary',
-                borderRadius: '8px',
-                '& .MuiOutlinedInput-notchedOutline': { borderColor: 'divider' },
-                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'success.main' },
-                '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: 'success.main' },
-              }}
             >
               {sites.map((site: any) => (
-                <MenuItem key={site.value} value={site.value} sx={{ fontSize: '14px' }}>
+                <MenuItem key={site.value} value={site.value}>
                   {site.label}
                 </MenuItem>
               ))}
@@ -567,9 +415,10 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
   const renderResult = () => {
     if (!scanResult) return null
 
-    const shortPassId = scanResult.pass_id.length > 12
-      ? `${scanResult.pass_id.slice(0, 8)}…${scanResult.pass_id.slice(-4)}`
-      : scanResult.pass_id
+    const shortPassId =
+      scanResult.pass_id.length > 12
+        ? `${scanResult.pass_id.slice(0, 8)}…${scanResult.pass_id.slice(-4)}`
+        : scanResult.pass_id
 
     return (
       <>
@@ -578,19 +427,19 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: '12px',
-            my: '28px',
-            '&::before': { content: '""', flex: 1, height: '1px', bgcolor: 'divider' },
-            '&::after': { content: '""', flex: 1, height: '1px', bgcolor: 'divider' },
+            gap: 2,
+            my: 5,
+            '&::before': { content: '""', flex: 1, height: '1px', bgcolor: theme.palette.customColors.OutlineVariant },
+            '&::after': { content: '""', flex: 1, height: '1px', bgcolor: theme.palette.customColors.OutlineVariant },
           }}
         >
           <Typography
+            variant='caption'
             sx={{
-              fontSize: '11px',
               fontWeight: 600,
               textTransform: 'uppercase',
               letterSpacing: '0.8px',
-              color: 'text.secondary',
+              color: theme.palette.customColors.neutralSecondary,
               whiteSpace: 'nowrap',
             }}
           >
@@ -600,26 +449,25 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
 
         <Box
           sx={{
-            bgcolor: 'success.light',
+            bgcolor: theme.palette.customColors.Surface,
             borderRadius: '10px',
-            boxShadow: theme => theme.shadows[1],
             overflow: 'hidden',
             borderLeft: '4px solid',
-            borderColor: 'success.main',
-            mb: '16px',
+            borderColor: theme.palette.primary.main,
+            mb: 3,
           }}
         >
-          <Box sx={{ p: '18px 18px 18px 22px' }}>
+          <Box sx={{ p: 4 }}>
             {/* Scan type label */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', mb: '10px' }}>
-              <Icon icon='mdi:login' fontSize={18} color='success.dark' />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Icon icon='mdi:login' fontSize={18} />
               <Typography
+                variant='caption'
                 sx={{
-                  fontSize: '11px',
                   fontWeight: 700,
                   textTransform: 'uppercase',
                   letterSpacing: '0.6px',
-                  color: 'success.dark',
+                  color: theme.palette.primary.dark,
                 }}
               >
                 Entry Scan
@@ -627,24 +475,24 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
             </Box>
 
             {/* Visitor name + meta */}
-            <Typography sx={{ fontSize: '18px', fontWeight: 600, color: 'text.primary', mb: '3px' }}>
+            <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, mb: 0.5 }}>
               {scanResult.visitor_name}
             </Typography>
-            <Typography sx={{ fontSize: '13px', color: 'text.secondary', mb: '14px' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary, mb: 3 }}>
               {scanResult.department} · {scanResult.visitor_contact}
             </Typography>
 
-            {/* Thin divider */}
-            <Box sx={{ height: '1px', bgcolor: 'action.disabled', mb: '14px', opacity: 0.3 }} />
+            {/* Divider */}
+            <Box sx={{ height: '1px', bgcolor: theme.palette.customColors.OutlineVariant, mb: 3 }} />
 
             {/* Info grid row 1 */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px', mb: '10px' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
               <InfoCell label='Status'>
                 <StatusChip status={scanResult.status} />
               </InfoCell>
               {scanResult.time_in && (
                 <InfoCell label='Time In'>
-                  <Typography sx={{ fontSize: '13px', color: 'text.primary', fontWeight: 500 }}>
+                  <Typography variant='body2' sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
                     {scanResult.time_in}
                   </Typography>
                 </InfoCell>
@@ -652,17 +500,17 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
             </Box>
 
             {/* Info grid row 2 */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 16px' }}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <InfoCell label='Valid'>
-                <Typography sx={{ fontSize: '13px', color: 'text.primary', fontWeight: 500 }}>
+                <Typography variant='body2' sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
                   {scanResult.start_date} – {scanResult.end_date}
                 </Typography>
               </InfoCell>
               <InfoCell label='Pass ID'>
                 <Typography
+                  variant='caption'
                   sx={{
-                    fontSize: '12px',
-                    color: 'text.secondary',
+                    color: theme.palette.customColors.neutralSecondary,
                     fontWeight: 500,
                     fontFamily: '"Roboto Mono", "Courier New", monospace',
                     wordBreak: 'break-all',
@@ -674,26 +522,13 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
             </Box>
 
             {/* Button row */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', mt: '16px' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 4 }}>
               <Button
                 variant='contained'
                 size='small'
                 startIcon={<Icon icon='mdi:qrcode-scan' fontSize={16} />}
                 onClick={handleScanNext}
-                sx={{
-                  bgcolor: 'success.main',
-                  color: 'common.white',
-                  fontWeight: 500,
-                  fontSize: '13px',
-                  textTransform: 'none',
-                  borderRadius: '8px',
-                  px: '12px',
-                  py: '6px',
-                  '&:hover': {
-                    bgcolor: 'success.dark',
-                    boxShadow: theme => `0 2px 8px ${theme.palette.success.main}4D`,
-                  },
-                }}
+                sx={{ textTransform: 'none' }}
               >
                 Scan Next
               </Button>
@@ -702,18 +537,7 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
                 size='small'
                 startIcon={<Icon icon='mdi:open-in-new' fontSize={16} />}
                 onClick={handleViewPass}
-                sx={{
-                  borderColor: 'success.main',
-                  color: 'success.dark',
-                  fontWeight: 500,
-                  fontSize: '13px',
-                  textTransform: 'none',
-                  borderRadius: '8px',
-                  px: '12px',
-                  py: '6px',
-                  bgcolor: 'common.white',
-                  '&:hover': { bgcolor: 'success.light' },
-                }}
+                sx={{ textTransform: 'none' }}
               >
                 View Pass
               </Button>
@@ -733,19 +557,19 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px',
-          my: '28px',
-          '&::before': { content: '""', flex: 1, height: '1px', bgcolor: 'divider' },
-          '&::after': { content: '""', flex: 1, height: '1px', bgcolor: 'divider' },
+          gap: 2,
+          my: 5,
+          '&::before': { content: '""', flex: 1, height: '1px', bgcolor: theme.palette.customColors.OutlineVariant },
+          '&::after': { content: '""', flex: 1, height: '1px', bgcolor: theme.palette.customColors.OutlineVariant },
         }}
       >
         <Typography
+          variant='caption'
           sx={{
-            fontSize: '11px',
             fontWeight: 600,
             textTransform: 'uppercase',
             letterSpacing: '0.8px',
-            color: 'text.secondary',
+            color: theme.palette.customColors.neutralSecondary,
             whiteSpace: 'nowrap',
           }}
         >
@@ -755,61 +579,41 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
 
       <Box
         sx={{
-          bgcolor: 'error.light',
+          bgcolor: theme.palette.customColors.BgTeritary,
           borderRadius: '10px',
-          boxShadow: theme => theme.shadows[1],
           overflow: 'hidden',
           borderLeft: '4px solid',
-          borderColor: 'error.main',
-          mb: '16px',
+          borderColor: theme.palette.customColors.Tertiary,
+          mb: 3,
         }}
       >
-        <Box sx={{ p: '18px 18px 18px 22px' }}>
-          {/* Scan failed label */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px', mb: '10px' }}>
-            <Icon icon='mdi:alert-circle-outline' fontSize={18} color='error.main' />
+        <Box sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Icon icon='mdi:alert-circle-outline' fontSize={18} />
             <Typography
+              variant='caption'
               sx={{
-                fontSize: '11px',
                 fontWeight: 700,
                 textTransform: 'uppercase',
                 letterSpacing: '0.6px',
-                color: 'error.main',
+                color: theme.palette.customColors.Tertiary,
               }}
             >
               Scan Failed
             </Typography>
           </Box>
 
-          {/* Error message */}
-          <Typography sx={{ fontSize: '14px', color: 'text.primary', fontWeight: 500, mb: '6px' }}>
+          <Typography variant='body1' sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant, mb: 1 }}>
             {scanError}
           </Typography>
-          <Typography sx={{ fontSize: '13px', color: 'text.secondary' }}>
-            Visitor: Suresh Nair · HR
-          </Typography>
 
-          {/* Button row */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px', mt: '16px' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 4 }}>
             <Button
               variant='contained'
               size='small'
               startIcon={<Icon icon='mdi:qrcode-scan' fontSize={16} />}
               onClick={handleScanNext}
-              sx={{
-                bgcolor: 'success.main',
-                color: 'common.white',
-                fontWeight: 500,
-                fontSize: '13px',
-                textTransform: 'none',
-                borderRadius: '8px',
-                px: '12px',
-                py: '6px',
-                '&:hover': {
-                  bgcolor: 'success.dark',
-                  boxShadow: theme => `0 2px 8px ${theme.palette.success.main}4D`,
-                },
-              }}
+              sx={{ textTransform: 'none' }}
             >
               Scan Next
             </Button>
@@ -822,26 +626,20 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
   // ── Manual search card ───────────────────────────────────────────────────────
 
   const renderManualSearch = () => (
-    <Card
-      sx={{
-        borderRadius: '10px',
-        boxShadow: theme => theme.shadows[1],
-        overflow: 'hidden',
-      }}
-    >
+    <Card sx={{ borderRadius: '10px', overflow: 'hidden' }}>
       {/* Card header */}
       <Box
         sx={{
-          px: '20px',
-          py: '18px',
+          px: 5,
+          py: 4,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: '1px solid',
-          borderColor: 'divider',
+          borderColor: theme.palette.customColors.OutlineVariant,
         }}
       >
-        <Typography sx={{ fontSize: '16px', fontWeight: 600, color: 'text.primary' }}>
+        <Typography variant='subtitle1' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
           Manual Search
         </Typography>
         <Button
@@ -851,13 +649,8 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
           onClick={handleBackToScanner}
           sx={{
             fontWeight: 500,
-            fontSize: '14px',
-            color: 'success.dark',
+            color: theme.palette.primary.dark,
             textTransform: 'none',
-            px: 1,
-            py: '6px',
-            borderRadius: '8px',
-            '&:hover': { bgcolor: 'success.light' },
           }}
         >
           Back to Scanner
@@ -865,8 +658,7 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
       </Box>
 
       {/* Card body */}
-      <Box sx={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        {/* Search input */}
+      <Box sx={{ p: 5, display: 'flex', flexDirection: 'column', gap: 4 }}>
         <TextField
           fullWidth
           size='small'
@@ -876,7 +668,7 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
           InputProps={{
             startAdornment: (
               <InputAdornment position='start'>
-                <Icon icon='mdi:magnify' fontSize={18} />
+                <Icon icon='mdi:magnify' fontSize={18} color={theme.palette.customColors.neutralSecondary} />
               </InputAdornment>
             ),
             endAdornment: searchQuery ? (
@@ -887,53 +679,44 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
               </InputAdornment>
             ) : null,
           }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '8px',
-              fontSize: '14px',
-              '& fieldset': { borderColor: 'divider' },
-              '&:hover fieldset': { borderColor: 'success.main' },
-              '&.Mui-focused fieldset': { borderColor: 'success.main', boxShadow: theme => `0 0 0 3px ${theme.palette.success.main}1A` },
-            },
-          }}
         />
 
         {/* Results */}
         {searchResults.length === 0 ? (
           <Box
             sx={{
-              py: '48px',
+              py: 8,
               textAlign: 'center',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: '8px',
-              color: 'text.secondary',
+              gap: 1,
+              color: theme.palette.customColors.neutralSecondary,
             }}
           >
             <Icon icon='mdi:magnify-close' fontSize={40} />
-            <Typography sx={{ fontSize: '14px', color: 'text.secondary' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
               No passes match your search.
             </Typography>
           </Box>
         ) : (
           <Box>
-            {searchResults.map((pass, idx) => (
+            {searchResults.map((pass: any, idx: number) => (
               <Box
                 key={pass.pass_id}
                 onClick={() => handleManualPassClick(pass.pass_id)}
                 sx={{
-                  p: '14px 16px',
+                  p: 3,
                   border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: '8px',
+                  borderColor: theme.palette.customColors.OutlineVariant,
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   transition: 'all 150ms ease',
                   bgcolor: 'background.paper',
-                  mb: idx < searchResults.length - 1 ? '12px' : 0,
+                  mb: idx < searchResults.length - 1 ? 2 : 0,
                   '&:hover': {
-                    boxShadow: theme => `0 4px 12px ${theme.palette.action.hover}`,
-                    borderColor: 'success.main',
+                    borderColor: theme.palette.primary.main,
+                    bgcolor: theme.palette.customColors.Surface,
                   },
                 }}
               >
@@ -942,36 +725,36 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
                     display: 'flex',
                     alignItems: 'flex-start',
                     justifyContent: 'space-between',
-                    gap: '16px',
+                    gap: 3,
                   }}
                 >
                   {/* Left: avatar + info */}
-                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: '12px', flex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flex: 1 }}>
                     <Box
                       sx={{
-                        width: '38px',
-                        height: '38px',
+                        width: 38,
+                        height: 38,
                         borderRadius: '50%',
-                        bgcolor: 'success.light',
+                        bgcolor: theme.palette.customColors.Surface,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         flexShrink: 0,
-                        color: 'success.dark',
+                        color: theme.palette.primary.dark,
                       }}
                     >
                       <Icon icon='mdi:account' fontSize={20} />
                     </Box>
                     <Box>
-                      <Typography sx={{ fontSize: '14px', fontWeight: 700, color: 'text.primary', mb: '2px' }}>
+                      <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, mb: 0.5 }}>
                         {pass.visitor_name}
                       </Typography>
-                      <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                      <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary, display: 'block' }}>
                         {pass.department}
                       </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mt: '4px', color: 'text.secondary' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, color: theme.palette.customColors.neutralSecondary }}>
                         <Icon icon='mdi:calendar-range' fontSize={13} />
-                        <Typography sx={{ fontSize: '12px', color: 'text.secondary' }}>
+                        <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
                           {pass.start_date} → {pass.end_date}
                         </Typography>
                       </Box>
@@ -979,9 +762,9 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
                   </Box>
 
                   {/* Right: status + chevron */}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
                     <StatusChip status={pass.status} />
-                    <Box sx={{ color: 'text.secondary' }}>
+                    <Box sx={{ color: theme.palette.customColors.neutralSecondary }}>
                       <Icon icon='mdi:chevron-right' fontSize={18} />
                     </Box>
                   </Box>
@@ -997,7 +780,7 @@ const QrScanner = ({ defaultSite = '' }: QrScannerProps) => {
   // ── Root ─────────────────────────────────────────────────────────────────────
 
   return (
-    <Box sx={{ maxWidth: '520px', mx: 'auto', width: '100%', py: '32px', px: '24px' }}>
+    <Box sx={{ maxWidth: '520px', mx: 'auto', width: '100%', py: 6, px: 5 }}>
       {scanState === 'manual_search' ? (
         renderManualSearch()
       ) : (
