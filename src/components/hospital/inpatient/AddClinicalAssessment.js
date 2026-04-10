@@ -26,7 +26,7 @@ import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionT
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-function AddClinicalAssessment({from = 'Inpatient'}) {
+function AddClinicalAssessment({ category }) {
   const theme = useTheme()
   const router = useRouter()
   const dispatch = useDispatch()
@@ -291,6 +291,7 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   }, [currentTabId, pickerSearchTerm, fetchPickerDiagnosisItems])
 
   const handleTabChange = (tabValue, tabId) => {
+    if (tabValue === currentTab) return 
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
@@ -469,14 +470,31 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
     router.back()
   }, [router])
 
+  const handleRouterNavigation = () => {
+    if (category === 'Inpatient'){
+      router.push('/hospital/inpatient')
+    }
+    else if (category === 'Outpatients'){
+      router.push('/hospital/outpatient')
+    }
+    else if (category === 'Discharged'){
+      router.push('/hospital/discharged')
+    }
+    else if (category === 'Mortality'){
+      router.push('/hospital/mortality')
+    }
+    else if (category === 'Follow Up'){
+      router.push('/hospital/followup')
+    }
+  }
+
   const breadcrumbs = useMemo(
     () => (
       <DynamicBreadcrumbs
         pageItems={[
             { title: 'Hospital' },
-            { title: 'Patients' },
-            { title: from },
-            { title: 'Details',onClick: handleBack},
+            { title: category, onClick: handleRouterNavigation},
+            { title: 'Details', onClick: handleBack},
             { title: 'Add Clinical Assessment'}
           ]}
       />
@@ -553,7 +571,7 @@ function AddClinicalAssessment({from = 'Inpatient'}) {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       {breadcrumbs}
       <AnimalInfoCard
         image={patientData?.animal_detail?.default_icon}

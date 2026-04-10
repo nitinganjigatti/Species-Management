@@ -63,12 +63,12 @@ const ControlledDateTimePicker = ({
                 '& .MuiInputBase-input': {
                   color: error ? theme.palette.error.main : theme.palette.customColors.OnSurfaceVariant,
                   '&::placeholder': {
-                    color: error? theme.palette.error.main: theme.palette.text.disabled,
+                    color: error ? theme.palette.error.main : theme.palette.text.disabled,
                     opacity: 1
                   }
                 },
                 '& .MuiInputLabel-root': {
-                  color: error ? theme.palette.error.main: theme.palette.customColors.Outline
+                  color: error ? theme.palette.error.main : theme.palette.customColors.Outline
                 },
                 ...sx
               }}

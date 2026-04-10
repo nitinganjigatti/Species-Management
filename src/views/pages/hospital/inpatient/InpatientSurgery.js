@@ -322,9 +322,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
     else {
       router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
     }
-  } else {
-    router.push('/hospital/inpatient/AddSurgeryRecord')
-  }
+  } 
 }
 
   const activeRecord = useMemo(() => {

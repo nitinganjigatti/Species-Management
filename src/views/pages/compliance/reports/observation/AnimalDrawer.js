@@ -28,6 +28,7 @@ const PAGE_SIZE = 10
 const AnimalDrawer = ({
   open,
   onClose,
+  from = '',
   handleAnimalClick,
   btnText = 'GENERATE OBSERVATION REPORT',
   showAnimalFilter = true,
@@ -67,6 +68,7 @@ const AnimalDrawer = ({
   )
 
   useEffect(() => {
+  if (from !== 'Add Patient Form'){
     const getAnimalsHorizontalNavigation = async () => {
       try {
         const params = {}
@@ -82,7 +84,9 @@ const AnimalDrawer = ({
     }
 
     getAnimalsHorizontalNavigation()
-  }, [])
+  }
+}, [])
+
 
   useEffect(() => {
     return () => {

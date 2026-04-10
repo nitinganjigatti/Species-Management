@@ -358,7 +358,6 @@ const DoctorsList = () => {
       <Box>
          <DynamicBreadcrumbs
             sx={{ mb: 5 }}
-            pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Doctors & Staffs' }]}
           />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>

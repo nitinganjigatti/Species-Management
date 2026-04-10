@@ -573,7 +573,7 @@ const PatientAdmitForm = ()=> {
     <>
       <Box>
         <DynamicBreadcrumbs
-          pageItems={[{title: 'Hospital'}, {title: 'Patients'}, {title: 'Incoming', onClick: () => router.back()}, {title: 'Patient Admit Form'}]}/>
+          pageItems={[{title: 'Hospital'}, {title: 'Incoming', onClick: () => router.back()}, {title: 'Patient Admit Form'}]}/>
         <HospitalAnalytics disabled />
         {hasPermission ? (
           <Card sx={{ mb: 4, mt: 4 }}>
