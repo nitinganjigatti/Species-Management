@@ -325,7 +325,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       minWidth: 20,
       width: 80,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('housing_module.sl_no'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -522,7 +522,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
           }}
         >
           <ListingHeader
-            title={`${TRANSFER_TABS.find(t => t.id === activeTab)?.label || ''} Transfers`}
+            title={`${TRANSFER_TABS.find(tab => tab.id === activeTab)?.label || ''} ${t('housing_module.transfers')}`}
             totalCount={totalCount}
           />
 
