@@ -75,6 +75,7 @@ import CustomDateRangePicker from 'src/components/custom-date-picker/CustomDateR
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import CustomSwitchTabs from 'src/components/CustomSwitchTabs'
+import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -271,6 +272,9 @@ function ComponentPreview({ comp, theme }: { comp: ComponentEntry; theme: any })
     ),
     'custom-switch-tabs': (
       <CustomSwitchTabs options={[{ label: 'Overview', value: 'overview' }, { label: 'Medical', value: 'medical' }, { label: 'Diet', value: 'diet' }, { label: 'History', value: 'history' }] as any} value='overview' onChange={() => {}} />
+    ),
+    'tabs-with-menu': (
+      <TabsWithMenu tabs={[{ labelKey: 'Sections', value: 'sections' }, { labelKey: 'Species', value: 'species' }, { labelKey: 'Notes', value: 'notes' }, { labelKey: 'Media', value: 'media' }, { labelKey: 'Users', value: 'users' }]} selectedTab='sections' onTabChange={() => {}} />
     ),
     // ── Controlled Form Fields (with useForm) ──
     'controlled-text-field': (

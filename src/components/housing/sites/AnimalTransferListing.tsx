@@ -351,7 +351,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       sortable: false,
       renderCell: (params: GridCellParams) => {
         const row = params.row as IndexedTransferItem
-        const tabConfig = TRANSFER_TABS.find(t => t.id === row.transfer_type)
+        const tabConfig = TRANSFER_TABS.find(tab => tab.id === row.transfer_type)
 
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

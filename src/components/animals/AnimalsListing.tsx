@@ -171,7 +171,6 @@ const AnimalsListing = () => {
   const auth = useAuth()
   const { t } = useTranslation()
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
-  const { t } = useTranslation()
 
   const initialParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
 
@@ -563,7 +562,6 @@ const AnimalsListing = () => {
                 value={searchValue}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                 onClear={handleSearchClear}
-                placeholder={t('animals_module.search_animals') as string}
                 placeholder={t('animals_module.search_animals')}
                 width='100%'
                 borderRadius='8px'

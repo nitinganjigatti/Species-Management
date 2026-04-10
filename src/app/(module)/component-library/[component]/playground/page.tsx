@@ -74,6 +74,7 @@ import CustomDateRangePicker from 'src/components/custom-date-picker/CustomDateR
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import CustomSwitchTabs from 'src/components/CustomSwitchTabs'
+import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -130,6 +131,7 @@ const DEFAULTS: Record<string, Record<string, any>> = {
   'common-date-range-pickers': { showFutureDates: false, showAllTime: false, useCustomText: false, customText: '' },
   'custom-option-date-range-pickers': { showFutureDates: false, showAllTime: false, useCustomText: false, customText: '' },
   'custom-switch-tabs': { value: 'overview' },
+  'tabs-with-menu': { selectedTab: 'sections' },
   'confirm-dialog-box': { title: 'Save Changes?', description: 'You have unsaved changes. Do you want to save before leaving?' },
   'common-dialog-box': { title: 'Add New Record', loading: false },
 }
@@ -336,6 +338,7 @@ const PlaygroundPage = () => {
       'empty-state-box': <EmptyStateBox imageSrc={v.imageSrc || '/images/branding/Antz_logomark_h_color.svg'} text={v.text || 'No animals found'} />,
       'text-ellipsis-with-modal': <Box sx={{ width: 200 }}><TextEllipsisWithModal text={v.text || 'Panthera tigris — The Bengal Tiger is one of the most iconic big cats.'} maxWidth={200} /></Box>,
       'custom-switch-tabs': <CustomSwitchTabs options={[{ label: 'Overview', value: 'overview' }, { label: 'Medical', value: 'medical' }, { label: 'Diet', value: 'diet' }] as any} value={v.value || 'overview'} onChange={noop} />,
+      'tabs-with-menu': <TabsWithMenu tabs={[{ labelKey: 'Sections', value: 'sections' }, { labelKey: 'Species', value: 'species' }, { labelKey: 'Notes', value: 'notes' }, { labelKey: 'Media', value: 'media' }, { labelKey: 'Users', value: 'users' }]} selectedTab={v.selectedTab || 'sections'} onTabChange={noop} />,
       'custom-filter-drawer': (
         <>
           <Button variant='contained' onClick={() => setDialogOpen(true)} startIcon={<Icon icon='mdi:dock-right' fontSize={18} />}>Open Filter Drawer</Button>
