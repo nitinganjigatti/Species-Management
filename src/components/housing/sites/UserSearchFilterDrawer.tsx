@@ -1,10 +1,13 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState ,useMemo} from 'react'
 import { Box, Checkbox, Typography, FormControlLabel, CircularProgress } from '@mui/material'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import Search from 'src/views/utility/Search'
 import { getUsersRoleList } from 'src/lib/api/housing'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import { useAuth } from 'src/hooks/useAuth'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { debounce } from 'lodash'
+import { useTranslation } from 'react-i18next'
 
 type FilterMenuType = 'Site' | 'Role'
 
@@ -35,6 +38,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
   onApplyFilters,
   initialFilters
 }) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState<FilterMenuType>('Site')
   const [selectedOptions, setSelectedOptions] = useState<UserSearchFilters>(DEFAULT_FILTERS)
 
@@ -121,13 +125,22 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
     }
   }, [open, initialFilters])
 
+    const debouncedFetchSites = useMemo(() => {
+    return debounce(q => fetchSites(q), 500)
+  }, [fetchSites])
+
   // Handle search within current menu
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     if (selectedMenu === 'Site') {
-      fetchSites(query)
+      debouncedFetchSites(query)
     }
   }
+  useEffect(() => {
+  return () => {
+    debouncedFetchSites.cancel()
+  }
+}, [debouncedFetchSites])
 
   // Get filtered items based on search query
   const getFilteredItems = (): FilterOption[] => {
@@ -152,9 +165,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
       const stringValue = String(value)
       const isSelected = current.some(v => String(v) === stringValue)
 
-      const updated = isSelected
-        ? current.filter(v => String(v) !== stringValue)
-        : [...current, value]
+      const updated = isSelected ? current.filter(v => String(v) !== stringValue) : [...current, value]
 
       return { ...prev, [selectedMenu]: updated }
     })
@@ -177,7 +188,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
     <CustomFilterDrawer
       open={open}
       onClose={onClose}
-      title='Filter Users'
+      title={t('filter_users')}
       onApply={handleApply}
       onClearAll={handleClearAll}
       filterLists={FILTER_MENUS}
@@ -207,13 +218,17 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
               return (
                 <FormControlLabel
                   key={item.value}
-                  control={
-                    <Checkbox
-                      checked={!!isSelected}
-                      onChange={() => handleOptionToggle(item.value)}
+                  control={<Checkbox checked={!!isSelected} onChange={() => handleOptionToggle(item.value)} />}
+                  label={
+                    <TextEllipsisWithModal
+                      enableDialog={false}
+                      text={item.label}
+                      style={{
+                        fontSize: '1rem',
+                        maxWidth: '230px'
+                      }}
                     />
                   }
-                  label={<Typography fontSize='16px'>{item.label}</Typography>}
                   sx={{ mb: 2, display: 'flex' }}
                 />
               )

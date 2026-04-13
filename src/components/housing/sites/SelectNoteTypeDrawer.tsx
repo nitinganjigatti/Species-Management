@@ -68,7 +68,8 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
     return observationTypes?.find(p => String(p.id) === selectedParentId) || null
   }, [observationTypes, selectedParentId])
 
-  const canSubmit = selectedParentId !== ''
+  const hasChildren = (selectedParent?.child_observation?.length || 0) > 0
+  const canSubmit = selectedParentId !== '' && (!hasChildren || selectedChildIds.length > 0)
 
   const handleDrawerClose = () => {
     onClose()
@@ -161,9 +162,9 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                 <Box
                   key={parentId}
                   sx={{
-                    border: `1px solid ${theme.palette.customColors?.OutlineVariant}`,
-                    borderRadius: '8px'
-                    // overflow: 'hidden'
+                    border: isSelected ? `1px solid ${theme.palette.primary.main}` : `1px solid ${theme.palette.customColors?.OutlineVariant}`,
+                    borderRadius: '8px',
+
                   }}
                 >
                   {/* Parent row with radio */}
@@ -173,13 +174,13 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       px: 4,
-                      py: 3,
+                      py: 1,
                       minHeight: 56,
                       backgroundColor: isSelected
                         ? theme.palette.customColors?.displaybgPrimary
                         : theme.palette.customColors?.OnPrimary,
                       cursor: 'pointer',
-                      borderRadius: isSelected && children.length > 0 ? '8px 8px 0 0' : '8px'
+                      borderRadius: isSelected && children.length > 0 ? '8px 8px 0 0' : '8px',
                     }}
                     onClick={() => handleParentSelect(parentId)}
                   >
@@ -200,7 +201,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                       sx={{
                         color: theme.palette.customColors?.OutlineVariant,
                         '&.Mui-checked': {
-                          color: theme.palette.success.main
+                          color: theme.palette.primary.main
                         }
                       }}
                     />
@@ -226,7 +227,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                               alignItems: 'center',
                               justifyContent: 'space-between',
                               px: 4,
-                              py: 2.5,
+                              py: 1,
                               cursor: 'pointer',
                               '&:hover': {
                                 backgroundColor: theme.palette.action.hover
@@ -254,7 +255,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                               sx={{
                                 color: theme.palette.customColors?.OutlineVariant,
                                 '&.Mui-checked': {
-                                  color: theme.palette.success.main
+                                  color: theme.palette.primary.main
                                 }
                               }}
                             />
@@ -279,7 +280,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
             }}
           >
             <Button variant='contained' fullWidth onClick={handleAdd} sx={{ py: 3, borderRadius: '8px' }}>
-              {t('submit')}
+              {t('done')}
             </Button>
           </Box>
         )}

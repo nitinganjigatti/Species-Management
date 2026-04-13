@@ -130,7 +130,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
         })
       ).unwrap()
 
-      Toaster({ type: 'success', message: 'Group saved successfully' })
+      Toaster({ type: 'success', message: t('notes_module.group_saved_successfully') })
       setSaveGroupModalOpen(false)
       setGroupName('')
 
@@ -139,7 +139,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
         await dispatch(fetchTemplates({ zoo_id: zooId, observation_types: noteTypeId })).unwrap()
       }
     } catch (error: any) {
-      console.error('Failed to save group:', error)
+      console.error('Failed to save group:', error?.message || error?.template_name || error)
       Toaster({ type: 'error', message: error?.message || error?.template_name || error || 'Failed to save group' })
     } finally {
       setSavingGroup(false)
@@ -209,7 +209,6 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
             }}
           >
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-              <Icon icon='mdi:account-group-outline' fontSize={28} color={theme.palette.primary.main} />
               <Typography
                 sx={{
                   fontSize: '24px',
@@ -303,6 +302,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                           user_name={member.user_name || member.full_name || 'NA'}
                           role={member.role_name || 'NA'}
                           size='medium'
+                          text_color={theme.palette.customColors?.OnSurfaceVariant}
                         />
                         <IconButton
                           size='small'

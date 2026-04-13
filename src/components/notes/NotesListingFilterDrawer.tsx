@@ -2,18 +2,18 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, Typography, useTheme, Button, IconButton, Checkbox, CircularProgress } from '@mui/material'
-import Icon from 'src/@core/components/icon'
+import { Box, Typography, useTheme, Checkbox, CircularProgress } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import Search from 'src/views/utility/Search'
 import { debounce } from 'lodash'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
-import { Check } from '@mui/icons-material'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
 import { useSelector, useDispatch } from 'react-redux'
 import { fetchObservationTypes } from 'src/store/slices/housing/notesSlice'
 import type { RootState, AppDispatch } from 'src/store'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const NotesListingFilterDrawer = ({
   open,
@@ -81,8 +81,8 @@ const NotesListingFilterDrawer = ({
     return types
       .map((parent: any) => {
         const parentMatch = (parent.type_name || parent.name || '').toLowerCase().includes(query)
-        const filteredChildren = (parent.child_observation || []).filter(
-          (child: any) => (child.type_name || child.name || '').toLowerCase().includes(query)
+        const filteredChildren = (parent.child_observation || []).filter((child: any) =>
+          (child.type_name || child.name || '').toLowerCase().includes(query)
         )
         if (parentMatch || filteredChildren.length > 0) {
           return {
@@ -100,9 +100,7 @@ const NotesListingFilterDrawer = ({
   // Helper: compute all selected type IDs (parent IDs for parent-only, child IDs otherwise)
   const getAllSelectedTypeIds = (noteTypes: Record<string, { parent: any; children: any[] }>) => {
     return Object.values(noteTypes).flatMap(entry =>
-      entry.children.length > 0
-        ? entry.children.map((c: any) => c.id)
-        : [entry.parent.id]
+      entry.children.length > 0 ? entry.children.map((c: any) => c.id) : [entry.parent.id]
     )
   }
 
@@ -306,103 +304,116 @@ const NotesListingFilterDrawer = ({
             />
           </Box>
           <Box sx={{ px: 2, py: 2, flex: 1, overflowY: 'auto' }}>
-          {observationTypesLoading ? (
-            <Box display='flex' justifyContent='center' py={4}>
-              <CircularProgress size={28} />
-            </Box>
-          ) : (
-            filteredObservationTypes.map((parent: any) => {
-              const parentId = String(parent.id)
-              const children = parent.child_observation || []
+            {observationTypesLoading ? (
+              <Box display='flex' justifyContent='center' py={4}>
+                <CircularProgress size={28} />
+              </Box>
+            ) : (
+              filteredObservationTypes.map((parent: any) => {
+                const parentId = String(parent.id)
+                const children = parent.child_observation || []
 
-              const parentEntry = selectedNoteTypes[parentId]
-              const isParentSelected = !!parentEntry
-              const allChildrenSelected = isParentSelected && (children.length === 0 || parentEntry.children.length === children.length)
-              const someChildrenSelected = isParentSelected && children.length > 0 && parentEntry.children.length > 0 && parentEntry.children.length < children.length
+                const parentEntry = selectedNoteTypes[parentId]
+                const isParentSelected = !!parentEntry
+                const allChildrenSelected =
+                  isParentSelected && (children.length === 0 || parentEntry.children.length === children.length)
+                const someChildrenSelected =
+                  isParentSelected &&
+                  children.length > 0 &&
+                  parentEntry.children.length > 0 &&
+                  parentEntry.children.length < children.length
 
-              return (
-                <Box key={parentId} sx={{ mb: 4 }}>
-                  {/* Parent header with checkbox */}
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      cursor: 'pointer',
-                      mb: 2
-                    }}
-                    onClick={() => handleParentTypeToggle(parent)}
-                  >
-                    <Typography
+                return (
+                  <Box key={parentId} sx={{ mb: 4 }}>
+                    {/* Parent header with checkbox */}
+                    <Box
                       sx={{
-                        fontSize: '1rem',
-                        fontWeight: 600,
-                        color: theme.palette.customColors?.OnSurfaceVariant
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        mb: 2
                       }}
+                      onClick={() => handleParentTypeToggle(parent)}
                     >
-                      {parent.string_id
-                        ? t(parent.string_id, { defaultValue: parent.type_name || parent.name || '' })
-                        : parent.type_name || parent.name || ''}
-                    </Typography>
-                    <Checkbox
-                      checked={allChildrenSelected}
-                      indeterminate={someChildrenSelected}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleParentTypeToggle(parent)
-                      }}
-                      sx={{
-                        color: theme.palette.customColors?.OutlineVariant,
-                        '&.Mui-checked': { color: theme.palette.success.main },
-                        '&.MuiCheckbox-indeterminate': { color: theme.palette.success.main }
-                      }}
-                    />
-                  </Box>
+                      <Typography
+                        sx={{
+                          fontSize: '1rem',
+                          fontWeight: 600,
+                          color: theme.palette.customColors?.OnSurfaceVariant
+                        }}
+                      >
+                        {parent.string_id
+                          ? t(parent.string_id, { defaultValue: parent.type_name || parent.name || '' })
+                          : parent.type_name || parent.name || ''}
+                      </Typography>
+                      <Checkbox
+                        checked={allChildrenSelected}
+                        indeterminate={someChildrenSelected}
+                        onClick={e => {
+                          e.stopPropagation()
+                          handleParentTypeToggle(parent)
+                        }}
+                        sx={{
+                          color: theme.palette.customColors?.OutlineVariant,
+                          '&.Mui-checked': { color: theme.palette.primary.main },
+                          '&.MuiCheckbox-indeterminate': { color: theme.palette.primary.main }
+                        }}
+                      />
+                    </Box>
 
-                  {/* Child types as full-width items */}
-                  {children.length > 0 && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      {children.map((child: any) => {
-                        const isChildSelected = parentEntry?.children.some((c: any) => String(c.id) === String(child.id))
+                    {/* Child types as full-width items */}
+                    {children.length > 0 && (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        {children.map((child: any) => {
+                          const isChildSelected = parentEntry?.children.some(
+                            (c: any) => String(c.id) === String(child.id)
+                          )
 
-                        return (
-                          <Box
-                            key={child.id}
-                            onClick={() => handleChildTypeToggle(parent, child)}
-                            sx={{
-                              px: 3,
-                              py: 2.5,
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              backgroundColor: isChildSelected
-                                ? theme.palette.customColors?.displaybgPrimary
-                                : theme.palette.customColors?.mdAntzNeutral,
-                              border: isChildSelected
-                                ? `1px solid ${theme.palette.success.main}`
-                                : `1px solid ${theme.palette.customColors?.OutlineVariant}`,
-                            }}
-                          >
-                            <Typography
+                          return (
+                            <Box
+                              key={child.id}
+                              onClick={() => handleChildTypeToggle(parent, child)}
                               sx={{
-                                fontSize: '14px',
-                                fontWeight: 400,
-                                color: theme.palette.customColors?.OnSurfaceVariant
+                                px: 3,
+                                py: 2.5,
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                backgroundColor: isChildSelected
+                                  ? alpha(theme.palette.customColors?.Secondary, 0.3)
+                                  : theme.palette.customColors?.displaybgPrimary
+                                // border: isChildSelected
+                                //   ? `1px solid ${theme.palette.success.main}`
+                                //   : `1px solid ${theme.palette.customColors?.OutlineVariant}`,
                               }}
                             >
-                              {child.string_id
-                                ? t(child.string_id, { defaultValue: child.type_name || child.name || '' })
-                                : child.type_name || child.name || ''}
-                            </Typography>
-                          </Box>
-                        )
-                      })}
-                    </Box>
-                  )}
-                </Box>
-              )
-            })
-          )}
+                              <Typography
+                                sx={{
+                                  fontSize: '14px',
+                                  fontWeight: 400,
+                                  color: theme.palette.customColors?.OnSurfaceVariant
+                                }}
+                              >
+                                {child.string_id
+                                  ? t(child.string_id, { defaultValue: child.type_name || child.name || '' })
+                                  : child.type_name || child.name || ''}
+                              </Typography>
+                            </Box>
+                          )
+                        })}
+                      </Box>
+                    )}
+                  </Box>
+                )
+              })
+            )}
           </Box>
+          {filteredObservationTypes?.length === 0 && (
+            <Box sx={{ mx: 'auto' }}>
+              <NoDataFound />
+              {t('notes_module.no_note_types_found')}
+            </Box>
+          )}
         </Box>
       )}
 

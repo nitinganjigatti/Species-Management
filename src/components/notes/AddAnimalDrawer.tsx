@@ -558,6 +558,7 @@ const AddAnimalDrawer: React.FC<{
           onClose={() => setAnimalDrawer(false)}
           handleAnimalClick={handleAnimalFromHierarchy}
           btnText={t('add') as string}
+          showAnimalFilter={false}
           showFilterAndSort
           handleFilterClick={() => setOpenFilterDrawer(true)}
           handleSortClick={() => setIsSortBottomSheetOpen(true)}
@@ -591,6 +592,7 @@ const AddAnimalDrawer: React.FC<{
           onClose={() => setDirectAnimalDrawer(false)}
           handleAnimalClick={handleDirectAnimalSelect}
           btnText={t('add') as string}
+          showAnimalFilter={false}
           showFilterAndSort
           handleFilterClick={() => setOpenFilterDrawer(true)}
           handleSortClick={() => setIsSortBottomSheetOpen(true)}
@@ -640,6 +642,7 @@ const AddAnimalDrawer: React.FC<{
             params: { site_id: localSelections.Sites[0]?.site_id, list_all_sections: true }
           }}
           disabledIds={disabledSectionIds as never[]}
+          showCount={true}
         />
       )}
 
@@ -656,6 +659,7 @@ const AddAnimalDrawer: React.FC<{
             params: { section_id: localSelections.Sections[0]?.section_id, filter_user_enclosure: 0 }
           }}
           disabledIds={disabledEnclosureIds as never[]}
+          showCount={true}
         />
       )}
 
