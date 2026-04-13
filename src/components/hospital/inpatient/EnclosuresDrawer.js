@@ -9,7 +9,7 @@ import Search from 'src/views/utility/Search'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [] }) => {
+  const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [],showCount = false}) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -243,34 +243,61 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections, di
                 })
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar
-                  src={enclosure?.images?.[0]?.file}
-                  alt={enclosure?.user_enclosure_name}
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 0.5
-                  }}
-                />
-                <Box>
-                  <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
-                    {enclosure.user_enclosure_name || enclosure.name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
-                    <Chip
-                      label={`Animals ${enclosure?.animal_count ?? 0}`}
-                      size='small'
-                      sx={{
-                        fontSize: '12px',
-                        fontWeight: 400,
-                        backgroundColor: theme.palette.customColors?.mdAntzNeutral || '#f5f5f5',
-                        color: theme.palette.text.secondary
-                      }}
-                    />
+              {showCount ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar
+                    src={enclosure?.image}
+                    alt={enclosure?.user_enclosure_name}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 0.5
+                    }}
+                  />
+                  <Box>
+                    <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
+                      {enclosure.user_enclosure_name}
+                    </Typography>
+                    <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                      <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                        {`Animals ${enclosure?.enclosure_wise_animal_count ?? 0}`}
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar
+                    src={enclosure?.images?.[0]?.file}
+                    alt={enclosure?.user_enclosure_name}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 0.5
+                    }}
+                  />
+                  <Box>
+                    <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
+                      {enclosure.user_enclosure_name || enclosure.name}
+                    </Typography>
+                    {(enclosure.enclosure_type || enclosure.type) && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant='body2' color='textSecondary'>
+                          {enclosure.enclosure_type || enclosure.type}
+                        </Typography>
+                      </Box>
+                    )}
+                    {(enclosure.capacity || enclosure.animal_capacity) && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                        <Icon icon='mdi:account-group-outline' fontSize={16} color='textSecondary' />
+                        <Typography variant='body2' color='textSecondary'>
+                          Capacity: {enclosure.capacity || enclosure.animal_capacity}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
               <Checkbox
                 checked={isDisabled || isSelected}
                 disabled={isDisabled}

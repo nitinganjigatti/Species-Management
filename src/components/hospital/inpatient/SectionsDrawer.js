@@ -5,11 +5,12 @@ import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
 
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
+import { CellInfo } from 'src/utility/render'
 import Search from 'src/views/utility/Search'
 import { getAllSections } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [] }) => {
+const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [], showCount = false }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -122,7 +123,10 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disa
   }
 
   // Handle select all/deselect all (excludes disabled items)
-  const selectableList = useMemo(() => list.filter(section => !disabledIds.includes(section.section_id)), [list, disabledIds])
+  const selectableList = useMemo(
+    () => list.filter(section => !disabledIds.includes(section.section_id)),
+    [list, disabledIds]
+  )
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -227,44 +231,54 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disa
                 opacity: isDisabled ? 0.6 : 1
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                <Avatar
-                  src={section?.images?.[0]?.file}
-                  alt={section?.section_name}
-                  sx={{ width: 48, height: 48, borderRadius: 0.5 }}
-                >
-                  {section?.section_name?.[0]}
-                </Avatar>
-                <Box>
-                  <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
-                    {section?.section_name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Chip
-                      label={`Enclosures ${section?.enclosure_count ?? 0}`}
-                      size='small'
-                      sx={{
-                        fontSize: '12px',
-                        fontWeight: 400,
-                        height: 24,
-                        backgroundColor: theme.palette.customColors?.mdAntzNeutral || '#f5f5f5',
-                        color: theme.palette.text.secondary
-                      }}
-                    />
-                    <Chip
-                      label={`Animals ${section?.animal_count ?? 0}`}
-                      size='small'
-                      sx={{
-                        fontSize: '12px',
-                        fontWeight: 400,
-                        height: 24,
-                        backgroundColor: theme.palette.customColors?.mdAntzNeutral || '#f5f5f5',
-                        color: theme.palette.text.secondary
-                      }}
+              {showCount ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                  <Avatar
+                    src={section?.images?.[0]?.file || '/images/housing/section-icon-colored.png'}
+                    alt={section?.section_name}
+                    sx={{ width: 40, height: 40, borderRadius: 0.5 }}
+                  >
+                    {section?.section_name?.[0]}
+                  </Avatar>
+                  <Box>
+                    <Typography variant='subtitle1' sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                      {section?.section_name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                        <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                          {`Enclosures ${section?.enclosure_count ?? 0}`}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                        <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                          {`Animals ${section?.animal_count ?? 0}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ flex: 1 }}>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      display: 'flex',
+                      gap: 4,
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <CellInfo
+                      value={section?.section_name}
+                      imgUrl={section?.images?.[0]?.file}
+                      defaultImage={'/images/housing/section-icon-colored.png'}
+                      defaultImageAlt={'section image'}
+                      inchagename={section?.incharge_name || ''}
                     />
                   </Box>
                 </Box>
-              </Box>
+              )}
               <Checkbox
                 checked={isDisabled || isSelected}
                 disabled={isDisabled}
