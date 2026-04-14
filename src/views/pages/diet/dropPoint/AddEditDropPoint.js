@@ -12,6 +12,7 @@ import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { Autocomplete, TextField } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 const schema = yup.object().shape({
   drop_point_name: yup
@@ -28,7 +29,7 @@ const defaultValues = {
 
 const AddEditDropPoint = props => {
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
-
+  const { t } = useTranslation()
   const authData = useContext(AuthContext)
   const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
 
@@ -117,7 +118,9 @@ const AddEditDropPoint = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Update' : 'Add'} Drop Point</Typography>
+        <Typography variant='h6'>
+          {editParams?.id ? t('update') : t('add')} {t('diet_module.drop_point')}
+        </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -152,7 +155,7 @@ const AddEditDropPoint = props => {
                           ? 'Site cannot be changed as meal groups are assigned'
                           : errors.site_id?.message
                       }
-                      placeholder='Select Site'
+                      placeholder={t('diet_module.select_site')}
                     />
                   )}
                 />
@@ -162,7 +165,7 @@ const AddEditDropPoint = props => {
 
           <ControlledTextField
             name='drop_point_name'
-            label='Drop Point Name'
+            label={t('diet_module.drop_point_name')}
             control={control}
             errors={errors}
             required={true}

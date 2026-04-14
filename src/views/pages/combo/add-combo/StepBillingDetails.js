@@ -313,7 +313,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
               <Card sx={{ boxShadow: 'none' }}>
                 <CardContent sx={{ px: 0, py: 0 }}>
                   <Card sx={{ boxShadow: 'none' }}>
-                    <CardHeader title='Item by percentage' sx={{ px: 0, py: 4 }} />
+                    <CardHeader title={t('diet_module.item_by_perc')} sx={{ px: 0, py: 4 }} />
 
                     <DataGrid
                       sx={{

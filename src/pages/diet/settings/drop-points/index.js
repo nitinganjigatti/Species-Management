@@ -8,9 +8,11 @@ import { AddButton } from 'src/components/Buttons'
 import AddEditDropPoint from 'src/views/pages/diet/dropPoint/AddEditDropPoint'
 import Toaster from 'src/components/Toaster'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 const DropPoints = () => {
   const editParamsInitialState = { id: null, drop_point_name: null, site_id: null }
+  const { t } = useTranslation()
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
@@ -105,7 +107,7 @@ const DropPoints = () => {
       flex: 0.25,
       minWidth: 150,
       field: 'drop_point_name',
-      headerName: 'DROP POINT NAME',
+      headerName: t('diet_module.drop_point_name'),
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
@@ -123,7 +125,7 @@ const DropPoints = () => {
       flex: 0.2,
       minWidth: 120,
       field: 'site_name',
-      headerName: 'SITE',
+      headerName: t('navigation.site'),
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
@@ -141,7 +143,7 @@ const DropPoints = () => {
       flex: 0.15,
       minWidth: 100,
       field: 'meal_group_count',
-      headerName: 'MEAL GROUPS',
+      headerName: t('navigation.meal_groups'),
       headerAlign: 'center',
       align: 'center',
       renderCell: params => (
@@ -158,7 +160,7 @@ const DropPoints = () => {
       flex: 0.1,
       minWidth: 80,
       field: 'Action',
-      headerName: 'ACTION',
+      headerName: t('action'),
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
@@ -256,12 +258,14 @@ const DropPoints = () => {
   }))
 
   const headerAction =
-    hasAddAccess || hasFullAccess ? <AddButton title='Add Drop Point' action={addEventSidebarOpen} /> : null
+    hasAddAccess || hasFullAccess ? (
+      <AddButton title={t('diet_module.add_drop_point')} action={addEventSidebarOpen} />
+    ) : null
 
   return (
     <>
       <Card>
-        <CardHeader title='Drop Points' action={headerAction} sx={{ px: 5 }} />
+        <CardHeader title={t('navigation.drop_points')} action={headerAction} sx={{ px: 5 }} />
         <Grid sx={{ mx: 5 }}>
           <Search
             value={searchValue}

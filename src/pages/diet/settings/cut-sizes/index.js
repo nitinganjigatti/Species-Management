@@ -12,10 +12,12 @@ import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPrepara
 import AddCutSize from 'src/views/pages/diet/cutSizes/addCutSizes'
 import Toaster from 'src/components/Toaster'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 const CutSizes = () => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const editParamsInitialState = { id: null, label: null, status: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -76,7 +78,7 @@ const CutSizes = () => {
       flex: 0.3,
       minWidth: 20,
       field: 'label',
-      headerName: 'NAME',
+      headerName: t('name'),
       renderCell: params => (
         <Tooltip title={params.row.cut_size?.length > 30 ? params.row.cut_size : ''}>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 1 }} className='text_overflow_moduled'>
@@ -89,7 +91,7 @@ const CutSizes = () => {
       flex: 0.5,
       minWidth: 20,
       field: 'comment',
-      headerName: 'COMMENT',
+      headerName: t('comment'),
       renderCell: params => (
         <Tooltip title={params.row.comment?.length > 40 ? params.row.comment : ''}>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
@@ -103,7 +105,7 @@ const CutSizes = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'active',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -114,7 +116,7 @@ const CutSizes = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'Action',
-      headerName: 'Action',
+      headerName: t('action'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right', pl: 2 }}>
           {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -134,7 +136,7 @@ const CutSizes = () => {
 
   const headerAction = (
     <div>
-      <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
+      <AddButton title={t('diet_module.add_cut_size')} action={() => addEventSidebarOpen()} />
     </div>
   )
 
@@ -280,7 +282,7 @@ const CutSizes = () => {
       />
       <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
     </>
-  );
+  )
 }
 
 export default CutSizes

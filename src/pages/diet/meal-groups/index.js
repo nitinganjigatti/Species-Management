@@ -52,9 +52,11 @@ import Error404 from 'src/pages/404'
 import AddEnclosureToGroup from 'src/views/pages/diet/mealGroup/addEnclosureToGroup'
 import AddDropPointDrawer from 'src/components/diet/AddDropPointDrawer'
 import { removeMealGroupFromDropPoint } from 'src/lib/api/diet/mealgroup'
+import { useTranslation } from 'react-i18next'
 
 const MealGroup = () => {
   const router = useRouter()
+  const { t } = useTranslation()
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const theme = useTheme()
@@ -222,9 +224,7 @@ const MealGroup = () => {
   const handleMealGroupSelectAll = e => {
     if (e.target.checked) {
       // Only select meal groups that don't have drop points
-      const selectableIds = menuGroupList
-        .filter(item => !item.drop_point_id)
-        .map(item => item.id)
+      const selectableIds = menuGroupList.filter(item => !item.drop_point_id).map(item => item.id)
       setCheckedMealGroups(selectableIds)
     } else {
       setCheckedMealGroups([])
@@ -835,7 +835,7 @@ const MealGroup = () => {
       width: 40,
       sortable: false,
       field: 'group_name',
-      headerName: 'Meal Group Name ',
+      headerName: t('diet_module.meal_group_name'),
       headerAlign: 'left',
       align: 'left',
       renderHeader: () => {
@@ -881,7 +881,7 @@ const MealGroup = () => {
                 textTransform: 'uppercase'
               }}
             >
-              Meal Group Name
+              {t('diet_module.meal_group')} {t('name')}
             </Typography>
           </Box>
         )
@@ -932,7 +932,7 @@ const MealGroup = () => {
       field: 'enclosure_count',
       type: 'number',
       sortable: false,
-      headerName: 'Enclosures',
+      headerName: t('diet_module.enclosures'),
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
@@ -980,7 +980,7 @@ const MealGroup = () => {
       field: 'species_count',
       sortable: false,
       type: 'number',
-      headerName: 'Species',
+      headerName: t('navigation.species'),
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
@@ -1026,7 +1026,7 @@ const MealGroup = () => {
       flex: 0.15,
       width: 20,
       field: 'animal_count',
-      headerName: 'Animals',
+      headerName: t('navigation.animals'),
       sortable: false,
       headerAlign: 'center',
       align: 'center',
@@ -1122,7 +1122,7 @@ const MealGroup = () => {
               variant='outlined'
               onClick={e => handleRemoveDropPoint(e, params.row)}
             >
-              Remove Drop Point
+              {t('diet_module.remove_drop_point')}
             </Button>
           )}
           {siteStats.unmapped_enclosures !== '0' && (
@@ -1139,7 +1139,7 @@ const MealGroup = () => {
               variant='outlined'
               onClick={e => handleEnclosureEvent(e, params.row.id)}
             >
-              Add Enclosure
+              {t('add')} {t('navigation.enclosure')}
             </Button>
           )}
           <Box onClick={e => e.stopPropagation()}>
@@ -1171,7 +1171,7 @@ const MealGroup = () => {
   const columns = [
     {
       field: 'user_enclosure_name',
-      headerName: 'Enclosure Name',
+      headerName: t('diet_module.enclosure_name'),
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -1213,7 +1213,7 @@ const MealGroup = () => {
               textTransform: 'uppercase'
             }}
           >
-            Enclosure Name
+            {t('diet_module.enclosure_name')}
           </Typography>
         </Box>
       ),
@@ -1254,7 +1254,7 @@ const MealGroup = () => {
     },
     {
       field: 'section_name',
-      headerName: 'Section',
+      headerName: t('diet_module.section'),
       headerAlign: 'left',
       sortable: false,
       align: 'left',
@@ -1308,7 +1308,7 @@ const MealGroup = () => {
     },
     {
       field: 'species_count',
-      headerName: 'Species',
+      headerName: t('navigation.species'),
       type: 'number',
       sortable: false,
       headerAlign: 'center',
@@ -1355,7 +1355,7 @@ const MealGroup = () => {
     },
     {
       field: 'animal_count',
-      headerName: 'Animals',
+      headerName: t('navigation.animals'),
       sortable: false,
       headerAlign: 'center',
       align: 'center',
@@ -1401,7 +1401,7 @@ const MealGroup = () => {
     },
     {
       field: 'group_name',
-      headerName: 'Meal Group Name ',
+      headerName: t('diet_module.meal_group_name'),
       sortable: false,
       headerAlign: 'center',
       align: 'center',
@@ -1426,7 +1426,7 @@ const MealGroup = () => {
               textTransform: 'uppercase'
             }}
           >
-            Meal Group Name
+            {t('diet_module.meal_group_name')}
           </Typography>
         </Box>
       ),
@@ -1539,7 +1539,7 @@ const MealGroup = () => {
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Diet</Typography>
         <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
-          Meal groups
+          {t('navigation.meal_groups')}
         </Typography>
       </Breadcrumbs>
       {/* Header Card */}
@@ -1574,7 +1574,7 @@ const MealGroup = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Meal group for the site -
+                {t('diet_module.meal_group_site')} -
               </Typography>
 
               <Autocomplete
@@ -1738,7 +1738,7 @@ const MealGroup = () => {
                   }
                 }}
               >
-                Add Drop Point
+                {t('diet_module.add_drop_point')}
               </Button>
             </Box>
           </Box>
@@ -1867,7 +1867,7 @@ const MealGroup = () => {
                 onChange={handleGroupChange}
                 displayEmpty
                 renderValue={selected => {
-                  if (selected === 'all') return <Typography>All Meal groups</Typography>
+                  if (selected === 'all') return <Typography>{t('diet_module.all_meal_groups')}</Typography>
                   const selectedItem = groupList.find(item => item.id === selected)
 
                   return selectedItem?.group_name || ''
@@ -1881,7 +1881,7 @@ const MealGroup = () => {
                 }}
               >
                 <MenuItem value='all'>
-                  <Typography>All Meal groups</Typography>
+                  <Typography>{t('diet_module.all_meal_groups')}</Typography>
                 </MenuItem>
                 {groupList.map(item => (
                   <MenuItem key={item.id} value={item.id}>
@@ -1940,28 +1940,28 @@ const MealGroup = () => {
           )}
 
           <Dialog open={openDeleteEnclosureDialog} onClose={cancelEnclosureDialog}>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogContent>Are you sure you want to remove the enclosure?</DialogContent>
+            <DialogTitle>{t('diet_module.confirm_delete')}</DialogTitle>
+            <DialogContent>{t('diet_module.confirm_enclosure_remove')}</DialogContent>
             <DialogActions>
               <Button onClick={cancelEnclosureDialog} color='primary'>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button onClick={confirmEnclosureDelete} color='error' variant='contained'>
-                Delete
+                {t('delete')}
               </Button>
             </DialogActions>
           </Dialog>
 
           {status === 'mealgroup' && (
             <Dialog open={openDeleteDialog} onClose={handleCloseDialog}>
-              <DialogTitle>Confirm Deletion</DialogTitle>
-              <DialogContent>Are you sure you want to delete this group?</DialogContent>
+              <DialogTitle>{t('diet_module.confirm_delete')}</DialogTitle>
+              <DialogContent>{t('diet_module.delete_group')}</DialogContent>
               <DialogActions>
                 <Button onClick={handleCloseDialog} color='primary'>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button onClick={handleConfirmDelete} color='error' variant='contained'>
-                  Delete
+                  {t('delete')}
                 </Button>
               </DialogActions>
             </Dialog>
@@ -2013,7 +2013,7 @@ const MealGroup = () => {
                   }}
                   variant='outlined'
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
 
                 <Button
@@ -2046,7 +2046,7 @@ const MealGroup = () => {
                       }
                     }}
                   >
-                    Create New
+                    {t('diet_module.create_new')}
                   </Button>
                 )}
               </Box>

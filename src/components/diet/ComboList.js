@@ -10,6 +10,7 @@ import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
 import ComboCard from 'src/views/pages/diet/add_recipe_combo-List/comboCard'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 const ComboList = props => {
   const {
@@ -29,6 +30,7 @@ const ComboList = props => {
     comboName
   } = props
   const theme = useTheme()
+  const { t } = useTranslation()
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
@@ -176,7 +178,7 @@ const ComboList = props => {
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
             <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Add Mix
+              {t('diet_module.add_mix')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -205,7 +207,7 @@ const ComboList = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                placeholder='Search mix'
+                placeholder={t('diet_module.search_mix')}
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {

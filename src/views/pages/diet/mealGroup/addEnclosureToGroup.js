@@ -17,6 +17,7 @@ import toast from 'react-hot-toast'
 import { getMealGroupList, AddEnclosureToExistng } from 'src/lib/api/diet/mealgroup'
 import { AuthContext } from 'src/context/AuthContext'
 import { LoadingButton } from '@mui/lab'
+import { useTranslation } from 'react-i18next'
 
 const AddEnclosureToGroup = ({
   addEnclosureDrawer,
@@ -33,6 +34,7 @@ const AddEnclosureToGroup = ({
   fetchEnclosure
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const authData = useContext(AuthContext)
   const [groupList, setGroupList] = useState([])
   const [groupId, setGroupId] = useState('')
@@ -213,7 +215,7 @@ const AddEnclosureToGroup = ({
                 fontFamily: 'Inter'
               }}
             >
-              Select Group Name
+              {t('diet_module.select_group_name')}
             </Typography>
             {/* 
             <Select
@@ -298,7 +300,7 @@ const AddEnclosureToGroup = ({
               //   mb: mealType.type === 'view' && 4
             }}
           >
-            Selected Enclosures
+            {t('diet_module.selected_enclosures')}
           </Typography>
 
           <Box
@@ -367,7 +369,7 @@ const AddEnclosureToGroup = ({
                   color: '#006D35'
                 }}
               >
-                Species
+                {t('navigation.species')}
               </Box>
             </Typography>
 
@@ -427,8 +429,12 @@ const AddEnclosureToGroup = ({
                       <Typography sx={{ fontSize: '14px', ml: 3 }}>{item.section_name}</Typography>
                     </Box>
                     <Box sx={{ ml: 'auto', mr: 2 }}>
-                      <Typography sx={{ fontSize: '14px' }}>Species: {item.species_count}</Typography>
-                      <Typography sx={{ fontSize: '14px' }}>Animals: {item.animal_count}</Typography>
+                      <Typography sx={{ fontSize: '14px' }}>
+                        {t('navigation.species')}: {item.species_count}
+                      </Typography>
+                      <Typography sx={{ fontSize: '14px' }}>
+                        {t('navigation.animals')}: {item.animal_count}
+                      </Typography>
                     </Box>
                     {/* <Checkbox
                     checked={selectedEnclosureIds.includes(item.enclosure_id)}
@@ -448,7 +454,9 @@ const AddEnclosureToGroup = ({
                   alignItems: 'center'
                 }}
               >
-                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888', mt: 30 }}>No Data Found</Typography>
+                <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888', mt: 30 }}>
+                  {t('diet_module.no_data_found')}
+                </Typography>
               </Box>
             )}
           </Box>

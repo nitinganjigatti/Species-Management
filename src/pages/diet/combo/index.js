@@ -29,6 +29,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import { AuthContext } from 'src/context/AuthContext'
 import RenderUtility from 'src/utility/render'
+import { useTranslation } from 'react-i18next'
 
 // Styled TabList component
 
@@ -40,6 +41,7 @@ const roleColors = {
 const RecipeList = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { t } = useTranslation()
   const { query } = router
   const [loader, setLoader] = useState(false)
 
@@ -251,7 +253,7 @@ const RecipeList = () => {
       //flex: 1,
       width: 300,
       field: 'recipe_name',
-      headerName: 'MIX',
+      headerName: t('navigation.mix'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -294,7 +296,7 @@ const RecipeList = () => {
       //flex: 0.4,
       width: 130,
       field: 'id',
-      headerName: 'MIX ID',
+      headerName: t('diet_module.mix_id'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'CMB' + params.row.id : '-'}
@@ -317,7 +319,7 @@ const RecipeList = () => {
       //flex: 0.3,
       width: 200,
       field: 'ingredient_name',
-      headerName: 'NO OF ITEMS',
+      headerName: t('diet_module.no_of_items'),
       renderCell: params => (
         <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
@@ -342,7 +344,7 @@ const RecipeList = () => {
       //flex: 0.7,
       width: 260,
       field: 'user_name',
-      headerName: 'CREATED BY',
+      headerName: t('created_by'),
       renderCell: params => (
         <Box>
           {RenderUtility.renderUserAvatarDetails({
@@ -358,7 +360,7 @@ const RecipeList = () => {
       //flex: 0.4,
       width: 100,
       field: 'status',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -456,7 +458,7 @@ const RecipeList = () => {
           </Card>
         )}
       </>
-    );
+    )
   }
 
   return (

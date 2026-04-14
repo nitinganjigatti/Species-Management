@@ -424,7 +424,7 @@ const StepAddIngredients = ({
             <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 0, mr: 4 }}>
                 <Typography variant='h6'>{t('diet_module.add_item_quantity')}</Typography>
-                <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
+                <AddButton title={t('diet_module.add_cut_size')} action={() => addEventSidebarOpen()} />
               </Box>
             </Grid>
 
