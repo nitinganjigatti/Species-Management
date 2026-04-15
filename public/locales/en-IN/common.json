@@ -73,6 +73,8 @@
   "continue": "Continue",
   "no_data": "Data Not Found",
   "field_required": "This field is required",
+  "upload": "Upload",
+  "upload_new": "UPLOAD NEW",
   "languages": {
     "en-IN": "English",
     "fr": "French",
@@ -670,7 +672,17 @@
     "add_diet_category": "Add Diet Category",
     "drop_point_name": "DROP POINT NAME",
     "drop_point": "Drop Point",
-    "select_site": "Select Site"
+    "select_site": "Select Site",
+    "species_diet": "Species Diet",
+    "animal_diet": "Animal Diet",
+    "active_diets": "ACTIVE DIETS",
+    "in_active_diets": "INACTIVE DIETS",
+    "animals_with_diet": "Animals With Diet",
+    "animals_without_diet": "Animals Without Diet",
+    "species_with_diet": "Species With Diet",
+    "species_without_diet": "Species Without Diet",
+    "filter_species": "Filter Species",
+    "filter_animal": "Filter Animal"
   },
   "egg_module": {
     "egg": "Egg",
