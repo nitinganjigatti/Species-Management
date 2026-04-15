@@ -31,7 +31,7 @@ import {
 import { useForm, Control, FieldErrors, UseFormWatch, UseFormSetValue } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import { useRouter, NextRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import dayjs, { Dayjs } from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -346,8 +346,7 @@ const submitSchema = yup.object().shape({
   is_suitable: yup.boolean(),
   reason_for_unsuitable: yup.string().when('is_suitable', {
     is: false,
-    then: schema =>
-      schema.test('not-empty', 'reason_unsuitable_required', value => (value?.trim()?.length ?? 0) > 0),
+    then: schema => schema.test('not-empty', 'reason_unsuitable_required', value => (value?.trim()?.length ?? 0) > 0),
     otherwise: schema => schema.notRequired()
   }),
   confirmed_cause_of_death: yup
@@ -408,7 +407,7 @@ const SectionSkeleton: FC<SectionSkeletonProps> = ({ fields = 2, hasLabel = true
 
 const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsyId, status }) => {
   const theme = useTheme<Theme>()
-  const router: NextRouter = useRouter()
+  const router = useRouter()
   const { t } = useTranslation()
   const authData = useContext(AuthContext) as unknown as AuthContextData | null
 
@@ -1028,7 +1027,10 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
         Toaster({ type: 'success', message: res?.message || t('necropsy_module.necropsy_submitted_successfully') })
         router.replace('/necropsy/necropsy')
       } else {
-        Toaster({ type: 'error', message: getErrorMessage(res?.message, t('necropsy_module.failed_to_submit_necropsy')) })
+        Toaster({
+          type: 'error',
+          message: getErrorMessage(res?.message, t('necropsy_module.failed_to_submit_necropsy'))
+        })
       }
     } catch (error) {
       console.error('Error submitting necropsy:', error)
@@ -1404,7 +1406,11 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                           />
                         </Grid>
                         <Grid size={6}>
-                          <ControlledTimePicker name='caracass_submission_time' control={control} label={t('necropsy_module.time_label')} />
+                          <ControlledTimePicker
+                            name='caracass_submission_time'
+                            control={control}
+                            label={t('necropsy_module.time_label')}
+                          />
                         </Grid>
                       </Grid>
                     </Box>
@@ -1414,10 +1420,19 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                       <Typography sx={labelSx}>{t('necropsy_module.date_time_of_death')}</Typography>
                       <Grid container spacing={3}>
                         <Grid size={6}>
-                          <ControlledDatePicker name='death_date' control={control} label={t('necropsy_module.date_label')} maxDate={dayjs()} />
+                          <ControlledDatePicker
+                            name='death_date'
+                            control={control}
+                            label={t('necropsy_module.date_label')}
+                            maxDate={dayjs()}
+                          />
                         </Grid>
                         <Grid size={6}>
-                          <ControlledTimePicker name='death_time' control={control} label={t('necropsy_module.time_label')} />
+                          <ControlledTimePicker
+                            name='death_time'
+                            control={control}
+                            label={t('necropsy_module.time_label')}
+                          />
                         </Grid>
                       </Grid>
                     </Box>
@@ -1807,10 +1822,19 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                     <Typography sx={labelSx}>{t('necropsy_module.necropsy_date_time')}</Typography>
                     <Grid container spacing={3}>
                       <Grid size={6}>
-                        <ControlledDatePicker name='necropsy_date' control={control} label={t('necropsy_module.date_label')} maxDate={dayjs()} />
+                        <ControlledDatePicker
+                          name='necropsy_date'
+                          control={control}
+                          label={t('necropsy_module.date_label')}
+                          maxDate={dayjs()}
+                        />
                       </Grid>
                       <Grid size={6}>
-                        <ControlledTimePicker name='necropsy_time' control={control} label={t('necropsy_module.time_label')} />
+                        <ControlledTimePicker
+                          name='necropsy_time'
+                          control={control}
+                          label={t('necropsy_module.time_label')}
+                        />
                       </Grid>
                     </Grid>
                   </Box>

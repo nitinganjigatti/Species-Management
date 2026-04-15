@@ -5,7 +5,7 @@ import Icon from 'src/@core/components/icon'
 import { useTranslation } from 'react-i18next'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Utility from 'src/utility'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 interface UserProfile {

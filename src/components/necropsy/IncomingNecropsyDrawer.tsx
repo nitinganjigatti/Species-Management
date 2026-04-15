@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState, useCallback, useMemo, memo, FC } from 'react'
 import { styled, alpha, Theme } from '@mui/material/styles'
-import { useRouter, NextRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -204,7 +204,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
   hideAcceptButton = false
 }) => {
   const theme = useTheme<ExtendedTheme>()
-  const router: NextRouter = useRouter()
+  const router = useRouter()
   const { t } = useTranslation()
 
   const [necropsyData, setNecropsyData] = useState<NecropsyData | null>(null)

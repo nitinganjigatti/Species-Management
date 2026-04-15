@@ -22,7 +22,7 @@ import {
   Timeline as TimelineIcon,
   ExpandMore as ExpandMoreIcon
 } from '@mui/icons-material'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Utility from 'src/utility'
 import NecropsyAnimalInfoCard from 'src/components/necropsy/NecropsyAnimalInfoCard'
 import { getMortalitySummary, getNecropsySummary, getNecropsyPdf } from 'src/lib/api/necropsy'

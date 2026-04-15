@@ -1,3 +1,5 @@
+'use client'
+
 import {
   alpha,
   Box,
@@ -14,7 +16,7 @@ import {
   Theme,
   SelectChangeEvent
 } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import React, {
   useCallback,
   useContext,
@@ -39,7 +41,6 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 import { useNecropsyList, useNecropsyCenter } from 'src/hooks/necropsy'
 import {
@@ -55,7 +56,6 @@ import {
   PaginationModel
 } from 'src/types/necropsy'
 import { GridRowParams, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import { NextPage } from 'next'
 import { useTranslation } from 'react-i18next'
 
 const NecropsyFilterDrawer = dynamic(() => import('src/components/necropsy/NecropsyFilterDrawer'), {
@@ -315,9 +315,11 @@ StatCard.displayName = 'StatCard'
 
 // ==================== Main Necropsy Component ====================
 
-const Necropsy: NextPage = () => {
+const NecropsyListingPage = () => {
   const theme = useTheme()
-  const router: NextRouter = useRouter()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
   const { t } = useTranslation()
 
   const authData = useContext(AuthContext) as unknown as AuthData | null
@@ -374,9 +376,9 @@ const Necropsy: NextPage = () => {
   )
 
   useEffect(() => {
-    const { q = '' } = router.query
-    setSearchValue(q as string)
-  }, [router.query])
+    const q = searchParams?.get('q') || ''
+    setSearchValue(q)
+  }, [searchParams])
 
   // Sync priority state with filters
   useEffect(() => {
@@ -420,9 +422,9 @@ const Necropsy: NextPage = () => {
       if (currentTab) {
         params.set('tab', currentTab)
       }
-      router.push({ query: params.toString() }, undefined, { shallow: true })
+      router.push(`${pathname}?${params.toString()}`)
     },
-    [activeCard, viewType, router]
+    [activeCard, viewType, router, pathname]
   )
 
   const onSearchChange = useCallback(
@@ -799,8 +801,6 @@ const Necropsy: NextPage = () => {
           gridTemplateColumns: {
             xs: '1fr',
             sm: 'repeat(4, 1fr)'
-
-            // md: 'repeat(4, 1fr)'
           },
           gap: 4,
           mb: 4
@@ -954,4 +954,4 @@ const Necropsy: NextPage = () => {
   )
 }
 
-export default enforceModuleAccess(Necropsy, 'enable_add_necropsy_report')
+export default NecropsyListingPage

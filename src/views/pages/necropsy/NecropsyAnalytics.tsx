@@ -106,7 +106,7 @@ const NecropsyAnalytics: FC<NecropsyAnalyticsProps> = ({
                       color: theme.palette.customColors.OnTertiaryContainer
                     }}
                   >
-                    {t('navigation.carcass_transfer')}
+                    {t('navigation.carcass_transfer').toUpperCase()}
                   </Typography>
                   <Icon icon={'mingcute:right-fill'} fontSize={20} />
                 </Box>

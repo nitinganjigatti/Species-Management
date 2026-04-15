@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Box,
   Breadcrumbs,
@@ -13,8 +15,7 @@ import {
 import { Theme } from '@mui/material/styles'
 import { GridRenderCellParams, GridColDef, GridPaginationModel } from '@mui/x-data-grid'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter, NextRouter } from 'next/router'
-import { NextPage } from 'next'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import React, { useCallback, useEffect, useMemo, useState, ChangeEvent, ReactNode } from 'react'
 import AddnecropsyCenterDrawer from 'src/components/necropsy/AddnecropsyCenterDrawer'
 import Icon from 'src/@core/components/icon'
@@ -23,7 +24,6 @@ import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import { useTranslation } from 'react-i18next'
 
 interface NecropsyCenterFilters {
@@ -55,10 +55,12 @@ interface NecropsyCenterApiResponse {
   }
 }
 
-const NecropsyCenters: NextPage = () => {
+const NecropsyCentersPage = () => {
   const { t } = useTranslation()
   const theme: Theme = useTheme()
-  const router: NextRouter = useRouter()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   const [rows, setRows] = useState<NecropsyCenterRow[]>([])
   const [total, setTotal] = useState<number>(0)
@@ -74,16 +76,18 @@ const NecropsyCenters: NextPage = () => {
   })
 
   useEffect(() => {
-    const { page = '1', limit = '10', q = '' } = router.query as { page?: string; limit?: string; q?: string }
+    const page = searchParams?.get('page') || '1'
+    const limit = searchParams?.get('limit') || '10'
+    const q = searchParams?.get('q') || ''
 
     setFilters({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      q: q as string
+      q: q
     })
 
-    setSearchValue(q as string)
-  }, [router.query])
+    setSearchValue(q)
+  }, [searchParams])
 
   const fetchNecropsyCenters = async (): Promise<void> => {
     try {
@@ -117,7 +121,7 @@ const NecropsyCenters: NextPage = () => {
         params.set(key, value.toString())
       }
     })
-    router.push({ query: params.toString() }, undefined, { shallow: true })
+    router.push(`${pathname}?${params.toString()}`)
   }
 
   const handlePaginationModelChange = (model: GridPaginationModel): void => {
@@ -264,14 +268,11 @@ const NecropsyCenters: NextPage = () => {
   return (
     <>
       <Box>
-        <DynamicBreadcrumbs
-          pageItems={[
-            { title: t('navigation.necropsy') },
-            { title: t('navigation.masters') },
-            { title: t('navigation.necropsy_center') }
-          ]}
-          sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
-        />
+        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}>
+          <Typography color='text.secondary'>{t('navigation.necropsy')}</Typography>
+          <Typography color='text.secondary'>{t('navigation.masters')}</Typography>
+          <Typography color='text.primary'>{t('navigation.necropsy_center')}</Typography>
+        </Breadcrumbs>
         <Box sx={{ mt: 6 }}>
           <Card>
             <CardHeader title={RenderUtility?.pageTitle(t('navigation.necropsy_center'))} action={headerAction} />
@@ -328,4 +329,4 @@ const NecropsyCenters: NextPage = () => {
   )
 }
 
-export default NecropsyCenters
+export default NecropsyCentersPage
