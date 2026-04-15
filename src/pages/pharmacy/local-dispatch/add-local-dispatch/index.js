@@ -35,6 +35,9 @@ import toast from 'react-hot-toast'
 
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback, useContext } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -71,7 +74,6 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(2)
   }
 }))
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
@@ -79,6 +81,8 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
 import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -116,11 +120,49 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
+// ** Stage 1: yup schema for top-level dispatch fields
+const dispatchTopFieldsSchema = yup.object().shape({
+  to_store_id: yup
+    .mixed()
+    .nullable()
+    .test('required', 'This field is required', v => {
+      if (v === null || v === undefined || v === '') return false
+      if (typeof v === 'object') return Boolean(v?.id || v?.value)
+
+      return true
+    }),
+  ro_date: yup
+    .string()
+    .nullable()
+    .test('required', 'This field is required', v => Boolean(v)),
+  to_store_type: yup.mixed().nullable().notRequired(),
+  user_id: yup.mixed().nullable().notRequired()
+})
+
 const AddLocalDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  // ** react-hook-form + yup for top-level dispatch fields (Stage 1)
+  const {
+    control: dispatchFormControl,
+    setValue: setDispatchFormValue,
+    getValues: getDispatchFormValues,
+    handleSubmit: rhfHandleSubmit,
+    trigger: triggerDispatchForm,
+    formState: { errors: dispatchFormErrors }
+  } = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(dispatchTopFieldsSchema),
+    defaultValues: {
+      to_store_id: null,
+      to_store_type: '',
+      ro_date: Utility.formattedPresentDate(),
+      user_id: null
+    }
+  })
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [optionsBatchList, setOptionsBatchList] = useState([])
   const [totalBatchQuantity, setTotalBatchQuantity] = useState(0)
@@ -160,6 +202,32 @@ const AddLocalDispatch = () => {
   }
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  // Keep RHF top-level fields in sync with editParams (edit mode / external updates)
+  useEffect(() => {
+    if (editParams?.to_store_id && toStocks?.length) {
+      const selected = toStocks.find(s => s?.id === editParams.to_store_id)
+      if (selected) setDispatchFormValue('to_store_id', selected, { shouldValidate: false })
+    }
+    if (editParams?.to_store_type !== undefined) {
+      setDispatchFormValue('to_store_type', editParams.to_store_type || '', { shouldValidate: false })
+    }
+    if (editParams?.ro_date) {
+      setDispatchFormValue('ro_date', editParams.ro_date, { shouldValidate: false })
+    }
+    if (editParams?.user_id !== undefined) {
+      const hydratedUser = users?.find(u => u?.value === editParams.user_id) || null
+      setDispatchFormValue('user_id', hydratedUser, { shouldValidate: false })
+    }
+  }, [
+    editParams?.to_store_id,
+    editParams?.to_store_type,
+    editParams?.ro_date,
+    editParams?.user_id,
+    toStocks,
+    users,
+    setDispatchFormValue
+  ])
 
   useEffect(() => {
     setEditParams({
@@ -339,20 +407,33 @@ const AddLocalDispatch = () => {
     updateTableItems(params)
   }
 
-  const handleSubmit = () => {
-    const formHasErrors = !editParams.to_store_id || !editParams.ro_date
-    if (formHasErrors) {
-      setErrors(validateItems(editParams))
+  // Old manual validation — kept for reference
+  // const handleSubmit = () => {
+  //   const formHasErrors = !editParams.to_store_id || !editParams.ro_date
+  //   if (formHasErrors) {
+  //     setErrors(validateItems(editParams))
+  //
+  //     return
+  //   }
+  //
+  //   setErrors({})
+  //   showDialog()
+  // }
 
-      return
-    }
-
+  // RHF-driven: validates top-level fields via yup before opening the Add Item dialog
+  const openAddItemDialog = () => {
     setErrors({})
     showDialog()
   }
 
+  const handleSubmit = rhfHandleSubmit(openAddItemDialog, () => {
+    // fallback: mirror legacy setErrors so any legacy readers still see the message
+    setErrors(validateItems(editParams))
+  })
+
   const filterToStocks = id => {
     const optionsForSelectB = fromStocks.filter(option => option.id !== id)
+
     setToStocks(optionsForSelectB)
   }
 
@@ -363,7 +444,7 @@ const AddLocalDispatch = () => {
 
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
-        setToStocks(response?.data?.list_items)
+        setToStocks(response?.data?.list_items?.map(item => ({ ...item, label: item.name, value: item.id })))
       }
     } catch (error) {
       console.log('err', error)
@@ -735,90 +816,54 @@ const AddLocalDispatch = () => {
               </Typography>
             </Grid>
             <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
-              <FormControl fullWidth>
-                <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                  Store*
-                </InputLabel>
-
-                <Select
-                  error={Boolean(errors.to_store_id)}
-                  value={editParams.to_store_id}
-                  label='Store*'
-                  disabled={id ? true : false}
-                  onChange={e => {
-                    setEditParams({
-                      ...editParams,
-                      to_store_id: e.target.value,
-                      to_store_type: storesType[filteredStoreType(e.target.value)]
-                    })
-                    setErrors({})
-                  }}
-                >
-                  {toStocks?.map((item, index) => (
-                    <MenuItem
-                      key={index}
-                      disabled={item?.status === 'inactive' || item.id === selectedPharmacy.id}
-                      value={item?.id}
-                    >
-                      {item?.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-
-                {errors.to_store_id && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
+              <ControlledAutocomplete
+                name='to_store_id'
+                label='Store*'
+                control={dispatchFormControl}
+                errors={dispatchFormErrors}
+                required
+                disabled={id ? true : false}
+                options={toStocks || []}
+                getOptionLabel={option => option?.name || option?.label || ''}
+                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                showIcons={false}
+                onChangeOverride={value => {
+                  const nextId = value?.id || null
+                  const nextType = nextId ? storesType[filteredStoreType(nextId)] : ''
+                  setDispatchFormValue('to_store_type', nextType, { shouldValidate: false })
+                  setEditParams(prev => ({
+                    ...prev,
+                    to_store_id: nextId,
+                    to_store_type: nextType
+                  }))
+                  setErrors({})
+                }}
+                autocompleteProps={{
+                  getOptionDisabled: option => option?.status === 'inactive' || option?.id === selectedPharmacy?.id
+                }}
+              />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
-              <Autocomplete
-                fullWidth
-                disablePortal
-                options={users}
-                value={users?.find(user => user?.value === editParams?.user_id) || null}
+              <ControlledAutocomplete
+                name='user_id'
+                label='To '
+                control={dispatchFormControl}
+                errors={dispatchFormErrors}
+                options={users || []}
                 getOptionLabel={option => option?.label || ''}
-                isOptionEqualToValue={(option, value) => option.value === value.value}
-                renderOption={(props, option) => {
-                  const { key, ...otherProps } = props
-
-                  return (
-                    <li key={`${option.value}-${option.label}`} {...otherProps}>
-                      {option.label}
-                    </li>
-                  )
-                }}
+                isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                showIcons={false}
                 onKeyUp={e => {
                   searchUsersList(e.target.value)
                 }}
-                renderInput={params => (
-                  <TextField
-                    fullWidth
-                    {...params}
-                    name='search'
-                    label='To '
-                    error={Boolean(errors.search)}
-                    helperText={errors.search}
-                    placeholder='To '
-                  />
-                )}
                 onBlur={async () => {
                   await searchUsersList()
                 }}
-                onChange={(event, value) => {
-                  if (value) {
-                    setEditParams({
-                      ...editParams,
-                      user_id: value?.value
-                    })
-                  } else {
-                    setEditParams({
-                      ...editParams,
-                      user_id: null
-                    })
-                  }
+                onChangeOverride={value => {
+                  const nextId = value?.value || null
+                  setEditParams(prev => ({ ...prev, user_id: nextId }))
                 }}
+                textFieldProps={{ placeholder: 'To ' }}
               />
             </Grid>
           </Grid>
@@ -943,7 +988,7 @@ const AddLocalDispatch = () => {
                                 </TableCell>
                                 <TableCell>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                    {el?.stock_type === 'non_medical'
+                                    {el?.expiry_date === '0000-00-00' && !el?.expiry_date
                                       ? 'NA'
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
@@ -988,41 +1033,7 @@ const AddLocalDispatch = () => {
                   </Table>
                 </TableContainer>
               </Card>
-              {/* <CardContent sx={{ pt: 8 }}>
-                {totalQty ? (
-                  <Grid container>
-                    <Grid
-                      item
-                      xs={12}
-                      sm={2}
-                      lg={2}
-                      sx={{
-                        mb: { sm: 0, xs: 4 },
-                        order: { sm: 2, xs: 1 },
-                        marginLeft: 'auto',
-                        mr: { sm: 12, xs: 0 }
-                      }}
-                    >
-                      <CalcWrapper>
-                        <Typography variant='body2'>Total Qty:</Typography>
-                        <Typography
-                          variant='body2'
-                          sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
-                        >
-                          {totalQty}
-                        </Typography>
-                      </CalcWrapper>
 
-                      <Divider
-                        sx={{
-                          mt: theme => `${theme.spacing(5)} !important`,
-                          mb: theme => `${theme.spacing(3)} !important`
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                ) : null}
-              </CardContent> */}
               <Grid item size={{ xs: 12 }}>
                 <Box sx={{ float: 'right', my: 4 }}>
                   {id ? (

@@ -1,41 +1,21 @@
 /* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  FormHelperText,
-  CustomInput,
-  TextField,
-  Autocomplete,
-  Grid,
-  Chip,
-  Box,
-  Typography,
-  Button,
-  Divider,
-  CircularProgress
-} from '@mui/material'
+import { FormControl, Grid, Box, Typography, Button, Divider, CircularProgress } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 
-import { useForm, Controller, useWatch } from 'react-hook-form'
+import { useForm, useWatch } from 'react-hook-form'
 
-import SingleDatePicker from 'src/components/SingleDatePicker'
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import Icon from 'src/@core/components/icon'
-import InputAdornment from '@mui/material/InputAdornment'
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { getValue } from '@mui/system'
 import Utility from 'src/utility'
 import dayjs from 'dayjs'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
 const defaultValues = {
   product: {
@@ -301,7 +281,9 @@ const PurchaseItemForm = props => {
       purchase_unit_id: value,
       purchase_stock_item_id: value,
       purchase_batch_no,
-      purchase_expiry_date: stock_type === 'non_medical' ? null : Utility.formatDate(purchase_expiry_date),
+      // purchase_expiry_date: stock_type === 'non_medical' ? null : Utility.formatDate(purchase_expiry_date),
+      purchase_expiry_date:
+        purchase_expiry_date && purchase_expiry_date !== '0000-00-00' ? Utility.formatDate(purchase_expiry_date) : null,
       purchase_unit_price,
       purchase_qty,
       purchase_free_quantity,
@@ -607,275 +589,144 @@ const PurchaseItemForm = props => {
           )}
         </Grid>
         <Grid item size={{ xs: 12, sm: 8 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='product'
-              control={control}
-              disabled={nestedRowMedicine?.id ? true : false}
-              render={({ field: { value, onChange } }) => (
-                <Autocomplete
-                  disabled={nestedRowMedicine?.id ? true : false}
-                  options={optionsMedicineList}
-                  value={getValues('product')?.value ? value : null}
-                  getOptionDisabled={option => !option.status}
-                  renderOption={(props, option) => {
-                    const { key, ...otherProps } = props
+          <ControlledAutocomplete
+            name='product'
+            label='Product Name*'
+            control={control}
+            errors={errors}
+            options={optionsMedicineList}
+            disabled={!!nestedRowMedicine?.id}
+            getOptionLabel={option => option?.label || ''}
+            isOptionEqualToValue={(option, value) => option.value === value.value}
+            onChangeOverride={val => {
+              if (val === null) {
+                setValue('package_details', '')
+                setValue('manufacture', '')
+                setValue('purchase_variant_id', '')
+                setProductVariantOptions([])
+                setValue('isVariantIdPresent', false)
+              } else {
+                if (val.stock_type === 'non_medical') {
+                  setNonMedicalProduct(true)
+                } else {
+                  setNonMedicalProduct(false)
+                }
+                setProductVariantOptions([])
+                setValue('purchase_variant_id', '')
+                getProductVariantByproductId(val?.value)
+                setValue('package_details', val?.package_details)
+                setValue('manufacture', val?.manufacture)
+              }
+            }}
+            onBlur={() => {
+              // if (!nonMedicalProduct) { new changes for non-medical product may have expiry date and batch number but not mandatory
+              const product = getValues()
+              if (product?.purchase_created_by !== 'invoice_upload') {
+                if (product?.product?.value && product?.purchase_batch_no) {
+                  checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
+                }
+              }
+              // }
+            }}
+            onInputChange={value => {
+              searchMedicineData(value)
+            }}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
 
-                    return (
-                      <li
-                        key={option?.value}
-                        {...otherProps}
-                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                      >
-                        <Box>
-                          <Typography>{option?.value ? option?.label : ''}</Typography>
-                          <Typography variant='body2'>{option.package_details}</Typography>
-                          <Typography variant='body2'>{option.manufacture}</Typography>
-                        </Box>
-                      </li>
-                    )
-                  }}
-                  getOptionLabel={option => option.label}
-                  isOptionEqualToValue={(option, value) => option.value === value.value}
-                  onChange={(e, val) => {
-                    if (val === null) {
-                      // setValue('purchase_batch_no', '')
-                      // setValue('purchase_expiry_date', null)
-                      setValue('package_details', '')
-                      setValue('manufacture', '')
-
-                      setValue('purchase_variant_id', '')
-                      setProductVariantOptions([])
-                      setValue('isVariantIdPresent', false)
-
-                      // setValue('purchase_unit_qty', '')
-                      // setValue('purchase_qty', '')
-                      // setValue('purchase_variant_ratio', '')
-
-                      return onChange(null)
-                    } else {
-                      if (val.stock_type === 'non_medical') {
-                        setNonMedicalProduct(true)
-                        setProductVariantOptions([])
-                        setValue('purchase_variant_id', '')
-
-                        getProductVariantByproductId(val?.value)
-                        setValue('package_details', val?.package_details)
-                        setValue('manufacture', val?.manufacture)
-
-                        // setValue('purchase_expiry_date', dayjs(Date()))
-                        // setValue('purchase_expiry_date', null)
-                        // setValue('purchase_unit_qty', '')
-                        // setValue('purchase_qty', '')
-                        // setValue('purchase_variant_ratio', '')
-                      } else {
-                        setNonMedicalProduct(false)
-                        setProductVariantOptions([])
-                        getProductVariantByproductId(val?.value)
-                        setValue('package_details', val?.package_details)
-                        setValue('manufacture', val?.manufacture)
-
-                        // setValue('purchase_variant_id', '')
-                        // setValue('purchase_unit_qty', '')
-                        // setValue('purchase_qty', '')
-                        // setValue('purchase_variant_ratio', '')
-                      }
-
-                      return onChange(val)
-                    }
-                  }}
-                  onBlur={e => {
-                    if (!nonMedicalProduct) {
-                      const product = getValues()
-
-                      if (product?.purchase_created_by !== 'invoice_upload') {
-                        if (product?.product?.value && product?.purchase_batch_no) {
-                          // setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml
-                          checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
-                        }
-                      }
-                    }
-                  }}
-                  onKeyUp={e => {
-                    searchMedicineData(e.target.value)
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='Product Name*'
-                      error={Boolean(errors.product)}
-                      helperText={errors.product?.message}
-                    />
-                  )}
-                />
-              )}
-            />
-            {errors?.product && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.product?.value?.message}</FormHelperText>
-            )}
-            {/* {watch('package_details') && (
-              <Box sx={{ mx: 1, display: 'flex', flexDirection: 'column' }}>
-                <Chip
-                  label={watch('package_details')}
-                  color='primary'
-                  variant='outlined'
-                  size='sm'
-                  sx={{ mr: 2, my: 2, fontSize: 11, height: '22px' }}
-                />
-                <Chip
-                  label={watch('manufacture')}
-                  color='primary'
-                  variant='outlined'
-                  size='sm'
-                  sx={{ fontSize: 11, height: '22px' }}
-                />
-              </Box>
-            )} */}
-          </FormControl>
+              return (
+                <li
+                  key={option?.value}
+                  {...otherProps}
+                  style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                >
+                  <Box>
+                    <Typography>{option?.value ? option?.label : ''}</Typography>
+                    <Typography variant='body2'>{option.package_details}</Typography>
+                    <Typography variant='body2'>{option.manufacture}</Typography>
+                  </Box>
+                </li>
+              )
+            }}
+          />
         </Grid>
 
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_batch_no'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  disabled={nestedRowMedicine?.id ? true : false}
-                  label='Batch Number*'
-                  error={Boolean(errors.purchase_batch_no)}
-                  helperText={errors.purchase_batch_no?.message}
-                  onBlur={e => {
-                    if (!nonMedicalProduct) {
-                      const product = getValues()
+          <ControlledTextField
+            name='purchase_batch_no'
+            label='Batch Number*'
+            control={control}
+            errors={errors}
+            disabled={!!nestedRowMedicine?.id}
+            onChangeOverride={e => {
+              // if (!nonMedicalProduct) {
+              const product = getValues()
+              const batchValue = e?.target?.value
 
-                      if (product?.product?.value !== '' && e?.target?.value !== '') {
-                        field?.onBlur()
-                        checkMedicineExpiryDate(product?.product?.value, e.target.value)
-                      } else {
-                        setValue('purchase_qty', '')
-                        setValue('purchase_unit_qty', '')
-                        setValue('purchase_variant_id', '')
-                        setValue('purchase_variant_ratio', ''), setValue('isVariantIdPresent', false)
-                      }
-                    }
-                  }}
-                />
-              )}
-            />
-          </FormControl>
+              if (product?.product?.value !== '' && batchValue !== '') {
+                checkMedicineExpiryDate(product?.product?.value, batchValue)
+              } else {
+                setValue('purchase_qty', '')
+                setValue('purchase_unit_qty', '')
+                setValue('purchase_variant_id', '')
+                setValue('purchase_variant_ratio', '')
+                setValue('isVariantIdPresent', false)
+              }
+              // }
+            }}
+          />
         </Grid>
 
-        {!nonMedicalProduct && (
-          <Grid item size={{ xs: 12, sm: 4 }}>
-            <FormControl fullWidth>
-              {expiryDateLoader && (
-                <span style={{ position: 'absolute', right: '12px', top: '16px' }}>
-                  <CircularProgress size={20} />
-                </span>
-              )}
-              <ControlledDatePicker
-                control={control}
-                name='purchase_expiry_date'
-                label='Expiry Date*'
-                inputFormat='MMM/DD/YYYY'
-                format='DD/MMM/YYYY'
-              />
-            </FormControl>
-          </Grid>
-        )}
+        {/* {!nonMedicalProduct && ( */}
+        <Grid item size={{ xs: 12, sm: 4 }}>
+          {/* <FormControl fullWidth> */}
+          <ControlledDatePicker
+            loader={expiryDateLoader}
+            control={control}
+            name='purchase_expiry_date'
+            label='Expiry Date*'
+            inputFormat='MMM/DD/YYYY'
+            format='DD/MMM/YYYY'
+          />
+          {/* </FormControl> */}
+        </Grid>
+        {/* )} */}
 
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_unit_price'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  onKeyUp={e => {
-                    // setValue('purchase_unit_qty', '')
-                    // setValue('purchase_qty', '')
-                    calculateStuff()
-
-                    const productData = {
-                      purchase_stock_item_id: watch('product')?.value,
-                      purchase_unit_price: watch('purchase_unit_price'),
-                      ...(id !== '' && { purchase_detail_id: nestedRowMedicine?.id })
-                    }
-                    if (productData?.purchase_stock_item_id !== '' && productData?.purchase_unit_price !== '') {
-                      getRecentPurchasePriceOfProduct(productData)
-                    }
-                  }}
-                  label='Supplier Rate*'
-                  error={Boolean(errors.purchase_unit_price)}
-
-                  // helperText={errors.purchase_unit_price?.message}
-                />
-              )}
-            />
-            {errors.purchase_unit_price && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_unit_price?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_unit_price'
+            label='Supplier Rate*'
+            control={control}
+            errors={errors}
+            onChangeOverride={() => {
+              calculateStuff()
+              const productData = {
+                purchase_stock_item_id: getValues('product')?.value,
+                purchase_unit_price: getValues('purchase_unit_price'),
+                ...(id !== '' && { purchase_detail_id: nestedRowMedicine?.id })
+              }
+              if (productData?.purchase_stock_item_id !== '' && productData?.purchase_unit_price !== '') {
+                getRecentPurchasePriceOfProduct(productData)
+              }
+            }}
+          />
         </Grid>
 
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_discount'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  value={field.value === 0 ? '' : field.value}
-                  onKeyUp={e => {
-                    const inputValue = e.target.value
-                    if (inputValue === '') {
-                      field.onChange(0)
-                    } else {
-                      field.onChange(inputValue)
-                    }
-                    calculateStuff()
-                  }}
-                  label='Discount in %'
-                  error={Boolean(errors.purchase_discount)}
-
-                  //helperText={errors.purchase_discount?.message}
-                />
-              )}
-            />
-            {errors.purchase_discount && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_discount?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_discount'
+            label='Discount in %'
+            control={control}
+            errors={errors}
+            inputProps={{
+              value: watch('purchase_discount') == '0' ? '' : watch('purchase_discount')
+            }}
+            onChangeOverride={() => {
+              calculateStuff()
+            }}
+          />
         </Grid>
 
-        {/* <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_free_quantity'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Free Quantity'
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_free_quantity)}
-
-                  //helperText={errors.purchase_free_quantity?.message}
-                />
-              )}
-            />
-            {errors.purchase_free_quantity && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_free_quantity?.message}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid> */}
         <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
@@ -902,72 +753,35 @@ const PurchaseItemForm = props => {
           </Typography>
         </Grid>
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <InputLabel error={Boolean(errors.purchase_variant_id)}>Product Variant*</InputLabel>
-            <Controller
-              name='purchase_variant_id'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { onChange, value, ...rest } }) => (
-                <Select
-                  {...rest}
-                  // disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
-                  value={value}
-                  onChange={(e, val) => {
-                    setValue('purchase_variant_ratio', Number(val?.props?.children))
-                    const purchaseQty = watch('purchase_qty')
-
-                    const totalUnitQty = purchaseQty
-                      ? purchaseQty * Number(val?.props?.children)
-                      : Number(val?.props?.children) * 1
-                    setValue('purchase_unit_qty', totalUnitQty)
-
-                    // setValue('purchase_qty', '')
-                    onChange(e)
-                  }}
-                  label='Product Variant*'
-                  error={Boolean(errors.purchase_variant_id)}
-                >
-                  {productVariantOptions?.length > 0 ? (
-                    productVariantOptions?.map((item, index) => (
-                      <MenuItem key={index} value={item.value}>
-                        {item?.label}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem>No Options</MenuItem>
-                  )}
-                </Select>
-              )}
-            />
-            {errors?.purchase_variant_id && <FormHelperText error>{errors.purchase_variant_id.message}</FormHelperText>}
-          </FormControl>
+          <ControlledSelect
+            name='purchase_variant_id'
+            label='Product Variant*'
+            control={control}
+            errors={errors}
+            required
+            options={productVariantOptions?.length > 0 ? productVariantOptions : []}
+            getOptionLabel={option => option?.label}
+            getOptionValue={option => option?.value}
+            onChangeExtra={e => {
+              const selectedOption = productVariantOptions?.find(item => item.value === e.target.value)
+              const ratio = Number(selectedOption?.label)
+              setValue('purchase_variant_ratio', ratio)
+              const purchaseQty = getValues('purchase_qty')
+              const totalUnitQty = purchaseQty ? purchaseQty * ratio : ratio * 1
+              setValue('purchase_unit_qty', totalUnitQty)
+            }}
+          />
         </Grid>
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_qty'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Purchase Quantity*'
-                  variant='outlined'
-                  // eslint-disable-next-line lines-around-comment
-                  // disabled={nestedRowMedicine?.id ? true : false}
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_unit_price)}
-
-                  // helperText={errors.purchase_unit_price?.message}
-                />
-              )}
-            />
-            {errors.purchase_qty && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_qty?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_qty'
+            label='Purchase Quantity*'
+            control={control}
+            errors={errors}
+            onChangeOverride={() => {
+              calculateStuff()
+            }}
+          />
         </Grid>
 
         <Grid item size={{ xs: 12, sm: 4 }}>
@@ -984,28 +798,6 @@ const PurchaseItemForm = props => {
               height: '56px'
             }}
           >
-            {/* <Controller
-              name='purchase_unit_qty'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  disabled={true}
-                  {...field}
-                  value={field.value === 0 ? '' : field.value}
-                  label='Purchase Unit Quantity*'
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_unit_qty)}
-
-                  // helperText={errors.purchase_unit_price?.message}
-                />
-              )}
-            />
-            {errors.purchase_unit_qty && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_unit_qty?.message}</FormHelperText>
-            )} */}
-
             <Typography
               sx={{
                 fontSize: '14px',
@@ -1050,25 +842,9 @@ const PurchaseItemForm = props => {
           container
           spacing={5}
           sx={{
-            // border: '1px solid red',
-
             display: 'flex',
             mx: 'auto'
-
-            // justifyContent: 'flex-start',
-            // alignItems: 'center'
           }}
-
-          // item
-          // sm={12}
-          // xs={12}
-          // sx={{
-          //   display: 'flex',
-          //   justifyContent: 'flex-start',
-          //   alignItems: 'center'
-
-          //   // border: '1px solid red'
-          // }}
         >
           <Grid
             item
@@ -1178,194 +954,52 @@ const PurchaseItemForm = props => {
         </Grid>
 
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_cgst'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  value={field.value === 0 ? '' : field.value}
-                  label='Central GST in %*'
-                  onKeyUp={e => {
-                    const inputValue = e.target.value
-                    if (inputValue === '') {
-                      field.onChange(0)
-                    } else {
-                      field.onChange(inputValue)
-                    }
-                    calculateStuff()
-
-                    // field.onChange(e)
-                    if (field.value && !isNaN(field.value)) {
-                      setUserInteracted(false)
-                    }
-                  }}
-                  error={userInteracted ? false : Boolean(errors.purchase_cgst)}
-
-                  // helperText={errors.purchase_gst?.message}
-                />
-              )}
-            />
-            {errors.purchase_cgst && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_cgst?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_cgst'
+            label='Central GST in %*'
+            control={control}
+            inputProps={{
+              value: watch('purchase_cgst') == '0' ? '' : watch('purchase_cgst')
+            }}
+            errors={errors}
+            onChangeOverride={() => {
+              calculateStuff()
+              setUserInteracted(false)
+            }}
+          />
         </Grid>
 
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_sgst'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='State GST in %*'
-                  value={field.value === 0 ? '' : field.value}
-                  onKeyUp={e => {
-                    const inputValue = e.target.value
-                    if (inputValue === '') {
-                      field.onChange(0)
-                    } else {
-                      field.onChange(inputValue)
-                    }
-                    calculateStuff()
-                    if (field.value && !isNaN(field.value)) {
-                      setError('purchase_cgst', '')
-                      setUserInteracted(true)
-                    }
-                  }}
-                  error={Boolean(errors.purchase_sgst)}
-
-                  // helperText={errors.purchase_gst?.message}
-                />
-              )}
-            />
-            {errors.purchase_sgst && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_sgst?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_sgst'
+            label='State GST in %*'
+            control={control}
+            inputProps={{
+              value: watch('purchase_sgst') == '0' ? '' : watch('purchase_sgst')
+            }}
+            errors={errors}
+            onChangeOverride={() => {
+              calculateStuff()
+              setError('purchase_cgst', '')
+              setUserInteracted(true)
+            }}
+          />
         </Grid>
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_igst'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='IGST in %*'
-                  value={field.value === 0 ? '' : field.value}
-                  onKeyUp={e => {
-                    const inputValue = e.target.value
-                    if (inputValue === '') {
-                      field.onChange(0)
-                    } else {
-                      field.onChange(inputValue)
-                    }
-                    calculateStuff()
-
-                    // field.onChange(e)
-                  }}
-                  error={Boolean(errors.purchase_igst)}
-
-                  // helperText={errors.purchase_gst?.message}
-                />
-              )}
-            />
-            {errors.purchase_igst && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_igst?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_igst'
+            label='IGST in %*'
+            control={control}
+            inputProps={{
+              value: watch('purchase_igst') == '0' ? '' : watch('purchase_igst')
+            }}
+            errors={errors}
+            onChangeOverride={() => {
+              calculateStuff()
+            }}
+          />
         </Grid>
 
-        {/* <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_cgst_amount'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  value={field.value === '0' ? '' : field.value}
-                  disabled={true}
-                  label='Central GST Amount*'
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_cgst_amount)}
-
-                  // helperText={errors.purchase_gst?.message}
-                />
-              )}
-            />
-            {errors.purchase_cgst_amount && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_cgst_amount?.message}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_sgst_amount'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  disabled={true}
-                  label='State GST Amount*'
-                  onKeyUp={e => {
-                    calculateStuff()
-                  }}
-                  error={Boolean(errors.purchase_sgst_amount)}
-
-                  // helperText={errors.purchase_gst?.message}
-                />
-              )}
-            />
-            {errors.purchase_sgst_amount && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_sgst_amount?.message}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_gst'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  disabled={true}
-                  {...field}
-                  label='GST Amount'
-                  error={Boolean(errors.purchase_gst)}
-                  helperText={errors.purchase_gst?.message}
-                />
-              )}
-            />
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_igst_amount'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  disabled={true}
-                  {...field}
-                  label='IGST Amount'
-                  error={Boolean(errors.purchase_igst_amount)}
-                  helperText={errors.purchase_igst_amount?.message}
-                />
-              )}
-            />
-          </FormControl>
-        </Grid> */}
         <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
@@ -1416,27 +1050,13 @@ const PurchaseItemForm = props => {
           </Typography>
         </Grid>
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_gross_amount'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Gross Amount*'
-                  variant='outlined'
-                  error={Boolean(errors.purchase_gross_amount)}
-                  slotProps={{
-                    input: { readOnly: true }
-                  }}
-                />
-              )}
-            />
-            {errors.purchase_gross_amount && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_gross_amount?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_gross_amount'
+            label='Gross Amount*'
+            control={control}
+            errors={errors}
+            readOnly
+          />
         </Grid>
 
         {/* <Grid item size={{xs: 12, sm: 6}}>
@@ -1463,49 +1083,23 @@ const PurchaseItemForm = props => {
         </Grid> */}
 
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_taxable_amount'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  disabled={true}
-                  {...field}
-                  label='Taxable Amount*'
-                  error={Boolean(errors.purchase_taxable_amount)}
-
-                  // helperText={errors.purchase_purchase_price?.message}
-                />
-              )}
-            />
-            {errors.purchase_taxable_amount && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_taxable_amount?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_taxable_amount'
+            label='Taxable Amount*'
+            control={control}
+            errors={errors}
+            disabled
+          />
         </Grid>
 
         <Grid item size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth>
-            <Controller
-              name='purchase_net_amount'
-              control={control}
-              defaultValue=''
-              render={({ field }) => (
-                <TextField
-                  disabled={true}
-                  {...field}
-                  label='Net Amount*'
-                  error={Boolean(errors.purchase_net_amount)}
-
-                  // helperText={errors.purchase_purchase_price?.message}
-                />
-              )}
-            />
-            {errors.purchase_net_amount && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_net_amount?.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='purchase_net_amount'
+            label='Net Amount*'
+            control={control}
+            errors={errors}
+            disabled
+          />
         </Grid>
         <ConfirmDialogBox
           open={validatePurchaseDialog}

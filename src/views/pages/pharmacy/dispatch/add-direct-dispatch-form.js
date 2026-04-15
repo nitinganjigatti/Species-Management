@@ -1,16 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
-import {
-  Grid,
-  FormControl,
-  Autocomplete,
-  TextField,
-  FormHelperText,
-  Button,
-  Typography,
-  Paper,
-  Box
-} from '@mui/material'
+import { useForm } from 'react-hook-form'
+import { Grid, Button, Typography, Paper, Box } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoaderIcon } from 'react-hot-toast'
@@ -19,6 +9,7 @@ import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import CustomChip from 'src/@core/components/mui/chip'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
 const defaultValues = {
   request_item: {
@@ -372,130 +363,79 @@ export const AddItemsForm = ({
       >
         <Grid container rowSpacing={4} columnSpacing={2} size={{ xs: 12, sm: 12 }}>
           <Grid item size={{ xs: 12, sm: 12, lg: 12 }}>
-            <FormControl fullWidth>
-              <Controller
-                name='request_item'
-                control={control}
-                defaultValue={null}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <Autocomplete
-                    id='request_item'
-                    options={productList}
-                    getOptionLabel={option => option.label || ''}
-                    value={value}
-                    isOptionEqualToValue={(option, value) => option.value === value.value}
-                    onKeyUp={e => {
-                      searchMedicineData(e.target.value)
-                    }}
-                    onChange={(e, value) => {
-                      setValue('request_item', value, { shouldValidate: true })
-                      if (!value) {
-                        setValue('request_item', value, { shouldValidate: true })
-                        setValue('request_item_batch_no', '', { shouldValidate: true })
-                        setValue('expiry_date', '', { shouldValidate: true })
-                        setValue('available_item_qty', '')
-                        setValue('stock_type', '')
-                        setValue('packageDetails', '')
-                        setValue('manufacture', '')
-                        setValue('unit_price', '')
-                      }
+            <ControlledAutocomplete
+              name='request_item'
+              label='Search by Product Name*'
+              control={control}
+              errors={errors}
+              options={productList}
+              loading={productLoading}
+              required={true}
+              showIcons={false}
+              onKeyUp={e => searchMedicineData(e.target.value)}
+              onChangeOverride={value => {
+                if (value === null || value?.status === 0) {
+                  setValue('request_item', null, { shouldValidate: true })
+                  setValue('request_item_batch_no', '', { shouldValidate: true })
+                  setValue('expiry_date', '', { shouldValidate: true })
+                  setValue('available_item_qty', '')
+                  setValue('stock_type', '')
+                  setValue('packageDetails', '')
+                  setValue('manufacture', '')
+                  setValue('unit_price', '')
 
-                      if (value === null || value.status === 0) {
-                        return onChange(null)
-                      } else if (value !== '' && value !== null) {
-                        setQuantityError(false)
-                        searchBatchData(value.value, value.stock_type)
-                        setValue('stock_type', value.stock_type)
-                        setValue('packageDetails', value.packageDetails)
-                        setValue('manufacture', value.manufacture)
-                        setValue('control_substance', value.control_substance)
-                        setValue('unit_price', value.unit_price)
-                      } else {
-                      }
-                      checkTotalCount()
-                    }} // Set selected value
-                    onBlur={async () => {
-                      await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
-                    }}
-                    renderOption={(props, option) => {
-                      const { key, ...otherProps } = props
+                  return
+                }
+                setQuantityError(false)
+                searchBatchData(value.value, value.stock_type)
+                setValue('stock_type', value.stock_type)
+                setValue('packageDetails', value.packageDetails)
+                setValue('manufacture', value.manufacture)
+                setValue('control_substance', value.control_substance)
+                setValue('unit_price', value.unit_price)
+                checkTotalCount()
+              }}
+              onItemClear={() => {
+                setValue('request_item_batch_no', '', { shouldValidate: true })
+                setValue('expiry_date', '', { shouldValidate: true })
+                setValue('available_item_qty', '')
+                setValue('stock_type', '')
+                setValue('packageDetails', '')
+                setValue('manufacture', '')
+                setValue('unit_price', '')
+              }}
+              onBlur={async () => {
+                await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
+              }}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props
 
-                      return (
-                        <li
-                          key={`${option.value}-${option.label}`}
-                          {...otherProps}
-                          style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                        >
-                          <Box>
-                            <Typography component='div'>{option.label}</Typography>
-                            <Typography component='div' variant='body2'>
-                              {option.packageDetails}
-                            </Typography>
-                            <Typography component='div' variant='body2'>
-                              {option.manufacture}
-                            </Typography>
-                            {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                            {option.prescription_required === true && (
-                              <CustomChip label='PR' skin='light' color='success' size='small' />
-                            )}
-                          </Box>
-                        </li>
-                      )
-                    }}
-                    loading={productLoading}
-                    noOptionsText='Type to search'
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        label='Search by Product Name*'
-                        placeholder='Search & Select'
-                        error={Boolean(errors.request_item)}
-                      />
-                    )}
-                  />
-                )}
-              />
-              {errors?.request_item && (
-                <FormHelperText sx={{ color: 'error.main' }}>
-                  {errors?.request_item?.value?.message || errors?.request_item?.message}
-                </FormHelperText>
-              )}
-              {/* {watch('packageDetails') && (
-                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
-                  <Chip
-                    label={watch('packageDetails')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
-                  />
-                  <Chip
-                    label={watch('manufacture')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ fontSize: 11, height: '22px' }}
-                  />
-                </Box>
-              )} */}
-              {/* <Box>
-                <Typography>{option.name}</Typography>
-                <Typography variant='body2'>{option.package}</Typography>
-                <Typography variant='body2'>{option.manufacture}</Typography>
-                {option.control_substance === true && (
-                  <CustomChip label='CS' skin='light' color='success' size='small' />
-                )}{' '}
-                {option.prescription_required === true && (
-                  <CustomChip label='PR' skin='light' color='success' size='small' />
-                )}
-              </Box> */}
-            </FormControl>
-            {/* {watch('packageDetails') && (
-              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
-                {batchLoading ? <LoaderIcon /> : ` Total Available Quantity:${totalAvailableCount}`}
-              </Typography>
-            )} */}
+                return (
+                  <li
+                    key={`${option.value}-${option.label}`}
+                    {...otherProps}
+                    style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                  >
+                    <Box>
+                      <Typography component='div'>{option.label}</Typography>
+                      <Typography component='div' variant='body2'>
+                        {option.packageDetails}
+                      </Typography>
+                      <Typography component='div' variant='body2'>
+                        {option.manufacture}
+                      </Typography>
+                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                      {option.prescription_required === true && (
+                        <CustomChip label='PR' skin='light' color='success' size='small' />
+                      )}
+                    </Box>
+                  </li>
+                )
+              }}
+              textFieldProps={{
+                placeholder: 'Search & Select'
+              }}
+            />
 
             {watch('packageDetails') && (
               <Paper
@@ -602,27 +542,6 @@ export const AddItemsForm = ({
                       Unit Price - {Utility.formatAmountToReadableDigit(watch('unit_price'))}
                     </Typography>
                   </Box>
-
-                  {/* <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-                    <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
-                    >
-                      Unit Price:
-                    </Typography>
-                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
-                      {Utility.formatAmountToReadableDigit(watch('unit_price'))}
-                    </Typography>
-                    <Typography
-                      color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', marginLeft: '8px' }}
-                    >
-                      Total Value:
-                    </Typography>
-                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
-                      {Utility.formatAmountToReadableDigit(watch('unit_price') * watch('request_item_qty')) || 0}
-                    </Typography>
-                  </Box> */}
                 </Box>
               </Paper>
             )}
@@ -632,270 +551,146 @@ export const AddItemsForm = ({
               {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
             </Typography>
           </Grid>
-          <Grid
-            item
-            size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}
-            sm={getValues('stock_type') === 'non_medical' ? 6 : 4}
-          >
-            {/* <FormControl fullWidth>
-              <Controller
-                name='request_item_batch_no'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <Autocomplete
-                    {...field}
-                    id='request_item_batch_no'
-                    options={batchList === undefined ? [] : batchList}
-                    getOptionLabel={option => option.label || ''}
-                    value={field.value}
-                    isOptionEqualToValue={(option, value) => option.value === value.value}
-                    onChange={(e, value) => {
-                      // console.log('value', value)
-                      // setValue('request_item', value)
-                      setValue('request_item_batch_no', value)
-                      setValue('expiry_date', value?.expiry_date)
-                      setValue('available_item_qty', value?.available_item_qty)
-                      clearErrors('request_item_batch_no')
-                      setQuantityError(false)
-                      checkTotalCount()
+          <Grid item size={{ xs: 12, sm: 3 }}>
+            <ControlledAutocomplete
+              name='request_item_batch_no'
+              label={errors?.request_item_batch_no ? 'Enter Batch No*' : 'Enter Batch No'}
+              control={control}
+              errors={errors}
+              options={batchList === undefined ? [] : batchList}
+              loading={batchLoading}
+              required={true}
+              showIcons={false}
+              onChangeOverride={value => {
+                setValue('expiry_date', value?.expiry_date, { shouldValidate: true })
+                setValue('available_item_qty', value?.available_item_qty)
+                setValue('multiplier', value?.multiplier)
+                setValue('variant_id', value?.variant_id)
+                clearErrors('request_item_batch_no')
+                setQuantityError(false)
+                checkTotalCount()
+              }}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props
+
+                return (
+                  <Box
+                    component='li'
+                    key={`${option.value}-${option.label}`}
+                    {...otherProps}
+                    sx={{
+                      border: '1px solid transparent',
+                      '&:last-child': {
+                        borderBottom: 'none'
+                      },
+                      m: 3,
+                      '&:hover': {
+                        border: `1px solid ${theme.palette.customColors.neutral05}`
+                      },
+                      borderRadius: '2px'
                     }}
-                    loading={batchLoading}
-                    noOptionsText='Type to search'
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        label='Batch No*'
-                        placeholder='Search'
-                        error={Boolean(errors.request_item_batch_no)}
-                      />
-                    )}
-                  />
-                )}
-              />
-              {errors?.request_item_batch_no && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
-              )}
-              {getValues('available_item_qty') ? (
-                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
-                  Available Quantity:{getValues('available_item_qty')}
-                </Typography>
-              ) : null}
-            </FormControl> */}
-            {/* {getValues('available_item_qty') ? (
+                  >
+                    <Box sx={{ p: 1 }}>
+                      <Typography
+                        variant='body2'
+                        component='div'
+                        sx={{
+                          color: 'customColors.customHeadingTextColor',
+                          fontWeight: 600
+                        }}
+                      >
+                        {option.label}
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        component='div'
+                        sx={{
+                          color: 'customColors.neutralSecondary'
+                        }}
+                      >
+                        Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
+                      </Typography>
+                      <Typography
+                        variant='body2'
+                        component='div'
+                        sx={{
+                          color: 'primary.main'
+                        }}
+                      >
+                        Availability: {option.available_item_qty}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )
+              }}
+              textFieldProps={{
+                placeholder: 'Enter Batch No'
+              }}
+              autocompleteProps={{
+                slots: {
+                  paper: ({ children, ...props }) => (
+                    <Paper
+                      {...props}
+                      elevation={3}
+                      sx={{
+                        mt: 1,
+                        '& .MuiAutocomplete-listbox': {
+                          p: 0,
+                          maxHeight: '300px'
+                        }
+                      }}
+                    >
+                      {children}
+                    </Paper>
+                  )
+                }
+              }}
+            />
+            {getValues('available_item_qty') ? (
               <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
                 Available Quantity:{getValues('available_item_qty')}
               </Typography>
-            ) : null} */}
-            <FormControl fullWidth>
-              <Controller
-                name='request_item_batch_no'
-                control={control}
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <Autocomplete
-                    {...field}
-                    id='request_item_batch_no'
-                    options={batchList === undefined ? [] : batchList}
-                    getOptionLabel={option => option.label || ''}
-                    value={field.value}
-                    isOptionEqualToValue={(option, value) => option.value === value.value}
-                    onChange={(e, value) => {
-                      setValue('request_item_batch_no', value)
-                      setValue('expiry_date', value?.expiry_date, { shouldValidate: true })
-                      setValue('available_item_qty', value?.available_item_qty)
-                      setValue('multiplier', value?.multiplier)
-                      setValue('variant_id', value?.variant_id)
-                      clearErrors('request_item_batch_no')
-                      setQuantityError(false)
-                      checkTotalCount()
-                    }}
-                    loading={batchLoading}
-                    noOptionsText='Type to search'
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        placeholder='Enter Batch No'
-                        label={Boolean(errors.request_item_batch_no) ? 'Enter Batch No*' : 'Enter Batch No'}
-                        error={Boolean(errors.request_item_batch_no)}
-                      />
-                    )}
-                    renderOption={(props, option) => {
-                      const { key, ...otherProps } = props
-
-                      return (
-                        <Box
-                          component='li'
-                          key={`${option.value}-${option.label}`}
-                          {...otherProps}
-                          sx={{
-                            border: '1px solid transparent',
-                            '&:last-child': {
-                              borderBottom: 'none'
-                            },
-                            m: 3,
-                            '&:hover': {
-                              border: `1px solid ${theme.palette.customColors.neutral05}`
-                            },
-                            borderRadius: '2px'
-                          }}
-                        >
-                          <Box sx={{ p: 1 }}>
-                            <Typography
-                              variant='body2'
-                              component='div'
-                              sx={{
-                                color: 'customColors.customHeadingTextColor',
-                                fontWeight: 600
-                              }}
-                            >
-                              {option.label}
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              component='div'
-                              sx={{
-                                color: 'customColors.neutralSecondary'
-                              }}
-                            >
-                              Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
-                            </Typography>
-                            <Typography
-                              variant='body2'
-                              component='div'
-                              sx={{
-                                color: 'primary.main'
-                              }}
-                            >
-                              Availability: {option.available_item_qty}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      )
-                    }}
-                    slots={{
-                      paper: ({ children, ...props }) => (
-                        <Paper
-                          {...props}
-                          elevation={3}
-                          sx={{
-                            mt: 1,
-                            '& .MuiAutocomplete-listbox': {
-                              p: 0,
-                              maxHeight: '300px'
-                            }
-                          }}
-                        >
-                          {children}
-                        </Paper>
-                      )
-                    }}
-                  />
-                )}
-              />
-              {errors?.request_item_batch_no && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_batch_no?.message}</FormHelperText>
-              )}
-              {getValues('available_item_qty') ? (
-                <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
-                  Available Quantity:{getValues('available_item_qty')}
-                </Typography>
-              ) : null}
-            </FormControl>
+            ) : null}
           </Grid>
-          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
-            <FormControl fullWidth>
-              <Controller
-                name='multiplier'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    disabled
-                    type='text'
-                    value={value}
-                    label='Product Variant'
-                    name='multiplier'
-                    error={Boolean(errors.multiplier)}
-                    onChange={onChange}
-                  />
-                )}
-              >
-                {errors.multiplier && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.multiplier?.message}</FormHelperText>
-                )}
-              </Controller>
-            </FormControl>
+          <Grid item size={{ xs: 12, sm: 3 }}>
+            <ControlledTextField
+              name='multiplier'
+              label='Product Variant'
+              control={control}
+              errors={errors}
+              disabled={true}
+            />
           </Grid>
-          {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item size={{ xs: 12, sm: 4 }}>
-              {/* <FormControl fullWidth>
-                <Controller
-                  name='expiry_date'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      value={value}
-                      label='Expiry Date*'
-                      name='expiry_date'
-                      error={Boolean(errors.expiry_date)}
-                      onChange={onChange}
-                      variant='outlined'
-                      slotProps={{
-                        textField: {
-                          error: Boolean(errors.expiry_date)
-                        },
+          {/* {getValues('stock_type') === 'non_medical' ? null : ( */}
+          <Grid item size={{ xs: 12, sm: 3 }}>
+            <ControlledTextField
+              name='expiry_date'
+              label='Expiry Date*'
+              control={control}
+              errors={errors}
+              required={true}
+              readOnly={true}
+              dateReader={true}
+            />
+          </Grid>
+          {/* )} */}
+          {/* {getValues('stock_type') === 'non_medical' ? null : ( */}
+          <Grid item size={{ xs: 12, sm: 12 }}>
+            <Typography variant='subtitle1'> Quantity</Typography>
+          </Grid>
+          {/* )} */}
 
-                        htmlInput: { disabled: true }
-                      }}
-                    />
-                  )}
-                />
-                {errors.expiry_date && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                )}
-              </FormControl> */}
-              <ControlledTextField
-                name='expiry_date'
-                label='Expiry Date*'
-                control={control}
-                errors={errors}
-                required={true}
-                readOnly={true}
-                dateReader={true}
-              />
-            </Grid>
-          )}
-          {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item size={{ xs: 12, sm: 12 }}>
-              <Typography variant='subtitle1'> Quantity</Typography>
-            </Grid>
-          )}
-
-          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 12 }}>
-            <FormControl fullWidth>
-              <Controller
-                name='request_item_qty'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    value={value}
-                    label='Quantity*'
-                    name='request_item_qty'
-                    error={Boolean(errors.request_item_qty)}
-                    onChange={onChange}
-                    onKeyDown={checkTotalCount}
-                    onPaste={checkTotalCount}
-                    onInput={checkTotalCount}
-                  />
-                )}
-              />
-              {errors.request_item_qty && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
-              )}
-            </FormControl>
+          <Grid item size={{ xs: 12, sm: 3 }}>
+            <ControlledTextField
+              name='request_item_qty'
+              label='Quantity*'
+              control={control}
+              errors={errors}
+              required={true}
+              onKeyDown={checkTotalCount}
+              onPaste={checkTotalCount}
+              onInput={checkTotalCount}
+            />
           </Grid>
           <Grid item size={{ xs: 12, sm: 12 }}>
             <Box

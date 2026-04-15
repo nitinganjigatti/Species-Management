@@ -1,6 +1,7 @@
 import React from 'react'
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { CircularProgress, InputAdornment } from '@mui/material'
 import dayjs from 'dayjs'
 import advancedFormat from 'dayjs/plugin/advancedFormat'
 import localizedFormat from 'dayjs/plugin/localizedFormat'
@@ -25,7 +26,8 @@ const MUIDatePicker = ({
   error = false,
   helperText = '',
   sx = {},
-  size = 'medium'
+  size = 'medium',
+  loader = false
 }) => {
   dayjs.locale(locale)
 
@@ -41,13 +43,13 @@ const MUIDatePicker = ({
         format={format}
         minDate={minDate}
         maxDate={maxDate}
+        loading={loader}
         slotProps={{
           textField: {
             fullWidth: true,
             size: size,
             error,
             helperText,
-            size,
             sx: {
               '& .MuiInputAdornment-root .MuiIconButton-root': {
                 alignSelf: 'center'
@@ -56,7 +58,16 @@ const MUIDatePicker = ({
                 alignItems: 'center'
               },
               ...sx
-            }
+            },
+            ...(loader && {
+              InputProps: {
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    <CircularProgress size={20} />
+                  </InputAdornment>
+                )
+              }
+            })
           }
         }}
         sx={{

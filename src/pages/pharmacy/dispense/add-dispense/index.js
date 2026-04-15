@@ -207,9 +207,6 @@ function AddDispense() {
     }
     setSubmitLoading(true)
     try {
-      console.log('payload', payload)
-      debugger
-
       await submitDispense(payload).then(res => {
         if (res?.success) {
           reset()
