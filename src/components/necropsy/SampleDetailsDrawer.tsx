@@ -1,4 +1,5 @@
 import React, { memo, useMemo, FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Drawer, IconButton, Typography, Skeleton, Tabs, Tab } from '@mui/material'
 import { useTheme, styled, Theme } from '@mui/material/styles'
 import Timeline from '@mui/lab/Timeline'
@@ -104,6 +105,7 @@ const SampleDetailsDrawer: FC<SampleDetailsDrawerProps> = ({
   logsLoading = false,
   onTestClick
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   const processedSampleLogs = useMemo<ProcessedDateItem[]>(() => {
@@ -322,7 +324,7 @@ const SampleDetailsDrawer: FC<SampleDetailsDrawerProps> = ({
                                 mb: 0.5
                               }}
                             >
-                              Reason
+                              {t('reason')}
                             </Typography>
                             <Typography
                               sx={{
@@ -351,7 +353,7 @@ const SampleDetailsDrawer: FC<SampleDetailsDrawerProps> = ({
                                 mb: 0.5
                               }}
                             >
-                              Notes
+                              {t('notes')}
                             </Typography>
                             <Typography
                               sx={{
@@ -375,7 +377,7 @@ const SampleDetailsDrawer: FC<SampleDetailsDrawerProps> = ({
         ))
       ) : (
         <Box sx={{ py: 6 }}>
-          <NoDataFound message='No sample logs found' />
+          <NoDataFound message={t('necropsy_module.no_sample_logs_found')} />
         </Box>
       )}
     </Box>
@@ -415,7 +417,7 @@ const SampleDetailsDrawer: FC<SampleDetailsDrawerProps> = ({
               color: theme.palette.customColors?.OnSurfaceVariant
             }}
           >
-            Sample Details
+            {t('necropsy_module.sample_details')}
           </Typography>
           <IconButton onClick={onClose} size='small'>
             <Icon icon='mdi:close' />
@@ -444,8 +446,8 @@ const SampleDetailsDrawer: FC<SampleDetailsDrawerProps> = ({
             }
           }}
         >
-          <Tab label='Tests' />
-          <Tab label='Sample Log' />
+          <Tab label={t('necropsy_module.tests')} />
+          <Tab label={t('necropsy_module.sample_log')} />
         </Tabs>
       </Box>
 
@@ -456,7 +458,7 @@ const SampleDetailsDrawer: FC<SampleDetailsDrawerProps> = ({
               tests.map((test: TestItem, index: number) => renderTestCard(test, index))
             ) : (
               <Box sx={{ py: 6 }}>
-                <NoDataFound message='No tests found for this sample' />
+                <NoDataFound message={t('necropsy_module.no_tests_found_for_this_sample')} />
               </Box>
             )}
           </Box>

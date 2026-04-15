@@ -7,6 +7,7 @@ import { read } from 'src/lib/windows/utils'
 import { AuthContext } from 'src/context/AuthContext'
 import { useNecropsyCenter } from 'src/hooks/necropsy'
 import { NecropsyCenter } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 interface NecropsyDropdownProps {
   disabled?: boolean
@@ -20,6 +21,7 @@ interface ShimmerBoxProps {
 
 const NecropsyDropdown: FC<NecropsyDropdownProps> = ({ disabled = false }) => {
   const theme = useTheme<Theme>()
+  const { t } = useTranslation()
 
   const authData = useContext(AuthContext) as unknown as { userData?: { user?: { user_id?: string | number } } } | null
   const userId = Number(authData?.userData?.user?.user_id) || 0
@@ -218,7 +220,7 @@ const NecropsyDropdown: FC<NecropsyDropdownProps> = ({ disabled = false }) => {
               </Box>
             </Box>
           ) : (
-            <Box>No necropsy centers found</Box>
+            <Box>{t('necropsy_module.no_necropsy_centers_found')}</Box>
           )}
         </Box>
       </Box>
@@ -242,7 +244,7 @@ const NecropsyDropdown: FC<NecropsyDropdownProps> = ({ disabled = false }) => {
               value={localSearch}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
               onClear={handleSearchClear}
-              placeholder='Search necropsy centers...'
+              placeholder={t('necropsy_module.search_necropsy_centers')}
             />
           </Box>
 
@@ -270,7 +272,7 @@ const NecropsyDropdown: FC<NecropsyDropdownProps> = ({ disabled = false }) => {
               </Box>
             ) : necropsies.length === 0 ? (
               <MenuItem disabled>
-                {localSearch ? 'No necropsy centers found' : 'No necropsy centers available'}
+                {localSearch ? t('necropsy_module.no_necropsy_centers_found') : t('necropsy_module.no_necropsy_centers_available')}
               </MenuItem>
             ) : (
               necropsies.map((necropsy: NecropsyCenter) => (

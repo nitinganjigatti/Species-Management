@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState, FC, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { debounce, DebouncedFunc } from 'lodash'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
@@ -62,6 +63,7 @@ const CarcassTransferFilterDrawer: FC<CarcassTransferFilterDrawerProps> = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const { t } = useTranslation('common')
   const [selectedMenu, setSelectedMenu] = useState<MenuName>('Site')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
@@ -103,7 +105,7 @@ const CarcassTransferFilterDrawer: FC<CarcassTransferFilterDrawerProps> = ({
       console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
       Toaster({
         type: 'error',
-        message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+        message: t('necropsy_module.failed_to_load_options', { action: query ? t('search') : 'load', menu: menuName })
       })
     } finally {
       setSearchLoading(false)
@@ -201,7 +203,7 @@ const CarcassTransferFilterDrawer: FC<CarcassTransferFilterDrawerProps> = ({
               items={menuData[menu]}
               isAllSelected={false}
               searchLoading={searchLoading}
-              placeholder={`Search ${menu}...`}
+              placeholder={t('necropsy_module.search_menu', { menu })}
               enableSelectAll={false}
             />
           )

@@ -8,6 +8,7 @@ import { NecropsyProvider } from 'src/context/NecropsyContext'
 import { AuthContext } from 'src/context/AuthContext'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { DateFilter } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 interface AuthContextValue {
   userData?: {
@@ -22,6 +23,7 @@ interface AuthContextValue {
 
 const CarcassTransferPage: NextPage = () => {
   const router: NextRouter = useRouter()
+  const { t } = useTranslation()
   const authData = useContext(AuthContext) as unknown as AuthContextValue | null
   const allowCarcassCollection: boolean | undefined = authData?.userData?.roles?.settings?.allow_carcass_collection
   const enableAddNecropsyReport: boolean | undefined = authData?.userData?.roles?.settings?.enable_add_necropsy_report
@@ -71,7 +73,7 @@ const CarcassTransferPage: NextPage = () => {
           showCarcassTransferButton={false}
           showBackButton={showBackButton}
           onBack={handleBack}
-          title="Carcass Transfer"
+          title={t('necropsy_module.carcass_transfer')}
         />
 
         <Box sx={{ mt: 6 }}>

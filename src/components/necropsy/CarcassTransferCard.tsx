@@ -1,4 +1,5 @@
 import { Box, Card, CardContent, Typography, Tabs, Tab, useTheme, alpha } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { Theme } from '@mui/material/styles'
 import { GridRenderCellParams, GridRowParams } from '@mui/x-data-grid'
 import React, { FC, memo, useCallback, useContext, useEffect, useMemo, useState } from 'react'
@@ -66,34 +67,35 @@ interface PaginationModel {
   pageSize: number
 }
 
-const getTransferStatus = (item: TransferItem): string => {
-  if (item?.transfer_status === 'CANCELED') return 'Cancelled'
+const getTransferStatus = (item: TransferItem, t: (key: string) => string): string => {
+  if (item?.transfer_status === 'CANCELED') return t('necropsy_module.cancelled')
 
   switch (item?.activity_status) {
     case 'COMPLETED':
-      return 'Transfer Completed'
+      return t('necropsy_module.transfer_completed')
     case 'CANCELED':
-      return 'Cancelled'
+      return t('necropsy_module.cancelled')
     case 'REJECTED':
-      return 'Rejected'
+      return t('necropsy_module.rejected')
     case 'RIDE_STARTED':
-      return item?.is_checkout_required == 1 ? 'Security Checkout Pending' : 'Security Checkin Pending'
+      return item?.is_checkout_required == 1 ? t('necropsy_module.security_checkout_pending') : t('necropsy_module.security_checkin_pending')
     case 'SECURITY_CHECKOUT_ALLOWED':
-      return item?.is_checkin_required == 1 ? 'Security Checkin Pending' : 'Awaiting Approval'
+      return item?.is_checkin_required == 1 ? t('necropsy_module.security_checkin_pending') : t('necropsy_module.awaiting_approval')
     case 'SECURITY_CHECKIN_ALLOWED':
-      return 'Awaiting Approval'
+      return t('necropsy_module.awaiting_approval')
     default:
-      return 'Pending'
+      return t('necropsy_module.pending')
   }
 }
 
-const TABS: TabItem[] = [
-  { key: 'intransit', label: 'Pending Acceptance' },
-  { key: 'completed', label: 'Received' }
+const TAB_KEYS: { key: string; labelKey: string }[] = [
+  { key: 'intransit', labelKey: 'necropsy_module.pending_acceptance' },
+  { key: 'completed', labelKey: 'necropsy_module.received' }
 ]
 
 const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
   const theme = useTheme<Theme>()
+  const { t } = useTranslation('common')
   const authData = useContext(AuthContext)
   const userId = (authData as any)?.userData?.user?.user_id || ''
   const { selectedCenter: selectedNecropsy } = useNecropsyCenter(userId, false)
@@ -222,7 +224,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'SL. NO',
+      headerName: t('necropsy_module.sl_no'),
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => (
         <Typography
           variant='body2'
@@ -237,7 +239,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       minWidth: 20,
       sortable: false,
       field: 'transfer_code',
-      headerName: 'Transfer ID and Status',
+      headerName: t('necropsy_module.transfer_id_and_status'),
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box
@@ -254,7 +256,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
             </Typography>
           </Box>
           <Typography sx={{ fontSize: '14px', fontWeight: 500, color: (theme.palette as any).customColors.OnSurfaceVariant }}>
-            {getTransferStatus(params.row)}
+            {getTransferStatus(params.row, t)}
           </Typography>
         </Box>
       )
@@ -264,7 +266,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       minWidth: 20,
       sortable: false,
       field: 'mortality_priority',
-      headerName: 'Necropsy Priority',
+      headerName: t('necropsy_module.necropsy_priority'),
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => {
         const priority = (params.row.mortality_priority || params.row.priority || '')?.toLowerCase()
 
@@ -299,7 +301,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       minWidth: 20,
       sortable: false,
       field: 'animal_info',
-      headerName: 'Animal Count',
+      headerName: t('necropsy_module.animal_count'),
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => (
         <Typography
           variant='body2'
@@ -314,7 +316,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       minWidth: 20,
       sortable: false,
       field: 'source_name',
-      headerName: 'Source Site',
+      headerName: t('necropsy_module.source_site'),
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => (
         <Typography
           variant='body2'
@@ -329,7 +331,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       minWidth: 20,
       sortable: false,
       field: 'requested_by',
-      headerName: 'Requested By',
+      headerName: t('necropsy_module.requested_by'),
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => (
         <Typography sx={{ fontSize: '14px', fontWeight: 400, color: (theme.palette as any).customColors.OnSurfaceVariant }}>
           {params.row.user_first_name} {params?.row?.user_last_name}
@@ -350,7 +352,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
               mb: 4
             }}
           >
-            Carcass Transfer
+            {t('necropsy_module.carcass_transfer')}
           </Typography>
 
           <Box
@@ -373,7 +375,7 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
                     fontSize: '13px'
                   }
                 }}
-                placeholder='Search by transfer ID'
+                placeholder={t('necropsy_module.search_by_transfer_id')}
               />
             </Box>
             <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
@@ -393,11 +395,11 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
                 }
               }}
             >
-              {TABS.map(tab => (
+              {TAB_KEYS.map(tab => (
                 <Tab
                   key={tab.key}
                   value={tab.key}
-                  label={`${tab.label} (${tab.key === 'intransit' ? stats.intransit : stats.completed})`}
+                  label={`${t(tab.labelKey)} (${tab.key === 'intransit' ? stats.intransit : stats.completed})`}
                   sx={{
                     textTransform: 'none',
                     fontSize: '14px',

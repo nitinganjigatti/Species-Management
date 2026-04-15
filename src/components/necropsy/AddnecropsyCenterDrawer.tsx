@@ -195,7 +195,7 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
       if (response?.success) {
         Toaster({
           type: 'success',
-          message: isEditMode ? 'Necropsy Center updated successfully' : 'Necropsy Center added successfully'
+          message: isEditMode ? t('necropsy_module.necropsy_center_updated_successfully') : t('necropsy_module.necropsy_center_added_successfully')
         })
         if (onSuccess) {
           onSuccess()
@@ -204,14 +204,14 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
       } else {
         Toaster({
           type: 'error',
-          message: response?.message || 'Something went wrong'
+          message: response?.message || t('necropsy_module.something_went_wrong')
         })
       }
     } catch (error: any) {
       console.error('Error saving necropsy center:', error)
       Toaster({
         type: 'error',
-        message: error?.message || 'Something went wrong'
+        message: error?.message || t('necropsy_module.something_went_wrong')
       })
     } finally {
       setSubmitLoader(false)

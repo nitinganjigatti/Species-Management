@@ -8,6 +8,7 @@ import { NecropsyProvider } from 'src/context/NecropsyContext'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { NextPage } from 'next'
 import { ParsedUrlQuery } from 'querystring'
+import { useTranslation } from 'react-i18next'
 
 // ==================== Types & Interfaces ====================
 
@@ -27,6 +28,7 @@ type NecropsyStatus = 'INCOMING' | 'PENDING' | 'DRAFT' | 'COMPLETED' | 'UNSUITAB
 
 const NecropsyDetails: NextPage = () => {
   const router: NextRouter = useRouter()
+  const { t } = useTranslation()
 
   const {
     id,
@@ -48,16 +50,16 @@ const NecropsyDetails: NextPage = () => {
     const normalizedStatus = (status as string)?.toUpperCase() as NecropsyStatus
     switch (normalizedStatus) {
       case 'INCOMING':
-        return 'Incoming'
+        return t('necropsy_module.incoming')
       case 'PENDING':
-        return 'Pending'
+        return t('necropsy_module.pending')
       case 'DRAFT':
-        return 'Draft'
+        return t('necropsy_module.draft')
       case 'COMPLETED':
       case 'UNSUITABLE':
-        return 'Completed'
+        return t('necropsy_module.completed_label')
       default:
-        return 'Pending'
+        return t('necropsy_module.pending')
     }
   }
 
@@ -67,7 +69,7 @@ const NecropsyDetails: NextPage = () => {
         <Box sx={{ mb: 3 }}>
           <Breadcrumbs>
             <MuiLink component={NextLink} href='/necropsy/necropsy' underline='hover' color='inherit'>
-              Necropsy
+              {t('necropsy_module.necropsy')}
             </MuiLink>
             <MuiLink
               component={NextLink}
@@ -83,11 +85,11 @@ const NecropsyDetails: NextPage = () => {
             </MuiLink>
             {isSpeciesView ? (
               <Typography color='text.primary' sx={{ fontWeight: 500 }}>
-                {species_name ? decodeURIComponent(species_name as string) : 'Species'}
+                {species_name ? decodeURIComponent(species_name as string) : t('necropsy_module.species')}
               </Typography>
             ) : (
               <Typography color='text.primary' sx={{ fontWeight: 500 }}>
-                Details
+                {t('necropsy_module.details')}
               </Typography>
             )}
           </Breadcrumbs>

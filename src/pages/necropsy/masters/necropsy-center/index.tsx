@@ -207,7 +207,7 @@ const NecropsyCenters: NextPage = () => {
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: (theme as Theme)?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {params?.row?.site_name ? params?.row?.site_name : 'N/A'}
+              {params?.row?.site_name ? params?.row?.site_name : t('necropsy_module.na')}
             </Typography>
           </Tooltip>
         </>

@@ -60,6 +60,7 @@ import {
 } from 'src/lib/api/necropsy'
 import { AuthContext } from 'src/context/AuthContext'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import { useTranslation } from 'react-i18next'
 
 // Use cached form options from Redux
 import { useNecropsyFormOptions } from 'src/hooks/necropsy'
@@ -320,6 +321,7 @@ interface SectionSkeletonProps {
  * Extract error message from various error formats
  */
 const getErrorMessage = (message: unknown, fallback: string = 'An error occurred'): string => {
+  // Note: fallback default is only used when called without explicit fallback; callers pass t() values
   if (!message) return fallback
   if (typeof message === 'string') return message
 
@@ -345,7 +347,7 @@ const submitSchema = yup.object().shape({
   reason_for_unsuitable: yup.string().when('is_suitable', {
     is: false,
     then: schema =>
-      schema.test('not-empty', 'Reason for unsuitable is required', value => (value?.trim()?.length ?? 0) > 0),
+      schema.test('not-empty', 'reason_unsuitable_required', value => (value?.trim()?.length ?? 0) > 0),
     otherwise: schema => schema.notRequired()
   }),
   confirmed_cause_of_death: yup
@@ -353,7 +355,7 @@ const submitSchema = yup.object().shape({
     .nullable()
     .when('is_suitable', {
       is: true,
-      then: schema => schema.test('required', 'Confirmed cause of death is required', value => value != null),
+      then: schema => schema.test('required', 'confirmed_cod_required', value => value != null),
       otherwise: schema => schema.nullable()
     }),
   disposal_method: yup
@@ -361,7 +363,7 @@ const submitSchema = yup.object().shape({
     .nullable()
     .when('is_suitable', {
       is: true,
-      then: schema => schema.test('required', 'Disposal method is required', value => value != null),
+      then: schema => schema.test('required', 'disposal_method_required', value => value != null),
       otherwise: schema => schema.nullable()
     }),
   weight_unit: yup
@@ -375,7 +377,7 @@ const submitSchema = yup.object().shape({
 
         return !isNaN(weightValue) && weightValue > 0
       },
-      then: schema => schema.test('required', 'Please select the weight unit', value => value != null),
+      then: schema => schema.test('required', 'select_weight_unit', value => value != null),
       otherwise: schema => schema.nullable()
     })
 })
@@ -407,6 +409,7 @@ const SectionSkeleton: FC<SectionSkeletonProps> = ({ fields = 2, hasLabel = true
 const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsyId, status }) => {
   const theme = useTheme<Theme>()
   const router: NextRouter = useRouter()
+  const { t } = useTranslation()
   const authData = useContext(AuthContext) as unknown as AuthContextData | null
 
   // Use cached form options from Redux (auto-fetches if not loaded)
@@ -955,13 +958,13 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
     if (!formValues.is_suitable) {
       if (!formValues.reason_for_unsuitable?.trim()) {
-        setDraftErrors({ reason_for_unsuitable: { message: 'Reason for unsuitable is required' } })
+        setDraftErrors({ reason_for_unsuitable: { message: t('necropsy_module.reason_unsuitable_required') } })
         Utility.scrollToField('reason_for_unsuitable')
 
         return
       }
       if (conductedByUsers.length === 0) {
-        setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
+        setDraftErrors({ conducted_by: { message: t('necropsy_module.at_least_one_user_required') } })
         Utility.scrollToField('conducted_by')
 
         return
@@ -970,19 +973,19 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
       // Only require weight unit if a meaningful weight value is entered (not 0, empty, or "0.00")
       const weightValue = parseFloat(formValues.carcass_weight)
       if (!isNaN(weightValue) && weightValue > 0 && !formValues.weight_unit) {
-        setDraftErrors({ weight_unit: { message: 'Weight unit is required when weight is provided' } })
+        setDraftErrors({ weight_unit: { message: t('necropsy_module.weight_unit_required') } })
         Utility.scrollToField('weight_unit')
 
         return
       }
       if (!formValues.confirmed_cause_of_death) {
-        setDraftErrors({ confirmed_cause_of_death: { message: 'Confirmed cause of death is required' } })
+        setDraftErrors({ confirmed_cause_of_death: { message: t('necropsy_module.confirmed_cod_required') } })
         Utility.scrollToField('confirmed_cause_of_death')
 
         return
       }
       if (conductedByUsers.length === 0) {
-        setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
+        setDraftErrors({ conducted_by: { message: t('necropsy_module.at_least_one_user_required') } })
         Utility.scrollToField('conducted_by')
 
         return
@@ -995,10 +998,10 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
       const res = isEditing ? await editNecropsy(fd as any) : await addNecropsy(fd as any)
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Draft saved successfully' })
+        Toaster({ type: 'success', message: res?.message || t('necropsy_module.draft_saved_successfully') })
         router.replace('/necropsy/necropsy')
       } else {
-        Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to save draft') })
+        Toaster({ type: 'error', message: getErrorMessage(res?.message, t('necropsy_module.failed_to_save_draft')) })
       }
     } catch (error) {
       console.error('Error saving draft:', error)
@@ -1009,7 +1012,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
   const onSubmit = async (formValues: NecropsyFormValues): Promise<void> => {
     if (conductedByUsers.length === 0) {
-      setDraftErrors({ conducted_by: { message: 'At least one user is required' } })
+      setDraftErrors({ conducted_by: { message: t('necropsy_module.at_least_one_user_required') } })
       Utility.scrollToField('conducted_by')
 
       return
@@ -1022,10 +1025,10 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
       const res = isEditing ? await editNecropsy(fd as any) : await addNecropsy(fd as any)
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Necropsy submitted successfully' })
+        Toaster({ type: 'success', message: res?.message || t('necropsy_module.necropsy_submitted_successfully') })
         router.replace('/necropsy/necropsy')
       } else {
-        Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to submit necropsy') })
+        Toaster({ type: 'error', message: getErrorMessage(res?.message, t('necropsy_module.failed_to_submit_necropsy')) })
       }
     } catch (error) {
       console.error('Error submitting necropsy:', error)
@@ -1044,11 +1047,11 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
       const res = await deleteNecropsy(payload as any)
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Draft deleted successfully' })
+        Toaster({ type: 'success', message: res?.message || t('necropsy_module.draft_deleted_successfully') })
         setDeleteDialogOpen(false)
         router.replace('/necropsy/necropsy')
       } else {
-        Toaster({ type: 'error', message: getErrorMessage(res?.message, 'Failed to delete draft') })
+        Toaster({ type: 'error', message: getErrorMessage(res?.message, t('necropsy_module.failed_to_delete_draft')) })
       }
     } catch (error) {
       console.error('Error deleting draft:', error)
@@ -1255,9 +1258,9 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
   }
 
   const FORM_TABS: FormTab[] = [
-    { key: 'carcass_details', label: 'Carcass Details' },
-    { key: 'examination_findings', label: 'Examination Findings' },
-    { key: 'conclusion', label: 'Conclusion' }
+    { key: 'carcass_details', label: t('necropsy_module.carcass_details') },
+    { key: 'examination_findings', label: t('necropsy_module.examination_findings') },
+    { key: 'conclusion', label: t('necropsy_module.conclusion') }
   ]
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string): void => {
@@ -1350,7 +1353,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Carcass Details
+                {t('necropsy_module.carcass_details')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 4, pb: 6, pt: 0 }}>
@@ -1369,7 +1372,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                 >
                   <ControlledSwitch
                     name='is_suitable'
-                    label='Carcass is suitable for necropsy'
+                    label={t('necropsy_module.carcass_suitable_for_necropsy')}
                     control={control}
                     errors={mergedErrors}
                     labelPosition='start'
@@ -1382,7 +1385,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                       control={control}
                       errors={mergedErrors}
                       rows={3}
-                      placeholder='Describe why the carcass is unsuitable for necropsy...'
+                      placeholder={t('necropsy_module.describe_unsuitable_placeholder')}
                     />
                   )}
                 </Box>
@@ -1390,31 +1393,31 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                 <Grid container spacing={6}>
                   <Grid size={{ xs: 12, lg: 6 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <Typography sx={labelSx}>Carcass Submission Date & Time</Typography>
+                      <Typography sx={labelSx}>{t('necropsy_module.carcass_submission_date_time')}</Typography>
                       <Grid container spacing={3}>
                         <Grid size={6}>
                           <ControlledDatePicker
                             name='caracass_submission_date'
                             control={control}
-                            label='Date'
+                            label={t('necropsy_module.date_label')}
                             maxDate={dayjs()}
                           />
                         </Grid>
                         <Grid size={6}>
-                          <ControlledTimePicker name='caracass_submission_time' control={control} label='Time' />
+                          <ControlledTimePicker name='caracass_submission_time' control={control} label={t('necropsy_module.time_label')} />
                         </Grid>
                       </Grid>
                     </Box>
                   </Grid>
                   <Grid size={{ xs: 12, lg: 6 }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                      <Typography sx={labelSx}>Date & Time of Death</Typography>
+                      <Typography sx={labelSx}>{t('necropsy_module.date_time_of_death')}</Typography>
                       <Grid container spacing={3}>
                         <Grid size={6}>
-                          <ControlledDatePicker name='death_date' control={control} label='Date' maxDate={dayjs()} />
+                          <ControlledDatePicker name='death_date' control={control} label={t('necropsy_module.date_label')} maxDate={dayjs()} />
                         </Grid>
                         <Grid size={6}>
-                          <ControlledTimePicker name='death_time' control={control} label='Time' />
+                          <ControlledTimePicker name='death_time' control={control} label={t('necropsy_module.time_label')} />
                         </Grid>
                       </Grid>
                     </Box>
@@ -1423,23 +1426,23 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
                 <Grid container spacing={6}>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography sx={labelSx}>Place of Death</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.place_of_death')}</Typography>
                     <ControlledTextField
                       name='place_of_death'
                       control={control}
                       errors={mergedErrors}
-                      label='Place of Death'
-                      placeholder='E.g. Enclosure A, Holding area...'
+                      label={t('necropsy_module.place_of_death')}
+                      placeholder={t('necropsy_module.place_of_death_placeholder')}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography sx={labelSx}>QR Number</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.qr_number')}</Typography>
                     <ControlledTextField
                       name='qr_number'
                       control={control}
                       errors={mergedErrors}
-                      label='QR Number'
-                      placeholder='Enter QR number'
+                      label={t('necropsy_module.qr_number')}
+                      placeholder={t('necropsy_module.enter_qr_number')}
                       disabled={!!necropsyData?.qr_number || !!mortalityData?.qr_number}
                     />
                   </Grid>
@@ -1447,14 +1450,14 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
 
                 <Grid container spacing={6}>
                   <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography sx={labelSx}>Carcass Weight</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.carcass_weight')}</Typography>
                     <Grid container spacing={3}>
                       <Grid size={6}>
                         <ControlledTextField
                           name='carcass_weight'
                           control={control}
                           errors={mergedErrors}
-                          label='Weight'
+                          label={t('necropsy_module.weight')}
                           type='number'
                           placeholder='0.00'
                         />
@@ -1464,21 +1467,21 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                           name='weight_unit'
                           control={control}
                           errors={mergedErrors}
-                          label='Unit'
+                          label={t('necropsy_module.unit')}
                           options={weightUnitOptions}
                         />
                       </Grid>
                     </Grid>
                     <ControlledSwitch
                       name='approximate_weight'
-                      label='Approximate weight'
+                      label={t('necropsy_module.approximate_weight')}
                       control={control}
                       errors={mergedErrors}
                       size='small'
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Typography sx={labelSx}>Age</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.age')}</Typography>
                     <Box
                       sx={{
                         display: 'flex',
@@ -1497,7 +1500,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                             color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
                           }}
                         >
-                          {getAgeDisplay() || 'Not set'}
+                          {getAgeDisplay() || t('necropsy_module.not_set')}
                           {watch('approximate_dob') && getAgeDisplay() && (
                             <Typography
                               component='span'
@@ -1507,7 +1510,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                                 color: theme.palette.text.secondary
                               }}
                             >
-                              (Approximate)
+                              {t('necropsy_module.approximate')}
                             </Typography>
                           )}
                         </Typography>
@@ -1522,7 +1525,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                           color: theme.palette.primary.main
                         }}
                       >
-                        Edit
+                        {t('necropsy_module.edit')}
                       </Button>
                     </Box>
                     {animalDOB && (
@@ -1534,21 +1537,21 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                           ml: 1
                         }}
                       >
-                        DOB: {dayjs(animalDOB).format('DD MMM YYYY')}
+                        {t('necropsy_module.dob_label')} {dayjs(animalDOB).format('DD MMM YYYY')}
                       </Typography>
                     )}
                   </Grid>
                 </Grid>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={labelSx}>Confirmed Sex</Typography>
+                  <Typography sx={labelSx}>{t('necropsy_module.confirmed_sex')}</Typography>
                   <Grid container spacing={6}>
                     <Grid size={{ xs: 12, sm: 6 }}>
                       <ControlledSelect
                         name='sex'
                         control={control}
                         errors={mergedErrors}
-                        label='Sex'
+                        label={t('necropsy_module.sex_label')}
                         options={sexOptions.map(s => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) }))}
                         getOptionLabel={(option: { value: string; label: string }) => option.label}
                         getOptionValue={(option: { value: string; label: string }) => option.value}
@@ -1558,13 +1561,13 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                 </Box>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={labelSx}>Clinical History</Typography>
+                  <Typography sx={labelSx}>{t('necropsy_module.clinical_history')}</Typography>
                   <ControlledTextArea
                     name='history_of_illness'
                     control={control}
                     errors={mergedErrors}
                     rows={3}
-                    placeholder='Enter clinical history, symptoms, treatments, and relevant medical background...'
+                    placeholder={t('necropsy_module.clinical_history_placeholder')}
                   />
                 </Box>
               </Box>
@@ -1594,26 +1597,26 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Examination Findings
+                {t('necropsy_module.examination_findings')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 4, pb: 6, pt: 0 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={labelSx}>General Description</Typography>
+                  <Typography sx={labelSx}>{t('necropsy_module.general_description')}</Typography>
                   <ControlledTextArea
                     name='general_description'
                     control={control}
                     errors={mergedErrors}
                     rows={3}
-                    placeholder='Describe the general gross findings, external condition, body condition score...'
+                    placeholder={t('necropsy_module.general_description_placeholder')}
                   />
                 </Box>
 
                 <NecropsyOrganSection organs={organs} onChange={setOrgans} />
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={labelSx}>Attachments</Typography>
+                  <Typography sx={labelSx}>{t('necropsy_module.attachments')}</Typography>
                   {existingAttachments.length > 0 && (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                       {existingAttachments.map((doc, index) => {
@@ -1682,7 +1685,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   <ControlledMultiFileUpload
                     name='attachments'
                     control={control}
-                    label='Upload Attatchments'
+                    label={t('necropsy_module.upload_attachments')}
                     maxFiles={10}
                     maxFileSize={10 * 1024 * 1024}
                     acceptedFileTypes='images,pdf,documents'
@@ -1714,7 +1717,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Conclusion
+                {t('necropsy_module.conclusion')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 4, pb: 3, pt: 0 }}>
@@ -1722,7 +1725,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                 {mortalityData?.manner_of_death && (
                   <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Grid size={{ xs: 12 }}>
-                      <Typography sx={labelSx}>Suspected Cause of Death</Typography>
+                      <Typography sx={labelSx}>{t('necropsy_module.suspected_cause_of_death_label')}</Typography>
                     </Grid>
                     <Grid
                       size={{ xs: 12, sm: 12, md: 6 }}
@@ -1746,33 +1749,33 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   </Grid>
                 )}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={labelSx}>Opinion (Cause of Death)</Typography>
+                  <Typography sx={labelSx}>{t('necropsy_module.opinion_cause_of_death_label')}</Typography>
                   <ControlledTextArea
                     name='opinion'
                     control={control}
                     errors={mergedErrors}
                     rows={2}
-                    placeholder='Enter your professional opinion on the cause of death...'
+                    placeholder={t('necropsy_module.opinion_placeholder')}
                   />
                 </Box>
                 <Grid container spacing={6}>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Confirmed Cause of Death after Necropsy</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.confirmed_cause_of_death_after_necropsy')}</Typography>
                     <ControlledAutocomplete
                       name='confirmed_cause_of_death'
                       control={control}
                       errors={mergedErrors}
-                      label='Confirmed Cause After Necropsy'
+                      label={t('necropsy_module.confirmed_cause_after_necropsy')}
                       options={mannerOfDeathOptions}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Disposal Method</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.disposal_method_label')}</Typography>
                     <ControlledAutocomplete
                       name='disposal_method'
                       control={control}
                       errors={mergedErrors}
-                      label='Disposal Method'
+                      label={t('necropsy_module.disposal_method_label')}
                       options={disposalOptions}
                     />
                   </Grid>
@@ -1781,16 +1784,16 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   <Typography
                     sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Additional Details
+                    {t('necropsy_module.additional_details')}
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Biological Tests Done (if any)</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.biological_tests_done')}</Typography>
                     <ControlledTextArea
                       name='biological_test'
                       control={control}
                       errors={mergedErrors}
                       rows={3}
-                      placeholder='Enter any biological tests performed...'
+                      placeholder={t('necropsy_module.biological_tests_placeholder')}
                     />
                   </Box>
                 </Box>
@@ -1798,26 +1801,26 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   <Typography
                     sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Necropsy Details
+                    {t('necropsy_module.necropsy_details')}
                   </Typography>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography sx={labelSx}>Necropsy Date & Time</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.necropsy_date_time')}</Typography>
                     <Grid container spacing={3}>
                       <Grid size={6}>
-                        <ControlledDatePicker name='necropsy_date' control={control} label='Date' maxDate={dayjs()} />
+                        <ControlledDatePicker name='necropsy_date' control={control} label={t('necropsy_module.date_label')} maxDate={dayjs()} />
                       </Grid>
                       <Grid size={6}>
-                        <ControlledTimePicker name='necropsy_time' control={control} label='Time' />
+                        <ControlledTimePicker name='necropsy_time' control={control} label={t('necropsy_module.time_label')} />
                       </Grid>
                     </Grid>
                   </Box>
 
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }} data-field='conducted_by'>
-                    <Typography sx={labelSx}>Necropsy Conducted By</Typography>
+                    <Typography sx={labelSx}>{t('necropsy_module.necropsy_conducted_by')}</Typography>
                     <UserMultiSelect
                       selectedUsers={conductedByUsers}
                       onChange={setConductedByUsers}
-                      label='Search users by name'
+                      label={t('necropsy_module.search_users_by_name')}
                     />
                     {mergedErrors.conducted_by && (
                       <FormHelperText sx={{ color: 'error.main', mt: -2 }}>
@@ -1838,7 +1841,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Notes (Optional)
+                {t('necropsy_module.notes_optional')}
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -1847,7 +1850,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                     control={control}
                     errors={mergedErrors}
                     rows={2}
-                    placeholder='Enter'
+                    placeholder={t('necropsy_module.enter_placeholder')}
                     inputBackgroundColor={theme.palette.customColors.antzNotes}
                   />
                 </Box>
@@ -1862,8 +1865,8 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
         onSubmit={handleSubmit(onSubmit, onValidationError)}
         loading={submitLoading}
         disabled={isAnyLoading}
-        cancelLabel='Cancel'
-        submitLabel='Submit'
+        cancelLabel={t('necropsy_module.cancel_label')}
+        submitLabel={t('necropsy_module.submit')}
         showCancel={!isCompletedEdit}
         cancelBtnStyle={{
           color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
@@ -1888,7 +1891,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
               borderColor: theme.palette.primary.main
             }}
           >
-            {draftLoading ? <CircularProgress size={22} /> : 'Save as Draft'}
+            {draftLoading ? <CircularProgress size={22} /> : t('necropsy_module.save_as_draft')}
           </Button>
         )}
       </BottomActionBar>
@@ -1898,15 +1901,15 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
         onClose={() => setDeleteDialogOpen(false)}
         PaperProps={{ sx: { borderRadius: 3, minWidth: 400 } }}
       >
-        <DialogTitle sx={{ fontWeight: 600, fontSize: '18px', pb: 1 }}>Delete Draft</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600, fontSize: '18px', pb: 1 }}>{t('necropsy_module.delete_draft')}</DialogTitle>
         <DialogContent>
           <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
-            Are you sure you want to delete this draft? This action cannot be undone.
+            {t('necropsy_module.delete_draft_confirmation')}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ p: 5, pt: 2 }}>
           <Button onClick={() => setDeleteDialogOpen(false)} disabled={deleteLoading} sx={{ fontWeight: 600 }}>
-            Cancel
+            {t('necropsy_module.cancel_label')}
           </Button>
           <Button
             onClick={handleDeleteDraft}
@@ -1915,7 +1918,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
             disabled={deleteLoading}
             sx={{ fontWeight: 600 }}
           >
-            {deleteLoading ? <CircularProgress size={22} color='inherit' /> : 'Delete'}
+            {deleteLoading ? <CircularProgress size={22} color='inherit' /> : t('necropsy_module.delete')}
           </Button>
         </DialogActions>
       </Dialog>
@@ -1924,10 +1927,10 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
         dialogBoxStatus={unsuitableDialogOpen}
         onClose={handleCancelUnsuitable}
         icon='mdi:alert-circle-outline'
-        title='Mark as Unsuitable?'
-        description='Are you sure you want to mark this carcass as unsuitable for necropsy? You will need to provide a reason.'
-        cancelText='No'
-        ConfirmationText='Yes'
+        title={t('necropsy_module.mark_as_unsuitable')}
+        description={t('necropsy_module.mark_unsuitable_confirmation')}
+        cancelText={t('necropsy_module.no_label')}
+        ConfirmationText={t('necropsy_module.yes_label')}
         confirmAction={handleConfirmUnsuitable}
       />
 
@@ -1939,7 +1942,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
         PaperProps={{ sx: { borderRadius: 3 } }}
       >
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-          <Typography sx={{ fontWeight: 600, fontSize: '18px' }}>Update Age</Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: '18px' }}>{t('necropsy_module.update_age')}</Typography>
           <IconButton size='small' onClick={handleCancelAgeDialog}>
             <CloseIcon />
           </IconButton>
@@ -1950,7 +1953,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
               <Grid size={4}>
                 <TextField
                   fullWidth
-                  label='Years'
+                  label={t('necropsy_module.years')}
                   type='number'
                   value={ageInputs.years}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAgeInputChange('years', e.target.value)}
@@ -1960,7 +1963,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
               <Grid size={4}>
                 <TextField
                   fullWidth
-                  label='Months'
+                  label={t('necropsy_module.months')}
                   type='number'
                   value={ageInputs.months}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAgeInputChange('months', e.target.value)}
@@ -1970,7 +1973,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
               <Grid size={4}>
                 <TextField
                   fullWidth
-                  label='Days'
+                  label={t('necropsy_module.days')}
                   type='number'
                   value={ageInputs.days}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleAgeInputChange('days', e.target.value)}
@@ -1989,7 +1992,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                 }}
               >
                 <Typography sx={{ fontSize: '0.875rem', color: theme.palette.text.secondary }}>
-                  DOB: {calculateDOBFromInputs()?.format('DD MMM YYYY')}
+                  {t('necropsy_module.dob_label')} {calculateDOBFromInputs()?.format('DD MMM YYYY')}
                 </Typography>
               </Box>
             )}
@@ -2002,7 +2005,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                   size='small'
                 />
               }
-              label='Mark as approximate'
+              label={t('necropsy_module.mark_as_approximate')}
               sx={{
                 '& .MuiFormControlLabel-label': {
                   fontSize: '0.875rem',
@@ -2014,7 +2017,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 2 }}>
           <Button variant='outlined' onClick={handleCancelAgeDialog} sx={{ fontWeight: 600 }}>
-            Cancel
+            {t('necropsy_module.cancel_label')}
           </Button>
           <Button
             variant='contained'
@@ -2022,7 +2025,7 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
             sx={{ fontWeight: 600 }}
             disabled={!ageInputs.years && !ageInputs.months && !ageInputs.days}
           >
-            Apply
+            {t('necropsy_module.apply')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -3,6 +3,7 @@ import { Box, Typography, Skeleton, CircularProgress, Dialog, IconButton } from 
 import { alpha } from '@mui/material/styles'
 import { ExpandMore, Science, Close } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 import Utility from 'src/utility'
 import { getLabRequestsByAnimal } from 'src/lib/api/necropsy/medicalHistory'
 import LabRequestDetailsDrawer from './LabRequestDetailsDrawer'
@@ -69,10 +70,17 @@ interface LegendStatus {
 const SUB_TABS = ['Pending', 'Completed', 'All'] as const
 type SubTabType = (typeof SUB_TABS)[number]
 
+const SUB_TAB_KEYS: Record<SubTabType, string> = {
+  'Pending': 'necropsy_module.pending',
+  'Completed': 'necropsy_module.completed_status',
+  'All': 'all'
+}
+
 // ==================== Component ====================
 
 const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Pending')
   const [data, setData] = useState<LabRequestItem[]>([])
   const [pageNo, setPageNo] = useState<number>(1)
@@ -300,7 +308,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
                     fontWeight: 500
                   }}
                 >
-                  {tab}
+                  {t(SUB_TAB_KEYS[tab])}
                 </Typography>
               </Box>
             ))}
@@ -330,7 +338,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
               color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
             }}
           >
-            Legends
+            {t('necropsy_module.legends')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center', mt: 0.5 }}>
             <Box
@@ -399,7 +407,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
               fontWeight: 400
             }}
           >
-            No Lab Requests Found
+            {t('necropsy_module.no_lab_requests_found')}
           </Typography>
         </Box>
       ) : (
@@ -477,7 +485,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
                         mb: 3
                       }}
                     >
-                      Case ID:{' '}
+                      {t('necropsy_module.case_id')}{' '}
                       <Typography
                         component='span'
                         sx={{
@@ -507,7 +515,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
                           mb: 1
                         }}
                       >
-                        Tests{' '}
+                        {t('necropsy_module.tests')}{' '}
                         <Typography
                           component='span'
                           sx={{
@@ -587,7 +595,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
                           mb: 1
                         }}
                       >
-                        Samples{' '}
+                        {t('necropsy_module.samples')}{' '}
                         <Typography
                           component='span'
                           sx={{
@@ -684,7 +692,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
                     }
                   }}
                 >
-                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>Load More</Typography>
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }}>{t('necropsy_module.load_more')}</Typography>
                   <ExpandMore fontSize='small' />
                 </Box>
               )}
@@ -693,7 +701,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
 
           {!hasMore && data.length > 10 && (
             <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled, fontSize: '0.8125rem' }}>
-              All lab requests loaded
+              {t('necropsy_module.all_lab_requests_loaded')}
             </Typography>
           )}
         </Box>
@@ -733,7 +741,7 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
               color: theme.palette.customColors?.OnPrimaryContainer
             }}
           >
-            Legends
+            {t('necropsy_module.legends')}
           </Typography>
           <IconButton onClick={() => setLegendModalVisible(false)} size='small'>
             <Close sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
@@ -749,12 +757,12 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
               mb: 1.5
             }}
           >
-            Request Priority
+            {t('necropsy_module.request_priority')}
           </Typography>
           <Box sx={{ display: 'flex', gap: 4 }}>
             {[
-              { label: 'Low', color: theme.palette.customColors?.Secondary },
-              { label: 'High', color: theme.palette.customColors?.Tertiary }
+              { label: t('necropsy_module.low'), color: theme.palette.customColors?.Secondary },
+              { label: t('necropsy_module.high'), color: theme.palette.customColors?.Tertiary }
             ].map((priority: LegendPriority) => (
               <Box key={priority.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <Box
@@ -792,13 +800,13 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
               mb: 1.5
             }}
           >
-            Test Status
+            {t('necropsy_module.test_status')}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {[
-              { label: 'Completed', color: theme.palette.primary.main },
-              { label: 'Pending', color: theme.palette.customColors?.Tertiary || theme.palette.info.main },
-              { label: 'In Progress', color: theme.palette.warning.main }
+              { label: t('necropsy_module.completed_status'), color: theme.palette.primary.main },
+              { label: t('necropsy_module.pending'), color: theme.palette.customColors?.Tertiary || theme.palette.info.main },
+              { label: t('necropsy_module.in_progress'), color: theme.palette.warning.main }
             ].map((status: LegendStatus) => (
               <Box
                 key={status.label}
@@ -832,13 +840,13 @@ const LabRequestsList: FC<LabRequestsListProps> = ({ animalId, mortalityId, mort
               mb: 1.5
             }}
           >
-            Sample Status
+            {t('necropsy_module.sample_status')}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             {[
-              { label: 'Received', color: theme.palette.primary.main },
-              { label: 'Not Received', color: theme.palette.customColors?.Tertiary },
-              { label: 'Rejected', color: theme.palette.error.main }
+              { label: t('necropsy_module.received_status'), color: theme.palette.primary.main },
+              { label: t('necropsy_module.not_received'), color: theme.palette.customColors?.Tertiary },
+              { label: t('necropsy_module.rejected'), color: theme.palette.error.main }
             ].map((status: LegendStatus) => (
               <Box
                 key={status.label}

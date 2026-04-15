@@ -17,6 +17,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import { getTransferStatus } from 'src/pages/necropsy/necropsy'
 import { DateFilter, PaginationModel, NecropsyFilters, AnimalNecropsyItem } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 // ==================== Types ====================
 
@@ -63,18 +64,18 @@ interface IndexedAnimalRow extends AnimalRow {
 
 // ==================== Helper Functions ====================
 
-const getNecropsyTitleByStatus = (status?: NecropsyStatus): string => {
+const getNecropsyTitleByStatus = (status: NecropsyStatus | undefined, t: (key: string) => string): string => {
   switch (status) {
     case 'INCOMING':
-      return 'Incoming Necropsy'
+      return t('necropsy_module.incoming_necropsy')
     case 'PENDING':
-      return 'Pending Necropsy'
+      return t('necropsy_module.pending_necropsy_title')
     case 'DRAFT':
-      return 'Draft Necropsy'
+      return t('necropsy_module.draft_necropsy')
     case 'COMPLETED':
-      return 'Completed Necropsy'
+      return t('necropsy_module.completed_necropsy')
     default:
-      return 'Necropsy'
+      return t('necropsy_module.necropsy')
   }
 }
 
@@ -89,6 +90,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
 }) => {
   const theme = useTheme()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const handleBack = (): void => {
     router.back()
@@ -126,9 +128,12 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
     endDate: null
   })
 
-  const prepareFilterArray = useCallback((key: keyof SelectedFilterOptions, options: SelectedFilterOptions): string | undefined => {
-    return options[key]?.length > 0 ? JSON.stringify(options[key]) : undefined
-  }, [])
+  const prepareFilterArray = useCallback(
+    (key: keyof SelectedFilterOptions, options: SelectedFilterOptions): string | undefined => {
+      return options[key]?.length > 0 ? JSON.stringify(options[key]) : undefined
+    },
+    []
+  )
 
   const fetchAnimalData = async (): Promise<void> => {
     if (!taxonomyId || !selectedNecropsy?.id) {
@@ -264,7 +269,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
       width: 100,
       sortable: false,
       field: 'sl_no',
-      headerName: 'SL. NO',
+      headerName: t('necropsy_module.sl_no'),
       renderCell: (params: GridRenderCellParams<IndexedAnimalRow>) => (
         <Typography
           variant='body2'
@@ -279,7 +284,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: 'Animal Name & ID',
+      headerName: t('necropsy_module.animal_name_and_id'),
       renderCell: (params: GridRenderCellParams<IndexedAnimalRow>) => (
         <>
           <AnimalCard data={params?.row} />
@@ -291,7 +296,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
       minWidth: 20,
       sortable: false,
       field: 'priority',
-      headerName: 'Priority',
+      headerName: t('necropsy_module.necropsy_priority'),
       renderCell: (params: GridRenderCellParams<IndexedAnimalRow>) => {
         const priority = params.row.priority?.toLowerCase()
         const isHigh = priority === 'high'
@@ -323,7 +328,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
             minWidth: 20,
             sortable: false,
             field: 'transfer_code',
-            headerName: 'Transfer Id & Status',
+            headerName: t('necropsy_module.transfer_id_and_status_col'),
             renderCell: (params: GridRenderCellParams<IndexedAnimalRow>) => (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Tooltip title={params.row.transfer_code || ''} placement='top'>
@@ -338,7 +343,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
                     {params.row.transfer_code}
                   </Typography>
                 </Tooltip>
-                <Tooltip title={getTransferStatus(params.row)} placement='top'>
+                <Tooltip title={getTransferStatus(params.row, t)} placement='top'>
                   <Typography
                     sx={{
                       fontSize: '14px',
@@ -346,7 +351,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
                       color: theme.palette.customColors.OnPrimaryContainer
                     }}
                   >
-                    {getTransferStatus(params.row)}
+                    {getTransferStatus(params.row, t)}
                   </Typography>
                 </Tooltip>
                 <Tooltip
@@ -354,7 +359,8 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
                   placement='top'
                 >
                   <Typography sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.neutral_50 }}>
-                    Since <span>{Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}</span>
+                    {t('necropsy_module.since')}{' '}
+                    <span>{Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}</span>
                     <span> &bull; </span> {Utility.convertUTCToLocaltime(params?.row?.transfer_modified_at)}
                   </Typography>
                 </Tooltip>
@@ -370,7 +376,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
             minWidth: 20,
             sortable: false,
             field: 'request_id',
-            headerName: 'Request ID',
+            headerName: t('necropsy_module.request_id'),
             renderCell: (params: GridRenderCellParams<IndexedAnimalRow>) => (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Tooltip title={params.row.request_id || ''} placement='top'>
@@ -396,7 +402,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
                           color: theme.palette.customColors.Tertiary
                         }}
                       >
-                        Unsuitable for necropsy
+                        {t('necropsy_module.unsuitable_for_necropsy')}
                       </Typography>
                     </Tooltip>
                   </Box>
@@ -413,14 +419,14 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
       field: 'action_by',
       headerName:
         status === 'INCOMING'
-          ? 'Requested By'
+          ? t('necropsy_module.requested_by')
           : status === 'PENDING'
-          ? 'Requested By'
+          ? t('necropsy_module.requested_by')
           : status === 'DRAFT'
-          ? 'Draft Saved By'
+          ? t('necropsy_module.draft_saved_by')
           : status === 'COMPLETED'
-          ? 'Completed By'
-          : 'Requested By',
+          ? t('necropsy_module.completed_by')
+          : t('necropsy_module.requested_by'),
       renderCell: (params: GridRenderCellParams<IndexedAnimalRow>) => {
         const row = params.row
         const isIncomingOrPending = status === 'INCOMING' || status === 'PENDING'
@@ -445,7 +451,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
           filterDate={filterDate}
           setFilterDate={setFilterDate}
           showCarcassTransferButton={false}
-          title={getNecropsyTitleByStatus(status)}
+          title={getNecropsyTitleByStatus(status, t)}
           showBackButton={true}
           onBack={handleBack}
         />
@@ -519,14 +525,14 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
           filterDate={filterDate}
           setFilterDate={setFilterDate}
           showCarcassTransferButton={false}
-          title={getNecropsyTitleByStatus(status)}
+          title={getNecropsyTitleByStatus(status, t)}
           showBackButton={true}
           onBack={handleBack}
         />
         <Card sx={{ mt: 6 }}>
           <CardContent sx={{ textAlign: 'center', py: 8 }}>
             <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
-              Please select a necropsy center to view animals.
+              {t('necropsy_module.select_necropsy_center_message')}
             </Typography>
           </CardContent>
         </Card>
@@ -540,7 +546,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
         filterDate={filterDate}
         setFilterDate={setFilterDate}
         showCarcassTransferButton={false}
-        title={getNecropsyTitleByStatus(status)}
+        title={getNecropsyTitleByStatus(status, t)}
         showBackButton={true}
         onBack={handleBack}
       />
@@ -570,7 +576,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
                     color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
                   }}
                 >
-                  {speciesName || 'Species'}
+                  {speciesName || t('necropsy_module.species')}
                 </Typography>
                 {scientificName && (
                   <Typography
@@ -613,7 +619,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
                   fontSize: '13px'
                 }
               }}
-              placeholder='Search by tag or ID...'
+              placeholder={t('necropsy_module.search_by_tag_or_id')}
             />
             <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
           </Box>

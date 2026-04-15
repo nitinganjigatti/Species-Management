@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -82,6 +83,7 @@ interface SelectOrganDrawerProps {
 // ==================== Component ====================
 
 const SelectOrganDrawer: FC<SelectOrganDrawerProps> = ({ open, setOpen, selectedOrgans, onAddSelected }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   const [search, setSearch] = useState<string>('')
@@ -312,7 +314,7 @@ const SelectOrganDrawer: FC<SelectOrganDrawerProps> = ({ open, setOpen, selected
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
             {/* <Icon icon='mdi:human-male' fontSize={32} color={theme.palette.primary.main} /> */}
             <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Select Organs
+              {t('necropsy_module.select_organs')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -322,7 +324,7 @@ const SelectOrganDrawer: FC<SelectOrganDrawerProps> = ({ open, setOpen, selected
 
         <Box sx={{ px: 6, pt: 6, pb: 3, flexShrink: 0 }}>
           <Search
-            placeholder='Search Organs'
+            placeholder={t('necropsy_module.search_organs')}
             value={search}
             onChange={handleSearchChange}
             onClear={handleSearchClear}
@@ -399,7 +401,7 @@ const SelectOrganDrawer: FC<SelectOrganDrawerProps> = ({ open, setOpen, selected
             onClick={handleToggleAll}
           >
             <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              {isAllSelected ? 'Deselect all' : 'Select all'}
+              {isAllSelected ? t('deselect_all') : t('select_all')}
             </Typography>
             <Checkbox checked={isAllSelected} />
           </Box>
@@ -501,7 +503,7 @@ const SelectOrganDrawer: FC<SelectOrganDrawerProps> = ({ open, setOpen, selected
           }}
         >
           <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurface }}>
-            Selected - {localSelected.length}
+            {t('necropsy_module.selected_count', { count: localSelected.length })}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
             <Button
@@ -514,10 +516,10 @@ const SelectOrganDrawer: FC<SelectOrganDrawerProps> = ({ open, setOpen, selected
                 height: '56px'
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button variant='contained' fullWidth onClick={handleAdd} sx={{ height: '56px' }}>
-              Add
+              {t('add')}
             </Button>
           </Box>
         </Box>

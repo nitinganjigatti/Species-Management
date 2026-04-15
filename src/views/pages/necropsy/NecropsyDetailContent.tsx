@@ -35,6 +35,7 @@ import NecropsyTimelineDrawer from 'src/components/necropsy/NecropsyTimelineDraw
 import NecropsySummaryContent from './NecropsySummaryContent'
 import MortalityReportSection from './MortalityReportSection'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 // ==================== Types ====================
 
@@ -73,6 +74,7 @@ interface NecropsyData {
 const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, status }) => {
   const theme = useTheme()
   const router = useRouter()
+  const { t } = useTranslation()
 
   const [mortalityData, setMortalityData] = useState<MortalityData | null>(null)
   const [necropsyData, setNecropsyData] = useState<NecropsyData | null>(null)
@@ -107,7 +109,7 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
       }
     } catch (error) {
       console.error('Error fetching data:', error)
-      Toaster({ type: 'error', message: 'Failed to load necropsy details' })
+      Toaster({ type: 'error', message: t('necropsy_module.failed_to_load_necropsy_details') })
     } finally {
       setLoading(false)
     }
@@ -137,7 +139,7 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
       })
     } catch (error) {
       console.error('Error downloading PDF:', error)
-      Toaster({ type: 'error', message: 'Failed to download PDF' })
+      Toaster({ type: 'error', message: t('necropsy_module.failed_to_download_pdf') })
     } finally {
       setPdfLoading(false)
     }
@@ -222,9 +224,9 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
     return (
       <Card>
         <CardContent sx={{ textAlign: 'center', py: 8 }}>
-          <Typography color='text.secondary'>No mortality data found for this record.</Typography>
+          <Typography color='text.secondary'>{t('necropsy_module.no_mortality_data_found')}</Typography>
           <Button variant='outlined' sx={{ mt: 2 }} onClick={() => router.push(`/necropsy?status=${status}`)}>
-            Back to Listing
+            {t('necropsy_module.back_to_listing')}
           </Button>
         </CardContent>
       </Card>
@@ -293,11 +295,11 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
               <Typography
                 sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceContainer }}
               >
-                {necropsyData?.user_profile?.name || 'Unknown'}
+                {necropsyData?.user_profile?.name || t('necropsy_module.unknown')}
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.Tertiary }}>
-                  Saved as draft
+                  {t('necropsy_module.saved_as_draft')}
                 </Typography>
                 <Typography
                   sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -338,7 +340,7 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Medical History
+                {t('necropsy_module.medical_history')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
@@ -374,7 +376,7 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                Assessments
+                {t('necropsy_module.assessments')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
@@ -389,8 +391,8 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
       <BottomActionBar
         onCancel={() => router.push(`/necropsy/necropsy?status=${status}`)}
         onSubmit={isDraft ? handleContinueEditing : handleStartNecropsy}
-        cancelLabel='CANCEL'
-        submitLabel={isDraft ? 'CONTINUE EDITING' : 'ADD NECROPSY'}
+        cancelLabel={t('necropsy_module.cancel')}
+        submitLabel={isDraft ? t('necropsy_module.continue_editing') : t('necropsy_module.add_necropsy')}
         cancelBtnStyle={{
           color: theme.palette.customColors?.OnPrimaryContainer || theme.palette.text.primary,
           borderColor: theme.palette.customColors?.OnPrimaryContainer || theme.palette.divider
@@ -411,7 +413,7 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
                 color: theme.palette.customColors?.neutralSecondary
               }}
             >
-              Current Status <span> &bull; </span>
+              {t('necropsy_module.current_status')} <span> &bull; </span>
             </Typography>
             <Typography
               sx={{
@@ -441,7 +443,7 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
                     color: theme.palette.primary.main
                   }}
                 >
-                  See all
+                  {t('necropsy_module.see_all_label')}
                 </Typography>
                 <Icon icon='mdi:chevron-right' fontSize={20} color={theme.palette.primary.main} />
               </Box>
@@ -454,7 +456,7 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
               color: theme.palette.customColors?.OnSurfaceVariant
             }}
           >
-            {isDraft ? 'Draft' : 'Pending'}
+            {isDraft ? t('necropsy_module.draft') : t('necropsy_module.pending')}
           </Typography>
         </Box>
       </BottomActionBar>

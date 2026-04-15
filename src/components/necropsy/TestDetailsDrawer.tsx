@@ -1,4 +1,5 @@
 import React, { memo, FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Drawer, IconButton, Typography, Skeleton, Theme } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -25,6 +26,7 @@ interface TestDetailsDrawerProps {
 }
 
 const TestDetailsDrawer: FC<TestDetailsDrawerProps> = ({ open, onClose, selectedTest, subTests, loading }) => {
+  const { t } = useTranslation()
   const theme = useTheme<Theme>()
 
   return (
@@ -114,7 +116,7 @@ const TestDetailsDrawer: FC<TestDetailsDrawerProps> = ({ open, onClose, selected
                 mb: 2
               }}
             >
-              Tests - {subTests.length}
+              {t('necropsy_module.tests_count', { count: subTests.length })}
             </Typography>
             <Box
               sx={{
@@ -138,7 +140,7 @@ const TestDetailsDrawer: FC<TestDetailsDrawerProps> = ({ open, onClose, selected
                       color: (theme.palette as any).customColors?.OnSurfaceVariant || theme.palette.text.primary
                     }}
                   >
-                    {subTest.subTestName || subTest.testName || `Sub Test ${index + 1}`}
+                    {subTest.subTestName || subTest.testName || t('necropsy_module.sub_test_index', { index: index + 1 })}
                   </Typography>
                 </Box>
               ))}
@@ -146,7 +148,7 @@ const TestDetailsDrawer: FC<TestDetailsDrawerProps> = ({ open, onClose, selected
           </Box>
         ) : (
           <Box sx={{ py: 6 }}>
-            <NoDataFound message='No sub-tests found' />
+            <NoDataFound message={t('necropsy_module.no_sub_tests_found')} />
           </Box>
         )}
       </Box>

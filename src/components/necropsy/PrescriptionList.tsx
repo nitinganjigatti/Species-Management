@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FC, memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Chip, Skeleton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { FiberManualRecord, Timeline as FrequencyIcon, CalendarToday as CalendarIcon } from '@mui/icons-material'
@@ -61,6 +62,7 @@ type SubTabType = (typeof SUB_TABS)[number]
 // ==================== Component ====================
 
 const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
   const [data, setData] = useState<PrescriptionSection[]>([])
@@ -162,10 +164,10 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
       const end = new Date(item.end_date)
       const diffMs = end.getTime() - start.getTime()
       const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-      if (diffDays <= 0) return 'For 1 Day'
-      if (diffDays === 1) return 'For 1 Day'
+      if (diffDays <= 0) return t('necropsy_module.for_1_day')
+      if (diffDays === 1) return t('necropsy_module.for_1_day')
 
-      return `For ${diffDays} Days`
+      return t('necropsy_module.for_x_days', { count: diffDays })
     }
 
     return null
@@ -274,7 +276,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
                     fontWeight: 500
                   }}
                 >
-                  {`${tab} - ${getTabCount(tab)}`}
+                  {`${tab === 'Active' ? t('active') : tab === 'Stopped' ? t('necropsy_module.stopped') : t('all')} - ${getTabCount(tab)}`}
                 </Typography>
               </Box>
             ))}
@@ -301,13 +303,13 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
               fontWeight: 400
             }}
           >
-            No Prescriptions Recorded
+            {t('necropsy_module.no_prescriptions_recorded')}
           </Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {data.map((section, sectionIdx) => {
-            const medRecordId = section.medical_record_id || 'N/A'
+            const medRecordId = section.medical_record_id || t('necropsy_module.na')
             const prescriptions: PrescriptionItem[] = Array.isArray(section.data) ? section.data : []
 
             if (prescriptions.length === 0) return null
@@ -328,7 +330,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                   {prescriptions.map((item, index) => {
                     const stopped = isStopped(item)
-                    const medicineName = item.name || item.medicine_name || 'N/A'
+                    const medicineName = item.name || item.medicine_name || t('necropsy_module.na')
                     const frequency = item.frequency
                     const dosageChips = buildDosageChips(item)
                     const durationText = getDurationText(item)
@@ -501,7 +503,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
                     '&:hover': { textDecoration: 'underline' }
                   }}
                 >
-                  Load More
+                  {t('necropsy_module.load_more')}
                 </Typography>
               )}
             </Box>
@@ -509,7 +511,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
 
           {!hasMore && data.length > 10 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-              No more prescriptions to load
+              {t('necropsy_module.no_more_prescriptions_to_load')}
             </Typography>
           )}
         </Box>

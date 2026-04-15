@@ -7,6 +7,7 @@ import { NecropsyProvider } from 'src/context/NecropsyContext'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { NextPage } from 'next'
 import { ParsedUrlQuery } from 'querystring'
+import { useTranslation } from 'react-i18next'
 
 // ==================== Types & Interfaces ====================
 
@@ -22,6 +23,7 @@ type NecropsyReportStatus = 'PENDING' | 'DRAFT' | 'COMPLETED' | 'UNSUITABLE'
 
 const NecropsyReport: NextPage = () => {
   const router: NextRouter = useRouter()
+  const { t } = useTranslation()
   const { id, necropsy_id, status } = router.query as NecropsyReportQuery
 
   if (!id) return null
@@ -32,14 +34,14 @@ const NecropsyReport: NextPage = () => {
     const normalizedStatus = effectiveStatus?.toUpperCase() as NecropsyReportStatus
     switch (normalizedStatus) {
       case 'PENDING':
-        return 'Pending'
+        return t('necropsy_module.pending')
       case 'DRAFT':
-        return 'Draft'
+        return t('necropsy_module.draft')
       case 'COMPLETED':
       case 'UNSUITABLE':
-        return 'Completed'
+        return t('necropsy_module.completed_label')
       default:
-        return 'Pending'
+        return t('necropsy_module.pending')
     }
   }
 
@@ -54,7 +56,7 @@ const NecropsyReport: NextPage = () => {
               underline='hover'
               color='inherit'
             >
-              Necropsy
+              {t('necropsy_module.necropsy')}
             </MuiLink>
             <MuiLink
               component={NextLink}
@@ -70,10 +72,10 @@ const NecropsyReport: NextPage = () => {
               underline='hover'
               color='inherit'
             >
-              Details
+              {t('necropsy_module.details')}
             </MuiLink>
             <Typography color='text.primary' sx={{ fontWeight: 500 }}>
-              {necropsy_id ? 'Edit Report' : 'New Report'}
+              {necropsy_id ? t('necropsy_module.edit_report') : t('necropsy_module.new_report')}
             </Typography>
           </Breadcrumbs>
         </Box>

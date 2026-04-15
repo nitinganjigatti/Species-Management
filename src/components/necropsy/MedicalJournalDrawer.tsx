@@ -2,6 +2,7 @@ import React, { useState, useEffect, FC, memo } from 'react'
 import { Drawer, Box, Typography, IconButton, Skeleton, CircularProgress, Avatar, Tooltip } from '@mui/material'
 import { alpha, useTheme, Theme } from '@mui/material/styles'
 import { Close as CloseIcon, Person as PersonIcon, CalendarToday as CalendarIcon } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import { getMedicalJournalLogs } from 'src/lib/api/necropsy/medicalHistory'
 import Utility from 'src/utility'
 
@@ -293,6 +294,7 @@ const JournalCard: FC<JournalCardProps> = ({ entry, theme, formatKey, formatDeta
 
 const MedicalJournalDrawer: FC<MedicalJournalDrawerProps> = ({ open, onClose, animalId, medicalRecordId }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(true)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
   const [journalData, setJournalData] = useState<JournalGroup[]>([])
@@ -419,7 +421,7 @@ const MedicalJournalDrawer: FC<MedicalJournalDrawerProps> = ({ open, onClose, an
         }}
       >
         <Typography sx={{ fontSize: '18px', fontWeight: 600, color: theme.palette.text.primary }}>
-          Medical Journal
+          {t('necropsy_module.medical_journal')}
         </Typography>
         <IconButton onClick={onClose} size='small'>
           <CloseIcon />
@@ -431,7 +433,7 @@ const MedicalJournalDrawer: FC<MedicalJournalDrawerProps> = ({ open, onClose, an
           renderShimmer()
         ) : journalData.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color='text.secondary'>No journal entries found</Typography>
+            <Typography color='text.secondary'>{t('necropsy_module.no_journal_entries_found')}</Typography>
           </Box>
         ) : (
           <Box>
@@ -509,7 +511,7 @@ const MedicalJournalDrawer: FC<MedicalJournalDrawerProps> = ({ open, onClose, an
                       '&:hover': { textDecoration: 'underline' }
                     }}
                   >
-                    Load More
+                    {t('necropsy_module.load_more')}
                   </Typography>
                 )}
               </Box>

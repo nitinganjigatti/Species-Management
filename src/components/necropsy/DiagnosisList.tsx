@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import ClinicalAssessmentCard from 'src/views/pages/hospital/inpatient/ClinicalAssessmentCard'
@@ -46,6 +47,7 @@ const SUB_TABS: SubTabType[] = ['Active', 'Resolved', 'All']
 
 const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
+  const { t } = useTranslation('common')
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
   const [data, setData] = useState<DiagnosisRecord[]>([])
   const [counts, setCounts] = useState<DiagnosisCounts>({ active: 0, closed: 0, all: 0 })
@@ -178,7 +180,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
                     fontWeight: 500
                   }}
                 >
-                  {`${tab} - ${getTabCount(tab)}`}
+                  {`${tab === 'Active' ? t('active') : tab === 'Resolved' ? t('necropsy_module.resolved') : t('all')} - ${getTabCount(tab)}`}
                 </Typography>
               </Box>
             ))}
@@ -205,7 +207,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
               fontWeight: 400
             }}
           >
-            No Diagnosis Recorded
+            {t('necropsy_module.no_diagnosis_recorded')}
           </Typography>
         </Box>
       ) : (
@@ -233,7 +235,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
                     '&:hover': { textDecoration: 'underline' }
                   }}
                 >
-                  Load More
+                  {t('necropsy_module.load_more')}
                 </Typography>
               )}
             </Box>
@@ -241,7 +243,7 @@ const DiagnosisList: FC<DiagnosisListProps> = ({ animalId, mortalityId, mortalit
 
           {!hasMore && data.length > 10 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-              No more assessments to load
+              {t('necropsy_module.no_more_diagnosis')}
             </Typography>
           )}
         </Box>

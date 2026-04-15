@@ -1,20 +1,11 @@
 import React, { FC, memo } from 'react'
-import {
-  Box,
-  Card,
-  CardContent,
-  Divider,
-  Grid,
-  useTheme,
-  Badge,
-  Typography,
-  IconButton
-} from '@mui/material'
+import { Box, Card, CardContent, Divider, Grid, useTheme, Badge, Typography, IconButton } from '@mui/material'
 import NecropsyDropdown from 'src/components/necropsy/NecropsyDropdown'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { ArrowBack } from '@mui/icons-material'
 import RenderUtility from 'src/utility/render'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 interface DateFilter {
   startDate: string | Date | null
@@ -44,9 +35,11 @@ const NecropsyAnalytics: FC<NecropsyAnalyticsProps> = ({
   showCarcassTransferButton = true,
   showBackButton = false,
   onBack,
-  title = 'Necropsy'
+  title
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
+  const resolvedTitle = title || t('necropsy_module.necropsy')
 
   const handleDateChange = (startDate: string | Date | null, endDate: string | Date | null): void => {
     if (setFilterDate) {
@@ -71,7 +64,7 @@ const NecropsyAnalytics: FC<NecropsyAnalyticsProps> = ({
                     <ArrowBack sx={{ color: theme.palette.customColors.OnSurfaceVariant }} />
                   </IconButton>
                 )}
-                {RenderUtility.pageTitle(title)}
+                {RenderUtility.pageTitle(resolvedTitle)}
               </Box>
               {allowCarcassCollection && showCarcassTransferButton && (
                 <Box
@@ -113,7 +106,7 @@ const NecropsyAnalytics: FC<NecropsyAnalyticsProps> = ({
                       color: theme.palette.customColors.OnTertiaryContainer
                     }}
                   >
-                    CARCASS TRANSFER
+                    {t('navigation.carcass_transfer')}
                   </Typography>
                   <Icon icon={'mingcute:right-fill'} fontSize={20} />
                 </Box>
@@ -162,10 +155,7 @@ const NecropsyAnalytics: FC<NecropsyAnalyticsProps> = ({
                         py: '6px'
                       }}
                     >
-                      <CommonDateRangePickers
-                        filterDates={filterDate}
-                        onChange={handleDateChange}
-                      />
+                      <CommonDateRangePickers filterDates={filterDate} onChange={handleDateChange} />
                     </Box>
                   </Box>
                 </Grid>
