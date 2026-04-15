@@ -22,6 +22,7 @@ import { fontSize } from '@mui/system'
 import { object } from 'yup'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -45,6 +46,7 @@ const CreateMealGroup = ({
   handleEditSearch,
   fetchSiteStats
 }) => {
+  const { t } = useTranslation()
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -361,10 +363,10 @@ const CreateMealGroup = ({
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
               >
                 {mealType.type === 'view'
-                  ? 'Meal Group'
+                  ? t('diet_module.meal_group')
                   : Object.keys(editParam).length > 0
-                  ? 'Edit Meal Group'
-                  : 'Create new group'}
+                  ? `${t('edit')} ${t('diet_module.meal_group')}`
+                  : `${t('create')} ${t('diet_module.meal_group')}`}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -403,7 +405,7 @@ const CreateMealGroup = ({
                   fontFamily: 'Inter'
                 }}
               >
-                Enter group name
+                {t('diet_module.enter_group_name')}
               </Typography>
 
               <FormControl fullWidth>
@@ -499,7 +501,7 @@ const CreateMealGroup = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Species
+                      {t('navigation.species')}
                     </Box>
                   </Typography>
 
@@ -545,7 +547,7 @@ const CreateMealGroup = ({
                 mb: mealType.type === 'view' && 4
               }}
             >
-              Selected enclosures
+              {t('diet_module.selected_enclosures')}
             </Typography>
             {mealType.type !== 'view' && (
               <Box
@@ -736,7 +738,9 @@ const CreateMealGroup = ({
                       alignItems: 'center'
                     }}
                   >
-                    <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888' }}>No Data Found</Typography>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888' }}>
+                      {t('diet_module.no_data_found')}
+                    </Typography>
                   </Box>
                 )}
               </Box>

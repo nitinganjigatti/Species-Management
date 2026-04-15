@@ -21,6 +21,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import Icon from 'src/@core/components/icon'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getSectionsList } from 'src/lib/api/diet/dietList'
+import { useTranslation } from 'react-i18next'
 
 const SelectSectionList = ({
   open,
@@ -35,6 +36,7 @@ const SelectSectionList = ({
   openFilterDrawer
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [pageNo, setPageNo] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
@@ -175,10 +177,10 @@ const SelectSectionList = ({
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Choose Section
+              {t('diet_module.choose_section')}
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Select a section from the list below
+              {t('diet_module.select_section_from_list')}
             </Typography>
           </Box>
           <IconButton
@@ -258,7 +260,7 @@ const SelectSectionList = ({
               }}
               onClick={handleSelectAllSites}
             >
-              Select all
+              {t('diet_module.select_all')}
             </Button>
 
             <Checkbox
@@ -416,7 +418,7 @@ const SelectSectionList = ({
             }}
             disabled={selectedSections?.length <= 0}
           >
-            CONTINUE
+            {t('continue')}
           </Button>
         </Box>
       </Box>

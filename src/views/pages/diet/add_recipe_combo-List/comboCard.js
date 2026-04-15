@@ -13,6 +13,7 @@ import { Tooltip, Select, MenuItem, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SizeSelector from 'src/components/SelectCutsize'
 import Utility from 'src/utility'
+import { useTranslation } from 'react-i18next'
 
 const ComboCard = ({
   rows,
@@ -34,6 +35,7 @@ const ComboCard = ({
   loading
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [remarks, setRemarks] = useState({})
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
@@ -705,7 +707,7 @@ const ComboCard = ({
                           mr: 18
                         }}
                       >
-                        Cut size*
+                        {`${t('diet_module.cut_size')} *`}
                       </Typography>
                     </Box>
                     {item.ingredients.map((ingredient, index) => (
@@ -899,7 +901,7 @@ const ComboCard = ({
               fontSize: '16px'
             }}
           >
-            No records to show
+            {t('diet_module.no_records')}
           </Box>
         </Box>
       )}
@@ -923,11 +925,11 @@ const ComboCard = ({
       >
         {fromrow === 'rowedit_combo' ? (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD MIX
+            {t('diet_module.add_mix')}
           </Button>
         ) : (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD MIX - {selectedCardCombo?.length} SELECTED
+            {t('diet_module.add_mix')} - {selectedCardCombo?.length} {t('selected')}
           </Button>
         )}
       </Box>

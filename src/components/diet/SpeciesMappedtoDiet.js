@@ -19,6 +19,7 @@ import Icon from 'src/@core/components/icon'
 import { useMediaQuery } from '@mui/material'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { useTranslation } from 'react-i18next'
 
 const SpeciesMappedtoDiet = ({
   isOpen,
@@ -66,6 +67,7 @@ const SpeciesMappedtoDiet = ({
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
+  const { t } = useTranslation()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
   const handleSearch = event => {
@@ -592,7 +594,9 @@ const SpeciesMappedtoDiet = ({
                 }}
               >
                 <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                  {t('diet_module.no_species_found')}
+                </Typography>
               </Box>
             )}
             {isLoadingMore && (
@@ -688,7 +692,9 @@ const SpeciesMappedtoDiet = ({
                 }}
               >
                 <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Animals Found</Typography>
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                  {t('diet_module.no_animals_found')}
+                </Typography>
               </Box>
             )}
             {isLoadingMore && (
@@ -735,7 +741,7 @@ const SpeciesMappedtoDiet = ({
           onClick={() => handleSelectedclick('select')}
           sx={{ height: '45px' }}
         >
-          ADD
+          {t('add')}
         </LoadingButton>
       </Box>
     </Drawer>

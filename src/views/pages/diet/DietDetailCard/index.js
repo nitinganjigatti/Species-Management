@@ -25,6 +25,7 @@ import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import { useTranslation } from 'react-i18next'
 
 const DietDetailCard = ({
   dietDetails,
@@ -40,6 +41,7 @@ const DietDetailCard = ({
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
   const theme = useTheme()
+  const { t } = useTranslation()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -191,7 +193,7 @@ const DietDetailCard = ({
               lineHeight: '29.05px'
             }}
           >
-            Diet Details
+            {t('diet_module.diet_details')}
           </Typography>
         </Box>
         <Box
@@ -328,7 +330,7 @@ const DietDetailCard = ({
                 {authData?.userData?.roles?.settings?.assign_diet === true ? (
                   <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
                     <Typography fontWeight='400' sx={{ color: theme.palette.customColors.secondaryBg }}>
-                      Assigned to
+                      {t('diet_module.assigned_to')}
                     </Typography>
                     <div>
                       <Button
@@ -346,7 +348,7 @@ const DietDetailCard = ({
                           pb: 2
                         }}
                       >
-                        + Assign
+                        + {t('assign')}
                       </Button>
                       <Menu
                         anchorEl={anchorEl}
@@ -370,7 +372,7 @@ const DietDetailCard = ({
                           }}
                           sx={{ fontSize: '14px' }}
                         >
-                          Assign to Species
+                          {t('diet_module.assign_to_species')}
                         </MenuItem>
                         <MenuItem
                           onClick={() => {
@@ -380,7 +382,7 @@ const DietDetailCard = ({
                           }}
                           sx={{ fontSize: '14px' }}
                         >
-                          Assign to Animals
+                          {t('diet_module.assign_to_animals')}
                         </MenuItem>
                         <MenuItem
                           onClick={() => {
@@ -390,7 +392,7 @@ const DietDetailCard = ({
                           }}
                           sx={{ fontSize: '14px' }}
                         >
-                          Assign to Site Species
+                          {t('diet_module.assign_to_site_species')}
                         </MenuItem>
                       </Menu>
                     </div>
@@ -407,7 +409,7 @@ const DietDetailCard = ({
                           fontWeight='bold'
                           sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Species
+                          {t('navigation.species')}
                         </Typography>
                         <Box
                           display='flex'
@@ -429,7 +431,7 @@ const DietDetailCard = ({
                               fontWeight: '600'
                             }}
                           >
-                            Primary {dietDetails.total_primary_species}
+                            {t('diet_module.primary')} {dietDetails.total_primary_species}
                           </Typography>
                         </Box>
                       </Box>
@@ -447,7 +449,7 @@ const DietDetailCard = ({
                           fontWeight='bold'
                           sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Animals
+                          {t('navigation.animals')}
                         </Typography>
 
                         <Box
@@ -470,7 +472,7 @@ const DietDetailCard = ({
                               fontWeight: '600'
                             }}
                           >
-                            Primary {dietDetails.total_primary_animals}
+                            {t('diet_module.primary')} {dietDetails.total_primary_animals}
                           </Typography>
                         </Box>
                       </Box>
@@ -487,7 +489,7 @@ const DietDetailCard = ({
                           fontWeight='bold'
                           sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Site, Species
+                          {t('navigation.site')}, {t('navigation.species')}
                         </Typography>
 
                         <Box
@@ -510,7 +512,7 @@ const DietDetailCard = ({
                               fontWeight: '600'
                             }}
                           >
-                            Primary {dietDetails.total_site_primary_species}
+                            {t('diet_module.primary')} {dietDetails.total_site_primary_species}
                           </Typography>
                         </Box>
                       </Box>
@@ -584,7 +586,7 @@ const DietDetailCard = ({
               <Box>
                 {dietDetails?.desc ? (
                   <div>
-                    <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>Description</Typography>
+                    <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>{t('description')}</Typography>
                     <Typography
                       variant='body2'
                       sx={{
@@ -635,7 +637,7 @@ const DietDetailCard = ({
                 <Box sx={{ display: 'flex', gap: '12px' }}>
                   <Box>
                     <Typography sx={{ mb: 2, mt: '8px', fontSize: '16px', fontWeight: '600' }}>
-                      Diet Added by
+                      {t('diet_module.diet_added_by')}
                     </Typography>
                     <UserAvatarDetails
                       date={dietDetails?.created_at}
@@ -680,7 +682,7 @@ const DietDetailCard = ({
                     sx={{ display: 'flex', marginLeft: isSmallDevice ? '0' : 'auto', cursor: 'pointer' }}
                   >
                     <Typography sx={{ color: theme.palette.customColors.deepDark, my: 3, fontSize: 14 }}>
-                      Activity Log
+                      {t('activity_log')}
                     </Typography>
                     <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
                   </Box>

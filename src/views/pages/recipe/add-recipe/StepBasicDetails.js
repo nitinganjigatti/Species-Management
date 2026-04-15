@@ -17,7 +17,7 @@ import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller } from 'react-hook-form'
-
+import { useTranslation } from 'react-i18next'
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
 
 // ** Icon Imports
@@ -46,6 +46,7 @@ const schema = yup.object().shape({
 const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
 
@@ -145,7 +146,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ mb: 5, px: 5, mt: 5, float: 'left' }}>
-            <Typography variant='h6'>Recipe details</Typography>
+            <Typography variant='h6'>{t('diet_module.recipe_details')}</Typography>
           </Box>
           <ScrollToFieldError errors={errors} />
           <Grid container spacing={5} sx={{ px: 5 }}>
@@ -158,7 +159,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       value={value}
-                      label='Recipe name *'
+                      label={`${t('diet_module.recipe_name')} *`}
                       name='recipe_name'
                       error={Boolean(errors.recipe_name)}
                       onChange={onChange}
@@ -188,7 +189,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                       <TextField
                         value={value}
                         type='number'
-                        label='Portion size *'
+                        label={`${t('diet_module.portion_size')} *`}
                         name='portion_size'
                         error={Boolean(errors.portion_size)}
                         onChange={onChange}
@@ -239,7 +240,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                         renderInput={params => (
                           <TextField
                             {...params}
-                            label='Select UOM *'
+                            label={`${t('diet_module.select_uom_abbr')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.portion_uom_id)}
                             sx={{
@@ -365,9 +366,9 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
             <Divider sx={{ width: '98%' }} />
 
             <Box sx={{ mb: 0, px: 0, mt: 0, float: 'left', width: '100%' }}>
-              <Typography variant='h6'>Add image</Typography>
+              <Typography variant='h6'>{t('media_details.add_image')}</Typography>
             </Box>
-            {console.log(uploadedImage, 'uploadedImage')}
+
             <Grid size={{ xs: 6 }} sx={{ pt: 0 }}>
               <CardContent sx={{ px: 0, paddingTop: 0 }}>
                 <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
@@ -379,15 +380,14 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                 <Button
                   color='secondary'
                   variant='outlined'
-
                   // startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                   sx={{ mr: 6 }}
                   onClick={cancelBack}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                  Next
+                  {t('next')}
                 </Button>
               </Box>
             </Grid>

@@ -865,14 +865,14 @@ const DietDetail = () => {
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Diet</Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
-                  Diet
+                  {t('navigation.diet')}
                 </Typography>
                 <Typography
                   sx={{
                     color: 'text.primary'
                   }}
                 >
-                  Diet Details
+                  {t('diet_module.diet_details')}
                 </Typography>
               </Breadcrumbs>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

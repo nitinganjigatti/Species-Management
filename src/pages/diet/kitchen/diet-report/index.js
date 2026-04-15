@@ -30,6 +30,7 @@ import Utility from 'src/utility'
 import CustomOptionDateRangePickers from 'src/components/custom-date-picker/CustomOptionDateRangePickers'
 import { alignItems, minWidth, width } from '@mui/system'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const DietReportPage = () => {
   const initialRows = [
@@ -93,7 +94,7 @@ const DietReportPage = () => {
   ]
   const authData = useContext(AuthContext)
   const sites = authData.userData.user.zoos[0]?.sites || []
-
+  const { t } = useTranslation()
   // ** States
   const [loading, setLoading] = useState(false)
   const [taxonomyLoading, setTaxonomyLoading] = useState(false)
@@ -250,7 +251,7 @@ const DietReportPage = () => {
     {
       width: 80,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       headerAlign: 'center',
       alignItems: 'center',
       align: 'center',
@@ -261,7 +262,7 @@ const DietReportPage = () => {
       flex: 1,
       minWidth: 300,
       field: 'reportName',
-      headerName: 'Report Name',
+      headerName: t('diet_module.report_name'),
       sortable: false,
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -284,7 +285,7 @@ const DietReportPage = () => {
     {
       width: 200,
       field: 'download',
-      headerName: 'Download',
+      headerName: t('download'),
       align: 'center',
       headerAlign: 'center',
       sortable: false,
@@ -298,7 +299,7 @@ const DietReportPage = () => {
               onClick={() => handleDownload(params.row.id, params.row.reportAlias, filteredData)}
               disabled={params.row.downloadStatus}
             >
-              Download
+              {t('download')}
             </Button>
           ) : (
             <>

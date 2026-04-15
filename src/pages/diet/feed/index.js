@@ -24,12 +24,13 @@ import toast from 'react-hot-toast'
 import Tooltip from '@mui/material/Tooltip'
 import { useTheme } from '@mui/material/styles'
 import Error404 from 'src/pages/404'
-
+import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 
 const FeedTypes = () => {
   const router = useRouter()
+  const { t } = useTranslation()
   const theme = useTheme()
   const { query } = router
   const [rows, setRows] = useState([])
@@ -132,7 +133,7 @@ const FeedTypes = () => {
   const columns = [
     {
       //flex: 0.1,
-      width: 70,
+      width: 80,
       field: 'id',
       headerName: 'SL',
       renderCell: params => (
@@ -145,7 +146,7 @@ const FeedTypes = () => {
       //flex: 0.5,
       width: 250,
       field: 'feed_type_name',
-      headerName: 'FEEDS',
+      headerName: t('diet_module.feeds'),
       renderCell: params => (
         <>
           <Avatar
@@ -177,7 +178,7 @@ const FeedTypes = () => {
       flex: 0.5,
       minWidth: 10,
       field: 'desc',
-      headerName: 'DESCRIPTION',
+      headerName: t('description'),
       renderCell: params => (
         <Tooltip title={params.row.desc} placement='bottom'>
           <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -190,7 +191,7 @@ const FeedTypes = () => {
       flex: 0.2,
       minWidth: 10,
       field: 'active',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -257,7 +258,7 @@ const FeedTypes = () => {
         <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
           <Button size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
             <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; ADD NEW
+            &nbsp; {t('add_new')}
           </Button>
         </Box>
       )}
@@ -276,7 +277,7 @@ const FeedTypes = () => {
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title='Feed Types' action={headerAction} sx={{ px: 5 }} />
+        <CardHeader title={t('navigation.feed_types')} action={headerAction} sx={{ px: 5 }} />
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
           <CommonTable
             indexedRows={indexedRows === undefined ? [] : indexedRows}
@@ -309,7 +310,7 @@ const FeedTypes = () => {
           />
         </Box>
       </Card>
-    );
+    )
   }
 
   return (

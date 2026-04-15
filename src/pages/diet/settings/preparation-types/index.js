@@ -16,9 +16,11 @@ import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPrepara
 import Toaster from 'src/components/Toaster'
 import { useTheme } from '@mui/material/styles'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { useTranslation } from 'react-i18next'
 
 const PreparationTypes = () => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const editParamsInitialState = { id: null, label: null, status: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -79,7 +81,7 @@ const PreparationTypes = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'label',
-      headerName: 'NAME',
+      headerName: t('name'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
@@ -91,7 +93,7 @@ const PreparationTypes = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'active',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -102,7 +104,7 @@ const PreparationTypes = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'Action',
-      headerName: 'Action',
+      headerName: t('action'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
           {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -122,7 +124,7 @@ const PreparationTypes = () => {
 
   const headerAction = (
     <div>
-      <AddButton title='Add Preparation Type' action={() => addEventSidebarOpen()} />
+      <AddButton title={t('diet_module.add_preparation_type')} action={() => addEventSidebarOpen()} />
     </div>
   )
 
@@ -226,7 +228,7 @@ const PreparationTypes = () => {
   return (
     <>
       <Card>
-        <CardHeader title='Preparation Type List' action={headerAction} sx={{ px: 5 }} />
+        <CardHeader title={t('diet_module.preparation_type_list')} action={headerAction} sx={{ px: 5 }} />
         <CommonTable
           indexedRows={indexedRows === undefined ? [] : indexedRows}
           total={total}
@@ -268,7 +270,7 @@ const PreparationTypes = () => {
       />
       <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
     </>
-  );
+  )
 }
 
 export default PreparationTypes

@@ -16,6 +16,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 const schema = yup.object().shape({
   site: yup.object().required('Site is required').nullable()
@@ -39,7 +40,7 @@ const MealGroupReport = () => {
 
   const authData = useContext(AuthContext)
   const sites = authData.userData.user.zoos[0]?.sites || []
-
+  const { t } = useTranslation()
   console.log(sites, 'sites')
 
   const siteOptions = sites.map(site => ({
@@ -116,7 +117,7 @@ const MealGroupReport = () => {
     {
       width: 80,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       headerAlign: 'center',
       alignItems: 'center',
       align: 'center',
@@ -127,7 +128,7 @@ const MealGroupReport = () => {
       flex: 1,
       minWidth: 300,
       field: 'reportName',
-      headerName: 'Report Name',
+      headerName: t('diet_module.report_name'),
       sortable: false,
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -150,7 +151,7 @@ const MealGroupReport = () => {
     {
       width: 200,
       field: 'download',
-      headerName: 'Download',
+      headerName: t('download'),
       align: 'center',
       headerAlign: 'center',
       sortable: false,
@@ -164,7 +165,7 @@ const MealGroupReport = () => {
               onClick={() => handleDownload(params.row.id, params.row.reportAlias)}
               disabled={params.row.downloadStatus}
             >
-              Download
+              {t('download')}
             </Button>
           ) : (
             <>

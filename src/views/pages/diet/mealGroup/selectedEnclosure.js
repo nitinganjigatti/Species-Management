@@ -4,6 +4,7 @@ import Icon from 'src/@core/components/icon'
 import { useContext, useState } from 'react'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 const SelectedEnclosure = ({
   selectedEnclosureDrawer,
@@ -18,24 +19,24 @@ const SelectedEnclosure = ({
   setCheckedRows
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [selectedEnclosures, setSelectedEnclosures] = useState(selectEnclosures)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   const handleRemove = index => {
-    const itemToRemove = selectedItems[index] 
+    const itemToRemove = selectedItems[index]
 
     const updatedItems = selectedEnclosures.filter((_, i) => i !== index)
 
     const updatedIds = updatedItems.map(item => item.enclosure_id)
 
-   
     const updatedChecked = updatedItems
 
-    setSelectedEnclosures(updatedItems) 
-    setSelectedEnclosureIds(updatedIds) 
-    setCheckedRows(updatedChecked) 
+    setSelectedEnclosures(updatedItems)
+    setSelectedEnclosureIds(updatedIds)
+    setCheckedRows(updatedChecked)
   }
 
   return dietModule ? (
@@ -63,7 +64,6 @@ const SelectedEnclosure = ({
             height: 'calc(100dvh - 0px)'
           }}
         >
-          
           <Box
             className='sidebar-header'
             sx={{
@@ -79,7 +79,7 @@ const SelectedEnclosure = ({
               <Typography
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '20px', fontWeight: 500 }}
               >
-                Selected enclosures
+                {t('diet_module.selected_enclosures')}
               </Typography>
             </Box>
 
@@ -97,7 +97,6 @@ const SelectedEnclosure = ({
             </IconButton>
           </Box>
 
-        
           <Box sx={{}}>
             <Box sx={{ flex: 1, overflowY: 'auto', px: 2, pt: 2 }}>
               {loader ? (
@@ -173,10 +172,10 @@ const SelectedEnclosure = ({
                         }}
                       >
                         <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          Species: {item.species_count}
+                          {t('navigation.Species')}: {item.species_count}
                         </Typography>
                         <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                          Animals: {item.animal_count}
+                          {t('navigation.animals')}: {item.animal_count}
                         </Typography>
                       </Box>
 

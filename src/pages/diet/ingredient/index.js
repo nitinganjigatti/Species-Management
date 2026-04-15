@@ -33,7 +33,7 @@ import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationChec
 import { useTheme } from '@mui/material/styles'
 import AddIngredients from 'src/components/diet/AddIngredients'
 import Error404 from 'src/pages/404'
-
+import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import RenderUtility from 'src/utility/render'
@@ -46,6 +46,7 @@ const roleColors = {
 const IngredientsList = () => {
   const theme = useTheme()
   const router = useRouter()
+  const { t } = useTranslation()
   const { query } = router
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -198,7 +199,7 @@ const IngredientsList = () => {
         <div>
           <Button size='small' variant='contained' onClick={() => Router.push('/diet/ingredient/add-ingredient')}>
             <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; Add New
+            &nbsp; {t('add_new')}
           </Button>
           {/* <Button sx={{ ml: 4 }} size='small' variant='contained' onClick={handleAddIngerdient}>
         <Icon icon='mdi:add' fontSize={20} />
@@ -223,7 +224,7 @@ const IngredientsList = () => {
   const columns = [
     {
       //flex: 0.1,
-      width: 70,
+      width: 80,
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
@@ -236,7 +237,7 @@ const IngredientsList = () => {
       //flex: 1.1,
       width: 250,
       field: 'ingredient_name',
-      headerName: 'ITEMS',
+      headerName: t('diet_module.items'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -279,7 +280,7 @@ const IngredientsList = () => {
       //flex: 0.54,
       width: 200,
       field: 'feed_type_label',
-      headerName: 'Feed Type',
+      headerName: t('diet_module.feed_type'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.feed_type_label}
@@ -290,7 +291,7 @@ const IngredientsList = () => {
       //flex: 0.85,
       width: 200,
       field: 'ingredient_alias',
-      headerName: 'ITEM alias',
+      headerName: t('diet_module.item_alias'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -309,7 +310,7 @@ const IngredientsList = () => {
       //flex: 0.6,
       width: 140,
       field: 'id',
-      headerName: 'ITEM ID',
+      headerName: t('diet_module.item_id'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'ING' + params.row.id : '-'}
@@ -318,9 +319,9 @@ const IngredientsList = () => {
     },
     {
       //flex: 0.54,
-      width: 120,
+      width: 150,
       field: 'calorie',
-      headerName: 'CALORIES',
+      headerName: t('diet_module.calories'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.calorie ? params.row.calorie + ' Kcal' : '-'}
@@ -329,9 +330,9 @@ const IngredientsList = () => {
     },
     {
       //flex: 0.4,
-      width: 150,
+      width: 170,
       field: 'preparation_type_count',
-      headerName: 'PREPARATION TYPES',
+      headerName: t('diet_module.preparation_types'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
@@ -356,7 +357,7 @@ const IngredientsList = () => {
       //flex: 1,
       width: 260,
       field: 'user_name',
-      headerName: 'CREATED BY',
+      headerName: t('created_by'),
       renderCell: params => (
         <Box>
           {RenderUtility.renderUserAvatarDetails({
@@ -370,9 +371,9 @@ const IngredientsList = () => {
     },
     {
       //flex: 0.5,
-      minWidth: 10,
+      minWidth: 120,
       field: 'status',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -480,7 +481,7 @@ const IngredientsList = () => {
           </Card>
         )}
       </>
-    );
+    )
   }
 
   return (

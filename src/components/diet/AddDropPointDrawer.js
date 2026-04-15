@@ -1,13 +1,4 @@
-import {
-  Box,
-  Button,
-  Card,
-  Drawer,
-  IconButton,
-  Typography,
-  Divider,
-  Chip
-} from '@mui/material'
+import { Box, Button, Card, Drawer, IconButton, Typography, Divider, Chip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
@@ -16,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { addDropPointToMealGroup, getDropPointList } from 'src/lib/api/diet/mealgroup'
 import toast from 'react-hot-toast'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import { useTranslation } from 'react-i18next'
 
 const AddDropPointDrawer = ({
   openDrawer,
@@ -28,6 +20,7 @@ const AddDropPointDrawer = ({
   onRemoveMealGroup
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [dropPointList, setDropPointList] = useState([])
   const [dropPointLoading, setDropPointLoading] = useState(false)
@@ -164,7 +157,7 @@ const AddDropPointDrawer = ({
         }}
       >
         <Typography variant='h6' sx={{ fontWeight: 600, fontFamily: 'Inter' }}>
-          Add Drop Point
+          {t('diet_module.add_drop_point')}
         </Typography>
         <IconButton onClick={handleClose}>
           <Icon icon='mdi:close' fontSize={20} />
@@ -195,7 +188,7 @@ const AddDropPointDrawer = ({
               display: 'block'
             }}
           >
-            Selected Site
+            {t('diet_module.selected_site')}
           </Typography>
           <Typography
             variant='body1'
@@ -233,7 +226,7 @@ const AddDropPointDrawer = ({
               display: 'block'
             }}
           >
-            Selected Meal Groups ({selectedMealGroups.length})
+            {t('diet_module.selected_meal_groups')} ({selectedMealGroups.length})
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
             {selectedMealGroupDetails.map(group => (
@@ -349,7 +342,7 @@ const AddDropPointDrawer = ({
             }
           }}
         >
-          Cancel
+          {t('cancel')}
         </Button>
         <LoadingButton
           loading={loading}
@@ -363,7 +356,7 @@ const AddDropPointDrawer = ({
             }
           }}
         >
-          Add Drop Point
+          {t('diet_module.add_drop_point')}
         </LoadingButton>
       </Box>
     </Drawer>

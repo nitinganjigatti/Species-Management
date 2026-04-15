@@ -11,6 +11,7 @@ import { Stack } from '@mui/system'
 import { Tooltip, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const RecipeCard = ({
   rows,
@@ -33,6 +34,7 @@ const RecipeCard = ({
   const [remarks, setRemarks] = useState({})
 
   const theme = useTheme()
+  const { t } = useTranslation()
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
   const [validationErrors, setValidationErrors] = useState([])
@@ -578,7 +580,7 @@ const RecipeCard = ({
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Items
+                        {t('diet_module.items')}
                       </Typography>
                       <Typography
                         sx={{
@@ -588,7 +590,7 @@ const RecipeCard = ({
                           mr: 20
                         }}
                       >
-                        Cut size
+                        {t('diet_module.cut_size')}
                       </Typography>
                     </Box>
                     {item.ingredients.map((ingredient, index) => (
@@ -787,7 +789,7 @@ const RecipeCard = ({
               fontSize: '16px'
             }}
           >
-            No records to show
+            {t('diet_module.no_records')}
           </Box>
         </Box>
       )}
@@ -811,11 +813,11 @@ const RecipeCard = ({
       >
         {fromrow === 'rowedit_recipe' ? (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD RECIPE
+            {t('diet_module.add_recipe')}
           </Button>
         ) : (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD RECIPE - {selectedCardRecipe?.length} SELECTED
+            {t('diet_module.add_recipe')}- {selectedCardRecipe?.length} {t('selected')}
           </Button>
         )}
       </Box>

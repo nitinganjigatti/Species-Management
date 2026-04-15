@@ -35,6 +35,7 @@ import { FilterButton } from '../../../views/utility/render-snippets'
 import { getSpeciesList, getAnimalList } from 'src/lib/api/diet/speciesDiet'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import { useTranslation } from 'react-i18next'
 
 const TAB_VALUES = {
   SPECIES: 'species',
@@ -43,6 +44,7 @@ const TAB_VALUES = {
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
+  const { t } = useTranslation()
   const theme = useTheme()
   const [activeTab, setActiveTab] = useState(TAB_VALUES.SPECIES)
   const [total, setTotal] = useState(0)
@@ -413,7 +415,7 @@ const SpeciesDietList = () => {
       width: colWidths[2],
       sortable: false,
       field: 'attachment_count',
-      headerName: 'ACTIVE DIETS',
+      headerName: t('diet_module.active_diets'),
       renderCell: params => (
         <Tooltip title={params.row.attachment_count ? params.row.attachment_count : 0}>
           <Typography
@@ -438,7 +440,7 @@ const SpeciesDietList = () => {
       minWidth: 100,
       sortable: false,
       field: 'diet_attachment_upload',
-      headerName: 'Action',
+      headerName: t('action'),
       headerAlign: 'right',
       renderCell: params => (
         <>
@@ -463,7 +465,7 @@ const SpeciesDietList = () => {
                     letterSpacing: '0.1px'
                   }}
                 >
-                  Upload
+                  {t('upload')}
                 </Typography>
                 <Avatar
                   variant='square'
@@ -553,21 +555,21 @@ const SpeciesDietList = () => {
       {dietModule ? (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography color='inherit'>Diet</Typography>
+            <Typography color='inherit'>{t('navigation.diet')}</Typography>
             <Typography
               sx={{
                 color: 'text.primary',
                 cursor: 'pointer'
               }}
             >
-              Diet List
+              {t('navigation.diet_list')}
             </Typography>
           </Breadcrumbs>
           <Card>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 4, pt: 2 }}>
               <Tabs value={activeTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-                <Tab label='Species Diet' value={TAB_VALUES.SPECIES} />
-                <Tab label='Animal Diet' value={TAB_VALUES.ANIMAL} />
+                <Tab label={t('diet_module.species_diet')} value={TAB_VALUES.SPECIES} />
+                <Tab label={t('diet_module.animal_diet')} value={TAB_VALUES.ANIMAL} />
               </Tabs>
             </Box>
             <Grid
@@ -599,7 +601,7 @@ const SpeciesDietList = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginRight: { xs: 4, md: 0 } }}>
                       <FormControl sx={{ minWidth: 250 }}>
                         <InputLabel id='controlled-select-label'>
-                          {isAnimalTab ? 'Filter Animal' : 'Filter Species'}
+                          {isAnimalTab ? t('diet_module.filter_animal') : t('diet_module.filter_species')}
                         </InputLabel>
                         <Select
                           onChange={e => {
@@ -609,16 +611,22 @@ const SpeciesDietList = () => {
                               setFilterByDiet(e.target.value)
                             }
                           }}
-                          label={isAnimalTab ? 'Filter Animal' : 'Filter Species'}
+                          label={isAnimalTab ? t('diet_module.filter_animal') : t('diet_module.filter_species')}
                           value={activeFilterByDiet}
                           id='controlled-select'
                           labelId='controlled-select-label'
                           sx={{ width: '100%' }}
                           size='small'
                         >
-                          <MenuItem value='-1'>All</MenuItem>
-                          <MenuItem value='1'>{isAnimalTab ? 'Animals With Diet' : 'Species With Diet'}</MenuItem>
-                          <MenuItem value='0'>{isAnimalTab ? 'Animals Without Diet' : 'Species Without Diet'}</MenuItem>
+                          <MenuItem value='-1'>{t('all')}</MenuItem>
+                          <MenuItem value='1'>
+                            {isAnimalTab ? t('diet_module.animals_with_diet') : t('diet_module.species_with_diet')}
+                          </MenuItem>
+                          <MenuItem value='0'>
+                            {isAnimalTab
+                              ? t('diet_module.animals_without_diet')
+                              : t('diet_module.species_without_diet')}
+                          </MenuItem>
                         </Select>
                       </FormControl>
                     </Box>

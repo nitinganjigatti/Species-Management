@@ -2229,7 +2229,7 @@ const StepBasicDetails = ({
                                               fontWeight: 500
                                             }}
                                           >
-                                            Add
+                                            {t('add')}
                                           </span>
                                         </Box>
                                       </CardContent>

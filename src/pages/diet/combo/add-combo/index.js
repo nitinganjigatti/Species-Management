@@ -16,6 +16,7 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import Toaster from 'src/components/Toaster'
 import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
+import { useTranslation } from 'react-i18next'
 
 const steps = [
   {
@@ -32,6 +33,7 @@ const steps = [
 const AddCombo = () => {
   const router = useRouter()
   const { id, name } = router.query
+  const { t } = useTranslation()
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUom] = useState([])
   const [cutsizeList, setcutSize] = useState([])
@@ -534,7 +536,7 @@ const AddCombo = () => {
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Link underline='hover' color='inherit' href='/diet/combo/'>
-          Mix
+          {t('navigation.mix')}
         </Link>
 
         <Typography
@@ -542,7 +544,7 @@ const AddCombo = () => {
             color: 'text.primary'
           }}
         >
-          {id ? 'Edit mix' : 'Add new mix'}
+          {id ? t('diet_module.edit_mix') : t('diet_module.add_new_mix')}
         </Typography>
       </Breadcrumbs>
       <Card>
@@ -550,7 +552,7 @@ const AddCombo = () => {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ width: '90%' }}>
               <Typography sx={{ mb: 1 }} variant='h6'>
-                {id ? 'Edit Mix' : 'Add New Mix'}
+                {id ? t('diet_module.edit_mix') : t('diet_module.add_new_mix')}
               </Typography>
               {/* <Typography sx={{ mb: 1, fontSize: 14 }}>
                 Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient

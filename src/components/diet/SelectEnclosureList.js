@@ -22,6 +22,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import Icon from 'src/@core/components/icon'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getEnclosureList } from 'src/lib/api/diet/dietList'
+import { useTranslation } from 'react-i18next'
 
 const SelectEnclosureList = ({
   tempSelectedItems,
@@ -36,6 +37,7 @@ const SelectEnclosureList = ({
   openFilterDrawer
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [pageNo, setPageNo] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
@@ -127,7 +129,6 @@ const SelectEnclosureList = ({
     <Drawer
       anchor='right'
       open={open}
-
       //onClose={onClose}
       sx={{
         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
@@ -163,10 +164,10 @@ const SelectEnclosureList = ({
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Choose Enclosure
+              {t('diet_module.choose_enclosure')}
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Select a enclosure from the list below
+              {t('diet_module.select_enclosure_from_list')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
@@ -239,7 +240,7 @@ const SelectEnclosureList = ({
               }}
               onClick={handleSelectAllSites}
             >
-              Select all
+              {t('diet_module.select_all')}
             </Button>
 
             <Checkbox
@@ -343,7 +344,6 @@ const SelectEnclosureList = ({
                       </ListItemAvatar>
                       <ListItemText
                         primary={enclosure.user_enclosure_name}
-
                         //secondary={enclosure.location || '-'}
                         slotProps={{
                           primary: {
@@ -371,7 +371,7 @@ const SelectEnclosureList = ({
                   )
                 })
             ) : (
-              <Typography sx={{ textAlign: 'center', mt: 15 }}>No Enclosure's found</Typography>
+              <Typography sx={{ textAlign: 'center', mt: 15 }}>{t('diet_module.no_enclosure_found')}</Typography>
             )
           ) : (
             <CardContent>
@@ -410,7 +410,7 @@ const SelectEnclosureList = ({
             }}
             disabled={selectedEnclosures.length <= 0}
           >
-            CONTINUE
+            {t('continue')}
           </Button>
         </Box>
       </Box>
