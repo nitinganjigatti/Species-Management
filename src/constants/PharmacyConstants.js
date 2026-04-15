@@ -34,8 +34,6 @@ export const getPharmacyTransactionConstants = key => PHARMACY_TRANSACTION_CONST
 
 export const productCategoryOptions = [
   { id: 'Vaccination', label: 'Vaccination', value: 'Vaccination' },
-  { id: 'Antibiotic', label: 'Antibiotic', value: 'Antibiotic' },
-  { id: 'Supplement', label: 'Supplement', value: 'Supplement' },
   { id: 'Deworming', label: 'Deworming', value: 'Deworming' },
   { id: 'Supplements/Details', label: 'Supplements/Details', value: 'Supplements/Details' }
 ]
