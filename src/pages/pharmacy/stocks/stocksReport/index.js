@@ -37,7 +37,8 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
-
+import { productCategoryOptions } from 'src/constants/PharmacyConstants'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
 const ListOfStocks = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -90,6 +91,7 @@ const ListOfStocks = () => {
   const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
   const [configReOrderMed, setConfigReOrderMed] = useState(null)
   const [dialogCheck, setDialogCheck] = useState(false)
+  const [categoryFilter, setCategoryFilter] = useState(router.query.category || 'All')
 
   // const textFieldRef = useRef(null)
 
@@ -118,31 +120,21 @@ const ListOfStocks = () => {
   }
 
   const getStocksReport = useCallback(
-    async ({ sort, q, column, id, type, paginationModel }) => {
+    async ({ sort, q, column, id, type, paginationModel, category }) => {
+      const filterCategory = category !== undefined ? category : categoryFilter
       let storeId = id === 'all' ? '' : id
       if (id) {
         try {
           setLoading(true)
           let result
 
-          // if (type === 'local') {
-          //   const params = {
-          //     sort,
-          //     q,
-          //     column,
-          //     page: paginationModel.page + 1,
-          //     limit: paginationModel.pageSize,
-          //     store_id: storeId
-          //   }
-
-          //   result = await getLocalStocksReportById(params)
-          // } else {
           const params = {
             sort,
             q,
             column,
             page: paginationModel.page + 1,
-            limit: paginationModel.pageSize
+            limit: paginationModel.pageSize,
+            ...(filterCategory !== 'All' && { category: filterCategory })
           }
 
           result = await getStockReport(storeId, params)
@@ -185,7 +177,8 @@ const ListOfStocks = () => {
   }))
 
   const getStocksReportBatchWise = useCallback(
-    async ({ batchSort, batchQ, batchColumn, id, batchPaginationModel }) => {
+    async ({ batchSort, batchQ, batchColumn, id, batchPaginationModel, category }) => {
+      const filterCategory = category !== undefined ? category : categoryFilter
       setBatchLoading(true)
 
       const batchParams = {
@@ -193,7 +186,8 @@ const ListOfStocks = () => {
         q: batchQ,
         column: batchColumn,
         page: batchPaginationModel.page + 1,
-        limit: batchPaginationModel.pageSize
+        limit: batchPaginationModel.pageSize,
+        ...(filterCategory !== 'All' && { category: filterCategory })
       }
 
       if (id !== undefined) {
@@ -252,7 +246,8 @@ const ListOfStocks = () => {
           batchColumn: batchSortColumn,
           id: selectedPharmacy?.id,
           storeType: selectedPharmacy?.type,
-          batchPaginationModel
+          batchPaginationModel,
+          category: categoryFilter
         })
       } else {
         getStocksReport({
@@ -261,13 +256,14 @@ const ListOfStocks = () => {
           column: sortColumn,
           id: selectedPharmacy?.id,
           type: selectedPharmacy?.type,
-          paginationModel
+          paginationModel,
+          category: categoryFilter
         })
       }
 
       // setStockId(selectedPharmacy?.id)
     }
-  }, [selectedPharmacy.id, value, dialogCheck])
+  }, [selectedPharmacy.id, value, dialogCheck, categoryFilter])
 
   const getBatchWiseDataToExport = async () => {
     try {
@@ -277,6 +273,7 @@ const ListOfStocks = () => {
           sort: batchSort,
           q: batchSearchValue,
           column: batchSortColumn,
+          ...(categoryFilter !== 'All' && { category: categoryFilter }),
           type: 'csv'
         }
         const response = await getStockReportByBatch(stockId, batchParams)
@@ -290,6 +287,8 @@ const ListOfStocks = () => {
           sort,
           q: searchValue,
           column: sortColumn,
+          ...(categoryFilter !== 'All' && { category: categoryFilter }),
+
           response_type: 'csv'
         }
         const response = await getStockReport(stockId, params)
@@ -888,7 +887,7 @@ const ListOfStocks = () => {
 
                   <PageCardLayout title={'Stock Report'}>
                     <Grid container spacing={3}>
-                      <Grid item size={{ xs: 12, sm: 12, md: 3 }}>
+                      <Grid size={{ xs: 12, sm: 12, md: 3 }}>
                         <MUISearch
                           value={searchValue}
                           onChange={e => {
@@ -911,6 +910,17 @@ const ListOfStocks = () => {
                           }}
                         />
                       </Grid>
+                      {/* <Grid size={{ xs: 12, sm: 12, md: 3 }}>
+                        <MUISelect
+                          label='Category'
+                          value={categoryFilter}
+                          onChange={e => {
+                            const val = e.target.value
+                            setCategoryFilter(val)
+                          }}
+                          options={productCategoryOptions}
+                        />
+                      </Grid> */}
                       <Grid item size={{ xs: 12, sm: 12, md: 9 }}>
                         <Grid
                           container
@@ -921,6 +931,17 @@ const ListOfStocks = () => {
                             justifyContent: { xs: 'space-between', md: 'end ' }
                           }}
                         >
+                          <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
+                            <MUISelect
+                              label='Category'
+                              value={categoryFilter}
+                              onChange={e => {
+                                const val = e.target.value
+                                setCategoryFilter(val)
+                              }}
+                              options={productCategoryOptions}
+                            />
+                          </Grid>
                           {selectedPharmacy.type === 'central' && (
                             <Grid item size={{ xs: 12, sm: 12, md: 4 }}>
                               <MUIAutocomplete
