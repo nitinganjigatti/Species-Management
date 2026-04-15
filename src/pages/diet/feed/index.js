@@ -136,6 +136,7 @@ const FeedTypes = () => {
       width: 80,
       field: 'id',
       headerName: 'SL',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
@@ -147,6 +148,7 @@ const FeedTypes = () => {
       width: 250,
       field: 'feed_type_name',
       headerName: t('diet_module.feeds'),
+      sortable: false,
       renderCell: params => (
         <>
           <Avatar
@@ -179,6 +181,7 @@ const FeedTypes = () => {
       minWidth: 10,
       field: 'desc',
       headerName: t('description'),
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.desc} placement='bottom'>
           <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -192,6 +195,7 @@ const FeedTypes = () => {
       minWidth: 10,
       field: 'active',
       headerName: t('status'),
+      sortable: false,
       renderCell: params => (
         <CustomChip
           skin='light'

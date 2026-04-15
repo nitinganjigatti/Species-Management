@@ -156,9 +156,10 @@ const FeedDetails = () => {
   const columns = [
     {
       flex: 0.1,
-      minWidth: 40,
+      minWidth: 60,
       field: 'id',
       headerName: 'SL',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id}
@@ -170,6 +171,7 @@ const FeedDetails = () => {
       minWidth: 40,
       field: 'ingredient_name',
       headerName: 'ITEMS',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Avatar variant='square' src={params?.row?.image || '/icons/icon_ingredient_fill.png'} />
@@ -182,6 +184,7 @@ const FeedDetails = () => {
       minWidth: 10,
       field: 'created_by_user',
       headerName: 'ADDED BY',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0 }}>
           <Avatar

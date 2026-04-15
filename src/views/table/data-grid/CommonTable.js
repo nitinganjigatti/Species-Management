@@ -179,6 +179,9 @@ const CommonTable = ({
     },
     '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
       borderBottom: 'none' // Make sure no extra bottom border is applie
+    },
+    '.MuiDataGrid-columnHeader .MuiDataGrid-sortButton': {
+      backgroundColor: 'transparent !important'
     }
   }
 
