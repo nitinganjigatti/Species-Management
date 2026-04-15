@@ -21,8 +21,10 @@ import Button from '@mui/material/Button'
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { useTranslation } from 'react-i18next'
 
 const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
+  const { t } = useTranslation()
   const [loader, setLoader] = useState(false)
   const router = useRouter()
   const { id } = router.query
@@ -60,7 +62,6 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
         await getDietListonRecipeDtl(id, params, type).then(res => {
           console.log('response', res)
 
-        
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
           let listWithId = res.data.data.result.map((el, i) => {
@@ -140,7 +141,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.08,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -154,7 +155,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
       flex: 0.5,
       minWidth: 40,
       field: 'diet_name',
-      headerName: 'DIET NAME',
+      headerName: t('diet_module.diet_name'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -180,7 +181,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
       flex: 0.3,
       minWidth: 40,
       field: 'diet_no',
-      headerName: 'DIET NO',
+      headerName: t('diet_module.diet_no'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -265,12 +266,13 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                     tableValue: 'recipe-List'
                   }
                 }}
-                showToolbar />
+                showToolbar
+              />
             </div>
           </>
         )}
       </>
-    );
+    )
   }
 
   return (

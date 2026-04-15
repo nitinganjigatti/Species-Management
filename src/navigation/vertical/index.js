@@ -15,6 +15,12 @@ import housingNavigation from 'src/components/navigation/housing'
 import hospitalNavigation from 'src/components/navigation/hospital'
 import settingsNavigation from 'src/components/navigation/settings'
 import necropsyNavigation from 'src/components/navigation/necropsy'
+import announcementsNavigation from 'src/components/navigation/announcements'
+import notesNavigation from 'src/components/navigation/notes'
+
+import animalsNavigation from 'src/components/navigation/animals'
+import componentLibraryNavigation from 'src/components/navigation/component-library'
+import vmsNavigation from 'src/components/navigation/vms'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -23,7 +29,6 @@ const ComposeNavigation = () => {
   const labRole = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab
   const userSettings = authData?.userData?.permission?.user_settings
-
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const complianceModule = authData?.userData?.roles?.settings?.compliance_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
@@ -51,6 +56,7 @@ const ComposeNavigation = () => {
   const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
   const allowCarcassCollection = authData?.userData?.roles?.settings?.allow_carcass_collection
   const hasPermissionToAddNecropsyCenter = authData?.userData?.permission?.user_settings?.add_necropsy_center
+  const medicalAccess = authData?.userData?.roles?.settings?.medical_records
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
@@ -58,6 +64,18 @@ const ComposeNavigation = () => {
   const navigationArray = []
   const dashboardNav = dashboardNavigation({ userRole })
   navigationArray.push(...dashboardNav)
+
+  // Announcements module (App Router)
+  const announcementsNav = announcementsNavigation()
+  navigationArray.push(...announcementsNav)
+
+  // Notes module (App Router)
+  const notesNav = notesNavigation()
+  navigationArray.push(...notesNav)
+
+  // Animals module (App Router)
+  const animalsNav = animalsNavigation()
+  navigationArray.push(...animalsNav)
 
   if (reports_module) {
     const reportNav = reportNavigation({
@@ -107,7 +125,8 @@ const ComposeNavigation = () => {
   }
 
   const medicalNav = medicalNavigation({
-    userSettings
+    userSettings,
+    medicalAccess
   })
   navigationArray.push(...medicalNav)
 
@@ -117,14 +136,26 @@ const ComposeNavigation = () => {
   }
 
   if (enableAddNecropsyReport || allowCarcassCollection || hasPermissionToAddNecropsyCenter) {
-    const necropsyNav = necropsyNavigation(hasPermissionToAddNecropsyCenter, allowCarcassCollection, enableAddNecropsyReport)
+    const necropsyNav = necropsyNavigation(
+      hasPermissionToAddNecropsyCenter,
+      allowCarcassCollection,
+      enableAddNecropsyReport
+    )
     navigationArray.push(...necropsyNav)
   }
 
+  // VMS module (temporarily showing all nav items for development)
+  const vmsNav = vmsNavigation({ vmsPassView: true, vmsScan: true, vmsReports: true, vmsGadgetsManage: true })
+  navigationArray.push(...vmsNav)
+
   if (housingModule || housingModuleWeb) {
-    const settingsNav = settingsNavigation()
+    const settingsNav = settingsNavigation({ userRole })
     navigationArray.push(...settingsNav)
   }
+
+  // Component Library (Developer Tools)
+  const componentLibraryNav = componentLibraryNavigation()
+  navigationArray.push(...componentLibraryNav)
 
   return navigationArray
 }

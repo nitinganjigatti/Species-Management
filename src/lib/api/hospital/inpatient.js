@@ -13,7 +13,10 @@ import {
   GET_PATIENT_VISIT_SUMMARY,
   GET_SPECIES_FOR_HOSPITAL,
   UPLOAD_PATIENT_MEDIA,
-  UPDATE_ANIMAL_HEALTH_STATUS
+  UPDATE_ANIMAL_HEALTH_STATUS,
+  DOWNLOAD_DISCHARGE_LISTINGS,
+  DOWNLOAD_MORTALITY_LISTINGS,
+  DOWNLOAD_FOLLOWUP_LISTINGS
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -122,6 +125,39 @@ export async function deletePatientMedia(mediaId) {
     return response?.data
   } catch (error) {
     console.error('Error deleting patient media:', error?.message || error)
+    throw error
+  }
+}
+
+export async function downloadDischargeListings(params){
+  try {
+    const response = await axiosGet({ url: `${DOWNLOAD_DISCHARGE_LISTINGS}`, params })
+    return response?.data
+  }
+  catch (error) {
+    console.error(error?.message)
+    throw error
+  }
+}
+
+export async function downloadMortalityListings(params){
+  try {
+    const response = await axiosGet({url: `${DOWNLOAD_MORTALITY_LISTINGS}`, params})
+    return response?.data
+  }
+  catch (error) {
+    console.error(error?.message)
+    throw error
+  }
+}
+
+export async function downloadFollowUpListings(params){
+  try {
+    const response = await axiosGet({url: `${DOWNLOAD_FOLLOWUP_LISTINGS}`, params})
+    return response?.data
+  }
+  catch (error) {
+    console.error(error?.message)
     throw error
   }
 }

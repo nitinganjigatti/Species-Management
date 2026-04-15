@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Avatar } from '@mui/material'
+import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Avatar, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
@@ -81,16 +81,19 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
   const cooldownRef = useRef(false)
 
   const loadMore = useCallback(() => {
-    if (cooldownRef.current) return
-    if (!isFetchingNextPage && hasNextPage) {
-      cooldownRef.current = true
-      fetchNextPage().finally(() => {
-        setTimeout(() => {
-          cooldownRef.current = false
-        }, 300)
-      })
-    }
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
+    // if (cooldownRef.current) return
+    // if (!isFetchingNextPage && hasNextPage) {
+    //   cooldownRef.current = true
+    //   fetchNextPage().finally(() => {
+    //     setTimeout(() => {
+    //       cooldownRef.current = false
+    //     }, 300)
+    //   })
+    // }
+    setTimeout(() => {
+    fetchNextPage()
+  }, 300)
+  }, [fetchNextPage])
 
   useEffect(() => {
     if (inView) {
@@ -221,19 +224,26 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                   ...(isSelected && {
+                  borderColor: theme.palette.success.main,
+                  backgroundColor: '#f8fff8'
+                })
               }}
             >
               <Box sx={{ flex: 1 }}>
                 <Box
                   sx={{
-                    width: '100%',
+                    width: 450,
                     display: 'flex',
                     gap: 4,
                     alignItems: 'center',
-                    justifyContent: 'space-between'
+                    justifyContent: 'space-between',
                   }}
+                  onClick={() => handleSectionSelect(section)}
+
                 >
+                  <Tooltip title = {section?.section_name}/>
                   <CellInfo
                     value={section?.section_name}
                     imgUrl={section?.images?.[0]?.file}
@@ -246,6 +256,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
               <Checkbox
                 checked={isSelected}
                 onChange={() => handleSectionSelect(section)}
+                onClick={(e) => e.stopPropagation()}
                 sx={{
                   mt: 0.5,
                   color: '#37BD69',

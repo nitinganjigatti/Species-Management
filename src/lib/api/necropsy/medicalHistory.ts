@@ -5,9 +5,9 @@ import {
   GET_LAB_REQUESTS_BY_ANIMAL,
   GET_ASSESSMENT_ANIMAL_TYPES,
   GET_ASSESSMENT_ANIMAL_DATA,
-  ANIMAL_JOURNAL_LOGS,
   GET_MEDICAL_STATS
 } from 'src/constants/ApiConstant'
+import { ANIMAL_JOURNAL_LOGS } from 'src/constants/housing/animalConstants'
 import { axiosGet } from '../utility'
 import type {
   MedicalRecordStatsParams,

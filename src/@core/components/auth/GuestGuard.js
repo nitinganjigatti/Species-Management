@@ -2,7 +2,7 @@
 import { useEffect } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** Hooks Import
 import { useAuth } from 'src/hooks/useAuth'
@@ -10,7 +10,7 @@ import { useAuth } from 'src/hooks/useAuth'
 const GuestGuard = props => {
   const { children, fallback } = props
   const auth = useAuth()
-  const router = useRouter()
+  const router = useSafeRouter()
   useEffect(() => {
     if (!router.isReady) {
       return

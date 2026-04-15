@@ -29,6 +29,7 @@ import Error404 from 'src/pages/404'
 import RenderUtility from 'src/utility/render'
 import moment from 'moment'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import { useTranslation } from 'react-i18next'
 
 // Styled TabList component
 const roleColors = {
@@ -39,6 +40,7 @@ const roleColors = {
 const Diet = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { t } = useTranslation()
   const { query } = router
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -168,12 +170,8 @@ const Diet = () => {
         <div>
           <Button sx={{ m: 2 }} size='small' variant='contained' onClick={() => Router.push('/diet/add-diet')}>
             <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; Add New
+            &nbsp; {t('add_new')}
           </Button>
-          {/* <Button size='small' variant='contained' onClick={addEventSidebarOpen}>
-        <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add Recipe
-      </Button> */}
         </div>
       )}
     </>
@@ -189,7 +187,7 @@ const Diet = () => {
   const columns = [
     {
       //flex: 0.19,
-      width: 70,
+      width: 80,
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
@@ -202,7 +200,7 @@ const Diet = () => {
       //flex: 0.8,
       width: 350,
       field: 'diet_no',
-      headerName: 'Diet Id',
+      headerName: t('diet_module.diet_id'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -235,9 +233,9 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 130,
+      width: 150,
       field: 'no_meals',
-      headerName: 'No of mixes',
+      headerName: t('diet_module.no_of_mixes'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.combo ? params.row.combo : '-'}
@@ -246,9 +244,9 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 120,
+      width: 160,
       field: 'no_recipe',
-      headerName: 'No of Recipes',
+      headerName: t('diet_module.no_of_recipes'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
@@ -256,52 +254,11 @@ const Diet = () => {
       )
     },
 
-    // {
-    //   //flex: 0.6,
-    //   width: 260,
-    //   field: 'created_at',
-    //   headerName: 'CREATED BY',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Avatar
-    //         variant='square'
-    //         alt='Diet Image'
-    //         sx={{
-    //           width: 30,
-    //           height: 30,
-    //           mr: 4,
-    //           borderRadius: '50%',
-    //           background: theme.palette.customColors.tableHeaderBg,
-    //           overflow: 'hidden'
-    //         }}
-    //       >
-    //         {params.row.profile_pic ? (
-    //           <img
-    //             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //             src={params.row.profile_pic}
-    //             alt='Profile'
-    //           />
-    //         ) : (
-    //           <Icon icon='mdi:user' />
-    //         )}
-    //       </Avatar>
-    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
-    //           {params.row.user_name ? params.row.user_name : '-'}
-    //         </Typography>
-    //         <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}>
-    //           {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
-    //         </Typography>
-    //       </Box>
-    //     </Box>
-    //   )
-    // },
-
     {
       //flex: 0.6,
       width: 260,
       field: 'dietitian_name',
-      headerName: 'Nutritionist',
+      headerName: t('diet_module.nutritionist'),
       renderCell: params => (
         <>
           <Box>
@@ -311,13 +268,6 @@ const Diet = () => {
               role={params.row.dietitian_role_name}
               crby_width='200px'
             />
-            {/* {UserAvatarDetails({
-              profile_image: params.row.profile_pic,
-              user_name: params.row.user_name,
-              descriptors: params.row.dietitian_role_name
-
-              // date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD')
-            })} */}
           </Box>
         </>
       )
@@ -327,7 +277,7 @@ const Diet = () => {
       //flex: 0.6,
       width: 260,
       field: 'created_at',
-      headerName: 'CREATED BY',
+      headerName: t('created_by'),
       renderCell: params => (
         <>
           <Box>
@@ -344,9 +294,9 @@ const Diet = () => {
 
     {
       //flex: 0.3,
-      width: 100,
+      width: 120,
       field: 'status',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -395,7 +345,7 @@ const Diet = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Diet' action={headerAction} sx={{ px: 5 }} />
+              <CardHeader title={t('navigation.diet')} action={headerAction} sx={{ px: 5 }} />
 
               <Box sx={{ width: '100%', overflowX: 'auto' }}>
                 <CommonTable
@@ -432,7 +382,7 @@ const Diet = () => {
           </>
         )}
       </>
-    );
+    )
   }
 
   return (

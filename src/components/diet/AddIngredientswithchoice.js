@@ -30,6 +30,7 @@ import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { palette } from '@mui/system'
+import { useTranslation } from 'react-i18next'
 
 const CustomPaper = props => {
   const { children, isLoading, ...other } = props
@@ -79,6 +80,7 @@ const AddIngredientswithChoice = props => {
     handleFeedSearch
   } = props
   const theme = useTheme()
+  const { t } = useTranslation()
   const menuRef = useRef(null)
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
@@ -323,7 +325,7 @@ const AddIngredientswithChoice = props => {
       toast.error('Please select a Cutsize', {
         duration: 1000
       })
-      
+
       const missingCutsizeCards = selectedCardIngchoice.filter(card => !size[card.ingredient_id])
       setValidationErrors(prev => {
         const newErrors = new Set(prev)
@@ -500,7 +502,7 @@ const AddIngredientswithChoice = props => {
 
         return newSize
       })
-      
+
       setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
@@ -751,7 +753,7 @@ const AddIngredientswithChoice = props => {
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
               <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                Select Multiple Items
+                {t('diet_module.select_multiple')}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -785,7 +787,7 @@ const AddIngredientswithChoice = props => {
                     )
                   }
                 }}
-                placeholder='Search item'
+                placeholder={t('diet_module.search_item')}
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -976,11 +978,11 @@ const AddIngredientswithChoice = props => {
                   mx: '24px',
                   borderRadius: '8px',
                   my: 4,
-                  border: validationErrors.includes(item.id) 
-                    ? '2px solid red' 
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
                     : selectedCardIngchoice.some(card => card.ingredient_id === item.id)
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : 'none'
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >
@@ -1067,7 +1069,7 @@ const AddIngredientswithChoice = props => {
                         }}
                         noWrap
                       >
-                        Feed Type -&nbsp;
+                        {t('diet_module.feed_type')} -&nbsp;
                         <Tooltip title={item?.feed_type_label || ''}>
                           <span
                             style={{
@@ -1087,7 +1089,7 @@ const AddIngredientswithChoice = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Preparation Type</Typography>
+                      <Typography>{`${t('diet_module.preparation_type')} *`}</Typography>
 
                       <Box sx={{ width: 200 }}>
                         <FormControl fullWidth>
@@ -1186,7 +1188,7 @@ const AddIngredientswithChoice = props => {
                       <>
                         <Divider mt={-2} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                          <Typography>Enter cut size</Typography>
+                          <Typography>{`${t('diet_module.enter_cutsize')} *`}</Typography>
 
                           <Box sx={{ pl: 5, width: 150 }}>
                             <FormControl fullWidth>
@@ -1368,7 +1370,7 @@ const AddIngredientswithChoice = props => {
                 </IconButton>
               </Box>
               <Box sx={{ mt: 12, mb: 8 }}>
-                <Typography sx={{ py: 4 }}>Feeding Days</Typography>
+                <Typography sx={{ py: 4 }}>Feeding Days*</Typography>
 
                 <Stack
                   direction='row'
@@ -1432,7 +1434,7 @@ const AddIngredientswithChoice = props => {
 
           {!showDays && (
             <Button fullWidth variant='contained' size='large' sx={{ mb: 2 }} onClick={() => handleContinueClick()}>
-              {selectedCardIngchoice?.length} SELECTED - CONTINUE
+              {selectedCardIngchoice?.length} {t('selected')} - {t('continue')}
             </Button>
           )}
         </Box>

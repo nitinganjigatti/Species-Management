@@ -6,9 +6,11 @@ import Button from '@mui/material/Button'
 import { Card, CardContent, Avatar, CircularProgress, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { end } from '@popperjs/core'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
+  const { t } = useTranslation()
   // const columns = [
   //   {
   //     flex: 0.5,
@@ -84,7 +86,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'ITEM Name',
+      headerName: t('diet_module.item_name'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.ingredient_name}
@@ -95,7 +97,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'ITEM ID',
+      headerName: t('diet_module.item_id'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
           {params.row.ingredient_id}
@@ -106,7 +108,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.4,
       minWidth: 20,
       field: 'feed_type_label',
-      headerName: 'Feed Type',
+      headerName: t('diet_module.feed_type'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.feed_type_label}
@@ -129,7 +131,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.4,
       minWidth: 20,
       field: 'preparation_type',
-      headerName: 'Preparation Type',
+      headerName: t('diet_module.preparation_type'),
       renderCell: params => (
         <Tooltip title={params?.row?.preparation_type} arrow placement='bottom-start'>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }} className='text_overflow_moduled'>
@@ -166,7 +168,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
     <>
       <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
         <Box sx={{ float: 'left' }}>
-          <Typography variant='h6'>Preview</Typography>
+          <Typography variant='h6'>{t('preview')}</Typography>
         </Box>
 
         <Grid container spacing={5}>
@@ -262,7 +264,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                                Items used
+                                {t('diet_module.items_used')}
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -297,7 +299,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                     </Grid>
 
                     <Grid item size={{ xs: 8 }}>
-                      <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>Description</Typography>
+                      <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>
+                        {t('description')}
+                      </Typography>
                       <Typography variant='body2' sx={{ fontSize: '14px', pt: 2 }}>
                         {formData.desc ? formData.desc : 'No Description to show'}
                       </Typography>
@@ -309,7 +313,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
               <Card sx={{ boxShadow: 'none' }}>
                 <CardContent sx={{ px: 0, py: 0 }}>
                   <Card sx={{ boxShadow: 'none' }}>
-                    <CardHeader title='Item by percentage' sx={{ px: 0, py: 4 }} />
+                    <CardHeader title={t('diet_module.item_by_perc')} sx={{ px: 0, py: 4 }} />
 
                     <DataGrid
                       sx={{
@@ -364,7 +368,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                 startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
               >
-                Go back
+                {t('go_back')}
               </Button>
 
               <Button
@@ -381,7 +385,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  Submit
+                  {t('submit')}
                   {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
                 </span>
               </Button>

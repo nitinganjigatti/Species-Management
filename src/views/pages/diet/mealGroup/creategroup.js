@@ -22,6 +22,7 @@ import { fontSize } from '@mui/system'
 import { object } from 'yup'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -45,11 +46,13 @@ const CreateMealGroup = ({
   handleEditSearch,
   fetchSiteStats
 }) => {
+  const { t } = useTranslation()
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [removedEnclosures, setRemovedEnclosures] = useState([])
   const [loading, setLoading] = useState(false)
+  const toastLock = useRef(false)
 
   const handleRemove = index => {
     const itemToRemove = selectedItems[index]
@@ -93,13 +96,29 @@ const CreateMealGroup = ({
   //   }
   // }
 
+  const showToast = (message, type = 'error') => {
+    if (toastLock.current) return
+
+    toastLock.current = true
+    toast[type](message)
+
+    setTimeout(() => {
+      toastLock.current = false
+    }, 3000)
+  }
+
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setGroupNameError(true)
-      
-return
+
+      return
     }
     setGroupNameError(false)
+
+    if (!selectedItems || selectedItems.length === 0) {
+      showToast('Please select an enclosure')
+      return
+    }
 
     if (loading) return
 
@@ -170,6 +189,14 @@ return
       return
     }
 
+    const isNameChanged = groupName !== (editParam?.group_name || '')
+    const hasEnclosuresRemoved = removedEnclosures.length > 0
+
+    if (!isNameChanged && !hasEnclosuresRemoved) {
+      return
+    }
+
+    setLoading(true)
     try {
       const params = {
         site_id: selectedOption,
@@ -193,6 +220,8 @@ return
     } catch (error) {
       toast.error('Server error. Please try again.')
       console.error('Create Meal Group Error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -263,8 +292,12 @@ return
           onClick={Object.keys(editParam).length > 0 ? handleUpdateGroup : handleCreateGroup}
           sx={{ height: '58px' }}
           fullWidth
-          disabled={loading}
-
+          disabled={
+            loading ||
+            (Object.keys(editParam).length > 0 &&
+              groupName === (editParam?.group_name || '') &&
+              removedEnclosures.length === 0)
+          }
           //   disabled={loader || watch('nursery_name') === '' || watch('site_id') === ''}
           variant='contained'
           type='submit'
@@ -277,6 +310,9 @@ return
       </Box>
     )
   }
+
+  const totalSpecies = selectedItems?.reduce((acc, item) => acc + Number(item?.species_count || 0), 0) || 0
+  const totalAnimals = selectedItems?.reduce((acc, item) => acc + Number(item?.animal_count || 0), 0) || 0
 
   return dietModule ? (
     <>
@@ -327,10 +363,10 @@ return
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
               >
                 {mealType.type === 'view'
-                  ? 'Meal Group'
+                  ? t('diet_module.meal_group')
                   : Object.keys(editParam).length > 0
-                  ? 'Edit Meal Group'
-                  : 'Create new group'}
+                  ? `${t('edit')} ${t('diet_module.meal_group')}`
+                  : `${t('create')} ${t('diet_module.meal_group')}`}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -369,7 +405,7 @@ return
                   fontFamily: 'Inter'
                 }}
               >
-                Enter group name
+                {t('diet_module.enter_group_name')}
               </Typography>
 
               <FormControl fullWidth>
@@ -426,7 +462,8 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_enclosures}
+                      {selectedItems?.length}
+                      {/* {siteStats?.total_enclosures} */}
                     </Box>
                     <Box
                       component='span'
@@ -437,7 +474,7 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Enclosures
+                      {selectedItems?.length === 1 ? 'Enclosure' : 'Enclosures'}
                     </Box>
                   </Typography>
 
@@ -452,7 +489,8 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_species}
+                      {totalSpecies}
+                      {/* {siteStats?.total_species} */}
                     </Box>
                     <Box
                       component='span'
@@ -463,7 +501,7 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Species
+                      {t('navigation.species')}
                     </Box>
                   </Typography>
 
@@ -478,7 +516,8 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {siteStats?.total_animals}
+                      {totalAnimals}
+                      {/* {siteStats?.total_animals} */}
                     </Box>
                     <Box
                       component='span'
@@ -489,7 +528,7 @@ return
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Animals
+                      {totalAnimals === 1 ? 'Animal' : 'Animals'}
                     </Box>
                   </Typography>
                 </Box>
@@ -508,7 +547,7 @@ return
                 mb: mealType.type === 'view' && 4
               }}
             >
-              Selected enclosures
+              {t('diet_module.selected_enclosures')}
             </Typography>
             {mealType.type !== 'view' && (
               <Box
@@ -699,7 +738,9 @@ return
                       alignItems: 'center'
                     }}
                   >
-                    <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888' }}>No Data Found</Typography>
+                    <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888' }}>
+                      {t('diet_module.no_data_found')}
+                    </Typography>
                   </Box>
                 )}
               </Box>

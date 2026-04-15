@@ -21,6 +21,7 @@ import Icon from 'src/@core/components/icon'
 import AddCutSize from '../../diet/cutSizes/addCutSizes'
 import { addCutSize, getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
+import { useTranslation } from 'react-i18next'
 import { useTheme, useMediaQuery } from '@mui/material'
 
 const defaultValues = {
@@ -73,7 +74,8 @@ const StepAddIngredients = ({
   fullIngredientList,
   IngredientTypeListSearch,
   setcutSize,
-  loader
+  loader,
+  fetchMoreIngredients
 }) => {
   const ingredients = [
     { label: ' Items' },
@@ -83,7 +85,15 @@ const StepAddIngredients = ({
     // { label: 'Cut Size' }
   ]
 
+  const handleScroll = event => {
+    const listboxNode = event.currentTarget
+    if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 5) {
+      fetchMoreIngredients()
+    }
+  }
+
   const editParamsInitialState = { id: null, label: null, status: null }
+  const { t } = useTranslation()
   const [uploadedImage, setUploadedImage] = useState(null)
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
@@ -147,13 +157,11 @@ const StepAddIngredients = ({
               ingredient_id: '',
               quantity: '',
               preparation_type_id: ''
-
-              //cut_size_id: ''
             })
           }}
         >
           <Icon icon='material-symbols:add' />
-          ADD NEW ITEM
+          {t('diet_module.add_new_item')}
         </Typography>
       </>
     )
@@ -185,13 +193,11 @@ const StepAddIngredients = ({
             ingredient_id: '',
             quantity: '',
             preparation_type_id: ''
-
-            //cut_size_id: ''
           })
         }}
       >
         <Icon icon='material-symbols:add' />
-        ADD NEW ITEM
+        {t('diet_module.add_new_item')}
       </Typography>
     )
   }
@@ -491,7 +497,7 @@ const StepAddIngredients = ({
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ mb: 5, px: 5, mt: 5, float: 'left' }}>
-            <Typography variant='h6'>Mix details</Typography>
+            <Typography variant='h6'>{t('diet_module.mix_details')}</Typography>
           </Box>
           <ScrollToFieldError errors={errors} />
           <Grid container spacing={5} sx={{ px: 5 }}>
@@ -504,7 +510,7 @@ const StepAddIngredients = ({
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       value={value}
-                      label='Mix name *'
+                      label={`${t('diet_module.mix_name')} *`}
                       name='recipe_name'
                       error={Boolean(errors.recipe_name)}
                       onChange={onChange}
@@ -520,7 +526,7 @@ const StepAddIngredients = ({
             <Divider sx={{ mx: 3, mt: 3, width: '98%', ml: 1 }} />
 
             <Box sx={{ float: 'left', width: '100%' }}>
-              <Typography variant='h6'>Add image</Typography>
+              <Typography variant='h6'>{t('media_details.add_image')}</Typography>
             </Box>
 
             <Grid size={{ xs: 6 }} sx={{ pt: 0 }}>
@@ -532,7 +538,7 @@ const StepAddIngredients = ({
           <Grid container spacing={5} sx={{ px: 5, pt: 0 }}>
             <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0, mt: 2, mr: 4 }}>
-                <Typography variant='h6'>Add Item - by Percentage</Typography>
+                <Typography variant='h6'>{t('diet_module.add_item_perc')}</Typography>
               </Box>
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', borderRadius: 0.5, mx: 0 }}>
@@ -568,7 +574,6 @@ const StepAddIngredients = ({
               <Grid container spacing={5} sx={{ px: 0, py: 0 }}>
                 {fieldsIngredients.map((field, index) => (
                   <Grid container spacing={5} sx={{ px: 0, py: 1 }} key={field.id} id={'test' + index}>
-
                     <Grid size={{ xs: 12, sm: 3.6 }}>
                       <FormControl fullWidth>
                         <Controller
@@ -590,6 +595,9 @@ const StepAddIngredients = ({
                               options={fullIngredientList || []}
                               getOptionLabel={option => option?.ingredient_name}
                               isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              ListboxProps={{
+                                onScroll: handleScroll
+                              }}
                               onChange={(e, val) => {
                                 if (val === null) {
                                   onChange('')
@@ -614,7 +622,7 @@ const StepAddIngredients = ({
                               renderInput={params => (
                                 <TextField
                                   {...params}
-                                  label='Select Item*'
+                                  label={`${t('diet_module.select_item')} *`}
                                   placeholder='Search & Select'
                                   error={
                                     errors.by_percentage &&
@@ -647,7 +655,7 @@ const StepAddIngredients = ({
                             <TextField
                               value={value}
                               type='number'
-                              label='Enter Quantity (%)*'
+                              label={`${t('diet_module.enter_quantity_perc')} *`}
                               name={`by_percentage[${index}].quantity`}
                               onChange={e => {
                                 onChange(e)
@@ -718,7 +726,7 @@ const StepAddIngredients = ({
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select Preparation Type *'
+                                    label={`${t('diet_module.select_preparation_type')} *`}
                                     error={
                                       errors.by_percentage &&
                                       errors.by_percentage[index] &&
@@ -731,7 +739,7 @@ const StepAddIngredients = ({
                                 options={preparationTypeListPercentage[index] || []}
                                 onChange={(event, newValue) => {
                                   const updatedIngredient = newValue?.id || ''
-                                  setFormValue(`by_percentage[${index}].preparation_type_id`, newValue?.id || '') // Use id instead of value
+                                  setFormValue(`by_percentage[${index}].preparation_type_id`, newValue?.id || '')
                                   setFormValue(`by_percentage[${index}].preparation_type`, newValue?.label || '')
                                   onChange(updatedIngredient, index)
                                 }}
@@ -763,7 +771,7 @@ const StepAddIngredients = ({
 
               <Grid container sx={{ px: 0, py: 0 }}>
                 <Box sx={{ mb: 0, float: 'left' }}>
-                  <Typography variant='h6'>Add Description</Typography>
+                  <Typography variant='h6'>{t('diet_module.add_description')}</Typography>
                 </Box>
                 <Grid size={{ xs: 12 }}>
                   <Controller
@@ -775,7 +783,7 @@ const StepAddIngredients = ({
                         multiline
                         fullWidth
                         value={value}
-                        label='Description (Optional) *'
+                        label={`${t('description')} (${t('optional')})`}
                         name='desc'
                         error={Boolean(errors.desc)}
                         onChange={onChange}
@@ -797,10 +805,10 @@ const StepAddIngredients = ({
                   startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                   sx={{ mr: 6 }}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                  Next
+                  {t('next')}
                 </Button>
               </Box>
             </Grid>
@@ -812,7 +820,6 @@ const StepAddIngredients = ({
         addEventSidebarOpen={openDrawer}
         handleSidebarClose={handleSidebarClose}
         handleSubmitData={handleSubmitData}
-
         //resetForm={resetForm}
         submitLoader={submitLoader}
         editParams={editParams}

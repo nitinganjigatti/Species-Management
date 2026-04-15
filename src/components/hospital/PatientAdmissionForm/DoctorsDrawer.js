@@ -6,14 +6,15 @@ import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
-
-const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
+import { useForm } from 'react-hook-form'
+import NoDataFound from 'src/views/utility/NoDataFound'
+const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId}) => {
   const theme = useTheme()
-
+  const { setValue } = useForm()
   const [searchValue, setSearchValue] = useState('')
   const [selected, setSelected] = useState(null)
-  const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(false)
+  const [doctors, setDoctors] = useState([])
 
   const getUserLists = async (query = '') => {
     setLoading(true)
@@ -22,15 +23,16 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
       if (query.trim() !== '') {
         params.q = query
       }
-      await getHospitalStaff({ params: { hospital_id: hospitalId, ...params } }).then(res => {
+      await getHospitalStaff({ params: { hospital_id: hospitalId, is_hospital_chief_doctor: '1',...params } }).then(res => {
         console.log(res)
         if (res?.success === true) {
+
           setDoctors(
-            res?.data?.records.map(item => ({
+             res?.data?.records.map(item => ({
               name: item?.user_full_name,
               id: item?.user_id,
               default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
+              role_name: item?.role_name,
             }))
           )
         } else {
@@ -68,8 +70,18 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
     if (selected) {
       onSelectDoctor(selected)
       setOpen(false)
+      
     }
   }
+  
+  useEffect(() => {
+  if (doctors.length === 1) {
+    const singleDoctor = doctors[0]
+    setSelected(singleDoctor)
+    
+    setValue('doctors', singleDoctor)
+  }
+}, [doctors])
 
   return (
     <>
@@ -167,7 +179,8 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
             </>
           ) : (
             <>
-              {doctors?.map(doctor => (
+              {doctors.length > 0 ? (
+                doctors?.map(doctor => (
                 <Box
                   key={doctor?.id}
                   sx={{
@@ -178,17 +191,22 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }) => {
                     background: theme.palette.customColors.OnPrimary,
                     borderRadius: 1,
                     cursor: 'pointer',
-                    border: selected === doctor ? `2px solid ${theme.palette.primary.main}` : `2px solid transparent`,
+                    border: selected=== doctor ? `2px solid ${theme.palette.primary.main}` : `2px solid transparent`,
                     transition: 'border-color 0.2s'
                   }}
                   onClick={() => setSelected(doctor)}
                 >
                   <UserAvatarDetails user_name={doctor?.name} profile_image={doctor?.default_icon} size='large' />
-                  {selected === doctor && (
+                  {selected?.id === doctor?.id && (
                     <Icon icon='mdi:check-circle' color={theme.palette.primary.main} style={{ fontSize: 20 }} />
                   )}
                 </Box>
-              ))}
+              ))
+              ) : (
+                <>
+                  <NoDataFound width={200} height={200} />
+                </>
+              )}
             </>
           )}
         </Box>

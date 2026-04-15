@@ -11,6 +11,7 @@ import { Stack } from '@mui/system'
 import { Tooltip, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const RecipeCard = ({
   rows,
@@ -33,6 +34,7 @@ const RecipeCard = ({
   const [remarks, setRemarks] = useState({})
 
   const theme = useTheme()
+  const { t } = useTranslation()
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
   const [validationErrors, setValidationErrors] = useState([])
@@ -107,7 +109,7 @@ const RecipeCard = ({
               return {
                 id: day.id,
                 name: day.name,
-                isActive: day.id === 0 ? allDaysSelected : (selectedItem.days_of_week?.includes(day.id) || false)
+                isActive: day.id === 0 ? allDaysSelected : selectedItem.days_of_week?.includes(day.id) || false
               }
             })
           }
@@ -150,7 +152,7 @@ const RecipeCard = ({
             return {
               id: day.id,
               name: day.name,
-              isActive: day.id === 0 ? allDaysSelected : (days[index]?.includes(day.id) ? true : false)
+              isActive: day.id === 0 ? allDaysSelected : days[index]?.includes(day.id) ? true : false
             }
           })
         })
@@ -297,7 +299,7 @@ const RecipeCard = ({
 
         // Check if all individual days are selected
         const anyDayUnselected = updatedCard.days.filter(d => d.id !== 0).some(day => !day.isActive)
-        
+
         // Update 'All' day status based on whether all other days are selected
         updatedCard.days = updatedCard.days.map(day => {
           if (day.id === 0) {
@@ -359,14 +361,14 @@ const RecipeCard = ({
     const invalidRecipes = selectedCardRecipe.filter(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
       const activeDays = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0) || []
-      
+
       return activeDays.length === 0
     })
 
     if (invalidRecipes.length > 0) {
       toast.error('Please select at least one feeding day for each selected recipe.')
       setValidationErrors(invalidRecipes.map(recipe => recipe.id))
-      
+
       return
     }
 
@@ -386,8 +388,8 @@ const RecipeCard = ({
 
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
       console.log(item, 'item')
-      
-return {
+
+      return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
         days_of_week: preservedDaysOfWeek,
@@ -460,11 +462,11 @@ return {
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: validationErrors.includes(item.id) 
-                    ? '2px solid red' 
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
                     : selectedCardRecipe?.some(card => card.id === item.id)
-                      ? `2px solid ${theme.palette.primary.main}`
-                      : theme.palette.primary.contrastText,
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : theme.palette.primary.contrastText,
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
@@ -578,7 +580,7 @@ return {
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Items
+                        {t('diet_module.items')}
                       </Typography>
                       <Typography
                         sx={{
@@ -588,7 +590,7 @@ return {
                           mr: 20
                         }}
                       >
-                        Cut size
+                        {t('diet_module.cut_size')}
                       </Typography>
                     </Box>
                     {item.ingredients.map((ingredient, index) => (
@@ -701,7 +703,7 @@ return {
                 {selectedCardRecipe?.some(card => card.id === item.id) ? (
                   <>
                     <Divider />
-                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
+                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days*</Typography>
                     <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
                       {Day?.map(day => (
                         <Box
@@ -787,7 +789,7 @@ return {
               fontSize: '16px'
             }}
           >
-            No records to show
+            {t('diet_module.no_records')}
           </Box>
         </Box>
       )}
@@ -811,11 +813,11 @@ return {
       >
         {fromrow === 'rowedit_recipe' ? (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD RECIPE
+            {t('diet_module.add_recipe')}
           </Button>
         ) : (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD RECIPE - {selectedCardRecipe?.length} SELECTED
+            {t('diet_module.add_recipe')}- {selectedCardRecipe?.length} {t('selected')}
           </Button>
         )}
       </Box>

@@ -18,6 +18,7 @@ import Toaster from 'src/components/Toaster'
 import { useTheme, useMediaQuery } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import AddCutSize from '../../diet/cutSizes/addCutSizes'
+import { useTranslation } from 'react-i18next'
 import { addCutSize, getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const defaultValues = {
@@ -85,9 +86,17 @@ const StepAddIngredients = ({
   cutsizeList,
   fullIngredientList,
   IngredientTypeListSearch,
-  setcutSize
+  setcutSize,
+  fetchMoreIngredients
 }) => {
   const ingredients = [{ label: ' Items' }, { label: 'Quantity' }, { label: 'Preparation Type' }, { label: 'Cut Size' }]
+
+  const handleScroll = event => {
+    const listboxNode = event.currentTarget
+    if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 5) {
+      fetchMoreIngredients()
+    }
+  }
 
   const ingredientsbyqun = [
     { label: ' Items' },
@@ -97,6 +106,7 @@ const StepAddIngredients = ({
     { label: 'Cut Size' }
   ]
   const editParamsInitialState = { id: null, label: null, status: null }
+  const { t } = useTranslation()
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -167,7 +177,7 @@ const StepAddIngredients = ({
         }}
       >
         <Icon icon='material-symbols:add' />
-        ADD NEW ITEM
+        {t('diet_module.add_new_item')}
       </Grid>
     )
   }
@@ -299,6 +309,26 @@ const StepAddIngredients = ({
       })
     }
 
+    // Check for duplicate ingredients with same preparation and cut size
+    const seen = new Set()
+    let duplicateFound = false
+    data.by_quantity.forEach(item => {
+      if (item.ingredient_id && item.preparation_type_id && item.cut_size_id) {
+        const key = `${item.ingredient_id}-${item.preparation_type_id}-${item.cut_size_id}`
+        if (seen.has(key)) {
+          duplicateFound = true
+        }
+        seen.add(key)
+      }
+    })
+
+    if (duplicateFound) {
+      return Toaster({
+        type: 'error',
+        message: 'The same item with same preparation type and cut size is not allowed.'
+      })
+    }
+
     window.scrollTo(0, 0)
 
     Object.keys(defaultValues).forEach(field => {
@@ -338,9 +368,7 @@ const StepAddIngredients = ({
           }
         }
       }
-    } catch (error) {
-      // Handle error
-    }
+    } catch (error) {}
   }
 
   useEffect(() => {
@@ -395,8 +423,8 @@ const StepAddIngredients = ({
           <Grid container spacing={5} sx={{ px: 1, py: 3 }}>
             <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 0, mr: 4 }}>
-                <Typography variant='h6'>Add Item - by Quantity</Typography>
-                <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
+                <Typography variant='h6'>{t('diet_module.add_item_quantity')}</Typography>
+                <AddButton title={t('diet_module.add_cut_size')} action={() => addEventSidebarOpen()} />
               </Box>
             </Grid>
 
@@ -459,10 +487,6 @@ const StepAddIngredients = ({
                             render={({ field: { value, onChange } }) => (
                               <Autocomplete
                                 sx={{
-                                  // '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
-                                  //   isSmallDevice ? { paddingRight: '10px' } : {},
-                                  // '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
-                                  // '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {},
                                   width: isSmallDevice ? '216px' : '236px'
                                 }}
                                 value={fullIngredientList.find(option => option.id === value) || null}
@@ -471,6 +495,9 @@ const StepAddIngredients = ({
                                 options={fullIngredientList || []}
                                 getOptionLabel={option => option?.ingredient_name}
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                ListboxProps={{
+                                  onScroll: handleScroll
+                                }}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     onChange('')
@@ -492,7 +519,7 @@ const StepAddIngredients = ({
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select Item*'
+                                    label={`${t('diet_module.select_item')} *`}
                                     placeholder='Search & Select'
                                     error={
                                       errors.by_quantity &&
@@ -524,7 +551,7 @@ const StepAddIngredients = ({
                               <TextField
                                 value={value}
                                 type='number'
-                                label='Enter Quantity *'
+                                label={`${t('diet_module.enter_quantity')} *`}
                                 name={`by_quantity[${index}].quantity`}
                                 onChange={onChange}
                                 placeholder=''
@@ -568,7 +595,7 @@ const StepAddIngredients = ({
                                   renderInput={params => (
                                     <TextField
                                       {...params}
-                                      label='Measurement (UOM) *'
+                                      label={`${t('diet_module.measurement')} *`}
                                       error={
                                         errors.by_quantity &&
                                         errors.by_quantity[index] &&
@@ -618,7 +645,7 @@ const StepAddIngredients = ({
                                   renderInput={params => (
                                     <TextField
                                       {...params}
-                                      label='Select Type*'
+                                      label={`${t('diet_module.select_type')} *`}
                                       error={
                                         errors.by_quantity &&
                                         errors.by_quantity[index] &&
@@ -685,7 +712,7 @@ const StepAddIngredients = ({
                                       renderInput={params => (
                                         <TextField
                                           {...params}
-                                          label='Select Cut size *'
+                                          label={`${t('diet_module.select_cut_size')} *`}
                                           error={
                                             errors.by_quantity &&
                                             errors.by_quantity[index] &&
@@ -724,7 +751,7 @@ const StepAddIngredients = ({
 
             <Grid container>
               <Box sx={{ mb: 2, float: 'left' }}>
-                <Typography variant='h6'>Add Description</Typography>
+                <Typography variant='h6'>{t('diet_module.add_description')}</Typography>
               </Box>
               <Grid size={{ xs: 12 }}>
                 <Controller
@@ -736,7 +763,7 @@ const StepAddIngredients = ({
                       multiline
                       fullWidth
                       value={value}
-                      label='Description (Optional) *'
+                      label={`${t('description')} (${t('optional')})`}
                       name='desc'
                       error={Boolean(errors.desc)}
                       onChange={onChange}
@@ -758,10 +785,10 @@ const StepAddIngredients = ({
                 startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
               >
-                Go back
+                {t('go_back')}
               </Button>
               <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                Next
+                {t('next')}
               </Button>
             </Box>
           </Grid>

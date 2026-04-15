@@ -3,8 +3,10 @@ import { Grid, Box, Typography, Chip, Divider, Avatar } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import moment from 'moment'
+import { useTranslation } from 'react-i18next'
 
 const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -30,7 +32,7 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
     <Grid>
       {IngredientsDetailsval.desc ? (
         <div>
-          <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>Description</Typography>
+          <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>{t('description')}</Typography>
           <Typography
             variant='body2'
             sx={{

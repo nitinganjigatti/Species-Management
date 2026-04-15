@@ -9,7 +9,9 @@ import {
   MEDICAL_REPORT,
   SPECIES_FILTER,
   ASSESSMENT_REPORT,
-  GET_UPCOMING_VACCINATION_RECORDS
+  GET_UPCOMING_VACCINATION_DEWORMING_RECORDS,
+  GET_PENDING_VACCINATION_DEWORMING_RECORDS,
+  GET_COMPLETED_VACCINATION_DEWORMING_RECORDS
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -124,6 +126,12 @@ export async function getAssessmentTypesList(params) {
   return response.data
 }
 
+export async function getAssessmentResponseType(params) {
+  const response = await axiosGet({ url: `${ASSESSMENT_RESPONSE_TYPE}`, params })
+
+  return response.data
+}
+
 export async function getDailyFoodWastageReport(params) {
   const response = await axiosGet({ url: `v1/food/wastage/report`, params })
 
@@ -140,8 +148,13 @@ export async function getDailyFoodWastageReport(params) {
 //   return response.data
 // }
 
-export async function getUpcomingVaccinationRecords(params) {
-  const response = await axiosGet({ url: `${GET_UPCOMING_VACCINATION_RECORDS}`, params })
+export async function getVaccinationRecords(type, params) {
+  const urlMap = {
+    upcoming: GET_UPCOMING_VACCINATION_DEWORMING_RECORDS,
+    pending: GET_PENDING_VACCINATION_DEWORMING_RECORDS,
+    completed: GET_COMPLETED_VACCINATION_DEWORMING_RECORDS
+  }
+  const response = await axiosGet({ url: `${urlMap[type]}`, params })
 
   return response.data
 }

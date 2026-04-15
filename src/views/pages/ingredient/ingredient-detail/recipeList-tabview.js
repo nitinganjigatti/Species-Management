@@ -20,7 +20,7 @@ import Router, { useRouter } from 'next/router'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import SwapIngredient from './swapIngredient'
 
-const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
+const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' }) => {
   const [loader, setLoader] = useState(false)
   const router = useRouter()
   const { id } = router.query
@@ -62,22 +62,29 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
           status
         }
         await getRecipeListonIngredientDtl(id, params).then(res => {
-          setTotal(parseInt(res?.data?.data?.count))
-
           const result = res?.data?.data?.result
 
           if (Array.isArray(result)) {
-            // result is an array, update rows directly
+            const filteredResult = result.filter(item => item.meal_type === mealType)
+            setTotal(filteredResult.length)
+
             const startingIndex = paginationModel.page * paginationModel.pageSize
 
-            let listWithId = res.data.data.result.map((el, i) => {
+            let listWithId = filteredResult.map((el, i) => {
               return { ...el, uid: startingIndex + i + 1 }
             })
             setRows(loadServerRows(paginationModel.page, listWithId))
-          } else if (typeof result === 'object') {
-            setRows([result])
+          } else if (typeof result === 'object' && result !== null) {
+            if (result.meal_type === mealType) {
+              setTotal(1)
+              setRows([{ ...result, uid: 1 }])
+            } else {
+              setTotal(0)
+              setRows([])
+            }
           } else {
-            console.error('Unexpected result type:', result)
+            setTotal(0)
+            setRows([])
           }
         })
         setLoading(false)
@@ -86,7 +93,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, id, mealType]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, status)
@@ -120,7 +127,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         console.error(error)
       }
     }, 1000),
-    []
+    [fetchTableData]
   )
 
   const handleSelectionChange = newSelection => {
@@ -142,10 +149,9 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   }
 
   const handleclickChange = (data, val) => {
+    const path = mealType === 'combo' ? `/diet/combo/${data?.id}` : `/diet/recipe/${data?.id}`
     Router.push({
-      pathname: `/diet/recipe/${data?.id}`
-
-      //query: { source: val, ingId: id }
+      pathname: path
     })
   }
 
@@ -165,7 +171,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       flex: 0.5,
       minWidth: 40,
       field: 'recipe_name',
-      headerName: 'RECIPE',
+      headerName: mealType === 'combo' ? 'MIX' : 'RECIPE',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -196,14 +202,29 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'total_kcal',
-      headerName: 'KCAL',
+      field: 'recipe_no',
+      headerName: mealType === 'combo' ? 'MIX ID' : 'RECIPE ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.total_kcal ? params.row.total_kcal + ' ' + 'Kcal' : '-'}
+          {params.row.recipe_no ? params.row.recipe_no : '-'}
         </Typography>
       )
     },
+    ...(mealType === 'recipe'
+      ? [
+          {
+            flex: 0.3,
+            minWidth: 10,
+            field: 'total_kcal',
+            headerName: 'KCAL',
+            renderCell: params => (
+              <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+                {params.row.total_kcal ? params.row.total_kcal + ' ' + 'Kcal' : '-'}
+              </Typography>
+            )
+          }
+        ]
+      : []),
     {
       flex: 0.3,
       minWidth: 10,
@@ -298,12 +319,13 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
                     tableValue: 'recipe-List'
                   }
                 }}
-                showToolbar />
+                showToolbar
+              />
             </div>
           </>
         )}
       </>
-    );
+    )
   }
 
   return (

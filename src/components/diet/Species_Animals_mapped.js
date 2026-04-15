@@ -20,6 +20,7 @@ import Utility from 'src/utility'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import RenderUtility from 'src/utility/render'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { useTranslation } from 'react-i18next'
 
 const SpeciesAnimalsMapped = ({
   setIsOpenTabs,
@@ -64,7 +65,7 @@ const SpeciesAnimalsMapped = ({
   setCheckForSite
 }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const handleSearch = event => {
     setSearchQuery(event.target.value)
   }
@@ -454,7 +455,7 @@ const SpeciesAnimalsMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Species assigned
+                    {t('diet_module.no_species_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -479,7 +480,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        Species ({speciestotalcount || ''})
+                        {t('navigation.species')} ({speciestotalcount || ''})
                       </Typography>
                     )
                   ) : (
@@ -542,7 +543,9 @@ const SpeciesAnimalsMapped = ({
                         }}
                       >
                         <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                          {t('diet_module.no_species_found')}
+                        </Typography>
                       </Box>
                     )}
                     {!loading && isLoadingMore && (
@@ -753,7 +756,7 @@ const SpeciesAnimalsMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Animals assigned
+                    {t('diet_module.no_animals_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -766,7 +769,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        You have selected {tempSelectedSpecies?.length}species
+                        You have selected {tempSelectedSpecies?.length} species
                       </Typography>
                     ) : (
                       <Typography
@@ -778,7 +781,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        Animals ({speciestotalcount || ''})
+                        {t('navigation.animals')} ({speciestotalcount || ''})
                       </Typography>
                     )
                   ) : (
@@ -841,7 +844,9 @@ const SpeciesAnimalsMapped = ({
                         }}
                       >
                         <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Animals Found</Typography>
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                          {t('diet_module.no_animals_found')}
+                        </Typography>
                       </Box>
                     )}
                     {!loading && isLoadingMore && (
@@ -1053,7 +1058,7 @@ const SpeciesAnimalsMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Species assigned
+                    {t('diet_module.no_species_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -1116,7 +1121,7 @@ const SpeciesAnimalsMapped = ({
                                   color: theme.palette.primary.dark
                                 }}
                               >
-                                Site Name : {site.site_name}
+                                {t('diet_module.site_name')} : {site.site_name}
                               </Typography>
 
                               <Chip
@@ -1199,7 +1204,9 @@ const SpeciesAnimalsMapped = ({
                         }}
                       >
                         <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                          {t('diet_module.no_species_found')}
+                        </Typography>
                       </Box>
                     )}
                     {!loading && isLoadingMore && (

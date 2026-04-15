@@ -5,6 +5,7 @@ import { Grid, styled } from '@mui/system'
 import React, { useCallback, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import Search from 'src/views/utility/Search'
+import { useTranslation } from 'react-i18next'
 
 const leftMenu = [{ id: 1, name: 'Sites' }]
 
@@ -16,7 +17,7 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 const MealGroupReportDrawer = ({ open, setOpen, onApplyFilter, sites, selectedSiteId, setSelectedSiteId }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -77,7 +78,7 @@ const MealGroupReportDrawer = ({ open, setOpen, onApplyFilter, sites, selectedSi
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
             <Icon icon='mage:filter' fontSize={30} />
-            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
+            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>{t('filter')}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
@@ -201,10 +202,10 @@ const MealGroupReportDrawer = ({ open, setOpen, onApplyFilter, sites, selectedSi
           }}
         >
           <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearAll}>
-            CLEAR ALL
+            {t('clear_all')}
           </LoadingButton>
           <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters} disabled={isSubmitting}>
-            APPLY FILTER
+            {t('apply_filter')}
           </LoadingButton>
         </Box>
       </Drawer>

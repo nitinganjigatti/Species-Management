@@ -38,6 +38,12 @@ package-lock.json
 yarn.lock
 public/reports/*
 
-.cursor
+# design tools
+.superdesign/
+.cursor/
+.windsurfrules
+.cursor/*
 .vscode
 .vscode/*
+.claude
+docs/superpowers/*

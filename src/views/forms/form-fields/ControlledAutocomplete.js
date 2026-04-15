@@ -24,7 +24,7 @@ const ControlledAutocomplete = ({
   required = false,
   fullWidth = true,
   multiple = false,
-
+  noOptionsText = 'Type to search',
   onChangeOverride = () => {},
   onKeyUp = () => {},
   onItemClear = () => {},
@@ -176,7 +176,7 @@ const ControlledAutocomplete = ({
             onKeyUp={onKeyUp}
             onBlur={e => handleOnBlur(e, field.value)}
             loading={loading}
-            noOptionsText='Type to search'
+            noOptionsText={noOptionsText}
             // renderOption={renderOption}
             renderOption={
               renderOption

@@ -13,6 +13,7 @@ import { useForm, Controller } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { getDietCategoryById } from 'src/lib/api/diet/settings/dietCategory'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import { useTranslation } from 'react-i18next'
 
 const schema = yup.object().shape({
   label: yup
@@ -29,7 +30,7 @@ const defaultValues = {
 
 const AddEditDietCategory = props => {
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
-
+  const { t } = useTranslation()
   const {
     reset,
     control,
@@ -59,7 +60,7 @@ const AddEditDietCategory = props => {
     async id => {
       const response = await getDietCategoryById(id)
       if (response?.success) {
-        console.log("response?.data", response?.data)
+        console.log('response?.data', response?.data)
         reset({
           label: response.data.label || '',
           active: response.data.active === '1' ? '1' : '0'
@@ -74,7 +75,7 @@ const AddEditDietCategory = props => {
     if (resetForm) {
       reset(defaultValues)
     }
-    console.log("editParams?.id", editParams?.id)
+    console.log('editParams?.id', editParams?.id)
     if (editParams?.id) {
       getDietCategory(editParams.id)
     }
@@ -83,13 +84,7 @@ const AddEditDietCategory = props => {
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
-        <LoadingButton
-          disabled={!watch('label')}
-          size='large'
-          type='submit'
-          variant='contained'
-          loading={submitLoader}
-        >
+        <LoadingButton disabled={!watch('label')} size='large' type='submit' variant='contained' loading={submitLoader}>
           {editParams?.id ? 'Update' : 'Add'}
         </LoadingButton>
       </Fragment>
@@ -112,7 +107,9 @@ const AddEditDietCategory = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Update' : 'Add'} Diet Category</Typography>
+        <Typography variant='h6'>
+          {editParams?.id ? 'Update' : 'Add'} {t('navigation.diet_category')}
+        </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -124,16 +121,16 @@ const AddEditDietCategory = props => {
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
           <ControlledTextField
             name='label'
-            label='Diet Category Name'
+            label={t('diet_module.diet_category_name')}
             control={control}
             errors={errors}
             required={true}
-            inputProps={{ placeholder: 'Diet Category Name' }}
+            inputProps={{ placeholder: t('diet_module.diet_category_name') }}
             sx={{ mb: 6 }}
           />
           {editParams?.id && (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.active)}>
-              <FormLabel>Status</FormLabel>
+              <FormLabel>{t('status')}</FormLabel>
               <Controller
                 name='active'
                 control={control}

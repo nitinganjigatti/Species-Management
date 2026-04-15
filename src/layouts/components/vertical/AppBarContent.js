@@ -16,8 +16,9 @@ import SelectParivesh from 'src/components/SelectParivesh'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-// import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
+import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
 import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 const AppBarContent = props => {
   // ** Props
@@ -30,7 +31,7 @@ const AppBarContent = props => {
   const authData = useContext(AuthContext)
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const { selectedPharmacy } = usePharmacyContext()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -50,7 +51,7 @@ const AppBarContent = props => {
         </Typography>
       )}
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
-        {/* <LanguageDropdown settings={settings} saveSettings={saveSettings} /> */}
+        <LanguageDropdown settings={settings} saveSettings={saveSettings} />
         <UserDropdown settings={settings} />
       </Box>
     </Box>

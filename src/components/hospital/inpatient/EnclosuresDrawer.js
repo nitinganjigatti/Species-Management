@@ -80,16 +80,19 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
   const cooldownRef = useRef(false)
 
   const loadMore = useCallback(() => {
-    if (cooldownRef.current) return
-    if (!isFetchingNextPage && hasNextPage) {
-      cooldownRef.current = true
-      fetchNextPage().finally(() => {
-        setTimeout(() => {
-          cooldownRef.current = false
-        }, 300)
-      })
-    }
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
+    // if (cooldownRef.current) return
+    // if (!isFetchingNextPage && hasNextPage) {
+    //   cooldownRef.current = true
+    //   fetchNextPage().finally(() => {
+    //     setTimeout(() => {
+    //       cooldownRef.current = false
+    //     }, 300)
+    //   })
+    // }
+    setTimeout(() => {
+    fetchNextPage()
+  }, 300)
+  }, [fetchNextPage])
 
   useEffect(() => {
     if (inView) {
@@ -239,7 +242,7 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
                 })
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }} onClick={() => handleEnclosureSelect(enclosure)}> 
                 <Avatar
                   src={enclosure?.images?.[0]?.file}
                   alt={enclosure?.user_enclosure_name}

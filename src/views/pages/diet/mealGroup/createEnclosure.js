@@ -21,6 +21,7 @@ import SelectedEnclosure from './selectedEnclosure'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 const CreateEnclosure = ({
   enclosureDrawer,
@@ -41,8 +42,7 @@ const CreateEnclosure = ({
   searchValue,
   handleEnclosureSearch
 }) => {
- 
-
+  const { t } = useTranslation()
   const [selectedEnclosureIds, setSelectedEnclosureIds] = useState([])
   const [groupList, setGroupList] = useState([])
   const [mealGroupError, setMealGroupError] = useState(false)
@@ -81,7 +81,7 @@ const CreateEnclosure = ({
 
   const handleGroupChange = event => {
     const value = event.target.value
-    setGroupId(value) 
+    setGroupId(value)
   }
 
   const handleAddEnclosure = async () => {
@@ -94,7 +94,6 @@ const CreateEnclosure = ({
     setMealGroupError(false)
 
     try {
-
       const params = {
         site_id: selectedOption,
         enclosure_ids: JSON.stringify(selectedEnclosureIds),
@@ -194,10 +193,10 @@ const CreateEnclosure = ({
           <Button
             onClick={event => {
               event.stopPropagation()
-              setSelectedEnclosureIds([]) 
+              setSelectedEnclosureIds([])
 
               // setCheckedRows([]) // ✅ clear checkboxes
-              setSelectedItems([]) 
+              setSelectedItems([])
               setEnclosureDrawer(false)
             }}
             variant='outlined'
@@ -275,7 +274,7 @@ const CreateEnclosure = ({
               <Typography
                 sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '20px', fontWeight: 500 }}
               >
-                Add enclosures to group
+                {t('diet_module.add_enclosure_to_group')}
               </Typography>
             </Box>
 
@@ -351,7 +350,7 @@ const CreateEnclosure = ({
                   }}
                 >
                   <MenuItem value=''>
-                    <Typography color='textSecondary'>Select Meal Group</Typography>
+                    <Typography color='textSecondary'>{t('diet_module.select_meal_group')}</Typography>
                   </MenuItem>
                   {groupList.map(item => (
                     <MenuItem key={item.id} value={item.id}>
@@ -369,7 +368,7 @@ const CreateEnclosure = ({
                     boxShadow: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '100%', 
+                    height: '100%',
                     width: '100%'
                   }}
                 >
@@ -455,10 +454,10 @@ const CreateEnclosure = ({
                               }}
                             >
                               <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                                Species: {item.species_count}
+                                {t('navigation.Species')}: {item.species_count}
                               </Typography>
                               <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                                Animals: {item.animal_count}
+                                {t('navigation.animals')}: {item.animal_count}
                               </Typography>
                             </Box>
 

@@ -17,8 +17,10 @@ import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirm
 import { feedStatusChange } from 'src/lib/api/diet/getFeedDetails'
 import IconButton from '@mui/material/IconButton'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) => {
+  const { t } = useTranslation()
   const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
 
@@ -221,7 +223,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
               >
                 <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                    Items used
+                    {t('diet_module.items_used')}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -242,7 +244,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
             dietCount={FeedDetailsValue.ingredients}
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
-                {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type?
+                {isActive === '1' ? 'Deactivate' : 'Activate'} {t('diet_module.feed_type')}?
               </span>
             }
           />

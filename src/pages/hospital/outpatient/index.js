@@ -18,6 +18,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalOutPatient = () => {
   const theme = useTheme()
@@ -58,10 +59,10 @@ const HospitalOutPatient = () => {
     setFilters({
       page: parseInt(page),
       limit: parseInt(limit),
-      q
+      q: q
     })
 
-    setSearchValue(q)
+    // setSearchValue(q)
   }, [router.query])
 
   const prepareFilterParams = key => {
@@ -414,11 +415,9 @@ const HospitalOutPatient = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Outpatient</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+        />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>

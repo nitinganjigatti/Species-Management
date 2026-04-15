@@ -15,19 +15,23 @@ import {
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
-function AddClinicalAssessment() {
+function AddClinicalAssessment({ category }) {
   const theme = useTheme()
   const router = useRouter()
-  const { data, updateState } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState(false)
@@ -39,6 +43,8 @@ function AddClinicalAssessment() {
   const [status, setStatus] = useState('')
   const [localSearch, setLocalSearch] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [pickerSearch, setPickerSearch] = useState('')
+  const [pickerSearchTerm, setPickerSearchTerm] = useState('')
   const [isTabsLoading, setIsTabsLoading] = useState(false)
   const [patientData, setPatientData] = useState(null)
   const [patientLoading, setPatientLoading] = useState(false)
@@ -55,11 +61,16 @@ function AddClinicalAssessment() {
   const [isLoading, setIsLoading] = useState(false)
   const [hasMore, setHasMore] = useState(false)
   const [page, setPage] = useState(1)
+  const [pickerItems, setPickerItems] = useState([])
+  const [pickerIsLoading, setPickerIsLoading] = useState(false)
+  const [pickerHasMore, setPickerHasMore] = useState(false)
+  const [pickerPage, setPickerPage] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
   const [isSubmitLoading, setIsSubmitLoading] = useState(false)
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
   const [duplicateAssessments, setDuplicateAssessments] = useState([])
   const [alreadySelectedIds, setAlreadySelectedIds] = useState([])
+  const [templateRefreshToken, setTemplateRefreshToken] = useState(0)
 
   // Refs for intersection observer
   const observerRef = useRef(null)
@@ -76,6 +87,17 @@ function AddClinicalAssessment() {
   useEffect(() => {
     return () => debouncedSearch.cancel()
   }, [debouncedSearch])
+
+  const debouncedPickerSearch = useRef(
+    debounce(searchValue => {
+      setPickerSearchTerm(searchValue)
+      setPickerPage(1)
+    }, 500)
+  ).current
+
+  useEffect(() => {
+    return () => debouncedPickerSearch.cancel()
+  }, [debouncedPickerSearch])
 
   // Fetch diagnosis types (categories)
   const fetchDiagnosisTypes = useCallback(async () => {
@@ -162,6 +184,46 @@ function AddClinicalAssessment() {
     }
   }, [])
 
+  const fetchPickerDiagnosisItems = useCallback(async (pageNum = 1, search = '', categoryId = '') => {
+    setPickerIsLoading(true)
+
+    try {
+      const params = {
+        page_no: pageNum,
+        limit: PAGE_SIZE,
+        q: search,
+        category_id: categoryId,
+        type: 'diagnosis',
+        animal_id: animalId
+      }
+
+      const res = await getDiagnosysType(params)
+
+      if (res.success) {
+        const newItems = res.data?.result || []
+        const total = res.data?.totalRecords || 0
+
+        setPickerItems(prev => {
+          const merged = pageNum === 1 ? newItems : [...prev, ...newItems]
+          const unique = merged.filter((item, index, arr) => arr.findIndex(candidate => candidate.id === item.id) === index)
+          setPickerHasMore(unique.length < total)
+
+          return unique
+        })
+      } else {
+        throw new Error(res.message || 'Failed to fetch diagnosis list')
+      }
+    } catch (error) {
+      console.error('Error fetching picker diagnosis items:', error)
+      if (pageNum === 1) {
+        setPickerItems([])
+      }
+      setPickerHasMore(false)
+    } finally {
+      setPickerIsLoading(false)
+    }
+  }, [animalId])
+
   // Setup Intersection Observer for infinite scroll
   useEffect(() => {
     // Cleanup previous observer
@@ -220,7 +282,16 @@ function AddClinicalAssessment() {
     }
   }, [currentTabId, searchTerm])
 
+  useEffect(() => {
+    if (currentTabId) {
+      setPickerItems([])
+      setPickerPage(1)
+      fetchPickerDiagnosisItems(1, pickerSearchTerm, currentTabId)
+    }
+  }, [currentTabId, pickerSearchTerm, fetchPickerDiagnosisItems])
+
   const handleTabChange = (tabValue, tabId) => {
+    if (tabValue === currentTab) return 
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
@@ -282,6 +353,19 @@ function AddClinicalAssessment() {
     symptom => !selectedSymptoms.some(s => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
   )
 
+  const handleTemplatePickerSearchChange = value => {
+    setPickerSearch(value)
+    debouncedPickerSearch(value)
+  }
+
+  const handleTemplatePickerLoadMore = useCallback(() => {
+    if (pickerIsLoading || !pickerHasMore) return
+
+    const nextPage = pickerPage + 1
+    setPickerPage(nextPage)
+    fetchPickerDiagnosisItems(nextPage, pickerSearchTerm, currentTabId)
+  }, [currentTabId, fetchPickerDiagnosisItems, pickerHasMore, pickerIsLoading, pickerPage, pickerSearchTerm])
+
   const checkDuplicateAssessments = async () => {
     try {
       const payload = {
@@ -305,7 +389,7 @@ function AddClinicalAssessment() {
 
   const handleAddAssessment = async () => {
     setIsSubmitLoading(true)
-    const duplicatesData = await checkDuplicateAssessments()
+    const submittableSymptoms = selectedSymptoms.filter(symptom => !alreadySelectedIds.includes(symptom?.id))
 
     if (selectedSymptoms.length === 0) {
       Toaster({ type: 'error', message: 'Please select at least one Assessment' })
@@ -313,14 +397,29 @@ function AddClinicalAssessment() {
 
       return
     }
-    if (duplicatesData?.length > 0) {
-      setDuplicatesErrorModelOpen(true)
+
+    if (submittableSymptoms.length === 0) {
+      Toaster({ type: 'error', message: 'All selected clinical assessments are already prescribed' })
       setIsSubmitLoading(false)
 
       return
     }
 
-    const diagnosis = selectedSymptoms.map(symptom => ({
+    const duplicatesData = await checkAnimalStatusByType({
+      type: 'diagnosis',
+      animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
+      master_ids: JSON.stringify(submittableSymptoms.map(s => s.id))
+    })
+
+    if (duplicatesData?.success && duplicatesData?.data?.length > 0) {
+      setDuplicatesErrorModelOpen(true)
+      setDuplicateAssessments(duplicatesData?.data || [])
+      setIsSubmitLoading(false)
+
+      return
+    }
+
+    const diagnosis = submittableSymptoms.map(symptom => ({
       id: symptom?.id,
       name: symptom?.name,
       additional_info: {
@@ -371,17 +470,34 @@ function AddClinicalAssessment() {
     router.back()
   }, [router])
 
+  const handleRouterNavigation = () => {
+    if (category === 'Inpatient'){
+      router.push('/hospital/inpatient')
+    }
+    else if (category === 'Outpatients'){
+      router.push('/hospital/outpatient')
+    }
+    else if (category === 'Discharged'){
+      router.push('/hospital/discharged')
+    }
+    else if (category === 'Mortality'){
+      router.push('/hospital/mortality')
+    }
+    else if (category === 'Follow Up'){
+      router.push('/hospital/followup')
+    }
+  }
+
   const breadcrumbs = useMemo(
     () => (
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
-        <Typography sx={{ color: 'inherit' }}>Patients</Typography>
-        <Typography sx={{ color: 'inherit' }}>Inpatient</Typography>
-        <Typography sx={{ color: 'text.primary', cursor: 'pointer' }} onClick={handleBack}>
-          Details
-        </Typography>
-        <Typography sx={{ color: 'text.primary' }}>Add Clinical Assessment</Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        pageItems={[
+            { title: 'Hospital' },
+            { title: category, onClick: handleRouterNavigation},
+            { title: 'Details', onClick: handleBack},
+            { title: 'Add Clinical Assessment'}
+          ]}
+      />
     ),
     [handleBack]
   )
@@ -391,12 +507,15 @@ function AddClinicalAssessment() {
     try {
       await getPatientDetails(id).then(res => {
         if (res?.success === true) {
-          updateState(STORAGE_KEY, {
-            ...medicalRecordData,
-            animal_id: res.data?.animal_detail?.animal_id,
-            medical_record_id: res.data?.medical_record_id,
-            animal_admitted_date: res.data?.admitted_at
-          })
+          dispatch(updateState({
+            key: STORAGE_KEY,
+            value: {
+              ...medicalRecordData,
+              animal_id: res.data?.animal_detail?.animal_id,
+              medical_record_id: res.data?.medical_record_id,
+              animal_admitted_date: res.data?.admitted_at
+            }
+          }))
           setPatientData(res?.data)
           setPatientLoading(false)
         } else {
@@ -452,7 +571,7 @@ function AddClinicalAssessment() {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
       {breadcrumbs}
       <AnimalInfoCard
         image={patientData?.animal_detail?.default_icon}
@@ -514,12 +633,48 @@ function AddClinicalAssessment() {
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SelectedClinicalAssessment
-            selected={selectedSymptoms}
-            onEdit={handleAssessmentEdit}
-            onRemove={removeSymptom}
-            clinicalAsmnt={clinicalAsmnt}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <SelectionTemplatePanel
+              templateType='diagnosis'
+              selectedItems={selectedSymptoms}
+              availableItems={pickerItems}
+              onApplyTemplate={setSelectedSymptoms}
+              templateLabel='clinical assessment template'
+              mapTemplateItem={item => ({
+                id: item?.id,
+                name: item?.name,
+                clinicalAsmnt: 'Tentative',
+                prognosisVal: '',
+                chronicVal: 'No',
+                notes: '',
+                status: 'active'
+              })}
+              pickerSearchValue={pickerSearch}
+              onPickerSearchChange={handleTemplatePickerSearchChange}
+              onPickerLoadMore={handleTemplatePickerLoadMore}
+              pickerLoading={pickerIsLoading}
+              pickerHasMore={pickerHasMore}
+              refreshToken={templateRefreshToken}
+              onTemplatesChanged={() => setTemplateRefreshToken(prev => prev + 1)}
+            />
+            <SelectedClinicalAssessment
+              selected={selectedSymptoms}
+              onEdit={handleAssessmentEdit}
+              onRemove={removeSymptom}
+              clinicalAsmnt={clinicalAsmnt}
+              alreadySelectedIds={alreadySelectedIds}
+              footer={
+                <SaveMedicalTemplateSection
+                  templateType='diagnosis'
+                  selectedItems={selectedSymptoms}
+                  templateLabel='clinical assessment template'
+                  itemLabel='clinical assessments'
+                  refreshToken={templateRefreshToken}
+                  onTemplateSaved={() => setTemplateRefreshToken(prev => prev + 1)}
+                />
+              }
+            />
+          </Box>
         </Grid>
       </Grid>
       <Box>
@@ -579,8 +734,8 @@ function AddClinicalAssessment() {
           setNotes={setNotes}
           onSave={addSymptomDetails}
           isSubmitLoading={isSubmitLoading}
-          admittedDate={patientData?.admit_date}
-          dischargedDate={patientData?.discharge_date}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
           isDischarged={patientData?.status === 'discharge'}
         />
       )}

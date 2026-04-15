@@ -25,6 +25,7 @@ import Icon from 'src/@core/components/icon'
 import { addFeedType, getFeedById, updateFeedType } from 'src/lib/api/diet/feedType'
 import Router, { useRouter } from 'next/router'
 import UserSnackbar from 'src/components/utility/snackbar'
+import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 
 import Error404 from 'src/pages/404'
@@ -35,7 +36,7 @@ import Toaster from 'src/components/Toaster'
 const AddFeedType = () => {
   const fileInputRef = useRef(null)
   const authData = useContext(AuthContext)
-
+  const { t } = useTranslation()
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
@@ -212,10 +213,10 @@ const AddFeedType = () => {
           variant='contained'
           disabled={watch('name') === '' || btnLoader}
         >
-          {id ? 'Update' : 'Save'}
+          {id ? t('update') : t('save')}
         </LoadingButton>
         <Button onClick={() => Router.push('/diet/feed')} size='large' type='reset' color='error' variant='outlined'>
-          Cancel
+          {t('cancel')}
         </Button>
       </Box>
     )
@@ -228,21 +229,21 @@ const AddFeedType = () => {
           <Box sx={{ py: 2 }}>
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
-                Feed Type
+                {t('diet_module.feed_type')}
               </Typography>
               <Typography
                 sx={{
                   color: 'text.primary'
                 }}
               >
-                {id ? 'Update' : 'Add'} new Feed Type
+                {id ? t('update') : t('add')} {t('diet_module.new_feed_type')}
               </Typography>
             </Breadcrumbs>
           </Box>
           <Card>
             <CardContent>
               <Typography sx={{ mb: '20px' }} variant='h6'>
-                {id ? 'Update Feed Type' : 'New Feed Type'}
+                {id ? t('diet_module.update_new_feed') : t('diet_module.new_feed_type')}
               </Typography>
 
               <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -282,7 +283,7 @@ const AddFeedType = () => {
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <TextField
-                        label='Feed Type*'
+                        label={`${t('diet_module.feed_type')} *`}
                         value={value}
                         onChange={onChange}
                         placeholder='Enter Feed Type'
@@ -302,7 +303,7 @@ const AddFeedType = () => {
                       <TextField
                         rows={4}
                         multiline
-                        label='Description'
+                        label={t('description')}
                         value={value}
                         onChange={onChange}
                         placeholder='Description'
@@ -317,7 +318,6 @@ const AddFeedType = () => {
                 </FormControl>
                 <input
                   type='file'
-
                   // accept='image/*'
                   // accept='image/png, image/jpeg'
                   onChange={e => handleInputImageChange(e)}
@@ -360,7 +360,7 @@ const AddFeedType = () => {
 
                 {imgSrc === '' && (
                   <Button variant='outlined' onClick={handleAddImageClick}>
-                    ADD IMAGE
+                    {t('media_details.add_image')}
                   </Button>
                 )}
                 {errors.feedImg && (

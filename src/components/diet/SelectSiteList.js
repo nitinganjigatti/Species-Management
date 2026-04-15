@@ -18,6 +18,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import React, { useState, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
+import { useTranslation } from 'react-i18next'
 
 const SelectSiteList = ({
   openSiteListDrawer,
@@ -36,6 +37,7 @@ const SelectSiteList = ({
   checkForSite
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
 
   const handleCloseDrawer = () => {
@@ -170,10 +172,10 @@ const SelectSiteList = ({
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Choose Site
+              {t('diet_module.choose_site')}
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Select a site from the list below
+              {t('diet_module.select_site_from_list')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawericon}>
@@ -247,7 +249,7 @@ const SelectSiteList = ({
                 }}
                 onClick={handleSelectAllSites}
               >
-                Select all
+                {t('diet_module.select_all')}
               </Button>
 
               <Checkbox
@@ -360,7 +362,7 @@ const SelectSiteList = ({
               )
             })
           ) : (
-            <Typography sx={{ textAlign: 'center', mt: 15 }}>No Site's found</Typography>
+            <Typography sx={{ textAlign: 'center', mt: 15 }}>{t('diet_module.no_site_found')}</Typography>
           )}
         </Box>
 
@@ -391,7 +393,7 @@ const SelectSiteList = ({
               !pendingSelections || Object.keys(pendingSelections).length === 0 || pendingSelections?.Site?.length === 0
             }
           >
-            CONTINUE
+            {t('continue')}
           </Button>
         </Box>
       </Box>

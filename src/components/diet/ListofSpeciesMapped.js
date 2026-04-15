@@ -33,6 +33,7 @@ import SingleDatePicker from '../SingleDatePicker'
 import { format } from 'date-fns'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { useTranslation } from 'react-i18next'
 
 const ListOfSpeciesMapped = ({
   isOpennew,
@@ -65,6 +66,7 @@ const ListOfSpeciesMapped = ({
   setCheckForSite
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [loader, setLoader] = useState(false)
   const [primaryStatus, setPrimaryStatus] = useState({})
@@ -370,7 +372,7 @@ const ListOfSpeciesMapped = ({
               mt: 4
             }}
           >
-            No species selected.
+            {t('diet_module.no_species_selected')}
           </Typography>
         ) : (
           <>
@@ -547,7 +549,7 @@ const ListOfSpeciesMapped = ({
                       pb: 1
                     }}
                   >
-                    {speciestotalcount || ''} Species
+                    {speciestotalcount || ''} {t('navigation.species')}
                   </Typography>
                 )
               ) : (
@@ -607,7 +609,7 @@ const ListOfSpeciesMapped = ({
                             width: '30%'
                           }}
                         >
-                          Mark as Primary
+                          {t('diet_module.mark_as_primary')}
                         </Typography>
                         <Typography
                           variant='body1'
@@ -618,7 +620,7 @@ const ListOfSpeciesMapped = ({
                             width: '12%'
                           }}
                         >
-                          Remove
+                          {t('remove')}
                         </Typography>
                       </Box>
 
@@ -802,7 +804,7 @@ const ListOfSpeciesMapped = ({
               height: '45px'
             }}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
 
           <LoadingButton
@@ -872,7 +874,7 @@ const ListOfSpeciesMapped = ({
                     color: theme.palette.customColors.OnTertiaryContainer
                   }}
                 >
-                  This diet will override any previously set primary diet for the selected species
+                  {t('diet_module.diet_override')}
                 </Typography>
               </Box>
             </DialogContentText>
@@ -889,7 +891,7 @@ const ListOfSpeciesMapped = ({
                 height: '40px'
               }}
             >
-              Cancel
+              {t('cancel')}
             </LoadingButton>
             <LoadingButton
               variant='contained'
@@ -905,7 +907,7 @@ const ListOfSpeciesMapped = ({
               loading={loader}
               loadingIndicator={
                 <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  Proceed
+                  {t('proceed')}
                   <CircularProgress size={20} sx={{ color: '#ccc' }} />
                 </span>
               }

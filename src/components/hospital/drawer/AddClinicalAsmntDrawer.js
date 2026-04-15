@@ -8,6 +8,7 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import Utility from 'src/utility'
 
 dayjs.extend(utc)
 
@@ -43,15 +44,22 @@ const AddClinicalAsmntDrawer = ({
     // Set default date based on discharge status
     if (isDischarged && dischargedDate) {
       // Convert UTC discharge date to local time
-      const localDischargeDateTime = dayjs.utc(dischargedDate).local()
+      const localDischargeDateTime = dayjs(Utility.convertUTCToLocal(dischargedDate))
+      // dayjs.utc(dischargedDate).local()
+      const localAdmittedDateTime =  dayjs(Utility.convertUTCToLocal(admittedDate))
+      // dayjs.utc(admittedDate).local()
+
       setRecordedDateTime(localDischargeDateTime)
-      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
-      setMaxDate(localDischargeDateTime.endOf('day'))
+      setMinDate(localAdmittedDateTime)
+      setMaxDate(localDischargeDateTime)
     } else {
       setRecordedDateTime(dayjs())
-      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
-      setMaxDate(null) // No max date restriction for non-discharged animals
+      setMinDate(admittedDate ? dayjs(Utility.convertUTCToLocal(admittedDate)) : null)
+
+      setMaxDate(dayjs())
+      // Set max date to current time for non-discharged animals
     }
+    // dayjs.utc(admittedDate).local().
   }, [open, isDischarged, admittedDate, dischargedDate])
 
   const commonFieldStyles = {
@@ -121,6 +129,20 @@ const AddClinicalAsmntDrawer = ({
 
         <Box sx={{ pb: 2 }}>
           <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
+            <Typography sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}>
+              Date & Time
+            </Typography>
+            <Box sx={{ mb: 6 }}>
+              <MUIDateTimePicker
+                value={recordedDateTime}
+                onChange={newValue => setRecordedDateTime(newValue)}
+                label=''
+                minDateTime={minDate}
+                maxDateTime={maxDate}
+                ampm={true}
+              />
+            </Box>
+
             <Typography
               sx={{
                 fontSize: '14px',
@@ -267,22 +289,6 @@ const AddClinicalAsmntDrawer = ({
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
-            >
-              Date & Time
-            </Typography>
-            <Box sx={{ mb: 6 }}>
-              <MUIDateTimePicker
-                value={recordedDateTime}
-                onChange={newValue => setRecordedDateTime(newValue)}
-                label=''
-                minDateTime={minDate}
-                maxDateTime={maxDate}
-                ampm={true}
-              />
-            </Box>
-
-            <Typography
-              sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}
             >
               Notes
             </Typography>

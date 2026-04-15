@@ -6,17 +6,18 @@ import Button from '@mui/material/Button'
 import { Card, CardContent, Avatar, Tooltip, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@mui/material/styles'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const columns = [
     {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'Item Name',
+      headerName: t('diet_module.item_name'),
       renderCell: params => (
         <Tooltip title={params.row.ingredient_name}>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
@@ -29,7 +30,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'Item ID',
+      headerName: t('diet_module.item_id'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
           {params.row.ingredient_id}
@@ -40,7 +41,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.4,
       minWidth: 20,
       field: 'feed_type_label',
-      headerName: 'Feed Type',
+      headerName: t('diet_module.feed_type'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.feed_type_label}
@@ -51,7 +52,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.43,
       minWidth: 10,
       field: 'quantity',
-      headerName: 'Quantity',
+      headerName: t('quantity'),
       renderCell: params => (
         <>
           <Tooltip
@@ -71,7 +72,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'preparation_type',
-      headerName: 'Preparation Type',
+      headerName: t('diet_module.preparation_type'),
       renderCell: params => (
         <Tooltip title={params?.row?.preparation_type}>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }} className='text_overflow_moduled'>
@@ -84,7 +85,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.4,
       minWidth: 20,
       field: 'cut_size',
-      headerName: 'Cut Size',
+      headerName: t('diet_module.cut_size'),
       renderCell: params => (
         <Tooltip title={params?.row?.cut_size}>
           <Typography
@@ -186,7 +187,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
     <>
       <Grid container spacing={5} sx={{ px: 0, pt: 3 }}>
         <Box sx={{ px: 5, float: 'left' }}>
-          <Typography variant='h6'>Preview</Typography>
+          <Typography variant='h6'>{t('preview')}</Typography>
         </Box>
 
         <Grid container spacing={5}>
@@ -260,7 +261,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                                Portion size
+                                {t('diet_module.portion_size')}
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -286,7 +287,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                Items used
+                                {t('diet_module.items_used')}
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -400,7 +401,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                 startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
               >
-                Go back
+                {t('go_back')}
               </Button>
               <Button
                 onClick={handleSubmit}
@@ -416,7 +417,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  Submit
+                  {t('submit')}
                   {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
                 </span>
               </Button>

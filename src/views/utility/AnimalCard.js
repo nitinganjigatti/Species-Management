@@ -4,7 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import React, { useEffect, useState } from 'react'
 import Utility from 'src/utility'
 
-const AnimalCard = ({ data, size, edit, valueColor }) => {
+const AnimalCard = ({ data, size, edit, valueColor, onWeightClick, maxWidth }) => {
   const theme = useTheme()
   const [imageLoading, setImageLoading] = useState(true)
   const [src, setSrc] = useState(data?.default_icon)
@@ -164,7 +164,7 @@ const AnimalCard = ({ data, size, edit, valueColor }) => {
                 lineHeight: '19.36px',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
-                maxWidth: edit ? '118px' : '200px'
+                maxWidth: maxWidth ? maxWidth : edit ? '118px' : '200px'
               }}
             >
               <span> {data?.local_identifier_name}: </span>
@@ -271,17 +271,37 @@ const AnimalCard = ({ data, size, edit, valueColor }) => {
         )}
 
         {data?.weight?.trim() && (
-          <Typography
+          <Box
+            onClick={e => {
+              if (onWeightClick) {
+                e.stopPropagation()
+                onWeightClick(data)
+              }
+            }}
             sx={{
-              fontSize: '14px',
-              fontWeight: 600,
-              lineHeight: '16.94px',
-              color: theme.palette.customColors.OnSurfaceVariant
+              cursor: onWeightClick ? 'pointer' : 'default',
+              '&:hover': onWeightClick
+                ? {
+                    textDecoration: 'underline',
+                    color: theme.palette.customColors.addPrimary
+                  }
+                : {}
             }}
           >
-            <span>Weight : </span>
-            {data?.weight}
-          </Typography>
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 600,
+                lineHeight: '16.94px',
+                color: onWeightClick
+                  ? theme.palette.customColors.addPrimary
+                  : theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              <span>Weight : </span>
+              {data?.weight}
+            </Typography>
+          </Box>
         )}
 
         {data?.type === 'group' && (
@@ -324,6 +344,35 @@ const AnimalCard = ({ data, size, edit, valueColor }) => {
           >
             <span>Variant : </span>
             {data?.morph_name || '-'}
+          </Typography>
+        )}
+
+        {data?.discovered && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            <span>Discovered : </span>
+            {Utility.convertUtcToLocalReadableDate(data?.discovered)}
+            <span> &bull; </span>
+            {Utility.convertUTCToLocaltime(data?.discovered)}
+          </Typography>
+        )}
+
+        {data?.mother_id && (
+          <Typography
+            sx={{
+              fontSize: '14px',
+              fontWeight: 600,
+              lineHeight: '16.94px',
+              color: valueColor || theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            Mother :{data?.mother_id}
           </Typography>
         )}
 

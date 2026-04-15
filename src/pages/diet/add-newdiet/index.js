@@ -13,9 +13,11 @@ import {
 } from '@mui/material'
 import { LocalizationProvider, TimePicker } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 
 const MealTabs = () => {
+  const { t } = useTranslation()
   const [meals, setMeals] = useState([{ id: 1, name: 'Meal 1', fromTime: null, toTime: null, notes: '' }])
   const [activeTab, setActiveTab] = useState(0)
 
@@ -61,7 +63,7 @@ const MealTabs = () => {
                   <FormControl fullWidth>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <TimePicker
-                        label='Select time - from'
+                        label={t('diet_module.select_time_from')}
                         value={meal.fromTime ? dayjs(meal.fromTime) : null}
                         onChange={newValue => handleMealChange(index, 'fromTime', newValue)}
                         renderInput={params => <TextField {...params} />}
@@ -73,7 +75,7 @@ const MealTabs = () => {
                   <FormControl fullWidth>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <TimePicker
-                        label='Select time - to'
+                        label={t('diet_module.select_time_to')}
                         value={meal.toTime ? dayjs(meal.toTime) : null}
                         onChange={newValue => handleMealChange(index, 'toTime', newValue)}
                         renderInput={params => <TextField {...params} />}

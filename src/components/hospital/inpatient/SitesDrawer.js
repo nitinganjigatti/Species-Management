@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Icon, Avatar } from '@mui/material'
+import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Icon, Avatar, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
@@ -79,16 +79,19 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
   const cooldownRef = useRef(false)
 
   const loadMore = useCallback(() => {
-    if (cooldownRef.current) return
-    if (!isFetchingNextPage && hasNextPage) {
-      cooldownRef.current = true
-      fetchNextPage().finally(() => {
-        setTimeout(() => {
-          cooldownRef.current = false
-        }, 300)
-      })
-    }
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
+    // if (cooldownRef.current) return
+    // if (!isFetchingNextPage && hasNextPage) {
+    //   cooldownRef.current = true
+    //   fetchNextPage().finally(() => {
+    //     setTimeout(() => {
+    //       cooldownRef.current = false
+    //     }, 300)
+    //   })
+    // }
+  setTimeout(() => {
+    fetchNextPage()
+  }, 300)
+  }, [fetchNextPage])
 
   useEffect(() => {
     if (inView) {
@@ -215,10 +218,15 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                ...(isSelected && {
+                  borderColor: theme.palette.success.main,
+                  backgroundColor: '#f8fff8'
+                })
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx = {{display: 'flex', justifyContent: 'space-between', alignItems: 'center',width: '100%',}} onClick={() => handleSiteSelect(site)}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2}}>
                 <Avatar
                   src={site.site_image}
                   alt={site.site_name}
@@ -228,10 +236,12 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
                     borderRadius: 0.5
                   }}
                 />
-                <Box>
-                  <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
+                <Box sx = {{width: 400 }}>
+                  <Tooltip title={site.site_name}>
+                  <Typography variant='subtitle1' noWrap sx={{ fontWeight: 500, mb: 0.5 }}>
                     {site.site_name}
                   </Typography>
+                  </Tooltip>
                   {site.site_owner && (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon='mdi:account-outline' fontSize={16} color='textSecondary' />
@@ -242,7 +252,8 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
                   )}
                 </Box>
               </Box>
-              <Checkbox checked={isSelected} onChange={() => handleSiteSelect(site)} sx={{ mt: 0.5 }} />
+              <Checkbox checked={isSelected} onClick={(e) => e.stopPropagation()} onChange={() => handleSiteSelect(site)} sx={{ mt: 0.5 }} />
+            </Box>
             </Box>
           )
         })}

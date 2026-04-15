@@ -10,7 +10,8 @@ import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import moment from 'moment'
 import Utility from 'src/utility'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
@@ -22,35 +23,36 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
 
 const EnclosureDischargeForm = props => {
   const {
-    patientData,
-    watchDischargeType,
-    submitLoader,
-    handleSubmitData,
-    medicationsColumns,
-    clearData,
-    onDirtyChange,
-    medicationData,
-    refetchPatient,
-    medicalRecordId,
-    prescriptionsColumns,
-    prescriptionData,
-    isPrescriptionLoading,
     sites,
-    fetchLoading,
-    handleSiteSearch,
     sections,
-    sectionLoading,
-    handleSectionSearch,
     enclosures,
+    siteLoading,
+    sectionLoading,
     enclosureLoading,
+    submitLoader,
+    handleSiteSearch,
+    handleSectionSearch,
     handleEnclosureSearch,
     fetchSections,
     fetchEnclosures,
     clearSections,
-    clearEnclosures
+    clearEnclosures,
+    handleSubmitData,
+    patientData,
+    watchDischargeType,
+    refetchPatient,
+    medicationsColumns,
+    clearEnclosureData,
+    onDirtyChange,
+    medicationData,
+    medicalRecordId,
+    prescriptionsColumns,
+    prescriptionData,
+    isPrescriptionLoading
   } = props
 
   const STORAGE_KEY_FORM = 'transfer_enclosure_form'
@@ -61,7 +63,8 @@ const EnclosureDischargeForm = props => {
   const router = useRouter()
   const { id } = router.query
   const patientDetails = patientData?.animal_detail
-  const { data, updateState } = useDynamicStateContext()
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
 
   // Index medicines
   const indexedMedicines = useMemo(
@@ -330,12 +333,12 @@ const EnclosureDischargeForm = props => {
   const handleDeleteMedicine = useCallback(
     medId => {
       const updated = medicationData?.filter(med => med.id !== medId)
-      updateState('enclosure_medicines', updated)
+      dispatch(updateState({ key: 'enclosure_medicines', value: updated }))
     },
-    [medicationData, updateState]
+    [medicationData, dispatch]
   )
 
-  // Add actions column
+  // Add actions column to medications table
   const medicationColumnsWithActions = useMemo(
     () =>
       (medicationsColumns || []).map(col =>
@@ -391,16 +394,12 @@ const EnclosureDischargeForm = props => {
 
     const success = await handleSubmitData(payload)
     if (success) {
-      sessionStorage.removeItem(STORAGE_KEY_FORM)
-
-      // reset(defaultValues) // to avoid api call after discharge
-      clearData() // clear medicines + reset storage after submit
+      clearEnclosureData() // Clear context data and session storage
       refetchPatient()
     }
   }
 
-  const handleReturnToOriginalToggle = (checked, fieldOnChange) => {
-    fieldOnChange(checked)
+  const handleReturnToOriginalToggle = (e, checked) => {
 
     if (checked) {
       // Apply original values (system action → not dirty)
@@ -433,6 +432,7 @@ const EnclosureDischargeForm = props => {
     }
   }
 
+  // Scroll to hash section if present in URL
   useEffect(() => {
     if (window.location.hash) {
       const target = document.querySelector(window.location.hash)
@@ -450,23 +450,18 @@ const EnclosureDischargeForm = props => {
       <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <Controller
-              name='returnToOriginal'
+            <ControlledCheckBox
+              name={'returnToOriginal'}
+              label={'Transfer back to animal’s original location'}
               control={control}
-              render={({ field }) => (
-                <MUICheckbox
-                  {...field}
-                  label='Transfer back to animal’s original location'
-                  labelStyle={{
-                    fontSize: '1rem',
-                    fontWeight: '400',
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                  checked={field.value}
-                  onChange={e => handleReturnToOriginalToggle(e.target.checked, field.onChange)}
-                />
-              )}
-            />
+              errors={errors}
+              labelStyle={{
+                fontSize: '1rem',
+                fontWeight: '400',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+              onChangeOverride={handleReturnToOriginalToggle}
+              />
 
             <StyledTypography>Select location to transfer</StyledTypography>
             <Grid container spacing={6}>
@@ -490,7 +485,7 @@ const EnclosureDischargeForm = props => {
                     clearSections()
                     clearEnclosures()
                   }}
-                  loading={fetchLoading}
+                  loading={siteLoading}
                   showLoader={true}
                   required
                   showIcons={false}

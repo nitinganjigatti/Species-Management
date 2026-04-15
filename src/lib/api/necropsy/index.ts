@@ -25,12 +25,11 @@ import {
   GET_MEDICAL_STATS,
   GET_NECROPSY_PDF,
   DELETE_NECROPSY_ATTACHMENT,
-  MANNER_OF_DEATH,
-  CARCASS_DEPOSITION,
   GET_NEW_INCOMING_PATIENTS_LISTS,
   MEASUREMENT_UNITS,
   ADD_UPDATE_NECROPSY_CENTER
 } from 'src/constants/ApiConstant'
+import { MANNER_OF_DEATH, CARCASS_DEPOSITION } from 'src/constants/housing/animalConstants'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 import type {
   NecropsyListingParams,

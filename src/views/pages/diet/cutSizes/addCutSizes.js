@@ -18,10 +18,9 @@ import { LoadingButton } from '@mui/lab'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
-
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getCutSizeById } from 'src/lib/api/diet/settings/cutSizes'
-
 
 const schema = yup.object().shape({
   label: yup
@@ -45,7 +44,7 @@ const defaultValues = {
 const AddCutSize = props => {
   // ** Props
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
-
+  const { t } = useTranslation()
   console.log(editParams)
 
   const {
@@ -136,7 +135,9 @@ const AddCutSize = props => {
           p: theme => theme.spacing(3, 3.255, 3, 5.255)
         }}
       >
-        <Typography variant='h6'>{editParams?.id !== null ? 'Update' : 'Add'} Cut Size</Typography>
+        <Typography variant='h6'>
+          {editParams?.id !== null ? t('update') : t('add')} {t('diet_module.cut_size')}
+        </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton size='small' onClick={() => handleSidebarClose()} sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={20} />
@@ -152,7 +153,7 @@ const AddCutSize = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Cut Size Name*'
+                  label={`${t('diet_module.cut_size_name')} *`}
                   value={value}
                   onChange={onChange}
                   focused={value !== ''}
@@ -172,7 +173,7 @@ const AddCutSize = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Cut Size Comment'
+                  label={t('diet_module.cut_size_comment')}
                   value={value}
                   onChange={onChange}
                   focused={value !== ''}
@@ -180,7 +181,7 @@ const AddCutSize = props => {
                   error={Boolean(errors.comments)}
                   name='comments'
                   multiline
-                  rows={6} 
+                  rows={6}
                 />
               )}
             />
@@ -189,7 +190,7 @@ const AddCutSize = props => {
 
           {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
-              <FormLabel>Status</FormLabel>
+              <FormLabel>{t('status')}</FormLabel>
               <Controller
                 name='status'
                 control={control}
@@ -213,7 +214,7 @@ const AddCutSize = props => {
               />
               {errors.radio && (
                 <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-radio'>
-                  This field is required
+                  {t('field_required')}
                 </FormHelperText>
               )}
             </FormControl>
