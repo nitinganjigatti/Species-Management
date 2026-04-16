@@ -157,7 +157,8 @@ const Complaints = () => {
     },
 
     {
-      width: 350,
+      flex: 1,
+      minWidth: 350,
       sortable: false,
       field: 'Category',
       headerName: 'Category',
@@ -171,7 +172,8 @@ const Complaints = () => {
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'Action',
       headerName: 'Action',
       sortable: false,
@@ -221,26 +223,13 @@ const Complaints = () => {
           <DynamicBreadcrumbs pageItems={[{ title: 'Medical' }, { title: 'Category' }]} />
           <PageCardLayout title='Category List' action={headerAction}>
             <Grid container>
-              <Grid
-                container
-                item
-                size={{ xs: 12 }}
-                sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}
-              >
-                <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-                  <MUISearch
-                    sx={{
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value)}
-                    onClear={() => handleSearch('')}
-                    value={searchValue}
-                  />
-                </Grid>
+              <Grid item size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                />
               </Grid>
 
               <Grid item size={{ xs: 12 }}>
