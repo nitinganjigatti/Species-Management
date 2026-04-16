@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect } from 'react'
+import { useEffect, FC } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -16,45 +16,74 @@ import { useForm } from 'react-hook-form'
 // ** Icons
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import AddTreatmentDrawer from 'src/components/hospital/inpatient/OtherTreatments/AddTreatmentDrawer'
+import { Theme, useTheme } from '@mui/material'
+
+// Types and Interfaces
+interface EditParams {
+  id: number | string | null
+  name: string | null
+}
+
+interface Payload {
+  id?: number | string | null
+  name?: string | null
+  type: string
+}
+
+interface FormValues {
+  name: string
+}
+
+interface AddPurposeOfAnaesthesiaDrawerProps {
+  addEventSidebarOpen: boolean
+  handleSidebarClose: () => void
+  handleSubmitData: (payload: Payload) => Promise<void>
+  resetForm: boolean
+  submitLoader: boolean
+  editParams: EditParams
+  drawerWidth?: number | string
+}
 
 // Validation Schema
 const schema = yup.object().shape({
-  name: yup.string().required('Purpose is Required')
+  name: yup.string().required('Purpose of Anaesthesia is Required')
 })
 
-// Default Form Value
-const defaultValues = {
+// Default Form Values
+const defaultValues: FormValues = {
   name: ''
 }
 
-const AddPurposeOfAnaesthesiaDrawer = ({
+const AddPurposeOfAnaesthesiaDrawer: FC<AddPurposeOfAnaesthesiaDrawerProps> = ({
   addEventSidebarOpen,
   handleSidebarClose,
   handleSubmitData,
   resetForm,
   submitLoader,
-  editParams
+  editParams,
+  drawerWidth = 400
 }) => {
+  const theme: Theme = useTheme()
   const {
     reset,
     control,
     handleSubmit,
     formState: { errors }
-  } = useForm({
+  } = useForm<FormValues>({
     defaultValues,
     resolver: yupResolver(schema),
     mode: 'onBlur'
   })
 
-  const onSubmit = async values => {
-    const payload = {
-      id: editParams?.id || null,
+  const onSubmit = async (values: FormValues): Promise<void> => {
+    const payload: Payload = {
       name: values.name,
       type: 'purpose'
     }
 
-    console.log('FINAL API PAYLOAD:', payload)
+    if (editParams?.id) {
+      payload.id = editParams.id
+    }
 
     await handleSubmitData(payload)
   }
@@ -76,33 +105,38 @@ const AddPurposeOfAnaesthesiaDrawer = ({
       anchor='right'
       open={addEventSidebarOpen}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }}
     >
+      {/* Header */}
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          p: 4
+          p: '12px 24px',
+          backgroundColor: theme.palette.customColors.displaybgPrimary
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Purpose</Typography>
+        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Purpose of Anaesthesia</Typography>
 
         <IconButton size='small' onClick={handleSidebarClose}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Box>
+
+      {/* Body */}
       <Box sx={{ p: 6 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <ControlledTextField
             sx={{ mb: 6 }}
             name='name'
             control={control}
-            placeholder='Purpose Of Anaesthesia '
-            label='Purpose Of Anaesthesia '
+            label='Purpose of Anaesthesia'
+            placeholder='Enter Purpose of Anaesthesia'
             error={Boolean(errors.name)}
+            helperText={errors.name?.message}
           />
           <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
-            SUBMIT
+            {editParams?.id ? 'Edit' : 'Add'} Purpose of Anaesthesia
           </LoadingButton>
         </form>
       </Box>

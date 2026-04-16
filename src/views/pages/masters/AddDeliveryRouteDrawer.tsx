@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect } from 'react'
+import { useEffect, FC } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -16,47 +16,74 @@ import { useForm } from 'react-hook-form'
 // ** Icons
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import AddTreatmentDrawer from 'src/components/hospital/inpatient/OtherTreatments/AddTreatmentDrawer'
+import { Theme, useTheme } from '@mui/material'
+
+// Types and Interfaces
+interface EditParams {
+  id: number | string | null
+  name: string | null
+}
+
+interface Payload {
+  id?: number | string | null
+  delivery?: string | null
+}
+
+interface FormValues {
+  name: string
+}
+
+interface AddDeliveryRouteDrawerProps {
+  addEventSidebarOpen: boolean
+  handleSidebarClose: () => void
+  handleSubmitData: (payload: Payload) => Promise<void>
+  resetForm: boolean
+  submitLoader: boolean
+  editParams: EditParams
+  drawerWidth?: number | string
+}
 
 // Validation Schema
 const schema = yup.object().shape({
-  name: yup.string().required('Clinical Path Name  is Required')
+  name: yup.string().required('Delivery Route Name is Required')
 })
 
 // Default Form Values
-const defaultValues = {
+const defaultValues: FormValues = {
   name: ''
 }
 
-const AddClinicalPathDrawer = ({
+const AddDeliveryRouteDrawer: FC<AddDeliveryRouteDrawerProps> = ({
   addEventSidebarOpen,
   handleSidebarClose,
   handleSubmitData,
   resetForm,
   submitLoader,
-  editParams
+  editParams,
+  drawerWidth = 400
 }) => {
+  const theme: Theme = useTheme()
+
   const {
     reset,
     control,
     handleSubmit,
     formState: { errors }
-  } = useForm({
+  } = useForm<FormValues>({
     defaultValues,
     resolver: yupResolver(schema),
     mode: 'onBlur'
   })
 
-  const onSubmit = async values => {
-    const payload = {
-      name: values.name,
-      type: 'clin_path'
+  const onSubmit = async (values: FormValues): Promise<void> => {
+    const payload: Payload = {
+      delivery: values.name
     }
-    {
-      if (editParams?.id) {
-        payload.id = editParams.id
-      }
+
+    if (editParams?.id) {
+      payload.id = editParams.id
     }
+
     await handleSubmitData(payload)
   }
 
@@ -77,17 +104,18 @@ const AddClinicalPathDrawer = ({
       anchor='right'
       open={addEventSidebarOpen}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }}
     >
       {/* Header */}
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          p: 4
+          p: '12px 24px',
+          backgroundColor: theme.palette.customColors.displaybgPrimary
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} ClinicalPath</Typography>
+        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Delivery Route</Typography>
 
         <IconButton size='small' onClick={handleSidebarClose}>
           <Icon icon='mdi:close' fontSize={20} />
@@ -101,11 +129,13 @@ const AddClinicalPathDrawer = ({
             sx={{ mb: 6 }}
             name='name'
             control={control}
-            placeholder='Clinical Path  Name'
+            label='Delivery Route Name'
+            placeholder='Enter Delivery Route Name'
             error={Boolean(errors.name)}
+            helperText={errors.name?.message}
           />
           <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
-            Submit
+            {editParams?.id ? 'Edit' : 'Add'} Delivery Route
           </LoadingButton>
         </form>
       </Box>
@@ -113,4 +143,4 @@ const AddClinicalPathDrawer = ({
   )
 }
 
-export default AddClinicalPathDrawer
+export default AddDeliveryRouteDrawer

@@ -42,8 +42,8 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
     path: '/masters/delivery-route'
   }
 
-  const ClinicalPath = {
-    title: 'Clinical Path',
+  const ClinPath = {
+    title: 'Clin Path',
     path: '/masters/clinical-path'
   }
 
@@ -64,28 +64,18 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
   if (medicalAccess) {
     medicalNavigationArray.push(recordsItem)
   }
-  if (userSettings?.medical_add_complaints) {
+  if (userSettings?.medical_add_complaints || userSettings?.allow_masters) {
     mastersMedicalParent.children.push(complaints)
   }
-  if (userSettings?.medical_add_diagnosis) {
+  if (userSettings?.medical_add_diagnosis || userSettings?.allow_masters) {
     mastersMedicalParent.children.push(diagnosis)
   }
-  if (userSettings?.medical_add_diagnosis) {
+  if (userSettings?.allow_masters) {
     mastersMedicalParent.children.push(Monitoring)
-  }
-  if (userSettings?.medical_add_diagnosis) {
     mastersMedicalParent.children.push(Treatment)
-  }
-  if (userSettings?.medical_add_diagnosis) {
     mastersMedicalParent.children.push(DeliveryRoute)
-  }
-  if (userSettings?.medical_add_diagnosis) {
-    mastersMedicalParent.children.push(ClinicalPath)
-  }
-  if (userSettings?.medical_add_diagnosis) {
+    mastersMedicalParent.children.push(ClinPath)
     mastersMedicalParent.children.push(PurposeOfAnaesthesia)
-  }
-  if (userSettings?.medical_add_diagnosis) {
     mastersMedicalParent.children.push(UOM)
   }
 

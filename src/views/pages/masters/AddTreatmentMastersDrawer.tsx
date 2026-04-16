@@ -1,5 +1,5 @@
 // ** React Imports
-import { useEffect } from 'react'
+import { useEffect, FC } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -16,42 +16,74 @@ import { useForm } from 'react-hook-form'
 // ** Icons
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import { Theme, useTheme } from '@mui/material'
+
+// Types and Interfaces
+interface EditParams {
+  id: number | string | null
+  treatment_name?: string | null
+}
+
+interface Payload {
+  treatment_master_id?: number | string | null
+  treatment_name?: string | null
+}
+
+interface FormValues {
+  treatment_name: string
+}
+
+interface AddTreatmentMastersDrawerProps {
+  addEventSidebarOpen: boolean
+  handleSidebarClose: () => void
+  handleSubmitData: (payload: Payload) => Promise<void>
+  resetForm: boolean
+  submitLoader: boolean
+  editParams: EditParams
+  drawerWidth?: number | string
+}
 
 // Validation Schema
 const schema = yup.object().shape({
-  name: yup.string().required('Delivery Name is Required')
+  treatment_name: yup.string().required('Treatment Name is Required')
 })
 
 // Default Form Values
-const defaultValues = {
-  name: '',
-  status: 'active'
+const defaultValues: FormValues = {
+  treatment_name: ''
 }
 
-const AddDeliveryRouteDrawer = ({
+const AddTreatmentMastersDrawer: FC<AddTreatmentMastersDrawerProps> = ({
   addEventSidebarOpen,
   handleSidebarClose,
   handleSubmitData,
   resetForm,
   submitLoader,
-  editParams
+  editParams,
+  drawerWidth = 400
 }) => {
+  const theme: Theme = useTheme()
+
   const {
     reset,
     control,
     handleSubmit,
     formState: { errors }
-  } = useForm({
+  } = useForm<FormValues>({
     defaultValues,
     resolver: yupResolver(schema),
     mode: 'onBlur'
   })
 
-  const onSubmit = async values => {
-    const payload = {
-      id: editParams?.id || null,
-      delivery: values.name
+  const onSubmit = async (values: FormValues): Promise<void> => {
+    const payload: Payload = {
+      treatment_name: values.treatment_name
     }
+
+    if (editParams?.id) {
+      payload.treatment_master_id = editParams.id
+    }
+
     await handleSubmitData(payload)
   }
 
@@ -62,7 +94,7 @@ const AddDeliveryRouteDrawer = ({
 
     if (editParams?.id) {
       reset({
-        name: editParams?.name || ''
+        treatment_name: editParams?.treatment_name || ''
       })
     }
   }, [resetForm, editParams, reset])
@@ -72,33 +104,39 @@ const AddDeliveryRouteDrawer = ({
       anchor='right'
       open={addEventSidebarOpen}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] } }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }}
     >
+      {/* Header */}
       <Box
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          p: 4
+          p: '12px 24px',
+          backgroundColor: theme.palette.customColors.displaybgPrimary
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Delivery</Typography>
+        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Treatment</Typography>
 
         <IconButton size='small' onClick={handleSidebarClose}>
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Box>
+
+      {/* Body */}
       <Box sx={{ p: 6 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <ControlledTextField
             sx={{ mb: 6 }}
-            name='name'
+            name='treatment_name'
             control={control}
-            placeholder='Delivery Name'
-            label='Delivery Name'
-            error={Boolean(errors.name)}
+            label='Treatment Name'
+            placeholder='Enter Treatment Name'
+            error={Boolean(errors.treatment_name)}
+            helperText={errors.treatment_name?.message}
+            fullWidth
           />
           <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
-            Submit
+            {editParams?.id ? 'Edit' : 'Add'} Treatment
           </LoadingButton>
         </form>
       </Box>
@@ -106,4 +144,4 @@ const AddDeliveryRouteDrawer = ({
   )
 }
 
-export default AddDeliveryRouteDrawer
+export default AddTreatmentMastersDrawer
