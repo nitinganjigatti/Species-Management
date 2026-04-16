@@ -167,7 +167,8 @@ const Diagnosis = () => {
     },
 
     {
-      width: 350,
+      flex: 1,
+      minWidth: 350,
       sortable: false,
       field: 'Category',
       headerName: 'Category',
@@ -190,7 +191,8 @@ const Diagnosis = () => {
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
