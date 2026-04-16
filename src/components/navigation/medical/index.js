@@ -29,32 +29,32 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
 
   const Monitoring = {
     title: 'Monitoring',
-    path: '/masters/monitor'
+    path: '/medical/masters/monitor'
   }
 
   const Treatment = {
     title: 'Treatment',
-    path: '/masters/treatment'
+    path: '/medical/masters/treatment'
   }
 
   const DeliveryRoute = {
     title: 'Delivery Route',
-    path: '/masters/delivery-route'
+    path: '/medical/masters/delivery-route'
   }
 
   const ClinPath = {
     title: 'Clin Path',
-    path: '/masters/clinical-path'
+    path: '/medical/masters/clinical-path'
   }
 
   const PurposeOfAnaesthesia = {
     title: 'Purpose of Anaesthesia',
-    path: '/masters/purpose-of-anaesthesia'
+    path: '/medical/masters/purpose-of-anaesthesia'
   }
 
   const UOM = {
     title: 'UOM',
-    path: '/masters/uom'
+    path: '/medical/masters/uom'
   }
   const medicalNavigationArray = []
 

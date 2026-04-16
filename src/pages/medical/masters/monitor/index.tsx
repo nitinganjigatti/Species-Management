@@ -377,7 +377,7 @@ const MonitorCategory: NextPage = () => {
     const { assessment_category_id, label } = params.row
 
     router.push({
-      pathname: `/masters/monitor/${assessment_category_id}`,
+      pathname: `/medical/masters/monitor/${assessment_category_id}`,
       query: { label: label }
     })
   }
