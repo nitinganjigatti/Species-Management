@@ -30,6 +30,7 @@ import RenderUtility from 'src/utility/render'
 import moment from 'moment'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { useTranslation } from 'react-i18next'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 // Styled TabList component
 const roleColors = {
@@ -133,7 +134,7 @@ const Diet = () => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumn, status)
     }
-  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumn])
+  }, [status, paginationModel.page, paginationModel.pageSize])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -346,6 +347,16 @@ const Diet = () => {
           <>
             <Card>
               <CardHeader title={t('navigation.diet')} action={headerAction} sx={{ px: 5 }} />
+              <Box sx={{ px: 5, pb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+                <Box sx={{ width: 250 }}>
+                  <MUISearch
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    placeholder='Search...'
+                  />
+                </Box>
+              </Box>
 
               <Box sx={{ width: '100%', overflowX: 'auto' }}>
                 <CommonTable

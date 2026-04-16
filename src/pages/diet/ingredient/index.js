@@ -37,6 +37,7 @@ import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const roleColors = {
   active: 'success',
@@ -155,7 +156,7 @@ const IngredientsList = () => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumning, status)
     }
-  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumning])
+  }, [status, paginationModel.page, paginationModel.pageSize])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -423,6 +424,16 @@ const IngredientsList = () => {
         ) : (
           <Card>
             <CardHeader title='Items' action={headerAction} sx={{ px: 5 }} />
+            <Box sx={{ px: 5, pb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ width: 250 }}>
+                <MUISearch
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  placeholder='Search...'
+                />
+              </Box>
+            </Box>
 
             <ConfirmationDialog
               icon={'mdi:delete'}
