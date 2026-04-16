@@ -415,7 +415,7 @@ const AddRecipe = () => {
       } else {
         Toaster({
           type: 'error',
-          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+          message: apival?.message?.recipe_image
         })
         setLoader(false)
       }
@@ -480,7 +480,7 @@ const AddRecipe = () => {
       } else {
         Toaster({
           type: 'error',
-          message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
+          message: apival?.message?.recipe_image
         })
         setLoader(false)
       }
