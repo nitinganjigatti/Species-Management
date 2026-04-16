@@ -47,13 +47,14 @@ import Utility from 'src/utility'
 
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import { useTranslation } from 'react-i18next'
 
 const ALL_NURSERY_OPTION = { nursery_id: '', nursery_name: 'All' }
 
 const EggList = () => {
   const theme = useTheme()
   const router = useRouter()
-
+  const { t } = useTranslation()
   const {
     tab_Value = 'eggs_incubation',
     subTab_value = 'eggs_discarded',
@@ -183,7 +184,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -200,7 +201,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
@@ -240,7 +241,7 @@ const EggList = () => {
       width: 160,
       field: 'condition',
       sortable: false,
-      headerName: 'Condition',
+      headerName: t('egg_module.condition'),
       renderCell: params => (
         <Box sx={{ gap: 2 }}>
           <Typography
@@ -282,7 +283,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
           <Typography
@@ -306,7 +307,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'Nursery',
+      headerName: t('egg_module.nursery'),
       renderCell: params => (
         <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
           <Typography
@@ -331,7 +332,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -353,7 +354,7 @@ const EggList = () => {
       width: 270,
       sortable: false,
       field: 'collected_by',
-      headerName: 'COLLECTED BY',
+      headerName: t('collected_by'),
       renderCell: params => (
         <>
           {status === 'eggs_received' ? (
@@ -458,7 +459,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -475,7 +476,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
@@ -514,7 +515,7 @@ const EggList = () => {
       width: 160,
       field: 'state',
       sortable: false,
-      headerName: 'STATE',
+      headerName: t('egg_module.state'),
       renderCell: params => (
         <Box>
           <TextCard egg_status={params.row.egg_status} />
@@ -526,7 +527,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
           <Typography
@@ -550,7 +551,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'Nursery',
+      headerName: t('navigation.nursery'),
       renderCell: params => (
         <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
           <Typography
@@ -576,7 +577,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -598,7 +599,7 @@ const EggList = () => {
       width: 270,
       sortable: false,
       field: 'collected_by',
-      headerName: 'COLLECTED BY',
+      headerName: t('collected_by'),
       renderCell: params => (
         <>
           {status === 'eggs_received' ? (
@@ -703,7 +704,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -722,7 +723,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
@@ -761,7 +762,7 @@ const EggList = () => {
       width: 140,
       sortable: false,
       field: 'animal_sex',
-      headerName: 'GENDER',
+      headerName: t('gender'),
       renderCell: params => (
         <Tooltip title={params.row?.animal_sex || ''}>
           <Typography
@@ -782,7 +783,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'identifier',
-      headerName: 'IDENTIFIER',
+      headerName: t('egg_module.identifier'),
       renderCell: params => (
         <Box>
           <Tooltip
@@ -809,7 +810,7 @@ const EggList = () => {
       width: 200,
       field: 'animal_id',
       sortable: false,
-      headerName: 'Animal Id',
+      headerName: t('egg_module.animal_id'),
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {/* {console.log(params.row.animal_id)} */}
@@ -838,7 +839,7 @@ const EggList = () => {
                 setOpenCreate(true)
               }}
             >
-              Create Animal ID
+              {t('egg_module.create_animal_id')}
             </Typography>
           ) : (
             <Typography
@@ -857,7 +858,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -879,7 +880,7 @@ const EggList = () => {
       width: 170,
       sortable: false,
       field: 'hatched_on',
-      headerName: 'Hatched On',
+      headerName: t('egg_module.hatched_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -921,7 +922,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
           <SpeciesImageCard
@@ -940,7 +941,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
@@ -979,7 +980,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'stage_state',
-      headerName: 'STATE & STAGE',
+      headerName: t('egg_module.state_stage'),
       renderCell: params => (
         <Stack direction='column' spacing={1}>
           <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
@@ -1009,7 +1010,7 @@ const EggList = () => {
       width: 110,
       sortable: false,
       field: 'days_in_incubation',
-      headerName: 'Days In Incubation',
+      headerName: t('egg_module.days_in_incubation'),
       align: 'left',
       renderHeader: () => (
         <Box>
@@ -1021,7 +1022,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            DAYS IN
+            {t('egg_module.days_in')}
           </Typography>
           <Typography
             sx={{
@@ -1031,7 +1032,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            INCUBATION
+            {t('egg_module.incubation')}
           </Typography>
         </Box>
       ),
@@ -1066,7 +1067,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            INITIAL WEIGHT
+            {t('egg_module.initial_weight')}
           </Typography>
           <Typography
             sx={{
@@ -1111,7 +1112,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            CURRENT WEIGHT
+            {t('egg_module.current_weight')}
           </Typography>
           <Typography
             sx={{
@@ -1246,7 +1247,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            CLUTCH
+            {t('egg_module.clutch')}
           </Typography>
         </Box>
       ),
@@ -1287,7 +1288,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'enclosure_name',
-      headerName: 'Enclosure',
+      headerName: t('enclosure'),
       renderCell: params => (
         <Tooltip title={params.row.enclosure_name ? params.row.enclosure_name : '-'}>
           <Typography
@@ -1310,7 +1311,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
           <Typography
@@ -1333,7 +1334,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'Nursery NAME',
+      headerName: t('egg_module.nursery_name'),
       renderCell: params => (
         <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
           <Typography
@@ -1357,7 +1358,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1378,7 +1379,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'allocated_by',
-      headerName: 'Allocated by',
+      headerName: t('allocated_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1465,7 +1466,7 @@ const EggList = () => {
       width: 300,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -1482,7 +1483,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_code && (
@@ -1521,7 +1522,7 @@ const EggList = () => {
       width: 180,
       field: 'discard_request_id',
       sortable: false,
-      headerName: 'BATCH DETAILS',
+      headerName: t('egg_module.batch_details'),
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <Tooltip title={params.row?.discard_request_id ? params.row?.discard_request_id : '-'}>
@@ -1576,7 +1577,7 @@ const EggList = () => {
       width: 160,
       field: 'reason',
       sortable: false,
-      headerName: 'Reason',
+      headerName: t('reason'),
       renderCell: params => (
         <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
           <Typography
@@ -1602,7 +1603,7 @@ const EggList = () => {
       width: 160,
       field: 'nursery_name',
       sortable: false,
-      headerName: 'NURSERY',
+      headerName: t('navigation.nursery'),
       renderCell: params => (
         <Tooltip title={params.row?.nursery_name ? params.row?.nursery_name : '-'}>
           <Typography
@@ -1628,7 +1629,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1647,7 +1648,7 @@ const EggList = () => {
       width: 140,
       sortable: false,
       field: 'sample_taken',
-      headerName: 'Sample Taken',
+      headerName: t('egg_module.sample_taken'),
       renderCell: params => (
         <>
           {params.row.necropsy_file_uploaded === '0' ? (
@@ -1680,7 +1681,7 @@ const EggList = () => {
       width: 170,
       sortable: false,
       field: 'necropsy_report',
-      headerName: 'NECROPSY REPORT',
+      headerName: t('egg_module.necropsy_report'),
       align: 'left',
       renderCell: params => (
         <>
@@ -1714,7 +1715,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'initiated_by',
-      headerName: 'Initiated By',
+      headerName: t('egg_module.initiated_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1799,7 +1800,7 @@ const EggList = () => {
       width: 300,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -1816,7 +1817,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
@@ -1855,7 +1856,7 @@ const EggList = () => {
       width: 160, // Adjust based on desired cell width
       field: 'reason',
       sortable: false,
-      headerName: 'Reason',
+      headerName: t('reason'),
       renderCell: params => (
         <Box
           sx={{
@@ -1892,7 +1893,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1913,7 +1914,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1932,7 +1933,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'initiated_by',
-      headerName: 'Initiated By',
+      headerName: t('egg_module.initiated_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -2325,7 +2326,7 @@ const EggList = () => {
           renderInput={params => (
             <TextField
               {...params}
-              label='Select Nursery *'
+              label={`${t('egg_module.select_nursery')} *`}
               placeholder='Search & Select'
               InputProps={{
                 ...params.InputProps,
@@ -2496,7 +2497,7 @@ const EggList = () => {
         <Box>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit' sx={{ cursor: 'pointer' }}>
-              Egg
+              {t('egg_module.egg')}
             </Typography>
 
             <Typography
@@ -2505,7 +2506,7 @@ const EggList = () => {
                 cursor: 'pointer'
               }}
             >
-              Egg List
+              {t('egg_module.egg_list')}
             </Typography>
           </Breadcrumbs>
           <Card>

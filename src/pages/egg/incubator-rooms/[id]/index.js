@@ -42,9 +42,11 @@ import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedir
 import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
 import { hatcheryStatus } from 'src/lib/api/egg'
 import { GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
+import { useTranslation } from 'react-i18next'
 
 const RoomDetails = () => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const router = useRouter()
   const authData = useContext(AuthContext)
   const cuurent_date = moment().format('YYYY-MM-DD')
@@ -202,7 +204,7 @@ const RoomDetails = () => {
     {
       minWidth: 80,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -224,7 +226,7 @@ const RoomDetails = () => {
       minWidth: 120,
       sortable: false,
       field: 'incubator_code',
-      headerName: 'INCUBATOR ID',
+      headerName: t('egg_module.incubator_id'),
       renderCell: params => (
         <Tooltip title={params.row.incubator_code ? params.row.incubator_code : '-'}>
           <Typography
@@ -248,7 +250,7 @@ const RoomDetails = () => {
       minWidth: 140,
       sortable: false,
       field: 'incubator_name',
-      headerName: 'INCUBATOR NAME',
+      headerName: t('egg_module.incubator_name'),
       renderCell: params => (
         <Tooltip title={params.row.incubator_name ? params.row.incubator_name : '-'}>
           <Typography
@@ -272,7 +274,7 @@ const RoomDetails = () => {
       minWidth: 120,
       sortable: false,
       field: 'availability',
-      headerName: 'AVAILABILITY',
+      headerName: t('egg_module.availability'),
       renderCell: params => (
         <Tooltip title={params.row.availability ? params.row.availability : '-'}>
           <Typography
@@ -296,7 +298,7 @@ const RoomDetails = () => {
       minWidth: 120,
       sortable: false,
       field: 'site_name',
-      headerName: 'SITE',
+      headerName: t('site'),
       renderCell: params => (
         <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
           <Typography
@@ -319,7 +321,7 @@ const RoomDetails = () => {
       minWidth: 120,
       sortable: false,
       field: 'room_name',
-      headerName: 'ROOM',
+      headerName: t('room'),
       renderCell: params => (
         <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
           <Typography
@@ -343,7 +345,7 @@ const RoomDetails = () => {
       sortable: false,
       align: 'center',
       field: 'max_no_eggs',
-      headerName: 'Max EGG',
+      headerName: t('egg_module.max_egg'),
       renderCell: params => (
         <Tooltip title={params.row.max_eggs ? params.row.max_eggs : '-'}>
           <Typography
@@ -367,7 +369,7 @@ const RoomDetails = () => {
       sortable: false,
       align: 'center',
       field: 'no_of_eggs',
-      headerName: 'EGGS',
+      headerName: t('navigation.eggs'),
       renderCell: params => (
         <Tooltip title={params.row.no_of_eggs ? params.row.no_of_eggs : '-'}>
           <Typography
@@ -391,7 +393,7 @@ const RoomDetails = () => {
       sortable: false,
       align: 'center',
       field: 'active',
-      headerName: 'Status',
+      headerName: t('status'),
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -414,7 +416,7 @@ const RoomDetails = () => {
       minWidth: 220,
       sortable: false,
       field: 'added_by',
-      headerName: 'ADDED BY',
+      headerName: t('added_by'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <Avatar
@@ -460,7 +462,7 @@ const RoomDetails = () => {
               }}
             >
               {params.row?.created_at
-                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                ? t('created_on') + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
                 : '-'}
             </Typography>
           </Box>
@@ -534,7 +536,7 @@ const RoomDetails = () => {
           <Box>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-                Egg
+                {t('egg_module.egg')}
               </Typography>
 
               <Typography
@@ -542,10 +544,10 @@ const RoomDetails = () => {
                 color='inherit '
                 onClick={() => Router.push('/egg/incubator-rooms/')}
               >
-                Incubator Room
+                {t('egg_module.incubator_room')}
               </Typography>
               <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
-                Room Details
+                {t('egg_module.room_details')}
               </Typography>
             </Breadcrumbs>
 
@@ -574,7 +576,7 @@ const RoomDetails = () => {
                       lineHeight: '29.05px'
                     }}
                   >
-                    Room Details
+                    {t('egg_module.room_details')}
                   </Typography>
                 </Box>
 
@@ -622,7 +624,7 @@ const RoomDetails = () => {
 
                     <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
                       <Icon icon='mdi:add' fontSize={20} />
-                      &nbsp; ADD INCUBATOR
+                      &nbsp; {t('add')} {t('navigation.incubator')}
                     </Button>
                   </Box>
                 )}
@@ -711,7 +713,8 @@ const RoomDetails = () => {
                 <DetailCard DetailsListData={DetailsListData?.Avatar?.site_id && DetailsListData} />
               </Box>
               <Box>
-                <CommonTable                   sx={{
+                <CommonTable
+                  sx={{
                     paddingX: 4,
                     borderTopLeftRadius: '8px',
                     '& .MuiBox-root': { paddingX: 0 },

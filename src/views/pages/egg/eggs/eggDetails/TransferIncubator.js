@@ -21,6 +21,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { transferEggToIncubator, transferIncubatorToRoom } from 'src/lib/api/egg/egg'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const TransferIncubator = ({
   transferIncubatorSideBar,
@@ -30,7 +31,7 @@ const TransferIncubator = ({
   getDetails
 }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [loader, setLoader] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
@@ -209,7 +210,7 @@ const TransferIncubator = ({
                 height: '32px'
               }}
             >
-              Transfer Incubator
+              {t('egg_module.transfer_incubator')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -267,7 +268,7 @@ const TransferIncubator = ({
                     height: '24px'
                   }}
                 >
-                  Current Location of Incubator
+                  {t('egg_module.incubator_location')}
                 </Typography>
                 <Box
                   sx={{
@@ -312,7 +313,7 @@ const TransferIncubator = ({
                         height: '17px'
                       }}
                     >
-                      Room
+                      {t('room')}
                     </Typography>
                     <Typography
                       sx={{
@@ -337,7 +338,7 @@ const TransferIncubator = ({
                         height: '17px'
                       }}
                     >
-                      Nursery Name
+                      {t('egg_module.nursery_name')}
                     </Typography>
                     <Typography
                       sx={{
@@ -364,7 +365,7 @@ const TransferIncubator = ({
                   height: '24.2px'
                 }}
               >
-                Select The Another Room
+                {t('egg_module.select_another_room')}
               </Typography>
               <Box
                 sx={{
@@ -414,7 +415,7 @@ const TransferIncubator = ({
                               searchNursery(e.target.value)
                             }}
                             {...params}
-                            label='Select Nursery *'
+                            label={`${t('egg_module.select_nursery')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.nursery_name)}
                           />
@@ -438,7 +439,6 @@ const TransferIncubator = ({
                         value={defaultRoom}
                         disablePortal
                         id='room'
-
                         // disabled={incubatorDetail?.room_id}
                         options={roomList?.length > 0 ? roomList : []}
                         getOptionLabel={option => option.room_name}
@@ -461,7 +461,7 @@ const TransferIncubator = ({
                               searchRoom(incubatorDetail?.nursery_id, e.target.value)
                             }}
                             {...params}
-                            label='Select Room *'
+                            label={`${t('egg_module.select_room')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.room)}
                           />
@@ -498,7 +498,7 @@ const TransferIncubator = ({
               disabled={!formState.isValid || loader}
               sx={{ height: '58px' }}
             >
-              Transfer
+              {t('transfer')}
             </LoadingButton>
           </Box>
         </form>

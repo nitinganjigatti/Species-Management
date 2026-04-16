@@ -2,11 +2,12 @@ import { Box } from '@mui/system'
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { Typography, Card, CardContent } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 const SpeciesfirstSection = ({ eggDetails }) => {
   const theme = useTheme()
-  
-return (
+  const { t } = useTranslation()
+  return (
     <>
       <Card>
         <CardContent
@@ -26,7 +27,7 @@ return (
               lineHeight: '29.05px'
             }}
           >
-            Species Egg Module
+            {t('egg_module.species_egg_module')}
           </Typography>
           <Box sx={{ backgroundColor: theme.palette.customColors.Surface, borderRadius: '8px' }}>
             <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -51,7 +52,7 @@ return (
                       mb: '6px'
                     }}
                   >
-                    Species name
+                    {t('species_name')}
                   </Typography>
                   <Typography
                     sx={{
@@ -75,7 +76,7 @@ return (
                     mb: '6px'
                   }}
                 >
-                  Total Eggs
+                  {t('egg_module.total_eggs')}
                 </Typography>
                 <Typography
                   sx={{
@@ -98,7 +99,7 @@ return (
                     mb: '6px'
                   }}
                 >
-                  In Nest
+                  {t('egg_module.in_nest')}
                 </Typography>
                 <Typography
                   sx={{
@@ -121,7 +122,7 @@ return (
                     mb: '6px'
                   }}
                 >
-                  Incubation
+                  {t('egg_module.incubation')}
                 </Typography>
                 <Typography
                   sx={{
@@ -144,7 +145,7 @@ return (
                     mb: '6px'
                   }}
                 >
-                  Hatched
+                  {t('egg_module.hatched')}
                 </Typography>
                 <Typography
                   sx={{
@@ -167,7 +168,7 @@ return (
                     mb: '6px'
                   }}
                 >
-                  Alive
+                  {t('egg_module.alive')}
                 </Typography>
                 <Typography
                   sx={{
@@ -190,7 +191,7 @@ return (
                     mb: '6px'
                   }}
                 >
-                  Mortality
+                  {t('navigation.mortality')}
                 </Typography>
                 <Typography
                   sx={{

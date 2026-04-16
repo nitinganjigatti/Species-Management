@@ -19,11 +19,12 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import Utility from 'src/utility'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
+import { useTranslation } from 'react-i18next'
 
 const TransferDetails = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [transferList, setTransferList] = useState([])
 
   const [loading, setLoading] = useState(false)
@@ -149,9 +150,8 @@ const TransferDetails = () => {
       width: 240,
       field: 'egg_number',
       sortable: false,
-      headerName: 'EGG NUMBER',
+      headerName: t('egg_module.egg_number'),
       renderCell: params => (
-
         // <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         //   <Typography
         //     style={{
@@ -193,22 +193,21 @@ const TransferDetails = () => {
         //     {params.row.egg_status ? params.row.egg_status : '-'}
         //   </Typography>
         // </Box>
-        (<SpeciesImageCard
+        <SpeciesImageCard
           imgURl={params.row.default_icon}
           eggCondition={params.row.egg_condition}
           eggCode={params.row.egg_code}
           egg_status={params.row.egg_status}
-
           // defaultName={params.row.default_common_name}
           // completeName={params.row.complete_name}
           eggIcon={'/icons/Egg_icon.png'}
-        />)
+        />
       )
     },
     {
       width: 200,
       field: 'assigned_status',
-      headerName: 'STATUS',
+      headerName: t('status'),
       sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}>
@@ -252,7 +251,7 @@ const TransferDetails = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -319,7 +318,7 @@ const TransferDetails = () => {
       width: 170,
       field: 'from_site_name',
       sortable: false,
-      headerName: 'TRANSFORMED FROM',
+      headerName: t('egg_module.transformed_from'),
       renderCell: params => (
         <Tooltip title={params.row.from_site_name ? params.row.from_site_name : '-'}>
           <Typography
@@ -344,7 +343,7 @@ const TransferDetails = () => {
       width: 140,
       sortable: false,
       field: 'transfered_on',
-      headerName: 'DATE',
+      headerName: t('date'),
       renderCell: params => (
         <Typography
           sx={{
@@ -365,7 +364,7 @@ const TransferDetails = () => {
       width: 140,
       sortable: false,
       field: 'to_site_name',
-      headerName: 'RECEIVING AT',
+      headerName: t('egg_module.receiving_at'),
       renderCell: params => (
         <Tooltip title={params.row.to_site_name ? params.row.to_site_name : '-'}>
           <Typography
@@ -390,7 +389,7 @@ const TransferDetails = () => {
       width: 140,
       sortable: false,
       field: 'created_at',
-      headerName: 'DATE',
+      headerName: t('date'),
       renderCell: params => (
         <Typography
           sx={{
@@ -411,7 +410,7 @@ const TransferDetails = () => {
       width: 160,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'NURSERY',
+      headerName: t('navigation.nursery'),
       renderCell: params => (
         <Tooltip title={params.row?.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
           <Typography
@@ -536,7 +535,7 @@ const TransferDetails = () => {
           color: theme.palette.customColors.OnSurfaceVariant
         }}
       >
-        Transfer Details
+        {t('egg_module.transfer_details')}
       </Typography>
       <Grid container columns={15} spacing={6}>
         <Grid item size={{ xs: 3 }}>
@@ -830,7 +829,8 @@ const TransferDetails = () => {
           </FormControl>
         </Grid> */}
       </Grid>
-      <CommonTable         externalTableStyle={{
+      <CommonTable
+        externalTableStyle={{
           '.MuiDataGrid-cell:focus': {
             outline: 'none'
           },
@@ -866,7 +866,6 @@ const TransferDetails = () => {
         columns={columns}
         paginationModel={paginationModel}
         handleSortModel={handleSortModel}
-
         // slots={{ toolbar: ServerSideToolbarWithFilter }}
         setPaginationModel={setPaginationModel}
         loading={loading}

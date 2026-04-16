@@ -12,6 +12,7 @@ import EggTableHeader from '../EggTableHeader'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { useTranslation } from 'react-i18next'
 
 const DiscardedTableView = ({
   tabValue,
@@ -26,6 +27,7 @@ const DiscardedTableView = ({
   filterByNurseryId
 }) => {
   const router = useRouter()
+  const { t } = useTranslation()
   const { search_value } = router.query
   const theme = useTheme()
   const [sort, setSort] = useState('desc')
@@ -142,7 +144,7 @@ const DiscardedTableView = ({
     {
       width: 80,
       field: 'uid',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -162,7 +164,7 @@ const DiscardedTableView = ({
       width: 200,
       sortable: false,
       field: 'request_id_and_egg',
-      headerName: 'Request ID & Eggs',
+      headerName: t('egg_module.request_id_eggs'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Box
@@ -216,7 +218,7 @@ const DiscardedTableView = ({
       width: 240,
       field: 'request_created_on',
       sortable: false,
-      headerName: 'Request Created On',
+      headerName: t('diet_module.request_createdon'),
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -244,7 +246,7 @@ const DiscardedTableView = ({
       width: 180,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'Nursery',
+      headerName: t('egg_module.nursery'),
       renderCell: params => (
         <Typography
           sx={{
@@ -282,7 +284,7 @@ const DiscardedTableView = ({
       width: 220,
       sortable: false,
       field: 'created_by',
-      headerName: 'Created By',
+      headerName: t('created_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -349,7 +351,7 @@ const DiscardedTableView = ({
       width: 220,
       sortable: false,
       field: 'security_check',
-      headerName: 'Security Check',
+      headerName: t('egg_module.security_check'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -404,7 +406,7 @@ const DiscardedTableView = ({
                       lineHeight: '16.94px'
                     }}
                   >
-                    Security Checked
+                    {t('egg_module.security_checked')}
                   </Typography>
 
                   <Typography
@@ -432,7 +434,7 @@ const DiscardedTableView = ({
                         ml: 1
                       }}
                     >
-                      Canceled
+                      {t('egg_module.cancelled')}
                     </Typography>
 
                     <Typography
