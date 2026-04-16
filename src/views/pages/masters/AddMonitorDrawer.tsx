@@ -2,14 +2,26 @@ import { useEffect, useState, FC } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
 import Drawer from '@mui/material/Drawer'
+import Grid from '@mui/material/Grid'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import { LoadingButton } from '@mui/lab'
-import { RadioGroup, FormLabel, FormControlLabel, Radio, Autocomplete, Button, Theme, useTheme } from '@mui/material'
+import {
+  alpha,
+  RadioGroup,
+  FormLabel,
+  FormControlLabel,
+  Radio,
+  Autocomplete,
+  Button,
+  Theme,
+  useTheme
+} from '@mui/material'
 
 // ** Form Validation
 import * as yup from 'yup'
@@ -117,7 +129,7 @@ const AddMonitorDrawer: FC<AddMonitorDrawerProps> = ({
   responseTypeOption,
   category,
   measurementTypeOptions,
-  drawerWidth = 500
+  drawerWidth = 562
 }) => {
   const theme: Theme = useTheme()
 
@@ -127,11 +139,12 @@ const AddMonitorDrawer: FC<AddMonitorDrawerProps> = ({
     handleSubmit,
     watch,
     setValue,
-    formState: { errors }
+    formState: { errors, isValid }
   } = useForm<FormValues>({
     defaultValues,
     resolver: yupResolver(schema),
-    mode: 'onBlur'
+    mode: 'onChange',
+    reValidateMode: 'onChange'
   })
 
   const watchedResponseType = watch('response_type')
@@ -187,6 +200,12 @@ const AddMonitorDrawer: FC<AddMonitorDrawerProps> = ({
     await handleSubmitData(payload)
   }
 
+  const handleClose = () => {
+    reset(defaultValues)
+    setListValues([{ order: 1, label: '' }])
+    handleSidebarClose()
+  }
+
   // Reset form when resetForm prop changes (for add mode)
   useEffect(() => {
     if (resetForm) {
@@ -232,7 +251,6 @@ const AddMonitorDrawer: FC<AddMonitorDrawerProps> = ({
   // Clear form when drawer closes
   useEffect(() => {
     if (!addEventSidebarOpen) {
-      // Small delay to avoid flicker
       setTimeout(() => {
         reset(defaultValues)
         setListValues([{ order: 1, label: '' }])
@@ -240,10 +258,13 @@ const AddMonitorDrawer: FC<AddMonitorDrawerProps> = ({
     }
   }, [addEventSidebarOpen, reset])
 
+  const title = editParams?.assessment_type_id ? 'Edit Monitoring Parameter' : 'Add Monitoring Parameter'
+
   return (
     <Drawer
       anchor='right'
       open={addEventSidebarOpen}
+      onClose={handleClose}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }}
     >
@@ -251,197 +272,251 @@ const AddMonitorDrawer: FC<AddMonitorDrawerProps> = ({
       <Box
         sx={{
           display: 'flex',
+          position: 'sticky',
+          top: 0,
+          alignItems: 'center',
           justifyContent: 'space-between',
-          p: '12px 24px',
-          backgroundColor: theme.palette.customColors.displaybgPrimary
+          p: 6,
+          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          backgroundColor: theme.palette.customColors.OnPrimary,
+          zIndex: 10
         }}
       >
-        <Typography variant='h6'>{editParams?.assessment_type_id ? 'Edit' : 'Add'} Monitoring Parameter</Typography>
-        <IconButton size='small' onClick={handleSidebarClose}>
-          <Icon icon='mdi:close' fontSize={20} />
+        <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Monitor Icon' />
+          <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {title}
+          </Typography>
+        </Box>
+
+        <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary }}>
+          <Icon icon='mdi:close' fontSize={24} />
         </IconButton>
       </Box>
 
       {/* Body */}
-      <Box sx={{ p: 6 }}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          {/* Category Name (Disabled) */}
-          <TextField label='Category Name' value={category?.label || ''} disabled fullWidth sx={{ mb: 6 }} />
+      <Box
+        sx={{
+          backgroundColor: theme.palette.background.default,
+          p: 6,
+          flexGrow: 1,
+          pb: 16
+        }}
+      >
+        <form autoComplete='off'>
+          <Card sx={{ padding: 6, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
+            <Grid container spacing={6}>
+              {/* Category Name (Disabled) */}
+              <Grid size={{ xs: 12 }}>
+                <TextField label='Category Name' value={category?.label || ''} disabled fullWidth />
+              </Grid>
 
-          {/* Assessment Name */}
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='assessment_name'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Monitoring Parameter Name *'
-                  placeholder='Enter Monitoring Parameter Name'
-                  error={Boolean(errors.assessment_name)}
-                  helperText={errors.assessment_name?.message}
-                  fullWidth
-                />
-              )}
-            />
-          </FormControl>
-
-          {/* Description */}
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='description'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Description'
-                  placeholder='Enter Description'
-                  multiline
-                  rows={3}
-                  fullWidth
-                />
-              )}
-            />
-          </FormControl>
-
-          {/* Response Type */}
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='response_type'
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <Autocomplete
-                  disablePortal
-                  options={responseTypeOption || []}
-                  sx={{ width: '100%' }}
-                  getOptionLabel={(option: Option) => option?.label || ''}
-                  value={value}
-                  onChange={(event, newValue) => {
-                    onChange(newValue)
-                    setListValues([{ order: 1, label: '' }])
-                    setValue('measurement_type', null)
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='Response Type *'
-                      placeholder='Select Response Type'
-                      error={Boolean(errors.response_type)}
-                      helperText={errors.response_type?.message}
-                    />
-                  )}
-                />
-              )}
-            />
-          </FormControl>
-
-          {/* Measurement Type (conditional) */}
-          {watchedResponseType?.key === 'numeric_value' && (
-            <FormControl fullWidth sx={{ mb: 6 }}>
-              <Controller
-                name='measurement_type'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <Autocomplete
-                    disablePortal
-                    options={measurementTypeOptions || []}
-                    sx={{ width: '100%' }}
-                    getOptionLabel={(option: Option) => option?.label || ''}
-                    value={value}
-                    onChange={(event, newValue) => onChange(newValue)}
-                    renderInput={params => (
+              {/* Assessment Name */}
+              <Grid size={{ xs: 12 }}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='assessment_name'
+                    control={control}
+                    render={({ field }) => (
                       <TextField
-                        {...params}
-                        label='Measurement Type *'
-                        placeholder='Select Measurement Type'
-                        error={Boolean(errors.measurement_type)}
-                        helperText={errors.measurement_type?.message}
+                        {...field}
+                        label='Monitoring Parameter Name *'
+                        placeholder='Enter Monitoring Parameter Name'
+                        error={Boolean(errors.assessment_name)}
+                        helperText={errors.assessment_name?.message}
+                        fullWidth
                       />
                     )}
                   />
-                )}
-              />
-            </FormControl>
-          )}
+                </FormControl>
+              </Grid>
 
-          {/* List/Numeric Scale Items (conditional) */}
-          {(watchedResponseType?.key === 'list' || watchedResponseType?.key === 'numeric_scale') && (
-            <Box sx={{ mb: 4 }}>
-              <Typography variant='subtitle1' sx={{ mb: 2, fontWeight: 500 }}>
-                {watchedResponseType?.key === 'list' ? 'List Items' : 'Numeric Scale Items'}
-              </Typography>
-              <Box sx={{ pt: 4, border: '1px solid #7676764d', py: 4, px: 2, borderRadius: '8px' }}>
-                {listValues.map(field => (
-                  <Box
-                    key={field.order}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                      mb: 2
-                    }}
-                  >
-                    <Typography sx={{ minWidth: '20px', fontWeight: 500, pl: 1 }}>{field.order}.</Typography>
-
-                    <TextField
-                      fullWidth
-                      size='small'
-                      placeholder={`Enter ${watchedResponseType?.key === 'list' ? 'value' : 'scale item'}`}
-                      value={field.label}
-                      onChange={e => handleFieldChange(field.order, e.target.value)}
-                    />
-
-                    {listValues.length > 1 && (
-                      <IconButton
-                        size='small'
-                        onClick={() => handleDeleteField(field.order)}
-                        sx={{ color: 'error.main' }}
-                      >
-                        <Icon icon='mdi:close' fontSize={20} />
-                      </IconButton>
+              {/* Description */}
+              <Grid size={{ xs: 12 }}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='description'
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label='Description'
+                        placeholder='Enter Description'
+                        multiline
+                        rows={3}
+                        fullWidth
+                      />
                     )}
+                  />
+                </FormControl>
+              </Grid>
+
+              {/* Response Type */}
+              <Grid size={{ xs: 12 }}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='response_type'
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        disablePortal
+                        options={responseTypeOption || []}
+                        getOptionLabel={(option: Option) => option?.label || ''}
+                        value={value}
+                        onChange={(event, newValue) => {
+                          onChange(newValue)
+                          setListValues([{ order: 1, label: '' }])
+                          setValue('measurement_type', null)
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            {...params}
+                            label='Response Type *'
+                            placeholder='Select Response Type'
+                            error={Boolean(errors.response_type)}
+                            helperText={errors.response_type?.message}
+                          />
+                        )}
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Grid>
+
+              {/* Measurement Type (conditional) */}
+              {watchedResponseType?.key === 'numeric_value' && (
+                <Grid size={{ xs: 12 }}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='measurement_type'
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <Autocomplete
+                          disablePortal
+                          options={measurementTypeOptions || []}
+                          getOptionLabel={(option: Option) => option?.label || ''}
+                          value={value}
+                          onChange={(event, newValue) => onChange(newValue)}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label='Measurement Type *'
+                              placeholder='Select Measurement Type'
+                              error={Boolean(errors.measurement_type)}
+                              helperText={errors.measurement_type?.message}
+                            />
+                          )}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              )}
+
+              {/* List/Numeric Scale Items (conditional) */}
+              {(watchedResponseType?.key === 'list' || watchedResponseType?.key === 'numeric_scale') && (
+                <Grid size={{ xs: 12 }}>
+                  <Typography variant='subtitle1' sx={{ mb: 2, fontWeight: 500 }}>
+                    {watchedResponseType?.key === 'list' ? 'List Items' : 'Numeric Scale Items'}
+                  </Typography>
+                  <Box sx={{ pt: 4, border: '1px solid #7676764d', py: 4, px: 2, borderRadius: '8px' }}>
+                    {listValues.map(field => (
+                      <Box
+                        key={field.order}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          mb: 2
+                        }}
+                      >
+                        <Typography sx={{ minWidth: '20px', fontWeight: 500, pl: 1 }}>{field.order}.</Typography>
+
+                        <TextField
+                          fullWidth
+                          size='small'
+                          placeholder={`Enter ${watchedResponseType?.key === 'list' ? 'value' : 'scale item'}`}
+                          value={field.label}
+                          onChange={e => handleFieldChange(field.order, e.target.value)}
+                        />
+
+                        {listValues.length > 1 && (
+                          <IconButton
+                            size='small'
+                            onClick={() => handleDeleteField(field.order)}
+                            sx={{ color: 'error.main' }}
+                          >
+                            <Icon icon='mdi:close' fontSize={20} />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ))}
+
+                    <Button
+                      variant='outlined'
+                      startIcon={<Icon icon='mdi:plus' />}
+                      onClick={handleAddField}
+                      sx={{ mt: 2, ml: '27px' }}
+                      size='medium'
+                    >
+                      {watchedResponseType?.key === 'list' ? 'Add List Item' : 'Add Scale Item'}
+                    </Button>
                   </Box>
-                ))}
+                </Grid>
+              )}
 
-                <Button
-                  variant='outlined'
-                  startIcon={<Icon icon='mdi:plus' />}
-                  onClick={handleAddField}
-                  sx={{ mt: 2, ml: '27px' }}
-                  size='medium'
-                >
-                  {watchedResponseType?.key === 'list' ? 'Add List Item' : 'Add Scale Item'}
-                </Button>
-              </Box>
-            </Box>
-          )}
-
-          {/* Status - Only show for edit mode */}
-          {editParams?.assessment_type_id ? (
-            <FormControl fullWidth sx={{ mb: 6 }}>
-              <FormLabel sx={{ mb: 1 }}>Status</FormLabel>
-              <Controller
-                name='active'
-                control={control}
-                render={({ field }) => (
-                  <RadioGroup row {...field}>
-                    <FormControlLabel value='active' control={<Radio />} label='Active' />
-                    <FormControlLabel value='inactive' control={<Radio />} label='Inactive' />
-                  </RadioGroup>
-                )}
-              />
-              {errors.active && <FormHelperText sx={{ color: 'error.main' }}>{errors.active.message}</FormHelperText>}
-            </FormControl>
-          ) : (
-            // Hidden field for add mode to satisfy validation
-            <input type='hidden' {...control.register('active')} value='active' />
-          )}
-
-          {/* Submit Button */}
-          <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
-            {editParams?.assessment_type_id ? 'Edit' : 'Add'} Monitoring Parameter
-          </LoadingButton>
+              {/* Status - Only show for edit mode */}
+              {editParams?.assessment_type_id ? (
+                <Grid size={{ xs: 12 }}>
+                  <FormControl fullWidth>
+                    <FormLabel sx={{ mb: 1 }}>Status</FormLabel>
+                    <Controller
+                      name='active'
+                      control={control}
+                      render={({ field }) => (
+                        <RadioGroup row {...field}>
+                          <FormControlLabel value='active' control={<Radio />} label='Active' />
+                          <FormControlLabel value='inactive' control={<Radio />} label='Inactive' />
+                        </RadioGroup>
+                      )}
+                    />
+                    {errors.active && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.active.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+              ) : (
+                <input type='hidden' {...control.register('active')} value='active' />
+              )}
+            </Grid>
+          </Card>
         </form>
+      </Box>
+
+      {/* Footer */}
+      <Box
+        sx={{
+          p: 4,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark as string, 0.1)}`,
+          bottom: 0,
+          position: 'sticky',
+          zIndex: 1
+        }}
+      >
+        <LoadingButton
+          variant='contained'
+          onClick={handleSubmit(onSubmit)}
+          loading={submitLoader}
+          sx={{ flex: 1, py: 4 }}
+          disabled={!isValid || submitLoader}
+        >
+          {title}
+        </LoadingButton>
       </Box>
     </Drawer>
   )

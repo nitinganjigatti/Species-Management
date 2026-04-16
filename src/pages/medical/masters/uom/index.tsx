@@ -472,7 +472,7 @@ const UOM: NextPage = () => {
           />
         </Grid>
         <AddUOMDrawer
-          drawerWidth={500}
+          drawerWidth={562}
           addEventSidebarOpen={openDrawer}
           handleSidebarClose={() => {
             setOpenDrawer(false)

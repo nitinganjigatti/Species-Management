@@ -395,7 +395,7 @@ const PurposeOfAnaesthesia: NextPage = () => {
           />
         </Grid>
         <AddPurposeOfAnaesthesiaDrawer
-          drawerWidth={400}
+          drawerWidth={562}
           addEventSidebarOpen={openDrawer}
           handleSidebarClose={() => {
             setOpenDrawer(false)

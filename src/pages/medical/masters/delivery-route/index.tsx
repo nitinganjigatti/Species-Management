@@ -389,7 +389,7 @@ const DeliveryRoute: NextPage = () => {
           />
         </Grid>
         <AddDeliveryRouteDrawer
-          drawerWidth={400}
+          drawerWidth={562}
           addEventSidebarOpen={openDrawer}
           handleSidebarClose={() => {
             setOpenDrawer(false)

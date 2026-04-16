@@ -527,7 +527,7 @@ const AddMonitorCategory: NextPage = () => {
         </Grid>
 
         <AddMonitorDrawer
-          drawerWidth={500}
+          drawerWidth={562}
           addEventSidebarOpen={openDrawer}
           responseTypeOption={responseTypeOption}
           handleSidebarClose={() => {

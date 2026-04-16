@@ -2,11 +2,13 @@ import { useEffect, useState, FC, useCallback } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
 import Drawer from '@mui/material/Drawer'
+import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import { LoadingButton } from '@mui/lab'
-import { Autocomplete, FormControl, TextField, Theme, useTheme } from '@mui/material'
+import { alpha, Autocomplete, FormControl, TextField, Theme, useTheme } from '@mui/material'
 
 // Form Validation
 import * as yup from 'yup'
@@ -111,7 +113,7 @@ const AddUOMDrawer: FC<AddUOMDrawerProps> = ({
   resetForm,
   submitLoader,
   editParams,
-  drawerWidth = 400
+  drawerWidth = 562
 }) => {
   const theme: Theme = useTheme()
   const {
@@ -119,11 +121,12 @@ const AddUOMDrawer: FC<AddUOMDrawerProps> = ({
     control,
     watch,
     handleSubmit,
-    formState: { errors }
+    formState: { errors, isValid }
   } = useForm<FormValues>({
     defaultValues,
     resolver: yupResolver(schema),
-    mode: 'onBlur'
+    mode: 'onChange',
+    reValidateMode: 'onChange'
   })
 
   const [baseUomOptions, setBaseUomOptions] = useState<BaseUOMOption[]>([])
@@ -162,6 +165,12 @@ const AddUOMDrawer: FC<AddUOMDrawerProps> = ({
     }
 
     await handleSubmitData(payload)
+  }
+
+  const handleClose = () => {
+    reset(defaultValues)
+    setBaseUomOptions([])
+    handleSidebarClose()
   }
 
   const fetchBaseUOM = async (measurementType: string): Promise<void> => {
@@ -213,7 +222,7 @@ const AddUOMDrawer: FC<AddUOMDrawerProps> = ({
         fetchBaseUOM(editParams.measurement_type)
       }
     }
-  }, [editParams?.id, reset, selectedMeasurement]) // Only depend on id change
+  }, [editParams?.id, reset, selectedMeasurement])
 
   // Clear form when drawer is closed
   useEffect(() => {
@@ -223,10 +232,13 @@ const AddUOMDrawer: FC<AddUOMDrawerProps> = ({
     }
   }, [addEventSidebarOpen, reset])
 
+  const title = editParams?.id ? 'Edit UOM' : 'Add UOM'
+
   return (
     <Drawer
       anchor='right'
       open={addEventSidebarOpen}
+      onClose={handleClose}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }}
     >
@@ -234,143 +246,196 @@ const AddUOMDrawer: FC<AddUOMDrawerProps> = ({
       <Box
         sx={{
           display: 'flex',
+          position: 'sticky',
+          top: 0,
+          alignItems: 'center',
           justifyContent: 'space-between',
-          p: '12px 24px',
-          backgroundColor: theme.palette.customColors.displaybgPrimary
+          p: 6,
+          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          backgroundColor: theme.palette.customColors.OnPrimary,
+          zIndex: 10
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} UOM</Typography>
-        <IconButton size='small' onClick={handleSidebarClose}>
-          <Icon icon='mdi:close' fontSize={20} />
+        <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='UOM Icon' />
+          <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {title}
+          </Typography>
+        </Box>
+
+        <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary }}>
+          <Icon icon='mdi:close' fontSize={24} />
         </IconButton>
       </Box>
 
       {/* Body */}
-      <Box sx={{ p: 6 }}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <ControlledTextField
-            sx={{ mb: 6 }}
-            name='unit_name'
-            label='UOM Name'
-            control={control}
-            placeholder='Enter UOM Name'
-            error={Boolean(errors.unit_name)}
-            helperText={errors.unit_name?.message}
-            fullWidth
-          />
-
-          <ControlledTextField
-            sx={{ mb: 6 }}
-            name='uom_abbr'
-            control={control}
-            label='Abbreviation'
-            placeholder='Enter Abbreviation'
-            error={Boolean(errors.uom_abbr)}
-            helperText={errors.uom_abbr?.message}
-            fullWidth
-          />
-
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='measurement_type'
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <Autocomplete
-                  disablePortal
-                  options={measurementOptions}
-                  getOptionLabel={(option: MeasurementOption) => option?.label || ''}
-                  value={value}
-                  onChange={(event, newValue) => {
-                    onChange(newValue)
-                    if (newValue?.value) {
-                      fetchBaseUOM(newValue.value)
-                    } else {
-                      setBaseUomOptions([])
-                    }
-                  }}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='Select Measurement Type'
-                      error={Boolean(errors.measurement_type)}
-                      helperText={errors.measurement_type?.message}
-                    />
-                  )}
+      <Box
+        sx={{
+          backgroundColor: theme.palette.background.default,
+          p: 6,
+          flexGrow: 1,
+          pb: 16
+        }}
+      >
+        <form autoComplete='off'>
+          <Card sx={{ padding: 6, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
+            <Grid container spacing={6}>
+              <Grid size={{ xs: 12 }}>
+                <ControlledTextField
+                  control={control}
+                  errors={errors}
+                  name='unit_name'
+                  label='UOM Name*'
+                  placeholder='Enter UOM Name'
+                  fullWidth
                 />
-              )}
-            />
-          </FormControl>
+              </Grid>
 
-          <Controller
-            name='same_base_uom'
-            control={control}
-            render={({ field }) => (
-              <MUICheckbox
-                checked={!!field.value}
-                onChange={(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) => field.onChange(checked)}
-                label='Same Base UOM'
-                gap={1}
-                checkboxStyle={{}}
-                sx={{ mb: 5 }}
-                labelStyle={{
-                  fontSize: '16px',
-                  fontWeight: 400,
-                  color: 'rgba(76, 78, 100, 0.87)'
-                }}
-              />
-            )}
-          />
+              <Grid size={{ xs: 12 }}>
+                <ControlledTextField
+                  control={control}
+                  errors={errors}
+                  name='uom_abbr'
+                  label='Abbreviation*'
+                  placeholder='Enter Abbreviation'
+                  fullWidth
+                />
+              </Grid>
 
-          {!isSameBaseUOM && (
-            <FormControl fullWidth sx={{ mb: 6 }}>
-              <Controller
-                name='base_uom_option'
-                control={control}
-                render={({ field: { value, onChange } }) => (
-                  <Autocomplete
-                    disablePortal
-                    options={baseUomOptions}
-                    getOptionLabel={(option: BaseUOMOption) => option?.label || ''}
-                    value={value}
-                    onChange={(event, newValue) => {
-                      onChange(newValue)
-                    }}
-                    isOptionEqualToValue={(option, value) => option.value === value?.value}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        label='Select Base UOM'
-                        error={Boolean(errors.base_uom_option)}
-                        helperText={errors.base_uom_option?.message}
+              <Grid size={{ xs: 12 }}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='measurement_type'
+                    control={control}
+                    render={({ field: { value, onChange } }) => (
+                      <Autocomplete
+                        disablePortal
+                        options={measurementOptions}
+                        getOptionLabel={(option: MeasurementOption) => option?.label || ''}
+                        value={value}
+                        onChange={(event, newValue) => {
+                          onChange(newValue)
+                          if (newValue?.value) {
+                            fetchBaseUOM(newValue.value)
+                          } else {
+                            setBaseUomOptions([])
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            {...params}
+                            label='Select Measurement Type*'
+                            error={Boolean(errors.measurement_type)}
+                            helperText={errors.measurement_type?.message}
+                          />
+                        )}
                       />
                     )}
                   />
-                )}
-              />
-            </FormControl>
-          )}
+                </FormControl>
+              </Grid>
 
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='conversion_factor'
-              control={control}
-              render={({ field }) => (
-                <TextField
-                  {...field}
-                  label='Conversion Factor'
-                  placeholder='Enter Conversion Factor'
-                  type='number'
-                  error={Boolean(errors.conversion_factor)}
-                  helperText={errors.conversion_factor?.message}
+              <Grid size={{ xs: 12 }}>
+                <Controller
+                  name='same_base_uom'
+                  control={control}
+                  render={({ field }) => (
+                    <MUICheckbox
+                      checked={!!field.value}
+                      onChange={(event: React.ChangeEvent<HTMLInputElement>, checked: boolean) =>
+                        field.onChange(checked)
+                      }
+                      label='Same Base UOM'
+                      gap={1}
+                      checkboxStyle={{}}
+                      labelStyle={{
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: 'rgba(76, 78, 100, 0.87)'
+                      }}
+                    />
+                  )}
                 />
-              )}
-            />
-          </FormControl>
+              </Grid>
 
-          <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
-            {editParams?.id ? 'Edit' : 'Add'} UOM
-          </LoadingButton>
+              {!isSameBaseUOM && (
+                <Grid size={{ xs: 12 }}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='base_uom_option'
+                      control={control}
+                      render={({ field: { value, onChange } }) => (
+                        <Autocomplete
+                          disablePortal
+                          options={baseUomOptions}
+                          getOptionLabel={(option: BaseUOMOption) => option?.label || ''}
+                          value={value}
+                          onChange={(event, newValue) => {
+                            onChange(newValue)
+                          }}
+                          isOptionEqualToValue={(option, value) => option.value === value?.value}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label='Select Base UOM*'
+                              error={Boolean(errors.base_uom_option)}
+                              helperText={errors.base_uom_option?.message}
+                            />
+                          )}
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              )}
+
+              <Grid size={{ xs: 12 }}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='conversion_factor'
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        label='Conversion Factor*'
+                        placeholder='Enter Conversion Factor'
+                        type='number'
+                        error={Boolean(errors.conversion_factor)}
+                        helperText={errors.conversion_factor?.message}
+                      />
+                    )}
+                  />
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Card>
         </form>
+      </Box>
+
+      {/* Footer */}
+      <Box
+        sx={{
+          p: 4,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark as string, 0.1)}`,
+          bottom: 0,
+          position: 'sticky',
+          zIndex: 1
+        }}
+      >
+        <LoadingButton
+          variant='contained'
+          onClick={handleSubmit(onSubmit)}
+          loading={submitLoader}
+          sx={{ flex: 1, py: 4 }}
+          disabled={!isValid || submitLoader}
+        >
+          {title}
+        </LoadingButton>
       </Box>
     </Drawer>
   )

@@ -3,10 +3,13 @@ import { useEffect, FC } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import Card from '@mui/material/Card'
 import Drawer from '@mui/material/Drawer'
+import Grid from '@mui/material/Grid'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import { LoadingButton } from '@mui/lab'
+import { alpha, Theme, useTheme } from '@mui/material'
 
 // ** Form Validation
 import * as yup from 'yup'
@@ -16,7 +19,6 @@ import { useForm } from 'react-hook-form'
 // ** Icons
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
-import { Theme, useTheme } from '@mui/material'
 
 // Types and Interfaces
 interface EditParams {
@@ -61,18 +63,20 @@ const AddClinicalPathDrawer: FC<AddClinicalPathDrawerProps> = ({
   resetForm,
   submitLoader,
   editParams,
-  drawerWidth = 400
+  drawerWidth = 562
 }) => {
   const theme: Theme = useTheme()
+
   const {
     reset,
     control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors, isValid }
   } = useForm<FormValues>({
     defaultValues,
     resolver: yupResolver(schema),
-    mode: 'onBlur'
+    mode: 'onChange',
+    reValidateMode: 'onChange'
   })
 
   const onSubmit = async (values: FormValues): Promise<void> => {
@@ -88,6 +92,11 @@ const AddClinicalPathDrawer: FC<AddClinicalPathDrawerProps> = ({
     await handleSubmitData(payload)
   }
 
+  const handleClose = () => {
+    reset(defaultValues)
+    handleSidebarClose()
+  }
+
   useEffect(() => {
     if (resetForm) {
       reset(defaultValues)
@@ -100,10 +109,13 @@ const AddClinicalPathDrawer: FC<AddClinicalPathDrawerProps> = ({
     }
   }, [resetForm, editParams, reset])
 
+  const title = editParams?.id ? 'Edit Clin Path' : 'Add Clin Path'
+
   return (
     <Drawer
       anchor='right'
       open={addEventSidebarOpen}
+      onClose={handleClose}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: ['100%', drawerWidth] } }}
     >
@@ -111,34 +123,79 @@ const AddClinicalPathDrawer: FC<AddClinicalPathDrawerProps> = ({
       <Box
         sx={{
           display: 'flex',
+          position: 'sticky',
+          top: 0,
+          alignItems: 'center',
           justifyContent: 'space-between',
-          p: '12px 24px',
-          backgroundColor: theme.palette.customColors.displaybgPrimary
+          p: 6,
+          borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          backgroundColor: theme.palette.customColors.OnPrimary,
+          zIndex: 10
         }}
       >
-        <Typography variant='h6'>{editParams?.id ? 'Edit' : 'Add'} Clin Path</Typography>
+        <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
+          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Clin Path Icon' />
+          <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {title}
+          </Typography>
+        </Box>
 
-        <IconButton size='small' onClick={handleSidebarClose}>
-          <Icon icon='mdi:close' fontSize={20} />
+        <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary }}>
+          <Icon icon='mdi:close' fontSize={24} />
         </IconButton>
       </Box>
 
       {/* Body */}
-      <Box sx={{ p: 6 }}>
-        <form onSubmit={handleSubmit(onSubmit)}>
-          <ControlledTextField
-            sx={{ mb: 6 }}
-            name='name'
-            control={control}
-            label='Clin Path Name'
-            placeholder='Clin Path Name'
-            error={Boolean(errors.name)}
-            helperText={errors.name?.message}
-          />
-          <LoadingButton fullWidth size='large' type='submit' variant='contained' loading={submitLoader}>
-            {editParams?.id ? 'Edit' : 'Add'} Clin Path
-          </LoadingButton>
+      <Box
+        sx={{
+          backgroundColor: theme.palette.background.default,
+          p: 6,
+          flexGrow: 1,
+          pb: 16
+        }}
+      >
+        <form autoComplete='off'>
+          <Card sx={{ padding: 6, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}>
+            <Grid container spacing={6}>
+              <Grid size={{ xs: 12 }}>
+                <ControlledTextField
+                  control={control}
+                  errors={errors}
+                  label='Clin Path Name*'
+                  name='name'
+                  placeholder='Enter Clin Path Name'
+                  fullWidth
+                />
+              </Grid>
+            </Grid>
+          </Card>
         </form>
+      </Box>
+
+      {/* Footer */}
+      <Box
+        sx={{
+          p: 4,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark as string, 0.1)}`,
+          bottom: 0,
+          position: 'sticky',
+          zIndex: 1
+        }}
+      >
+        <LoadingButton
+          variant='contained'
+          onClick={handleSubmit(onSubmit)}
+          loading={submitLoader}
+          sx={{ flex: 1, py: 4 }}
+          disabled={!isValid || submitLoader}
+        >
+          {title}
+        </LoadingButton>
       </Box>
     </Drawer>
   )
