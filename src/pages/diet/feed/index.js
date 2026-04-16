@@ -27,6 +27,7 @@ import Error404 from 'src/pages/404'
 import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const FeedTypes = () => {
   const router = useRouter()
@@ -128,7 +129,7 @@ const FeedTypes = () => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumning, status)
     }
-  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumning])
+  }, [status, paginationModel.page, paginationModel.pageSize])
 
   const columns = [
     {
@@ -282,6 +283,16 @@ const FeedTypes = () => {
     return (
       <Card>
         <CardHeader title={t('navigation.feed_types')} action={headerAction} sx={{ px: 5 }} />
+        <Box sx={{ px: 5, pb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+          <Box sx={{ width: 250 }}>
+            <MUISearch
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
+              placeholder='Search...'
+            />
+          </Box>
+        </Box>
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
           <CommonTable
             indexedRows={indexedRows === undefined ? [] : indexedRows}

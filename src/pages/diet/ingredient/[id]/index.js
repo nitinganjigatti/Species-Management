@@ -180,17 +180,19 @@ const IngredientDetail = () => {
             <Grid container spacing={6}>
               <Grid item size={{ xs: 12 }}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                  <Typography color='inherit'>Diet</Typography>
+                  <Typography color='inherit'>{t('navigation.diet')}</Typography>
                   <Typography
                     sx={{
                       cursor: 'pointer',
                       '&:hover': {
-                        textDecoration: 'underline'
+                        textDecoration: 'none'
                       }
                     }}
                     color='inherit'
                     onClick={() => Router.push('/diet/ingredient')}
-                  ></Typography>
+                  >
+                    {t('navigation.item')}
+                  </Typography>
                   <Typography
                     sx={{
                       color: 'text.primary'

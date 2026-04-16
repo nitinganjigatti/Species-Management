@@ -156,6 +156,12 @@ const CommonTable = ({
         backgroundColor: theme.palette.action.hover
       }
     },
+    '& .MuiDataGrid-columnHeader .MuiDataGrid-iconButtonContainer .MuiIconButton-root': {
+      backgroundColor: 'transparent',
+      '&:hover': {
+        backgroundColor: 'transparent'
+      }
+    },
 
     '& .MuiDataGrid-row:hover': {
       cursor: 'pointer'

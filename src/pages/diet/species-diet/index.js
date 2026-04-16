@@ -784,6 +784,7 @@ const SpeciesDietList = () => {
               </Grid>
             </Grid>
 
+            <Box sx={{ px: 4, pb: 4 }}>
             <CommonTable
               key={isAnimalTab ? 'diet-animal-table' : 'diet-species-table'}
               indexedRows={activeRows === undefined ? [] : activeRows}
@@ -824,6 +825,7 @@ const SpeciesDietList = () => {
                 }
               }}
             />
+            </Box>
           </Card>
           {/* ///////////////////////Filter-Code//////////////////////////// */}
           {/* {isFilterOpen && (
