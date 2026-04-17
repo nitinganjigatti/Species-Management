@@ -12,6 +12,7 @@ import Toaster from 'src/components/Toaster'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import { useTranslation } from 'react-i18next'
 
 interface SiteOption {
   label: string
@@ -56,20 +57,7 @@ const defaultValues: FormValues = {
   site: null
 }
 
-const schema = Yup.object().shape({
-  necropsy_center_name: Yup.string()
-    .trim()
-    .required('Necropsy Center Name is required')
-    .min(2, 'Necropsy Center Name must be at least 2 characters')
-    .max(100, 'Necropsy Center Name must not exceed 100 characters'),
-  description: Yup.string().trim().max(500, 'Description must not exceed 500 characters').nullable(),
-  site: Yup.object()
-    .shape({
-      label: Yup.string(),
-      value: Yup.string()
-    })
-    .nullable()
-})
+
 
 const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
   open,
@@ -78,8 +66,24 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
   setEditData = null,
   onSuccess = null
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme<Theme>()
   const isEditMode = Boolean(editData)
+
+  const schema = Yup.object().shape({
+  necropsy_center_name: Yup.string()
+    .trim()
+    .required(t('necropsy_module.necropsy_center_name_is_required'))
+    .min(3, t('necropsy_module.necropsy_center_name_must_be_at_least_3_characters'))
+    .max(100, t('necropsy_module.necropsy_center_name_must_not_exceed_100_characters')),
+  description: Yup.string().trim().max(500, t('description_must_not_exceed_500_characters')).nullable(),
+  site: Yup.object()
+    .shape({
+      label: Yup.string(),
+      value: Yup.string()
+    })
+    .nullable()
+})
 
   const {
     control,
@@ -188,10 +192,10 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
 
       const response = await addUpdateNecropsyCenter(payload, status, necropsyId)
 
-      if (response?.status === true) {
+      if (response?.success) {
         Toaster({
           type: 'success',
-          message: isEditMode ? 'Necropsy Center updated successfully' : 'Necropsy Center added successfully'
+          message: isEditMode ? t('necropsy_module.necropsy_center_updated_successfully') : t('necropsy_module.necropsy_center_added_successfully')
         })
         if (onSuccess) {
           onSuccess()
@@ -200,14 +204,14 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
       } else {
         Toaster({
           type: 'error',
-          message: response?.message || 'Something went wrong'
+          message: response?.message || t('necropsy_module.something_went_wrong')
         })
       }
     } catch (error: any) {
       console.error('Error saving necropsy center:', error)
       Toaster({
         type: 'error',
-        message: error?.message || 'Something went wrong'
+        message: error?.message || t('necropsy_module.something_went_wrong')
       })
     } finally {
       setSubmitLoader(false)
@@ -249,7 +253,7 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
             variant='h6'
             sx={{ fontWeight: 500, fontSize: '24px', color: (theme.palette as any).customColors.OnSurfaceVariant }}
           >
-            {isEditMode ? 'Edit Necropsy Center' : 'Add Necropsy Center'}
+            {isEditMode ? t('necropsy_module.edit_necropsy_center') : t('necropsy_module.add_necropsy_center')}
           </Typography>
           <IconButton onClick={onClose}>
             <Icon icon='mdi:close' />
@@ -269,23 +273,23 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
         >
           <ControlledTextField
             name='necropsy_center_name'
-            label='Necropsy Center Name *'
-            placeholder='Enter necropsy center name'
+            label={t('necropsy_module.necropsy_center_name') + ' *'}
+            placeholder={t('necropsy_module.enter_necropsy_center_name')}
             control={control as Control<FormValues>}
             errors={errors as FieldErrors<FormValues>}
             required
           />
           <ControlledTextArea
             name='description'
-            label='Description'
-            placeholder='Enter description (optional)'
+            label={t('description')}
+            placeholder={t('enter_description_optional')}
             control={control as Control<FormValues>}
             errors={errors as FieldErrors<FormValues>}
             rows={3}
           />
           <ControlledAutocomplete
             name='site'
-            label='Site'
+            label={t('site')}
             control={control as Control<FormValues>}
             errors={errors as FieldErrors<FormValues>}
             options={siteOptions}
@@ -306,7 +310,7 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
               setSiteInputText('')
             }}
             autocompleteProps={{
-              noOptionsText: siteInputText.trim() ? 'Site Not Found' : 'Type to search',
+              noOptionsText: siteInputText.trim() ? t('site_not_found') : t('type_to_search'),
               onOpen: () => {
                 if (siteOptions.length === 0) {
                   fetchSites('')
@@ -343,7 +347,7 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
             }}
             onClick={onClose}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
           <Button
             variant='contained'
@@ -353,7 +357,7 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
             sx={{ p: 3, fontWeight: 600, backgroundColor: (theme.palette as any).customColors.OnPrimaryContainer }}
             onClick={handleSubmit(onSubmit)}
           >
-            {submitLoader ? <CircularProgress size={24} /> : isEditMode ? 'UPDATE' : 'ADD'}
+            {submitLoader ? <CircularProgress size={24} /> : isEditMode ? t('update') : t('add')}
           </Button>
         </Box>
       </Drawer>

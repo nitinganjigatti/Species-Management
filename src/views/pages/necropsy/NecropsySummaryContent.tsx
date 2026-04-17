@@ -4,6 +4,7 @@ import Utility from 'src/utility'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import moment, { Moment } from 'moment'
 import { useTheme } from '@mui/system'
+import { useTranslation } from 'react-i18next'
 
 interface UserProfile {
   name?: string
@@ -91,19 +92,20 @@ interface DateObjectInput {
 
 const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData, mortalityData }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   if (!necropsyData) return null
 
   const isUnsuitable = necropsyData.is_unsuitable === '1'
 
   const formatDate = (date?: string): string => {
-    if (!date) return 'N/A'
+    if (!date) return t('necropsy_module.na')
 
     return Utility.formatDisplayDate(date)
   }
 
   const formatTime = (time?: string): string => {
-    if (!time) return 'N/A'
+    if (!time) return t('necropsy_module.na')
 
     if (typeof time === 'string' && time.includes(':')) {
       const today = new Date()
@@ -139,9 +141,9 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
 
     const parts: string[] = []
 
-    if (year > 0) parts.push(`${year} Year${year > 1 ? 's' : ''}`)
-    if (month > 0) parts.push(`${month} Month${month > 1 ? 's' : ''}`)
-    if (day > 0) parts.push(`${day} Day${day > 1 ? 's' : ''}`)
+    if (year > 0) parts.push(`${year} ${year > 1 ? t('necropsy_module.year_unit_plural') : t('necropsy_module.year_unit')}`)
+    if (month > 0) parts.push(`${month} ${month > 1 ? t('necropsy_module.month_unit_plural') : t('necropsy_module.month_unit')}`)
+    if (day > 0) parts.push(`${day} ${day > 1 ? t('necropsy_module.day_unit_plural') : t('necropsy_module.day_unit')}`)
 
     return parts.length > 0 ? parts.join(' ') : '--'
   }
@@ -178,7 +180,7 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
   const getAgeDisplay = (): string => {
     if (!necropsyData.age) return '--'
 
-    const approx = necropsyData.approximate_dob === '1' ? ' (Approximate)' : ''
+    const approx = necropsyData.approximate_dob === '1' ? ` ${t('necropsy_module.approximate')}` : ''
     const ageUnit = necropsyData.age_unit || 'day'
 
     const dob = getDOBObject({ [ageUnit]: necropsyData.age as number })
@@ -227,58 +229,58 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
                     color: isUnsuitable ? theme.palette.customColors.Tertiary : theme.palette.customColors.OnSurface
                   }}
                 >
-                  {isUnsuitable ? 'Unsuitable for Necropsy' : 'Suitable for Necropsy'}
+                  {isUnsuitable ? t('necropsy_module.unsuitable_for_necropsy_label') : t('necropsy_module.suitable_for_necropsy')}
                 </Typography>
               </Box>
               {isUnsuitable && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <SubHeaderText>Reason for Unsuitability</SubHeaderText>
+                  <SubHeaderText>{t('necropsy_module.reason_for_unsuitability')}</SubHeaderText>
                   <ValueText>{necropsyData.reason_for_unsuitable}</ValueText>
                 </Box>
               )}
             </Box>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Carcass Submission Date and Time </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.carcass_submission_date_and_time')} </SubHeaderText>
                 <ValueText>{`${formatDate(necropsyData.caracass_submission_date)}  •  ${formatTime(
                   necropsyData.caracass_submission_time
                 )}`}</ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Date and Time of Death </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.date_and_time_of_death')} </SubHeaderText>
                 <ValueText>{`${formatDate(necropsyData.death_date)}  •  ${formatTime(
                   necropsyData.death_time
                 )}`}</ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Place of Death </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.place_of_death')} </SubHeaderText>
                 <ValueText>{necropsyData.place_of_death ? necropsyData.place_of_death : '--'}</ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>QR Number </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.qr_number')} </SubHeaderText>
                 <ValueText>{necropsyData.qr_number ? necropsyData.qr_number : '--'}</ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Weight </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.weight')} </SubHeaderText>
                 <ValueText
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
                   {Number(necropsyData?.carcass_weight)
                     ? `${Number(necropsyData.carcass_weight)} ${
                         necropsyData.carcass_weight_unit_name || necropsyData.carcass_weight_uom || ''
-                      }${necropsyData?.approximate_weight == 1 ? ' (Approx.)' : ''}`
+                      }${necropsyData?.approximate_weight == 1 ? ` ${t('necropsy_module.approx')}` : ''}`
                     : '--'}
                 </ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Age </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.age')} </SubHeaderText>
                 <ValueText>{getAgeDisplay()}</ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Typography
                   sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}
                 >
-                  Confirmed Sex{' '}
+                  {t('necropsy_module.confirmed_sex')}{' '}
                 </Typography>
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -292,9 +294,9 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
         {necropsyData.history_of_illness && (
           <Card sx={{ mt: 6 }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <HeaderText>Clinical History</HeaderText>
+              <HeaderText>{t('necropsy_module.clinical_history')}</HeaderText>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Short History of Illness </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.short_history_of_illness')} </SubHeaderText>
                 <ValueText>{necropsyData.history_of_illness}</ValueText>
               </Box>
             </CardContent>
@@ -305,7 +307,7 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {(necropsyData.necropsy_organs?.length ?? 0) > 0 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                  <HeaderText>Examination Findings</HeaderText>
+                  <HeaderText>{t('necropsy_module.examination_findings')}</HeaderText>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                     {necropsyData.necropsy_organs?.map((organ, index) => (
                       <Box
@@ -329,7 +331,7 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                           {organ.parts?.map((part, pIndex) => (
                             <Box key={part.id || pIndex} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                              {part.organ_name && <SubHeaderText>{`${part.organ_name} Description`}</SubHeaderText>}
+                              {part.organ_name && <SubHeaderText>{t('necropsy_module.organ_description', { organName: part.organ_name })}</SubHeaderText>}
                               <Typography
                                 sx={{
                                   fontSize: '14px',
@@ -338,7 +340,7 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
                                   whiteSpace: 'pre-wrap'
                                 }}
                               >
-                                {part.value || 'No description'}
+                                {part.value || t('necropsy_module.no_description')}
                               </Typography>
                             </Box>
                           ))}
@@ -350,7 +352,7 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
               )}
               {(necropsyData?.attachments?.documents?.length ?? 0) > 0 && (
                 <>
-                  <HeaderText>{`Attachments - ${necropsyData.attachments?.documents?.length ?? 0}`}</HeaderText>
+                  <HeaderText>{t('necropsy_module.attachments_count', { count: necropsyData.attachments?.documents?.length ?? 0 })}</HeaderText>
                   <Box
                     sx={{
                       display: 'flex',
@@ -395,20 +397,20 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
 
         <Card sx={{ mt: 6 }}>
           <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <HeaderText>Conclusion</HeaderText>
+            <HeaderText>{t('necropsy_module.conclusion')}</HeaderText>
             <Grid container spacing={4}>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Suspected Cause of Death</SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.suspected_cause_of_death')}</SubHeaderText>
                 <ValueText>
                   {necropsyData.suspected_cause_of_death ? necropsyData.suspected_cause_of_death : '--'}
                 </ValueText>
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>{`Opinion (Cause Of Death)`}</SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.opinion_cause_of_death')}</SubHeaderText>
                 <ValueText>{necropsyData.opinion ? necropsyData.opinion : '--'}</ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Dispposal Method</SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.disposal_method')}</SubHeaderText>
                 <ValueText>
                   {necropsyData.disposition || necropsyData.disposal_method
                     ? necropsyData.disposition || necropsyData.disposal_method
@@ -416,7 +418,7 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
                 </ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Confirmed Cause of Death</SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.confirmed_cause_of_death')}</SubHeaderText>
                 <ValueText>
                   {necropsyData.confirmed_cause_of_death ? necropsyData.confirmed_cause_of_death : '--'}
                 </ValueText>
@@ -427,10 +429,10 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Additional Information
+                  {t('necropsy_module.additional_information')}
                 </Typography>
                 <Box>
-                  <SubHeaderText>{`Biological Tests ( if any)`}</SubHeaderText>
+                  <SubHeaderText>{t('necropsy_module.biological_tests_if_any')}</SubHeaderText>
                   <ValueText>{necropsyData?.biological_test}</ValueText>
                 </Box>
               </Box>
@@ -440,17 +442,17 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
                 <Typography
                   sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Necropsy Details
+                  {t('necropsy_module.necropsy_details')}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 12, md: 4 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Necropsy Date and Time </SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.necropsy_date_and_time')} </SubHeaderText>
                 <ValueText>{`${formatDate(necropsyData.necropsy_date)} • ${formatTime(
                   necropsyData.necropsy_time
                 )}`}</ValueText>
               </Grid>
               <Grid size={{ xs: 12, sm: 12, md: 8 }} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <SubHeaderText>Pathologist</SubHeaderText>
+                <SubHeaderText>{t('necropsy_module.pathologist')}</SubHeaderText>
                 <ValueText>
                   {(necropsyData.necropsy_conducted_by?.length ?? 0) > 0
                     ? necropsyData.necropsy_conducted_by?.map(user => user.user_name || user.name).join(', ')
@@ -463,7 +465,7 @@ const NecropsySummaryContent: FC<NecropsySummaryContentProps> = ({ necropsyData,
         {necropsyData?.additional_notes && (
           <Card sx={{ mt: 6 }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <HeaderText>Additional notes</HeaderText>
+              <HeaderText>{t('necropsy_module.additional_notes')}</HeaderText>
               <Box sx={{ p: 4, backgroundColor: theme.palette.customColors.antzNotes, borderRadius: 1 }}>
                 <ValueText>{necropsyData.additional_notes}</ValueText>
               </Box>

@@ -1,3 +1,5 @@
+'use client'
+
 import {
   alpha,
   Box,
@@ -14,8 +16,18 @@ import {
   Theme,
   SelectChangeEvent
 } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
-import React, { useCallback, useContext, useEffect, useMemo, useState, memo, FC, ReactNode, SyntheticEvent } from 'react'
+import { useRouter, useSearchParams, usePathname } from 'next/navigation'
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  memo,
+  FC,
+  ReactNode,
+  SyntheticEvent
+} from 'react'
 import dynamic from 'next/dynamic'
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
@@ -29,7 +41,6 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 
 import { useNecropsyList, useNecropsyCenter } from 'src/hooks/necropsy'
 import {
@@ -45,7 +56,7 @@ import {
   PaginationModel
 } from 'src/types/necropsy'
 import { GridRowParams, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
-import { NextPage } from 'next'
+import { useTranslation } from 'react-i18next'
 
 const NecropsyFilterDrawer = dynamic(() => import('src/components/necropsy/NecropsyFilterDrawer'), {
   ssr: false
@@ -140,31 +151,35 @@ interface SpeciesRowData extends IndexedSpeciesRow {
 
 // ==================== Helper Functions ====================
 
-export const getTransferStatus = (item: TransferStatusItem): string => {
-  if (item?.transfer_status === 'CANCELED') return 'Cancelled'
+export const getTransferStatus = (item: TransferStatusItem, t: (key: string) => string): string => {
+  if (item?.transfer_status === 'CANCELED') return t('necropsy_module.cancelled')
 
   switch (item?.activity_status) {
     case 'COMPLETED':
-      return 'Transfer Completed'
+      return t('necropsy_module.transfer_completed')
     case 'CANCELED':
-      return 'Cancelled'
+      return t('necropsy_module.cancelled')
     case 'REJECTED':
-      return 'Rejected'
+      return t('necropsy_module.rejected')
     case 'RIDE_STARTED':
-      return item?.is_checkout_required == 1 ? 'Security Checkout Pending' : 'Security Checkin Pending'
+      return item?.is_checkout_required == 1
+        ? t('necropsy_module.security_checkout_pending')
+        : t('necropsy_module.security_checkin_pending')
     case 'SECURITY_CHECKOUT_ALLOWED':
-      return item?.is_checkin_required == 1 ? 'Security Checkin Pending' : 'Awaiting Approval'
+      return item?.is_checkin_required == 1
+        ? t('necropsy_module.security_checkin_pending')
+        : t('necropsy_module.awaiting_approval')
     case 'SECURITY_CHECKIN_ALLOWED':
-      return 'Awaiting Approval'
+      return t('necropsy_module.awaiting_approval')
     default:
-      return 'Pending'
+      return t('necropsy_module.pending')
   }
 }
 
-const getDefaultStatCards = (theme: Theme): StatCardData[] => [
+const getDefaultStatCards = (theme: Theme, t: (key: string) => string): StatCardData[] => [
   {
     id: 'INCOMING',
-    label: 'INCOMING TRANSFERS',
+    label: t('necropsy_module.incoming_transfers'),
     getIcon: (isActive: boolean) => (
       <Box
         sx={{
@@ -188,25 +203,33 @@ const getDefaultStatCards = (theme: Theme): StatCardData[] => [
   },
   {
     id: 'PENDING',
-    label: 'PENDING NECROPSY',
-    getIcon: () => <ClockIcon sx={{ fontSize: 18, color: theme.palette.customColors?.addPrimary || theme.palette.success.main }} />,
+    label: t('necropsy_module.pending_necropsy'),
+    getIcon: () => (
+      <ClockIcon sx={{ fontSize: 18, color: theme.palette.customColors?.addPrimary || theme.palette.success.main }} />
+    ),
     iconBg: alpha(theme.palette.customColors?.addPrimary || theme.palette.success.main, 0.2),
     activeIconBg: alpha(theme.palette.customColors?.addPrimary || theme.palette.success.main, 0.2),
     bgColor: theme.palette.customColors?.addPrimary || theme.palette.success.main
   },
   {
     id: 'DRAFT',
-    label: 'DRAFT REPORTS',
+    label: t('necropsy_module.draft_reports'),
     getIcon: () => (
-      <DescriptionOutlinedIcon sx={{ fontSize: 18, color: theme.palette.customColors?.moderateSecondary || theme.palette.warning.main }} />
+      <DescriptionOutlinedIcon
+        sx={{ fontSize: 18, color: theme.palette.customColors?.moderateSecondary || theme.palette.warning.main }}
+      />
     ),
     iconBg: theme.palette.customColors?.antzNotes || theme.palette.warning.light,
     bgColor: theme.palette.customColors?.moderateSecondary || theme.palette.warning.main
   },
   {
     id: 'COMPLETED',
-    label: 'COMPLETED CASES',
-    getIcon: () => <CheckCircleOutlineRoundedIcon sx={{ fontSize: 18, color: theme.palette.customColors?.OnSurface || theme.palette.text.primary }} />,
+    label: t('necropsy_module.completed_cases'),
+    getIcon: () => (
+      <CheckCircleOutlineRoundedIcon
+        sx={{ fontSize: 18, color: theme.palette.customColors?.OnSurface || theme.palette.text.primary }}
+      />
+    ),
     iconBg: theme.palette.customColors?.OnBackground || theme.palette.grey[200],
     bgColor: theme.palette.customColors?.OnSurface || theme.palette.text.primary
   }
@@ -281,7 +304,7 @@ const StatCard: FC<StatCardProps> = memo(({ card, isActive, onClick }) => {
             fontSize: '0.75rem'
           }}
         >
-          {card.label}
+          {card.label.toUpperCase()}
         </Typography>
       </Box>
     </Paper>
@@ -292,9 +315,12 @@ StatCard.displayName = 'StatCard'
 
 // ==================== Main Necropsy Component ====================
 
-const Necropsy: NextPage = () => {
+const NecropsyListingPage = () => {
   const theme = useTheme()
-  const router: NextRouter = useRouter()
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const { t } = useTranslation()
 
   const authData = useContext(AuthContext) as unknown as AuthData | null
   const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
@@ -342,7 +368,7 @@ const Necropsy: NextPage = () => {
 
   const statCards = useMemo<StatCardData[]>(
     () =>
-      getDefaultStatCards(theme).map(card => ({
+      getDefaultStatCards(theme, t).map(card => ({
         ...card,
         count: stats[card.id] ?? 0
       })),
@@ -350,9 +376,9 @@ const Necropsy: NextPage = () => {
   )
 
   useEffect(() => {
-    const { q = '' } = router.query
-    setSearchValue(q as string)
-  }, [router.query])
+    const q = searchParams?.get('q') || ''
+    setSearchValue(q)
+  }, [searchParams])
 
   // Sync priority state with filters
   useEffect(() => {
@@ -396,9 +422,9 @@ const Necropsy: NextPage = () => {
       if (currentTab) {
         params.set('tab', currentTab)
       }
-      router.push({ query: params.toString() }, undefined, { shallow: true })
+      router.push(`${pathname}?${params.toString()}`)
     },
-    [activeCard, viewType, router]
+    [activeCard, viewType, router, pathname]
   )
 
   const onSearchChange = useCallback(
@@ -521,7 +547,7 @@ const Necropsy: NextPage = () => {
         width: 100,
         sortable: false,
         field: 'sl_no',
-        headerName: 'SL. NO',
+        headerName: t('necropsy_module.sl_no'),
         renderCell: (params: GridRenderCellParams<AnimalRowData>) => (
           <Typography
             variant='body2'
@@ -536,7 +562,7 @@ const Necropsy: NextPage = () => {
         minWidth: 20,
         sortable: false,
         field: 'animal_name',
-        headerName: 'Animal Name & ID',
+        headerName: t('necropsy_module.animal_name_and_id'),
         renderCell: (params: GridRenderCellParams<AnimalRowData>) => <AnimalCard data={params?.row} />
       },
       {
@@ -544,7 +570,7 @@ const Necropsy: NextPage = () => {
         minWidth: 20,
         sortable: false,
         field: 'priority',
-        headerName: 'Necropsy Priority',
+        headerName: t('necropsy_module.necropsy_priority'),
         renderCell: (params: GridRenderCellParams<AnimalRowData>) => {
           const priority = params.row.priority?.toLowerCase()
           const isHigh = priority === 'high'
@@ -578,7 +604,7 @@ const Necropsy: NextPage = () => {
               minWidth: 20,
               sortable: false,
               field: 'transfer_code',
-              headerName: 'Transfer ID & Status',
+              headerName: t('necropsy_module.transfer_id_and_status'),
               renderCell: (params: GridRenderCellParams<AnimalRowData>) => (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Tooltip title={params.row.transfer_code} placement='top'>
@@ -593,7 +619,7 @@ const Necropsy: NextPage = () => {
                       {params.row.transfer_code}
                     </Typography>
                   </Tooltip>
-                  <Tooltip title={getTransferStatus(params.row)} placement='top'>
+                  <Tooltip title={getTransferStatus(params.row, t)} placement='top'>
                     <Typography
                       sx={{
                         fontSize: '14px',
@@ -601,7 +627,7 @@ const Necropsy: NextPage = () => {
                         color: theme.palette.customColors.OnPrimaryContainer
                       }}
                     >
-                      {getTransferStatus(params.row)}
+                      {getTransferStatus(params.row, t)}
                     </Typography>
                   </Tooltip>
                   <Tooltip
@@ -611,7 +637,8 @@ const Necropsy: NextPage = () => {
                     <Typography
                       sx={{ fontSize: '12px', fontWeight: 400, color: theme.palette.customColors.neutral_50 }}
                     >
-                      Since <span>{Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}</span>
+                      {t('necropsy_module.since')}{' '}
+                      <span>{Utility.convertUtcToLocalReadableDate(params?.row?.transfer_modified_at)}</span>
                       <span> &bull; </span> {Utility.convertUTCToLocaltime(params?.row?.transfer_modified_at)}
                     </Typography>
                   </Tooltip>
@@ -627,7 +654,7 @@ const Necropsy: NextPage = () => {
               minWidth: 20,
               sortable: false,
               field: 'request_id',
-              headerName: 'Request ID',
+              headerName: t('necropsy_module.request_id'),
               renderCell: (params: GridRenderCellParams<AnimalRowData>) => (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <Tooltip title={params.row.request_id} placement='top'>
@@ -655,7 +682,7 @@ const Necropsy: NextPage = () => {
                             color: theme.palette.customColors.Tertiary
                           }}
                         >
-                          Unsuitable for necropsy
+                          {t('necropsy_module.unsuitable_for_necropsy')}
                         </Typography>
                       </Tooltip>
                     </Box>
@@ -672,14 +699,14 @@ const Necropsy: NextPage = () => {
         field: 'action_by',
         headerName:
           activeCard === 'INCOMING'
-            ? 'Requested By'
+            ? t('necropsy_module.requested_by')
             : activeCard === 'PENDING'
-            ? 'Requested By'
+            ? t('necropsy_module.requested_by')
             : activeCard === 'DRAFT'
-            ? 'Draft Saved By'
+            ? t('necropsy_module.draft_saved_by')
             : activeCard === 'COMPLETED'
-            ? 'Completed By'
-            : 'Requested By',
+            ? t('necropsy_module.completed_by')
+            : t('necropsy_module.requested_by'),
         renderCell: (params: GridRenderCellParams<AnimalRowData>) => {
           const row = params.row
           const isIncomingOrPending = activeCard === 'INCOMING' || activeCard === 'PENDING'
@@ -708,7 +735,7 @@ const Necropsy: NextPage = () => {
         width: 100,
         sortable: false,
         field: 'sl_no',
-        headerName: 'SL. NO',
+        headerName: t('necropsy_module.sl_no'),
         renderCell: (params: GridRenderCellParams<SpeciesRowData>) => (
           <Typography
             variant='body2'
@@ -723,7 +750,7 @@ const Necropsy: NextPage = () => {
         width: 350,
         sortable: false,
         field: 'species_name',
-        headerName: 'Species',
+        headerName: t('necropsy_module.species'),
         renderCell: (params: GridRenderCellParams<SpeciesRowData>) => (
           <SpeciesCard
             species={{
@@ -739,7 +766,7 @@ const Necropsy: NextPage = () => {
         minWidth: 20,
         sortable: false,
         field: 'count',
-        headerName: 'Count',
+        headerName: t('count'),
         renderCell: (params: GridRenderCellParams<SpeciesRowData>) => (
           <Typography
             variant='body2'
@@ -774,8 +801,6 @@ const Necropsy: NextPage = () => {
           gridTemplateColumns: {
             xs: '1fr',
             sm: 'repeat(4, 1fr)'
-
-            // md: 'repeat(4, 1fr)'
           },
           gap: 4,
           mb: 4
@@ -814,14 +839,14 @@ const Necropsy: NextPage = () => {
                           fontSize: '13px'
                         }
                       }}
-                      placeholder='Search...'
+                      placeholder={t('necropsy_module.search_placeholder')}
                     />
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
                       <Box sx={{ display: { xs: 'none', md: 'block' } }}>
                         <CustomSwitchTabs
                           options={[
-                            { value: 'animals', label: 'Animals' },
-                            { value: 'species', label: 'Species' }
+                            { value: 'animals', label: t('necropsy_module.animals') },
+                            { value: 'species', label: t('necropsy_module.species') }
                           ]}
                           value={viewType}
                           onChange={handleChange}
@@ -842,9 +867,9 @@ const Necropsy: NextPage = () => {
                             }
                           }}
                         >
-                          <MenuItem value='all'>All Priority</MenuItem>
-                          <MenuItem value='low'>Low</MenuItem>
-                          <MenuItem value='high'>High</MenuItem>
+                          <MenuItem value='all'>{t('necropsy_module.all_priority')}</MenuItem>
+                          <MenuItem value='low'>{t('necropsy_module.low')}</MenuItem>
+                          <MenuItem value='high'>{t('necropsy_module.high')}</MenuItem>
                         </Select>
                       </FormControl>
                       <FilterButtonWithNotification
@@ -856,8 +881,8 @@ const Necropsy: NextPage = () => {
                   <Box sx={{ display: { xs: 'block', md: 'none' } }}>
                     <CustomSwitchTabs
                       options={[
-                        { value: 'animals', label: 'Animals' },
-                        { value: 'species', label: 'Species' }
+                        { value: 'animals', label: t('necropsy_module.animals') },
+                        { value: 'species', label: t('necropsy_module.species') }
                       ]}
                       value={viewType}
                       onChange={handleChange}
@@ -929,4 +954,4 @@ const Necropsy: NextPage = () => {
   )
 }
 
-export default enforceModuleAccess(Necropsy, 'enable_add_necropsy_report')
+export default NecropsyListingPage

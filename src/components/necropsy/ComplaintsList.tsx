@@ -1,4 +1,5 @@
 import React, { useState, useEffect, FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import ClinicalAssessmentCard from 'src/views/pages/hospital/inpatient/ClinicalAssessmentCard'
@@ -36,6 +37,7 @@ const SUB_TABS: SubTabType[] = ['Active', 'Closed', 'All']
 
 const ComplaintsList: FC<ComplaintsListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
+  const { t } = useTranslation('common')
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
   const [data, setData] = useState<ComplaintRecord[]>([])
   const [counts, setCounts] = useState<ComplaintsCounts>({ active: 0, closed: 0, all: 0 })
@@ -167,7 +169,7 @@ const ComplaintsList: FC<ComplaintsListProps> = ({ animalId, mortalityId, mortal
                     fontWeight: 500
                   }}
                 >
-                  {`${tab} - ${getTabCount(tab)}`}
+                  {`${tab === 'Active' ? t('active') : tab === 'Closed' ? t('necropsy_module.closed') : t('all')} - ${getTabCount(tab)}`}
                 </Typography>
               </Box>
             ))}
@@ -194,7 +196,7 @@ const ComplaintsList: FC<ComplaintsListProps> = ({ animalId, mortalityId, mortal
               fontWeight: 400
             }}
           >
-            No Complaints Recorded
+            {t('necropsy_module.no_complaints_recorded')}
           </Typography>
         </Box>
       ) : (
@@ -222,7 +224,7 @@ const ComplaintsList: FC<ComplaintsListProps> = ({ animalId, mortalityId, mortal
                     '&:hover': { textDecoration: 'underline' }
                   }}
                 >
-                  Load More
+                  {t('necropsy_module.load_more')}
                 </Typography>
               )}
             </Box>
@@ -230,7 +232,7 @@ const ComplaintsList: FC<ComplaintsListProps> = ({ animalId, mortalityId, mortal
 
           {!hasMore && data.length > 10 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-              No more complaints to load
+              {t('necropsy_module.no_more_complaints')}
             </Typography>
           )}
         </Box>

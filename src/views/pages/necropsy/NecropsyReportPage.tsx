@@ -1,28 +1,27 @@
-import React, { FC } from 'react'
+'use client'
+
+import React from 'react'
 import { Box, Breadcrumbs, Typography, Link as MuiLink } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
+import { useParams, useSearchParams } from 'next/navigation'
 import NextLink from 'next/link'
 import NecropsyReportForm from 'src/views/pages/necropsy/NecropsyReportForm'
 import { NecropsyProvider } from 'src/context/NecropsyContext'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
-import { NextPage } from 'next'
-import { ParsedUrlQuery } from 'querystring'
+import { useTranslation } from 'react-i18next'
 
 // ==================== Types & Interfaces ====================
-
-interface NecropsyReportQuery extends ParsedUrlQuery {
-  id?: string
-  necropsy_id?: string
-  status?: string
-}
 
 type NecropsyReportStatus = 'PENDING' | 'DRAFT' | 'COMPLETED' | 'UNSUITABLE'
 
 // ==================== Main Component ====================
 
-const NecropsyReport: NextPage = () => {
-  const router: NextRouter = useRouter()
-  const { id, necropsy_id, status } = router.query as NecropsyReportQuery
+const NecropsyReportPage = () => {
+  const params = useParams()
+  const searchParams = useSearchParams()
+  const { t } = useTranslation()
+
+  const id = params?.id as string | undefined
+  const necropsy_id = searchParams?.get('necropsy_id')
+  const status = searchParams?.get('status')
 
   if (!id) return null
 
@@ -32,14 +31,14 @@ const NecropsyReport: NextPage = () => {
     const normalizedStatus = effectiveStatus?.toUpperCase() as NecropsyReportStatus
     switch (normalizedStatus) {
       case 'PENDING':
-        return 'Pending'
+        return t('necropsy_module.pending')
       case 'DRAFT':
-        return 'Draft'
+        return t('necropsy_module.draft')
       case 'COMPLETED':
       case 'UNSUITABLE':
-        return 'Completed'
+        return t('necropsy_module.completed_label')
       default:
-        return 'Pending'
+        return t('necropsy_module.pending')
     }
   }
 
@@ -48,13 +47,8 @@ const NecropsyReport: NextPage = () => {
       <Box sx={{ p: 4 }}>
         <Box sx={{ mb: 3 }}>
           <Breadcrumbs>
-            <MuiLink
-              component={NextLink}
-              href='/necropsy/necropsy'
-              underline='hover'
-              color='inherit'
-            >
-              Necropsy
+            <MuiLink component={NextLink} href='/necropsy/necropsy' underline='hover' color='inherit'>
+              {t('necropsy_module.necropsy')}
             </MuiLink>
             <MuiLink
               component={NextLink}
@@ -70,10 +64,10 @@ const NecropsyReport: NextPage = () => {
               underline='hover'
               color='inherit'
             >
-              Details
+              {t('necropsy_module.details')}
             </MuiLink>
             <Typography color='text.primary' sx={{ fontWeight: 500 }}>
-              {necropsy_id ? 'Edit Report' : 'New Report'}
+              {necropsy_id ? t('necropsy_module.edit_report') : t('necropsy_module.new_report')}
             </Typography>
           </Breadcrumbs>
         </Box>
@@ -84,4 +78,4 @@ const NecropsyReport: NextPage = () => {
   )
 }
 
-export default enforceModuleAccess(NecropsyReport, 'enable_add_necropsy_report')
+export default NecropsyReportPage

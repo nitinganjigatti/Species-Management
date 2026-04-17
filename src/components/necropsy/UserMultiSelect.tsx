@@ -1,4 +1,5 @@
 import React, { useState, useCallback, FC, memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Avatar, CircularProgress, useTheme, IconButton, Theme } from '@mui/material'
 import { Autocomplete, TextField, AutocompleteInputChangeReason } from '@mui/material'
 import Icon from 'src/@core/components/icon'
@@ -42,9 +43,11 @@ interface AuthData {
 const UserMultiSelect: FC<UserMultiSelectProps> = ({
   selectedUsers = [],
   onChange,
-  label = 'Search & Select Users',
+  label,
   disabled = false
 }) => {
+  const { t } = useTranslation()
+  const resolvedLabel = label || t('necropsy_module.search_and_select_users')
   const theme = useTheme<Theme>()
   const [options, setOptions] = useState<SelectedUser[]>([])
   const [loading, setLoading] = useState<boolean>(false)
@@ -123,7 +126,7 @@ const UserMultiSelect: FC<UserMultiSelectProps> = ({
         getOptionLabel={(option: SelectedUser) => option.user_name || ''}
         isOptionEqualToValue={(option: SelectedUser, value: SelectedUser) => option.user_id === value.user_id}
         filterSelectedOptions
-        noOptionsText={inputValue.length < 2 ? 'Type at least 2 characters to search' : 'No users found'}
+        noOptionsText={inputValue.length < 2 ? t('necropsy_module.type_at_least_2_characters') : t('necropsy_module.no_users_found')}
         renderTags={() => null}
         renderOption={(props, option: SelectedUser) => (
           <li {...props} key={option.user_id}>
@@ -147,8 +150,8 @@ const UserMultiSelect: FC<UserMultiSelectProps> = ({
         renderInput={params => (
           <TextField
             {...params}
-            label={label}
-            placeholder='Search & Select'
+            label={resolvedLabel}
+            placeholder={t('necropsy_module.search_and_select')}
             slotProps={{
               input: {
                 ...params.InputProps,
@@ -166,7 +169,7 @@ const UserMultiSelect: FC<UserMultiSelectProps> = ({
       {selectedUsers.length > 0 && (
         <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.text.secondary }}>
-            Selected -{selectedUsers.length}
+            {t('necropsy_module.selected_count', { count: selectedUsers.length })}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {selectedUsers.map((user: SelectedUser) => (

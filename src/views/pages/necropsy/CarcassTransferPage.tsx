@@ -1,13 +1,14 @@
+'use client'
+
 import React, { useContext, useState, useMemo } from 'react'
 import { Box } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
-import { NextPage } from 'next'
+import { useRouter, useSearchParams } from 'next/navigation'
 import NecropsyAnalytics from 'src/views/pages/necropsy/NecropsyAnalytics'
 import CarcassTransferCard from 'src/components/necropsy/CarcassTransferCard'
 import { NecropsyProvider } from 'src/context/NecropsyContext'
 import { AuthContext } from 'src/context/AuthContext'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { DateFilter } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 interface AuthContextValue {
   userData?: {
@@ -20,8 +21,10 @@ interface AuthContextValue {
   }
 }
 
-const CarcassTransferPage: NextPage = () => {
-  const router: NextRouter = useRouter()
+const CarcassTransferPage = () => {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { t } = useTranslation()
   const authData = useContext(AuthContext) as unknown as AuthContextValue | null
   const allowCarcassCollection: boolean | undefined = authData?.userData?.roles?.settings?.allow_carcass_collection
   const enableAddNecropsyReport: boolean | undefined = authData?.userData?.roles?.settings?.enable_add_necropsy_report
@@ -37,7 +40,7 @@ const CarcassTransferPage: NextPage = () => {
 
   // Get the backTo URL from query params
   const backToUrl = useMemo<string | null>(() => {
-    const backTo = router.query.backTo
+    const backTo = searchParams?.get('backTo')
     if (!backTo) return null
 
     // Validate the URL is a safe internal path (starts with /necropsy)
@@ -46,7 +49,7 @@ const CarcassTransferPage: NextPage = () => {
     }
 
     return null
-  }, [router.query.backTo])
+  }, [searchParams])
 
   // Show back button only if there's a valid backTo URL and user has necropsy report permission
   const showBackButton: boolean = !!backToUrl && !!enableAddNecropsyReport
@@ -71,7 +74,7 @@ const CarcassTransferPage: NextPage = () => {
           showCarcassTransferButton={false}
           showBackButton={showBackButton}
           onBack={handleBack}
-          title="Carcass Transfer"
+          title={t('necropsy_module.carcass_transfer')}
         />
 
         <Box sx={{ mt: 6 }}>
@@ -82,4 +85,4 @@ const CarcassTransferPage: NextPage = () => {
   )
 }
 
-export default enforceModuleAccess(CarcassTransferPage, 'allow_carcass_collection')
+export default CarcassTransferPage

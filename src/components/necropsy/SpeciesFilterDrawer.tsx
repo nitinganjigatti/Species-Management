@@ -4,6 +4,7 @@ import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 // ==================== Types ====================
 
@@ -64,6 +65,7 @@ const SpeciesFilterDrawer: FC<SpeciesFilterDrawerProps> = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState<MenuName>('Site')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
@@ -108,7 +110,7 @@ const SpeciesFilterDrawer: FC<SpeciesFilterDrawerProps> = ({
       console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
       Toaster({
         type: 'error',
-        message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+        message: t('necropsy_module.failed_to_load_options', { action: query ? 'search' : 'load', menu: menuName })
       })
     } finally {
       setSearchLoading(false)
@@ -206,7 +208,7 @@ const SpeciesFilterDrawer: FC<SpeciesFilterDrawerProps> = ({
               items={menuData[menu]}
               isAllSelected={false}
               searchLoading={searchLoading}
-              placeholder={`Search ${menu}...`}
+              placeholder={t('necropsy_module.search_menu', { menu })}
               enableSelectAll={false}
             />
           )

@@ -26,14 +26,14 @@ const composeNecropsyNavigation = (
 
   const necropsyListing: NavItem = {
     title: 'Necropsy Dashboard',
-    path: '/necropsy/necropsy',
+    path: '/necropsy/necropsy/',
     icon: <img src='/images/necropsy/necropsy_dark.svg' alt='Necropsy Icon' />,
     activeIcon: <img src='/images/necropsy/necropsy_white.svg' alt='Necropsy Icon' />
   }
 
   const carcassTransfer: NavItem = {
     title: 'Carcass Transfer',
-    path: '/necropsy/carcass-transfer',
+    path: '/necropsy/carcass-transfer/',
     icon: <img src='/images/necropsy/carcass_transfer_dark.svg' alt='Carcass Transfer Icon' />,
     activeIcon: <img src='/images/necropsy/carcass_transfer_white.svg' alt='Carcass Transfer Icon' />
   }
@@ -48,7 +48,7 @@ const composeNecropsyNavigation = (
 
   const necropsyCenter: NavItem = {
     title: 'Necropsy Center',
-    path: '/necropsy/masters/necropsy-center'
+    path: '/necropsy/masters/necropsy-center/'
   }
 
   const necropsyNavigationArray: NavigationItem[] = []

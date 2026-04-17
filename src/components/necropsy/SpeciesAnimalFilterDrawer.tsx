@@ -6,6 +6,7 @@ import { getMannerOfDeath } from 'src/lib/api/necropsy'
 import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies'
 import Toaster from 'src/components/Toaster'
 import { SelectOption } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 type MenuName = 'Manner of Death' | 'Organization' | 'Sex'
 
@@ -38,14 +39,14 @@ const getInitialOptions = (): SelectedOptions => ({
   Sex: []
 })
 
-const staticMenuData: Partial<MenuData> = {
+const getStaticMenuData = (t: (key: string) => string): Partial<MenuData> => ({
   Sex: [
-    { label: 'Male', value: 'male' },
-    { label: 'Female', value: 'female' },
-    { label: 'Indeterminate', value: 'indeterminate' },
-    { label: 'Undetermined', value: 'undetermined' }
+    { label: t('male'), value: 'male' },
+    { label: t('female'), value: 'female' },
+    { label: t('necropsy_module.indeterminate'), value: 'indeterminate' },
+    { label: t('necropsy_module.undeterminate'), value: 'undetermined' }
   ]
-}
+})
 
 const SpeciesAnimalFilterDrawer: FC<SpeciesAnimalFilterDrawerProps> = ({
   open,
@@ -55,6 +56,9 @@ const SpeciesAnimalFilterDrawer: FC<SpeciesAnimalFilterDrawerProps> = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const { t } = useTranslation()
+  const staticMenuData = getStaticMenuData(t)
+
   const [selectedMenu, setSelectedMenu] = useState<MenuName>('Manner of Death')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
@@ -103,7 +107,7 @@ const SpeciesAnimalFilterDrawer: FC<SpeciesAnimalFilterDrawerProps> = ({
       console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
       Toaster({
         type: 'error',
-        message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+        message: t('necropsy_module.failed_to_load_options', { action: query ? 'search' : 'load', menu: menuName })
       })
     } finally {
       setSearchLoading(false)
@@ -243,7 +247,7 @@ const SpeciesAnimalFilterDrawer: FC<SpeciesAnimalFilterDrawerProps> = ({
               items={menuData[menu]}
               isAllSelected={isAllSelected(menu)}
               searchLoading={searchLoading}
-              placeholder={`Search ${menu}...`}
+              placeholder={t('necropsy_module.search_menu', { menu })}
               enableSelectAll={menu !== 'Organization'}
               showSearch={menu === 'Organization'}
             />

@@ -1,4 +1,5 @@
 import React, { FC, memo, useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Skeleton, Tooltip } from '@mui/material'
 import { alpha, useTheme, Theme } from '@mui/material/styles'
 import { SmsOutlined as CommentsIcon } from '@mui/icons-material'
@@ -46,6 +47,7 @@ interface ValueWithUnit {
 
 const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }) => {
   const theme = useTheme<Theme>()
+  const { t } = useTranslation('common')
   const [types, setTypes] = useState<AssessmentTypeItem[]>([])
   const [activeType, setActiveType] = useState<AssessmentTypeItem | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
@@ -125,7 +127,7 @@ const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }
       return { value: record.value, unit }
     }
 
-    return { value: 'N/A', unit: '' }
+    return { value: t('necropsy_module.na'), unit: '' }
   }
 
   const assessmentValues: AssessmentValue[] = Array.isArray(activeType?.assessment_values) ? activeType.assessment_values : []
@@ -155,7 +157,7 @@ const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }
               mb: 4
             }}
           >
-            Assessments
+            {t('necropsy_module.assessments')}
           </Typography>
         )}
         <Box
@@ -174,7 +176,7 @@ const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }
               fontWeight: 400
             }}
           >
-            No Assessments Recorded
+            {t('necropsy_module.no_assessments_recorded')}
           </Typography>
         </Box>
       </Box>
@@ -192,7 +194,7 @@ const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }
               color: (theme.palette as any).customColors?.OnSurfaceVariant || theme.palette.text.primary
             }}
           >
-            Assessments
+            {t('necropsy_module.assessments')}
           </Typography>
         )}
 
@@ -240,7 +242,7 @@ const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }
                         fontWeight: 500
                       }}
                     >
-                      {type.assessment_name || type.assessment_type_name || type.name || 'Assessment'}
+                      {type.assessment_name || type.assessment_type_name || type.name || t('necropsy_module.assessment')}
                     </Typography>
                   </Box>
                 )
@@ -266,7 +268,7 @@ const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }
                 fontWeight: 400
               }}
             >
-              No Assessments Recorded
+              {t('necropsy_module.no_assessments_recorded')}
             </Typography>
           </Box>
         ) : (

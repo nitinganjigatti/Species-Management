@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, FC, memo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Drawer, IconButton, Divider, Avatar, Skeleton, CircularProgress, Button } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
@@ -95,6 +96,7 @@ const TimelineSkeleton: FC = () => (
 // ==================== Main Component ====================
 
 const NecropsyTimelineDrawer: FC<NecropsyTimelineDrawerProps> = ({ open, onClose, mortalityId }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   const [timelineData, setTimelineData] = useState<TimelineSection[]>([])
@@ -187,7 +189,7 @@ const NecropsyTimelineDrawer: FC<NecropsyTimelineDrawerProps> = ({ open, onClose
               color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
             }}
           >
-            History
+            {t('necropsy_module.history')}
           </Typography>
           <IconButton onClick={onClose} size='small'>
             <CloseIcon />
@@ -202,7 +204,7 @@ const NecropsyTimelineDrawer: FC<NecropsyTimelineDrawerProps> = ({ open, onClose
           ) : timelineData.length === 0 ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
               <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
-                No timeline data available
+                {t('necropsy_module.no_timeline_data_available')}
               </Typography>
             </Box>
           ) : (
@@ -229,8 +231,8 @@ const NecropsyTimelineDrawer: FC<NecropsyTimelineDrawerProps> = ({ open, onClose
 
                   <StyledTimeline>
                     {section.entries.map((entry, eIndex) => {
-                      const isUnsuitable = entry.comment === 'Marked as unsuitable'
-                      const isDraft = entry.comment === 'Saved as draft'
+                      const isUnsuitable = entry.comment === 'Marked as unsuitable' || entry.comment === t('necropsy_module.marked_as_unsuitable')
+                      const isDraft = entry.comment === 'Saved as draft' || entry.comment === t('necropsy_module.saved_as_draft')
                       const isFirst = eIndex === 0
                       const isLast = eIndex === section.entries.length - 1
 
@@ -373,7 +375,7 @@ const NecropsyTimelineDrawer: FC<NecropsyTimelineDrawerProps> = ({ open, onClose
                     disabled={loadingMore}
                     sx={{ fontSize: '13px', fontWeight: 500 }}
                   >
-                    {loadingMore ? <CircularProgress size={20} /> : 'Load More'}
+                    {loadingMore ? <CircularProgress size={20} /> : t('necropsy_module.load_more')}
                   </Button>
                 </Box>
               )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, memo, FC } from 'react'
 import { Box, Drawer, IconButton, Typography, Skeleton, Tabs, Tab, Divider, Chip, Button, Alert, Tooltip } from '@mui/material'
 import { useTheme, alpha, Theme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
 import PhoneIcon from '@mui/icons-material/Phone'
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline'
@@ -138,6 +139,7 @@ interface SampleLogsMap {
 
 const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClose, requestGuid, labCode }) => {
   const theme = useTheme<ExtendedTheme>()
+  const { t } = useTranslation()
   const [labDetails, setLabDetails] = useState<LabDetails | null>(null)
   const [samples, setSamples] = useState<SampleDetail[]>([])
   const [notes, setNotes] = useState<LabNote[]>([])
@@ -406,7 +408,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              {labDetails?.antz_lab_code || labCode || 'Lab Request'}
+              {labDetails?.antz_lab_code || labCode || t('necropsy_module.lab_request')}
             </Typography>
           </Box>
 
@@ -418,7 +420,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                   color: theme.palette.customColors?.neutralSecondary
                 }}
               >
-                Case ID:{' '}
+                {t('necropsy_module.case_id')}{' '}
                 <Typography
                   component='span'
                   sx={{
@@ -454,7 +456,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                   color: theme.palette.customColors?.neutralSecondary
                 }}
               >
-                By
+                {t('necropsy_module.by')}
               </Typography>
               <Box
                 sx={{
@@ -558,7 +560,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                       >
                         {labDetails.user_details?.user_mobile_number}
                       </Typography>
-                      <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                      <Tooltip title={copied ? t('necropsy_module.copied') : t('necropsy_module.copy_number')}>
                         <IconButton
                           size='small'
                           onClick={() => handleCopyNumber(labDetails.user_details?.user_mobile_number || '')}
@@ -657,7 +659,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
             color: theme.palette.customColors?.neutralPrimary
           }}
         >
-          Completed
+          {t('necropsy_module.completed_status')}
         </Typography>
       </Box>
       <Box sx={{ flex: 1, textAlign: 'center' }}>
@@ -670,7 +672,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
             color: theme.palette.customColors?.neutralPrimary
           }}
         >
-          Sample Received
+          {t('necropsy_module.sample_received')}
         </Typography>
       </Box>
     </Box>
@@ -840,7 +842,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 mb: 0.5
               }}
             >
-              {rejected_lab ? `Rejected by ${rejected_lab}` : 'Rejected by Lab'}
+              {rejected_lab ? t('necropsy_module.rejected_by_lab', { lab: rejected_lab }) : t('necropsy_module.rejected_by_lab_default')}
             </Typography>
             {rejected_reason && (
               <Typography
@@ -910,7 +912,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              Tests:
+              {t('necropsy_module.tests_colon')}
             </Typography>
             <Typography
               sx={{
@@ -932,7 +934,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              Completed
+              {t('necropsy_module.completed_status')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -942,7 +944,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.neutralSecondary
               }}
             >
-              Departments{' '}
+              {t('necropsy_module.departments')}{' '}
               <Typography
                 component='span'
                 sx={{
@@ -1166,7 +1168,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              Lab Request Details
+              {t('necropsy_module.lab_request_details')}
             </Typography>
             <IconButton onClick={onClose} sx={{ color: theme.palette.customColors?.OnSurfaceVariant }}>
               <Icon icon='mdi:close' />
@@ -1184,14 +1186,14 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 sx={{ mb: 3, justifyContent: 'center' }}
                 action={
                   <Button color='error' size='small' startIcon={<RefreshIcon />} onClick={fetchLabDetails}>
-                    Retry
+                    {t('necropsy_module.retry')}
                   </Button>
                 }
               >
                 {error}
               </Alert>
               <Button variant='outlined' onClick={onClose} sx={{ mt: 2 }}>
-                Go Back
+                {t('necropsy_module.go_back')}
               </Button>
             </Box>
           ) : labDetails ? (
@@ -1218,10 +1220,10 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                     }
                   }}
                 >
-                  <Tab label='Tests' />
-                  <Tab label='Samples' />
-                  <Tab label='Lab Reports' />
-                  <Tab label='Notes' />
+                  <Tab label={t('necropsy_module.tests')} />
+                  <Tab label={t('necropsy_module.samples')} />
+                  <Tab label={t('necropsy_module.lab_reports')} />
+                  <Tab label={t('notes')} />
                 </Tabs>
               </Box>
               <Box sx={{ backgroundColor: theme.palette.background.default, flex: 1 }}>{renderTabContent()}</Box>

@@ -7,6 +7,7 @@ import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import { SelectOption, ActiveCard } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 type MenuName = 'Sex' | 'Site' | 'Necropsy Location' | 'Necropsy Conducted By' | 'Created By'
 
@@ -48,18 +49,18 @@ const getInitialOptions = (menus: MenuName[]): SelectedOptions =>
 
 const singleSelectMenus: MenuName[] = ['Necropsy Location', 'Site']
 
-const staticMenuData: Partial<MenuData> = {
+const getStaticMenuData = (t: (key: string) => string): Partial<MenuData> => ({
   Sex: [
-    { label: 'Male', value: 'Male' },
-    { label: 'Female', value: 'Female' },
-    { label: 'Indeterminate', value: 'Indeterminate' },
-    { label: 'Undeterminate', value: 'Undeterminate' }
+    { label: t('male'), value: 'Male' },
+    { label: t('female'), value: 'Female' },
+    { label: t('necropsy_module.indeterminate'), value: 'Indeterminate' },
+    { label: t('necropsy_module.undeterminate'), value: 'Undeterminate' }
   ],
   'Necropsy Location': [
-    { label: 'Onsite', value: 1 },
-    { label: 'Necropsy Center', value: 0 }
+    { label: t('necropsy_module.onsite'), value: 1 },
+    { label: t('necropsy_module.necropsy_center'), value: 0 }
   ]
-}
+})
 
 const isSingleSelect = (menuName: MenuName): boolean => singleSelectMenus.includes(menuName)
 
@@ -72,8 +73,10 @@ const NecropsyFilterDrawer: FC<NecropsyFilterDrawerProps> = ({
   initialSelectedOptions,
   activeCard
 }) => {
+  const { t } = useTranslation()
   const auth = useAuth() as unknown as { userData?: { user?: { zoos?: { zoo_id?: number | string }[] } } } | null
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
+  const staticMenuData = getStaticMenuData(t)
 
   const leftMenu: MenuName[] =
     activeCard === 'INCOMING'
@@ -150,7 +153,7 @@ const NecropsyFilterDrawer: FC<NecropsyFilterDrawerProps> = ({
       console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
       Toaster({
         type: 'error',
-        message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+        message: t('necropsy_module.failed_to_load_options', { action: query ? 'search' : 'load', menu: menuName })
       })
     } finally {
       setSearchLoading(false)
@@ -297,7 +300,7 @@ const NecropsyFilterDrawer: FC<NecropsyFilterDrawerProps> = ({
               items={menuData[menu]}
               isAllSelected={isAllSelected(menu)}
               searchLoading={searchLoading}
-              placeholder={`Search ${menu}...`}
+              placeholder={t('necropsy_module.search_menu', { menu })}
               enableSelectAll={!isSingleSelect(menu)}
             />
           )

@@ -1,6 +1,7 @@
 import React, { FC, memo } from 'react'
 import { Box, Card, CardContent, Typography, useTheme, Theme } from '@mui/material'
 import Utility from 'src/utility'
+import { useTranslation } from 'react-i18next'
 
 interface FieldRowProps {
   label: string
@@ -55,6 +56,7 @@ interface MortalityReportSectionProps {
 
 const MortalityReportSection: FC<MortalityReportSectionProps> = ({ data }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const mortalityDate = data?.discovered_date || data?.mortality_created_at
 
@@ -63,11 +65,11 @@ const MortalityReportSection: FC<MortalityReportSectionProps> = ({ data }) => {
     : '--'
 
   const fields = [
-    { label: 'Suspected Cause of Death', value: data?.manner_of_death || '--' },
-    { label: 'Date and Time of Death', value: dateTimeValue },
-    { label: 'Carcass Condition', value: data?.caracass_condition || '--' },
-    { label: 'Short History of Illness', value: data?.history_of_illness || '--' },
-    { label: 'Notes', value: data?.notes || data?.notes || '--' }
+    { label: t('necropsy_module.suspected_cause_of_death'), value: data?.manner_of_death || '--' },
+    { label: t('necropsy_module.date_and_time_of_death'), value: dateTimeValue },
+    { label: t('necropsy_module.carcass_condition'), value: data?.caracass_condition || '--' },
+    { label: t('necropsy_module.short_history_of_illness'), value: data?.history_of_illness || '--' },
+    { label: t('necropsy_module.notes'), value: data?.notes || data?.notes || '--' }
   ]
 
   return (
@@ -86,7 +88,7 @@ const MortalityReportSection: FC<MortalityReportSectionProps> = ({ data }) => {
             mb: 4
           }}
         >
-          Mortality Report
+          {t('necropsy_module.mortality_report')}
         </Typography>
 
         <Box
