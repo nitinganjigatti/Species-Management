@@ -148,7 +148,7 @@ export function renderUserAvatarDetails({
                   {date ? (
                     <>
                       {Utility.convertUtcToLocalReadableDate(date)}
-                      <span> &bull; </span>
+                      {show_time && <span> &bull; </span>}
                     </>
                   ) : (
                     ''

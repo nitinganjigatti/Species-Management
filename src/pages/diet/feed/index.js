@@ -27,6 +27,7 @@ import Error404 from 'src/pages/404'
 import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const FeedTypes = () => {
   const router = useRouter()
@@ -128,7 +129,7 @@ const FeedTypes = () => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumning, status)
     }
-  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumning])
+  }, [status, paginationModel.page, paginationModel.pageSize])
 
   const columns = [
     {
@@ -136,6 +137,7 @@ const FeedTypes = () => {
       width: 80,
       field: 'id',
       headerName: 'SL',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
@@ -147,6 +149,7 @@ const FeedTypes = () => {
       width: 250,
       field: 'feed_type_name',
       headerName: t('diet_module.feeds'),
+      sortable: false,
       renderCell: params => (
         <>
           <Avatar
@@ -179,6 +182,7 @@ const FeedTypes = () => {
       minWidth: 10,
       field: 'desc',
       headerName: t('description'),
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.desc} placement='bottom'>
           <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -192,6 +196,7 @@ const FeedTypes = () => {
       minWidth: 10,
       field: 'active',
       headerName: t('status'),
+      sortable: false,
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -278,6 +283,16 @@ const FeedTypes = () => {
     return (
       <Card>
         <CardHeader title={t('navigation.feed_types')} action={headerAction} sx={{ px: 5 }} />
+        <Box sx={{ px: 5, pb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+          <Box sx={{ width: 250 }}>
+            <MUISearch
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
+              placeholder='Search...'
+            />
+          </Box>
+        </Box>
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
           <CommonTable
             indexedRows={indexedRows === undefined ? [] : indexedRows}

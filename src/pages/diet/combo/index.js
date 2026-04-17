@@ -30,6 +30,7 @@ import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import { AuthContext } from 'src/context/AuthContext'
 import RenderUtility from 'src/utility/render'
 import { useTranslation } from 'react-i18next'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 // Styled TabList component
 
@@ -136,7 +137,7 @@ const RecipeList = () => {
   )
   useEffect(() => {
     fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
-  }, [status, paginationModel.page, paginationModel.pageSize, sortBy, sortColumn])
+  }, [status, paginationModel.page, paginationModel.pageSize])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -357,8 +358,8 @@ const RecipeList = () => {
       )
     },
     {
-      //flex: 0.4,
-      width: 100,
+      flex: 1,
+      minWidth: 100,
       field: 'status',
       headerName: t('status'),
       renderCell: params => (
@@ -426,6 +427,16 @@ const RecipeList = () => {
         ) : (
           <Card>
             <CardHeader title='Mix' action={headerAction} sx={{ px: 5 }} />
+            <Box sx={{ px: 5, pb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ width: 250 }}>
+                <MUISearch
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  placeholder='Search...'
+                />
+              </Box>
+            </Box>
 
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <CommonTable
