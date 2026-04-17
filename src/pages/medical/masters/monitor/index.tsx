@@ -203,17 +203,19 @@
 // export default AddMonitorCategory
 
 import { Grid, Tooltip, Typography, useTheme } from '@mui/material'
-import React, { useCallback, useEffect, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useState, useMemo, useContext } from 'react'
 import { getAssessmentCategoriesList } from 'src/lib/api/report'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import Error404 from 'src/pages/404'
 import { debounce, DebouncedFunc } from 'lodash'
 import { useRouter } from 'next/router'
 import { GridSortModel, GridPaginationModel, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { Theme } from '@mui/material/styles'
 import { NextPage } from 'next'
 import { ChangeEvent, ReactNode } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
 
 // Types and Interfaces
 interface MonitorCategoryRow {
@@ -245,13 +247,17 @@ interface Filters {
 const MonitorCategory: NextPage = () => {
   const theme: Theme = useTheme()
   const router = useRouter()
-
+  const authData = useContext(AuthContext)
   // State
   const [rows, setRows] = useState<MonitorCategoryRow[]>([])
   const [allRows, setAllRows] = useState<MonitorCategoryRow[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
   const [total, setTotal] = useState<number>(0)
+
+  const zoo_id: string | undefined = (authData as any)?.userData?.user?.zoos[0]?.zoo_id
+  const complaints_permission: boolean | undefined =
+    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
 
   // Filters state
   const [filters, setFilters] = useState<Filters>({
@@ -306,7 +312,9 @@ const MonitorCategory: NextPage = () => {
   }, [router.query.id, filters.q])
 
   useEffect(() => {
-    fetchTableData()
+    if (complaints_permission) {
+      fetchTableData()
+    }
   }, [fetchTableData])
 
   // Filter function
@@ -478,6 +486,8 @@ const MonitorCategory: NextPage = () => {
   ]
 
   return (
+    <>
+    {complaints_permission ? (
     <PageCardLayout title='Monitoring'>
       <Grid container>
         <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
@@ -512,6 +522,10 @@ const MonitorCategory: NextPage = () => {
         </Grid>
       </Grid>
     </PageCardLayout>
+    ) : (
+      <Error404 />
+    )}
+    </>
   )
 }
 

@@ -1,13 +1,15 @@
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce, DebouncedFunc } from 'lodash'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState, useMemo } from 'react'
+import { useCallback, useEffect, useState, useMemo, useContext } from 'react'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
 import AddPurposeOfAnaesthesiaDrawer from 'src/views/pages/masters/AddPurposeOfAnaesthesiaDrawer'
@@ -64,6 +66,10 @@ interface Filters {
 const PurposeOfAnaesthesia: NextPage = () => {
   const theme: Theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
+
+  const complaints_permission: boolean | undefined =
+    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
 
   // State
   const [rows, setRows] = useState<PurposeRow[]>([])
@@ -142,7 +148,9 @@ const PurposeOfAnaesthesia: NextPage = () => {
 
   // Fetch data when filters change
   useEffect(() => {
-    fetchTableData()
+    if (complaints_permission) {
+      fetchTableData()
+    }
   }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
 
   const updateUrlParams = (updatedFilters: Filters): void => {
@@ -360,6 +368,8 @@ const PurposeOfAnaesthesia: NextPage = () => {
   )
 
   return (
+    <>
+    {complaints_permission ? (
     <PageCardLayout title='Purpose Of Anaesthesia' action={headerAction}>
       <Grid container>
         <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
@@ -408,6 +418,10 @@ const PurposeOfAnaesthesia: NextPage = () => {
         />
       </Grid>
     </PageCardLayout>
+    ) : (
+      <Error404 />
+    )}
+    </>
   )
 }
 
