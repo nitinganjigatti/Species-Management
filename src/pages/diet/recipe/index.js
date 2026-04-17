@@ -268,7 +268,7 @@ const RecipeList = () => {
     {
       //flex: 0.4,
       width: 200,
-      field: 'ingredient_name',
+      field: 'items',
       headerName: 'NO OF ITEMS',
       renderCell: params => (
         <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
@@ -403,7 +403,7 @@ const RecipeList = () => {
           </Card>
         )}
       </>
-    );
+    )
   }
 
   return (
