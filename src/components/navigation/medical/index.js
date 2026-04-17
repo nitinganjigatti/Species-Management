@@ -64,13 +64,13 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
   if (medicalAccess) {
     medicalNavigationArray.push(recordsItem)
   }
-  if (userSettings?.medical_add_complaints || userSettings?.allow_masters) {
+  if (userSettings?.medical_add_complaints) {
     mastersMedicalParent.children.push(complaints)
   }
-  if (userSettings?.medical_add_diagnosis || userSettings?.allow_masters) {
+  if (userSettings?.medical_add_diagnosis) {
     mastersMedicalParent.children.push(diagnosis)
   }
-  if (userSettings?.allow_masters) {
+  if (userSettings?.medical_add_complaints) {
     mastersMedicalParent.children.push(Monitoring)
     mastersMedicalParent.children.push(Treatment)
     mastersMedicalParent.children.push(DeliveryRoute)

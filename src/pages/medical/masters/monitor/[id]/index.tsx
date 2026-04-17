@@ -1,12 +1,14 @@
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce, DebouncedFunc } from 'lodash'
 import Router, { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useState, useMemo, useContext } from 'react'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { getAssessmentResponseType, getAssessmentTypesList } from 'src/lib/api/report'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
@@ -91,6 +93,10 @@ const AddMonitorCategory: NextPage = () => {
   const router = useRouter()
   const { id, label } = router.query
   const theme: Theme = useTheme()
+  const authData = useContext(AuthContext)
+
+  const complaints_permission: boolean | undefined =
+    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
 
   // State
   const [rows, setRows] = useState<MonitorRow[]>([])
@@ -213,7 +219,7 @@ const AddMonitorCategory: NextPage = () => {
   }, [id, filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
 
   useEffect(() => {
-    if (id) {
+    if (complaints_permission && id) {
       fetchTableData()
     }
   }, [fetchTableData, id])
@@ -486,6 +492,8 @@ const AddMonitorCategory: NextPage = () => {
   }
 
   return (
+    <>
+    {complaints_permission ? (
     <PageCardLayout
       title={label?.toString() || 'Monitor'}
       action={headerAction}
@@ -543,6 +551,10 @@ const AddMonitorCategory: NextPage = () => {
         />
       </Grid>
     </PageCardLayout>
+    ) : (
+      <Error404 />
+    )}
+    </>
   )
 }
 

@@ -8,6 +8,7 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
 import AddClinicalPathDrawer from 'src/views/pages/masters/AddClinicalPathDrawer'
@@ -90,7 +91,8 @@ const ClinicalPath: NextPage = () => {
   const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
   const authData = useContext(AuthContext)
 
-  const clinPathPermission = (authData as any)?.userData?.permission?.user_settings?.allow_masters // need to work on Authentication
+  const complaints_permission: boolean | undefined =
+    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
 
   useEffect(() => {
     const {
@@ -145,7 +147,9 @@ const ClinicalPath: NextPage = () => {
 
   // Fetch data when filters change
   useEffect(() => {
-    fetchTableData()
+    if (complaints_permission) {
+      fetchTableData()
+    }
   }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
 
   const updateUrlParams = (updatedFilters: Filters): void => {
@@ -329,7 +333,7 @@ const ClinicalPath: NextPage = () => {
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedClinicalPathRow>): ReactNode => (
         <Box>
-          {params?.row?.is_selected === '0' && clinPathPermission && (
+          {params?.row?.is_selected === '0' && complaints_permission && (
             <IconButton
               size='small'
               onClick={(e: React.MouseEvent) => {
@@ -345,7 +349,7 @@ const ClinicalPath: NextPage = () => {
     }
   ]
 
-  const headerAction: ReactNode = clinPathPermission ? (
+  const headerAction: ReactNode = complaints_permission ? (
     <AddButtonContained
       title='Add Clin Path'
       action={() => {
@@ -362,6 +366,8 @@ const ClinicalPath: NextPage = () => {
   ) : null
 
   return (
+    <>
+    {complaints_permission ? (
     <PageCardLayout title='Clin Path' action={headerAction}>
       <Grid container>
         <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
@@ -411,6 +417,10 @@ const ClinicalPath: NextPage = () => {
         />
       </Grid>
     </PageCardLayout>
+    ) : (
+      <Error404 />
+    )}
+    </>
   )
 }
 

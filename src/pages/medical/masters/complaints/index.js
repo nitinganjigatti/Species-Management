@@ -37,7 +37,6 @@ const Complaints = () => {
 
   const zoo_id = authData?.userData?.user?.zoos[0].zoo_id
   const complaints_permission = authData?.userData?.permission?.user_settings?.medical_add_complaints
-  console.log(zoo_id, 'zoo_id')
 
   const fetchTableData = useCallback(
     async q => {
