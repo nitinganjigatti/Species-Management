@@ -8,7 +8,7 @@ import {
   Card,
   CircularProgress
 } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { getFoodWastage, FoodWastageData, FoodWastageListItem, FoodWastageGraphItem } from 'src/lib/api/housing'
 import Icon from 'src/@core/components/icon'
@@ -18,6 +18,7 @@ import { format, parse } from 'date-fns'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import FoodWastageDetailsDrawer from './FoodWastageDetailsDrawer'
+import { useTranslation } from 'react-i18next'
 
 interface IndexedFoodWastageItem extends FoodWastageListItem {
   id: number | string
@@ -39,8 +40,9 @@ interface DetailsDrawerState {
 }
 
 const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site' }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
 
   const [loading, setLoading] = useState<boolean>(false)
@@ -237,7 +239,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
     })
 
     return {
-      series: [{ name: 'Wastage', data: values }],
+      series: [{ name: t('housing_module.total_wastage'), data: values }],
       categories
     }
   }, [graphList])
@@ -339,13 +341,13 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
   const getEntityLabels = () => {
     switch (refType) {
       case 'site':
-        return { singular: 'Section', plural: 'Sections' }
+        return { singular: t('housing_module.section'), plural: t('sections') }
       case 'section':
-        return { singular: 'Enclosure', plural: 'Enclosures' }
+        return { singular: t('housing_module.enclosure'), plural: t('enclosures') }
       case 'enclosure':
-        return { singular: 'Date', plural: 'Daily Entries' }
+        return { singular: t('date'), plural: t('housing_module.daily_entries') }
       default:
-        return { singular: 'Section', plural: 'Sections' }
+        return { singular: t('housing_module.section'), plural: t('sections') }
     }
   }
   const { singular: entityLabel, plural: entityLabelPlural } = getEntityLabels()
@@ -356,7 +358,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       minWidth: 20,
       width: 80,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -435,7 +437,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       minWidth: 150,
       width: 200,
       field: 'total_wastage',
-      headerName: 'Total Wastage',
+      headerName: t('housing_module.total_wastage'),
       align: 'right' as const,
       headerAlign: 'right' as const,
       sortable: false,
@@ -475,7 +477,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       minWidth: 20,
       width: 80,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -496,7 +498,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       minWidth: 200,
       flex: 1,
       field: 'wastage_date',
-      headerName: 'Date',
+      headerName: t('date'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -544,7 +546,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       minWidth: 100,
       width: 120,
       field: 'total_entry',
-      headerName: 'Entries',
+      headerName: t('housing_module.entries'),
       align: 'center' as const,
       headerAlign: 'center' as const,
       sortable: false,
@@ -571,7 +573,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       minWidth: 150,
       width: 200,
       field: 'total_wastage',
-      headerName: 'Total Wastage',
+      headerName: t('housing_module.total_wastage'),
       align: 'right' as const,
       headerAlign: 'right' as const,
       sortable: false,
@@ -620,7 +622,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
         }}
       >
         <Typography variant='h6' sx={{ fontWeight: 600 }}>
-          Food Wastage
+          {t('housing_module.food_wastage')}
         </Typography>
 
         <ToggleButtonGroup
@@ -674,7 +676,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Total Wastage
+              {t('housing_module.total_wastage')}
             </Typography>
             <Typography
               sx={{
@@ -715,24 +717,15 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                   lineHeight: 1.7
                 }}
               >
-                {entityLabel}{' '}
-                <Typography
-                  component='span'
-                  sx={{ fontWeight: 700, color: theme.palette.customColors.OnPrimaryContainer }}
-                >
-                  {refType === 'site'
+                {t('housing_module.highest_wastage_string', {
+                  entity: entityLabel,
+                  name: refType === 'site'
                     ? foodWastageData?.highest_wastage?.section_name
-                    : foodWastageData?.highest_wastage?.user_enclosure_name}
-                </Typography>{' '}
-                with{' '}
-                <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
-                  {foodWastageData?.highest_wastage?.total_wastage} {foodWastageData?.highest_wastage?.unit || 'Kg'}
-                </Typography>{' '}
-                recorded the highest wastage in this {refType}, accounting for{' '}
-                <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
-                  {foodWastageData?.highest_wastage?.wastage_per}%
-                </Typography>{' '}
-                of the total.
+                    : foodWastageData?.highest_wastage?.user_enclosure_name,
+                  weight: `${foodWastageData?.highest_wastage?.total_wastage} ${foodWastageData?.highest_wastage?.unit || 'Kg'}`,
+                  refType: refType,
+                  percentage: `${foodWastageData?.highest_wastage?.wastage_per}%`
+                })}
               </Typography>
             </Box>
           )}
@@ -754,7 +747,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                   lineHeight: 1.7
                 }}
               >
-                Daily average:{' '}
+                {t('housing_module.daily_average')}{' '}
                 <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
                   {foodWastageData?.daily_average} {foodWastageData?.unit || 'Kg'}
                 </Typography>
@@ -803,7 +796,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                         mb: 1
                       }}
                     >
-                      Total Wastage
+                      {t('housing_module.total_wastage')}
                     </Typography>
                     <Typography
                       sx={{
@@ -837,7 +830,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                         mb: 1
                       }}
                     >
-                      Daily Average
+                      {t('housing_module.daily_average')}
                     </Typography>
                     <Typography
                       sx={{
@@ -881,11 +874,9 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                         lineHeight: 1.7
                       }}
                     >
-                      The site has an average food wastage of{' '}
-                      <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
-                        {foodWastageData?.section_average} {foodWastageData?.unit || 'Kg'}
-                      </Typography>{' '}
-                      per section
+                      {t('housing_module.site_graph_average_string', {
+                        weight: `${foodWastageData?.section_average} ${foodWastageData?.unit || 'Kg'}`
+                      })}
                     </Typography>
                   </Box>
                 )}
@@ -908,14 +899,10 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                         lineHeight: 1.7
                       }}
                     >
-                      This section accounts for{' '}
-                      <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
-                        {foodWastageData?.site_percentage || 0}%
-                      </Typography>{' '}
-                      of the site&apos;s total wastage of{' '}
-                      <Typography component='span' sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}>
-                        {foodWastageData?.total_site_wastage || 0} {foodWastageData?.unit || 'Kg'}
-                      </Typography>
+                      {t('housing_module.section_graph_average_string', {
+                        percentage: `${foodWastageData?.site_percentage || 0}%`,
+                        weight: `${foodWastageData?.total_site_wastage || 0} ${foodWastageData?.unit || 'Kg'}`
+                      })}
                     </Typography>
                   </Box>
                 )}
@@ -939,20 +926,10 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
                           lineHeight: 1.7
                         }}
                       >
-                        This enclosure accounts for{' '}
-                        <Typography
-                          component='span'
-                          sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}
-                        >
-                          {foodWastageData?.section_percentage || 0}%
-                        </Typography>{' '}
-                        of the section&apos;s total wastage of{' '}
-                        <Typography
-                          component='span'
-                          sx={{ fontWeight: 700, color: theme.palette.customColors.Tertiary }}
-                        >
-                          {foodWastageData?.total_section_wastage || 0} {foodWastageData?.unit || 'Kg'}
-                        </Typography>
+                        {t('housing_module.enclosure_graph_average_string', {
+                          percentage: `${foodWastageData?.section_percentage || 0}%`,
+                          weight: `${foodWastageData?.total_section_wastage || 0} ${foodWastageData?.unit || 'Kg'}`
+                        })}
                       </Typography>
                     </Box>
                   )}
@@ -968,7 +945,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 6 }}>
                 <Icon icon='mdi:chart-line-variant' fontSize={64} color={theme.palette.text.disabled} />
                 <Typography sx={{ mt: 2, color: theme.palette.text.secondary }}>
-                  No data available for the selected period
+                  {t('housing_module.no_data_for_period')}
                 </Typography>
               </Box>
             </Card>
@@ -1015,7 +992,7 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
               <Typography
                 sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
               >
-                {sortOrder === 'DESC' ? 'High To Low' : 'Low To High'}
+                {sortOrder === 'DESC' ? t('high_to_low') : t('low_to_high')}
               </Typography>
             </Box>
           </Box>

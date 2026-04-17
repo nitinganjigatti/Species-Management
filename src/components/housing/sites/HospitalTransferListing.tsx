@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Box, Typography, Tabs, Tab, useTheme } from '@mui/material'
 import styled from '@emotion/styled'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import debounce from 'lodash/debounce'
 import { useAuth } from 'src/hooks/useAuth'
 
@@ -21,11 +21,13 @@ import {
   TransferStatusInfo
 } from 'src/types/housing/hospitalTransfer'
 import { GridRenderCellParams, GridRowParams, GridColDef, GridPaginationModel } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 const HospitalTransferListing = () => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme()
+  const { t } = useTranslation()
   const authData: any = useAuth()
   const settings = authData?.userData?.settings
 
@@ -174,7 +176,7 @@ const HospitalTransferListing = () => {
   const columns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl No',
+      headerName: t('s_no') as string,
       minWidth: 70,
       maxWidth: 80,
       sortable: false,
@@ -184,7 +186,7 @@ const HospitalTransferListing = () => {
     },
     {
       field: 'transfer_code',
-      headerName: 'Transfer Code',
+      headerName: t('housing_module.transfer_code') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -193,7 +195,7 @@ const HospitalTransferListing = () => {
     },
     {
       field: 'total_animals',
-      headerName: 'Total Animals',
+      headerName: t('housing_module.total_animals') as string,
       minWidth: 150,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -202,7 +204,7 @@ const HospitalTransferListing = () => {
     },
     {
       field: 'source',
-      headerName: 'Source',
+      headerName: t('housing_module.source') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -211,7 +213,7 @@ const HospitalTransferListing = () => {
     },
     {
       field: 'destination',
-      headerName: 'Destination',
+      headerName: t('housing_module.destination') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -220,7 +222,7 @@ const HospitalTransferListing = () => {
     },
     {
       field: 'transfer_status',
-      headerName: 'Transfer Status',
+      headerName: t('housing_module.transfer_status') as string,
       minWidth: 250,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => {
@@ -243,7 +245,7 @@ const HospitalTransferListing = () => {
     },
     {
       field: 'reason',
-      headerName: 'Reason For Transfer',
+      headerName: t('housing_module.reason_for_transfer') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -262,7 +264,7 @@ const HospitalTransferListing = () => {
     },
     {
       field: 'requested_by',
-      headerName: 'Requested By',
+      headerName: t('housing_module.requested_by') as string,
       minWidth: 250,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -307,11 +309,11 @@ const HospitalTransferListing = () => {
     <>
       <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={activeTab} onChange={handleTabChange} sx={{ minHeight: 48 }}>
-          <Tab value='pending' label={getTabLabel('pending', 'Pending')} />
-          <Tab value='intransit' label={getTabLabel('intransit', 'In Transit')} />
-          <Tab value='completed' label={getTabLabel('completed', 'Accepted')} />
-          <Tab value='cancelled' label={getTabLabel('cancelled', 'Canceled')} />
-          <Tab value='rejected' label={getTabLabel('rejected', 'Rejected')} />
+          <Tab value='pending' label={getTabLabel('pending', t('pending'))} />
+          <Tab value='intransit' label={getTabLabel('intransit', t('housing_module.in_transit'))} />
+          <Tab value='completed' label={getTabLabel('completed', t('accepted'))} />
+          <Tab value='cancelled' label={getTabLabel('cancelled', t('canceled'))} />
+          <Tab value='rejected' label={getTabLabel('rejected', t('rejected'))} />
         </Tabs>
       </Box>
       <Box
@@ -326,7 +328,7 @@ const HospitalTransferListing = () => {
       >
         <Search
           width='300px'
-          placeholder='Search by Animal ID'
+          placeholder={t('housing_module.search_by_animal_id') as string}
           value={searchInput}
           onChange={handleSearchChange}
           onClear={handleSearchClear}

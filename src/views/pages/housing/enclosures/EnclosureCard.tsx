@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Chip } from '@mui/material'
 import { CellInfo } from 'src/utility/render'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 interface StatProps {
   label: string
@@ -47,6 +48,7 @@ interface EnclosureCardProps {
 const EnclosureCard: React.FC<EnclosureCardProps> = ({ enclosure, onClick }) => {
   const theme = useTheme() as any
   const isClickable = Boolean(onClick)
+  const { t } = useTranslation()
 
   return (
     <Box
@@ -83,9 +85,9 @@ const EnclosureCard: React.FC<EnclosureCardProps> = ({ enclosure, onClick }) => 
         enclosure.animals_count ||
         (enclosure.sub_enclosure_count && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-            {enclosure.species_count && <Stat label='Species' value={enclosure.species_count} />}
-            {enclosure.animals_count && <Stat label='Animals' value={enclosure.animals_count} />}
-            {enclosure.sub_enclosure_count && <Stat label='Sub Enclosures' value={enclosure.sub_enclosure_count} />}
+            {enclosure.species_count && <Stat label={t('species')} value={enclosure.species_count} />}
+            {enclosure.animals_count && <Stat label={t('animals')} value={enclosure.animals_count} />}
+            {enclosure.sub_enclosure_count && <Stat label={t('housing_module.sub_enclosures')} value={enclosure.sub_enclosure_count} />}
           </Box>
         ))}
     </Box>

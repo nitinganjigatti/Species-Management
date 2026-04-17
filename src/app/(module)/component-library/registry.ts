@@ -35,7 +35,7 @@ export const CATEGORIES = [
   { key: 'button', label: 'Buttons', count: 1, color: 'primary' },
   { key: 'media', label: 'Media', count: 2, color: 'secondary' },
   { key: 'table', label: 'Tables', count: 3, color: 'primary' },
-  { key: 'navigation', label: 'Navigation', count: 1, color: 'secondary' },
+  { key: 'navigation', label: 'Navigation', count: 2, color: 'secondary' },
   { key: 'notification', label: 'Notifications', count: 1, color: 'tertiary' },
   { key: 'display', label: 'Display', count: 2, color: 'primary' },
   { key: 'view', label: 'Views', count: 26, color: 'secondary' },
@@ -810,10 +810,43 @@ export const COMPONENT_REGISTRY: ComponentEntry[] = [
       { name: 'value', type: 'string', description: 'Currently selected tab value' },
       { name: 'onChange', type: '(value) => void', description: 'Tab change callback' }
     ],
-    relatedComponents: ['menu-with-dots'],
+    relatedComponents: ['menu-with-dots', 'tabs-with-menu'],
     preview: {
       type: 'tabs',
       defaults: { tabs: ['Overview', 'Medical', 'Diet', 'History'], value: 'Overview' }
+    }
+  },
+  {
+    name: 'TabsWithMenu',
+    slug: 'tabs-with-menu',
+    description:
+      'Scrollable tab bar with a hamburger menu for quick tab access. On small screens the menu includes a close button. Tabs are i18n-aware via labelKey.',
+    category: 'navigation',
+    path: 'src/views/pages/housing/utils/TabsWithMenu.tsx',
+    props: [
+      {
+        name: 'tabs',
+        type: 'TabItem[]',
+        description: 'Array of tab objects with labelKey (i18n key) and value (unique id)'
+      },
+      {
+        name: 'selectedTab',
+        type: 'string',
+        description: 'Value of the currently active tab'
+      },
+      {
+        name: 'onTabChange',
+        type: '(event: SyntheticEvent, newValue: string) => void',
+        description: 'Callback fired when a tab is selected via the tab bar or the menu'
+      }
+    ],
+    relatedComponents: ['custom-switch-tabs'],
+    preview: {
+      type: 'tabs',
+      defaults: {
+        tabs: ['Sections', 'Species', 'Notes', 'Media', 'Users'],
+        selectedTab: 'Sections'
+      }
     }
   },
 

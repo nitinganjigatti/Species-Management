@@ -4,6 +4,7 @@ import styled from '@emotion/styled'
 import { alpha } from '@mui/material/styles'
 
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useTranslation } from 'react-i18next'
 import { StyledTypographyProps, TabProps, LitterItem } from 'src/types/housing/animalsOffspring'
 import LitterDrawer from './LitterDrawer'
 import { getLitterList } from 'src/lib/api/housing'
@@ -11,6 +12,7 @@ import Utility from 'src/utility'
 
 const Litter: React.FC<TabProps> = props => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const [litterDrawerOpen, setLitterDrawerOpen] = useState<boolean>(false)
   const [litter, setLitter] = useState<LitterItem[]>([])
@@ -85,7 +87,7 @@ const Litter: React.FC<TabProps> = props => {
                   borderRadius: '8px 8px 0 0'
                 }}
               >
-                <StyledTypography fontWeight={500}>Litter {item?.litter_no}</StyledTypography>
+                <StyledTypography fontWeight={500}>{t('animals_module.litter')} {item?.litter_no}</StyledTypography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <img src='/images/line_start_circle.svg' alt='line-start-circle' />
@@ -143,13 +145,13 @@ const Litter: React.FC<TabProps> = props => {
 
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mx: 4, my: 3 }}>
                   <StyledTypography>
-                    Total: <span style={{ fontWeight: 600 }}>{item?.total_animal_count}</span>
+                    {t('total')}: <span style={{ fontWeight: 600 }}>{item?.total_animal_count}</span>
                   </StyledTypography>
                   <StyledTypography>
-                    Dead: <span style={{ fontWeight: 600 }}>{item?.death_count}</span>
+                    {t('animals_module.dead')}: <span style={{ fontWeight: 600 }}>{item?.death_count}</span>
                   </StyledTypography>
                   <StyledTypography>
-                    Alive: <span style={{ fontWeight: 600 }}>{item?.alive_count}</span>
+                    {t('animals_module.alive')}: <span style={{ fontWeight: 600 }}>{item?.alive_count}</span>
                   </StyledTypography>
                 </Box>
               </Box>

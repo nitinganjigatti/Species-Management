@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -31,6 +31,7 @@ import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 
+import { useTranslation } from 'react-i18next'
 import Utility from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import NoDataFound from 'src/views/utility/NoDataFound'
@@ -71,7 +72,8 @@ const groupCommentsByDate = (comments: ChecklistComment[]): GroupedChecklistSect
 
 const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose, transferId, showQRCode }) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
 
   const [loading, setLoading] = useState<boolean>(false)
   const [hospitalTransferData, setHospitalTransferData] = useState<HospitalTransferData | null>(null)
@@ -154,7 +156,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
   // Navigate to animal details page when card is clicked
   const handleAnimalClick = (animalId?: number): void => {
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 
@@ -572,7 +574,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
                 <TextField
                   fullWidth
                   size='small'
-                  placeholder='Add your comment'
+                  placeholder={t('add_your_comment') as string}
                   value={comment}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
                   sx={{

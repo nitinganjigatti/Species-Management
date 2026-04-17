@@ -6,6 +6,7 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import Utility from 'src/utility'
 import { Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 interface IncidentDetailItem {
   incident_type?: string
@@ -30,26 +31,27 @@ interface IncidentDetailsCardProps {
 
 const IncidentDetailsCard: React.FC<IncidentDetailsCardProps> = ({ item, index, data }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const cardData: Record<string, string | undefined> = {
     ...(item?.incident_type === 'missing'
       ? {
-          'Missing Since': `${moment(Utility.convertUTCToLocalDate(item.incident_date)).format(
+          [t('animals_module.missing_since')]: `${moment(Utility.convertUTCToLocalDate(item.incident_date)).format(
             'DD MMM YYYY'
           )} • ${Utility.convertUTCToLocaltime(item.incident_date)}`,
-          'Last seen or escaped from': item?.additional_info?.last_seen,
-          'Animal behaviour before incident': item?.additional_info?.animal_behaviour_before_incident,
-          'Actions taken': item?.additional_info?.action_taken,
-          'Steps to prevent future incidents': item?.additional_info?.steps_to_prevent
+          [t('animals_module.last_seen_escaped_from')]: item?.additional_info?.last_seen,
+          [t('animals_module.animal_behaviour_before_incident')]: item?.additional_info?.animal_behaviour_before_incident,
+          [t('animals_module.actions_taken')]: item?.additional_info?.action_taken,
+          [t('animals_module.steps_to_prevent_incidents')]: item?.additional_info?.steps_to_prevent
         }
       : {
-          'Found On': `${moment(Utility.convertUTCToLocalDate(item.incident_date)).format('DD MMM YYYY')} •
+          [t('animals_module.found_on')]: `${moment(Utility.convertUTCToLocalDate(item.incident_date)).format('DD MMM YYYY')} •
                 ${Utility.convertUTCToLocaltime(item.incident_date)}`,
-          'Behaviour observation': '',
-          'Physical condition': '',
-          'Health assessment': '',
-          'Injury details': '',
-          'Immediate action taken': ''
+          [t('animals_module.behaviour_observation')]: '',
+          [t('animals_module.physical_condition')]: '',
+          [t('animals_module.health_assessment')]: '',
+          [t('animals_module.injury_details')]: '',
+          [t('animals_module.immediate_action_taken')]: ''
         })
 
     // 'Immediate action taken': item?.additional_info?.action_taken

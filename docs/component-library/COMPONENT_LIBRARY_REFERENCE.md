@@ -1281,6 +1281,24 @@ A comprehensive catalog of all reusable components, views, hooks, utilities, and
 | `value` | `string` | | | Currently selected tab value |
 | `onChange` | `(value) => void` | | | Tab change callback |
 
+### TabsWithMenu — 4 uses
+**Path**: `src/views/pages/housing/utils/TabsWithMenu.tsx`
+**Description**: Scrollable tab bar with a hamburger menu for quick tab access. On small screens the menu shows a close button. Tabs are i18n-aware via `labelKey`. Used across all housing detail pages (Site, Section, Enclosure, Animal).
+
+| Prop | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `tabs` | `TabItem[]` | Yes | | Array of tab objects with `labelKey` (i18n translation key) and `value` (unique identifier) |
+| `selectedTab` | `string` | Yes | | Value of the currently active tab |
+| `onTabChange` | `(event: SyntheticEvent, newValue: string) => void` | Yes | | Callback fired when a tab is selected via the tab bar or the hamburger menu |
+
+**TabItem interface:**
+```typescript
+interface TabItem {
+  labelKey: string  // i18n translation key passed to t()
+  value: string     // unique tab identifier
+}
+```
+
 ---
 
 ## Usage Summary (Sorted by Count)
@@ -1339,7 +1357,8 @@ A comprehensive catalog of all reusable components, views, hooks, utilities, and
 | 50 | MediaCard | 2 | View |
 | 51 | CustomOptionDateRangePickers | 1 | Date Picker |
 | 52 | CommonDrawerBox | 1 | Drawer |
-| 53 | CustomSwitchTabs | 1 | Navigation |
+| 53 | TabsWithMenu | 4 | Navigation |
+| 54 | CustomSwitchTabs | 1 | Navigation |
 | 54 | PickersCustomInput | 1 | Form |
 | 55 | ImageCarousel | 1 | Media |
 | 56 | UserCard | 1 | View |

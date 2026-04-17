@@ -7,14 +7,15 @@ import { useInView } from 'react-intersection-observer'
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import { CellInfo } from 'src/utility/render'
 import Search from 'src/views/utility/Search'
-import { getAllAnimalList } from 'src/lib/api/housing'
+import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { Animal } from 'src/types/housing'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 interface AnimalsDrawerData {
   queryKey: string
@@ -47,8 +48,9 @@ interface PageResult {
 const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, totalCount, defaultImage, objectFit }) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
-  const router = useRouter()
+  const router = useSafeRouter()
   const auth = useAuth()
+  const { t } = useTranslation()
 
   // Get permissions from both sources (matching mobile implementation)
   const userSettingsPermissions = (auth as any)?.userData?.permission?.user_settings || {}
@@ -86,15 +88,16 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
   } = useInfiniteQuery<PageResult>({
     queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam }) => {
-      const res = await getAllAnimalList({
+      const res = await getNewAnimalListWithFilters({
         ...data?.params,
         page_no: pageParam as number,
-        limit: PAGE_SIZE,
+        list_type: 'animals',
         q: search
       })
 
-      const resultData = ((res?.data as any)?.result || res?.data || []) as unknown as Animal[]
-      const totalCount = (res?.data as any)?.total_count || 0
+      // v3 API returns { data: [...], total_count } at top level
+      const resultData = (res?.data || []) as unknown as Animal[]
+      const totalCount = res?.total_count || 0
 
       return {
         result: resultData,
@@ -127,7 +130,7 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
   const resolvedCount = totalCount || total
-  const animalsLabel = Number(resolvedCount) === (0 || 1) ? 'Animal' : 'Animals'
+  const animalsLabel = Number(resolvedCount) === (0 || 1) ? t('navigation.animal') : t('animals')
   const animalHeading = resolvedCount ? `${animalsLabel} (${resolvedCount})` : animalsLabel
 
   // cooldownRef to prevent multiple rapid calls
@@ -166,19 +169,19 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
   const handleAnimalClick = (animalId: number | string) => {
     // Check permission before navigating (matching mobile implementation)
     if (!canViewAnimalDetails()) {
-      Toaster({ type: 'error', message: 'Restricted: You do not have permission to access animal details' })
+      Toaster({ type: 'error', message: t('housing_module.no_animal_permission') })
 
       return
     }
 
-    router.push(`/housing/animals/${animalId}`)
+    router.push(`/animals/${animalId}`)
   }
 
   return (
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Animals'
+      title={t('animals')}
       icon='/images/housing/Enclosure icon.png'
       iconColor={theme.palette.primary.main}
     >
@@ -234,7 +237,7 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
             borderRadius: '8px',
             backgroundColor: theme.palette.customColors?.OnPrimary
           }}
-          placeholder='Search for animals'
+          placeholder={t('housing_module.search_for_animals') as string}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -248,7 +251,7 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
               data={animal as unknown as { [key: string]: unknown }}
               size={14}
               animal={true}
-              backgroundColor=""
+              backgroundColor=''
               sx={{
                 border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 cursor: canViewAnimalDetails() ? 'pointer' : 'default',
@@ -293,13 +296,13 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
 
         {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No animals found
+            {t('housing_module.no_animals_found')}
           </Typography>
         )}
 
         {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more animals to load
+            {t('housing_module.no_more_animals_to_load')}
           </Typography>
         )}
       </Box>

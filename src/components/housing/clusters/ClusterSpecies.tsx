@@ -1,9 +1,10 @@
 import { useTheme } from '@emotion/react'
 import { Box, debounce, Grid, Typography, Theme } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
-import React, { useMemo, useState } from 'react'
-import { getAllAnimalList, getAllSites, getAllSpeciesList } from 'src/lib/api/housing'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { getAllSpeciesList } from 'src/lib/api/housing'
 import RenderUtility, { CellInfo, GenderInfoCard } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -51,7 +52,8 @@ interface PaginationModel {
 }
 
 const ClusterSpecies: React.FC = () => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as Theme
 
@@ -88,7 +90,6 @@ const ClusterSpecies: React.FC = () => {
   })
 
   const speciesListing: SpeciesListItem[] = (data?.data?.listing || []) as SpeciesListItem[]
-  console.log('Species >>', speciesListing)
   const total: number = data?.data?.total_scies_count || 0
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
@@ -142,9 +143,9 @@ const ClusterSpecies: React.FC = () => {
     []
   )
 
-  // useEffect(() => {
-  //   return () => debouncedSearch.cancel()
-  // }, [debouncedSearch])
+  useEffect(() => {
+    return () => debouncedSearch.clear()
+  }, [debouncedSearch])
 
   const handleSearch = (value: string): void => {
     setInputValue(value)
@@ -196,7 +197,7 @@ const ClusterSpecies: React.FC = () => {
       name: row?.common_name || row?.complete_name || '',
       params: {
         id: id,
-        taxonomy_id: row.tsn_id,
+        tsn_id: row.tsn_id,
         cluster_id: id
       }
     })
@@ -212,7 +213,7 @@ const ClusterSpecies: React.FC = () => {
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <Box
@@ -243,7 +244,7 @@ const ClusterSpecies: React.FC = () => {
       field: 'common_name',
       headerAlign: 'left' as const,
       sortable: false,
-      headerName: 'Species',
+      headerName: t('species'),
       renderCell: (params: GridCellParams) => (
         <Box
           sx={{
@@ -270,7 +271,7 @@ const ClusterSpecies: React.FC = () => {
           {
             width: 160,
             field: 'animals',
-            headerName: 'Population',
+            headerName: t('housing_module.population'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -297,7 +298,7 @@ const ClusterSpecies: React.FC = () => {
           {
             width: 160,
             field: 'male',
-            headerName: 'MALE',
+            headerName: t('male'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -312,7 +313,7 @@ const ClusterSpecies: React.FC = () => {
           {
             width: 160,
             field: 'female',
-            headerName: 'FEMALE',
+            headerName: t('female'),
             align: 'left' as const,
             headerAlign: 'left' as const,
             sortable: false,
@@ -327,7 +328,7 @@ const ClusterSpecies: React.FC = () => {
           {
             width: 160,
             field: 'undetermined',
-            headerName: 'UNDETERMINED',
+            headerName: t('housing_module.undetermined'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -355,7 +356,7 @@ const ClusterSpecies: React.FC = () => {
             field: 'indeterminate',
             align: 'left' as const,
             headerAlign: 'left' as const,
-            headerName: 'INDETERMINATE',
+            headerName: t('housing_module.indeterminate'),
             sortable: false,
             renderCell: (params: GridCellParams) => (
               <Box
@@ -402,14 +403,14 @@ const ClusterSpecies: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title='All Species' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

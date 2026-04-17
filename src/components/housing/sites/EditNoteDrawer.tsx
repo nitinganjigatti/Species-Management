@@ -25,6 +25,7 @@ import { fetchUsers } from 'src/store/slices/housing/notesSlice'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import NotifyMembersDrawer from './NotifyMembersDrawer'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import type { User } from 'src/types/housing'
 import type { RootState, AppDispatch } from 'src/store'
@@ -184,6 +185,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Memoized file icons using theme colors
@@ -455,15 +457,15 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
       const response = await editObservation(submitData)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Note updated successfully' })
+        Toaster({ type: 'success', message: t('housing_module.note_updated') })
         handleClose()
         if (onSuccess) onSuccess()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to update note' })
+        Toaster({ type: 'error', message: response?.message || t('housing_module.note_update_failed') })
       }
     } catch (error) {
       console.error('Error updating observation:', error)
-      Toaster({ type: 'error', message: 'Failed to update note' })
+      Toaster({ type: 'error', message: t('housing_module.note_update_failed') })
     } finally {
       setLoading(false)
     }
@@ -580,7 +582,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
             flexShrink: 0
           }}
         >
-          <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>Edit Note</Typography>
+          <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>{t('housing_module.edit_note')}</Typography>
           <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
@@ -787,7 +789,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
               fullWidth
               multiline
               rows={4}
-              placeholder='Enter your notes here...'
+              placeholder={t('housing_module.enter_notes_placeholder') as string}
               value={formData.notes}
               onChange={handleNotesChange}
               error={!!errors.notes}
@@ -819,7 +821,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <PersonAddIcon sx={{ color: theme.palette.text.secondary }} />
-                  <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>Notify Members</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>{t('housing_module.notify_members')}</Typography>
                 </Box>
                 <Switch checked={formData.notifyEnabled} onChange={handleNotifyToggle} />
               </Box>
@@ -848,7 +850,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                         fontSize={24}
                         color={theme.palette.customColors?.OnPrimaryContainer}
                       />
-                      <Typography sx={{ fontWeight: 500, fontSize: '0.9rem' }}>Add members to be notified</Typography>
+                      <Typography sx={{ fontWeight: 500, fontSize: '0.9rem' }}>{t('housing_module.add_members_to_notify')}</Typography>
                     </Box>
                     <Icon icon='mdi:plus-circle' fontSize={22} color={theme.palette.primary.main} />
                   </Box>
@@ -893,8 +895,7 @@ const EditNoteDrawer: React.FC<EditNoteDrawerProps> = ({ open, onClose, note, on
                       }}
                     >
                       <Typography variant='body2' color='text.secondary'>
-                        {formData.notifyMembers.length} member
-                        {formData.notifyMembers.length > 1 ? 's' : ''} to be notified
+                        {formData.notifyMembers.length} {t('housing_module.members_to_notify')}
                       </Typography>
                     </Box>
                   )}

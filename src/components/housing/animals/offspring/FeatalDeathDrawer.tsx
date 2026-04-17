@@ -7,6 +7,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import { useQuery } from '@tanstack/react-query'
 
 import type { StyledTypographyProps } from 'src/types/housing/hospitalTransfer'
+import { useTranslation } from 'react-i18next'
 import { getFetusDetails } from 'src/lib/api/housing'
 
 type FetalDeathDrawerProps = {
@@ -16,6 +17,7 @@ type FetalDeathDrawerProps = {
 }
 const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetusId }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [showMobileNumber, setShowMobileNumber] = useState<boolean>(false)
   const [copied, setCopied] = useState<boolean>(false)
 
@@ -87,7 +89,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                       p: 4
                     }}
                   >
-                    <Typography>Aborted</Typography>
+                    <Typography>{t('animals_module.aborted')}</Typography>
                   </Box>
                   <AnimalCard data={fetusDetailsData} cardType='fetus' />
                 </Box>
@@ -114,7 +116,7 @@ const FetalDeathDrawer: React.FC<FetalDeathDrawerProps> = ({ open, onClose, fetu
                     fontSize={'12px'}
                     color={alpha(theme.palette.customColors?.OnPrimary || theme.palette.text.primary, 0.8)}
                   >
-                    Reported by
+                    {t('animals_module.reported_by')}
                   </StyledTypography>
                   <UserAvatarDetails
                     user_name={fetusDetailsData?.user_full_name}

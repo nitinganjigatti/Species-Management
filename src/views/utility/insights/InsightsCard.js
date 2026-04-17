@@ -10,6 +10,7 @@ import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import InsightsCardSkeleton from './InsightsCardSkeleton'
 import Icon from 'src/@core/components/icon'
 import { AddBoxOutlined, Close, Download } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 
 const InsightsCard = ({
   data,
@@ -35,6 +36,7 @@ const InsightsCard = ({
   editTooltip = 'Edit'
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [qrModalOpen, setQrModalOpen] = useState(false)
 
   const handleDownloadQR = () => {
@@ -62,7 +64,7 @@ const InsightsCard = ({
   if (!data) {
     return (
       <Card sx={{ p: 3 }}>
-        <Typography variant='body1'>No data available.</Typography>
+        <Typography variant='body1'>{t('no_data_available')}</Typography>
       </Card>
     )
   }
@@ -255,7 +257,7 @@ const InsightsCard = ({
             </Box>
 
             <Typography variant='body2' sx={{ color: theme.palette.text.secondary, mb: 3 }}>
-              Scan with the Antz App
+              {t('housing_module.scan_with_antz_app')}
             </Typography>
 
             {/* Download Button */}
@@ -268,7 +270,7 @@ const InsightsCard = ({
                 textTransform: 'none'
               }}
             >
-              Download QR Code
+              {t('housing_module.download_qr_code')}
             </Button>
           </Paper>
         </Modal>

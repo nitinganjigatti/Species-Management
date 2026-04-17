@@ -217,7 +217,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                   color: theme.palette.customColors?.OnSurfaceVariant
                 }}
               >
-                {t('add_users')}
+                {t('housing_module.add_users')}
               </Typography>
             </Box>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -247,7 +247,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Icon icon='mdi:magnify' fontSize={24} color={theme.palette.text.secondary} />
                 <Typography sx={{ color: theme.palette.text.secondary, fontSize: '1rem' }}>
-                  {t('search_people')}
+                  {t('housing_module.search_people')}
                 </Typography>
               </Box>
               {/* <Icon icon='mdi:qrcode-scan' fontSize={24} color={theme.palette.text.secondary} /> */}
@@ -281,7 +281,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                         color: theme.palette.customColors?.OnSurfaceVariant
                       }}
                     >
-                      {t('selected_users')} - {localSelectedMembers.length}
+                      {t('housing_module.selected_users')} - {localSelectedMembers.length}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -338,7 +338,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                     fontSize: '0.875rem'
                   }}
                 >
-                  {t('notes_module.save_new_group')}
+                  {t('housing_module.save_new_group')}
                 </Button>
                 <Button
                   size='small'
@@ -350,7 +350,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                     fontSize: '0.875rem'
                   }}
                 >
-                  {t('notes_module.clear_selection')}
+                  {t('clear_selection')}
                 </Button>
               </Box>
             )}
@@ -365,13 +365,13 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                   mb: 3
                 }}
               >
-                {t('notes_module.pre_defined_groups')}
+                {t('housing_module.predefined_groups')}
               </Typography>
 
               {/* Search Templates */}
               <Box sx={{ mb: 3 }}>
                 <Search
-                  placeholder={t('notes_module.search_groups') as string}
+                  placeholder={t('housing_module.search_groups') as string}
                   value={searchQuery}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                   onClear={() => setSearchQuery('')}
@@ -412,9 +412,7 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
                       fontSize: '0.875rem'
                     }}
                   >
-                    {searchQuery
-                      ? t('notes_module.no_groups_found')
-                      : t('notes_module.no_pre_defined_groups_available')}
+                    {searchQuery ? t('housing_module.no_groups_found') : t('housing_module.no_predefined_groups')}
                   </Typography>
                 </Box>
               ) : (
@@ -534,13 +532,13 @@ const NotifyMembersDrawer: React.FC<NotifyMembersDrawerProps> = ({
               color: theme.palette.customColors?.OnSurfaceVariant
             }}
           >
-            {t('notes_module.enter_new_group_name')}
+            {t('housing_module.enter_group_name')}
           </Typography>
           <TextField
             autoFocus
             fullWidth
             size='small'
-            placeholder={t('notes_module.group_name') as string}
+            placeholder={t('housing_module.group_name') as string}
             value={groupName}
             onChange={e => setGroupName(e.target.value)}
           />

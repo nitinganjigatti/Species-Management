@@ -4,6 +4,7 @@ import { Drawer, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import SiteCard from '../utils/SiteListingCard'
+import { useTranslation } from 'react-i18next'
 import type { Site } from 'src/types/housing'
 
 interface SelectedSitesProps {
@@ -16,6 +17,7 @@ interface SelectedSitesProps {
 
 const SelectedSites: React.FC<SelectedSitesProps> = ({ open, setShowSelectedSitesDrawer, clusterName, selectedSites, onRemoveSite }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   return (
     <Drawer
@@ -56,7 +58,7 @@ const SelectedSites: React.FC<SelectedSitesProps> = ({ open, setShowSelectedSite
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Cluster Icon' width='30px' />
-            <Typography variant='h6'>Selected Sites</Typography>
+            <Typography variant='h6'>{t('housing_module.selected_sites')}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setShowSelectedSitesDrawer(false)}>
@@ -86,7 +88,7 @@ const SelectedSites: React.FC<SelectedSitesProps> = ({ open, setShowSelectedSite
         </Box>
         {/* Selected Sites Count */}
         <Typography variant='subtitle1' sx={{ px: 3, mb: 2, mt: 2 }}>
-          You have selected {selectedSites?.length} site{selectedSites?.length !== 1 ? 's' : ''}
+          {t('housing_module.sites_selected_count', { count: selectedSites?.length })}
         </Typography>
         {/* Selected Sites List or Empty State */}
         <Box sx={{ px: 3, overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column' }}>
@@ -106,7 +108,7 @@ const SelectedSites: React.FC<SelectedSitesProps> = ({ open, setShowSelectedSite
                 style={{ width: 250, marginBottom: 24, opacity: 0.85 }}
               />
               <Typography variant='subtitle1' color='text.secondary'>
-                No sites selected
+                {t('housing_module.no_sites_selected')}
               </Typography>
             </Box>
           ) : (

@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Dialog,
   DialogTitle,
@@ -66,6 +67,7 @@ const ExternalAnimalDetailsDialog: React.FC<ExternalAnimalDetailsDialogProps> = 
   parentType
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   if (!animal) return null
 
@@ -78,12 +80,12 @@ return true
 
   const getSexDisplay = () => {
     const sex = animal.sex?.toLowerCase()
-    if (sex === 'male') return 'Male'
-    if (sex === 'female') return 'Female'
-    if (parentType === 'sire') return 'Male'
-    if (parentType === 'dam') return 'Female'
-    
-return animal.sex || 'Unknown'
+    if (sex === 'male') return t('male')
+    if (sex === 'female') return t('female')
+    if (parentType === 'sire') return t('male')
+    if (parentType === 'dam') return t('female')
+
+return animal.sex || t('animals_module.unknown')
   }
 
   const getIdentifier = () => {
@@ -119,10 +121,10 @@ return 'N/A'
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography sx={{ fontSize: '1.125rem', fontWeight: 600 }}>
-            External Animal Details
+            {t('animals_module.external_animal_details')}
           </Typography>
           <Chip
-            label='EXTERNAL'
+            label={t('animals_module.external')}
             size='small'
             sx={{
               backgroundColor: alpha(theme.palette.warning.main, 0.15),
@@ -158,13 +160,13 @@ return 'N/A'
               color: theme.palette.text.secondary
             }}
           >
-            {getSexDisplay().charAt(0).toUpperCase()}
+            {(getSexDisplay() ?? '').charAt(0).toUpperCase()}
           </Avatar>
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
               {!isAlive() && (
                 <Chip
-                  label='DEAD'
+                  label={t('animals_module.dead')}
                   size='small'
                   sx={{
                     backgroundColor: alpha(theme.palette.error.main, 0.15),
@@ -202,39 +204,39 @@ return 'N/A'
 
         {/* Details Section */}
         <Box sx={{ px: 3, py: 2 }}>
-          <DetailRow label='ID Number' value={getIdentifier()} isHighlighted />
+          <DetailRow label={t('animals_module.id_number')} value={getIdentifier()} isHighlighted />
           <Divider sx={{ my: 0.5 }} />
 
-          <DetailRow label='Sex' value={getSexDisplay()} />
+          <DetailRow label={t('animals_module.sex')} value={getSexDisplay()} />
           <Divider sx={{ my: 0.5 }} />
 
-          <DetailRow label='Status' value={isAlive() ? 'Alive' : 'Dead'} />
+          <DetailRow label={t('status')} value={isAlive() ? t('animals_module.alive') : t('animals_module.dead')} />
           <Divider sx={{ my: 0.5 }} />
 
           {animal.organization_name && (
             <>
-              <DetailRow label='Institute/Organization' value={animal.organization_name} />
+              <DetailRow label={t('animals_module.institute_organization')} value={animal.organization_name} />
               <Divider sx={{ my: 0.5 }} />
             </>
           )}
 
           {animal.locality && (
             <>
-              <DetailRow label='Locality' value={animal.locality} />
+              <DetailRow label={t('animals_module.locality')} value={animal.locality} />
               <Divider sx={{ my: 0.5 }} />
             </>
           )}
 
           {animal.breed_name && (
             <>
-              <DetailRow label='Breed' value={animal.breed_name} />
+              <DetailRow label={t('animals_module.breed')} value={animal.breed_name} />
               <Divider sx={{ my: 0.5 }} />
             </>
           )}
 
           {animal.morph_name && (
             <>
-              <DetailRow label='Morph/Variant' value={animal.morph_name} />
+              <DetailRow label={t('animals_module.morph_variant')} value={animal.morph_name} />
               <Divider sx={{ my: 0.5 }} />
             </>
           )}
@@ -249,7 +251,7 @@ return 'N/A'
                   mb: 1
                 }}
               >
-                Notes
+                {t('notes')}
               </Typography>
               <Typography
                 sx={{

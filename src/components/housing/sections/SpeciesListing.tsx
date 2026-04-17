@@ -1,7 +1,8 @@
 import { useTheme, Theme } from '@emotion/react'
 import { Box, Grid, Typography } from '@mui/material'
-import { useRouter, NextRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useMemo, useState, useEffect, ChangeEvent, MouseEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
 
@@ -67,8 +68,9 @@ interface PaginationModel {
 }
 
 const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
-  const router: NextRouter = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
 
   const [filters, setFilters] = useState<SpeciesFilters>({
@@ -87,7 +89,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   const { data, isLoading } = useQuery({
-    queryKey: ['species', id, filters],
+    queryKey: ['section-species', id, filters],
     queryFn: () =>
       getAllSpeciesList({
         section_id: Number(id),
@@ -176,7 +178,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
     {
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no') as string,
       align: 'left',
       headerAlign: 'left',
       sortable: false,
@@ -207,7 +209,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
       width: 350,
       field: 'common_name',
       headerAlign: 'left',
-      headerName: 'Species',
+      headerName: t('species') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <SpeciesCard
@@ -224,7 +226,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'animals',
-            headerName: 'Population',
+            headerName: t('housing_module.population'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -246,7 +248,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
                     name: params.row.common_name,
                     image: params.row.images?.[0]?.file,
                     params: {
-                      taxonomy_id: params.row.id,
+                      tsn_id: params.row.id,
                       section_id: id
                     }
                   })
@@ -268,7 +270,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'male',
-            headerName: 'MALE',
+            headerName: t('male'),
             headerAlign: 'center' as const,
             align: 'center' as const,
             sortable: false,
@@ -283,7 +285,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'female',
-            headerName: 'FEMALE',
+            headerName: t('female'),
             headerAlign: 'center' as const,
             align: 'center' as const,
             sortable: false,
@@ -298,7 +300,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
           {
             width: 160,
             field: 'undetermined',
-            headerName: 'UNDETERMINED',
+            headerName: t('housing_module.undetermined'),
             headerAlign: 'center' as const,
             align: 'center' as const,
             sortable: false,
@@ -315,7 +317,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
             field: 'indeterminate',
             headerAlign: 'center' as const,
             align: 'center' as const,
-            headerName: 'INDETERMINATE',
+            headerName: t('housing_module.indeterminate'),
             sortable: false,
             renderCell: (params: GridCellParams) => (
               <GenderInfoCard
@@ -351,14 +353,14 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
 
   return (
     <>
-      <ListingHeader title='All Species' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

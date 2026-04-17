@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { Box, Grid, Typography, Tabs, Tab, CircularProgress, Button } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 
@@ -26,7 +26,7 @@ const MediaListing: React.FC = () => {
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
   const [addMediaDrawerOpen, setAddMediaDrawerOpen] = useState<boolean>(false)
-  const { id } = useRouter().query
+  const { id } = useSafeRouter().query
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 

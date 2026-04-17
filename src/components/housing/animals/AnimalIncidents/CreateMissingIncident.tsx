@@ -23,6 +23,7 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { AuthContext } from 'src/context/AuthContext'
 import { createAnimalIncident, updateAnimalIncident } from 'src/lib/api/housing'
+import { useTranslation } from 'react-i18next'
 
 interface ReportedByUser {
   user_id: string
@@ -106,6 +107,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
   fetchAnimalIncidents
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const authData = useContext(AuthContext)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const timeInputRef = useRef<HTMLInputElement>(null)
@@ -346,7 +348,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
             whiteSpace: 'nowrap'
           }}
         >
-          Report Escaped/missing
+          {t('animals_module.report_escaped_missing')}
         </Typography>
       </Box>
       <IconButton
@@ -414,7 +416,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Missing Since
+                  {t('animals_module.missing_since')}
                 </Typography>
 
                 <Box
@@ -458,7 +460,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Missing Reported by
+                  {t('animals_module.missing_reported_by')}
                 </Typography>
 
                 <Box
@@ -480,8 +482,8 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     isOptionEqualToValue={(option: any, value: any) =>
                       option?.user_id ? option?.user_id === value?.user_id : false
                     }
-                    label='Reported by *'
-                    placeholder='Search & Select'
+                    label={t('animals_module.reported_by') as string}
+                    placeholder={t('search_and_select') as string}
                     errors={errors}
                     required
                     sx={{
@@ -501,7 +503,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Notes
+                  {t('notes')}
                 </Typography>
 
                 <Box
@@ -521,8 +523,8 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     rules={{ required: true }}
                     multiline
                     rows={3}
-                    label='Write notes here'
-                    placeholder='Write notes here'
+                    label={t('animals_module.write_notes_placeholder') as string}
+                    placeholder={t('animals_module.write_notes_placeholder') as string}
                     errors={errors}
                     sx={{
                       ...basicStyle
@@ -568,7 +570,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                                 color: theme.palette.customColors.OnSurfaceVariant60
                               }}
                             >
-                              Drop your image here
+                              {t('drop_image_here')}
                             </Typography>
                           </Box>
                         </>
@@ -635,7 +637,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Additional Information
+                  {t('animals_module.additional_information')}
                 </Typography>
 
                 <Box
@@ -654,8 +656,8 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     control={control}
                     rules={{ required: true }}
                     sx={{ ...basicStyle }}
-                    label='Last Seen/Escaped From'
-                    placeholder='Last Seen/Escaped From'
+                    label={t('animals_module.last_seen_escaped_from') as string}
+                    placeholder={t('animals_module.last_seen_escaped_from') as string}
                     errors={errors}
                     helperText={(errors as any).last_seen?.message}
                   />
@@ -665,8 +667,8 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     control={control}
                     rules={{ required: true }}
                     sx={{ ...basicStyle }}
-                    label='Animal Behaviour Before Incident'
-                    placeholder='Animal Behaviour Before Incident'
+                    label={t('animals_module.animal_behaviour_before_incident') as string}
+                    placeholder={t('animals_module.animal_behaviour_before_incident') as string}
                     errors={errors}
                     helperText={(errors as any).animal_behaviour_before_incident?.message}
                   />
@@ -676,8 +678,8 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     control={control}
                     rules={{ required: true }}
                     sx={{ ...basicStyle }}
-                    label='Actions Taken'
-                    placeholder='Actions Taken'
+                    label={t('animals_module.actions_taken') as string}
+                    placeholder={t('animals_module.actions_taken') as string}
                     errors={errors}
                     helperText={(errors as any).action_taken?.message}
                   />
@@ -687,8 +689,8 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
                     control={control}
                     rules={{ required: true }}
                     sx={{ ...basicStyle }}
-                    label='Steps to Prevent Future Incidents'
-                    placeholder='Steps to Prevent Future Incidents'
+                    label={t('animals_module.steps_to_prevent_incidents') as string}
+                    placeholder={t('animals_module.steps_to_prevent_incidents') as string}
                     errors={errors}
                     helperText={(errors as any).steps_to_prevent?.message}
                   />
@@ -724,7 +726,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
             disabled={uploadingAttachment}
             loading={uploadingAttachment}
           >
-            Submit
+            {t('submit')}
           </LoadingButton>
         </Box>
       </form>

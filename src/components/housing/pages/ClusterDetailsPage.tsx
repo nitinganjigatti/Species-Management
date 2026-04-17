@@ -1,20 +1,27 @@
+'use client'
+
 import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import ClusterSites from 'src/components/housing/clusters/ClusterSites'
 import ClusterSpecies from 'src/components/housing/clusters/ClusterSpecies'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { useAuth } from 'src/hooks/useAuth'
 import { getSpecificClusterAnalytics } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import AddCluster from 'src/views/pages/housing/AddCluster/AddCluster'
+import { useRouter } from 'next/navigation'
+import useTabSync from 'src/hooks/useTabSync'
+
+interface ClusterDetailsPageProps {
+  id: string
+}
 
 interface TabConfigItem {
-  label: string
+  labelKey: string
   value: string
   component: React.ComponentType<any>
 }
@@ -24,7 +31,7 @@ interface DrawerData {
   id: string | undefined
   name?: string
   params: {
-    cluster_id?: string | string[] | undefined
+    cluster_id?: string | undefined
   }
 }
 
@@ -36,34 +43,28 @@ interface StatItem {
 }
 
 const tabConfig: TabConfigItem[] = [
-  { label: 'Sites', value: 'sites', component: ClusterSites },
-  { label: 'Species', value: 'species', component: ClusterSpecies },
-  { label: 'Incharges', value: 'incharges', component: InchargeListing }
+  { labelKey: 'housing_module.sites', value: 'sites', component: ClusterSites },
+  { labelKey: 'species', value: 'species', component: ClusterSpecies },
+  { labelKey: 'housing_module.incharges', value: 'incharges', component: InchargeListing }
 ]
 
-const ClusterDetails: React.FC = () => {
+const ClusterDetailsPage: React.FC<ClusterDetailsPageProps> = ({ id }) => {
+  const { t } = useTranslation()
   const router = useRouter()
-  const { id } = router.query as { id?: string }
 
   const auth = useAuth()
 
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
-  // Permission check for edit/delete cluster - matches mobile: manage_cluster_permission
-  // Mobile uses hierarchical permission values: "VIEW", "ADD", "EDIT", "DELETE"
-  // - EDIT action requires permission value "EDIT" or "DELETE"
-  // - DELETE action requires permission value "DELETE"
   const manageClusterPermissionValue =
     (auth as any)?.userData?.permission?.user_settings?.manage_cluster_permission ||
     (auth as any)?.userData?.roles?.settings?.manage_cluster_permission
 
-  // Check if user can edit (permission is "EDIT" or "DELETE")
   const canEditCluster = manageClusterPermissionValue === 'EDIT' || manageClusterPermissionValue === 'DELETE'
-  // Check if user can delete (permission is "DELETE")
   const canDeleteCluster = manageClusterPermissionValue === 'DELETE'
 
-  const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
+  const [selectedTab, setSelectedTab] = useTabSync(tabConfig[0].value)
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
   const [showEditClusterDrawer, setShowEditClusterDrawer] = useState<boolean>(false)
@@ -78,12 +79,6 @@ const ClusterDetails: React.FC = () => {
   })
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string): void => {
-    // Find reset action for previous tab
-    // const prevTab = tabConfig.find(tab => tab.value === selectedTab)
-    // if (prevTab?.resetAction) {
-    //   dispatch(prevTab.resetAction())
-    // }
-
     setSelectedTab(newValue)
   }
 
@@ -95,7 +90,6 @@ const ClusterDetails: React.FC = () => {
 
       name: data?.data?.cluster_name,
 
-      // image: params.row?.images?.[0]?.file,
       params: {
         cluster_id: id
       }
@@ -111,19 +105,19 @@ const ClusterDetails: React.FC = () => {
 
   const statsData: StatItem[] = [
     {
-      label: 'Species',
+      label: t('species'),
       value: clusterStats?.species || 0,
       imagePath: '/images/housing/species.svg',
       onClick: () => setSelectedTab('species')
     },
     {
-      label: 'Animals',
+      label: t('animals'),
       value: clusterStats?.animals || 0,
       imagePath: '/images/housing/animals.svg',
       onClick: handleAmimalsInsightClick
     },
     {
-      label: 'Sites',
+      label: t('housing_module.sites'),
       value: clusterStats?.sites || 0,
       imagePath: '/images/housing/Site.svg',
       onClick: () => setSelectedTab('sites')
@@ -135,59 +129,17 @@ const ClusterDetails: React.FC = () => {
   }
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
-  const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
-
-  useEffect(() => {
-    // Updating URL with tab parameter when tab changes
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: selectedTab }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }, [selectedTab])
-
-  // To read the tab parameter on component mount
-  useEffect(() => {
-    if (router.query.tab) {
-      setSelectedTab(router.query.tab as string)
-    }
-  }, [router.query.tab])
+  const SelectedComponent = selected?.component || (() => <Box>{t('no_component_found')}</Box>)
 
   return (
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
-            Cluster
+            {t('housing_module.cluster')}
           </Typography>
-          <Typography color='text.primary'>Cluster Details</Typography>
+          <Typography color='text.primary'>{t('housing_module.cluster_details')}</Typography>
         </Breadcrumbs>
-        {/* <InsightsCard
-        data={data?.data}
-        loading={isLoading}
-        zooName={data?.data?.cluster_name}
-        userName={data?.data?.cluster_incharge}
-        // image={data?.data?.images[0]?.file && data?.data?.images[0]?.file}
-        error={error}
-        speciesCount={data?.data?.cluster_stats?.species}
-        animalCount={data?.data?.cluster_stats?.animals}
-        onCallClick={() => {
-          const phoneNumber = data?.data?.incharge_mobile_no || ''
-          if (phoneNumber) {
-            // window.location.href = `tel:${phoneNumber}`
-          } else {
-            return
-          }
-        }}
-        onInfoClick={{
-          species: () => setSelectedTab('species'),
-          sites: () => console.log('sites'),
-          sections: () => console.log('sections')
-        }}
-      /> */}
         <InsightsCard
           data={data?.data as any}
           loading={isLoading}
@@ -195,7 +147,7 @@ const ClusterDetails: React.FC = () => {
           image={(data?.data as any)?.images?.[0]?.file}
           userName={(data?.data as any)?.cluster_incharge}
           userImage={(data?.data as any)?.incharge_image}
-          pageTitle='Cluster Details'
+          pageTitle={t('housing_module.cluster_details')}
           subtitle=''
           description=''
           error={error}
@@ -203,7 +155,7 @@ const ClusterDetails: React.FC = () => {
           actions={{
             onEdit: canEditCluster ? () => setShowEditClusterDrawer(true) : null
           }}
-          editTooltip='Edit cluster'
+          editTooltip={t('housing_module.edit_cluster') as string}
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_mobile_no || ''
             if (phoneNumber) {
@@ -224,7 +176,7 @@ const ClusterDetails: React.FC = () => {
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
               {tabConfig.map(tab => (
-                <Tab key={tab.value} label={tab.label} value={tab.value} />
+                <Tab key={tab.value} label={t(tab.labelKey)} value={tab.value} />
               ))}
             </Tabs>
           </Box>
@@ -271,4 +223,4 @@ const ClusterDetails: React.FC = () => {
   )
 }
 
-export default enforceModuleAccess(ClusterDetails, 'enable_housing_in_web')
+export default ClusterDetailsPage

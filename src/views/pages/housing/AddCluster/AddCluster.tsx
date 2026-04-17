@@ -14,7 +14,8 @@ import toast from 'react-hot-toast'
 import SelectedSites from './SelectedSites'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 import type { Site } from 'src/types/housing'
 
 interface ClusterData {
@@ -28,14 +29,14 @@ interface AddClusterProps {
   open: boolean
   setShowDrawer: (open: boolean) => void
   refetchCluster: () => void
-  clusterData?: ClusterData | null  // If provided, drawer is in edit mode
-  canDelete?: boolean  // Permission to delete cluster (only for edit mode)
+  clusterData?: ClusterData | null // If provided, drawer is in edit mode
+  canDelete?: boolean // Permission to delete cluster (only for edit mode)
 }
 
 interface FormData {
   clusterName: string
   clusterDescription: string
-  images: (File | string)[]  // Can be File objects or URL strings for existing images
+  images: (File | string)[] // Can be File objects or URL strings for existing images
   selectedSites: number[]
 }
 
@@ -45,10 +46,17 @@ interface PageData {
   total: number
 }
 
-const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchCluster, clusterData, canDelete = true }) => {
+const AddCluster: React.FC<AddClusterProps> = ({
+  open,
+  setShowDrawer,
+  refetchCluster,
+  clusterData,
+  canDelete = true
+}) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
-  const router = useRouter()
+  const router = useSafeRouter()
+  const { t } = useTranslation()
 
   const PAGE_SIZE = 10
   const isEditMode = !!clusterData
@@ -282,10 +290,10 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
           cluster_image: newImages.length > 0 ? newImages : undefined
         }
 
-        const response = await editCluster(payload) as any
+        const response = (await editCluster(payload)) as any
 
         if (response?.success) {
-          Toaster({ type: 'success', message: 'Cluster Updated Successfully' })
+          Toaster({ type: 'success', message: t('housing_module.cluster_updated') })
           handleDrawerClose()
           refetchCluster()
         } else {
@@ -324,10 +332,10 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
 
     setDeleteLoading(true)
     try {
-      const response = await deleteCluster({ cluster_id: clusterData.cluster_id }) as any
+      const response = (await deleteCluster({ cluster_id: clusterData.cluster_id })) as any
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Cluster Deleted Successfully' })
+        Toaster({ type: 'success', message: t('housing_module.cluster_deleted') })
         setShowDeleteDialog(false)
         handleDrawerClose()
         router.push('/housing/cluster')
@@ -406,7 +414,7 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
             <Box sx={{ px: 5, py: 4 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
-                  Cluster Name & Image
+                  {t('housing_module.cluster_name_image')}
                 </Typography>
 
                 <Box
@@ -427,11 +435,11 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                     render={({ field, fieldState: { error } }) => (
                       <TextField
                         {...field}
-                        label='Enter Cluster Name'
+                        label={t('housing_module.enter_cluster_name')}
                         variant='outlined'
                         fullWidth
                         sx={{ mb: 4 }}
-                        placeholder='Enter Cluster Name'
+                        placeholder={t('housing_module.enter_cluster_name') as string}
                         error={!!error}
                         helperText={error ? error.message : null}
                       />
@@ -443,13 +451,13 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                     render={({ field }) => (
                       <TextField
                         {...field}
-                        label='Description'
+                        label={t('description')}
                         variant='outlined'
                         fullWidth
                         multiline
                         rows={3}
                         sx={{ mb: 4 }}
-                        placeholder='Enter description (optional)'
+                        placeholder={t('housing_module.enter_description_optional') as string}
                       />
                     )}
                   />
@@ -552,7 +560,7 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                           >
                             <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
                             <Typography variant='body2' color='textSecondary' sx={{ fontWeight: 400 }}>
-                              Drop your images here
+                              {t('drop_images_here')}
                             </Typography>
                           </Box>
 
@@ -586,10 +594,10 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
                       }}
                     >
                       <Typography variant='h6' sx={{ color: 'text.secondary' }}>
-                        All Sites ({total})
+                        {t('housing_module.all_sites')} ({total})
                       </Typography>
                       <Search
-                        placeholder='Search for sites'
+                        placeholder={t('housing_module.search_sites') as string}
                         value={localSearch}
                         onChange={handleSearchChange}
                         onClear={handleSearchClear}
@@ -623,13 +631,13 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
 
                       {!isFetching && list.length === 0 && (
                         <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-                          No Site found
+                          {t('housing_module.no_site_found')}
                         </Typography>
                       )}
 
                       {!hasNextPage && list.length > 0 && (
                         <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                          No more sites to load
+                          {t('housing_module.no_more_sites')}
                         </Typography>
                       )}
                     </Box>
@@ -686,7 +694,7 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
               onClick={handleSubmit(onSubmit)}
               disabled={(!isEditMode && selectedSites.length === 0) || loading}
             >
-              {loading ? <CircularProgress size={24} color='inherit' /> : isEditMode ? 'UPDATE' : 'ADD'}
+              {loading ? <CircularProgress size={24} color='inherit' /> : isEditMode ? t('update') : t('add')}
             </Button>
           </Box>
         </Box>
@@ -705,8 +713,8 @@ const AddCluster: React.FC<AddClusterProps> = ({ open, setShowDrawer, refetchClu
         <ConfirmationDialog
           dialogBoxStatus={showDeleteDialog}
           onClose={() => setShowDeleteDialog(false)}
-          title='Delete Cluster'
-          description='Are you sure you want to delete this cluster? This action cannot be undone.'
+          title={t('housing_module.delete_cluster')}
+          description={t('housing_module.confirm_delete_cluster')}
           image='/images/warning-icon.svg'
           imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}
           confirmAction={handleDeleteCluster}

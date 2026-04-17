@@ -1,6 +1,7 @@
-import { Box, Breadcrumbs, Typography, Tabs, Tab, Card, CircularProgress, useTheme } from '@mui/material'
-import { useRouter } from 'next/router'
+import { Box, Breadcrumbs, Typography, Card, CircularProgress, useTheme } from '@mui/material'
+import { useRouter } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
+import useTabSync from 'src/hooks/useTabSync'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 // Listing Components
@@ -23,13 +24,14 @@ import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
 import AddSiteDrawer from 'src/views/pages/housing/sites/AddSiteDrawer'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import InchargeListing from 'src/components/housing/sites/InchargeListing'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
+import { useTranslation } from 'react-i18next'
 
 interface TabConfigItem {
-  label: string
+  labelKey: string
   value: string
   component: React.ComponentType<any>
   requiresSetting?: string
@@ -55,45 +57,58 @@ interface StatItem {
   onClick?: () => void
 }
 
+interface SiteDetailsPageProps {
+  id: string
+}
+
 // Tab order matches mobile implementation (SiteDetails.js)
 // Permission checks match mobile: collection_animal_records, access_mortality_module, approval_move_animal_external, medical_records
 const allTabConfig: TabConfigItem[] = [
-  { label: 'Sections', value: 'sections', component: SectionListing },
-  { label: 'Species', value: 'species', component: SpeciesListing, requiresPermission: 'collection_animal_records' },
+  { labelKey: 'sections', value: 'sections', component: SectionListing },
   {
-    label: 'Animals Under Treatment',
-    value: 'animalTreatment',
-    component: AnimalTreatmentListing
+    labelKey: 'species',
+    value: 'species',
+    component: SpeciesListing,
+    requiresPermission: 'collection_animal_records'
   },
-  { label: 'Notes', value: 'notes', component: NotesListing },
-  { label: 'Assessment', value: 'assessment', component: EntityAssessment },
-  // TODO: Uncomment when Medical tab component is implemented
-  // { label: 'Medical', value: 'medical', component: MedicalListing, requiresPermission: 'medical_records' },
+  { labelKey: 'housing_module.animals_under_treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
+  { labelKey: 'notes', value: 'notes', component: NotesListing },
+  { labelKey: 'housing_module.assessment', value: 'assessment', component: EntityAssessment },
   {
-    label: 'Animal Transfer',
+    labelKey: 'housing_module.animal_transfer',
     value: 'animalTransfer',
     component: AnimalTransferListing,
     requiresPermission: 'approval_move_animal_external'
   },
-  { label: 'Teams', value: 'teams', component: TeamsListing, requiresSetting: 'ANIMAL_TRANSFER_REQUIRES_APPROVAL' },
-  { label: 'Media', value: 'media', component: MediaListing },
-  { label: 'Users', value: 'users', component: UsersListing },
-  { label: 'Incharges', value: 'incharges', component: InchargeListing },
-  { label: 'Mortality', value: 'mortality', component: MortalityListing, requiresPermission: 'access_mortality_module' },
-  { label: 'Food Wastage', value: 'foodWastage', component: FoodWastageListing },
   {
-    label: 'Hospital Transfer',
+    labelKey: 'housing_module.teams',
+    value: 'teams',
+    component: TeamsListing,
+    requiresSetting: 'ANIMAL_TRANSFER_REQUIRES_APPROVAL'
+  },
+  { labelKey: 'media', value: 'media', component: MediaListing },
+  { labelKey: 'lab_module.users', value: 'users', component: UsersListing },
+  { labelKey: 'housing_module.incharges', value: 'incharges', component: InchargeListing },
+  {
+    labelKey: 'navigation.mortality',
+    value: 'mortality',
+    component: MortalityListing,
+    requiresPermission: 'access_mortality_module'
+  },
+  { labelKey: 'housing_module.food_wastage', value: 'foodWastage', component: FoodWastageListing },
+  {
+    labelKey: 'housing_module.hospital_transfer',
     value: 'hospitalTransfer',
     component: HospitalTransferListing,
     requiresPermission: 'approval_move_animal_external'
   }
 ]
 
-const SiteDetails: React.FC = () => {
+const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({ id }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { id } = router.query as { id?: string }
   const auth = useAuth()
+  const { t } = useTranslation()
 
   // Entity permission check states
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
@@ -115,14 +130,12 @@ const SiteDetails: React.FC = () => {
   // Filter tabs based on settings and permissions
   const tabConfig = useMemo(() => {
     return allTabConfig.filter(tab => {
-      // Check setting requirement
       if (tab.requiresSetting) {
         if (settings?.[tab.requiresSetting] !== true) {
           return false
         }
       }
 
-      // Check permission requirement
       if (tab.requiresPermission) {
         if (permissions?.[tab.requiresPermission] !== true) {
           return false
@@ -133,7 +146,8 @@ const SiteDetails: React.FC = () => {
     })
   }, [settings, permissions])
 
-  const [selectedTab, setSelectedTab] = useState<string>(allTabConfig[0].value)
+  const availableTabs = useMemo(() => tabConfig.map(t => t.value), [tabConfig])
+  const [selectedTab, setSelectedTab] = useTabSync(allTabConfig[0].value, availableTabs)
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
   const [showAddSectionDrawer, setShowAddSectionDrawer] = useState<boolean>(false)
@@ -151,19 +165,13 @@ const SiteDetails: React.FC = () => {
 
   const siteData = data?.data as any
 
-  // Check if user is site incharge (matching mobile implementation: siteDetailsData?.site_incharge?.includes(loggedin_user_id))
+  // Check if user is site incharge
   const isSiteIncharge = siteData?.incharges?.some((incharge: any) => incharge?.user_id === loggedInUserId)
 
   // User can edit/delete site if they have add_sites permission OR are a site incharge
   const canEditSite = addSitesAccess || isSiteIncharge
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string): void => {
-    // Find reset action for previous tab
-    // const prevTab = tabConfig.find(tab => tab.value === selectedTab)
-    // if (prevTab?.resetAction) {
-    //   dispatch(prevTab.resetAction())
-    // }
-
     setSelectedTab(newValue)
   }
 
@@ -172,9 +180,6 @@ const SiteDetails: React.FC = () => {
     setDrawerData({
       queryKey: 'insights-enclosures-section-drawer',
       id: zooId,
-
-      // name: params.row?.site_name,
-      // image: params.row?.images?.[0]?.file,
       params: {
         ref_type: 'zoo',
         data_type: 'enclosure',
@@ -189,12 +194,9 @@ const SiteDetails: React.FC = () => {
     setDrawerData({
       queryKey: 'insights-animals-section-drawer',
       id: zooId,
-
       name: data?.data?.site_name,
-
-      // image: params.row?.images?.[0]?.file,
       params: {
-        site_id: id
+        site_id: [id]
       }
     })
   }
@@ -206,26 +208,26 @@ const SiteDetails: React.FC = () => {
 
   const statsData: StatItem[] = [
     {
-      label: 'Species',
+      label: t('species'),
       value: siteData?.species_count || 0,
       imagePath: '/images/housing/species.svg',
       onClick: () => setSelectedTab('species')
     },
     {
-      label: 'Animals',
+      label: t('animals'),
       value: siteData?.animal_count || 0,
       imagePath: '/images/housing/animals.svg',
       onClick: handleAmimalsInsightClick
     },
     {
-      label: 'Sections',
+      label: t('sections'),
       value: siteData?.section_count || 0,
       imagePath: '/images/housing/sections.svg',
       onClick: () => setSelectedTab('sections')
     },
 
     {
-      label: 'Enclosures',
+      label: t('enclosures'),
       value: siteData?.enclosure_count || 0,
       imagePath: '/images/housing/enclosures.svg',
       onClick: handleEnclosureInsightClick
@@ -237,34 +239,7 @@ const SiteDetails: React.FC = () => {
   }
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
-  const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
-
-  useEffect(() => {
-    // Updating URL with tab parameter when tab changes
-    router.push(
-      {
-        pathname: router.pathname,
-        query: { ...router.query, tab: selectedTab }
-      },
-      undefined,
-      { shallow: true }
-    )
-  }, [selectedTab])
-
-  // To read the tab parameter on component mount
-  useEffect(() => {
-    if (router.query.tab) {
-      setSelectedTab(router.query.tab as string)
-    }
-  }, [router.query.tab])
-
-  // Reset to first available tab if selected tab becomes unavailable due to permissions
-  useEffect(() => {
-    const isSelectedTabAvailable = tabConfig.some(tab => tab.value === selectedTab)
-    if (!isSelectedTabAvailable && tabConfig.length > 0) {
-      setSelectedTab(tabConfig[0].value)
-    }
-  }, [tabConfig, selectedTab])
+  const SelectedComponent = selected?.component || (() => <Box>{t('no_component_found')}</Box>)
 
   // Fetch entity permission check
   useEffect(() => {
@@ -329,9 +304,9 @@ const SiteDetails: React.FC = () => {
         {/* Breadcrumb */}
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
           <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleBreadcrumbClick}>
-            Sites
+            {t('housing_module.sites')}
           </Typography>
-          <Typography color='text.primary'>Site Details</Typography>
+          <Typography color='text.primary'>{t('housing_module.site_details')}</Typography>
         </Breadcrumbs>
 
         {/* Insights */}
@@ -345,13 +320,13 @@ const SiteDetails: React.FC = () => {
           description={siteData?.incharges?.[0]?.role_name}
           haveInsightsViewAccess={insightsViewAccess}
           userImage={siteData?.incharges?.[0]?.user_profile_pic}
-          pageTitle='Site Details'
+          pageTitle={t('housing_module.site_details')}
           actions={{
             onAddNew: addSectionAccess ? () => setShowAddSectionDrawer(true) : null,
             onEdit: canEditSite ? () => setShowEditSiteDrawer(true) : null
           }}
-          addNewTooltip='Add new section'
-          editTooltip='Edit site'
+          addNewTooltip={t('housing_module.add_new_section') as string}
+          editTooltip={t('housing_module.edit_site') as string}
           onCallClick={() => {
             const phoneNumber = siteData?.incharges?.[0]?.user_mobile_number || ''
             if (phoneNumber) {
@@ -372,13 +347,7 @@ const SiteDetails: React.FC = () => {
 
         {/* Tabs */}
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-              {tabConfig.map(tab => (
-                <Tab key={tab.value} label={tab.label} value={tab.value} />
-              ))}
-            </Tabs>
-          </Box>
+          <TabsWithMenu tabs={tabConfig} selectedTab={selectedTab} onTabChange={handleTabChange} />
 
           {/* Selected Tab Content */}
           <Box>
@@ -396,7 +365,7 @@ const SiteDetails: React.FC = () => {
               settings={settings}
               entityName={siteData?.site_name}
               entityImage={siteData?.images?.find((img: any) => img?.display_type === 'banner')?.file}
-              entityType="site"
+              entityType='site'
               entityId={id || ''}
               entityDetails={siteData}
             />
@@ -429,21 +398,25 @@ const SiteDetails: React.FC = () => {
           open={showEditSiteDrawer}
           setSiteDrawer={setShowEditSiteDrawer}
           refetch={refetch}
-          siteData={siteData ? {
-            site_id: Number(id),
-            site_name: siteData.site_name,
-            site_description: siteData.site_description,
-            latitude: siteData.latitude,
-            longitude: siteData.longitude,
-            images: siteData.images
-          } : null}
+          siteData={
+            siteData
+              ? {
+                  site_id: Number(id),
+                  site_name: siteData.site_name,
+                  site_description: siteData.site_description,
+                  latitude: siteData.latitude,
+                  longitude: siteData.longitude,
+                  images: siteData.images
+                }
+              : null
+          }
         />
       )}
       {showAccessRestricted && (
         <ConfirmationDialog
           dialogBoxStatus={showAccessRestricted}
           onClose={() => setShowAccessRestricted(false)}
-          title={'Access Restricted'}
+          title={t('housing_module.access_restricted')}
           cancelBtnStyle={{
             borderColor: theme.palette.grey[500],
             color: theme.palette.grey[700]
@@ -458,14 +431,14 @@ const SiteDetails: React.FC = () => {
             p: 4
           }}
           confirmAction={handleAccessRestrictedConfirmation}
-          ConfirmationText={'OK'}
+          ConfirmationText={t('ok')}
           description={
             <Box>
               <Typography variant='body1' sx={{ mb: 1 }}>
-                You don't have permission to access this site.
+                {t('housing_module.you_dont_have_permission_to_access_this_site')}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                Please contact your administrator or request access to proceed.
+                {t('housing_module.please_contact_your_administrator_or_request_access_to_proceed')}
               </Typography>
             </Box>
           }
@@ -476,4 +449,4 @@ const SiteDetails: React.FC = () => {
   )
 }
 
-export default enforceModuleAccess(SiteDetails, 'enable_housing_in_web')
+export default SiteDetailsPage

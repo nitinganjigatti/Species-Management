@@ -3,7 +3,7 @@ import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter, NextRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
 import { getEnclosureWiseSpecies } from 'src/lib/api/housing'
 import { GenderInfoCard } from 'src/utility/render'
@@ -15,6 +15,7 @@ import AnimalDrawer from '../utils/AnimalDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import type { DrawerData, DrawerType } from 'src/types/housing'
 import type { GridSortModel, GridCellParams, GridColDef } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface EnclosureWiseSpeciesProps {
   drawerType: DrawerType
@@ -73,8 +74,9 @@ interface AnimalDrawerData {
 }
 
 const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
-  const router: NextRouter = useRouter()
+  const router: any = useSafeRouter()
   const { id } = router.query
 
   const [inputValue, setInputValue] = useState<string>('')
@@ -110,7 +112,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
   })
 
   const listing: SpeciesRow[] = (data?.data?.listing || []) as unknown as SpeciesRow[]
-  const total: number = data?.data?.listing?.length || 0
+  const total: number = data?.data?.total_count || data?.data?.total_scies_count || listing.length
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
 
@@ -181,7 +183,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
     {
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <Box
@@ -211,7 +213,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
       width: 350,
       field: 'common_name',
       headerAlign: 'left',
-      headerName: 'Species',
+      headerName: t('species') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <Box
@@ -238,7 +240,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
           {
             width: 180,
             field: 'animals',
-            headerName: 'Population',
+            headerName: t('housing_module.population') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -263,7 +265,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
                     image: params.row.default_icon,
                     params: {
                       enclosure_id: id,
-                      taxonomy_id: params.row.tsn_id
+                      tsn_id: params.row.tsn_id
                     }
                   })
                   setTotalCount(params.row.animal_count || 0)
@@ -284,7 +286,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
           {
             width: 160,
             field: 'male',
-            headerName: 'MALE',
+            headerName: t('male') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -309,7 +311,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
           {
             width: 160,
             field: 'female',
-            headerName: 'FEMALE',
+            headerName: t('female') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -334,7 +336,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
           {
             width: 160,
             field: 'undetermined',
-            headerName: 'UNDETERMINED',
+            headerName: t('housing_module.undetermined') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -359,7 +361,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
           {
             width: 160,
             field: 'indeterminate',
-            headerName: 'INDETERMINATE',
+            headerName: t('housing_module.indeterminate') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -406,8 +408,6 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
   //   })
   // }
 
-  console.log(drawerData)
-
   // const handleClose = () => {
   //   setOpenDrawer(false)
   //   setDrawerData(null)
@@ -415,14 +415,14 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
 
   return (
     <>
-      <ListingHeader title='All Species' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

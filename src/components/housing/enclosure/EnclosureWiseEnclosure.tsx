@@ -3,7 +3,7 @@ import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter, NextRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent } from 'react'
 import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
@@ -12,6 +12,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import type { GridSortModel, GridCellParams, GridColDef, GridRowParams } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface EnclosureFilters {
   page: number
@@ -43,8 +44,9 @@ interface PaginationModel {
 }
 
 const EnclosureWiseEnclosure: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
-  const router: NextRouter = useRouter()
+  const router: any = useSafeRouter()
   const { id } = router.query
 
   const [inputValue, setInputValue] = useState<string>('')
@@ -117,13 +119,16 @@ const EnclosureWiseEnclosure: React.FC = () => {
   const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: EnclosureFilters = {
-          ...filters,
-          search: value,
-          page: 1
-        }
-        setFilters(updated)
-        updateUrlParams(updated)
+        setFilters(prev => {
+          const updated: EnclosureFilters = {
+            ...prev,
+            search: value,
+            page: 1
+          }
+          updateUrlParams(updated)
+
+          return updated
+        })
       }, 500),
     []
   )
@@ -189,7 +194,7 @@ const EnclosureWiseEnclosure: React.FC = () => {
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <Typography
@@ -208,7 +213,7 @@ const EnclosureWiseEnclosure: React.FC = () => {
       width: 330,
       field: 'user_enclosure_name',
       headerAlign: 'left',
-      headerName: 'Enclosures',
+      headerName: t('enclosures') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <SpeciesCard
@@ -240,7 +245,7 @@ const EnclosureWiseEnclosure: React.FC = () => {
           {
             width: 160,
             field: 'enclosure_wise_animal_count',
-            headerName: 'ANIMALS',
+            headerName: t('animals') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -255,7 +260,7 @@ const EnclosureWiseEnclosure: React.FC = () => {
           {
             width: 160,
             field: 'sub_enclosure_count',
-            headerName: 'SUB ENCLOSURES',
+            headerName: t('housing_module.sub_enclosures') as string,
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -270,7 +275,7 @@ const EnclosureWiseEnclosure: React.FC = () => {
           {
             width: 250,
             field: 'site_name',
-            headerName: 'SITE',
+            headerName: t('housing_module.site') as string,
             sortable: false,
             renderCell: (params: GridCellParams) => (
               <Typography
@@ -285,25 +290,19 @@ const EnclosureWiseEnclosure: React.FC = () => {
   ]
 
   const onRowClick = (params: GridRowParams): void => {
-    router.push({
-      pathname: `/housing/enclosure/${params.row.enclosure_id}`,
-      query: {
-        ...router.query,
-        enclosureTab: 'enclosures'
-      }
-    })
+    router.push(`/housing/enclosure/${params.row.enclosure_id}?enclosureTab=enclosures`)
   }
 
   return (
     <>
-      <ListingHeader title='All Enclosures' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_enclosures')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}

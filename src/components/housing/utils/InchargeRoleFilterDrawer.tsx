@@ -4,6 +4,7 @@ import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import { getUsersRoleList } from 'src/lib/api/housing'
 import { useAuth } from 'src/hooks/useAuth'
 import { InchargeRole, InchargeRoleFilterDrawerProps, InchargeRoleFilters } from 'src/types/housing/incharge'
+import { useTranslation } from 'react-i18next'
 
 const LEFT_MENU = ['Role']
 
@@ -17,6 +18,7 @@ const InchargeRoleFilterDrawer: React.FC<InchargeRoleFilterDrawerProps> = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState<string>('Role')
   const [selectedOptions, setSelectedOptions] = useState<InchargeRoleFilters>(DEFAULT_OPTIONS)
   const [menuData, setMenuData] = useState<{ Role: InchargeRole[] }>({ Role: [] })
@@ -45,7 +47,7 @@ const InchargeRoleFilterDrawer: React.FC<InchargeRoleFilterDrawerProps> = ({
         : []
 
       // Add "All users" at the beginning
-      const dataWithAll: InchargeRole[] = [{ label: 'All users', value: '' } as any, ...roles]
+      const dataWithAll: InchargeRole[] = [{ label: t('housing_module.all_users'), value: '' } as any, ...roles]
 
       setMenuData({ Role: dataWithAll })
     } catch (error: any) {

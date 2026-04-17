@@ -3,6 +3,7 @@ import { Dialog, DialogContent, Box, Typography, Avatar, Button, useMediaQuery }
 import { useTheme } from '@mui/material/styles'
 import ShareIcon from '@mui/icons-material/Share'
 import DownloadIcon from '@mui/icons-material/Download'
+import { useTranslation } from 'react-i18next'
 
 interface SpeciesData {
   imageUrl: string
@@ -20,6 +21,7 @@ interface AnimalQRCardProps {
 const AnimalQRCard: React.FC<AnimalQRCardProps> = ({ open, handleClose, speciesData }) => {
   const theme = useTheme() as any
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+  const { t } = useTranslation()
 
   const { imageUrl, speciesName, aid, qrCodeUrl } = speciesData
 
@@ -48,7 +50,7 @@ const AnimalQRCard: React.FC<AnimalQRCardProps> = ({ open, handleClose, speciesD
           mb={3}
           sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
         >
-          AID: {aid}
+          {t('animals_module.aid')}: {aid}
         </Typography>
         <Box
           component='img'
@@ -66,13 +68,7 @@ const AnimalQRCard: React.FC<AnimalQRCardProps> = ({ open, handleClose, speciesD
         />
 
         <Typography variant='body2' color={theme.palette.customColors.customTextColorGray2} mb={4}>
-          Scan with the&nbsp;
-          <Typography
-            component='span'
-            sx={{ color: theme.palette.primary.OnSurface, fontWeight: 500, fontSize: '14px' }}
-          >
-            Antz App
-          </Typography>
+          {t('animals_module.scan_with_antz_app')}
         </Typography>
         <Box
           sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: 2, justifyContent: 'center', mt: 6 }}

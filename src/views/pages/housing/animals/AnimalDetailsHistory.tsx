@@ -2,6 +2,7 @@ import React from 'react'
 import { useTheme } from '@emotion/react'
 import { Typography } from '@mui/material'
 import { Box } from '@mui/system'
+import { useTranslation } from 'react-i18next'
 
 interface HistoryData {
   section?: string
@@ -17,6 +18,7 @@ interface AnimalDetailsHistoryProps {
 
 const AnimalDetailsHistory: React.FC<AnimalDetailsHistoryProps> = ({ historyData }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   if (!historyData) {
     return null
@@ -39,10 +41,10 @@ const AnimalDetailsHistory: React.FC<AnimalDetailsHistoryProps> = ({ historyData
         }}
       >
         <Typography variant='subtitle1'>
-          Section : <strong>{historyData.section || 'N/A'}</strong>
+          {t('housing_module.section')} <strong>{historyData.section || 'N/A'}</strong>
         </Typography>
         <Typography variant='subtitle1'>
-          Site : <strong>{historyData.site || 'N/A'}</strong>
+          {t('housing_module.site')} <strong>{historyData.site || 'N/A'}</strong>
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', gap: 2 }}>
           <img src='/images/line_start_circle.svg' alt='line-start-circle' />

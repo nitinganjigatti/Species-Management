@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 import Utility from 'src/utility'
 
 interface EggCardProps {
@@ -35,6 +36,7 @@ const EggCard: React.FC<EggCardProps> = ({
   handleEggClick
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const colors = theme.palette.customColors
 
   // Normalize ANY incoming value
@@ -110,11 +112,11 @@ const EggCard: React.FC<EggCardProps> = ({
 
   const allocateText = (e: string) => {
     if (e == 'DISCARD_REQUEST_GENERATED') {
-      return 'Security check pending'
+      return t('animals_module.security_check_pending')
     } else if (e == 'CANCELED') {
-      return 'Canceled'
+      return t('canceled')
     } else {
-      return 'Security checked'
+      return t('animals_module.security_checked')
     }
   }
 
@@ -250,7 +252,7 @@ const EggCard: React.FC<EggCardProps> = ({
 
         {batch && (
           <Typography fontSize={14} fontWeight={600}>
-            Batch: {batch}
+            {t('animals_module.batch')}: {batch}
           </Typography>
         )}
       </Box>

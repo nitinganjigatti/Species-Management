@@ -27,6 +27,7 @@ import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import SelectNoteTypeDrawer from './SelectNoteTypeDrawer'
 import NotifyMembersDrawer from './NotifyMembersDrawer'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import type { User, ObservationType, ObservationMasterItem } from 'src/types/housing'
@@ -132,6 +133,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Memoized file icons using theme colors
@@ -449,7 +451,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
             flexShrink: 0
           }}
         >
-          <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>Add Note</Typography>
+          <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>{t('housing_module.add_note')}</Typography>
           <IconButton onClick={handleClose}>
             <CloseIcon />
           </IconButton>
@@ -482,7 +484,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                       fontSize: '1rem'
                     }}
                   >
-                    1 Entity
+                    {t('housing_module.one_entity')}
                   </Typography>
                 </Box>
 
@@ -516,7 +518,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
               </Box>
 
               <Typography variant='body2' color='text.secondary' sx={{ mt: 1.5 }}>
-                Notes related to an animal, enclosure, section or a site
+                {t('housing_module.notes_description')}
               </Typography>
             </Box>
           )}
@@ -531,7 +533,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                 mb: 2
               }}
             >
-              Note Type <span style={{ color: 'red' }}>*</span>
+              {t('housing_module.note_type')} <span style={{ color: 'red' }}>*</span>
             </Typography>
 
             {/* Selected Types Display - Mobile Style */}
@@ -613,7 +615,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                   backgroundColor: theme.palette.customColors.OnPrimaryContainer
                 }}
               >
-                Add Type
+                {t('housing_module.add_type')}
               </Button>
             )}
             {errors.observationType && (
@@ -635,7 +637,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                   mb: 1
                 }}
               >
-                Priority <span style={{ color: 'red' }}>*</span>
+                {t('priority')} <span style={{ color: 'red' }}>*</span>
               </FormLabel>
               <RadioGroup row value={formData.priority} onChange={handlePriorityChange}>
                 {PRIORITY_OPTIONS.map(option => (
@@ -666,13 +668,13 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                 mb: 1
               }}
             >
-              Notes
+              {t('notes')}
             </Typography>
             <TextField
               fullWidth
               multiline
               rows={4}
-              placeholder='Enter your notes here...'
+              placeholder={t('housing_module.enter_notes_placeholder') as string}
               value={formData.notes}
               onChange={handleNotesChange}
               error={!!errors.notes}
@@ -704,7 +706,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <PersonAddIcon sx={{ color: theme.palette.text.secondary }} />
-                  <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>Notify Members</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>{t('housing_module.notify_members')}</Typography>
                 </Box>
                 <Switch checked={formData.notifyEnabled} onChange={handleNotifyToggle} />
               </Box>
@@ -733,7 +735,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                         fontSize={24}
                         color={theme.palette.customColors?.OnPrimaryContainer}
                       />
-                      <Typography sx={{ fontWeight: 500, fontSize: '0.9rem' }}>Add members to be notified</Typography>
+                      <Typography sx={{ fontWeight: 500, fontSize: '0.9rem' }}>{t('housing_module.add_members_to_notify')}</Typography>
                     </Box>
                     <Icon icon='mdi:plus-circle' fontSize={22} color={theme.palette.primary.main} />
                   </Box>
@@ -778,8 +780,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                       }}
                     >
                       <Typography variant='body2' color='text.secondary'>
-                        {formData.notifyMembers.length} member
-                        {formData.notifyMembers.length > 1 ? 's' : ''} to be notified
+                        {formData.notifyMembers.length} {t('housing_module.members_to_notify')}
                       </Typography>
                     </Box>
                   )}
@@ -798,7 +799,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                 mb: 2
               }}
             >
-              Attachments
+              {t('attachments')}
             </Typography>
 
             {/* Attachment Preview Grid - Above dropzone */}
@@ -916,7 +917,7 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
                     color: theme.palette.customColors?.OnSurfaceVariant60
                   }}
                 >
-                  Drop your files here
+                  {t('drop_files_here')}
                 </Typography>
               </Box>
             </Box>
@@ -936,10 +937,10 @@ const AddNoteDrawer: React.FC<AddNoteDrawerProps> = ({
           }}
         >
           <Button variant='outlined' fullWidth onClick={handleClose} disabled={loading}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button variant='contained' fullWidth onClick={handleSubmit} disabled={loading}>
-            {loading ? <CircularProgress size={24} color='inherit' /> : 'Add Note'}
+            {loading ? <CircularProgress size={24} color='inherit' /> : t('housing_module.add_note')}
           </Button>
         </Box>
       </Box>

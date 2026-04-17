@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Drawer, Typography, IconButton, Button, Checkbox, CircularProgress, Skeleton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useInView } from 'react-intersection-observer'
@@ -28,6 +29,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
   onSuccess
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const cooldownRef = useRef(false)
 
   // Search
@@ -289,7 +291,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
                 color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              Add Assessment Types
+              {t('animals_module.add_assessment_types')}
             </Typography>
           </Box>
 
@@ -303,7 +305,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
           {/* Search */}
           <Box sx={{ px: 6, pt: 6, pb: 3 }}>
             <Search
-              placeholder='Search Assessment Types'
+              placeholder={t('animals_module.search_assessment_types') as string}
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
@@ -447,7 +449,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
                           }}
                         >
                           {categoryName}
-                          {isExisting && (categoryName ? ' • ' : '') + 'Already added'}
+                          {isExisting && (categoryName ? ' • ' : '') + t('animals_module.already_added')}
                         </Typography>
                       </Box>
                       <Checkbox
@@ -485,7 +487,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
 
                 {!hasMore && availableTypes.length > 0 && (
                   <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                    No more types to load
+                    {t('animals_module.no_more_types')}
                   </Typography>
                 )}
               </>
@@ -512,7 +514,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
               color: theme.palette.customColors?.OnSurface || theme.palette.text.primary
             }}
           >
-            Selected - {selectedTypes.length}
+            {t('selected')} {selectedTypes.length}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
             <Button
@@ -525,7 +527,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
                 height: '56px'
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               variant='contained'
@@ -534,7 +536,7 @@ const AddAssessmentTypeDrawer: React.FC<AddAssessmentTypeDrawerProps> = ({
               disabled={selectedTypes.length === 0 || isSubmitting}
               sx={{ height: '56px' }}
             >
-              {isSubmitting ? <CircularProgress size={24} color='inherit' /> : 'Add'}
+              {isSubmitting ? <CircularProgress size={24} color='inherit' /> : t('add')}
             </Button>
           </Box>
         </Box>

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Radio, Typography, FormControlLabel, RadioGroup, CircularProgress } from '@mui/material'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import Search from 'src/views/utility/Search'
@@ -35,6 +36,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
   onApplyFilters,
   initialFilters
 }) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState<FilterMenuType>('Site')
   const [selectedOptions, setSelectedOptions] = useState<UserSearchFilters>(DEFAULT_FILTERS)
 
@@ -68,7 +70,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
           : []
 
       // Add "All Sites" at the beginning
-      const dataWithAll: FilterOption[] = [{ label: 'All Sites', value: '' }, ...siteList]
+      const dataWithAll: FilterOption[] = [{ label: t('housing_module.all_sites'), value: '' }, ...siteList]
       setMenuData(prev => ({ ...prev, Site: dataWithAll }))
     } catch (error: any) {
       console.error('Error fetching sites:', error?.message || error)
@@ -92,7 +94,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
         : []
 
       // Add "All Roles" at the beginning
-      const dataWithAll: FilterOption[] = [{ label: 'All Roles', value: '' }, ...roleList]
+      const dataWithAll: FilterOption[] = [{ label: t('housing_module.all_roles'), value: '' }, ...roleList]
       setMenuData(prev => ({ ...prev, Role: dataWithAll }))
     } catch (error: any) {
       console.error('Error fetching roles:', error?.message || error)
@@ -185,7 +187,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
     <CustomFilterDrawer
       open={open}
       onClose={onClose}
-      title='Filter Users'
+      title={t('housing_module.filter_users') as string}
       onApply={handleApply}
       onClearAll={handleClearAll}
       filterLists={FILTER_MENUS}
@@ -229,7 +231,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
 
           {!loading && filteredItems.length === 0 && (
             <Typography sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
-              No {selectedMenu.toLowerCase()} found
+              {t('no_items_found', { item: selectedMenu.toLowerCase() })}
             </Typography>
           )}
         </Box>

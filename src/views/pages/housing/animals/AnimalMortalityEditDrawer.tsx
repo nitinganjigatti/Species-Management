@@ -13,6 +13,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import { editAnimalMortalityReport } from 'src/lib/api/housing'
 import Toaster from 'src/components/Toaster'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import { useTranslation } from 'react-i18next'
 
 interface MortalityMedia {
   id: string
@@ -72,8 +73,18 @@ interface FormValues {
   isApproximateDate: boolean
 }
 
-const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ open, setDrawerOpen, mortalityData, mannerOfDeath, carcassCondition, carcassDeposition, refetch, setRefetch }) => {
+const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({
+  open,
+  setDrawerOpen,
+  mortalityData,
+  mannerOfDeath,
+  carcassCondition,
+  carcassDeposition,
+  refetch,
+  setRefetch
+}) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const {
     control,
@@ -99,7 +110,6 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
   const images = watch('images')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-
   const [loading, setLoading] = useState<boolean>(false)
   const [selectedType, setSelectedType] = useState<string>('')
 
@@ -109,7 +119,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
       setValue('carcassCondition', mortalityData?.carcass_condition_id || '')
       setValue('carcassDisposition', mortalityData?.carcass_disposition_id || '')
       setValue('notes', mortalityData?.notes || '')
-      setValue('necropsyNeed', mortalityData?.submitted_for_necropsy === "1")
+      setValue('necropsyNeed', mortalityData?.submitted_for_necropsy === '1')
       if (mortalityData.discovered_date) {
         const discoveredDateTime = dayjs(mortalityData?.discovered_date)
         setValue('dateOfDiscovery', discoveredDateTime)
@@ -117,12 +127,13 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
       }
 
       if (mortalityData.priority) {
-        const capitalizedPriority = mortalityData?.priority.charAt(0).toUpperCase() + mortalityData?.priority.slice(1).toLowerCase()
+        const capitalizedPriority =
+          mortalityData?.priority.charAt(0).toUpperCase() + mortalityData?.priority.slice(1).toLowerCase()
         setSelectedType(capitalizedPriority)
         setValue('priority', capitalizedPriority)
       }
 
-      setValue('isApproximateDate', mortalityData?.is_estimate === "1")
+      setValue('isApproximateDate', mortalityData?.is_estimate === '1')
 
       if (mortalityData?.antz_animal_mortality_media && Array.isArray(mortalityData?.antz_animal_mortality_media)) {
         const existingImages: ImageItem[] = mortalityData?.antz_animal_mortality_media?.map(media => ({
@@ -202,9 +213,8 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
           Toaster({ type: 'success', message: res?.message })
         }
       })
-
     } catch (error) {
-      console.error(error, "Cannot Update Mortality Report")
+      console.error(error, 'Cannot Update Mortality Report')
       setLoading(false)
     }
   }
@@ -250,7 +260,7 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
           <Box sx={{ px: 6, py: 4 }}>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Typography>Enter Details</Typography>
+                <Typography>{t('animals_module.enter_details')}</Typography>
                 <Card
                   sx={{
                     p: 6,
@@ -261,37 +271,36 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                     gap: 3
                   }}
                 >
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>
-                    Date and Time of Discovery
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}
+                  >
+                    {t('animals_module.date_time_discovery')}
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 4 }}>
                     <ControlledDatePicker
-                      name="dateOfDiscovery"
+                      name='dateOfDiscovery'
                       control={control}
-                      label="Date of Discovery"
+                      label={t('animals_module.date_of_discovery') as string}
                       required={true}
                     />
                     <ControlledTimePicker
-                      name="timeOfDiscovery"
+                      name='timeOfDiscovery'
                       control={control}
-                      label="Time of Discovery"
+                      label={t('animals_module.time_of_discovery') as string}
                       required={true}
                     />
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '2.5px' }}>
                     <Controller
-                      name="isApproximateDate"
+                      name='isApproximateDate'
                       control={control}
                       defaultValue={false}
-                      render={({ field }) => (
-                        <Checkbox
-                          checked={field.value}
-                          onChange={field.onChange}
-                        />
-                      )}
+                      render={({ field }) => <Checkbox checked={field.value} onChange={field.onChange} />}
                     />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors?.OnSurfaceVariant }}>
-                      Mark this Date as Approximate
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors?.OnSurfaceVariant }}
+                    >
+                      {t('animals_module.mark_date_approximate')}
                     </Typography>
                   </Box>
                 </Card>
@@ -308,11 +317,15 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>Manner of Death</Typography>
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}
+                  >
+                    {t('animals_module.manner_of_death')}
+                  </Typography>
                   <ControlledSelect
                     name={'mannerOfDeath'}
                     control={control}
-                    label={'Manner Of Death'}
+                    label={t('animals_module.manner_of_death') as string}
                     required={true}
                     errors={errors}
                     options={mannerOfDeath}
@@ -321,13 +334,15 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                   />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>
-                    Carcass Condition
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}
+                  >
+                    {t('animals_module.carcass_condition')}
                   </Typography>
                   <ControlledSelect
                     name={'carcassCondition'}
                     control={control}
-                    label={'Carcass Condition'}
+                    label={t('animals_module.carcass_condition') as string}
                     required={true}
                     errors={errors}
                     options={carcassCondition}
@@ -336,13 +351,15 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                   />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>
-                    Carcass Deposition
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}
+                  >
+                    {t('animals_module.carcass_deposition')}
                   </Typography>
                   <ControlledSelect
                     name={'carcassDeposition'}
                     control={control}
-                    label={'Carcass Deposition'}
+                    label={t('animals_module.carcass_deposition') as string}
                     required={true}
                     errors={errors}
                     options={carcassDeposition}
@@ -362,16 +379,13 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                     mt: 2
                   }}
                 >
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors?.Outline }}>Necropsy Need</Typography>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors?.Outline }}>
+                    {t('animals_module.necropsy_need')}
+                  </Typography>
                   <Controller
-                    name="necropsyNeed"
+                    name='necropsyNeed'
                     control={control}
-                    render={({ field }) => (
-                      <Switch
-                        checked={field.value}
-                        onChange={field.onChange}
-                      />
-                    )}
+                    render={({ field }) => <Switch checked={field.value} onChange={field.onChange} />}
                   />
                 </Box>
               </Card>
@@ -386,7 +400,11 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                   mt: 6
                 }}
               >
-                <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}>Set Priority</Typography>
+                <Typography
+                  sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors?.OnSurfaceVariant }}
+                >
+                  {t('animals_module.set_priority')}
+                </Typography>
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 4 }}>
                   <Box
                     sx={{
@@ -400,14 +418,15 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                         selectedType === 'Low'
                           ? `2px solid ${theme.palette.primary.main}`
                           : `1px solid ${theme.palette.divider}`,
-                      bgcolor: selectedType === 'Low' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
+                      bgcolor:
+                        selectedType === 'Low' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                       cursor: 'pointer',
                       transition: 'border-color 0.2s, background-color 0.2s'
                     }}
                     onClick={() => handleSelectedTypeChange('Low')}
                   >
                     <Typography sx={{ flex: 1, color: selectedType === 'Low' ? 'text.primary' : 'text.secondary' }}>
-                      Low
+                      {t('low')}
                     </Typography>
                     <input
                       type='radio'
@@ -421,7 +440,9 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                         width: 20,
                         height: 20,
                         borderRadius: '50%',
-                        border: `2px solid ${selectedType === 'Low' ? theme.palette.primary.main : theme.palette.divider}`,
+                        border: `2px solid ${
+                          selectedType === 'Low' ? theme.palette.primary.main : theme.palette.divider
+                        }`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -454,14 +475,15 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                         selectedType === 'High'
                           ? `2px solid ${theme.palette.primary.main}`
                           : `1px solid ${theme.palette.divider}`,
-                      bgcolor: selectedType === 'High' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
+                      bgcolor:
+                        selectedType === 'High' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
                       cursor: 'pointer',
                       transition: 'border-color 0.2s, background-color 0.2s'
                     }}
                     onClick={() => handleSelectedTypeChange('High')}
                   >
                     <Typography sx={{ flex: 1, color: selectedType === 'High' ? 'text.primary' : 'text.secondary' }}>
-                      High
+                      {t('high')}
                     </Typography>
                     <input
                       type='radio'
@@ -475,7 +497,9 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                         width: 20,
                         height: 20,
                         borderRadius: '50%',
-                        border: `2px solid ${selectedType === 'High' ? theme.palette.primary.main : theme.palette.divider}`,
+                        border: `2px solid ${
+                          selectedType === 'High' ? theme.palette.primary.main : theme.palette.divider
+                        }`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -582,7 +606,9 @@ const AnimalMortalityEditDrawer: React.FC<AnimalMortalityEditDrawerProps> = ({ o
                       <Box>
                         <Box
                           sx={{
-                            border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
+                            border: `2px dashed ${
+                              error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant
+                            }`,
                             borderRadius: 1.2,
                             p: 2,
                             textAlign: 'center',

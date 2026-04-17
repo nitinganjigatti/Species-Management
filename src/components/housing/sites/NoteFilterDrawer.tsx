@@ -3,6 +3,7 @@ import { Box, Checkbox, Typography, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useSelector } from 'react-redux'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
+import { useTranslation } from 'react-i18next'
 import Search from 'src/views/utility/Search'
 import type { NotesFilters, User, ObservationMasterItem } from 'src/types/housing'
 import type { RootState } from 'src/store'
@@ -16,12 +17,7 @@ interface FilterOption {
   label: string
 }
 
-const PRIORITY_OPTIONS: FilterOption[] = [
-  { value: 'Low', label: 'Low' },
-  { value: 'Moderate', label: 'Moderate' },
-  { value: 'High', label: 'High' },
-  { value: 'Critical', label: 'Critical' }
-]
+const PRIORITY_KEYS = ['Low', 'Moderate', 'High', 'Critical'] as const
 
 interface LocalSelectedOptions {
   'Note Type': (string | number)[]
@@ -40,6 +36,15 @@ interface NoteFilterDrawerProps {
 
 const NoteFilterDrawer: React.FC<NoteFilterDrawerProps> = ({ open, onClose, filters, onApply, onClearAll }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
+
+  const PRIORITY_OPTIONS: FilterOption[] = [
+    { value: 'Low', label: t('low') },
+    { value: 'Moderate', label: t('moderate') },
+    { value: 'High', label: t('high') },
+    { value: 'Critical', label: t('critical') }
+  ]
+
   const [selectedItem, setSelectedItem] = useState<FilterMenuType>('Note Type')
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -100,7 +105,7 @@ const NoteFilterDrawer: React.FC<NoteFilterDrawerProps> = ({ open, onClose, filt
     }
 
     return items
-  }, [selectedItem, observationMasterList, users, searchQuery])
+  }, [selectedItem, observationMasterList, users, searchQuery, PRIORITY_OPTIONS])
 
   const handleSelectItem = (item: string) => {
     setSelectedItem(item as FilterMenuType)
@@ -194,7 +199,7 @@ const NoteFilterDrawer: React.FC<NoteFilterDrawerProps> = ({ open, onClose, filt
 
               {getCurrentItems?.length === 0 && (
                 <Typography sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
-                  No options available
+                  {t('no_options_available')}
                 </Typography>
               )}
             </Box>

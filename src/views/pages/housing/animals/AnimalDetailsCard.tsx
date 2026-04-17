@@ -1,6 +1,7 @@
 import React from 'react'
 import { useTheme } from '@emotion/react'
 import { Box, Grid, Divider, Typography, useMediaQuery, Tooltip } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 interface AnimalData {
   aid?: string
@@ -29,26 +30,27 @@ interface DetailItem {
 }
 
 const AnimalDetailsCard: React.FC<AnimalDetailsCardProps> = ({ data }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const left: DetailItem[] = [
-    { label: 'Animal ID', value: data?.aid },
-    { label: 'Accession Date', value: data?.accessionDate },
-    { label: 'Birth Date', value: data?.birthDate },
-    { label: 'Age', value: data?.type === 'group' ? 'NA' : data?.age },
-    { label: 'Contraception Status', value: data?.contraceptionStatus },
-    { label: 'Sexing Type', value: data?.sexingType },
-    { label: 'Institution', value: data?.institutes_label }
+    { label: t('housing_module.animal_id') as string, value: data?.aid },
+    { label: t('housing_module.accession_date') as string, value: data?.accessionDate },
+    { label: t('housing_module.birth_date') as string, value: data?.birthDate },
+    { label: t('housing_module.age') as string, value: data?.type === 'group' ? t('na') as string : data?.age },
+    { label: t('housing_module.contraception_status') as string, value: data?.contraceptionStatus },
+    { label: t('housing_module.sexing_type') as string, value: data?.sexingType },
+    { label: t('housing_module.institution') as string, value: data?.institutes_label }
   ]
 
   const right: DetailItem[] = [
-    { label: 'Collection Type', value: data?.collectionType },
-    { label: 'Organisation', value: data?.organisation },
-    { label: 'Ownership Term', value: data?.ownershipTerm },
-    { label: 'Local Identifier', value: data?.localIdentifier },
-    { label: 'Micro Chip', value: data?.microChip },
-    { label: 'Identifier Name', value: data?.identifierName }
+    { label: t('housing_module.collection_type') as string, value: data?.collectionType },
+    { label: t('housing_module.organisation') as string, value: data?.organisation },
+    { label: t('housing_module.ownership_term') as string, value: data?.ownershipTerm },
+    { label: t('housing_module.local_identifier') as string, value: data?.localIdentifier },
+    { label: t('housing_module.micro_chip') as string, value: data?.microChip },
+    { label: t('housing_module.identifier_name') as string, value: data?.identifierName }
   ]
 
   return (
@@ -118,7 +120,7 @@ const AnimalDetailsCard: React.FC<AnimalDetailsCardProps> = ({ data }) => {
                       overflow: 'hidden'
                     }}
                   >
-                    {item?.value || 'NA'}
+                    {item?.value || t('na')}
                   </Typography>
                 </Tooltip>
               ))}
@@ -185,7 +187,7 @@ const AnimalDetailsCard: React.FC<AnimalDetailsCardProps> = ({ data }) => {
                       overflow: 'hidden'
                     }}
                   >
-                    {item?.value || 'NA'}
+                    {item?.value || t('na')}
                   </Typography>
                 </Tooltip>
               ))}

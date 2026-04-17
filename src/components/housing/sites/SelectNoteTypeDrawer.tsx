@@ -35,7 +35,7 @@ interface SelectedTypes {
 interface CategoryTab {
   id: string
   label: string
-  count: number,
+  count: number
   string_id?: string
 }
 
@@ -104,7 +104,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
         id: String(parent.id),
         label: parent.type_name || parent.name || '',
         count: parent.child_observation?.length || 0,
-        string_id:parent.string_id
+        string_id: parent.string_id
       })
     })
 
@@ -275,7 +275,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              {t('notes_module.select_note_type')}
+              {t('housing_module.select_note_type')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -286,7 +286,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
         {/* Search */}
         <Box sx={{ px: 6, pt: 6, pb: 3, flexShrink: 0 }}>
           <Search
-            placeholder={t('notes_module.search_note_types') as string}
+            placeholder={t('housing_module.search_note_types') as string}
             value={search}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
             onClear={() => setSearch('')}
@@ -316,7 +316,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
               {categoryTabs.map(tab => {
                 const isActive = activeCategory === tab.id
                 const isDisabled = isCategoryDisabled(tab.id)
-                
+
                 return (
                   <Button
                     key={tab.id}
@@ -382,7 +382,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                 color: theme.palette.customColors?.OnSurfaceVariant
               }}
             >
-              {isAllSelected ? `${t('deselect_all')}` : `${t('select_all')}`}
+              {isAllSelected ? t('deselect_all') : t('select_all')}
             </Typography>
             <Checkbox checked={isAllSelected} />
           </Box>

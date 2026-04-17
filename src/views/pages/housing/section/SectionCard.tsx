@@ -2,6 +2,7 @@ import React from 'react'
 import { Box, Chip } from '@mui/material'
 import { CellInfo } from 'src/utility/render'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import type { Section, SectionCardProps } from 'src/types/housing'
 
 interface StatProps {
@@ -33,6 +34,7 @@ interface SectionCardComponentProps {
 
 const SectionCard: React.FC<SectionCardComponentProps> = ({ section }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   return (
     <Box
@@ -60,9 +62,9 @@ const SectionCard: React.FC<SectionCardComponentProps> = ({ section }) => {
       />
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        {section.species_count && <Stat label='Species' value={section.species_count} />}
-        {section.animal_count && <Stat label='Animals' value={section.animal_count} />}
-        {section.enclosure_count && <Stat label='Enclosures' value={section.enclosure_count} />}
+        {section.species_count && <Stat label={t('species')} value={section.species_count} />}
+        {section.animal_count && <Stat label={t('animals')} value={section.animal_count} />}
+        {section.enclosure_count && <Stat label={t('enclosures')} value={section.enclosure_count} />}
         {/* <Stat label='Sub enclosures' value={section.sub_enclosure_count} /> */}
       </Box>
     </Box>

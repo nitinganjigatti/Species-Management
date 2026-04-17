@@ -4,6 +4,7 @@ import styled from '@emotion/styled'
 import { alpha } from '@mui/material/styles'
 
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useTranslation } from 'react-i18next'
 import { StyledTypographyProps, TabProps, ClutchItem } from 'src/types/housing/animalsOffspring'
 import ClutchDrawer from './ClutchDrawer'
 import { getClutchList } from 'src/lib/api/housing'
@@ -11,6 +12,7 @@ import Utility from 'src/utility'
 
 const Clutch: React.FC<TabProps> = props => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const [clutchDrawerOpen, setClutchDrawerOpen] = useState<boolean>(false)
   const [clutch, setClutch] = useState<ClutchItem[]>([])
@@ -84,7 +86,7 @@ const Clutch: React.FC<TabProps> = props => {
                   borderRadius: '8px 8px 0 0'
                 }}
               >
-                <StyledTypography fontWeight={500}>Clutch {item?.clutch_no}</StyledTypography>
+                <StyledTypography fontWeight={500}>{t('animals_module.clutch')} {item?.clutch_no}</StyledTypography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <img src='/images/line_start_circle.svg' alt='line-start-circle' />
@@ -142,13 +144,13 @@ const Clutch: React.FC<TabProps> = props => {
 
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mx: 4, my: 3 }}>
                   <StyledTypography>
-                    Total: <span style={{ fontWeight: 600 }}>{item?.total_egg_count || 0}</span>
+                    {t('total')}: <span style={{ fontWeight: 600 }}>{item?.total_egg_count || 0}</span>
                   </StyledTypography>
                   <StyledTypography>
-                    Discarded: <span style={{ fontWeight: 600 }}>{item?.discarded_count || 0}</span>
+                    {t('animals_module.discarded')}: <span style={{ fontWeight: 600 }}>{item?.discarded_count || 0}</span>
                   </StyledTypography>
                   <StyledTypography>
-                    Hatched: <span style={{ fontWeight: 600 }}>{item?.hatched_count || 0}</span>
+                    {t('animals_module.hatched')}: <span style={{ fontWeight: 600 }}>{item?.hatched_count || 0}</span>
                   </StyledTypography>
                 </Box>
               </Box>

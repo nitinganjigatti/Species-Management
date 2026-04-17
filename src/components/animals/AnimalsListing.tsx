@@ -240,13 +240,13 @@ const AnimalsListing = () => {
   const handleRowClick = (params: any) => {
     const animalId = params?.row?.animal_id || params?.id
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 
   const handleAnimalCardClick = (animalId: number | string) => {
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 
@@ -698,6 +698,7 @@ const AnimalsListing = () => {
                   setPaginationModel={handlePaginationModelChange}
                   handleSortModel={handleSortModel}
                   onRowClick={handleRowClick}
+                  pageSizeOptions={[filters.limit]}
                 />
               </Box>
             )}

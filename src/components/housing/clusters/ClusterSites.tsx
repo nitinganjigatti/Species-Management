@@ -1,8 +1,9 @@
 import { useTheme } from '@emotion/react'
 import { Box, Button, debounce, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
-import React, { useMemo, useState } from 'react'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getAllSites } from 'src/lib/api/housing'
 import RenderUtility, { CellInfo } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
@@ -39,7 +40,8 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
   setDrawerData,
   onSiteAdded
 }) => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as Theme
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
@@ -76,7 +78,6 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
   })
 
   const sitesListing: Site[] = data?.data?.result || []
-  console.log('Site >>', sitesListing)
   const total: number = data?.data?.total_count || 0
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
@@ -130,9 +131,9 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
     []
   )
 
-  // useEffect(() => {
-  //   return () => debouncedSearch.cancel()
-  // }, [debouncedSearch])
+  useEffect(() => {
+    return () => debouncedSearch.clear()
+  }, [debouncedSearch])
 
   const handleSearch = (value: string): void => {
     setInputValue(value)
@@ -174,18 +175,19 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
     if (
       params?.field !== 'id' &&
       params?.field !== 'species' &&
-      params?.field !== 'species' &&
       params?.field !== 'animals' &&
       params?.field !== 'enclosures' &&
-      params?.field !== 'incharge'
+      params?.field !== 'incharge' &&
+      params?.field !== 'actions'
     ) {
-      const detailUrl = {
-        pathname: `/housing/sites/${(params.row as IndexedSiteRow).id}`,
-        query: {
-          ...filters
+      const queryParams = new URLSearchParams()
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== null && value !== undefined) {
+          queryParams.set(key, String(value))
         }
-      }
-      router.push(detailUrl)
+      })
+      const search = queryParams.toString()
+      router.push(`/housing/sites/${(params.row as IndexedSiteRow).id}${search ? '?' + search : ''}`)
     }
   }
 
@@ -198,7 +200,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       headerAlign: 'left' as const,
       align: 'left' as const,
       sortable: false,
@@ -230,7 +232,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
     {
       width: 300,
       field: 'site_name',
-      headerName: 'Site Name',
+      headerName: t('housing_module.site_name'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -253,7 +255,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
           {
             width: 160,
             field: 'species',
-            headerName: 'Species',
+            headerName: t('species'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -295,7 +297,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
           {
             width: 150,
             field: 'animals',
-            headerName: 'Animals',
+            headerName: t('animals'),
             headerAlign: 'left' as const,
             align: 'left' as const,
             sortable: false,
@@ -340,7 +342,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
             field: 'enclosures',
             align: 'left' as const,
             headerAlign: 'left' as const,
-            headerName: 'Enclosures',
+            headerName: t('enclosures'),
             sortable: false,
             renderCell: (params: GridCellParams) => (
               <Box
@@ -384,7 +386,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
     {
       width: 200,
       field: 'incharge',
-      headerName: 'In-Charge',
+      headerName: t('in_charge'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -395,7 +397,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
     {
       width: 150,
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -406,7 +408,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
         const handleLongPress = (): void => {
           if (phoneNumber) {
             navigator.clipboard.writeText(phoneNumber)
-            alert('Number copied to clipboard')
+            alert(t('housing_module.number_copied_to_clipboard'))
           }
         }
 
@@ -459,14 +461,14 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
 
   return (
     <>
-      <ListingHeader title='All Sites' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           <Button
@@ -475,7 +477,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
             onClick={() => setAddSiteDrawerOpen(true)}
             sx={{ height: 44 }}
           >
-            Add Site
+            {t('housing_module.add_site')}
           </Button>
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
         </Box>

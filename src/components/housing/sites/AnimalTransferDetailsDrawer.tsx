@@ -27,8 +27,9 @@ import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import React, { useEffect, useState, useCallback, useMemo, memo, FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import { styled, alpha, Theme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -146,8 +147,9 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
   siteId,
   onStatusChange
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme<ExtendedTheme>()
-  const router = useRouter()
+  const router = useSafeRouter()
   const auth = useAuth()
   const settings = (auth as any)?.userData?.settings
 
@@ -282,15 +284,15 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
       const response = await addAnimalTransferComment(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Comment added successfully' })
+        Toaster({ type: 'success', message: response?.message || t('housing_module.comment_added_successfully') })
         setComment('')
         fetchSummaryOnly()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add comment' })
+        Toaster({ type: 'error', message: response?.message || t('housing_module.failed_to_add_comment') })
       }
     } catch (error) {
       console.error('Error adding comment:', error)
-      Toaster({ type: 'error', message: 'Failed to add comment' })
+      Toaster({ type: 'error', message: t('housing_module.failed_to_add_comment') })
     } finally {
       setCommentLoading(false)
     }
@@ -303,15 +305,15 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
       const response = await approveTransferRequest({ animal_movement_id: transferId })
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Transfer approved successfully' })
+        Toaster({ type: 'success', message: response?.message || t('housing_module.transfer_approved_successfully') })
         fetchAllData()
         onStatusChange?.()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to approve transfer' })
+        Toaster({ type: 'error', message: response?.message || t('housing_module.failed_to_approve_transfer') })
       }
     } catch (error) {
       console.error('Error approving transfer:', error)
-      Toaster({ type: 'error', message: 'Failed to approve transfer' })
+      Toaster({ type: 'error', message: t('housing_module.failed_to_approve_transfer') })
     } finally {
       setActionLoading(null)
     }
@@ -330,17 +332,17 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
       const response = await rejectTransferRequest(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Transfer rejected' })
+        Toaster({ type: 'success', message: response?.message || t('housing_module.transfer_rejected') })
         setShowRejectModal(false)
         setRejectReason('')
         fetchAllData()
         onStatusChange?.()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to reject transfer' })
+        Toaster({ type: 'error', message: response?.message || t('housing_module.failed_to_reject_transfer') })
       }
     } catch (error) {
       console.error('Error rejecting transfer:', error)
-      Toaster({ type: 'error', message: 'Failed to reject transfer' })
+      Toaster({ type: 'error', message: t('housing_module.failed_to_reject_transfer') })
     } finally {
       setActionLoading(null)
     }
@@ -358,17 +360,17 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
       const response = await updateAnimalTransferStatus(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Transfer cancelled' })
+        Toaster({ type: 'success', message: response?.message || t('housing_module.transfer_cancelled') })
         setShowCancelModal(false)
         setCancelReason('')
         fetchAllData()
         onStatusChange?.()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to cancel transfer' })
+        Toaster({ type: 'error', message: response?.message || t('housing_module.failed_to_cancel_transfer') })
       }
     } catch (error) {
       console.error('Error cancelling transfer:', error)
-      Toaster({ type: 'error', message: 'Failed to cancel transfer' })
+      Toaster({ type: 'error', message: t('housing_module.failed_to_cancel_transfer') })
     } finally {
       setActionLoading(null)
     }
@@ -409,7 +411,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
 
   const handleAnimalClick = (animalId?: number): void => {
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 
@@ -448,24 +450,24 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
     const type = transferDetails?.transfer_type || transferType
     switch (type) {
       case 'intra':
-        return 'In-house Transfer'
+        return t('housing_module.in_house_transfer')
       case 'inter':
-        return 'Inter-Site Transfer'
+        return t('housing_module.inter_site_transfer')
       case 'external':
-        return 'External Transfer'
+        return t('housing_module.external_transfer')
       default:
-        return 'Animal Transfer'
+        return t('housing_module.animal_transfer')
     }
   }
 
   // Get approval status label
   const getApprovalStatus = (): string => {
     const status = transferDetails?.activity_status
-    if (status === 'REJECTED') return 'Approval Rejected'
-    if (status === 'CANCELED') return 'Cancelled by'
-    if (approvalList.some(item => item.status === 'APPROVED')) return 'Approved by'
+    if (status === 'REJECTED') return t('housing_module.approval_rejected')
+    if (status === 'CANCELED') return t('housing_module.cancelled_by')
+    if (approvalList.some(item => item.status === 'APPROVED')) return t('housing_module.approved_by')
 
-    return 'Awaiting Approval'
+    return t('housing_module.awaiting_approval')
   }
 
   // Get recent activity for footer
@@ -476,25 +478,25 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
     const status = transferDetails?.activity_status
     switch (status) {
       case 'PENDING':
-        return 'Awaiting Approval'
+        return t('housing_module.awaiting_approval')
       case 'APPROVED':
-        return 'Approved'
+        return t('approved')
       case 'REJECTED':
-        return 'Rejected'
+        return t('rejected')
       case 'CANCELED':
-        return 'Cancelled'
+        return t('canceled')
       case 'COMPLETED':
-        return 'Transfer Completed'
+        return t('housing_module.transfer_completed')
       case 'REACHED_DESTINATION':
-        return 'Reached Destination'
+        return t('housing_module.reached_destination')
       case 'LOADED_ANIMALS':
-        return 'Animals Loaded'
+        return t('housing_module.animals_loaded')
       case 'RIDE_STARTED':
-        return 'Ride Started'
+        return t('housing_module.ride_started')
       case 'ALLOCATION_COMPLETED':
-        return 'Allocation Completed'
+        return t('housing_module.allocation_completed')
       default:
-        return status?.replace(/_/g, ' ') || 'Pending'
+        return status?.replace(/_/g, ' ') || t('pending')
     }
   }
 
@@ -749,7 +751,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                         color: theme.palette.customColors?.neutralSecondary
                       }}
                     >
-                      Transfer
+                      {t('housing_module.transfer')}
                     </Typography>
                     <Typography
                       sx={{
@@ -793,7 +795,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                           color: theme.palette.customColors?.neutralSecondary
                         }}
                       >
-                        Reason for transfer
+                        {t('housing_module.reason_for_transfer')}
                       </Typography>
                       <Typography
                         sx={{
@@ -823,7 +825,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                           color: theme.palette.customColors?.neutralSecondary
                         }}
                       >
-                        Transfer To
+                        {t('housing_module.transfer_to')}
                       </Typography>
                       <Typography
                         sx={{
@@ -867,7 +869,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                             color: theme.palette.customColors?.neutralSecondary
                           }}
                         >
-                          Transfer Checklist
+                          {t('housing_module.transfer_checklist')}
                         </Typography>
                       </Box>
                     </Box>
@@ -922,7 +924,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                             color: theme.palette.customColors?.neutralSecondary
                           }}
                         >
-                          Transfer Team
+                          {t('housing_module.transfer_team')}
                         </Typography>
                         <Typography
                           sx={{
@@ -1422,7 +1424,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     <Typography
                       sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}
                     >
-                      {buttonStatus?.show_you_approved ? 'You Approved' : 'Approved'}
+                      {buttonStatus?.show_you_approved ? t('you_approved') : t('approved')}
                     </Typography>
                   </Box>
                 </Box>
@@ -1449,7 +1451,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                     <Typography
                       sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors?.OnPrimary }}
                     >
-                      {buttonStatus?.show_you_rejected ? 'You Rejected' : 'Rejected'}
+                      {buttonStatus?.show_you_rejected ? t('you_rejected') : t('rejected')}
                     </Typography>
                   </Box>
                 </Box>
@@ -1508,7 +1510,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 4 }}>
-            <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Animals ({totalAnimalCount})</Typography>
+            <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{t('animals')} ({totalAnimalCount})</Typography>
             <IconButton onClick={() => setShowAnimalListModal(false)} size='small'>
               <Icon icon='mdi:close' />
             </IconButton>
@@ -1642,7 +1644,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
                 color: theme.palette.customColors?.OnPrimaryContainer
               }}
             >
-              Transfer Members
+              {t('housing_module.transfer_members')}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Icon icon='mdi:account-circle' fontSize={24} color={theme.palette.customColors?.OnPrimaryContainer} />
@@ -1776,7 +1778,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
             borderRadius: 2
           }}
         >
-          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>Reject Transfer</Typography>
+          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>{t('housing_module.reject_transfer')}</Typography>
           <TextField
             fullWidth
             multiline
@@ -1816,7 +1818,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
             borderRadius: 2
           }}
         >
-          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>Cancel Transfer</Typography>
+          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>{t('housing_module.cancel_transfer')}</Typography>
           <TextField
             fullWidth
             multiline
@@ -1850,8 +1852,8 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
         transferData={{
           requestId: transferDetails?.request_id,
           qrCodeUrl: transferDetails?.qr_code_full_path,
-          title: 'Transfer Pass',
-          subtitle: 'Transfer Request number'
+          title: t('housing_module.transfer_pass'),
+          subtitle: t('housing_module.transfer_request_number')
         }}
       />
 

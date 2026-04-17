@@ -1,13 +1,12 @@
 import { Box, Breadcrumbs, Card, Typography } from '@mui/material'
-import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import { useAuth } from 'src/hooks/useAuth'
 import SiteListing from 'src/components/housing/sites/SiteListing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import { getSiteAnalytics } from 'src/lib/api/housing'
 import { useQuery } from '@tanstack/react-query'
-import enforceModuleAccess from 'src/components/ProtectedRoute'
 import type { DrawerType, DrawerData } from 'src/types/housing'
+import { useTranslation } from 'react-i18next'
 
 interface StatItem {
   label: string
@@ -16,16 +15,17 @@ interface StatItem {
   onClick?: () => void
 }
 
-const Sites: React.FC = () => {
-  const router = useRouter()
+const SitesPage: React.FC = () => {
+  const { t } = useTranslation()
 
   const [drawerType, setDrawerType] = useState<DrawerType>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
   const [siteDrawer, setSiteDrawer] = useState<boolean>(false)
 
-  const authData = useAuth()
-  const insightsViewAccess = (authData as any)?.userData?.roles?.settings?.housing_view_insights
-  const addSiteAccess = (authData as any)?.userData?.permission?.user_settings?.add_sites
+  const auth = useAuth()
+  const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
+  const addSiteAccess = (auth as any)?.userData?.permission?.user_settings?.add_sites
+  const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
   const handleEnclosureInsightClick = (): void => {
     setDrawerType('enclosures')
@@ -48,15 +48,10 @@ const Sites: React.FC = () => {
       id: zooId,
       name: '',
       params: {
-        ref_type: 'zoo',
-        data_type: 'animal',
-        ref_id: zooId
+        animal_list_type: 'allAnimals'
       }
     })
   }
-
-  const auth = useAuth()
-  const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-insights', zooId],
@@ -64,33 +59,29 @@ const Sites: React.FC = () => {
     enabled: !!zooId
   })
 
-  const handleHousingClick = (): void => {
-    // router.push('/housing')
-  }
-
   const handleButtonClick = (): void => {
     setSiteDrawer(true)
   }
 
   const statsData: StatItem[] = [
     {
-      label: 'Species',
+      label: t('species'),
       value: data?.data?.zoo_stats?.total_species || 0,
       imagePath: '/images/housing/species.svg'
     },
     {
-      label: 'Animals',
+      label: t('animals'),
       value: data?.data?.zoo_stats?.total_animals || 0,
       imagePath: '/images/housing/animals.svg',
       onClick: handleAnimalInsightClick
     },
     {
-      label: 'Sections',
+      label: t('sections'),
       value: data?.data?.zoo_stats?.total_sections || 0,
       imagePath: '/images/housing/sections.svg'
     },
     {
-      label: 'Enclosures',
+      label: t('enclosures'),
       value: data?.data?.zoo_stats?.total_enclosures || 0,
       imagePath: '/images/housing/enclosures.svg',
       onClick: handleEnclosureInsightClick
@@ -100,54 +91,29 @@ const Sites: React.FC = () => {
   return (
     <Box>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
-          Housing
+        <Typography color='inherit' sx={{ cursor: 'pointer' }}>
+          {t('housing_module.housing')}
         </Typography>
 
         <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-          Site List
+          {t('housing_module.site_list')}
         </Typography>
       </Breadcrumbs>
       <Box>
-        {/* For testing with all the data */}
-
-        {/* <InsightsCard
-          data={data}
-          loading={loading}
-          error={error}
-          zooName='Bannerghatta Zoo'
-          subtitle='Bannerghatta Zoo'
-          userName='Jordan Stevenson'
-          description={'Description'}
-          userImage={''}
-          sectionsCount={data?.zoo_stats?.total_sections}
-          animalCount={data?.zoo_stats?.total_animals}
-          speciesCount={data?.zoo_stats?.total_species}
-          enclosuresCount={data?.zoo_stats?.total_enclosures}
-          actions={{
-            onEdit: () => console.log('Edit'),
-            onDelete: () => console.log('Delete'),
-            onAddNew: () => console.log('Add new'),
-            onTimeClick: () => console.log('Time clicked')
-          }}
-          onCallClick={() => console.log('Call clicked')}
-          onMessageClick={() => console.log('Message clicked')}
-          statasData={statsData}
-        /> */}
         <InsightsCard
           data={data?.data}
           image={data?.data?.images?.[0]?.file}
           loading={isLoading}
-          pageTitle={'All Site Insights'}
+          pageTitle={t('housing_module.all_site_insights')}
           isListingPage
           error={error as any}
           haveInsightsViewAccess={insightsViewAccess}
           statsData={statsData as any}
-          zooName=""
-          subtitle=""
-          userName=""
-          description=""
-          userImage=""
+          zooName=''
+          subtitle=''
+          userName=''
+          description=''
+          userImage=''
           onCallClick={() => {}}
           onMessageClick={() => {}}
           actions={{
@@ -172,4 +138,4 @@ const Sites: React.FC = () => {
   )
 }
 
-export default enforceModuleAccess(Sites, 'enable_housing_in_web')
+export default SitesPage

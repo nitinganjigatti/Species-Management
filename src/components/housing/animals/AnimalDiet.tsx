@@ -7,11 +7,12 @@ import { styled } from '@mui/material/styles'
 import UploadAnimalDiet from './UploadAnimalDiet'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getAnimalDietList } from 'src/lib/api/housing'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Utility from 'src/utility'
 import moment from 'moment'
 import { AnimalOverview } from 'src/types/housing'
+import { useTranslation } from 'react-i18next'
 
 interface DietAttachment {
   ref_id: number
@@ -75,7 +76,8 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
 
 const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id: animalid } = router.query
 
   const [selectedTab, setSelectedTab] = useState<'active' | 'inactive'>('active') // or 'inactive'
@@ -161,7 +163,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Diet Attached {`(${selectedTab === 'active' ? activeDietCount : inActiveDietCount})`}
+            {t('animals_module.diet_attached')} {`(${selectedTab === 'active' ? activeDietCount : inActiveDietCount})`}
           </Typography>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', rowGap: 4, flexWrap: 'wrap' }}>
@@ -190,7 +192,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                   }
                 }}
               >
-                Active diets - {activeDietCount}
+                {t('animals_module.active_diets')} - {activeDietCount}
               </Button>
 
               <Button
@@ -216,7 +218,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                   }
                 }}
               >
-                Inactive diets - {inActiveDietCount}
+                {t('animals_module.inactive_diets')} - {inActiveDietCount}
               </Button>
             </Box>
             <Box sx={{ display: 'flex', gap: '8px' }}>
@@ -303,7 +305,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                       justifyContent: 'center'
                     }}
                   >
-                    <Tooltip title='Click to download'>
+                    <Tooltip title={t('animals_module.click_to_download')}>
                       <Avatar
                         variant='rounded'
                         alt='Diet PDF'
@@ -354,7 +356,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                         ) : (
                           <Icon icon='mdi:account-circle' width={20} height={20} color={theme.palette.customColors?.neutralSecondary} />
                         )}
-                        <Tooltip title={`${diet.dietitian_name} • ${diet.dietitian_role_name || 'Dietitian'}`}>
+                        <Tooltip title={`${diet.dietitian_name} • ${diet.dietitian_role_name || t('animals_module.dietitian')}`}>
                           <Typography
                             sx={{
                               fontSize: 14,
@@ -366,7 +368,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            {diet.dietitian_name} • {diet.dietitian_role_name || 'Dietitian'}
+                            {diet.dietitian_name} • {diet.dietitian_role_name || t('animals_module.dietitian')}
                           </Typography>
                         </Tooltip>
                       </Box>
@@ -383,7 +385,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                       color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
                     }}
                   >
-                    {diet.attached_by ? 'Added by' : diet.detached_by ? 'Detached by' : ''}
+                    {diet.attached_by ? t('animals_module.added_by') : diet.detached_by ? t('animals_module.detached_by') : ''}
                   </Typography>
                   <UserAvatarDetails
                     profile_image={diet.dietitian_by_profile || diet.attached_by_profile}
@@ -437,7 +439,7 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                   }}
                 >
                   <Typography sx={{ fontSize: 12, fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
-                    Notes:
+                    {t('notes')}:
                   </Typography>
                   <Typography
                     sx={{ fontSize: 14, color: theme.palette.customColors.OnTertiaryContainer, fontWeight: 400 }}
@@ -462,15 +464,15 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
         <ConfirmationDialog
           dialogBoxStatus={deleteDietDialog}
           onClose={() => setDeleteDietDialog(false)}
-          title={'Delete Diet Pdf?'}
-          cancelText={'CANCEL'}
+          title={t('animals_module.delete_diet_pdf')}
+          cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={() => {}}
           loading={deleteLoading}
-          ConfirmationText={'DELETE'}
-          description={'Are you sure you want to permanently delete this file?'}
+          ConfirmationText={t('delete')}
+          description={t('animals_module.are_you_sure_you_want_to_permanently_delete_this_file')}
         />
       )}
       {/* {deactivateDialogOpen && (
@@ -495,10 +497,10 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
           setDeactivateDialogOpen(false)
           setPendingDeactivateIndex(null)
         }}
-        title={'This action will make the diet PDF inactive'}
-        description={'Are you sure you want to make this diet inactive?'}
-        cancelText={'CANCEL'}
-        ConfirmationText={'YES, CONTINUE'}
+        title={t('animals_module.this_action_will_make_the_diet_pdf_inactive')}
+        description={t('animals_module.are_you_sure_you_want_to_make_this_diet_inactive')}
+        cancelText={t('cancel')}
+        ConfirmationText={t('animals_module.yes_continue')}
         confirmAction={() => {
           if (pendingDeactivateIndex !== null) {
             if (selectedTab === 'active') {

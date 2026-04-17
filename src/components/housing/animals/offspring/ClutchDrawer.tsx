@@ -2,13 +2,14 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Box, Divider, Drawer, IconButton, Typography, useTheme, CircularProgress, Tabs, Tab } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import AnimalCard from 'src/views/utility/AnimalCard'
 
 import { getClutchEggList } from 'src/lib/api/housing'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
+import { useTranslation } from 'react-i18next'
 import Utility from 'src/utility'
 import { StyledTypographyProps, AnimalItem, ClutchItem, ClutchEgg } from 'src/types/housing/animalsOffspring'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
@@ -22,7 +23,8 @@ interface ClutchDrawerProps {
 
 const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query as { id: string }
 
   const [searchInput, setSearchInput] = useState('')
@@ -106,7 +108,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
   }
 
   const handleAnimalClick = (animalId: string) => {
-    router.push(`/housing/animals/${animalId}`)
+    router.push(`/animals/${animalId}`)
   }
 
   useEffect(() => {
@@ -159,7 +161,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
             <Typography
               sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Clutch Details
+              {t('animals_module.clutch_details')}
             </Typography>
 
             <IconButton size='small' onClick={onClose} sx={{ color: theme.palette.text.primary }}>
@@ -188,7 +190,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
                   borderRadius: '8px 8px 0 0'
                 }}
               >
-                <StyledTypography fontWeight={500}>Litter {clutchDetails?.clutch_no}</StyledTypography>
+                <StyledTypography fontWeight={500}>{t('animals_module.litter')} {clutchDetails?.clutch_no}</StyledTypography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <img src='/images/line_start_circle.svg' alt='line-start-circle' />
@@ -251,13 +253,13 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
 
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mx: 4, my: 3 }}>
                   <StyledTypography>
-                    Total: <span style={{ fontWeight: 600 }}>{clutchDetails?.total_egg_count || 0}</span>
+                    {t('animals_module.total')}: <span style={{ fontWeight: 600 }}>{clutchDetails?.total_egg_count || 0}</span>
                   </StyledTypography>
                   <StyledTypography>
-                    Discarded: <span style={{ fontWeight: 600 }}>{clutchDetails?.discarded_count || 0}</span>
+                    {t('animals_module.discarded')}: <span style={{ fontWeight: 600 }}>{clutchDetails?.discarded_count || 0}</span>
                   </StyledTypography>
                   <StyledTypography>
-                    Hatched: <span style={{ fontWeight: 600 }}>{clutchDetails?.hatched_count || 0}</span>
+                    {t('animals_module.hatched')}: <span style={{ fontWeight: 600 }}>{clutchDetails?.hatched_count || 0}</span>
                   </StyledTypography>
                 </Box>
               </Box>
@@ -279,9 +281,9 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
                 }
               }}
             >
-              <Tab value='eggs' label={'Eggs'} />
+              <Tab value='eggs' label={t('animals_module.eggs')} />
 
-              <Tab value='animals' label={'Animals'} />
+              <Tab value='animals' label={t('animals')} />
             </Tabs>
           </Box>
 
@@ -289,7 +291,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
             <Box sx={{ backgroundColor: theme.palette.background.paper, borderRadius: 1 }}>
               <Search
                 width={'100%'}
-                placeholder='Search '
+                placeholder={t('search') as string}
                 value={searchInput}
                 onChange={handleSearchClutch}
                 onClear={handleSearchClutchClear}

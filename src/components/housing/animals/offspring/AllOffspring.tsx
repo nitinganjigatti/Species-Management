@@ -3,7 +3,8 @@ import { Box, Typography, useTheme, Button, Skeleton } from '@mui/material'
 import { Icon } from '@iconify/react'
 import styled from '@emotion/styled'
 import { alpha } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import { useTranslation } from 'react-i18next'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import AnimalCard from 'src/views/utility/AnimalCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
@@ -18,9 +19,10 @@ import BottomActionBar from 'src/views/utility/BottomActionBar'
 import AddOffspringDrawer from './AddOffspringDrawer'
 
 const AllOffspring: FC<TabProps> = props => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [data, setData] = useState<any[] | null>(null)
   const [isEditing, setIsEditing] = useState<boolean>(false)
@@ -137,7 +139,7 @@ const AllOffspring: FC<TabProps> = props => {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button startIcon={<Icon icon='mdi:add' />} variant='contained' onClick={onAdd}>
-              Add Offspring
+              {t('animals_module.add_offspring')}
             </Button>
           </Box>
 
@@ -163,7 +165,7 @@ const AllOffspring: FC<TabProps> = props => {
             }}
           >
             <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Offspring
+              {t('animals_module.offspring')}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <IconButton size='small' onClick={onAdd} sx={{ color: theme.palette.customColors.addPrimary }}>
@@ -260,12 +262,12 @@ const AllOffspring: FC<TabProps> = props => {
         <ConfirmationDialog
           dialogBoxStatus={confirmOpen}
           onClose={handleCancel}
-          title={'Are you sure you want to delete this offspring?'}
-          description={'Removing an animal from the list will also remove its linked animals from the lineage list.'}
-          cancelText={'Cancel'}
+          title={t('animals_module.are_you_sure_you_want_to_delete_this_offspring')}
+          description={t('animals_module.removing_animal_from_list_warning')}
+          cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.error.main, py: 2 }}
           confirmAction={handleConfirm}
-          ConfirmationText={'Yes'}
+          ConfirmationText={t('yes')}
           image={'/images/warning-icon.svg'}
         />
       )}

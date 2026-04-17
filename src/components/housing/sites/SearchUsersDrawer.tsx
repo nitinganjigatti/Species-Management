@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import {
-  Box,
-  Typography,
-  Drawer,
-  IconButton,
-  Button,
-  Checkbox,
-  Skeleton,
-  Badge,
-  Chip
-} from '@mui/material'
+import { useTranslation } from 'react-i18next'
+import { Box, Typography, Drawer, IconButton, Button, Checkbox, Skeleton, Badge, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useSelector, useDispatch } from 'react-redux'
 import { useAuth } from 'src/hooks/useAuth'
@@ -31,12 +22,8 @@ interface SearchUsersDrawerProps {
 
 const DEFAULT_FILTERS: UserSearchFilters = { Site: '', Role: '' }
 
-const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
-  open,
-  onClose,
-  selectedUsers,
-  onUsersSelected
-}) => {
+const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, selectedUsers, onUsersSelected }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
@@ -161,287 +148,282 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({
         onApplyFilters={handleApplyFilters}
         initialFilters={appliedFilters}
       />
-    <Drawer
-      open={open}
-      anchor='right'
-      onClose={handleDrawerClose}
-      slotProps={{
-        paper: {
-          sx: {
-            width: { xs: '100%', sm: 560 },
-            backgroundColor: theme.palette.customColors?.Background,
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%'
+      <Drawer
+        open={open}
+        anchor='right'
+        onClose={handleDrawerClose}
+        slotProps={{
+          paper: {
+            sx: {
+              width: { xs: '100%', sm: 560 },
+              backgroundColor: theme.palette.customColors?.Background,
+              display: 'flex',
+              flexDirection: 'column',
+              height: '100%'
+            }
           }
-        }
-      }}
-    >
-      <Box
-        sx={{
-          backgroundColor: theme.palette.customColors?.OnPrimary,
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column'
         }}
       >
-        {/* Header */}
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
             backgroundColor: theme.palette.customColors?.OnPrimary,
-            px: 5,
-            py: 4,
-            borderBottom: `1px solid ${theme.palette.divider}`,
-            flexShrink: 0
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
           }}
         >
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Icon icon='mdi:account-search-outline' fontSize={28} color={theme.palette.primary.main} />
-            <Typography
-              sx={{
-                fontSize: '24px',
-                fontWeight: 500,
-                color: theme.palette.customColors?.OnSurfaceVariant
-              }}
-            >
-              Search Users
-            </Typography>
-          </Box>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
-            <Icon icon='mdi:close' fontSize={30} />
-          </IconButton>
-        </Box>
-
-        {/* Search and Filter */}
-        <Box sx={{ px: 6, pt: 6, pb: 3, flexShrink: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ flex: 1 }}>
-              <Search
-                placeholder='Search Users'
-                value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                onClear={() => setSearchQuery('')}
-                inputStyle={{ py: '12px', px: '12px' }}
-                width='100%'
-                autoFocus
-              />
-            </Box>
-            {/* Filter Button */}
-            <IconButton
-              onClick={() => setFilterDrawerOpen(true)}
-              sx={{
-                border: `1px solid ${filterCount > 0 ? theme.palette.primary.main : theme.palette.divider}`,
-                borderRadius: 1,
-                width: 48,
-                height: 48,
-                backgroundColor: filterCount > 0 ? theme.palette.primary.main : 'transparent',
-                '&:hover': {
-                  backgroundColor: filterCount > 0 ? theme.palette.primary.dark : theme.palette.action.hover
-                }
-              }}
-            >
-              <Badge badgeContent={filterCount} color='error' invisible={filterCount === 0}>
-                <Icon
-                  icon='mdi:filter-variant'
-                  fontSize={24}
-                  color={filterCount > 0 ? theme.palette.common.white : theme.palette.text.secondary}
-                />
-              </Badge>
-            </IconButton>
-          </Box>
-
-          {/* Active Filter Chips */}
-          {filterCount > 0 && (
-            <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {appliedFilters.Site && (
-                <Chip
-                  label='Site Filter'
-                  onDelete={() => {
-                    const newFilters = { ...appliedFilters, Site: '' }
-                    setAppliedFilters(newFilters)
-                    fetchUsersWithFilters(newFilters)
-                  }}
-                  size='small'
-                  color='primary'
-                  variant='outlined'
-                />
-              )}
-              {appliedFilters.Role && (
-                <Chip
-                  label='Role Filter'
-                  onDelete={() => {
-                    const newFilters = { ...appliedFilters, Role: '' }
-                    setAppliedFilters(newFilters)
-                    fetchUsersWithFilters(newFilters)
-                  }}
-                  size='small'
-                  color='primary'
-                  variant='outlined'
-                />
-              )}
-            </Box>
-          )}
-        </Box>
-
-        {/* Select All Toggle */}
-        {!usersLoading && filteredUsers.length > 0 && (
+          {/* Header */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              px: 6,
-              py: 2,
-              flexShrink: 0,
-              cursor: 'pointer'
+              backgroundColor: theme.palette.customColors?.OnPrimary,
+              px: 5,
+              py: 4,
+              borderBottom: `1px solid ${theme.palette.divider}`,
+              flexShrink: 0
             }}
-            onClick={handleToggleAll}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+              <Icon icon='mdi:account-search-outline' fontSize={28} color={theme.palette.primary.main} />
+              <Typography
+                sx={{
+                  fontSize: '24px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                {t('housing_module.search_users')}
+              </Typography>
+            </Box>
+            <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
+              <Icon icon='mdi:close' fontSize={30} />
+            </IconButton>
+          </Box>
+
+          {/* Search and Filter */}
+          <Box sx={{ px: 6, pt: 6, pb: 3, flexShrink: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ flex: 1 }}>
+                <Search
+                  placeholder={t('housing_module.search_users') as string}
+                  value={searchQuery}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                  onClear={() => setSearchQuery('')}
+                  inputStyle={{ py: '12px', px: '12px' }}
+                  width='100%'
+                  autoFocus
+                />
+              </Box>
+              {/* Filter Button */}
+              <IconButton
+                onClick={() => setFilterDrawerOpen(true)}
+                sx={{
+                  border: `1px solid ${filterCount > 0 ? theme.palette.primary.main : theme.palette.divider}`,
+                  borderRadius: 1,
+                  width: 48,
+                  height: 48,
+                  backgroundColor: filterCount > 0 ? theme.palette.primary.main : 'transparent',
+                  '&:hover': {
+                    backgroundColor: filterCount > 0 ? theme.palette.primary.dark : theme.palette.action.hover
+                  }
+                }}
+              >
+                <Badge badgeContent={filterCount} color='error' invisible={filterCount === 0}>
+                  <Icon
+                    icon='mdi:filter-variant'
+                    fontSize={24}
+                    color={filterCount > 0 ? theme.palette.common.white : theme.palette.text.secondary}
+                  />
+                </Badge>
+              </IconButton>
+            </Box>
+
+            {/* Active Filter Chips */}
+            {filterCount > 0 && (
+              <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {appliedFilters.Site && (
+                  <Chip
+                    label={t('housing_module.site_filter')}
+                    onDelete={() => {
+                      const newFilters = { ...appliedFilters, Site: '' }
+                      setAppliedFilters(newFilters)
+                      fetchUsersWithFilters(newFilters)
+                    }}
+                    size='small'
+                    color='primary'
+                    variant='outlined'
+                  />
+                )}
+                {appliedFilters.Role && (
+                  <Chip
+                    label={t('housing_module.role_filter')}
+                    onDelete={() => {
+                      const newFilters = { ...appliedFilters, Role: '' }
+                      setAppliedFilters(newFilters)
+                      fetchUsersWithFilters(newFilters)
+                    }}
+                    size='small'
+                    color='primary'
+                    variant='outlined'
+                  />
+                )}
+              </Box>
+            )}
+          </Box>
+
+          {/* Select All Toggle */}
+          {!usersLoading && filteredUsers.length > 0 && (
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                px: 6,
+                py: 2,
+                flexShrink: 0,
+                cursor: 'pointer'
+              }}
+              onClick={handleToggleAll}
+            >
+              <Typography
+                sx={{
+                  fontSize: '1rem',
+                  fontWeight: 500,
+                  color: theme.palette.customColors?.OnSurfaceVariant
+                }}
+              >
+                {isAllSelected ? t('deselect_all') : t('select_all')}
+              </Typography>
+              <Checkbox checked={isAllSelected} />
+            </Box>
+          )}
+
+          {/* Users List */}
+          <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
+            <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {usersLoading ? (
+                <>
+                  {[1, 2, 3, 4, 5, 6].map(item => (
+                    <Skeleton
+                      key={item}
+                      variant='rectangular'
+                      height={72}
+                      sx={{
+                        borderRadius: 1,
+                        bgcolor: theme.palette.action.hover
+                      }}
+                    />
+                  ))}
+                </>
+              ) : (
+                <>
+                  {filteredUsers.length === 0 ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        height: 200,
+                        flexDirection: 'column',
+                        p: 4,
+                        mt: 6
+                      }}
+                    >
+                      <NoDataFound variant='Meerkat' height={250} width={250} />
+                      <Typography
+                        sx={{
+                          mt: 2,
+                          color: theme.palette.text.secondary,
+                          fontSize: '0.875rem'
+                        }}
+                      >
+                        {searchQuery ? t('housing_module.no_users_found') : t('housing_module.no_users_available')}
+                      </Typography>
+                    </Box>
+                  ) : (
+                    filteredUsers.map(user => {
+                      const isSelected = isUserSelected(user.user_id)
+
+                      return (
+                        <Box
+                          key={user.user_id}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: 4,
+                            border: isSelected
+                              ? `1px solid ${theme.palette.primary.main}`
+                              : `1px solid ${theme.palette.customColors?.SurfaceVariant}`,
+                            backgroundColor: isSelected
+                              ? theme.palette.customColors?.Surface
+                              : theme.palette.customColors?.OnPrimary,
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            transition: 'background 0.2s, border-color 0.2s'
+                          }}
+                          onClick={() => handleToggleUser(user)}
+                        >
+                          <UserAvatarDetails
+                            profile_image={user.user_profile_pic}
+                            user_name={user.user_name || user.full_name || 'NA'}
+                            role={user.role_name || 'NA'}
+                            size='medium'
+                          />
+                          <Checkbox checked={isSelected} />
+                        </Box>
+                      )
+                    })
+                  )}
+                </>
+              )}
+            </Box>
+          </Box>
+
+          {/* Footer */}
+          <Box
+            sx={{
+              p: 4,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.customColors?.OnPrimary,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexShrink: 0,
+              boxShadow: '0px -1px 10px 0px rgba(0, 0, 0, 0.05)'
+            }}
           >
             <Typography
               sx={{
-                fontSize: '1rem',
+                fontSize: '1.25rem',
                 fontWeight: 500,
-                color: theme.palette.customColors?.OnSurfaceVariant
+                color: theme.palette.customColors?.OnSurface
               }}
             >
-              {isAllSelected ? 'Deselect all' : 'Select all'}
+              {t('selected')} - {localSelectedUsers.length}
             </Typography>
-            <Checkbox checked={isAllSelected} />
-          </Box>
-        )}
-
-        {/* Users List */}
-        <Box sx={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
-          <Box sx={{ py: 3, px: 6, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {usersLoading ? (
-              <>
-                {[1, 2, 3, 4, 5, 6].map(item => (
-                  <Skeleton
-                    key={item}
-                    variant='rectangular'
-                    height={72}
-                    sx={{
-                      borderRadius: 1,
-                      bgcolor: theme.palette.action.hover
-                    }}
-                  />
-                ))}
-              </>
-            ) : (
-              <>
-                {filteredUsers.length === 0 ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      height: 200,
-                      flexDirection: 'column',
-                      p: 4,
-                      mt: 6
-                    }}
-                  >
-                    <NoDataFound variant='Meerkat' height={250} width={250} />
-                    <Typography
-                      sx={{
-                        mt: 2,
-                        color: theme.palette.text.secondary,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      {searchQuery ? 'No users found' : 'No users available'}
-                    </Typography>
-                  </Box>
-                ) : (
-                  filteredUsers.map(user => {
-                    const isSelected = isUserSelected(user.user_id)
-
-                    return (
-                      <Box
-                        key={user.user_id}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          p: 4,
-                          border: isSelected
-                            ? `1px solid ${theme.palette.primary.main}`
-                            : `1px solid ${theme.palette.customColors?.SurfaceVariant}`,
-                          backgroundColor: isSelected
-                            ? theme.palette.customColors?.Surface
-                            : theme.palette.customColors?.OnPrimary,
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          transition: 'background 0.2s, border-color 0.2s'
-                        }}
-                        onClick={() => handleToggleUser(user)}
-                      >
-                        <UserAvatarDetails
-                          profile_image={user.user_profile_pic}
-                          user_name={user.user_name || user.full_name || 'NA'}
-                          role={user.role_name || 'NA'}
-                          size='medium'
-                        />
-                        <Checkbox checked={isSelected} />
-                      </Box>
-                    )
-                  })
-                )}
-              </>
-            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
+              <Button
+                variant='outlined'
+                fullWidth
+                onClick={handleDrawerClose}
+                sx={{
+                  borderColor: theme.palette.customColors?.OnPrimaryContainer,
+                  color: theme.palette.customColors?.OnPrimaryContainer,
+                  height: '56px'
+                }}
+              >
+                {t('cancel')}
+              </Button>
+              <Button variant='contained' fullWidth onClick={handleAdd} sx={{ height: '56px' }}>
+                {t('add')}
+              </Button>
+            </Box>
           </Box>
         </Box>
-
-        {/* Footer */}
-        <Box
-          sx={{
-            p: 4,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexShrink: 0,
-            boxShadow: '0px -1px 10px 0px rgba(0, 0, 0, 0.05)'
-          }}
-        >
-          <Typography
-            sx={{
-              fontSize: '1.25rem',
-              fontWeight: 500,
-              color: theme.palette.customColors?.OnSurface
-            }}
-          >
-            Selected - {localSelectedUsers.length}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
-            <Button
-              variant='outlined'
-              fullWidth
-              onClick={handleDrawerClose}
-              sx={{
-                borderColor: theme.palette.customColors?.OnPrimaryContainer,
-                color: theme.palette.customColors?.OnPrimaryContainer,
-                height: '56px'
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant='contained'
-              fullWidth
-              onClick={handleAdd}
-              sx={{ height: '56px' }}
-            >
-              Add
-            </Button>
-          </Box>
-        </Box>
-      </Box>
-    </Drawer>
+      </Drawer>
     </>
   )
 }

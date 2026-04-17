@@ -12,6 +12,7 @@ import {
   CircularProgress
 } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@emotion/react'
 import { Theme } from '@mui/material/styles'
 import type { Note } from 'src/types/housing'
@@ -31,6 +32,7 @@ interface NoteCommentDialogProps {
 
 const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({ open, onClose, note, onSubmit, loading = false }) => {
   const theme = useTheme() as Theme
+  const { t } = useTranslation()
   const [comment, setComment] = useState('')
 
   const handleSubmit = () => {
@@ -51,7 +53,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({ open, onClose, no
     <Dialog open={open} onClose={handleClose} maxWidth='sm' fullWidth>
       <DialogTitle>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='h6'>Add Comment</Typography>
+          <Typography variant='h6'>{t('housing_module.add_comment')}</Typography>
           <IconButton onClick={handleClose} size='small'>
             <CloseIcon />
           </IconButton>
@@ -61,7 +63,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({ open, onClose, no
       <DialogContent dividers>
         <Box sx={{ mb: 2 }}>
           <Typography variant='body2' color='text.secondary' gutterBottom>
-            Adding comment to:
+            {t('housing_module.adding_comment_to')}
           </Typography>
           <Typography variant='subtitle2'>
             {(note as any)?.child_master_type?.parent_observation_type || 'Note'} - NOTE-{note?.observation_id}
@@ -73,8 +75,8 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({ open, onClose, no
           fullWidth
           multiline
           rows={4}
-          label='Your Comment'
-          placeholder='Write your comment here...'
+          label={t('housing_module.your_comment') as string}
+          placeholder={t('housing_module.write_comment_placeholder') as string}
           value={comment}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
           variant='outlined'
@@ -83,7 +85,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({ open, onClose, no
 
       <DialogActions sx={{ p: 2 }}>
         <Button onClick={handleClose} color='inherit'>
-          Cancel
+          {t('cancel')}
         </Button>
         <Button
           onClick={handleSubmit}
@@ -91,7 +93,7 @@ const NoteCommentDialog: React.FC<NoteCommentDialogProps> = ({ open, onClose, no
           disabled={!comment.trim() || loading}
           startIcon={loading && <CircularProgress size={16} color='inherit' />}
         >
-          {loading ? 'Submitting...' : 'Submit'}
+          {loading ? t('submitting') : t('submit')}
         </Button>
       </DialogActions>
     </Dialog>

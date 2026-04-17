@@ -13,9 +13,10 @@ import {
   TimelineSeparator
 } from '@mui/lab'
 import { getAnimalHistory } from 'src/lib/api/housing'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useTranslation } from 'react-i18next'
 
 interface HistoryData {
   id: number
@@ -43,13 +44,14 @@ interface FormattedHistoryData {
 
 // Sub-tab configuration matching mobile implementation
 const SUB_TABS = [
-  { id: 'enclosurehistory', label: 'Enclosures', icon: 'mdi:history' },
-  { id: 'inmates', label: 'Inmates', icon: 'mdi:store' }
+  { id: 'enclosurehistory', labelKey: 'animals_module.enclosure_history', icon: 'mdi:history' },
+  { id: 'inmates', labelKey: 'animals_module.inmates', icon: 'mdi:store' }
 ]
 
 const AnimalHistory: React.FC = () => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
 
   const [selectedSubTab, setSelectedSubTab] = useState<string>('enclosurehistory')
@@ -90,7 +92,7 @@ const AnimalHistory: React.FC = () => {
   const formatHistoryData = (historyData: HistoryData[]): FormattedHistoryData[] => {
     return historyData.map((item, index) => ({
       id: item.id,
-      label: index === 0 ? 'Current Enclosure' : 'Previous Enclosure',
+      label: index === 0 ? t('animals_module.current_enclosure') : t('animals_module.previous_enclosure'),
       time: Utility.convertUTCToLocaltime(item.in_date),
       enclosure: item.user_enclosure_name,
       section: item.section_name,
@@ -98,7 +100,7 @@ const AnimalHistory: React.FC = () => {
       inDate: Utility.formatDisplayDate(item.in_date),
       outDate: item.out_date ? Utility.formatDisplayDate(item.out_date) : undefined,
       totalInmates: item.total_inmates,
-      reporter: 'System',
+      reporter: t('animals_module.system'),
       rawData: item
     }))
   }
@@ -278,7 +280,7 @@ const AnimalHistory: React.FC = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', py: 4 }}>
         <NoDataFound />
         <Typography variant='body2' sx={{ mt: 2, color: theme.palette.text.secondary }}>
-          No inmates record found
+          {t('animals_module.no_inmates_record_found')}
         </Typography>
       </Box>
     )
@@ -308,7 +310,7 @@ const AnimalHistory: React.FC = () => {
                   label={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon={tab.icon} fontSize={18} />
-                      <span>{tab.label}</span>
+                      <span>{t(tab.labelKey)}</span>
                     </Box>
                   }
                 />

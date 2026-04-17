@@ -18,7 +18,7 @@ import Icon from 'src/@core/components/icon'
 import { Box, minWidth, width } from '@mui/system'
 import AddIdentifierDrawer from 'src/views/pages/housing/animals/AddIdentifierDrawer'
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { deleteAnimalIdentifier, getAnimalIdentifier } from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import Search from 'src/views/utility/Search'
@@ -28,6 +28,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Toaster from 'src/components/Toaster'
 import { AnimalIdentifier as AnimalIdentifierType, IdentifierType, IndexedIdentifierRow } from 'src/types/housing'
 import { GridRenderCellParams, GridRowParams } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface PaginationModel {
   page: number
@@ -55,8 +56,9 @@ interface LocalIdentifierTypeOption {
 
 const AnimalIdentifier: React.FC = () => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
+  const { t } = useTranslation()
 
   const [searchValue, setSearchValue] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState<PaginationModel>({ page: 0, pageSize: 25 })
@@ -114,7 +116,7 @@ const AnimalIdentifier: React.FC = () => {
   const columns = [
     {
       field: 'sl',
-      headerName: 'SL NO',
+      headerName: t('s_no'),
       minWidth: 50,
       width: 100,
       align: 'center' as const,
@@ -135,7 +137,7 @@ const AnimalIdentifier: React.FC = () => {
     },
     {
       field: 'identifier_type',
-      headerName: 'LOCAL IDENTIFIER TYPE',
+      headerName: t('animals_module.local_identifier_type'),
       width: 250,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedIdentifierRow>) => (
@@ -171,7 +173,7 @@ const AnimalIdentifier: React.FC = () => {
     },
     {
       field: 'identifier',
-      headerName: 'LOCAL IDENTIFIER',
+      headerName: t('animals_module.local_identifier'),
       width: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedIdentifierRow>) => (
@@ -194,7 +196,7 @@ const AnimalIdentifier: React.FC = () => {
     },
     {
       field: 'is_primary',
-      headerName: 'PRIMARY',
+      headerName: t('animals_module.primary'),
       width: 200,
       align: 'left' as const,
       headerAlign: 'left' as const,
@@ -203,7 +205,7 @@ const AnimalIdentifier: React.FC = () => {
         const isPrimary = params.row.is_primary === 1 || params.row.is_primary === '1'
 
         return (
-          <Tooltip title={isPrimary ? 'Primary' : 'Not Primary'}>
+          <Tooltip title={isPrimary ? t('animals_module.primary') : t('animals_module.not_primary')}>
             <Typography
               sx={{
                 fontWeight: 500,
@@ -214,7 +216,7 @@ const AnimalIdentifier: React.FC = () => {
                 overflow: 'hidden'
               }}
             >
-              {isPrimary ? 'True' : 'False'}
+              {isPrimary ? t('animals_module.true') : t('animals_module.false')}
             </Typography>
           </Tooltip>
         )
@@ -224,7 +226,7 @@ const AnimalIdentifier: React.FC = () => {
       minWidth: 20,
       width: 160,
       field: 'created_at',
-      headerName: 'Created Date',
+      headerName: t('animals_module.created_date'),
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedIdentifierRow>) => (
         <Typography
@@ -244,7 +246,7 @@ const AnimalIdentifier: React.FC = () => {
       minWidth: 20,
       width: 160,
       field: 'modified_at',
-      headerName: 'Updated Date',
+      headerName: t('animals_module.updated_date'),
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedIdentifierRow>) => (
         <Typography
@@ -262,7 +264,7 @@ const AnimalIdentifier: React.FC = () => {
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       headerAlign: 'right' as const,
       minWidth: 20,
       width: 140,
@@ -377,7 +379,7 @@ const AnimalIdentifier: React.FC = () => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          Local Identifiers {data?.data?.length ? `(${data?.data?.length})` : ''}
+          {t('animals_module.local_identifiers')} {data?.data?.length ? `(${data?.data?.length})` : ''}
         </Typography>
         <Box sx={{ display: 'flex', columnGap: '8px', rowGap: '12px', flexWrap: 'wrap' }}>
           <Box sx={{ display: 'none' }}>
@@ -387,7 +389,7 @@ const AnimalIdentifier: React.FC = () => {
             />
           </Box>
           <Button onClick={handleAddIdentifierDrawer} sx={{ height: '38px', padding: '8px' }} variant='contained'>
-            <Icon icon='mdi:plus' /> Add Identifier
+            <Icon icon='mdi:plus' /> {t('animals_module.add_identifier')}
           </Button>
         </Box>
       </Box>
@@ -444,8 +446,8 @@ const AnimalIdentifier: React.FC = () => {
         <ConfirmationDialog
           dialogBoxStatus={openDeleteDialog}
           onClose={onDeleteDialogClose}
-          title={'Are your sure you want to delete this local identifier?'}
-          cancelText={'NO'}
+          title={t('animals_module.are_you_sure_you_want_to_delete_this_local_identifier')}
+          cancelText={t('no')}
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
@@ -507,7 +509,7 @@ const AnimalIdentifier: React.FC = () => {
                 <CircularProgress size={24} sx={{ color: theme.palette.primary.main }} />
               </Box>
             ) : (
-              'Restore Identifier'
+              t('animals_module.restore_identifier')
             )}
           </MenuItem>
         ) : (
@@ -535,7 +537,7 @@ const AnimalIdentifier: React.FC = () => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Edit Identifier
+              {t('animals_module.edit_identifier')}
             </MenuItem>
             <MenuItem
               onClick={() => {
@@ -550,7 +552,7 @@ const AnimalIdentifier: React.FC = () => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Delete Identifier
+              {t('animals_module.delete_identifier')}
             </MenuItem>
           </>
         )}
