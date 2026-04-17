@@ -318,7 +318,7 @@ const RecipeList = () => {
     {
       //flex: 0.3,
       width: 200,
-      field: 'ingredient_name',
+      field: 'items',
       headerName: t('diet_module.no_of_items'),
       renderCell: params => (
         <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
