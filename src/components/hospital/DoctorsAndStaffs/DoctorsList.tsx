@@ -1,0 +1,331 @@
+'use client'
+
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Grid,
+  styled,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { Add as AddIcon } from '@mui/icons-material'
+import Search from 'src/views/utility/Search'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import AddStaffsDrawer from './AddStaffsDrawer'
+import Toaster from 'src/components/Toaster'
+import { getHospitalStaff, addChiefDoctor, removeChiefDoctor } from 'src/lib/api/hospital/staff'
+import HospitalAnalyticsRaw from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
+const HospitalAnalytics: any = HospitalAnalyticsRaw
+import { useHospital } from 'src/context/HospitalContext'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import MUISwitchRaw from 'src/views/forms/form-fields/MUISwitch'
+const MUISwitch: any = MUISwitchRaw
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+
+const DoctorsList = () => {
+  const theme: any = useTheme()
+
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
+  const { selectedHospital }: any = useHospital()
+  const router: any = useSafeRouter()
+  const [searchValue, setSearchValue] = useState<string>('')
+  const [debouncedSearch, setDebouncedSearch] = useState<string>('')
+  const [openDrawer, setOpenDrawer] = useState<boolean>(false)
+  const [rows, setRows] = useState<any[]>([])
+  const [total, setTotal] = useState<number>(0)
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const [paginationModel, setPaginationModel] = useState<any>({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 50
+  })
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchValue)
+      setPaginationModel((prev: any) => (prev.page === 0 ? prev : { ...prev, page: 0 }))
+    }, 500)
+
+    return () => clearTimeout(handler)
+  }, [searchValue, debouncedSearch])
+
+  const fetchHospitalStaff = useCallback(async () => {
+    setLoading(true)
+
+    try {
+      const response: any = await getHospitalStaff({
+        params: {
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          q: debouncedSearch,
+          hospital_id: selectedHospital?.id
+        }
+      })
+
+      if (response?.success) {
+        setRows(response?.data?.records || [])
+        setTotal(response?.data?.total || 0)
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to load hospital staff' })
+        setRows([])
+        setTotal(0)
+      }
+    } catch (error: any) {
+      console.error('Error fetching hospital staff:', error?.message)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'Failed to load hospital staff'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
+
+  useEffect(() => {
+    fetchHospitalStaff()
+  }, [fetchHospitalStaff])
+
+  const indexedRows = useMemo(() => {
+    return rows.map((row: any, index: number) => {
+      const phone = row?.user_mobile_number ? `${row?.user_country_code || ''}${row?.user_mobile_number}` : ''
+
+      return {
+        ...row,
+        id: row?.user_id || `${index}`,
+        sl_no: paginationModel.page * paginationModel.pageSize + index + 1,
+        phone
+      }
+    })
+  }, [rows, paginationModel.page, paginationModel.pageSize])
+
+  const addHospitalChiefDoctor = async (user_id: any) => {
+    try {
+      const params = {
+        action: 'add',
+        hospital_id: selectedHospital?.id,
+        hospital_chief_doctor: user_id
+      }
+      const response: any = await addChiefDoctor(params)
+      if (response?.message && response?.success === true) {
+        Toaster({ type: 'success', message: response?.message })
+      }
+    } catch (error: any) {
+      Toaster({ type: 'error', message: error?.message })
+    }
+  }
+
+  const removeHospitalChiefDoctor = async (user_id: any) => {
+    try {
+      const params = {
+        action: 'delete',
+        hospital_id: selectedHospital?.id,
+        hospital_chief_doctor: user_id
+      }
+      const response: any = await removeChiefDoctor(params)
+      if (response?.message && response?.success === true) {
+        Toaster({ type: 'success', message: response?.message })
+      }
+    } catch (error: any) {
+      Toaster({ type: 'error', message: error?.message })
+    }
+  }
+
+  const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, userId: any) => {
+    const isChecked = event.target.checked
+
+    try {
+      if (isChecked) {
+        await addHospitalChiefDoctor(userId)
+      } else {
+        await removeHospitalChiefDoctor(userId)
+      }
+
+      fetchHospitalStaff()
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const columns: any = [
+    {
+      width: 80,
+      minWidth: 20,
+      field: 'sl_no',
+      sortable: false,
+      headerName: 'SL.NO',
+      align: 'left',
+      headerAlign: 'left',
+      renderCell: (params: any) => (
+        <Box>
+          <StyledTypography paddingLeft={1}>{params.row.sl_no ? `${params.row.sl_no}.` : '-'}</StyledTypography>
+        </Box>
+      )
+    },
+    {
+      minWidth: 300,
+      field: 'user_full_name',
+      sortable: false,
+      headerName: 'Doctors Name',
+      align: 'left',
+      headerAlign: 'left',
+      renderCell: (params: any) => (
+        <UserAvatarDetails
+          user_name={params.row.user_full_name}
+          role={params.row.role_name}
+          profile_image={params.row.user_profile_pic}
+          size='medium'
+        />
+      )
+    },
+    {
+      minWidth: 180,
+      field: 'assigned_patients',
+      sortable: false,
+      headerName: 'Assigned Patients',
+      align: 'left',
+      headerAlign: 'left',
+      renderCell: (params: any) => <StyledTypography paddingLeft={1}>{params.row.assigned_patients ?? '-'}</StyledTypography>
+    },
+    {
+      minWidth: 180,
+      field: 'phone',
+      sortable: false,
+      align: 'left',
+      headerAlign: 'left',
+      renderCell: (params: any) => {
+        const phoneNumber = params.row.phone
+        let pressTimer: any
+
+        const handleLongPress = () => {
+          if (phoneNumber) {
+            navigator.clipboard.writeText(phoneNumber)
+            alert('Number copied to clipboard')
+          }
+        }
+
+        const handleMouseDown = () => {
+          pressTimer = setTimeout(handleLongPress, 700)
+        }
+
+        const handleMouseUp = () => {
+          clearTimeout(pressTimer)
+        }
+
+        return isSmallScreen ? (
+          phoneNumber ? (
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 4
+              }}
+            >
+              <Box
+                component='img'
+                src='/images/call.png'
+                alt='Call'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                onClick={() => window.open(`tel:${phoneNumber}`)}
+                onTouchStart={handleMouseDown}
+                onTouchEnd={handleMouseUp}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+              />
+              <Box
+                component='img'
+                src='/images/message.png'
+                alt='Message'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                onClick={() => window.open(`sms:${phoneNumber}`)}
+              />
+            </Box>
+          ) : (
+            '-'
+          )
+        ) : (
+          <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>{phoneNumber || '-'}</Typography>
+        )
+      }
+    },
+    {
+      minWidth: 180,
+      field: 'hospital_chief_doctor',
+      headerName: 'Chief Doctor',
+      align: 'left',
+      headerAlign: 'left',
+      flex: 1,
+      renderCell: (params: any) => (
+        <MUISwitch
+          checked={params.row.is_hospital_chief_doctor === '1'}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSwitchChange(event, params.row.user_id)}
+        />
+      )
+    }
+  ]
+
+  const headerTitle = (
+    <StyledTypography fontWeight={500} fontSize={'20px'}>
+      Hospital Staffs
+    </StyledTypography>
+  )
+
+  return (
+    <>
+      <Box>
+        <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Doctors & Staffs' }]}
+        />
+        <HospitalAnalytics />
+        <Box sx={{ mt: 6 }}>
+          <Card>
+            <CardHeader title={headerTitle} />
+            <CardContent>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { sm: 'row', xs: 'column' },
+                  alignItems: { sm: 'center', xs: 'flex-start' },
+                  justifyContent: 'space-between',
+                  gap: 3
+                }}
+              >
+                <Search
+                  sx={{ width: '100%' }}
+                  value={searchValue}
+                  onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchValue(event.target.value)}
+                  onClear={() => setSearchValue('')}
+                  placeholder='Search staff'
+                />
+              </Box>
+              <Grid>
+                <CommonTable
+                  columns={columns}
+                  indexedRows={indexedRows}
+                  total={total}
+                  paginationModel={paginationModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                />
+              </Grid>
+            </CardContent>
+          </Card>
+        </Box>
+      </Box>
+      {openDrawer && <AddStaffsDrawer open={openDrawer} setOpen={setOpenDrawer} />}
+    </>
+  )
+}
+
+export default DoctorsList
+
+const StyledTypography = styled(Typography)(({ theme, fontSize, fontWeight, fontColor }: any) => ({
+  fontSize: fontSize || '16px',
+  fontWeight: fontWeight || 400,
+  color: fontColor || theme.palette.customColors.OnSurfaceVariant
+}))
