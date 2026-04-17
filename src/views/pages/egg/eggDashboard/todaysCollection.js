@@ -14,9 +14,11 @@ import { AuthContext } from 'src/context/AuthContext'
 import { getTodaysCollection } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const TodaysCollection = () => {
   const authData = useContext(AuthContext)
+  const { t } = useTranslation()
   const theme = useTheme()
   const [todaysCollection, setTodaysCollection] = useState(null)
 
@@ -149,12 +151,12 @@ const TodaysCollection = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Todays Collection -
+                {t('egg_module.todays_collection')} -
               </Typography>
               <Typography
                 sx={{ fontWeight: 500, fontSize: '24px', lineHeight: '29.05px', color: theme.palette.primary.dark }}
               >
-                {todaysCollection?.total_eggs} Eggs
+                {todaysCollection?.total_eggs} {t('navigation.eggs')}
               </Typography>
             </Box>
             <Grid container spacing={17} columns={2}>
@@ -180,7 +182,7 @@ const TodaysCollection = () => {
                           color: theme.palette.customColors.secondaryBg
                         }}
                       >
-                        In Nest
+                        {t('egg_module.in_nest')}
                       </Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: '#00AFD6' }}>
@@ -204,7 +206,7 @@ const TodaysCollection = () => {
                           color: theme.palette.customColors.secondaryBg
                         }}
                       >
-                        In Nursery
+                        {t('egg_module.in_nursery')}
                       </Typography>
                     </Box>
                     <Typography
@@ -235,7 +237,7 @@ const TodaysCollection = () => {
                           color: theme.palette.customColors.secondaryBg
                         }}
                       >
-                        Hatched
+                        {t('egg_module.hatched')}
                       </Typography>
                     </Box>
                     <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px', color: '#00D6C9' }}>
@@ -259,7 +261,7 @@ const TodaysCollection = () => {
                           color: theme.palette.customColors.secondaryBg
                         }}
                       >
-                        Discarded
+                        {t('egg_module.discarded')}
                       </Typography>
                     </Box>
                     <Typography

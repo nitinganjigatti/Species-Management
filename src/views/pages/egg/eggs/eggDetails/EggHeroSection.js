@@ -30,10 +30,11 @@ import ConditionSlider from 'src/views/pages/egg/eggs/conditionSlider'
 import AllocationSlider from '../allocationSlider'
 import SpeciesIllustrationCard from 'src/views/utility/SpeciesIllustrationCard'
 import FallbackImage from 'src/views/utility/FallbackImage'
+import { useTranslation } from 'react-i18next'
 
 const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList, handleBackButton }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const {
     settings: { direction }
   } = useSettings()
@@ -208,7 +209,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Found date
+            {t('egg_module.found_date')}
           </Typography>
         </Box>
       </Grid>
@@ -414,7 +415,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
       </Box>
       <Box>
         <IconButton
-
           // disabled={
           //   Number(eggDetails?.action_to_be_taken) === 5 ||
           //   (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
@@ -469,7 +469,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                   lineHeight: '29.05px'
                 }}
               >
-                Egg Details
+                {t('egg_module.egg_details')}
               </Typography>
             </Box>
           </Box>
@@ -675,7 +675,8 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
+                        {t('updated_on')}{' '}
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
                       </Typography>
                     </Box>
                   </Box>
@@ -685,7 +686,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                     Number(eggDetails?.action_to_be_taken) === 7 ? null : (
                       <Box>
                         <Button onClick={() => setOpenDiscard(true)} variant='outlined' sx={{ height: '100%' }}>
-                          DISCARD
+                          {t('necropsy_module.discard')}
                         </Button>
                       </Box>
                     )}
@@ -694,7 +695,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                     eggDetails?.egg_condition !== 'Broken' ? (
                       <Box>
                         <Button onClick={() => setOpenAllocate(true)} variant='contained'>
-                          ALLOCATE
+                          {t('allocate')}
                         </Button>
                       </Box>
                     ) : null}

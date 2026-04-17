@@ -5,13 +5,13 @@ import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCall }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [xlsxList, setXlsxList] = useState([])
   const [fileName, setFileName] = useState('Egg Table List')
-
 
   // useEffect(() => {}, [tab_Value, data])
 
@@ -207,7 +207,7 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
               color: '#006D35'
             }}
           >
-            Download
+            {t('download')}
           </Typography>
           <CircularProgress size='22px' />
         </Box>
@@ -232,7 +232,7 @@ const DashboardExelExportButton = ({ tab_Value, data, loading, exportExcelDataCa
               color: '#006D35'
             }}
           >
-            Download
+            {t('download')}
           </Typography>
 
           <Icon color='#006D35' icon='solar:download-square-outline' fontSize={22} />

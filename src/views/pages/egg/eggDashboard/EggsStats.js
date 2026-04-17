@@ -3,10 +3,11 @@ import { Avatar, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 const StatBox = ({ avatarSrc, value, label, tooltipContent, onClick, valueColor }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   return (
     <Box
       onClick={onClick}
@@ -115,7 +116,7 @@ const EggsStats = ({ allStats, setOpenDiscard }) => {
       tooltipContent: (
         <>
           <p style={{ margin: 0, fontSize: '12px', fontWeight: '300' }}>
-            Ready to be discarded at site:{' '}
+            {t('egg_module.ready_to_be_discarded_at_site')}:{' '}
             <span style={{ fontSize: '12px', fontWeight: '500' }}>
               {allStats?.total_egg_ready_to_be_discarded_site}
             </span>

@@ -25,6 +25,7 @@ import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
+import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/router'
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -47,7 +48,7 @@ const EggFilterDrawer = ({
   // console.log('selectedOptions :>> ', selectedOptions)
   const theme = useTheme()
   const router = useRouter()
-
+  const { t } = useTranslation()
   const {
     tab_Value = 'eggs_incubation',
     subTab_value,
@@ -565,13 +566,10 @@ const EggFilterDrawer = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500,mr:1 }}>
-            Filter  {getTotalBadgeCount() > 0  && '-'} </Typography> 
-           <StyledBadge
-              badgeContent={getTotalBadgeCount()}
-              color='primary'
-              sx={{ ml: 2, flexShrink: 0 }}
-            />
+          <Typography sx={{ fontSize: '24px', fontWeight: 500, mr: 1 }}>
+            Filter {getTotalBadgeCount() > 0 && '-'}{' '}
+          </Typography>
+          <StyledBadge badgeContent={getTotalBadgeCount()} color='primary' sx={{ ml: 2, flexShrink: 0 }} />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -717,7 +715,7 @@ const EggFilterDrawer = ({
                       inputProps={{ 'aria-label': 'controlled' }}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
-                      Select All
+                      {t('select_all')}
                     </Typography>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
@@ -726,10 +724,10 @@ const EggFilterDrawer = ({
 
               {(tab_Value === 'all' || tab_Value === 'eggs_incubation') && selectedMenu?.name === 'Stage' && (
                 <FormControl fullWidth>
-                  <InputLabel id='dropdown-label'>Select Status</InputLabel>
+                  <InputLabel id='dropdown-label'>{t('egg_module.select_status')}</InputLabel>
                   <Select
                     labelId='dropdown-label'
-                    label='Select Status'
+                    label={t('egg_module.select_status')}
                     value={selectedDropdownID ? selectedDropdownID : 'all'}
                     onChange={handleDropdownChange}
                   >
@@ -802,10 +800,10 @@ const EggFilterDrawer = ({
         }}
       >
         <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          Clear ALL
+          {t('clear_all')}
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
-          APPLY FILTER
+          {t('apply_filter')}
         </LoadingButton>
       </Box>
     </Drawer>

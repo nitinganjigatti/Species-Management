@@ -17,17 +17,17 @@ import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import DashboardSlider from '../eggs/dashboardSlider'
 import DiscardEggSlider from '../eggs/discardEggSlider'
-
 import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { getTaxonomyList } from 'src/lib/api/egg/egg/createAnimal'
 import DashboardExelExportButton from './exportDasboardDataExcel'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { useTranslation } from 'react-i18next'
 
 const Species = ({ openDiscard, setOpenDiscard }) => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [status, setStatus] = useState('species')
 
   const [speciesList, setSpeciesList] = useState([])
@@ -185,14 +185,14 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 280,
       sortable: true,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => <SpeciesCard species={{ ...params?.row, common_name: params.row?.default_common_name }} />
     },
     {
       width: 120,
       field: 'total_eggs',
       sortable: true,
-      headerName: 'TOTAL EGGS',
+      headerName: t('egg_module.total_eggs'),
       renderCell: params => (
         <Box
           sx={{
@@ -235,7 +235,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'hatched_percentage',
       sortable: false,
-      headerName: 'TOTAL HATCHED %',
+      headerName: t('egg_module.total_hatched_perc'),
       renderCell: params => (
         <Box
           sx={{
@@ -280,7 +280,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_hatch',
       sortable: true,
-      headerName: 'TOTAL HATCHED',
+      headerName: t('egg_module.total_hatched'),
       renderCell: params => (
         <Box
           sx={{
@@ -312,7 +312,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 140,
       field: 'total_discarded',
       sortable: true,
-      headerName: 'TOTAL DISCARDED',
+      headerName: t('egg_module.total_discarded'),
       renderCell: params => (
         <Box
           sx={{
@@ -347,11 +347,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            CURRENTLY
+            {t('egg_module.currently')}
           </Typography>
 
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            IN NEST
+            {t('egg_module.in_nest')}
           </Typography>
         </Box>
       ),
@@ -390,11 +390,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            CURRENTLY
+            {t('egg_module.currently')}
           </Typography>
 
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            IN NURSERY
+            {t('egg_module.in_nursery')}
           </Typography>
         </Box>
       ),
@@ -430,7 +430,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery_percentage',
       sortable: false,
-      headerName: 'HATCHED IN NURSERY %',
+      headerName: t('egg_module.hatched_nursery_perc'),
       renderCell: params => (
         <Box
           sx={{
@@ -484,7 +484,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery',
       sortable: true,
-      headerName: 'HATCHED IN NURSERY',
+      headerName: t('egg_module.hatched_in_nursery'),
       renderCell: params => (
         <Box
           sx={{
@@ -515,7 +515,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nest_percentage',
       sortable: false,
-      headerName: 'HATCHED IN NEST %',
+      headerName: t('egg_module.hatched_in_nest_perc'),
       renderCell: params => (
         <Box
           sx={{
@@ -569,7 +569,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'hatched_in_nest',
       sortable: true,
-      headerName: 'HATCHED IN NEST',
+      headerName: t('egg_module.hatched_in_nest'),
       renderCell: params => (
         <Box
           sx={{
@@ -601,7 +601,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 170,
       field: 'total_discard_at_site',
       sortable: true,
-      headerName: 'DISCARDED AT SITE',
+      headerName: t('egg_module.discarded_at_site'),
       renderCell: params => (
         <Box
           sx={{
@@ -632,7 +632,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'total_discard_at_nursery',
       sortable: true,
-      headerName: 'DISCARDED AT NURSERY',
+      headerName: t('egg_module.discarded_at_nursery'),
       renderCell: params => (
         <Box
           sx={{
@@ -673,7 +673,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 120,
       field: 'in_transit',
       sortable: true,
-      headerName: 'IN TRANSIT',
+      headerName: t('egg_module.in_transit'),
       renderCell: params => (
         <Box
           sx={{
@@ -734,7 +734,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 320,
       sortable: true,
       field: 'sites',
-      headerName: 'SITES',
+      headerName: t('sites'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
           <Avatar
@@ -781,7 +781,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_eggs',
       sortable: true,
-      headerName: 'TOTAL EGGS',
+      headerName: t('egg_module.total_eggs'),
       renderCell: params => (
         <Box
           sx={{
@@ -821,7 +821,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'hatched_percentage',
       sortable: false,
-      headerName: 'TOTAL HATCHED %',
+      headerName: t('egg_module.total_hatched_perc'),
       renderCell: params => (
         <Box
           sx={{
@@ -866,7 +866,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_hatch',
       sortable: true,
-      headerName: 'TOTAL HATCHED',
+      headerName: t('egg_module.total_hatched'),
       renderCell: params => (
         <Box
           sx={{
@@ -898,7 +898,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 160,
       field: 'total_discarded',
       sortable: true,
-      headerName: 'TOTAL DISCARDED',
+      headerName: t('egg_module.total_discarded'),
       renderCell: params => (
         <Box
           sx={{
@@ -933,11 +933,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            CURRENTLY
+            {t('egg_module.currently')}
           </Typography>
 
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            IN NEST
+            {t('egg_module.in_nest')}
           </Typography>
         </Box>
       ),
@@ -977,11 +977,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            CURRENTLY
+            {t('egg_module.currently')}
           </Typography>
 
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            IN NURSERY
+            {t('egg_module.in_nursery')}
           </Typography>
         </Box>
       ),
@@ -1016,7 +1016,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery_percentage',
       sortable: false,
-      headerName: 'HATCHED IN NURSERY %',
+      headerName: t('egg_module.hatched_nursery_perc'),
       renderCell: params => (
         <Box
           sx={{
@@ -1068,7 +1068,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery',
       sortable: true,
-      headerName: 'HATCHED IN NURSERY',
+      headerName: t('egg_module.hatched_in_nursery'),
       renderCell: params => (
         <Box
           sx={{
@@ -1099,7 +1099,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'hatched_in_Nest_percentage',
       sortable: false,
-      headerName: 'HATCHED IN NEST %',
+      headerName: t('egg_module.hatched_in_nest_perc'),
       renderCell: params => (
         <Box
           sx={{
@@ -1151,7 +1151,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'hatched_in_nest',
       sortable: true,
-      headerName: 'HATCHED IN NEST',
+      headerName: t('egg_module.hatched_in_nest'),
       renderCell: params => (
         <Box
           sx={{
@@ -1183,7 +1183,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 170,
       field: 'total_discard_at_site',
       sortable: true,
-      headerName: 'DISCARDED AT SITE',
+      headerName: t('egg_module.discarded_at_site'),
       renderCell: params => (
         <Box
           sx={{
@@ -1223,7 +1223,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'total_discard_at_nursery',
       sortable: true,
-      headerName: 'DISCARDED AT NURSERY',
+      headerName: t('egg_module.discarded_at_nursery'),
       renderCell: params => (
         <Box
           sx={{
@@ -1264,7 +1264,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 120,
       field: 'in_transit',
       sortable: true,
-      headerName: 'IN TRANSIT',
+      headerName: t('egg_module.in_transit'),
       renderCell: params => (
         <Box
           sx={{
@@ -1324,7 +1324,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 340,
       sortable: true,
       field: 'nursery',
-      headerName: 'NURSERIES',
+      headerName: t('egg_module.nurseries'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
           <Avatar
@@ -1377,7 +1377,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 180,
       field: 'total_eggs',
       sortable: true,
-      headerName: 'TOTAL EGGS',
+      headerName: t('egg_module.total_eggs'),
       renderCell: params => (
         <Box
           sx={{
@@ -1417,7 +1417,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'currently_in_incubator',
       sortable: true,
-      headerName: 'CURRENTLY IN INCUBATOR',
+      headerName: t('egg_module.currently_in_incubator'),
       renderCell: params => (
         <Box
           sx={{
@@ -1452,11 +1452,11 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       renderHeader: () => (
         <Box>
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            CURRENTLY
+            {t('egg_module.currently')}
           </Typography>
 
           <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
-            IN NURSERY
+            {t('egg_module.in_nursery')}
           </Typography>
         </Box>
       ),
@@ -1491,7 +1491,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery_percentage',
       sortable: false,
-      headerName: 'HATCHED IN NURSERY %',
+      headerName: t('egg_module.hatched_nursery_perc'),
       renderCell: params => (
         <Box
           sx={{
@@ -1543,7 +1543,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'hatched_in_nursery',
       sortable: true,
-      headerName: 'HATCHED IN NURSERY',
+      headerName: t('egg_module.hatched_in_nursery'),
       renderCell: params => (
         <Box
           sx={{
@@ -1574,7 +1574,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       width: 200,
       field: 'total_discard_at_nursery',
       sortable: true,
-      headerName: 'DISCARDED AT NURSERY',
+      headerName: t('egg_module.discarded_at_nursery'),
       renderCell: params => (
         <Box
           sx={{
@@ -2007,7 +2007,8 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
         </Box>
 
         {/* DataGrid */}
-        <CommonTable           sx={dataGridStyles}
+        <CommonTable
+          sx={dataGridStyles}
           columnVisibilityModel={{ sl_no: false }}
           indexedRows={indexedRows || []}
           total={total}

@@ -15,11 +15,13 @@ import EggSecondSecion from 'src/views/pages/egg/eggs/eggDetails/EggSecondSecion
 import AnimalDetails from 'src/views/pages/egg/eggs/eggDetails/AnimalDetails'
 import EggImageGallery from 'src/views/pages/egg/eggs/eggDetails/EggImageGallery'
 import EggComment from 'src/views/pages/egg/eggs/eggDetails/EggComment'
+import { useTranslation } from 'react-i18next'
 
 import { GetEggDetails, getActivityLogs, getDefaultEggAssesment, getGalleryImgList } from 'src/lib/api/egg/egg'
 
 const EggDetail = () => {
   const router = useRouter()
+  const { t } = useTranslation()
   const { id } = router.query
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
@@ -140,14 +142,14 @@ const EggDetail = () => {
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography color='inherit'>Egg</Typography>
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => handleBackButton()}>
-                Egg List
+                {t('egg_module.egg_list')}
               </Typography>
               <Typography
                 sx={{
                   color: 'text.primary'
                 }}
               >
-                Egg Details
+                {t('egg_module.egg_details')}
               </Typography>
             </Breadcrumbs>
             <EggHeroSection

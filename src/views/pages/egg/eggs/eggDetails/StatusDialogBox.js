@@ -3,6 +3,7 @@ import React from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
+import { useTranslation } from 'react-i18next'
 
 const StatusDialogBox = ({
   refType,
@@ -14,7 +15,7 @@ const StatusDialogBox = ({
   toggleHatcheryStatus
 }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   return (
     <Dialog open={openStatusDialog} onClose={() => setOpenStatusDialog(false)}>
       <Card
@@ -68,7 +69,7 @@ const StatusDialogBox = ({
             sx={{ p: 4 }}
             onClick={() => setOpenStatusDialog(false)}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
 
           <LoadingButton
