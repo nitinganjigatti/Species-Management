@@ -7,7 +7,7 @@ import Typography from '@mui/material/Typography'
 import Toaster from 'src/components/Toaster'
 import { addDietCategory, getDietCategoryList, UpdateDietCategory } from 'src/lib/api/diet/settings/dietCategory'
 import AddEditDietCategory from 'src/views/pages/diet/dietCategories/AddEditDietCategory'
-import Search from 'src/views/utility/Search'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AuthContext } from 'src/context/AuthContext'
 import { useTranslation } from 'react-i18next'
@@ -60,6 +60,7 @@ const DietCategory = () => {
       width: 40,
       field: 'uid',
       headerName: 'SL No',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: 'text.primary', pl: 4, fontSize: '0.875rem', fontWeight: 400 }}>
           {parseInt(params.row.uid)}
@@ -233,13 +234,16 @@ const DietCategory = () => {
       <Card>
         <CardHeader title={t('navigation.diet_category')} action={headerAction} sx={{ px: 5 }} />
         <Grid sx={{ mx: 5 }}>
-          <Search
-            value={searchValue}
-            onChange={e => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-            placeholder='Search…'
-            sx={{ mt: 2, justifyContent: 'flex-end' }}
-          />
+          <Grid container sx={{ mt: 2, justifyContent: 'flex-end' }}>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <MUISearch
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                placeholder='Search…'
+              />
+            </Grid>
+          </Grid>
           <CommonTable
             columnVisibilityModel={{ id: false }}
             columns={columns}

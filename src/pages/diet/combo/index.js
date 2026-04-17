@@ -244,6 +244,7 @@ const RecipeList = () => {
       width: 70,
       field: 'uid',
       headerName: 'SL ',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}

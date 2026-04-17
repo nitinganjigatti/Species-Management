@@ -1,19 +1,17 @@
-import { Card, CardHeader, Box, debounce, Hidden, Tooltip } from '@mui/material'
+import { Card, CardHeader, Box, debounce, Grid, Tooltip } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 import { AddButton } from 'src/components/Buttons'
 import Icon from 'src/@core/components/icon'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import UserSnackbar from 'src/components/utility/snackbar'
 import { getCutsizeList, addCutSize, UpdateCutsize } from 'src/lib/api/diet/settings/cutSizes'
-import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
 import AddCutSize from 'src/views/pages/diet/cutSizes/addCutSizes'
 import Toaster from 'src/components/Toaster'
 import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const CutSizes = () => {
   const theme = useTheme()
@@ -68,6 +66,7 @@ const CutSizes = () => {
       Width: 40,
       field: 'uid',
       headerName: 'SL No',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 4 }}>
           {parseInt(params.row.uid)}
@@ -196,10 +195,14 @@ const CutSizes = () => {
     []
   )
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
-  }
+  const handleSearch = useCallback(
+    value => {
+      setSearchValue(value)
+      searchTableData(sort, value, sortColumn)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sort, sortColumn, searchTableData, searchValue]
+  )
 
   const handleSubmitData = async payload => {
     try {
@@ -241,35 +244,32 @@ const CutSizes = () => {
     <>
       <Card>
         <CardHeader title='Cut Sizes' action={headerAction} sx={{ px: 5 }} />
-        <CommonTable
-          indexedRows={indexedRows === undefined ? [] : indexedRows}
-          total={total}
-          columns={columns}
-          paginationModel={paginationModel}
-          handleSortModel={handleSortModel}
-          setPaginationModel={setPaginationModel}
-          loading={loading}
-          columnVisibilityModel={{
-            id: false
-          }}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          externalTableStyle={{
-            '.MuiDataGrid-main': {
-              marginLeft: '20px',
-              marginRight: '20px'
-            }
-          }}
-        />
+        <Grid sx={{ mx: 5 }}>
+          <Grid container sx={{ mt: 2, justifyContent: 'flex-end' }}>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <MUISearch
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                placeholder='Search…'
+              />
+            </Grid>
+          </Grid>
+          <CommonTable
+            indexedRows={indexedRows === undefined ? [] : indexedRows}
+            total={total}
+            columns={columns}
+            paginationModel={paginationModel}
+            handleSortModel={handleSortModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            columnVisibilityModel={{
+              id: false
+            }}
+            searchValue={searchValue}
+            handleSearchOverride={handleSearch}
+          />
+        </Grid>
       </Card>
       <AddCutSize
         drawerWidth={400}

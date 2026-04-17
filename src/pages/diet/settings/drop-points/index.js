@@ -3,7 +3,7 @@ import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { getDropPointList, createDropPoint, editDropPoint } from 'src/lib/api/diet/mealgroup'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AuthContext } from 'src/context/AuthContext'
-import Search from 'src/views/utility/Search'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import { AddButton } from 'src/components/Buttons'
 import AddEditDropPoint from 'src/views/pages/diet/dropPoint/AddEditDropPoint'
 import Toaster from 'src/components/Toaster'
@@ -95,6 +95,7 @@ const DropPoints = () => {
       width: 40,
       field: 'sl_no',
       headerName: 'SL No',
+      sortable: false,
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
@@ -267,13 +268,16 @@ const DropPoints = () => {
       <Card>
         <CardHeader title={t('navigation.drop_points')} action={headerAction} sx={{ px: 5 }} />
         <Grid sx={{ mx: 5 }}>
-          <Search
-            value={searchValue}
-            onChange={e => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-            placeholder='Search…'
-            sx={{ mt: 2, justifyContent: 'flex-end' }}
-          />
+          <Grid container sx={{ mt: 2, justifyContent: 'flex-end' }}>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <MUISearch
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                placeholder='Search…'
+              />
+            </Grid>
+          </Grid>
           <CommonTable
             columnVisibilityModel={{ id: false }}
             columns={columns}

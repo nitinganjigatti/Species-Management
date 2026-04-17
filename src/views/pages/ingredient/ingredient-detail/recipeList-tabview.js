@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getRecipeListonIngredientDtl } from 'src/lib/api/diet/getIngredients'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
@@ -13,11 +12,11 @@ import { Avatar, Box, CardContent, Tooltip } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
-import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import SwapIngredient from './swapIngredient'
 
 const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' }) => {
@@ -161,6 +160,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' 
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
@@ -255,71 +255,44 @@ const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' 
         ) : (
           <>
             <div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <div></div>
+              <Drawer
+                anchor='right'
+                open={activitySidebarOpen}
+                ModalProps={{ keepMounted: true }}
+                sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
+              >
+                <CardContent>
+                  <SwapIngredient
+                    handleSidebarClose={handleSidebarClose}
+                    setActivitySidebarOpen={setActivitySidebarOpen}
+                  />
+                </CardContent>
+              </Drawer>
 
-                <Box sx={{ px: 4, py: 4, cursor: 'pointer', position: 'relative', top: 8 }}></Box>
+              <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
+                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                  <MUISearch
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    placeholder='Search…'
+                  />
+                </Grid>
+              </Grid>
 
-                <Drawer
-                  anchor='right'
-                  open={activitySidebarOpen}
-                  ModalProps={{ keepMounted: true }}
-                  sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
-                >
-                  <CardContent>
-                    <SwapIngredient
-                      handleSidebarClose={handleSidebarClose}
-                      setActivitySidebarOpen={setActivitySidebarOpen}
-                    />
-                  </CardContent>
-                </Drawer>
-                {/* //////////////////// */}
-              </div>
-
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
+              <CommonTable
+                indexedRows={indexedRows === undefined ? [] : indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
                 columnVisibilityModel={{
                   sl_no: false
                 }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                checkboxSelection={false}
-                disableColumnMenu={true}
-                onRowSelectionModelChange={handleSelectionChange}
-                selectionModel={selectedRows}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                paginationMode='server'
-                sortingMode='server'
-                onSortModelChange={handleSortModel}
-                pageSizeOptions={[7, 10, 25, 50, 100]}
-                paginationModel={paginationModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value),
-                    tableValue: 'recipe-List'
-                  }
-                }}
-                showToolbar
+                searchValue={searchValue}
+                handleSearchOverride={handleSearch}
               />
             </div>
           </>
