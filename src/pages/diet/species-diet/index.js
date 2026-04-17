@@ -9,7 +9,6 @@ import {
   Breadcrumbs,
   Tabs,
   Tab,
-  TextField,
   Grid,
   FormControl,
   InputLabel,
@@ -19,6 +18,7 @@ import {
   Typography,
   Card
 } from '@mui/material'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import { useTheme } from '@mui/material/styles'
 
 import { AuthContext } from 'src/context/AuthContext'
@@ -644,40 +644,14 @@ const SpeciesDietList = () => {
                         height: '40px'
                       }}
                     >
-                      <Box
-                        sx={{
-                          minWidth: 250,
-                          display: 'flex',
-                          alignItems: 'center',
-                          border: '1px solid #C3CEC7',
-                          borderRadius: '4px',
-                          padding: '0 8px',
-                          height: '40px'
-                        }}
-                      >
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                        <TextField
+                      <Box sx={{ minWidth: 250 }}>
+                        <MUISearch
                           value={activeSearchValue}
-                          // clearSearch={() => handleSearch('')}
-                          onChange={event =>
-                            isAnimalTab ? handleAnimalSearch(event.target.value) : handleSearch(event.target.value)
+                          onChange={e =>
+                            isAnimalTab ? handleAnimalSearch(e.target.value) : handleSearch(e.target.value)
                           }
-                          variant='outlined'
+                          onClear={() => (isAnimalTab ? handleAnimalSearch('') : handleSearch(''))}
                           placeholder='Search...'
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              border: 'none',
-                              padding: '0',
-                              '& fieldset': {
-                                border: 'none'
-                              }
-                            }
-                          }}
-                          slotProps={{
-                            input: {
-                              // disableUnderline: true
-                            }
-                          }}
                         />
                       </Box>
                       <Box>

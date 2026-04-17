@@ -6,13 +6,10 @@ import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
-import { Avatar, Button, Tooltip, Box, Switch, Divider, TextField } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
 import toast from 'react-hot-toast'
-import IconButton from '@mui/material/IconButton'
-import ClearIcon from '@mui/icons-material/Clear'
-import SearchIcon from '@mui/icons-material/Search'
-import InputAdornment from '@mui/material/InputAdornment'
 import { useTheme } from '@mui/material/styles'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -228,27 +225,15 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
         <Typography variant='h5' gutterBottom>
           Ingredients
         </Typography>
-        <Grid item sx={{ float: 'right' }}>
-          <TextField
-            placeholder='Search ingredients'
-            value={searchValue}
-            onChange={e => handleSearch(e.target.value)}
-            sx={{ width: '250px', height: '20px' }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: searchValue && (
-                  <IconButton onClick={handleClearSearch}>
-                    <ClearIcon />
-                  </IconButton>
-                )
-              }
-            }}
-          />
+        <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
+          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+            <MUISearch
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              onClear={handleClearSearch}
+              placeholder='Search ingredients'
+            />
+          </Grid>
         </Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange}>

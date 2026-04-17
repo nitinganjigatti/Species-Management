@@ -20,8 +20,8 @@ import FeedOverview from 'src/views/pages/diet/feed/feedoverview'
 import { feedDelete, feedStatusChange, getFeedDetails, getIngredientsOnFeed } from 'src/lib/api/diet/getFeedDetails'
 import format from 'date-fns/format'
 import Router, { useRouter } from 'next/router'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -159,6 +159,7 @@ const FeedDetails = () => {
       minWidth: 40,
       field: 'id',
       headerName: 'SL',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id}
@@ -578,6 +579,16 @@ const FeedDetails = () => {
                                   &nbsp; {t('diet_module.add_item')}
                                 </Button>
                               </Box>
+                              <Grid container sx={{ mb: 2, justifyContent: 'flex-start' }}>
+                                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                                  <MUISearch
+                                    value={searchValue}
+                                    onChange={e => handleSearch(e.target.value)}
+                                    onClear={() => handleSearch('')}
+                                    placeholder='Search…'
+                                  />
+                                </Grid>
+                              </Grid>
                               <CommonTable
                                 indexedRows={indexedRows === undefined ? [] : indexedRows}
                                 total={total}
@@ -590,6 +601,8 @@ const FeedDetails = () => {
                                   sl_no: false
                                 }}
                                 pageSizeOptions={[5, 10, 25, 50, 100]}
+                                searchValue={searchValue}
+                                handleSearchOverride={handleSearch}
                               />
                             </TabPanel>
                           </TabContext>
