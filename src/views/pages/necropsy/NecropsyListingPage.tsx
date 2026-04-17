@@ -762,8 +762,8 @@ const NecropsyListingPage = () => {
         )
       },
       {
-        width: 120,
-        minWidth: 20,
+        flex: 1,
+        minWidth: 120,
         sortable: false,
         field: 'count',
         headerName: t('count'),
