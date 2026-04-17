@@ -91,7 +91,7 @@ const ListOfStocks = () => {
   const [openReOrderLevelDialog, setOpenReOrderLevelDialog] = useState(false)
   const [configReOrderMed, setConfigReOrderMed] = useState(null)
   const [dialogCheck, setDialogCheck] = useState(false)
-  const [categoryFilter, setCategoryFilter] = useState(router.query.category || 'All')
+  const [categoryFilter, setCategoryFilter] = useState('all')
 
   // const textFieldRef = useRef(null)
 
@@ -134,7 +134,7 @@ const ListOfStocks = () => {
             column,
             page: paginationModel.page + 1,
             limit: paginationModel.pageSize,
-            ...(filterCategory !== 'All' && { category: filterCategory })
+            ...(filterCategory !== 'all' && { category: filterCategory })
           }
 
           result = await getStockReport(storeId, params)
@@ -187,7 +187,7 @@ const ListOfStocks = () => {
         column: batchColumn,
         page: batchPaginationModel.page + 1,
         limit: batchPaginationModel.pageSize,
-        ...(filterCategory !== 'All' && { category: filterCategory })
+        ...(filterCategory !== 'all' && { category: filterCategory })
       }
 
       if (id !== undefined) {
@@ -273,7 +273,7 @@ const ListOfStocks = () => {
           sort: batchSort,
           q: batchSearchValue,
           column: batchSortColumn,
-          ...(categoryFilter !== 'All' && { category: categoryFilter }),
+          ...(categoryFilter !== 'all' && { category: categoryFilter }),
           type: 'csv'
         }
         const response = await getStockReportByBatch(stockId, batchParams)
@@ -287,7 +287,7 @@ const ListOfStocks = () => {
           sort,
           q: searchValue,
           column: sortColumn,
-          ...(categoryFilter !== 'All' && { category: categoryFilter }),
+          ...(categoryFilter !== 'all' && { category: categoryFilter }),
 
           response_type: 'csv'
         }
@@ -599,7 +599,8 @@ const ListOfStocks = () => {
         batchQ: batchSearchValue,
         batchColumn: batchSortColumn,
         id: stockId,
-        batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize }
+        batchPaginationModel: { page: 0, pageSize: batchPaginationModel.pageSize },
+        category: categoryFilter
       })
     } else {
       getStocksReport({
@@ -607,7 +608,8 @@ const ListOfStocks = () => {
         q: searchValue,
         column: sortColumn,
         id: stockId,
-        paginationModel: { page: 0, pageSize: paginationModel.pageSize }
+        paginationModel: { page: 0, pageSize: paginationModel.pageSize },
+        category: categoryFilter
       })
     }
   }
@@ -918,7 +920,7 @@ const ListOfStocks = () => {
                             const val = e.target.value
                             setCategoryFilter(val)
                           }}
-                          options={productCategoryOptions}
+                          options={[{ id: 'all', label: 'All', value: 'all' }, ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))]}
                         />
                       </Grid> */}
                       <Grid item size={{ xs: 12, sm: 12, md: 9 }}>
@@ -939,7 +941,7 @@ const ListOfStocks = () => {
                                 const val = e.target.value
                                 setCategoryFilter(val)
                               }}
-                              options={productCategoryOptions}
+                              options={[{ id: 'all', label: 'All', value: 'all' }, ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))]}
                             />
                           </Grid>
                           {selectedPharmacy.type === 'central' && (

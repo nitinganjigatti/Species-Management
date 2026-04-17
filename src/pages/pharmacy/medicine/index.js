@@ -378,7 +378,7 @@ const ListOfMedicine = () => {
   const [excelLoader, setExcelLoader] = useState(false)
 
   const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
-  const [categoryFilter, setCategoryFilter] = useState(router.query.category || 'All')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -397,7 +397,7 @@ const ListOfMedicine = () => {
           page: paginationModel?.page + 1,
           limit: paginationModel?.pageSize,
           ...(activeStatus !== 'all' && { active: activeStatus }),
-          ...(activeCategoryFilter !== 'All' && { category: activeCategoryFilter })
+          ...(activeCategoryFilter !== 'all' && { category: activeCategoryFilter })
         }
 
         await getMedicineList({ params: params }).then(res => {
@@ -633,7 +633,7 @@ const ListOfMedicine = () => {
                         const val = e.target.value
                         setCategoryFilter(val)
                       }}
-                      options={productCategoryOptions}
+                      options={[{ id: 'all', label: 'All', value: 'all' }, ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))]}
                       sx={{ minWidth: 150, maxWidth: 200 }}
                     />
                     <MUISearch
