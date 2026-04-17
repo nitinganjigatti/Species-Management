@@ -2,7 +2,7 @@
 import { useEffect, Fragment } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
 import Chip from '@mui/material/Chip'
@@ -60,7 +60,7 @@ const VerticalNavGroup = props => {
   } = props
 
   // ** Hooks & Vars
-  const router = useRouter()
+  const router = useSafeRouter()
   const currentURL = router.asPath
   const { direction, navCollapsed, verticalNavToggleType } = settings
 

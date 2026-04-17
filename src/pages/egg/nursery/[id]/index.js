@@ -17,7 +17,6 @@ import {
   Switch,
   FormControlLabel
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 
 import { Icon } from '@iconify/react'
@@ -27,6 +26,7 @@ import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import Toaster from 'src/components/Toaster'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import ErrorScreen from 'src/pages/Error'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
@@ -37,9 +37,11 @@ import { AuthContext } from 'src/context/AuthContext'
 
 import { hatcheryStatus } from 'src/lib/api/egg'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
+import { useTranslation } from 'react-i18next'
 
 const NurseryDetails = () => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const router = useRouter()
   const { id } = router.query
   const authData = useContext(AuthContext)
@@ -239,7 +241,7 @@ const NurseryDetails = () => {
       flex: 0.1,
       minWidth: 120,
       field: 'ROOMS',
-      headerName: 'ROOMS',
+      headerName: t('egg_module.rooms'),
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -261,7 +263,7 @@ const NurseryDetails = () => {
       flex: 0.1,
       minWidth: 120,
       field: 'INCUBATORS',
-      headerName: 'INCUBATORS',
+      headerName: t('egg_module.incubators'),
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -283,7 +285,7 @@ const NurseryDetails = () => {
       flex: 0.1,
       minWidth: 160,
       field: 'Eggs',
-      headerName: 'Eggs in Incubator',
+      headerName: t('egg_module.eggs_in_incubator'),
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -305,7 +307,7 @@ const NurseryDetails = () => {
       flex: 0.1,
       minWidth: 120,
       field: 'SITE NAME',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -328,7 +330,7 @@ const NurseryDetails = () => {
       sortable: false,
       align: 'left',
       field: 'active',
-      headerName: 'Status',
+      headerName: t('status'),
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -350,7 +352,7 @@ const NurseryDetails = () => {
       flex: 0.2,
       minWidth: 220,
       field: 'ADDED BY',
-      headerName: 'ADDED BY',
+      headerName: t('added_by'),
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -420,11 +422,11 @@ const NurseryDetails = () => {
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Egg
+              {t('egg_module.egg')}
             </Typography>
 
             <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
-              Nursery List
+              {t('egg_module.nursery_list')}
             </Typography>
             <Typography
               sx={{
@@ -432,7 +434,7 @@ const NurseryDetails = () => {
                 cursor: 'pointer'
               }}
             >
-              Nursery Details
+              {t('egg_module.nursery_details')}
             </Typography>
           </Breadcrumbs>
           <Card>
@@ -461,7 +463,7 @@ const NurseryDetails = () => {
                     lineHeight: '29.05px'
                   }}
                 >
-                  Nursery Details
+                  {t('egg_module.nursery_details')}
                 </Typography>
               </Box>
 
@@ -501,7 +503,7 @@ const NurseryDetails = () => {
                     onClick={() => setIsOpen(true)}
                   >
                     <Icon icon='mdi:add' fontSize={20} />
-                    &nbsp; ADD ROOM
+                    &nbsp; {t('egg_module.add_room')}
                   </Button>
                 </Box>
               )}
@@ -509,10 +511,9 @@ const NurseryDetails = () => {
             <Box sx={{ px: '16px', my: '12px' }}>
               {/* {!nurseryDataLoader && ( */}
               <DetailCard
-
                 // loading={nurseryDataLoader}
-                title='Nursery Details'
-                ButtonName={'ADD ROOM'}
+                title={t('egg_module.nursery_details')}
+                ButtonName={t('egg_module.add_room')}
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />
@@ -605,8 +606,8 @@ const NurseryDetails = () => {
                 </FormControl>
               </Box>
             </Box>
-            <DataGrid
-              sx={{
+            <CommonTable
+              externalTableStyle={{
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
@@ -628,20 +629,13 @@ const NurseryDetails = () => {
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
               disableMultipleColumnsSorting={true}
               columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              onPaginationModelChange={setPaginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
               rowHeight={64}
               loading={loading}
               onCellClick={onCellClick}

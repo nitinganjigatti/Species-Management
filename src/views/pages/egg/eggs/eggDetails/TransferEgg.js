@@ -24,10 +24,11 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { transferEggToIncubator } from 'src/lib/api/egg/egg'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, getDetails, egg_id }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [loader, setLoader] = useState(false)
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
@@ -179,7 +180,6 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
   }, [eggDetails])
 
   const onSubmit = async values => {
-
     try {
       setLoader(true)
 
@@ -248,7 +248,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 height: '32px'
               }}
             >
-              Transfer Eggs
+              {t('egg_module.transfer_eggs')}
             </Typography>
           </Box>
           <IconButton
@@ -301,7 +301,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     height: '24px'
                   }}
                 >
-                  Current Location of Egg
+                  {t('egg_module.current_location_egg')}
                 </Typography>
                 <Box
                   sx={{
@@ -322,7 +322,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         height: '17px'
                       }}
                     >
-                      Incubator ID
+                      {t('egg_module.incubator_id')}
                     </Typography>
                     <Tooltip title={eggDetails?.incubator_code ? eggDetails?.incubator_code : 'Incubator Name'}>
                       <Typography
@@ -352,7 +352,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         height: '17px'
                       }}
                     >
-                      Room
+                      {t('room')}
                     </Typography>
                     <Tooltip title={eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}>
                       <Typography
@@ -382,7 +382,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         height: '17px'
                       }}
                     >
-                      Nursery Name
+                      {t('egg_module.nursery_name')}
                     </Typography>
                     <Tooltip title={eggDetails?.nursery_name ? eggDetails?.nursery_name : 'Nursery Name'}>
                       <Typography
@@ -415,7 +415,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                   height: '24.2px'
                 }}
               >
-                Select room and incubator
+                {t('egg_module.select_room_incubator')}
               </Typography>
               <Box
                 sx={{
@@ -464,7 +464,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                               searchNursery(e.target.value)
                             }}
                             {...params}
-                            label='Select Nursery *'
+                            label={`${t('egg_module.select_nursery')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.nursery_name)}
                           />
@@ -488,7 +488,6 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                         value={defaultRoom}
                         disablePortal
                         id='room'
-
                         // disabled={eggDetails?.room_id}
                         options={roomList?.length > 0 ? roomList : []}
                         getOptionLabel={option => option.room_name}
@@ -511,7 +510,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                               searchRoom(eggDetails?.nursery_id, e.target.value)
                             }}
                             {...params}
-                            label='Select Room *'
+                            label={`${t('egg_module.select_room')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.room)}
                           />
@@ -556,7 +555,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                               searchIncubator(roomId, e.target.value)
                             }}
                             {...params}
-                            label='Select Incubator *'
+                            label={`${t('egg_module.select_incubator')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.incubator)}
                           />
@@ -593,7 +592,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
               disabled={!formState.isValid || loader}
               sx={{ height: '58px' }}
             >
-              Transfer
+              {t('transfer')}
             </LoadingButton>
           </Box>
         </form>

@@ -10,7 +10,9 @@ import {
   Tooltip,
   MenuItem,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  Tabs,
+  Tab
 } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { debounce, set } from 'lodash'
@@ -22,6 +24,7 @@ import enforceModuleAccess from 'src/components/ProtectedRoute'
 import { visitTypeOptions } from 'src/constants/Constants'
 import { useHospital } from 'src/context/HospitalContext'
 import { getIncomingPatients } from 'src/lib/api/hospital/incomingPatient'
+import { downloadDischargeListings } from 'src/lib/api/hospital/inpatient'
 import Utility, { downloadPDF } from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
@@ -32,7 +35,10 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import { getPatientDischargeSummary } from 'src/lib/api/hospital/inpatient'
+import toast from 'react-hot-toast'
+import { ExportButton } from 'src/views/utility/render-snippets'
 import { extractTextFromHtml } from 'src/utility'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalDischarged = () => {
   const theme = useTheme()
@@ -49,6 +55,14 @@ const HospitalDischarged = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [selectedDischargeType, setSelectedDischargeType] = useState('')
+  const [excelDownload, setExcelDownload] = useState(false);
+
+  const dischargeTabs = [
+    { label: 'All', value: '' },
+    { label: 'Inpatient', value: 'inpatient' },
+    { label: 'Outpatient', value: 'opd' }
+  ]
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Chief Veterinarian': [],
@@ -72,10 +86,10 @@ const HospitalDischarged = () => {
     setFilters({
       page: parseInt(page),
       limit: parseInt(limit),
-      q
+      q: q
     })
 
-    setSearchValue(q)
+    // setSearchValue(q)
   }, [router.query])
 
   const prepareFilterParams = key => {
@@ -104,7 +118,8 @@ const HospitalDischarged = () => {
         from_date: formatDate(filterDate.startDate),
         to_date: formatDate(filterDate.endDate),
         users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site')
+        origin_site: prepareFilterParams('Origin Site'),
+        discharge_treatment_type: selectedDischargeType || undefined
       })
 
       setRows(res?.data?.records || [])
@@ -118,7 +133,16 @@ const HospitalDischarged = () => {
 
   useEffect(() => {
     fetchDischargedPatients()
-  }, [filters?.page, filters?.limit, filters?.q, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions])
+  }, [
+    filters?.page,
+    filters?.limit,
+    filters?.q,
+    selectedVisitType,
+    selectedHospital?.id,
+    filterDate,
+    selectedOptions,
+    selectedDischargeType
+  ])
 
   // const { data, isFetching, refetch } = useQuery({
   //   queryKey: ['outpatients-listings', filters, selectedVisitType, selectedHospital?.id, filterDate, selectedOptions],
@@ -222,6 +246,31 @@ const HospitalDischarged = () => {
     id: +row?.hospital_case_id,
     sl_no: getSlNo(index)
   }))
+
+    const exportDischargeListings = async () => {
+    try {
+      setExcelDownload(true)
+
+      const params = {
+        q: searchValue,
+        hospital_id: selectedHospital?.id,
+        patient_category: 'discharge',
+        visit_type: selectedVisitType,
+        export: true
+      }
+
+      const response = await downloadDischargeListings(params)
+      if (response?.success === true && response) {
+        Utility.downloadFileFromURL(response?.data?.download_url, Utility.extractHoursAndMinutes)
+        setExcelDownload(false)
+      }
+    } catch (error) {
+      toast.error(error?.message)
+    } finally {
+      setExcelDownload(false)
+    }
+  }
+
 
   const columns = [
     {
@@ -421,40 +470,38 @@ const HospitalDischarged = () => {
 
   const handleRowClick = async params => {
     if (params?.field !== 'action') {
-      // router.push({
-      //   pathname: `/hospital/discharged/${params.row.id}`,
-      //   query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
-      // })
+      router.push({
+        pathname: `/hospital/discharged/${params.row.id}`,
+        query: { animal_id: params.row.animal_id, medical_record_id: params.row.medical_record_id }
+      })
 
-      try {
-        const payload = {
-          hospital_case_id: params?.row?.id
-        }
+      // try {
+      //   const payload = {
+      //     hospital_case_id: params?.row?.id
+      //   }
 
-        const response = await getPatientDischargeSummary(payload)
-        if (response?.success) {
-          const pdfLink = response?.data?.download_url
+      //   const response = await getPatientDischargeSummary(payload)
+      //   if (response?.success) {
+      //     const pdfLink = response?.data?.download_url
 
-          if (pdfLink) {
-            window.open(pdfLink, '_blank', 'noopener,noreferrer')
-          }
-        }
-      } catch (error) {
-        console.error('Error downloading discharge summary:', error)
-      } finally {
-        setDownloadingRowId(null)
-      }
+      //     if (pdfLink) {
+      //       window.open(pdfLink, '_blank', 'noopener,noreferrer')
+      //     }
+      //   }
+      // } catch (error) {
+      //   console.error('Error downloading discharge summary:', error)
+      // } finally {
+      //   setDownloadingRowId(null)
+      // }
     }
   }
 
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Discharged</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+        />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
@@ -483,11 +530,12 @@ const HospitalDischarged = () => {
                   }}
                 />
               </Box>
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
+              <Box sx={{ mr: 2, display: 'flex', alignItems: {xs: 'flex-start',sm: 'center'}, gap: 4, ml: 2, flexDirection: {xs: 'column', sm: 'row'} }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
                   onChange={(s, e) => setFilterDate({ startDate: s, endDate: e })}
                 />
+                <Box sx = {{display: 'flex', gap: 4}}>
                 <Select
                   size='small'
                   value={selectedVisitType}
@@ -504,7 +552,38 @@ const HospitalDischarged = () => {
                   onClick={() => setOpenFilterDrawer(true)}
                   appliedFiltersCount={filterCount}
                 />
+                  <Box sx={{ width: 40, height: 40 }}>
+                  <ExportButton
+                    loading={excelDownload}
+                    onClick={exportDischargeListings}
+                    disabled={total === 0 ? true : false}
+                  />
+                </Box>
+                </Box>
               </Box>
+            </Box>
+            <Box sx={{ px: 5, mb: 2, borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs
+                value={selectedDischargeType}
+                onChange={(e, newValue) => {
+                  setSelectedDischargeType(newValue)
+                  setFilters(prev => ({ ...prev, page: 1 }))
+                }}
+                aria-label='discharge treatment type tabs'
+                sx={{
+                  '& .MuiTab-root': {
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    fontSize: '14px',
+                    minWidth: 'auto',
+                    px: 4
+                  }
+                }}
+              >
+                {dischargeTabs.map(tab => (
+                  <Tab key={tab.value} label={tab.label} value={tab.value} />
+                ))}
+              </Tabs>
             </Box>
             <Grid
               sx={{

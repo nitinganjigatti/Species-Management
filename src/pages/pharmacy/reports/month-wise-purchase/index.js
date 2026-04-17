@@ -41,9 +41,10 @@ const dropdownOptions = [
 const MonthWisePurchase = () => {
   const router = useRouter()
   const theme = useTheme()
-  const selectedStore = localStorage.getItem('selectedStore')
-  const storeObject = JSON.parse(selectedStore)
-  const storeId = storeObject?.id
+
+  // const selectedStore = localStorage.getItem('selectedStore')
+  // const storeObject = JSON.parse(selectedStore)
+  // const selectedPharmacy?.id = storeObject?.id
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openDoctorListDrawer, setOpenDoctorListDrawer] = useState(false)
@@ -146,7 +147,7 @@ const MonthWisePurchase = () => {
         from_date: fromDate,
         to_date: toDate,
         q: doctorsearch,
-        store_id: storeId
+        store_id: selectedPharmacy?.id
       }
 
       const response = await getDoctorReportList(payload)
@@ -260,8 +261,10 @@ const MonthWisePurchase = () => {
               {
                 field: 'stock_name',
                 headerName: `Pharmacy Name`,
+                align: 'left',
+                headerAlign: 'left',
                 renderHeader: () => (
-                  <Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Medicine names
                     </Typography>
@@ -277,7 +280,7 @@ const MonthWisePurchase = () => {
                   </Box>
                 ),
                 renderCell: params => (
-                  <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                     <Tooltip title={params.row.stock_name}>
                       <Typography
                         sx={{
@@ -357,7 +360,7 @@ const MonthWisePurchase = () => {
                 renderCell: params => {
                   const value = Number(params.value)
                   if (isNaN(value)) {
-                    return <span>{params.value}</span> 
+                    return <span>{params.value}</span>
                   }
                   const originalValue = Math.round(value)
 
@@ -389,7 +392,7 @@ const MonthWisePurchase = () => {
               control_substance: row.control_substance,
 
               ...Object.keys(row.data_values).reduce((acc, key) => {
-                const value = Number(row.data_values[key]) 
+                const value = Number(row.data_values[key])
                 acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
 
                 return acc
@@ -522,7 +525,6 @@ const MonthWisePurchase = () => {
     fetchfilterValues({ q: filtersearchValue, page })
   }, [filtersearchValue, page])
 
-  
   const loadMoreData = () => {
     if (!isFetching && fullStoreList.length < totalMedicineCount) {
       setPage(prevPage => prevPage + 1)
@@ -544,7 +546,7 @@ const MonthWisePurchase = () => {
         from_date: downloadFromDate,
         to_date: downloadToDate,
         q: searchbyDoctorname,
-        store_id: storeId
+        store_id: selectedPharmacy?.id
       }
 
       const response = await getDoctorReportList(payload)
@@ -565,8 +567,8 @@ const MonthWisePurchase = () => {
         utils.book_append_sheet(workbook, worksheet, 'DoctorList')
 
         const now = new Date()
-        const formattedDate = now.toISOString().slice(0, 10) 
-        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-') 
+        const formattedDate = now.toISOString().slice(0, 10)
+        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-')
         const fileName = `DoctorList_${formattedDate}_${formattedTime}.xlsx`
 
         writeFile(workbook, fileName)
@@ -616,7 +618,7 @@ const MonthWisePurchase = () => {
 
           if (column) {
             if (value == null || isNaN(value)) {
-              rowData[`${column.title} (${column.sub_title})`] = '0' 
+              rowData[`${column.title} (${column.sub_title})`] = '0'
             } else {
               const roundedValue = parseFloat(value)
 
@@ -649,11 +651,7 @@ const MonthWisePurchase = () => {
       console.log(wsData, 'wsData')
 
       const ws = utils.aoa_to_sheet(wsData)
-      ws['!cols'] = [
-        { wch: 20 }, 
-
-        ...listItem.columnData.map(() => ({ wch: 15 })) 
-      ]
+      ws['!cols'] = [{ wch: 20 }, ...listItem.columnData.map(() => ({ wch: 15 }))]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Purchase_Report')
 
@@ -698,7 +696,7 @@ const MonthWisePurchase = () => {
           }
         }}
       />
-    );
+    )
   })
 
   return (
@@ -721,9 +719,13 @@ const MonthWisePurchase = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography sx={{
-                      color: 'text.primary'
-                    }}>Month wise purchase</Typography>
+                    <Typography
+                      sx={{
+                        color: 'text.primary'
+                      }}
+                    >
+                      Month wise purchase
+                    </Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -736,7 +738,6 @@ const MonthWisePurchase = () => {
                     container
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 5, pt: 2 }}
                   >
-                  
                     <Grid item size={{ xs: 12, sm: 6, md: 6 }} sx={{ justifyContent: 'flex-start' }}>
                       <ServerSideToolbar
                         value={searchValue}
@@ -795,9 +796,27 @@ const MonthWisePurchase = () => {
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
                     },
-
+                    '& .MuiDataGrid-cell': {
+                      display: 'flex',
+                      alignItems: 'center'
+                    },
                     '& .MuiDataGrid-columnHeaders': {
                       backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-columnHeader': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg
+                    },
+                    '& .MuiDataGrid-filler': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-scrollbarFiller': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-filler--pinnedColumns': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
+                    },
+                    '& .MuiDataGrid-scrollbarFiller--header': {
+                      backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
                     },
                     '& .MuiDataGrid-row:hover': {
                       cursor: 'pointer'
@@ -912,7 +931,7 @@ const MonthWisePurchase = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default MonthWisePurchase

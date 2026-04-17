@@ -9,6 +9,7 @@ import { useRouter } from 'next/router'
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const schema = yup.object().shape({
   label: yup
@@ -23,6 +24,7 @@ const defaultValues = {
 
 const ChangeDietName = ({ isOpen, setIsOpen, dietid, dietname }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const router = useRouter()
 
   const handelClose = () => {
@@ -99,7 +101,9 @@ const ChangeDietName = ({ isOpen, setIsOpen, dietid, dietname }) => {
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'>Update Diet Name</Typography>
+              <Typography variant='h6'>
+                {t('update')} {t('diet_module.diet_name')}{' '}
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={() => handelClose()} sx={{ color: 'text.primary' }}>
@@ -117,11 +121,11 @@ const ChangeDietName = ({ isOpen, setIsOpen, dietid, dietname }) => {
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
-                    label='Diet Name'
+                    label={t('diet_module.diet_name')}
                     value={value}
                     onChange={onChange}
                     focused={value !== ''}
-                    placeholder='Diet Name'
+                    placeholder={t('diet_module.diet_name')}
                     error={Boolean(errors.label)}
                     name='label'
                   />
@@ -132,7 +136,7 @@ const ChangeDietName = ({ isOpen, setIsOpen, dietid, dietname }) => {
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Fragment>
                 <LoadingButton disabled={watch('label') === ''} size='large' type='submit' variant='contained'>
-                  Update
+                  {t('update')}
                 </LoadingButton>
               </Fragment>
             </Box>

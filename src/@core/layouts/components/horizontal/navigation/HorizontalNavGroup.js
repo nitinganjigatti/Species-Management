@@ -2,7 +2,7 @@
 import { useState, useEffect, Fragment } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -78,7 +78,7 @@ const HorizontalNavGroup = props => {
 
   // ** Hooks & Vars
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
   const currentURL = router.asPath
   const { skin, direction } = settings
   const { navSubItemIcon, menuTextTruncate, horizontalMenuToggle, horizontalMenuAnimation } = themeConfig

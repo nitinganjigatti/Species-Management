@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
-import { Avatar, Button, Tooltip, Box, Switch, Divider, TextField } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Switch, Divider } from '@mui/material'
 import toast from 'react-hot-toast'
-import IconButton from '@mui/material/IconButton'
-import ClearIcon from '@mui/icons-material/Clear'
-import SearchIcon from '@mui/icons-material/Search'
-import InputAdornment from '@mui/material/InputAdornment'
 import { useTheme } from '@mui/material/styles'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -20,9 +17,11 @@ import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
 import Router from 'next/router'
+import { useTranslation } from 'react-i18next'
 
 const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   const [loader, setLoader] = useState(false)
+  const { t } = useTranslation()
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
@@ -69,7 +68,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'ITEM NAME',
+      headerName: t('diet_module.item_name'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -99,9 +98,9 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'ITEM ID',
+      headerName: t('diet_module.item_id'),
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
         </Typography>
       )
@@ -110,7 +109,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.4,
       minWidth: 20,
       field: 'feed_type',
-      headerName: 'FEED TYPE',
+      headerName: t('diet_module.feed_type'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }} title={params.row.feed_type}>
           {params.row.feed_type_label ? params.row.feed_type_label : '-'}
@@ -121,7 +120,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.4,
       minWidth: 10,
       field: 'quantity',
-      headerName: 'QUANTITY (100%)',
+      headerName: t('diet_module.quantity_perc'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.quantity ? Utility.formatNumber(params.row.quantity) : '-'}
@@ -133,11 +132,13 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.4,
       minWidth: 20,
       field: 'preparation_type',
-      headerName: 'PREPARATION TYPE',
+      headerName: t('diet_module.preparation_type'),
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
-          {params.row.preparation_type ? params.row.preparation_type : '-'}
-        </Typography>
+        <Tooltip title={params?.row?.preparation_type} arrow placement='bottom-start'>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.preparation_type ? params.row.preparation_type : '-'}
+          </Typography>
+        </Tooltip>
       )
     }
   ]
@@ -149,26 +150,18 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
-            <CardHeader title='Item by percentage' sx={{ pl: 0 }} />
+            <CardHeader title={t('diet_module.item_by_perc')} sx={{ pl: 0 }} />
 
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
+              total={rowsPercentage.length}
+              columns={columnsforPercentage}
+              loading={loading}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              autoHeight
-              rows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
-              rowCount={rowsPercentage.length}
-              columns={columnsforPercentage}
-              loading={loading}
               hideFooter={true}
+              disablePagination={true}
             />
           </Card>
         )}
@@ -182,27 +175,15 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
         <Typography variant='h5' gutterBottom>
           Ingredients
         </Typography>
-        <Grid item sx={{ float: 'right' }}>
-          <TextField
-            placeholder='Search ingredients'
-            value={searchValue}
-            onChange={e => handleSearch(e.target.value)}
-            sx={{ width: '250px', height: '20px' }}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-                endAdornment: searchValue && (
-                  <IconButton onClick={handleClearSearch}>
-                    <ClearIcon />
-                  </IconButton>
-                )
-              }
-            }}
-          />
+        <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
+          <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+            <MUISearch
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              onClear={handleClearSearch}
+              placeholder={t('diet_module.search_ingredients')}
+            />
+          </Grid>
         </Grid>
         <TabContext value={status}>
           <TabList onChange={handleChange}>

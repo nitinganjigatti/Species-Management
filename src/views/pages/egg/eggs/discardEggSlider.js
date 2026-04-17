@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   Drawer,
@@ -25,11 +25,12 @@ import moment from 'moment'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import DashboardFilter from './dashboardFilter'
+import { useTranslation } from 'react-i18next'
 import { getDashboardDiscardList } from 'src/lib/api/egg/dashboard'
 
 const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   // States
   const [tabStatus, setTabStatus] = useState('site')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -49,6 +50,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const [filterList, setFilterList] = useState([])
   const [selectedOptions, setSelectedOptions] = useState(initFilters())
   const [applyFilters, setApplyFilters] = useState(initFilters())
+  const activeFilterCount = useMemo(() => {
+    if (!applyFilters) return 0
+
+    return Object.entries(applyFilters).reduce((count, [key, value]) => {
+      if (key === 'selecteMenu') return count
+
+      if (Array.isArray(value) && value.length > 0) {
+        return count + 1
+      }
+
+      return count
+    }, 0)
+  }, [applyFilters])
 
   function initFilters() {
     return {
@@ -139,7 +153,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setSelectedOptions(initFilters())
     setFilterList([])
     setPage(1)
-    DiscardList(1, '', '', '')
+    // DiscardList(1, '', '', '')
   }
 
   const handleSearch = value => {
@@ -265,7 +279,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         >
           <Box>
             <Typography sx={{ fontSize: 16, fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Discarded eggs {listCount && <span>({listCount})</span>}
+              {t('egg_module.discarded_eggs')} {listCount && <span>({listCount})</span>}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: '12px' }}>
@@ -320,12 +334,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 display: 'flex',
                 justifyContent: 'center',
                 gap: 1,
-                width: filterList?.length > 0 ? '50px' : '34px',
+                width: activeFilterCount > 0 ? '50px' : '34px',
                 height: '36px',
                 border: 1,
                 borderRadius: '6px',
                 borderColor: theme.palette.customColors.OutlineVariant,
-                bgcolor: filterList?.length > 0 ? theme?.palette.primary.dark : null,
+                bgcolor: activeFilterCount > 0 ? theme?.palette.primary.dark : null,
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
@@ -334,12 +348,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               <Icon
                 icon='fluent:filter-16-filled'
                 fontSize={20}
-                color={filterList?.length > 0 ? theme.palette.primary.contrastText : 'Black'}
+                color={activeFilterCount > 0 ? theme.palette.primary.contrastText : 'Black'}
               />
 
-              {filterList?.length > 0 && (
+              {activeFilterCount > 0 && (
                 <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '14px', fontWeight: 400 }}>
-                  {filterList?.length}
+                  {activeFilterCount}
                 </Typography>
               )}
             </Box>
@@ -562,10 +576,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 <Typography
                   sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: theme.palette.primary.light }}
                 >
-                  Security checked
+                  {t('egg_module.security_checked')}
                 </Typography>
               ) : (
-                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
+                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>
+                  {t('egg_module.security_check_pending')}
+                </Typography>
               )}
             </Box>
             <Divider sx={{ my: 4 }} />
@@ -579,7 +595,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     color: theme.palette.customColors.OnSecondaryContainer
                   }}
                 >
-                  Discarded On
+                  {t('egg_module_discarded_on')}
                 </Typography>
                 <Typography
                   sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
@@ -599,7 +615,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     color: theme.palette.customColors.OnSecondaryContainer
                   }}
                 >
-                  Batch
+                  {t('egg_module.batch')}
                 </Typography>
                 <Typography
                   sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
@@ -667,7 +683,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     color: theme.palette.customColors.OnSecondaryContainer
                   }}
                 >
-                  Reason
+                  {t('reason')}
                 </Typography>
                 <Typography
                   sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
@@ -711,7 +727,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
               <img src='/icons/egg_dashboard/discard.png' alt='icon' width='32' height='32' />
 
-              <Typography variant='h6'>Discard Details</Typography>
+              <Typography variant='h6'>{t('egg_module.discard_details')}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -771,7 +787,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         boxSizing: 'border-box'
                       }}
                     >
-                      No records
+                      {t('no_records')}
                     </Typography>
                   )}
 
@@ -817,7 +833,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         boxSizing: 'border-box'
                       }}
                     >
-                      No records
+                      {t('no_records')}
                     </Typography>
                   )}
 

@@ -214,7 +214,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             request_item_dispatch_qty: qty,
             request_item_stock_item_id: row.stock_item_id,
             request_item_batch_no: row.batch_no,
-            request_item_expiry_date: row.expiry_date,
+            request_item_expiry_date: row.expiry_date && row.expiry_date !== '0000-00-00' ? row.expiry_date : null,
             description: ''
           }
 
@@ -249,7 +249,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           request_item_dispatch_qty: qty,
           request_item_stock_item_id: row.stock_item_id,
           request_item_batch_no: row.batch_no,
-          request_item_expiry_date: row.expiry_date,
+          request_item_expiry_date: row.expiry_date && row.expiry_date !== '0000-00-00' ? row.expiry_date : null,
           description: ''
         }
         setFulfilStockItems([medicineRow])
@@ -315,6 +315,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
   // }
 
   const dispatchRequest = async data => {
+    console.log('data', data)
     const payload = {
       dispatch_date: Utility.formatDate(Date()),
       dispatch_items: fulfilStockItems,
@@ -561,7 +562,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         payload_item['request_item_dispatch_qty'] = item.qty
         payload_item['request_item_stock_item_id'] = fulfillMedicine?.stock_item_id
         payload_item['request_item_batch_no'] = item.batch_no
-        payload_item['request_item_expiry_date'] = item.expiry_date
+        payload_item['request_item_expiry_date'] =
+          item.expiry_date && item.expiry_date !== '0000-00-00' ? item.expiry_date : null
         payload_item['from_store_id'] = storeDetails?.from_store_id
         payload_item['from_store_type'] = storeDetails.from_store_type
         payload_item['to_store_id'] = storeDetails?.to_store_id
@@ -579,9 +581,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       try {
         setErrors(false)
         setSubmitLoader(true)
-
         const response = await addDispatch(payload)
-
         if (response?.success) {
           setOpenSnackbar({ ...openSnackbar, open: true, message: response?.msg, severity: 'success' })
           setSubmitLoader(false)
@@ -847,7 +847,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         transition: 'min-height 0.3s ease-in-out'
                       }}
                     >
-                      <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
+                      <Grid item size={{ xs: 12, sm: 2.4 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`product_batches[${index}].batch_no`}
@@ -903,17 +903,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                         style={{
                                           Width: '100%!important',
                                           padding: '0px',
-                                          margin: '5px',
-                                          background: 'white'
+                                          margin: '5px'
                                         }}
                                       >
                                         <Box
                                           sx={{
-                                            backgroundColor: '#0000000D',
                                             width: '100%',
-
-                                            // minWidth: '196px !important',
-                                            // height: '71px !important',
                                             padding: '8px !important',
                                             borderRadius: '4px',
                                             display: 'flex',
@@ -933,7 +928,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                           >
                                             {option?.batch_no}
                                           </Typography>
-                                          {batchItems[index]?.stock_type !== 'non_medical' && (
+                                          {option?.expiry_date && option?.expiry_date !== '0000-00-00' && (
                                             <Typography
                                               sx={{
                                                 fontSize: '12px',
@@ -1003,21 +998,20 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           )}
                         </FormControl>
                       </Grid>
-
-                      {batchItems[index]?.stock_type === 'non_medical' ? null : (
-                        <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
-                          <ControlledTextField
-                            name={`product_batches[${index}].expiry_date`}
-                            label='Expiry Date*'
-                            control={control}
-                            errors={errors}
-                            readOnly={true}
-                            dateReader={true}
-                            inputBackgroundColor={theme.palette.customColors.OnPrimary}
-                          />
-                        </Grid>
-                      )}
-                      <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
+                      {/* {batchItems[index]?.stock_type === 'non_medical' ? null : ( */}
+                      <Grid item size={{ xs: 12, sm: 2.4 }}>
+                        <ControlledTextField
+                          name={`product_batches[${index}].expiry_date`}
+                          label='Expiry Date*'
+                          control={control}
+                          sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
+                          errors={errors}
+                          readOnly={true}
+                          dateReader={true}
+                        />
+                      </Grid>
+                      {/* // )} */}
+                      <Grid item size={{ xs: 12, sm: 2.4 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`product_batches[${index}].multiplier`}
@@ -1041,7 +1035,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           />
                         </FormControl>
                       </Grid>
-                      <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
+                      <Grid item size={{ xs: 12, sm: 2.4 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`product_batches[${index}].qty`}
@@ -1094,7 +1088,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           {/* </Box> */}
                         </FormControl>
                       </Grid>
-
                       <Grid
                         item
                         size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 1.6 : 1.6 }}

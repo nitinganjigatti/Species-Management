@@ -3,6 +3,7 @@ import React from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
+import { useTranslation } from 'react-i18next'
 
 const EditRedirectionDialog = ({
   message,
@@ -12,7 +13,7 @@ const EditRedirectionDialog = ({
   EditRedirectionFunc
 }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   return (
     <Dialog open={openRedirectionDialog} onClose={() => setOpenRedirectionDialog(false)}>
       <Card
@@ -68,11 +69,11 @@ const EditRedirectionDialog = ({
         </Box>
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', gap: 6, p: 4 }}>
           <Button variant='outlined' fullWidth sx={{ p: 4 }} onClick={() => setOpenRedirectionDialog(false)}>
-            No
+            {t('no')}
           </Button>
 
           <LoadingButton variant='contained' fullWidth sx={{ p: 4 }} onClick={EditRedirectionFunc}>
-            Yes
+            {t('yes')}
           </LoadingButton>
         </Box>
       </Card>

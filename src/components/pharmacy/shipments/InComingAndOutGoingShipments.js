@@ -1,24 +1,21 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { Box, CardHeader, Grid, Typography, Card } from '@mui/material'
+import { Box, Grid, styled, Tab, alpha, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useRouter } from 'next/router'
 import { debounce } from 'lodash'
-import RenderUtility from 'src/utility/render'
-import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
-import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { alpha } from '@mui/material'
 import { getIncomingAndOutgoingShipments } from 'src/lib/api/pharmacy/allShipments'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { useForm } from 'react-hook-form'
 import Search from 'src/views/utility/Search'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const TabLists = styled(MuiTabList)(({ theme }) => ({
   '& .MuiTabs-indicator': {
@@ -131,8 +128,7 @@ function InComingAndOutGoingShipments({ type }) {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {type === 'outing' ? params?.row?.to_store_name : params?.row?.from_store_name}
@@ -386,7 +382,10 @@ function InComingAndOutGoingShipments({ type }) {
         externalTableStyle={{
           '& .MuiDataGrid-cell': {
             paddingLeft: '16px',
-            paddingRight: '16px'
+            paddingRight: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            lineHeight: 'normal'
           }
         }}
       />
@@ -394,111 +393,103 @@ function InComingAndOutGoingShipments({ type }) {
   }
 
   return (
-    <Grid container>
-      <Card sx={{ px: 6 }}>
-        <CardHeader
-          sx={{
-            px: 0
-          }}
-          title={RenderUtility.pageTitle(type === 'incoming' ? 'Incoming shipments' : 'Outgoing shipments')}
-        />
-        <Grid
+    <PageCardLayout title={type === 'incoming' ? 'Incoming shipments' : 'Outgoing shipments'}>
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          display: 'flex',
+          flexWrap: { xs: 'wrap', md: 'nowrap' },
+          justifyContent: { xs: 'center', md: 'space-between' },
+          alignItems: 'center',
+          gap: { xs: 2, md: 0 }
+        }}
+      >
+        <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
+          <Search
+            width={{ xs: '100%', sm: '250px' }}
+            placeholder='Search...'
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+          />
+        </Grid>
+        <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
+          {selectedPharmacy?.type === 'central' && (
+            <ControlledAutocomplete
+              name='selectedStore'
+              label='Filter By Store'
+              control={control}
+              errors={{}}
+              options={storeOptions}
+              onChangeOverride={value => {
+                console.log('value', value)
+                if (value) setValue('selectedStore', value)
+                else setValue('selectedStore', null)
+              }}
+              getOptionLabel={o => o.name}
+              isOptionEqualToValue={(o, v) => o.id === v?.id}
+              textFieldProps={{
+                size: 'small',
+                InputProps: {
+                  sx: { fontSize: '0.875rem', height: 40 }
+                },
+                InputLabelProps: {
+                  sx: { fontSize: '0.875rem' }
+                }
+              }}
+            />
+          )}
+        </Grid>
+      </Grid>
+      <TabContext value={shipmentTab}>
+        <TabLists
+          variant='scrollable'
+          allowScrollButtonsMobile
           container
-          spacing={2}
+          onChange={(event, newValue) => {
+            setShipmentTab(newValue)
+            setPaginationModel({
+              page: 0,
+              pageSize: 50
+            })
+          }}
           sx={{
-            display: 'flex',
-            flexWrap: { xs: 'wrap', md: 'nowrap' },
-            justifyContent: { xs: 'center', md: 'space-between' },
-            alignItems: 'center',
-            gap: { xs: 2, md: 0 },
-            mt: 6
+            height: 'auto',
+            mt: 5
           }}
         >
-          <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
-            <Search
-              placeholder='Search...'
-              value={searchValue}
-              onChange={e => handleSearch(e.target.value)}
-              onClear={() => handleSearch('')}
-            />
-          </Grid>
-          <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 4 }}>
-            {selectedPharmacy?.type === 'central' && (
-              <ControlledAutocomplete
-                name='selectedStore'
-                label='Filter By Store'
-                control={control}
-                errors={{}}
-                options={storeOptions}
-                onChangeOverride={value => {
-                  console.log('value', value)
-                  if (value) setValue('selectedStore', value)
-                  else setValue('selectedStore', null)
-                }}
-                getOptionLabel={o => o.name}
-                isOptionEqualToValue={(o, v) => o.id === v?.id}
-                textFieldProps={{
-                  size: 'small',
-                  InputProps: {
-                    sx: { fontSize: '0.875rem', height: 40 }
-                  },
-                  InputLabelProps: {
-                    sx: { fontSize: '0.875rem' }
-                  }
-                }}
-              />
-            )}
-          </Grid>
-        </Grid>
-        <TabContext value={shipmentTab}>
-          <TabLists
-            variant='scrollable'
-            allowScrollButtonsMobile
-            container
-            onChange={(event, newValue) => {
-              setShipmentTab(newValue)
-              setPaginationModel({
-                page: 0,
-                pageSize: 50
-              })
-            }}
-            sx={{
-              height: 'auto',
-              mt: 5
-            }}
-          >
-            <Tab value='pending' label='Pending' />
-            <Tab value='dispute' label='Dispute' />
-            <Tab value='all' label='All' />
-          </TabLists>
+          <Tab value='pending' label='Pending' />
+          <Tab value='dispute' label='Dispute' />
+          <Tab value='all' label='All' />
+        </TabLists>
 
-          <TabPanel
-            value='pending'
-            sx={{
-              padding: '0px !important'
-            }}
-          >
-            {pageContent()}
-          </TabPanel>
-          <TabPanel
-            value='dispute'
-            sx={{
-              padding: '0px !important'
-            }}
-          >
-            {pageContent()}
-          </TabPanel>
-          <TabPanel
-            value='all'
-            sx={{
-              padding: '0px !important'
-            }}
-          >
-            {pageContent()}
-          </TabPanel>
-        </TabContext>
-      </Card>
-    </Grid>
+        <TabPanel
+          value='pending'
+          sx={{
+            padding: '0px !important'
+          }}
+        >
+          {pageContent()}
+        </TabPanel>
+        <TabPanel
+          value='dispute'
+          sx={{
+            padding: '0px !important'
+          }}
+        >
+          {pageContent()}
+        </TabPanel>
+        <TabPanel
+          value='all'
+          sx={{
+            padding: '0px !important'
+          }}
+        >
+          {pageContent()}
+        </TabPanel>
+      </TabContext>
+    </PageCardLayout>
   )
 }
 

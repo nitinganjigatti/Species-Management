@@ -1,28 +1,18 @@
-import {
-  Avatar,
-  Box,
-  Breadcrumbs,
-  Button,
-  Card,
-  CardHeader,
-  IconButton,
-  Tooltip,
-  Typography,
-  debounce
-} from '@mui/material'
+import { Box, Button, Grid, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
 import { addMedicalCategory, getCategoriesList, updateMedicalCategory } from 'src/lib/api/medical/masters'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
 import AddCategories from 'src/views/pages/medical/AddCategories'
 import Error404 from 'src/pages/404'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const Complaints = () => {
   const theme = useTheme()
@@ -47,7 +37,6 @@ const Complaints = () => {
 
   const zoo_id = authData?.userData?.user?.zoos[0].zoo_id
   const complaints_permission = authData?.userData?.permission?.user_settings?.medical_add_complaints
-  console.log(zoo_id, 'zoo_id')
 
   const fetchTableData = useCallback(
     async q => {
@@ -117,8 +106,6 @@ const Complaints = () => {
   }
 
   const handleSubmitData = async params => {
-    console.log(params, 'ghghhg')
-
     const payload = {
       label: params?.label,
       type: 'complaints'
@@ -159,8 +146,7 @@ const Complaints = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 20,
+      width: 120,
       field: 'id',
       headerName: 'NO',
       align: 'center',
@@ -170,24 +156,29 @@ const Complaints = () => {
     },
 
     {
-      flex: 0.6,
-      minWidth: 40,
+      flex: 1,
+      minWidth: 350,
       sortable: false,
       field: 'Category',
       headerName: 'Category',
       align: 'left',
 
-      renderCell: params => <Typography noWrap>{params.row.label}</Typography>
+      renderCell: params => (
+        <Tooltip title={params.row.label}>
+          {' '}
+          <Typography noWrap>{params.row.label}</Typography>
+        </Tooltip>
+      )
     },
     {
-      flex: 0.1,
-      minWidth: 10,
+      flex: 1,
+      minWidth: 150,
       field: 'Action',
       headerName: 'Action',
       sortable: false,
       renderCell: params => (
         <>
-          {params.row.zoo_id === zoo_id ? ( // Show only if the zoo_id matches
+          {params.row.zoo_id === zoo_id ? (
             <Box>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
@@ -200,7 +191,11 @@ const Complaints = () => {
   ]
 
   const handleCellClick = params => {
-    router.push(`complaints/${params.row.id}`)
+    const { id, label } = params.row
+    router.push({
+      pathname: `complaints/${id}`,
+      query: { label: label }
+    })
   }
 
   const headerAction = (
@@ -224,68 +219,38 @@ const Complaints = () => {
     <>
       {complaints_permission ? (
         <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Medical
-            </Typography>
-            <Typography
-              sx={{
-                color: 'text.primary',
-                cursor: 'pointer'
-              }}
-            >
-              Category
-            </Typography>
-          </Breadcrumbs>
-          <Card>
-            <CardHeader title='Category List' action={headerAction} />
+          <DynamicBreadcrumbs pageItems={[{ title: 'Medical' }, { title: 'Category' }]} />
+          <PageCardLayout title='Category List' action={headerAction}>
+            <Grid container>
+              <Grid item size={{ xs: 12, sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                />
+              </Grid>
 
-            <DataGrid
-              hideFooterPagination={true}
-              sx={{
-                '.MuiDataGrid-cell:focus-within': {
-                  outline: 'none'
-                },
+              <Grid item size={{ xs: 12 }}>
+                <CommonTable
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
+                  columns={columns}
+                  handleSortModel={handleSortModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                  handleSearch={handleSearch}
+                  onCellClick={handleCellClick}
+                  hideFooterPagination={true}
+                  disablePagination={true}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                />
+              </Grid>
+            </Grid>
+          </PageCardLayout>
 
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              disableColumnMenu
-              autoHeight
-
-              // pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-
-              // pageSizeOptions={[7, 10, 25, 50]}
-              // paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-
-              // onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={handleCellClick}
-            />
-          </Card>
           {openDrawer && (
             <AddCategories
               openDrawer={openDrawer}

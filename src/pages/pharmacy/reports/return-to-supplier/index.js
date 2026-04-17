@@ -1,43 +1,33 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Grid,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getReturnToSupplier } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import RenderUtility from 'src/utility/render'
-import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ReturnToSupplierFilter from 'src/views/pages/pharmacy/reports/ReturnToSupplierFilter'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
-import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ReportsPageSkeleton from 'src/views/utility/SkeletonLoading/ReportsPageSkeleton'
 
 const ReturnSupplier = () => {
   const router = useRouter()
   const theme = useTheme()
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -56,6 +46,7 @@ const ReturnSupplier = () => {
   const [selectAllSupplier, setSelectAllSupplier] = useState(false)
   const [users, setUsers] = useState([])
   const [selectAllUser, setSelectAllUser] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -94,7 +85,7 @@ const ReturnSupplier = () => {
 
     const getUserLists = async () => {
       try {
-        const userDetails = await readAsync('userDetails')
+        const userDetails = authData?.userData
         if (userDetails?.user?.zoos.length > 0) {
           let zoo_id = userDetails?.user?.zoos[0].zoo_id
           await getUserList({ zoo_id }).then(res => {
@@ -187,9 +178,13 @@ const ReturnSupplier = () => {
           }
         })
         setLoading(false)
+        setPageLoading(false)
       } catch (e) {
         console.log(e)
         setLoading(false)
+        setPageLoading(false)
+      } finally {
+        setPageLoading(false)
       }
     },
     [paginationModel, filterDates, filteredData]
@@ -253,8 +248,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.discard_number}
@@ -273,8 +267,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.discarded_date)}
@@ -314,8 +307,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.batch_no}
@@ -334,8 +326,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatDisplayDate(params.row.expiry_date)}
@@ -356,8 +347,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.unit_price)}
@@ -378,8 +368,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {Utility.formatAmountToReadableDigit(params.row.discarded_value)}
@@ -399,8 +388,7 @@ const ReturnSupplier = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.discarded_quantity ? Utility.formatNumber(params.row.discarded_quantity) : 0}
@@ -421,7 +409,6 @@ const ReturnSupplier = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -450,7 +437,6 @@ const ReturnSupplier = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -477,7 +463,6 @@ const ReturnSupplier = () => {
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
               fontWeight: 400,
-              fontFamily: 'Inter',
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
@@ -507,7 +492,6 @@ const ReturnSupplier = () => {
                   color: theme.palette.customColors.customHeadingTextColor,
                   fontSize: '14px',
                   fontWeight: 400,
-                  fontFamily: 'Inter',
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
                   textOverflow: 'ellipsis',
@@ -526,7 +510,6 @@ const ReturnSupplier = () => {
                   width: '100%',
                   fontSize: '14px',
                   color: theme.palette.text.secondary,
-                  fontFamily: 'Inter',
                   fontWeight: 400
                 }}
               >
@@ -728,23 +711,10 @@ const ReturnSupplier = () => {
     <>
       {selectedPharmacy.type === 'central' ? (
         <>
-          <Card>
-            <CardHeader
-              sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                flexWrap: 'wrap',
-                gap: 2,
-                [theme.breakpoints.down('sm')]: {
-                  flexDirection: 'row',
-                  justifyContent: 'space-between'
-                }
-              }}
-              title={RenderUtility.pageTitle('Return To Supplier Report')}
-            />
-            <CardContent>
+          {pageLoading ? (
+            <ReportsPageSkeleton />
+          ) : (
+            <PageCardLayout title={'Return To Supplier Report'}>
               <Box
                 sx={{
                   display: 'flex',
@@ -773,29 +743,11 @@ const ReturnSupplier = () => {
                       }}
                     >
                       <Grid item size={{ xs: 12, sm: 8 }} sm={8} sx={{ flex: 1 }}>
-                        <TextField
-                          variant='outlined'
-                          size='small'
+                        <MUISearch
                           placeholder='Search...'
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
-                          fullWidth
-                          sx={{
-                            borderRadius: '8px'
-                          }}
-                          slotProps={{
-                            input: {
-                              startAdornment: (
-                                <InputAdornment position='start'>
-                                  <Icon
-                                    icon='mi:search'
-                                    fontSize={24}
-                                    color={theme.palette.customColors.neutralSecondary}
-                                  />
-                                </InputAdornment>
-                              )
-                            }
-                          }}
+                          onClear={() => handleSearch('')}
                         />
                       </Grid>
 
@@ -808,7 +760,11 @@ const ReturnSupplier = () => {
                           justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                         }}
                       >
-                        <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                        <ExportButton
+                          loading={loading || exportLoading}
+                          onClick={handleExport}
+                          disabled={total === 0 ? true : false}
+                        />
                         <FilterButton
                           onClick={() => setOpenFilterDrawer(true)}
                           appliedFiltersCount={appliedFiltersCount}
@@ -844,8 +800,9 @@ const ReturnSupplier = () => {
                   handleSortModel={handleSortModel}
                 />
               </Grid>
-            </CardContent>
-          </Card>
+            </PageCardLayout>
+          )}
+
           {openFilterDrawer && (
             <ReturnToSupplierFilter
               setOpenFilterDrawer={setOpenFilterDrawer}

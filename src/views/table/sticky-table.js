@@ -421,7 +421,7 @@ const StickyTableChild = ({
                 // >
                 //   {transformText(col?.headerName, col?.textTransform)}
                 // </TableSortLabel>
-                <>
+                (<>
                   {col?.sortable === false ? (
                     transformText(col?.headerName, col?.textTransform)
                   ) : (
@@ -446,7 +446,7 @@ const StickyTableChild = ({
                       {transformText(col?.headerName, col?.textTransform)}
                     </TableSortLabel>
                   )}
-                </>
+                </>)
               )}
               {/* Three-dot menu */}
               {modifyColumnPinning && (
@@ -485,10 +485,10 @@ const StickyTableChild = ({
                 <MenuItem onClick={() => handlePinClick('none')}>unpin</MenuItem>
               </Menu>
             </TableCell>
-          )
+          );
         })}
       </TableRow>
-    )
+    );
   }
 
   const renderSubHeaders = () => {

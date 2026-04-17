@@ -14,7 +14,8 @@ const ControlledDatePicker = ({
   disabled = false,
   sx = {},
   size = 'large',
-  onChangeOverride = () => {}
+  onChangeOverride = () => {},
+  loader = false
 }) => {
   return (
     <Controller
@@ -24,7 +25,6 @@ const ControlledDatePicker = ({
       render={({ field, fieldState: { error } }) => (
         <MUIDatePicker
           value={field.value || null}
-
           // onChange={field.onChange}
           onChange={newValue => {
             // Always update RHF form value
@@ -43,6 +43,7 @@ const ControlledDatePicker = ({
           error={!!error}
           helperText={error?.message}
           sx={sx}
+          loader={loader}
           size={size}
         />
       )}

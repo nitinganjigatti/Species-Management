@@ -7,12 +7,14 @@ import Typography from '@mui/material/Typography'
 import Toaster from 'src/components/Toaster'
 import { addDietCategory, getDietCategoryList, UpdateDietCategory } from 'src/lib/api/diet/settings/dietCategory'
 import AddEditDietCategory from 'src/views/pages/diet/dietCategories/AddEditDietCategory'
-import Search from 'src/views/utility/Search'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 const DietCategory = () => {
   const editParamsInitialState = { id: null, label: null, status: null }
+  const { t } = useTranslation()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -58,6 +60,7 @@ const DietCategory = () => {
       width: 40,
       field: 'uid',
       headerName: 'SL No',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: 'text.primary', pl: 4, fontSize: '0.875rem', fontWeight: 400 }}>
           {parseInt(params.row.uid)}
@@ -68,7 +71,7 @@ const DietCategory = () => {
       flex: 0.3,
       minWidth: 100,
       field: 'label',
-      headerName: 'NAME',
+      headerName: t('name'),
       renderCell: params => (
         <Tooltip title={params.row.label?.length > 30 ? params.row.label : ''}>
           <Typography
@@ -84,7 +87,7 @@ const DietCategory = () => {
       flex: 0.2,
       minWidth: 100,
       field: 'active',
-      headerName: 'STATUS',
+      headerName: t('status'),
       renderCell: params => (
         <Typography sx={{ color: 'text.primary', pl: 2, fontSize: '0.875rem', fontWeight: 400 }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
@@ -99,7 +102,7 @@ const DietCategory = () => {
       flex: 0.2,
       minWidth: 100,
       field: 'Action',
-      headerName: 'Action',
+      headerName: t('action'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', pl: 2 }}>
           {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -120,7 +123,9 @@ const DietCategory = () => {
   const columns = baseColumns
 
   const headerAction =
-    hasAddAccess || hasFullAccess ? <AddButton title='Add Diet Category' action={addEventSidebarOpen} /> : null
+    hasAddAccess || hasFullAccess ? (
+      <AddButton title={t('diet_module.add_diet_category')} action={addEventSidebarOpen} />
+    ) : null
 
   const fetchTableData = useCallback(
     async (sortBy, q, column) => {
@@ -227,15 +232,18 @@ const DietCategory = () => {
   return (
     <>
       <Card>
-        <CardHeader title='Diet Category' action={headerAction} sx={{ px: 5 }} />
+        <CardHeader title={t('navigation.diet_category')} action={headerAction} sx={{ px: 5 }} />
         <Grid sx={{ mx: 5 }}>
-          <Search
-            value={searchValue}
-            onChange={e => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-            placeholder='Search…'
-            sx={{ mt: 2, justifyContent: 'flex-end' }}
-          />
+          <Grid container sx={{ mt: 2, justifyContent: 'flex-end' }}>
+            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+              <MUISearch
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                placeholder='Search…'
+              />
+            </Grid>
+          </Grid>
           <CommonTable
             columnVisibilityModel={{ id: false }}
             columns={columns}

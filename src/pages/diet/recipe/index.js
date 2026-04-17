@@ -2,8 +2,8 @@ import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -29,6 +29,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import { AuthContext } from 'src/context/AuthContext'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 // Styled TabList component
 
@@ -135,7 +136,7 @@ const RecipeList = () => {
   )
   useEffect(() => {
     fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
-  }, [status, paginationModel.page, paginationModel.pageSize, sortBy, sortColumn])
+  }, [status, paginationModel.page, paginationModel.pageSize])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -267,7 +268,7 @@ const RecipeList = () => {
     {
       //flex: 0.4,
       width: 200,
-      field: 'ingredient_name',
+      field: 'items',
       headerName: 'NO OF ITEMS',
       renderCell: params => (
         <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
@@ -358,57 +359,24 @@ const RecipeList = () => {
         ) : (
           <Card>
             <CardHeader title='Recipes' action={headerAction} sx={{ px: 5 }} />
+            <Box sx={{ px: 5, pb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ width: 250 }}>
+                <MUISearch
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  placeholder='Search...'
+                />
+              </Box>
+            </Box>
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
-              <DataGrid
-                sx={{
-                  height: 700,
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  },
-                  '& .MuiDataGrid-columnHeaders': {
-                    backgroundColor: theme.palette.customColors.customTableHeaderBg,
-                    color: theme.palette.customColors.customHeadingTextColor
-                  },
-                  '.MuiDataGrid-virtualScroller': {
-                    overflowX: 'auto'
-                  },
-                  '.MuiDataGrid-main': {
-                    borderLeft: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                    borderRight: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                    marginLeft: '20px',
-                    marginRight: '20px',
-                    borderRadius: '8px',
-                    border: '1px solid rgba(233, 233, 236, 1)'
-                  },
-                  '& .MuiDataGrid-footerContainer': {
-                    borderTop: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                    borderBottom: 'none'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                disableColumnMenu
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
+              <CommonTable
+                indexedRows={indexedRows === undefined ? [] : indexedRows}
+                total={total}
                 columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50, 100]}
                 paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={newPaginationModel => {
+                handleSortModel={handleSortModel}
+                setPaginationModel={newPaginationModel => {
                   updateQueryParams({
                     page: newPaginationModel.page,
                     pageSize: newPaginationModel.pageSize
@@ -416,17 +384,20 @@ const RecipeList = () => {
                   setPaginationModel(newPaginationModel)
                 }}
                 loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
+                columnVisibilityModel={{
+                  sl_no: false
                 }}
                 onCellClick={onCellClick}
+                externalTableStyle={{
+                  height: 700,
+                  '.MuiDataGrid-virtualScroller': {
+                    overflowX: 'auto'
+                  },
+                  '.MuiDataGrid-main': {
+                    marginLeft: '20px',
+                    marginRight: '20px'
+                  }
+                }}
               />
             </Box>
           </Card>

@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getRecipeListonIngredientDtl } from 'src/lib/api/diet/getIngredients'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
@@ -13,14 +12,14 @@ import { Avatar, Box, CardContent, Tooltip } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
-import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import SwapIngredient from './swapIngredient'
 
-const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
+const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' }) => {
   const [loader, setLoader] = useState(false)
   const router = useRouter()
   const { id } = router.query
@@ -62,22 +61,29 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
           status
         }
         await getRecipeListonIngredientDtl(id, params).then(res => {
-          setTotal(parseInt(res?.data?.data?.count))
-
           const result = res?.data?.data?.result
 
           if (Array.isArray(result)) {
-            // result is an array, update rows directly
+            const filteredResult = result.filter(item => item.meal_type === mealType)
+            setTotal(filteredResult.length)
+
             const startingIndex = paginationModel.page * paginationModel.pageSize
 
-            let listWithId = res.data.data.result.map((el, i) => {
+            let listWithId = filteredResult.map((el, i) => {
               return { ...el, uid: startingIndex + i + 1 }
             })
             setRows(loadServerRows(paginationModel.page, listWithId))
-          } else if (typeof result === 'object') {
-            setRows([result])
+          } else if (typeof result === 'object' && result !== null) {
+            if (result.meal_type === mealType) {
+              setTotal(1)
+              setRows([{ ...result, uid: 1 }])
+            } else {
+              setTotal(0)
+              setRows([])
+            }
           } else {
-            console.error('Unexpected result type:', result)
+            setTotal(0)
+            setRows([])
           }
         })
         setLoading(false)
@@ -86,7 +92,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, id, mealType]
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, status)
@@ -120,7 +126,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         console.error(error)
       }
     }, 1000),
-    []
+    [fetchTableData]
   )
 
   const handleSelectionChange = newSelection => {
@@ -142,10 +148,9 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   }
 
   const handleclickChange = (data, val) => {
+    const path = mealType === 'combo' ? `/diet/combo/${data?.id}` : `/diet/recipe/${data?.id}`
     Router.push({
-      pathname: `/diet/recipe/${data?.id}`
-
-      //query: { source: val, ingId: id }
+      pathname: path
     })
   }
 
@@ -155,6 +160,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
@@ -165,7 +171,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
       flex: 0.5,
       minWidth: 40,
       field: 'recipe_name',
-      headerName: 'RECIPE',
+      headerName: mealType === 'combo' ? 'MIX' : 'RECIPE',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -196,14 +202,29 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'total_kcal',
-      headerName: 'KCAL',
+      field: 'recipe_no',
+      headerName: mealType === 'combo' ? 'MIX ID' : 'RECIPE ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.total_kcal ? params.row.total_kcal + ' ' + 'Kcal' : '-'}
+          {params.row.recipe_no ? params.row.recipe_no : '-'}
         </Typography>
       )
     },
+    ...(mealType === 'recipe'
+      ? [
+          {
+            flex: 0.3,
+            minWidth: 10,
+            field: 'total_kcal',
+            headerName: 'KCAL',
+            renderCell: params => (
+              <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+                {params.row.total_kcal ? params.row.total_kcal + ' ' + 'Kcal' : '-'}
+              </Typography>
+            )
+          }
+        ]
+      : []),
     {
       flex: 0.3,
       minWidth: 10,
@@ -234,70 +255,44 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
         ) : (
           <>
             <div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                <div></div>
+              <Drawer
+                anchor='right'
+                open={activitySidebarOpen}
+                ModalProps={{ keepMounted: true }}
+                sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
+              >
+                <CardContent>
+                  <SwapIngredient
+                    handleSidebarClose={handleSidebarClose}
+                    setActivitySidebarOpen={setActivitySidebarOpen}
+                  />
+                </CardContent>
+              </Drawer>
 
-                <Box sx={{ px: 4, py: 4, cursor: 'pointer', position: 'relative', top: 8 }}></Box>
+              <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
+                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                  <MUISearch
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    placeholder='Search…'
+                  />
+                </Grid>
+              </Grid>
 
-                <Drawer
-                  anchor='right'
-                  open={activitySidebarOpen}
-                  ModalProps={{ keepMounted: true }}
-                  sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
-                >
-                  <CardContent>
-                    <SwapIngredient
-                      handleSidebarClose={handleSidebarClose}
-                      setActivitySidebarOpen={setActivitySidebarOpen}
-                    />
-                  </CardContent>
-                </Drawer>
-                {/* //////////////////// */}
-              </div>
-
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
+              <CommonTable
+                indexedRows={indexedRows === undefined ? [] : indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
                 columnVisibilityModel={{
                   sl_no: false
                 }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                checkboxSelection={false}
-                disableColumnMenu={true}
-                onRowSelectionModelChange={handleSelectionChange}
-                selectionModel={selectedRows}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                paginationMode='server'
-                sortingMode='server'
-                onSortModelChange={handleSortModel}
-                pageSizeOptions={[7, 10, 25, 50, 100]}
-                paginationModel={paginationModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value),
-                    tableValue: 'recipe-List'
-                  }
-                }}
+                searchValue={searchValue}
+                handleSearchOverride={handleSearch}
               />
             </div>
           </>

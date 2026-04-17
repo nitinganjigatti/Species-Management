@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { debounce } from 'lodash'
 import moment from 'moment'
 import {
@@ -599,59 +599,29 @@ const NewEntry = ({}) => {
               ConfirmationText={'Delete'}
               confirmAction={onClose}
             />
-            <DataGrid
-              disableColumnMenu
-              disableColumnFilter
-
-              // disableColumnSorting
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
               columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-
-              // onPaginationModelChange={setPaginationModel}
-              onPaginationModelChange={newModel => {
+              handleSortModel={handleSortModel}
+              setPaginationModel={(newModel) => {
                 setPaginationModel(newModel)
                 updateSelectAllState(newModel)
               }}
+              pageSizeOptions={[7, 10, 25, 50]}
               loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
               onCellClick={onCellClick}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
             />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   const fetchOrgCountData = useCallback(

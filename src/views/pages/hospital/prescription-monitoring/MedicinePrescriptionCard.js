@@ -46,7 +46,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 const DrawerContent = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
-  height: '100vh',
+  height: '100%',
   width: '100%',
   backgroundColor: theme.palette.background.paper
 }))
@@ -56,7 +56,10 @@ const HeaderSection = styled(Box)(({ theme }) => ({
   width: '100%',
   padding: '24px 0px',
   flexDirection: 'column',
-  backgroundColor: theme.palette.background.paper
+  backgroundColor: theme.palette.background.paper,
+  position: 'sticky',
+  top: 0,
+  zIndex: 1
 }))
 
 const InfoGroupContainer = styled(Box)(({ theme }) => ({
@@ -798,7 +801,8 @@ const MedicinePrescriptionCard = ({
             sx: {
               width: isMobile ? '100vw' : 600,
               maxWidth: '100vw',
-              height: '100vh',
+              display: 'flex',
+              flexDirection: 'column',
               px: '24px',
               py: '0px'
             }
@@ -1134,7 +1138,8 @@ const MedicinePrescriptionCard = ({
               flexDirection: 'column',
               gap: '16px',
               flex: 1,
-              overflowY: 'auto'
+              overflowY: 'auto',
+              minHeight: 0
             }}
           >
             {isDetailLoading || isDatesLoading ? (
@@ -1304,6 +1309,9 @@ const MedicinePrescriptionCard = ({
                                       </Grid>
 
                                       <Grid size={{ xs: 12 }}>
+                                        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                                          Notes
+                                        </Typography>
                                         <ControlledTextArea
                                           name='notes'
                                           control={control}
@@ -1374,6 +1382,9 @@ const MedicinePrescriptionCard = ({
                             <>
                               {/* Reason for Skip Section */}
                               <Grid size={{ xs: 12 }}>
+                                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                                  Reason for Skipping
+                                </Typography>
                                 <ControlledTextArea
                                   name='skipReason'
                                   control={control}
@@ -1503,19 +1514,23 @@ const MedicinePrescriptionCard = ({
                 bottom: 0,
                 left: 0,
                 right: 0,
-                mx: '-24px'
+                // width: '100%',
+                mx: '-24px',
+                px: 6,
+                flexShrink: 0,
+                zIndex: 10,
+                backgroundColor: theme.palette.background.paper,
+                boxShadow: '0px -2px 8px rgba(0, 0, 0, 0.06)'
               }}
             >
               {!stopMedicineModalOpen &&
                 (isControlledSubstance ? (
                   <Box
                     sx={{
-                      p: 6,
+                      py: 6,
                       display: 'flex',
                       justifyContent: 'center',
                       gap: 6,
-                      boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
-                      backgroundColor: theme.palette.background.paper
                     }}
                   >
                     <LoadingButton
@@ -1546,12 +1561,10 @@ const MedicinePrescriptionCard = ({
                 ) : (
                   <Box
                     sx={{
-                      p: 6,
+                      py: 6,
                       display: 'flex',
                       justifyContent: 'center',
-                      gap: 6,
-                      boxShadow: '0px -2px 6px rgba(0, 0, 0, 0.1)',
-                      backgroundColor: theme.palette.background.paper
+                      gap: 6
                     }}
                   >
                     <LoadingButton

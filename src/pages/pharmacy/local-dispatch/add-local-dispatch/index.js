@@ -1,29 +1,32 @@
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, Stack } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
+import {
+  Button,
+  Stack,
+  Grid,
+  Card,
+  Table,
+  Divider,
+  TableRow,
+  TableHead,
+  TableBody,
+  Typography,
+  Box,
+  TableContainer,
+  TableCell,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Autocomplete,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  styled,
+  useTheme
+} from '@mui/material'
 
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -31,7 +34,10 @@ import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 
 // ** React Imports
-import { forwardRef, useState, useEffect, useCallback } from 'react'
+import { forwardRef, useState, useEffect, useCallback, useContext } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -56,9 +62,9 @@ import Error404 from 'src/pages/404'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
-
-import { readAsync } from 'src/lib/windows/utils'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -68,15 +74,15 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(2)
   }
 }))
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { boolean } from 'yup'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
 import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import MUIAutocomplete from 'src/views/forms/form-fields/MUIAutocomplete'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -114,11 +120,49 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
 })
 
+// ** Stage 1: yup schema for top-level dispatch fields
+const dispatchTopFieldsSchema = yup.object().shape({
+  to_store_id: yup
+    .mixed()
+    .nullable()
+    .test('required', 'This field is required', v => {
+      if (v === null || v === undefined || v === '') return false
+      if (typeof v === 'object') return Boolean(v?.id || v?.value)
+
+      return true
+    }),
+  ro_date: yup
+    .string()
+    .nullable()
+    .test('required', 'This field is required', v => Boolean(v)),
+  to_store_type: yup.mixed().nullable().notRequired(),
+  user_id: yup.mixed().nullable().notRequired()
+})
+
 const AddLocalDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  // ** react-hook-form + yup for top-level dispatch fields (Stage 1)
+  const {
+    control: dispatchFormControl,
+    setValue: setDispatchFormValue,
+    getValues: getDispatchFormValues,
+    handleSubmit: rhfHandleSubmit,
+    trigger: triggerDispatchForm,
+    formState: { errors: dispatchFormErrors }
+  } = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(dispatchTopFieldsSchema),
+    defaultValues: {
+      to_store_id: null,
+      to_store_type: '',
+      ro_date: Utility.formattedPresentDate(),
+      user_id: null
+    }
+  })
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [optionsBatchList, setOptionsBatchList] = useState([])
   const [totalBatchQuantity, setTotalBatchQuantity] = useState(0)
@@ -138,6 +182,8 @@ const AddLocalDispatch = () => {
   const [users, setUsers] = useState([])
   const [isEdit, setIsEdit] = useState(false)
 
+  const authData = useContext(AuthContext)
+
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
   }
@@ -156,6 +202,32 @@ const AddLocalDispatch = () => {
   }
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  // Keep RHF top-level fields in sync with editParams (edit mode / external updates)
+  useEffect(() => {
+    if (editParams?.to_store_id && toStocks?.length) {
+      const selected = toStocks.find(s => s?.id === editParams.to_store_id)
+      if (selected) setDispatchFormValue('to_store_id', selected, { shouldValidate: false })
+    }
+    if (editParams?.to_store_type !== undefined) {
+      setDispatchFormValue('to_store_type', editParams.to_store_type || '', { shouldValidate: false })
+    }
+    if (editParams?.ro_date) {
+      setDispatchFormValue('ro_date', editParams.ro_date, { shouldValidate: false })
+    }
+    if (editParams?.user_id !== undefined) {
+      const hydratedUser = users?.find(u => u?.value === editParams.user_id) || null
+      setDispatchFormValue('user_id', hydratedUser, { shouldValidate: false })
+    }
+  }, [
+    editParams?.to_store_id,
+    editParams?.to_store_type,
+    editParams?.ro_date,
+    editParams?.user_id,
+    toStocks,
+    users,
+    setDispatchFormValue
+  ])
 
   useEffect(() => {
     setEditParams({
@@ -335,20 +407,33 @@ const AddLocalDispatch = () => {
     updateTableItems(params)
   }
 
-  const handleSubmit = () => {
-    const formHasErrors = !editParams.to_store_id || !editParams.ro_date
-    if (formHasErrors) {
-      setErrors(validateItems(editParams))
+  // Old manual validation — kept for reference
+  // const handleSubmit = () => {
+  //   const formHasErrors = !editParams.to_store_id || !editParams.ro_date
+  //   if (formHasErrors) {
+  //     setErrors(validateItems(editParams))
+  //
+  //     return
+  //   }
+  //
+  //   setErrors({})
+  //   showDialog()
+  // }
 
-      return
-    }
-
+  // RHF-driven: validates top-level fields via yup before opening the Add Item dialog
+  const openAddItemDialog = () => {
     setErrors({})
     showDialog()
   }
 
+  const handleSubmit = rhfHandleSubmit(openAddItemDialog, () => {
+    // fallback: mirror legacy setErrors so any legacy readers still see the message
+    setErrors(validateItems(editParams))
+  })
+
   const filterToStocks = id => {
     const optionsForSelectB = fromStocks.filter(option => option.id !== id)
+
     setToStocks(optionsForSelectB)
   }
 
@@ -359,7 +444,7 @@ const AddLocalDispatch = () => {
 
       if (response?.data?.list_items?.length > 0) {
         setFromStocks(response?.data?.list_items)
-        setToStocks(response?.data?.list_items)
+        setToStocks(response?.data?.list_items?.map(item => ({ ...item, label: item.name, value: item.id })))
       }
     } catch (error) {
       console.log('err', error)
@@ -448,7 +533,7 @@ const AddLocalDispatch = () => {
 
   const getUserLists = async (searchText, limit, page) => {
     try {
-      const userDetails = await readAsync('userDetails')
+      const userDetails = authData?.userData
       if (userDetails?.user?.zoos.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
 
@@ -670,7 +755,16 @@ const AddLocalDispatch = () => {
   return (
     <>
       {selectedPharmacy.type === 'local' ? (
-        <Card>
+        <PageCardLayout
+          title='Add Direct Dispatch'
+          showIcon={true}
+          onIconClick={() => {
+            Router.back('/pharmacy/direct-dispatch/')
+          }}
+          titleStyles={{
+            fontSize: '20px'
+          }}
+        >
           <Grid
             container
             size={{ xs: 12, sm: 12 }}
@@ -679,218 +773,122 @@ const AddLocalDispatch = () => {
               justifyContent: 'space-between',
               alignItems: 'center'
             }}
-          >
-            <CardHeader
-              avatar={
-                <Icon
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    Router.back()
-                  }}
-                  icon='ep:back'
+          ></Grid>
+          <Grid container>
+            <CommonDialogBox
+              title={'Add Dispatch Item'}
+              dialogBoxStatus={show}
+              formComponent={
+                <AddProductForm
+                  searchBatchData={searchBatchData}
+                  searchMedicineData={searchMedicineData}
+                  productList={optionsMedicineList}
+                  productLoading={productLoading}
+                  visibleExpiryField={visibleExpiryField}
+                  batchLoading={batchLoading}
+                  onSubmitData={submitItems}
+                  batchList={optionsBatchList}
+                  nestedMedicine={nestedRowMedicine}
+                  error={duplicateMedError}
+                  totalQuantity={totalBatchQuantity}
+                  editParams={editParams}
+                  closeDialog={closeDialog}
+                  isEdit={isEdit}
                 />
               }
-              title='Add Direct Dispatch'
+              close={closeDialog}
+              show={showDialog}
             />
           </Grid>
-          <CardContent>
-            <Grid container>
-              <CommonDialogBox
-                title={'Add Dispatch Item'}
-                dialogBoxStatus={show}
-                formComponent={
-                  <AddProductForm
-                    searchBatchData={searchBatchData}
-                    searchMedicineData={searchMedicineData}
-                    productList={optionsMedicineList}
-                    productLoading={productLoading}
-                    visibleExpiryField={visibleExpiryField}
-                    batchLoading={batchLoading}
-                    onSubmitData={submitItems}
-                    batchList={optionsBatchList}
-                    nestedMedicine={nestedRowMedicine}
-                    error={duplicateMedError}
-                    totalQuantity={totalBatchQuantity}
-                    editParams={editParams}
-                    closeDialog={closeDialog}
-                    isEdit={isEdit}
-                  />
-                }
-                close={closeDialog}
-                show={showDialog}
+
+          <Grid container spacing={5}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'customColors.customTextColorGray2',
+                  letterSpacing: '.1px',
+                  fontSize: '16px',
+                  fontWeight: 500
+                }}
+              >
+                Dispatch to :
+              </Typography>
+            </Grid>
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
+              <ControlledAutocomplete
+                name='to_store_id'
+                label='Store*'
+                control={dispatchFormControl}
+                errors={dispatchFormErrors}
+                required
+                disabled={id ? true : false}
+                options={toStocks || []}
+                getOptionLabel={option => option?.name || option?.label || ''}
+                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                showIcons={false}
+                onChangeOverride={value => {
+                  const nextId = value?.id || null
+                  const nextType = nextId ? storesType[filteredStoreType(nextId)] : ''
+                  setDispatchFormValue('to_store_type', nextType, { shouldValidate: false })
+                  setEditParams(prev => ({
+                    ...prev,
+                    to_store_id: nextId,
+                    to_store_type: nextType
+                  }))
+                  setErrors({})
+                }}
+                autocompleteProps={{
+                  getOptionDisabled: option => option?.status === 'inactive' || option?.id === selectedPharmacy?.id
+                }}
               />
             </Grid>
-          </CardContent>
-          <CardContent>
-            <form>
-              <Grid container spacing={5}>
-                <Grid item size={{ xs: 12, sm: 12 }}>
-                  <Typography
-                    variant='subtitle2'
-                    sx={{
-                      color: 'customColors.customTextColorGray2',
-                      letterSpacing: '.1px',
-                      fontSize: '16px',
-                      fontWeight: 500
-                    }}
-                  >
-                    Dispatch to :
-                  </Typography>
-                </Grid>
-                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5, width: '100%' }}>
-                  <FormControl fullWidth>
-                    <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                      Store*
-                    </InputLabel>
-
-                    <Select
-                      error={Boolean(errors.to_store_id)}
-                      value={editParams.to_store_id}
-                      label='Store*'
-                      disabled={id ? true : false}
-                      onChange={e => {
-                        setEditParams({
-                          ...editParams,
-                          to_store_id: e.target.value,
-                          to_store_type: storesType[filteredStoreType(e.target.value)]
-                        })
-                        setErrors({})
-                      }}
-                    >
-                      {toStocks?.map((item, index) => (
-                        <MenuItem
-                          key={index}
-                          disabled={item?.status === 'inactive' || item.id === selectedPharmacy.id}
-                          value={item?.id}
-                        >
-                          {item?.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-
-                    {errors.to_store_id && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
-                  <Autocomplete
-                    fullWidth
-                    disablePortal
-                    options={users}
-                    value={users?.find(user => user?.value === editParams?.user_id) || null}
-                    getOptionLabel={option => option?.label || ''}
-                    isOptionEqualToValue={(option, value) => option.value === value.value}
-                    renderOption={(props, option) => {
-                      const { key, ...otherProps } = props
-
-                      return (
-                        <li key={`${option.value}-${option.label}`} {...otherProps}>
-                          {option.label}
-                        </li>
-                      )
-                    }}
-                    onKeyUp={e => {
-                      searchUsersList(e.target.value)
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        fullWidth
-                        {...params}
-                        name='search'
-                        label='To '
-                        error={Boolean(errors.search)}
-                        helperText={errors.search}
-                        placeholder='To '
-                      />
-                    )}
-                    onBlur={async () => {
-                      await searchUsersList()
-                    }}
-                    onChange={(event, value) => {
-                      if (value) {
-                        setEditParams({
-                          ...editParams,
-                          user_id: value?.value
-                        })
-                      } else {
-                        setEditParams({
-                          ...editParams,
-                          user_id: null
-                        })
-                      }
-                    }}
-                  />
-                </Grid>
-
-                <Grid item size={{ xs: 12, sm: 6 }}>
-                  <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                      &nbsp;
-                    </Typography>
-                  </Grid>
-
-                  {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                    <FormControl fullWidth>
-                      <SingleDatePicker
-                        fullWidth
-                        date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                        width={'100%'}
-                        value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                        name={'Date*'}
-                        onChangeHandler={date => {
-                          // setStores({ ...stores, date: date })
-                          setEditParams({ ...editParams, ro_date: formatDate(date) })
-                          setErrors({})
-                        }}
-                        customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                        isClearable={false}
-                      />
-                      {errors.ro_date && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid> */}
-                </Grid>
-              </Grid>
-            </form>
-          </CardContent>
-          {/* <Grid
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
+              <ControlledAutocomplete
+                name='user_id'
+                label='To '
+                control={dispatchFormControl}
+                errors={dispatchFormErrors}
+                options={users || []}
+                getOptionLabel={option => option?.label || ''}
+                isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                showIcons={false}
+                onKeyUp={e => {
+                  searchUsersList(e.target.value)
+                }}
+                onBlur={async () => {
+                  await searchUsersList()
+                }}
+                onChangeOverride={value => {
+                  const nextId = value?.value || null
+                  setEditParams(prev => ({ ...prev, user_id: nextId }))
+                }}
+                textFieldProps={{ placeholder: 'To ' }}
+              />
+            </Grid>
+          </Grid>
+          <Grid
             container
-            spacing={6}
-            sm={12}
-            xs={12}
+            spacing={3}
+            alignItems='center'
             sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              alignItems: 'center',
-              mb: 4
+              py: 5
             }}
           >
-            <AddButton
-              title='Add Dispatch Item'
-              action={() => {
-                handleSubmit()
-              }}
-            />
-          </Grid> */}
-          <Box
-            sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6, mb: 4 }}
-          >
-            <Box>
+            <Grid item size={{ xs: 12, sm: 'auto' }}>
               <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                 Dispatch items
               </Typography>
-
               <Stack
-                direction='row'
-                spacing={2}
-                divider={<Divider orientation='vertical' flexItem />}
-                sx={{ textAlign: 'center' }}
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 0, sm: 6 }}
+                divider={
+                  <Divider
+                    orientation='vertical'
+                    flexItem
+                    sx={{ display: { xs: 'none', sm: 'block' }, height: '20px' }}
+                  />
+                }
               >
                 <Typography
                   variant='body2'
@@ -901,6 +899,7 @@ const AddLocalDispatch = () => {
                     {totalQty ? totalQty : '0'}
                   </Typography>
                 </Typography>
+
                 <Typography
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
@@ -911,20 +910,24 @@ const AddLocalDispatch = () => {
                   </Typography>
                 </Typography>
               </Stack>
-            </Box>
-
-            <AddButtonContained
-              title='Add Dispatch Item'
-              action={() => {
-                handleSubmit()
-              }}
-            />
-          </Box>
+            </Grid>
+            <Grid sx={{ marginLeft: 'auto' }}>
+              <AddButtonContained
+                title='Add Dispatch Item'
+                action={() => {
+                  handleSubmit()
+                }}
+                styles={{
+                  mr: 0
+                }}
+              />
+            </Grid>
+          </Grid>
           {editParams?.request_item_details.length ? (
             <Box>
               <Card
                 sx={{
-                  m: 6,
+                  my: 5,
                   border: '1px solid',
                   borderColor: 'customColors.customTableBorderBg',
                   boxShadow: 'none'
@@ -985,7 +988,7 @@ const AddLocalDispatch = () => {
                                 </TableCell>
                                 <TableCell>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                    {el?.stock_type === 'non_medical'
+                                    {el?.expiry_date === '0000-00-00' && !el?.expiry_date
                                       ? 'NA'
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
@@ -1030,43 +1033,9 @@ const AddLocalDispatch = () => {
                   </Table>
                 </TableContainer>
               </Card>
-              {/* <CardContent sx={{ pt: 8 }}>
-                {totalQty ? (
-                  <Grid container>
-                    <Grid
-                      item
-                      xs={12}
-                      sm={2}
-                      lg={2}
-                      sx={{
-                        mb: { sm: 0, xs: 4 },
-                        order: { sm: 2, xs: 1 },
-                        marginLeft: 'auto',
-                        mr: { sm: 12, xs: 0 }
-                      }}
-                    >
-                      <CalcWrapper>
-                        <Typography variant='body2'>Total Qty:</Typography>
-                        <Typography
-                          variant='body2'
-                          sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
-                        >
-                          {totalQty}
-                        </Typography>
-                      </CalcWrapper>
 
-                      <Divider
-                        sx={{
-                          mt: theme => `${theme.spacing(5)} !important`,
-                          mb: theme => `${theme.spacing(3)} !important`
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                ) : null}
-              </CardContent> */}
               <Grid item size={{ xs: 12 }}>
-                <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+                <Box sx={{ float: 'right', my: 4 }}>
                   {id ? (
                     <>
                       <RequestCancelButton
@@ -1191,7 +1160,7 @@ const AddLocalDispatch = () => {
               </Box>
             }
           />
-        </Card>
+        </PageCardLayout>
       ) : (
         <>
           <Error404></Error404>

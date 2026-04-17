@@ -10,10 +10,12 @@ import {
   alpha,
   IconButton,
   useTheme,
-  Tooltip
+  Tooltip,
+  Autocomplete,
+  TextField
 } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react'
 import RenderUtility from 'src/utility/render'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import Icon from 'src/@core/components/icon'
@@ -30,6 +32,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import { getAnimalMedicalIds } from 'src/lib/api/hospital/hospitalMaster'
 import { addHospitalPatient } from 'src/lib/api/hospital/inpatient'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
@@ -79,7 +82,50 @@ const schema = yup.object().shape({
   holdingEnclosure: yup.object().required('Holding Enclosure is required'),
   selectedAnimal: yup.mixed().nullable().required('Animal is required'),
   selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  room: yup.object().required('Room is required')
+  room: yup.object().required('Room is required'),
+
+  // Must not be a future date (after today)
+  admission_date: yup
+    .date()
+    .typeError('Invalid date')
+    .nullable()
+    .required('Date is required')
+    .test('not-future-date', 'Date cannot be in the future', function (value) {
+      if (!value) return true
+      if (dayjs(value).isAfter(dayjs(), 'day')) {
+        return this.createError({ message: 'Date cannot be in the future' })
+      }
+
+      return true
+    }),
+
+  // Must not be in the future time
+  admission_time: yup
+    .date()
+    .typeError('Invalid time')
+    .nullable()
+    .required('Time is required')
+    .test('is-valid-time', 'Time is invalid', function (value) {
+      const { admission_date } = this.parent
+      if (!value || !admission_date) return true
+
+      const now = dayjs()
+
+      const selectedTime = dayjs(admission_date)
+        .startOf('day')
+        .set('hour', dayjs(value).hour())
+        .set('minute', dayjs(value).minute())
+        .set('second', 0)
+
+      // Must not be in the future (on today)
+      if (dayjs(admission_date).isSame(now, 'day')) {
+        if (selectedTime.isAfter(now)) {
+          return this.createError({ message: 'Time cannot be in the future' })
+        }
+      }
+
+      return true
+    })
 
   // patient_status: yup.boolean().required('Patient Status is Required')
 })
@@ -114,6 +160,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
   const [openAnimalDrawer, setAnimalDrawer] = useState(false)
   const [selectedAnimal, setSelectedAnimal] = useState(null)
   const [selectedDoctor, setSelectedDoctor] = useState(null)
+  const [doctors, setDoctors] = useState([])
   const [doctorDrawerOpen, setDoctorDrawerOpen] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [currentSort, setCurrentSort] = useState({ column: 'animal_id', sort: 'asc' })
@@ -126,8 +173,16 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
   const [loading, setLoading] = useState(false)
   const [isSortBottomSheetOpen, setIsSortBottomSheetOpen] = useState(false)
   const [searchRoom, setSearchRoom] = useState('')
+  const [searchAttendDoctor, setSearchAttendDoctor] = useState('')
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState([])
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
+  const [attendingDoctors, setAttendingDoctors] = useState([])
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10
+  })
 
   const [selectedOptions, setSelectedOptions] = useState({
     Gender: [],
@@ -174,8 +229,17 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const watchMedicalChoice = watch('medicalRecordChoice')
   const watchTreatmentType = watch('treatmentType')
+  const selectedDate = watch('admission_date')
 
   // const watchPatientStatus = watch('patient_status')
+
+  // Time limits for admission time
+  const now = dayjs()
+  let maxTime = null
+
+  if (selectedDate && dayjs(selectedDate).isSame(now, 'day')) {
+    maxTime = now
+  }
 
   useEffect(() => {
     const getHospitalRooms = async () => {
@@ -258,6 +322,16 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
 
   const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
 
+  const debouncedAttendingVetSearch = React.useMemo(() => debounce(val => setSearchAttendDoctor(val), 1000), [])
+
+  // useEffect(() => {
+  //   if (selectedDoctor && doctors.length === 1) {
+  //     handleDoctorSelection(doctors[0])
+  //     setSelectedDoctor(doctors)
+  //     setValue('doctors', doctors)
+  //   }
+  // }, [doctors])
+
   useEffect(() => {
     const getAnimalIds = async () => {
       try {
@@ -295,68 +369,112 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     }
   }
 
+  const getUserLists = async () => {
+    setLoading(true)
+    try {
+      const res = await getHospitalStaff({
+        params: {
+          q: searchAttendDoctor,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          hospital_id: selectedHospital?.id
+        }
+      })
+        if (res?.success === true) {
+          const chiefs = res?.data?.records
+            .filter(item => item?.is_hospital_chief_doctor === '1')
+            .map(item => ({
+              name: item?.user_full_name,
+              id: item?.user_id,
+              default_icon: item?.user_profile_pic,
+              role_name: item?.role_name
+            }))
+
+          if (chiefs.length === 1 && selectedHospital?.id) {
+            const singleDoctor = chiefs[0]
+            setSelectedDoctor(singleDoctor)
+            setValue('selectedDoctor', singleDoctor)
+
+            clearErrors('selectedDoctor')
+          }
+        } else {
+          setDoctors([])
+        }
+    } catch (error) {
+      console.log('user error', error)
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    getUserLists()
+  }, [])
   const onSubmit = async data => {
     const valid = await trigger()
     if (!valid) {
       setSubmitLoader(false)
 
       return
-    }
-    setSubmitLoader(true)
-    try {
-      const params = {
-        source_id: selectedAnimal?.site_id,
-        source_site_id: selectedAnimal?.site_id ? selectedAnimal?.site_id : null,
-        destination_site_id: selectedHospital?.site_id ? selectedHospital?.site_id : null,
-        usecase: 'add-patient',
-        source_type: 'site',
-        destination_id: selectedHospital?.id,
-        destination_type: 'hospital',
-        transfer_type: selectedAnimal?.site_id === selectedHospital?.id ? 'intra' : 'inter',
-        reason_for_transfer: data?.purposeOfVisit,
-        ref_ids: JSON.stringify([
-          {
-            ref_id: data?.medicalRecordId,
-            entity_ids: [String(selectedAnimal?.animal_id)]
-          }
-        ]),
-        transfer_entity_type: 'medical_record',
-        entitiy_item_type: 'animal',
-        request_from: 'web',
-        module: 'hospital_transfer',
-        visit_type: data?.visitType,
-        additional_info: JSON.stringify({
-          treatment_type: data?.treatmentType,
-          health_status: data?.healthStatus,
-          doctor_id: String(selectedDoctor?.id),
-          holding_enclosure_id: String(data?.holdingEnclosure?.value),
-          room_id: String(data?.room?.value),
-          admit_date: dayjs(data?.admission_date).format('YYYY-MM-DD'),
-          admit_time: dayjs(data?.admission_time).format('HH:mm')
-        })
-      }
-
-      const res = await addHospitalPatient(params)
-
-      if (res?.success === true) {
-        Toaster({ type: 'success', message: res?.message })
-        if (watchTreatmentType === 'opd') {
-          router.push({
-            pathname: `/hospital/outpatient`
-          })
-        } else if (watchTreatmentType === 'inpatient') {
-          router.back()
+    } 
+      setSubmitLoader(true)
+      try {
+        const params = {
+          source_id: selectedAnimal?.site_id,
+          source_site_id: selectedAnimal?.site_id ? selectedAnimal?.site_id : null,
+          destination_site_id: selectedHospital?.site_id ? selectedHospital?.site_id : null,
+          usecase: 'add-patient',
+          source_type: 'site',
+          destination_id: selectedHospital?.id,
+          destination_type: 'hospital',
+          transfer_type: selectedAnimal?.site_id === selectedHospital?.id ? 'intra' : 'inter',
+          reason_for_transfer: data?.purposeOfVisit,
+          ref_ids: JSON.stringify([
+            {
+              ref_id: data?.medicalRecordId,
+              entity_ids: [String(selectedAnimal?.animal_id)]
+            }
+          ]),
+          transfer_entity_type: 'medical_record',
+          entitiy_item_type: 'animal',
+          request_from: 'web',
+          module: 'hospital_transfer',
+          visit_type: data?.visitType,
+          additional_info: JSON.stringify({
+            treatment_type: data?.treatmentType,
+            health_status: data?.healthStatus,
+            doctor_id: String(selectedDoctor?.id),
+            holding_enclosure_id: String(data?.holdingEnclosure?.value),
+            room_id: String(data?.room?.value),
+            admit_date: dayjs(data?.admission_date).format('YYYY-MM-DD'),
+            admit_time: dayjs(data?.admission_time).format('HH:mm')
+          }),
+          co_attend_doctor: data?.coAttendDoctor?.length
+  ? JSON.stringify(data.coAttendDoctor.map(doc => String(doc.value)))
+  : '[]'
         }
-        fetchAndUpdateHospitalStats(selectedHospital?.id)
-      } else {
-        throw res
+
+        const res = await addHospitalPatient(params)
+
+        if (res?.success === true) {
+          Toaster({ type: 'success', message: res?.message })
+          if (watchTreatmentType === 'opd') {
+            router.push({
+              pathname: `/hospital/outpatient`
+            })
+          } else if (watchTreatmentType === 'inpatient') {
+            router.back()
+          }
+          fetchAndUpdateHospitalStats(selectedHospital?.id)
+        } else {
+          throw res
+        }
+        setSubmitLoader(false)
+      } catch (error) {
+        Toaster({ type: 'error', message: error?.message })
+        console.error(error?.message, 'Cannot Add-Patient')
+        setSubmitLoader(false)
       }
-      setSubmitLoader(false)
-    } catch (error) {
-      Toaster({ type: 'error', message: error?.message })
-      console.error(error?.message, 'Cannot Add-Patient')
-      setSubmitLoader(false)
-    }
+    
   }
 
   const handleAnimalSelection = animal => {
@@ -365,10 +483,53 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
     clearErrors('selectedAnimal')
   }
 
+  const filteredAttendingDoctors = attendingDoctors.filter(item => item.value !== selectedDoctor?.id)
+
+  const getStaffList = async () => {
+    try {
+      const response = await getHospitalStaff({
+        params: {
+          q: searchAttendDoctor,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize,
+          hospital_id: selectedHospital?.id
+        }
+      })
+
+      if (response?.success && response?.data?.records) {
+        const mappedData = response.data.records.map(item => ({
+          label: item.user_full_name,
+          value: item.user_id
+        }))
+
+        setAttendingDoctors(mappedData)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital staff:', error?.message)
+      setStaffLoading(false)
+      Toaster({
+        type: 'error',
+        message: error?.response?.data?.message || error?.message || 'Failed to load hospital staff'
+      })
+    } finally {
+      setStaffLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    getStaffList()
+  }, [searchAttendDoctor])
+
   const handleDoctorSelection = doctor => {
     setSelectedDoctor(doctor)
     setValue('selectedDoctor', doctor)
     clearErrors('selectedDoctor')
+
+    setAttendingSelectedDoctors(prev => {
+      const filtered = prev.filter(item => item.value !== doctor.id)
+      setValue('attendingDoctors', filtered)
+      return filtered
+    })
   }
 
   const handleRemoveAnimal = () => {
@@ -574,6 +735,10 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                       label='Date*'
                       defaultValue={dayjs()}
                       disabled={submitLoader}
+                      maxDate={dayjs(new Date())}
+                      onChangeOverride={() => {
+                        trigger('admission_time')
+                      }}
                     />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
@@ -582,6 +747,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                       name={'admission_time'}
                       label='Time*'
                       disabled={submitLoader}
+                      maxTime={maxTime}
                     />
                   </Grid>
                 </Grid>
@@ -722,7 +888,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                               : theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Select chief Veterinarian*
+                        Select chief Veterinarian*   
                         </Typography>
                         <Icon
                           icon='mdi:chevron-down'
@@ -783,6 +949,62 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                     </Typography>
                   )}
                 </Grid>
+                <Grid size={{ sm: 6 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <Typography
+                      sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                    >
+                      Attending Veterinarian
+                    </Typography>
+                    <Controller
+                      name='attendingDoctors'
+                      control={control}
+                      defaultValue={[]}
+                      render={({ field }) => (
+                        <Autocomplete
+                          multiple
+                          options={filteredAttendingDoctors}
+                          value={attendingSelectedDoctors}
+                          loading={staffLoading}
+                          filterSelectedOptions
+                          getOptionLabel={option => option?.label || ''}
+                          isOptionEqualToValue={(option, value) => option.value === value?.value}
+                          onInputChange={(event, value, reason) => {
+                             if (reason === 'clear') {
+                              setAttendingSelectedDoctors([])
+                              field.onChange([])
+                              return
+                            }
+                            debouncedAttendingVetSearch(value)
+                          }}
+                          onChange={(event, newValue, reason) => {
+
+                            setAttendingSelectedDoctors(newValue)
+                            field.onChange(newValue)
+                          }}
+                          noOptionsText='No available attending vets...'
+                          renderInput={params => (
+                            <TextField {...params} label='Select Attending Veterinarian' placeholder='Search & Select' />
+                          )}
+                        />
+                      )}
+                    />
+                    {/* {!staffLoading && filteredAttending.length === 0 && (
+                      <Typography
+                        sx={{
+                          color: theme.palette.error.main,
+                          mt: '0px',
+                          mx: '4px',
+                          fontSize: '0.75rem',
+                          fontWeight: 400
+                        }}
+                      >
+                        No active/available enclosures available for this Room
+                      </Typography>
+                    )} */}
+                  </Box>
+                </Grid>
+
                 <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -962,6 +1184,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
           onClose={() => {
             setAnimalDrawer(false)
           }}
+          from='Add Patient Form'
           btnText='ADD'
           showAnimalFilter={false}
           handleAnimalClick={handleAnimalSelection}
@@ -980,6 +1203,8 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
           setOpen={setDoctorDrawerOpen}
           onSelectDoctor={handleDoctorSelection}
           hospitalId={selectedHospital?.id}
+          selectedDoctor={selectedDoctor}
+          setSelectedDoctor={setSelectedDoctor}
         />
       )}
       {isSortBottomSheetOpen && (

@@ -20,7 +20,6 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme, styled } from '@mui/material/styles'
-import { DataGrid } from '@mui/x-data-grid'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DatePicker } from '@mui/x-date-pickers'
@@ -34,6 +33,7 @@ import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
 
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import DetailCard from 'src/components/egg/DetailCard'
 import Toaster from 'src/components/Toaster'
@@ -48,36 +48,11 @@ import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { hatcheryStatus } from 'src/lib/api/egg'
-
-// Styled DataGrid Component
-const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
-  '.MuiDataGrid-columnHeaderTitleContainer': {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between'
-  },
-  '.MuiDataGrid-columnHeader .MuiSvgIcon-root': {
-    display: 'none'
-  },
-  '.MuiDataGrid-columnHeaderFilterIcon': {
-    display: 'none'
-  },
-  '.MuiDataGrid-menuIcon': {
-    display: 'none'
-  },
-  '.MuiDataGrid-main': {
-    borderLeft: '1px solid #0000000D',
-    borderRight: '1px solid #0000000D',
-    borderRadius: '8px',
-    border: '1px solid rgba(233, 233, 236, 1)'
-  },
-  '& .MuiDataGrid-footerContainer': {
-    borderTop: 'none'
-  }
-}))
+import { useTranslation } from 'react-i18next'
 
 const IncubatorDetails = () => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const router = useRouter()
   const { id } = router.query
   const authData = useContext(AuthContext)
@@ -181,7 +156,7 @@ const IncubatorDetails = () => {
     {
       width: 80,
       field: 'uid',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -202,7 +177,7 @@ const IncubatorDetails = () => {
       width: 240,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -216,7 +191,7 @@ const IncubatorDetails = () => {
       width: 170,
       sortable: false,
       field: 'egg_number',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
@@ -248,7 +223,7 @@ const IncubatorDetails = () => {
       width: 170,
       sortable: false,
       field: 'stage',
-      headerName: 'STATE & STAGE',
+      headerName: t('egg_module.state_stage'),
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexDirection: 'column' }}>
           <Box>
@@ -305,7 +280,7 @@ const IncubatorDetails = () => {
       width: 180,
       sortable: false,
       field: 'incubation',
-      headerName: 'DAYS IN INCUBATION',
+      headerName: t('egg_module.days_in_incubation'),
       renderCell: params => (
         <Typography
           sx={{
@@ -323,7 +298,7 @@ const IncubatorDetails = () => {
       width: 170,
       sortable: false,
       field: 'currentweight',
-      headerName: 'CURRENT WEIGHT',
+      headerName: t('egg_module.current_weight'),
       aline: 'center',
       renderCell: params => (
         <Typography
@@ -359,7 +334,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'initialWeight',
-      headerName: 'INITIAL WEIGHT',
+      headerName: t('egg_module.initial_weight'),
       renderCell: params => (
         <Typography
           sx={{
@@ -377,7 +352,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'initialSizeL',
-      headerName: 'INITIAL SIZE - L',
+      headerName: `${t('egg_module.initial_size')} - L`,
       renderCell: params => (
         <Typography
           sx={{
@@ -395,7 +370,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'initialSizeW',
-      headerName: 'INITIAL SIZE - W',
+      headerName: `${t('egg_module.initial_size')} - W`,
       renderCell: params => (
         <Typography
           sx={{
@@ -413,7 +388,7 @@ const IncubatorDetails = () => {
       width: 170,
       sortable: false,
       field: 'clutch',
-      headerName: 'NO. EGG / CLUTCH',
+      headerName: t('egg_module.no_egg_clutch'),
       renderCell: params => (
         <Typography
           sx={{
@@ -431,7 +406,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'clutchId',
-      headerName: 'CLUTCH ID',
+      headerName: t('egg_module.clutch_id'),
       renderCell: params => (
         <Typography
           sx={{
@@ -449,7 +424,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'site',
-      headerName: 'SITE',
+      headerName: t('site'),
       renderCell: params => (
         <Typography
           sx={{
@@ -467,7 +442,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'nursery',
-      headerName: 'NURSERY',
+      headerName: t('egg_module.nursery'),
       renderCell: params => (
         <Typography
           sx={{
@@ -485,7 +460,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -506,7 +481,7 @@ const IncubatorDetails = () => {
       width: 140,
       sortable: false,
       field: 'enclosure',
-      headerName: 'ENCLOSURE',
+      headerName: t('enclosure'),
       renderCell: params => (
         <Typography
           sx={{
@@ -524,7 +499,7 @@ const IncubatorDetails = () => {
       width: 200,
       sortable: false,
       field: 'collected_by',
-      headerName: 'ADDED BY',
+      headerName: t('added_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -755,10 +730,10 @@ const IncubatorDetails = () => {
       {egg_nursery_permission || egg_collection_permission ? (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            <Typography color='inherit'>Egg</Typography>
+            <Typography color='inherit'>{t('egg_module.egg')}</Typography>
 
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/incubators/')}>
-              Incubator List
+              {t('egg_module.incubator_list')}
             </Typography>
             <Typography
               sx={{
@@ -766,7 +741,7 @@ const IncubatorDetails = () => {
                 cursor: 'pointer'
               }}
             >
-              Incubator Details
+              {t('egg_module.incubator_details')}
             </Typography>
           </Breadcrumbs>
           <Card>
@@ -803,7 +778,7 @@ const IncubatorDetails = () => {
                       lineHeight: '29.05px'
                     }}
                   >
-                    Incubator Details
+                    {t('egg_module.incubator_details')}
                   </Typography>
                 </Box>
 
@@ -828,7 +803,7 @@ const IncubatorDetails = () => {
                         color: theme.palette.primary.main
                       }}
                     >
-                      Transfer
+                      {t('transfer')}
                     </Typography>
                     <Icon
                       color={theme.palette.customColors.addPrimary}
@@ -886,7 +861,8 @@ const IncubatorDetails = () => {
                           lineHeight: '14.52px'
                         }}
                       >
-                        Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(incubatorDetail?.created_at))}
+                        {t('updated_on')}{' '}
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(incubatorDetail?.created_at))}
                       </Typography>
                     </Box>
                   </Box>
@@ -987,7 +963,7 @@ const IncubatorDetails = () => {
                           )
                         }
                       }}
-                      label={'Allocated Date'}
+                      label={t('egg_module.allocated_date')}
                       maxDate={dayjs()}
                       format='DD/MM/YYYY'
                     />
@@ -1078,7 +1054,7 @@ const IncubatorDetails = () => {
                           )
                         }
                       }}
-                      label={'Collected Date'}
+                      label={t('egg_module.collected_date')}
                       maxDate={dayjs()} // Ensure the maxDate is also a dayjs object
                     />
                   </LocalizationProvider>
@@ -1167,7 +1143,7 @@ const IncubatorDetails = () => {
                           searchSpecies(e.target.value)
                         }}
                         {...params}
-                        label='Species'
+                        label={t('navigation.species')}
                         placeholder='Search & Select'
                       />
                     )}
@@ -1176,35 +1152,17 @@ const IncubatorDetails = () => {
               </Box>
               {egg_collection_permission && (
                 <Box>
-                  <CustomDataGrid
-                    sx={{
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      }
-                    }}
+                  <CommonTable
+                    indexedRows={indexedRows === undefined ? [] : indexedRows}
+                    total={total}
+                    rowHeight={64}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
                     columnVisibilityModel={{
                       sl_no: false
                     }}
-                    hideFooterSelectedRowCount
-                    disableColumnSelector={true}
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    rowHeight={64}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[5, 10, 25, 50]}
-                    paginationModel={paginationModel}
-
-                    // onSortModelChange={handleSortModel}
-                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
                     slotProps={{
                       baseButton: {
                         variant: 'outlined'
@@ -1216,6 +1174,37 @@ const IncubatorDetails = () => {
                       }
                     }}
                     onCellClick={onCellClick}
+                    externalTableStyle={{
+                      '.MuiDataGrid-cell:focus': {
+                        outline: 'none'
+                      },
+                      '& .MuiDataGrid-row:hover': {
+                        cursor: 'pointer'
+                      },
+                      '.MuiDataGrid-columnHeaderTitleContainer': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      },
+                      '.MuiDataGrid-columnHeader .MuiSvgIcon-root': {
+                        display: 'none'
+                      },
+                      '.MuiDataGrid-columnHeaderFilterIcon': {
+                        display: 'none'
+                      },
+                      '.MuiDataGrid-menuIcon': {
+                        display: 'none'
+                      },
+                      '.MuiDataGrid-main': {
+                        borderLeft: '1px solid #0000000D',
+                        borderRight: '1px solid #0000000D',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(233, 233, 236, 1)'
+                      },
+                      '& .MuiDataGrid-footerContainer': {
+                        borderTop: 'none'
+                      }
+                    }}
                   />
                   {dialog && (
                     <AddIncubators

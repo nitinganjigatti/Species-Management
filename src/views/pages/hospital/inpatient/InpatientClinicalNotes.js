@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
@@ -33,8 +33,8 @@ const InpatientClinicalNotes = props => {
   } = props
   const theme = useTheme()
 
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const medical_record_id = medicalRecordData?.medical_record_id
   const hospital_case_id = medicalRecordData?.hospital_case_id
   const discharge_at = medicalRecordData?.discharge_at
@@ -68,25 +68,25 @@ const InpatientClinicalNotes = props => {
   }
 
   // after fetch if no data shows empty state
-  if (!isInitialLoading && clinicalNotesData?.length === 0 && status == 'discharge') {
-    return (
-      <Box
-        sx={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          mt: 6
-        }}
-      >
-        <NoMedicalData isDischarged={true} />
-      </Box>
-    )
-  }
+  // if (!isInitialLoading && clinicalNotesData?.length === 0 && status == 'discharge') {
+  //   return (
+  //     <Box
+  //       sx={{
+  //         width: '100%',
+  //         display: 'flex',
+  //         justifyContent: 'center',
+  //         alignItems: 'center',
+  //         mt: 6
+  //       }}
+  //     >
+  //       <NoMedicalData isDischarged={true} />
+  //     </Box>
+  //   )
+  // }
 
   return (
     <>
-      {status == 'admitted' && (
+      {(status == 'admitted' || status == 'discharge') && (
         <Box
           sx={{
             p: 6,
@@ -176,13 +176,14 @@ const InpatientClinicalNotes = props => {
                       fontSize: '1rem',
                       fontWeight: 400,
                       color: theme.palette.customColors.OnSurfaceVariant,
-                      textAlign: 'justify'
+                      textAlign: 'justify',
+                      whiteSpace: 'pre-wrap'
                     }}
                   >
-                    {data?.note || 'NA'}
+                    {data?.note?.replace(/\\n/g, '\n') || 'NA'}
                   </Typography>
 
-                  {status == 'admitted' && (
+                  {(status == 'admitted' || status == 'discharge') && (
                     <IconButton
                       onClick={() => onDeleteNote(data?.note_id)}
                       sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
@@ -191,7 +192,6 @@ const InpatientClinicalNotes = props => {
                     </IconButton>
                   )}
                 </Box>
-
                 <UserAvatarDetails
                   user_name={data?.created_by_user_name}
                   date={data?.created_at}
@@ -200,7 +200,7 @@ const InpatientClinicalNotes = props => {
                   profile_image={data?.user_created_profile_pic}
                 />
               </Box>
-            )
+            );
           })}
 
           {/* Show skeleton only when fetching more pages and we already have data */}
@@ -227,7 +227,7 @@ const InpatientClinicalNotes = props => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default InpatientClinicalNotes

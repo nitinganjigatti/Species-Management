@@ -2,27 +2,24 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getStockOutItems } from 'src/lib/api/pharmacy/getStocksReportById'
-import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
-import CardHeader from '@mui/material/CardHeader'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import Grid from '@mui/material/Grid'
 
-import { FormControlLabel, Switch, TextField } from '@mui/material'
+import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Utility from 'src/utility'
-import { Tooltip } from '@mui/material'
-import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import StockReportSkeleton from 'src/views/utility/SkeletonLoading/StockReportSkeleton'
 
 const StockOut = () => {
   const theme = useTheme()
-  const [loader, setLoader] = useState(false)
+  const [PageLoading, setPageLoading] = useState(true)
 
   /***** Server side pagination */
 
@@ -32,10 +29,10 @@ const StockOut = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('low_stock')
   const [changeSwitch, setChangeSwitch] = useState()
   const [excelLoader, setExcelLoader] = useState(false)
+  const [tableLoader, setTableLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -46,10 +43,10 @@ const StockOut = () => {
   const fetchTableData = useCallback(
     async (sort, q, column, status) => {
       try {
-        setLoading(true)
+        setTableLoader(true)
 
         const params = {
-          sort: sort || 'asc', 
+          sort: sort || 'asc',
           q,
           column,
           page: paginationModel.page + 1,
@@ -69,7 +66,8 @@ const StockOut = () => {
         setTotal(0)
         setRows([])
       } finally {
-        setLoading(false)
+        setTableLoader(false)
+        setPageLoading(false)
       }
     },
     [paginationModel]
@@ -87,16 +85,14 @@ const StockOut = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const sortOrder = newModel[0]?.sort || 'asc' 
+      const sortOrder = newModel[0]?.sort || 'asc'
       const sortField = newModel[0]?.field || ''
 
       setSort(sortOrder)
       setSortColumn(sortField)
 
-     
       setPaginationModel(prev => ({ ...prev, page: 0 }))
 
-     
       fetchTableData(sortOrder, searchValue, sortField, status)
     } else {
       console.log('No sort model applied')
@@ -174,8 +170,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.min_qty}
@@ -183,17 +178,24 @@ const StockOut = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'expiry_date',
-    //   headerName: 'Expiry Date',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params.row.expiry_date}
-    //     </Typography>
-    //   )
-    // },
+    {
+      width: 100,
+      minWidth: 100,
+      sortable: false,
+      field: 'priority',
+      headerName: 'Priority',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params?.row?.priority === 'critical' ? 'error.main' : 'success.main',
+            fontSize: '14px',
+            fontWeight: 500
+          }}
+        >
+          {params?.row?.priority === 'critical' ? 'Critical' : 'Normal'}
+        </Typography>
+      )
+    },
 
     {
       width: 150,
@@ -209,8 +211,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.stock_qty}
@@ -231,8 +232,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.id}
@@ -270,7 +270,24 @@ const StockOut = () => {
     // },
 
     {
-      // flex: 0.4,
+      width: 150,
+      minWidth: 150,
+      sortable: false,
+      field: 'priority',
+      headerName: 'Priority',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: params?.row?.priority === 'critical' ? 'error.main' : 'success.main',
+            fontSize: '14px',
+            fontWeight: 500
+          }}
+        >
+          {params?.row?.priority === 'critical' ? 'Critical' : 'Normal'}
+        </Typography>
+      )
+    },
+    {
       width: 200,
       minWidth: 100,
       field: 'stock_qty',
@@ -284,8 +301,7 @@ const StockOut = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.stock_qty}
@@ -294,8 +310,8 @@ const StockOut = () => {
     }
   ]
 
-  if (loading) {
-    return <FallbackSpinner />
+  if (PageLoading) {
+    return <StockReportSkeleton LowStock />
   }
 
   const handleSwitchChange = event => {
@@ -344,86 +360,52 @@ const StockOut = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
+      {PageLoading ? (
+        <StockReportSkeleton LowStock />
       ) : (
-        <Card>
-          <CardHeader
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between', 
-              alignItems: 'center',
-              px: { xs: 2, md: 5 }, 
-              py: 2
-            }}
-            title={changeSwitch ? RenderUtility.pageTitle('Out of Stock') : RenderUtility.pageTitle('Low Stock')}
-          />
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              width: '96%',
-              m: { xs: 1, sm: 1.5, md: 3.5 },
-              gap: 2
-            }}
-          >
-        
-            <Grid item size={{ xs: 12, sm: 6 }}>
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
-                  marginLeft: { xs: 1.5, sm: 2.5, md: 3 },
-                  width: { xs: '98%', sm: '30%', md: '20%' }
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
+        <PageCardLayout title={changeSwitch ? 'Out of Stock' : 'Low Stock'}>
+          <Grid container spacing={3} justifyContent={'space-between'}>
+            <Grid
+              item
+              size={{ xs: 12, sm: 5, md: 3.5 }}
+              sx={{
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <MUISearch
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                value={searchValue}
+              />
             </Grid>
 
             <Grid
               item
               size={{ xs: 12, sm: 6 }}
               sx={{
-                textAlign: { xs: 'left', sm: 'right' },
-                ml: { xs: 3, sm: 6 },
-
-                mt: { sm: '-40px', md: '-40px' }
+                display: 'flex',
+                justifyContent: { xs: 'start', sm: 'end ' }
               }}
             >
-              <FormControlLabel
-                control={<Switch defaultChecked={changeSwitch} onChange={handleSwitchChange} />}
+              <MUISwitch
                 label='Out Of Stock'
+                labelStyle={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400
+                }}
                 labelPlacement='end'
+                defaultChecked={changeSwitch}
+                onChange={handleSwitchChange}
+                formControlStyle={{
+                  margin: 0
+                }}
               />
             </Grid>
-          </Box>
+          </Grid>
 
-          <Grid
-            sx={{
-              mx: { xs: 2, sm: 3, md: 5.5 }
-            }}
-          >
+          <Grid>
             <CommonTable
               onRowClick={''}
               indexedRows={indexedRows}
@@ -432,11 +414,11 @@ const StockOut = () => {
               paginationModel={paginationModel}
               handleSortModel={handleSortModel}
               setPaginationModel={setPaginationModel}
-              loading={loading}
+              loading={tableLoader}
               searchValue={searchValue}
             />
           </Grid>
-        </Card>
+        </PageCardLayout>
       )}
     </>
   )

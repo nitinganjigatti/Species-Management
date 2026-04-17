@@ -14,10 +14,16 @@ import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+import Utility from 'src/utility'
+import dayjs from 'dayjs'
 
 const defaultValues = {
   holdingEnclosure: null,
-  selectedDoctor: null
+  selectedDoctor: null,
+  admissionDate: null,
+  admissionTime: null
 
   // patient_status: false
 }
@@ -56,6 +62,22 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
     reValidateMode: 'onChange'
   })
 
+
+  // Calculate min and max date for validation
+  const getMinMaxDate = () => {
+    let minDate = null
+    let maxDate = dayjs() // Current date/time
+
+    if (patientData?.transfer_created_at) {
+      const localMinDateTime = Utility.convertUTCToLocal(patientData.transfer_created_at)
+      minDate = dayjs(localMinDateTime, 'YYYY-MM-DD HH:mm:ss')
+    }
+
+    return { minDate, maxDate }
+  }
+
+  const { minDate: minDateTime, maxDate: maxDateTime } = getMinMaxDate()
+
   useEffect(() => {
     if (patientData) {
       const doctorData = {
@@ -64,6 +86,18 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
         id: patientData?.attend_by,
         role_name: patientData?.attend_by_role
       }
+
+      // Convert UTC admission date to local and split into date and time
+      let admissionDateValue = null
+      let admissionTimeValue = null
+
+      if (patientData?.admitted_at) {
+        const localDateTime = Utility.convertUTCToLocal(patientData.admitted_at)
+        const dayjsObj = dayjs(localDateTime, 'YYYY-MM-DD HH:mm:ss')
+        admissionDateValue = dayjsObj
+        admissionTimeValue = dayjsObj
+      }
+
       reset({
         holdingEnclosure: {
           label: patientData?.bed_name,
@@ -73,7 +107,9 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           label: patientData?.room_name,
           value: patientData?.room_id
         },
-        selectedDoctor: doctorData
+        selectedDoctor: doctorData,
+        admissionDate: admissionDateValue,
+        admissionTime: admissionTimeValue
       })
       setSelectedDoctor(doctorData)
       setPreviousRoomId(patientData?.room_id)
@@ -173,6 +209,33 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   const onSubmit = async data => {
     setSubmitLoader(true)
     try {
+      // Validate date/time if both are provided
+      if (data?.admissionDate && data?.admissionTime) {
+        const selectedDate = dayjs(data.admissionDate)
+        const selectedTime = dayjs(data.admissionTime)
+        const selectedDateTime = selectedDate.hour(selectedTime.hour()).minute(selectedTime.minute())
+
+        // Check if selected datetime is before transfer_created_at
+        if (minDateTime && selectedDateTime.isBefore(minDateTime)) {
+          setSubmitLoader(false)
+          Toaster({
+            type: 'error',
+            message: `Admission date and time cannot be before ${minDateTime.format('YYYY-MM-DD HH:mm')}`
+          })
+          return
+        }
+
+        // Check if selected datetime is after current time
+        if (selectedDateTime.isAfter(maxDateTime)) {
+          setSubmitLoader(false)
+          Toaster({
+            type: 'error',
+            message: 'Admission date and time cannot be in the future'
+          })
+          return
+        }
+      }
+
       const payload = {
         action: 'edit',
         hospital_case_id: patientData?.hospital_case_id,
@@ -180,6 +243,16 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
         holding_enclosure: data?.holdingEnclosure?.value || '',
         attend_by: data?.selectedDoctor?.id || ''
       }
+
+      // Format and add date and time if provided
+      if (data?.admissionDate) {
+        payload.admit_date = dayjs(data.admissionDate).format('YYYY-MM-DD')
+      }
+
+      if (data?.admissionTime) {
+        payload.admit_time = dayjs(data.admissionTime).format('HH:mm')
+      }
+
       await editAnimalAdmissionDetails(payload).then(res => {
         if (res?.success === true) {
           setSubmitLoader(false)
@@ -391,6 +464,34 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
                 No active/available enclosures available for this Room
               </Typography>
             )}
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Admission Date
+            </Typography>
+            <ControlledDatePicker
+              name='admissionDate'
+              label='Select Admission Date'
+              control={control}
+              errors={errors}
+              sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
+              fullWidth
+              minDate={minDateTime}
+              maxDate={maxDateTime}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Admission Time
+            </Typography>
+            <ControlledTimePicker
+              name='admissionTime'
+              label='Select Admission Time'
+              control={control}
+              errors={errors}
+              sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
+              fullWidth
+            />
           </Box>
           {/* <Box
             sx={{

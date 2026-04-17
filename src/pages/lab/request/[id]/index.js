@@ -33,7 +33,6 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import { DataGrid } from '@mui/x-data-grid'
 
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -46,6 +45,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import Toaster from 'src/components/Toaster'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
@@ -56,6 +56,7 @@ import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
 import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 import {
   GetRequestDetails,
@@ -67,6 +68,7 @@ import {
   postBulkTransfer,
   getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
+
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -1292,7 +1294,184 @@ const RequestDetails = () => {
             ))}
           </Card>
 
-          <Card sx={{ mt: 5 }}>
+          <PageCardLayout title={'Lab Tests'} cardStyles={{marginTop: '16px'}} action={<Box
+              sx={{
+                px: 5,
+                py: 3,
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              {selectedRow?.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: theme.palette.customColors.mdAntzNeutral,
+                      width: '35px',
+                      height: '35px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
+                  </Box>
+
+                  {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
+                    <Button
+                      disabled={selectedRowData?.some(item => item?.status === 'completed')}
+                      variant='contained'
+                      sx={{ display: 'flex', gap: 2 }}
+                      onClick={() => handleOpenTransfer()}
+                    >
+                      <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
+                    </Button>
+                  )}
+
+                  <Box>
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && shouldShowBulkStatus && (
+                      <FormControl fullWidth variant='outlined'>
+                        <Select
+                          disabled={selectedRowData?.some(item => item?.status === 'completed')}
+                          size='small'
+                          labelId='demo-simple-select-label'
+                          id='demo-simple-select'
+
+                          // defaultValue={'awaiting_sample'}
+                          value={headerStatus}
+                          onChange={e => handleHeaderDropdown(e)}
+                          sx={{
+                            width: 237,
+                            fontSize: '14px',
+                            backgroundColor:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
+                              headerStatus === 'sample_rejected'
+                                ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                                : headerStatus === 'completed'
+                                ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                                : headerStatus === 'inprogress'
+                                ? 'rgba(228, 184, 25, 0.1)'
+                                : headerStatus === 'sample_received'
+                                ? 'rgba(0, 128, 0, 0.1)'
+                                : 'rgba(0, 128, 0, 0.1)',
+
+                            color:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
+                              headerStatus === 'sample_rejected'
+                                ? theme.palette.customColors.customDropdownColor
+                                : headerStatus === 'completed'
+                                ? theme.palette.primary.main
+                                : headerStatus === 'inprogress'
+                                ? theme.palette.customColors.moderateSecondary
+                                : headerStatus === 'sample_received'
+                                ? theme.palette.primary.main
+                                : theme.palette.primary.main,
+
+                            borderRadius: '8px',
+
+                            '& .MuiSelect-icon': {
+                              color:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
+                                headerStatus === 'sample_rejected'
+                                  ? theme.palette.customColors.customDropdownColor
+                                  : headerStatus === 'completed'
+                                  ? theme.palette.primary.main
+                                  : headerStatus === 'inprogress'
+                                  ? theme.palette.customColors.moderateSecondary
+                                  : headerStatus === 'sample_received'
+                                  ? theme.palette.primary.main
+                                  : theme.palette.primary.main
+                            },
+
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              border: '0',
+                              borderColor:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
+                                headerStatus === 'sample_received'
+                                  ? theme.palette.customColors.customDropdownColor // Custom red border for these statuses
+                                  : headerStatus === 'completed'
+                                  ? theme.palette.primary.main // Custom green border for completed
+                                  : headerStatus === 'inprogress'
+                                  ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                                  : theme.palette.primary.main // Default green border
+                            },
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              border: '0'
+                            }
+                          }}
+                        >
+                          {filteredStatusData?.map((item, index) => (
+                            <MenuItem key={index} value={item?.key}>
+                              {item?.value}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </Box>}>
+              <CommonTable
+              checkBoxOption={
+                Boolean(permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests)
+              }
+              selectedRows={selectedRow}
+              onRowSelectionModelChange={handleRowSelection}
+              onCellClick={onCellClick}
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              hideFooterPagination={true}
+              disablePagination={true}
+              externalTableStyle={{
+                '& .MuiDataGrid-row:hover .customButton': {
+                  display: 'block'
+                },
+                '& .MuiDataGrid-row .customButton': {
+                  display: 'none'
+                },
+                '& .MuiDataGrid-row.Mui-selected': {
+                  backgroundColor: 'white !important'
+                },
+                '& .MuiDataGrid-row.Mui-selected:hover': {
+                  backgroundColor: 'white !important'
+                },
+                '& .MuiDataGrid-row.Mui-selected.MuiDataGrid-row--focused': {
+                  backgroundColor: 'white !important'
+                }
+              }}
+            />
+          </PageCardLayout>
+
+          {/* <Card sx={{ mt: 5 }}>
             <Box
               sx={{
                 px: 5,
@@ -1438,45 +1617,21 @@ const RequestDetails = () => {
               )}
             </Box>
 
-            <DataGrid
-              checkboxSelection={
-                permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
+            <CommonTable
+              checkBoxOption={
+                Boolean(permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests)
               }
+              selectedRows={selectedRow}
               onRowSelectionModelChange={handleRowSelection}
               onCellClick={onCellClick}
-              isRowSelectable={params => {
-                if (
-                  (permissions?.view &&
-                    permissions?.transfer_tests === false &&
-                    permissions?.perform_tests === false &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false) ||
-                  (permissions?.perform_tests === true &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false &&
-                    !statusList?.filter(item =>
-                      [
-                        'awaiting_sample',
-                        'sample_received',
-                        'sample_rejected',
-                        'sample_clotted',
-                        'sample_haemolysed',
-                        'completed_insufficient_samples',
-                        'inprogress'
-                      ].includes(item.key)
-                    )) ||
-                  (permissions?.perform_tests === false &&
-                    permissions?.transfer_tests === true &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false &&
-                    params.row.status.includes('completed'))
-                ) {
-                  return false
-                } else {
-                  return true
-                }
-              }}
-              sx={{
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              hideFooterPagination={true}
+              disablePagination={true}
+              externalTableStyle={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
                 },
@@ -1493,21 +1648,8 @@ const RequestDetails = () => {
                   backgroundColor: 'white !important'
                 }
               }}
-              autoHeight
-              hideFooterPagination
-              hideFooterSelectedRowCount
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              onSortModelChange={handleSortModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                }
-              }}
             />
-          </Card>
+          </Card> */}
 
           {permissions?.allow_upload_reports ||
           permissions?.allow_full_access ||

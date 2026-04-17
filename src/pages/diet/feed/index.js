@@ -16,20 +16,22 @@ import Icon from 'src/@core/components/icon'
 import React, { useCallback, useEffect, useState, useContext } from 'react'
 import Router, { useRouter } from 'next/router'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
-import { DataGrid } from '@mui/x-data-grid'
 import CustomChip from 'src/@core/components/mui/chip'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Tooltip from '@mui/material/Tooltip'
 import { useTheme } from '@mui/material/styles'
 import Error404 from 'src/pages/404'
-
+import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const FeedTypes = () => {
   const router = useRouter()
+  const { t } = useTranslation()
   const theme = useTheme()
   const { query } = router
   const [rows, setRows] = useState([])
@@ -127,14 +129,15 @@ const FeedTypes = () => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumning, status)
     }
-  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumning])
+  }, [status, paginationModel.page, paginationModel.pageSize])
 
   const columns = [
     {
       //flex: 0.1,
-      width: 70,
+      width: 80,
       field: 'id',
       headerName: 'SL',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
@@ -145,7 +148,8 @@ const FeedTypes = () => {
       //flex: 0.5,
       width: 250,
       field: 'feed_type_name',
-      headerName: 'FEEDS',
+      headerName: t('diet_module.feeds'),
+      sortable: false,
       renderCell: params => (
         <>
           <Avatar
@@ -177,7 +181,8 @@ const FeedTypes = () => {
       flex: 0.5,
       minWidth: 10,
       field: 'desc',
-      headerName: 'DESCRIPTION',
+      headerName: t('description'),
+      sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.desc} placement='bottom'>
           <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -190,7 +195,8 @@ const FeedTypes = () => {
       flex: 0.2,
       minWidth: 10,
       field: 'active',
-      headerName: 'STATUS',
+      headerName: t('status'),
+      sortable: false,
       renderCell: params => (
         <CustomChip
           skin='light'
@@ -257,7 +263,7 @@ const FeedTypes = () => {
         <Box sx={{ display: 'flex', height: '32px', justifyContent: 'space-between' }}>
           <Button size='small' variant='contained' onClick={() => Router.push('/diet/feed/add-feed')}>
             <Icon icon='mdi:add' fontSize={20} />
-            &nbsp; ADD NEW
+            &nbsp; {t('add_new')}
           </Button>
         </Box>
       )}
@@ -276,57 +282,25 @@ const FeedTypes = () => {
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title='Feed Types' action={headerAction} sx={{ px: 5 }} />
+        <CardHeader title={t('navigation.feed_types')} action={headerAction} sx={{ px: 5 }} />
+        <Box sx={{ px: 5, pb: 3, display: 'flex', justifyContent: 'flex-end' }}>
+          <Box sx={{ width: 250 }}>
+            <MUISearch
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
+              placeholder='Search...'
+            />
+          </Box>
+        </Box>
         <Box sx={{ width: '100%', overflowX: 'auto' }}>
-          <DataGrid
-            sx={{
-              height: 700,
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: theme.palette.customColors.customTableHeaderBg,
-                color: theme.palette.customColors.customHeadingTextColor
-              },
-              '.MuiDataGrid-virtualScroller': {
-                overflowX: 'auto'
-              },
-              '.MuiDataGrid-main': {
-                borderLeft: '1px solid #0000000D',
-                borderRight: '1px solid #0000000D',
-                marginLeft: '20px',
-                marginRight: '20px',
-                borderRadius: '8px',
-                border: '1px solid rgba(233, 233, 236, 1)'
-              },
-              '& .MuiDataGrid-footerContainer': {
-                borderTop: 'none'
-              },
-
-              '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                borderBottom: 'none'
-              }
-            }}
-            columnVisibilityModel={{
-              sl_no: false
-            }}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
+          <CommonTable
+            indexedRows={indexedRows === undefined ? [] : indexedRows}
+            total={total}
             columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50, 100]}
             paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbarWithFilter }}
-            onPaginationModelChange={newPaginationModel => {
+            handleSortModel={handleSortModel}
+            setPaginationModel={newPaginationModel => {
               updateQueryParams({
                 page: newPaginationModel.page,
                 pageSize: newPaginationModel.pageSize
@@ -334,17 +308,20 @@ const FeedTypes = () => {
               setPaginationModel(newPaginationModel)
             }}
             loading={loading}
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
+            columnVisibilityModel={{
+              sl_no: false
             }}
             onCellClick={onCellClick}
+            externalTableStyle={{
+              height: 700,
+              '.MuiDataGrid-virtualScroller': {
+                overflowX: 'auto'
+              },
+              '.MuiDataGrid-main': {
+                marginLeft: '20px',
+                marginRight: '20px'
+              }
+            }}
           />
         </Box>
       </Card>

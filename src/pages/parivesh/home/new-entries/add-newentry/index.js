@@ -1777,7 +1777,7 @@ const AddNewEntry = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default AddNewEntry

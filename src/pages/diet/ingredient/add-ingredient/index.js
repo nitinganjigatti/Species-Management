@@ -42,14 +42,14 @@ import FallbackSpinner from 'src/@core/components/spinner'
 import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
 import { useDropzone } from 'react-dropzone'
 import Error404 from 'src/pages/404'
-
+import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 
 const AddIngredient = () => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
-
+  const { t } = useTranslation()
   const router = useRouter()
   const { id, feedTypeId, feedTypeName } = router.query
   const [loading, setLoading] = useState(false)
@@ -459,14 +459,14 @@ const AddIngredient = () => {
           <Box>
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/ingredient')}>
-                Items
+                {t('diet_module.items')}
               </Typography>
               <Typography
                 sx={{
                   color: 'text.primary'
                 }}
               >
-                {id ? 'Update' : 'Add'} new item
+                {id ? t('update') : t('add')} {t('diet_module.new_item')}
               </Typography>
             </Breadcrumbs>
           </Box>
@@ -479,7 +479,7 @@ const AddIngredient = () => {
               <Card sx={{ mt: 3 }}>
                 <CardHeader
                   sx={{ paddingBottom: 0, marginX: 1 }}
-                  title={id ? 'Update Item' : 'Add New Item'}
+                  title={id ? t('diet_module.update_item') : t('diet_module.add_new_item')}
                   action={id ? headerAction : null}
                 />
                 <CardContent>
@@ -503,14 +503,16 @@ const AddIngredient = () => {
                           mb: 3
                         }}
                       ></Box>
-                      <Typography sx={{ fontWeight: 600, fontSize: 14 }}>Basic Information</Typography>
-                      <Typography sx={{ fontWeight: 400, fontSize: 12 }}>Enter details</Typography>
+                      <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+                        {t('diet_module.basic_information')}
+                      </Typography>
+                      <Typography sx={{ fontWeight: 400, fontSize: 12 }}>{t('diet_module.enter_details')}</Typography>
                     </Box>
                   </Box>
 
                   <Box>
                     <Typography sx={{ mt: '32px', mb: '20px', fontSize: 20, fontWeight: 500 }}>
-                      1. Item details
+                      1. {t('diet_module.item_details')}
                     </Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
                       <Grid size={{ xs: 12, md: 3.9, sm: 3.9 }}>
@@ -521,7 +523,7 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                label='Item Name *'
+                                label={`${t('diet_module.item_name')}*`}
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Item Name'
@@ -546,7 +548,7 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                label='Item Alias'
+                                label={t('diet_module.item_alias')}
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Item Alias'
@@ -589,7 +591,7 @@ const AddIngredient = () => {
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select Feed Type *'
+                                    label={`${t('diet_module.select_feed_type')} *`}
                                     placeholder='Search & Select'
                                     error={Boolean(errors.feedType)}
                                   />
@@ -612,7 +614,7 @@ const AddIngredient = () => {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='number'
-                                label='Percentage(%) of water'
+                                label={t('diet_module.perc_water')}
                                 value={value}
                                 onChange={e => {
                                   onChange(e.target.value)
@@ -644,7 +646,7 @@ const AddIngredient = () => {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='number'
-                                label='Percentage(%) of dry matter'
+                                label={t('diet_module.perc_matter')}
                                 value={value}
                                 onChange={e => {
                                   onChange(e.target.value)
@@ -684,7 +686,7 @@ const AddIngredient = () => {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='number'
-                                label='Enter nutritional values per'
+                                label={t('diet_module.enter_val')}
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Enter nutritional values per'
@@ -753,7 +755,7 @@ const AddIngredient = () => {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='number'
-                                label='Enter total calories'
+                                label={t('diet_module.total_calories')}
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Enter total calories'
@@ -790,7 +792,7 @@ const AddIngredient = () => {
                               <TextField
                                 rows={4}
                                 multiline
-                                label='Description'
+                                label={t('description')}
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Description'
@@ -812,7 +814,7 @@ const AddIngredient = () => {
                     </Box>
 
                     <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>
-                      4. {imgSrc !== '' ? 'Image added' : 'Attach image'}
+                      4. {imgSrc !== '' ? t('media_details.image_added') : t('media_details.attach_image')}
                     </Typography>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
@@ -842,7 +844,7 @@ const AddIngredient = () => {
                           >
                             <Image alt={'filename'} src={imageUploader} width={100} height={100} />
 
-                            <Typography>Drop your image here</Typography>
+                            <Typography>{t('media_details.drop_image')}</Typography>
                           </Box>
                         </Grid>
                       )}
@@ -900,7 +902,9 @@ const AddIngredient = () => {
                     </Box>
 
                     <Box sx={{ mt: '32px', display: { sm: 'flex' }, gap: '20px', alignItems: 'center' }}>
-                      <Typography sx={{ fontSize: 20, fontWeight: 500 }}>5. Preparation types</Typography>
+                      <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+                        5. {t('diet_module.preparation_types')}
+                      </Typography>
                       <Box
                         sx={{ display: 'flex', gap: '5px', alignItems: 'center' }}
                         onClick={() => setOpenDrawer(true)}
@@ -914,7 +918,7 @@ const AddIngredient = () => {
                             cursor: 'pointer'
                           }}
                         >
-                          Add preparation types
+                          {t('diet_module.add_preparation_types')}
                         </Typography>
                         <Icon fontSize={28} color={theme.palette.primary.main} icon='system-uicons:button-add' />
                       </Box>
@@ -969,7 +973,7 @@ const AddIngredient = () => {
                           variant='outlined'
                           sx={{ width: '124', height: '38' }}
                         >
-                          Cancel
+                          {t('cancel')}
                         </Button>
                         <Button
                           endIcon={<Icon icon='ph:arrow-right-bold' />}

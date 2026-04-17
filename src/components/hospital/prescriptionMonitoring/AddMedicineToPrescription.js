@@ -30,7 +30,8 @@ import Utility from 'src/utility'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import dayjs from 'dayjs'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
@@ -44,11 +45,12 @@ export default function AddMedicineToPrescription() {
   const router = useRouter()
   const { id, medicine_edit_id, discharge_tab, fromPage, date, prescriptionId } = router.query
 
-  const { data, updateState } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const editingMedicine = useMemo(() => {
-    const list = discharge_tab === 'TransferEnclosure' ? data.enclosure_medicines : data.transfer_medicines
+    const list = discharge_tab === 'TransferEnclosure' ? hospitalData.enclosure_medicines : hospitalData.transfer_medicines
 
     if (!list) return null
 
@@ -60,7 +62,7 @@ export default function AddMedicineToPrescription() {
     }
 
     return null
-  }, [data, medicine_edit_id, discharge_tab])
+  }, [hospitalData, medicine_edit_id, discharge_tab])
 
   // Form validation schema
   const prescriptionSchema = yup.object({
@@ -131,8 +133,16 @@ export default function AddMedicineToPrescription() {
           quantity: yup
             .number()
             .typeError('Quantity is required')
+            .test(
+              'quantity-format',
+              'Quantity must have up to 8 digits and up to 4 decimal places',
+              function (value) {
+                if (value === undefined || value === null) return true
+                const rawValue = String(this.originalValue ?? value).trim()
+                return /^\d{1,8}(\.\d{1,4})?$/.test(rawValue)
+              }
+            )
             .moreThan(0, 'Quantity must be greater than 0')
-            .max(100000, 'Quantity cannot exceed 100000')
             .required('Quantity is required'),
           unit: yup.string().required('Please select a unit')
         })
@@ -259,7 +269,7 @@ export default function AddMedicineToPrescription() {
       .test('is-number', 'Quantity must be a number', value => {
         if (!value) return true // allow empty
 
-        return /^[0-9]*$/.test(value)
+        return /^[0-9]*$/.test(value);
       })
       .test('positive', 'Quantity must be greater than 0', value => {
         if (!value) return true // allow empty
@@ -387,6 +397,7 @@ export default function AddMedicineToPrescription() {
   const dosageDuration = watch('dosageDuration')
   const intervalItem = watch('interval')
   const selectMedicineType = watch('selectMedicineType')
+  const isDischargedAnimal = Boolean(patientData?.discharge_at)
 
   const isSmallerDevices = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -423,7 +434,7 @@ export default function AddMedicineToPrescription() {
       // For regular intervals (not one-time) in Schedule mode
       if (dosageDuration?.value && dosageDuration?.unit) {
         // Schedule: Calculate END date (forward from start date)
-        const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration, intervalItem)
+        const calculatedEndDate = calculateEndDate(prescriptionStartDate, dosageDuration, intervalItem, false)
         if (calculatedEndDate) {
           const formattedDate = moment(calculatedEndDate).format('DD MMM YYYY')
           setEndsOn(formattedDate)
@@ -465,12 +476,13 @@ export default function AddMedicineToPrescription() {
         const response = await getMedicineBatches(params)
         if (response?.success) {
           setBatchList(response?.data?.result || [])
-        } else {
-          setBatchList([])
-        }
+        } 
+        // else {
+        //   setBatchList([])
+        // }
       } catch (error) {
         console.error('Error fetching medicine batches:', error.message)
-        setBatchList([])
+        // setBatchList([])
       } finally {
         setBatchLoading(false)
       }
@@ -739,7 +751,7 @@ export default function AddMedicineToPrescription() {
               value: item.key,
               unit_name: item.label,
               uom_abbr: item.key
-            })) || [],
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || [],
           prescriptionDuration: response?.data?.prescriptionDuration?.map(item => ({ ...item, value: item.key })) || [],
           prescriptionMeasurementType:
             response?.data?.prescriptionMeasurementType?.map(item => ({
@@ -752,7 +764,7 @@ export default function AddMedicineToPrescription() {
               ...item,
               label: item.delivery,
               value: item.route_abbr
-            })) || []
+            }))?.sort((a, b) => a.label?.localeCompare(b.label)) || []
         }))
       } else {
         setMedicalMasterData([])
@@ -826,7 +838,7 @@ export default function AddMedicineToPrescription() {
         }
 
         const params = {
-          q: query,
+          product_search: query,
           page_no: pageNo,
           screen: 'Medicine'
 
@@ -960,12 +972,15 @@ export default function AddMedicineToPrescription() {
             ) {
               getPrescriptionList(res.data?.animal_detail?.animal_id, res.data?.medical_record_id)
             }
-            updateState(STORAGE_KEY, {
-              ...medicalRecordData,
-              animal_id: res.data?.animal_detail?.animal_id,
-              medical_record_id: res.data?.medical_record_id,
-              animal_admitted_date: res.data?.admitted_at
-            })
+            dispatch(updateState({
+              key: STORAGE_KEY,
+              value: {
+                ...medicalRecordData,
+                animal_id: res.data?.animal_detail?.animal_id,
+                medical_record_id: res.data?.medical_record_id,
+                animal_admitted_date: res.data?.admitted_at
+              }
+            }))
             setPatientLoading(false)
           } else {
             setPatientData(null)
@@ -991,7 +1006,7 @@ export default function AddMedicineToPrescription() {
         medical_type: 'prescription',
         type: 'active',
         generate_for_date: new Date().toISOString().split('T')[0],
-        medical_record_id: medical_record_id || medicalRecordId || '',
+        // medical_record_id: medical_record_id || medicalRecordId || '',
         hospital_case_id: id || ''
       }
 
@@ -1023,6 +1038,51 @@ export default function AddMedicineToPrescription() {
     }
   }, [debouncedBatchSearch, debouncedSearch])
 
+  // Prefill prescription dates based on patient discharge status
+  useEffect(() => {
+    if (patientData?.discharge_at) {
+      // Convert UTC dates to local time
+      const dischargeDate = dayjs(Utility.convertUTCToLocal(patientData.discharge_at))
+      const admittedDate = patientData?.admitted_at
+        ? dayjs(Utility.convertUTCToLocal(patientData.admitted_at))
+        : null
+
+      // For Direct Administer - prefill start date with admitted date, end date with discharge date
+      if (selectMedicineType === 'Direct Administer') {
+        // For direct administration, set start date to admitted date if not already set
+        if (!prescriptionStartDate || prescriptionStartDate === '') {
+          if (admittedDate) {
+            setValue('prescriptionStartDate', admittedDate)
+          } else {
+            // Fallback to discharge date if admitted date is not available
+            setValue('prescriptionStartDate', dischargeDate)
+          }
+        }
+
+        // For regular intervals (not one-time), set end date to discharge date
+        if (!isOneTimeFrequency) {
+          setValue('prescriptionEndDate', dischargeDate)
+        }
+      }
+
+      // For Schedule - prefill start date with admitted date if not already set
+      if (selectMedicineType === 'Schedule' && (!prescriptionStartDate || prescriptionStartDate === '')) {
+        if (admittedDate) {
+          setValue('prescriptionStartDate', admittedDate)
+        } else {
+          // Fallback to discharge date if admitted date is not available
+          setValue('prescriptionStartDate', dischargeDate)
+        }
+      }
+    }
+  }, [patientData?.discharge_at, patientData?.admitted_at, selectMedicineType, isOneTimeFrequency, prescriptionStartDate, setValue])
+
+  useEffect(() => {
+    if (isDischargedAnimal && selectMedicineType !== 'Direct Administer') {
+      setValue('selectMedicineType', 'Direct Administer')
+    }
+  }, [isDischargedAnimal, selectMedicineType, setValue])
+
   function toISTISOString(date, includeCurrentTime = false) {
     if (!date) return ''
 
@@ -1051,6 +1111,31 @@ export default function AddMedicineToPrescription() {
 
     // Convert to IST timezone
     return momentDate.utcOffset('+05:30').format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+  }
+
+  function formatPrescriptionUTCDateTime(date, includeCurrentTime = false) {
+    if (!date) return ''
+
+    let momentDate = moment(date)
+
+    if (includeCurrentTime) {
+      const year = momentDate.year()
+      const month = momentDate.month()
+      const day = momentDate.date()
+      const now = new Date()
+
+      momentDate = moment({
+        year,
+        month,
+        date: day,
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        second: now.getSeconds(),
+        millisecond: now.getMilliseconds()
+      })
+    }
+
+    return momentDate.utc().format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
   }
 
   function convertUTCToLocaltime(date) {
@@ -1160,11 +1245,9 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
-              : toISTISOString(data.prescriptionStartDate, true),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value),
 
             restart_reason: '',
@@ -1260,6 +1343,7 @@ export default function AddMedicineToPrescription() {
           ? [
               {
                 id: selectedBatch?.id,
+                batch_id: selectedBatch?.id,
                 label: '',
                 selectedAnimal: [
                   {
@@ -1275,7 +1359,8 @@ export default function AddMedicineToPrescription() {
                 frequencyValue: data.frequency,
                 frequencyId: frequency?.id,
 
-                totalAnimal: []
+                totalAnimal: [],
+                // [`BATCH_${selectedBatch.id}`] : data.batchImage?.[0] ? data.batchImage[0] : []
               }
             ]
           : []
@@ -1339,11 +1424,10 @@ export default function AddMedicineToPrescription() {
             delivery_route_id: deliveryRoute?.id || '',
             delivery_route_string_id: deliveryRoute?.string_id || '',
 
-            start_date: toISTISOString(data.prescriptionStartDate, true),
-            end_date:
-              isOneTimeFrequency || data.prescriptionStartDate.split('T')[0] === data.prescriptionEndDate.split('T')[0]
-                ? toISTISOString(data.prescriptionStartDate, true)
-                : toISTISOString(data.prescriptionEndDate, true),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
+            end_date: isOneTimeFrequency
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
+              : formatPrescriptionUTCDateTime(data.prescriptionEndDate, true),
 
             restart_reason: '',
             stop_reason: '',
@@ -1356,9 +1440,9 @@ export default function AddMedicineToPrescription() {
             request_from: 'hospital_module',
             dose_type: 'fixed_dose',
             files: data.batchImage ? data.batchImage : [],
-            1: data.batchImage ? data.batchImage : []
           }
-        ])
+        ]),
+        [selectedBatch ? `BATCH_${selectedBatch.id}` : 'BATCH_0']: data.batchImage?.[0] ? data.batchImage[0] : []
       }
 
       const response = await addDirectAdministerPrescription(payload)
@@ -1501,11 +1585,9 @@ export default function AddMedicineToPrescription() {
           delivery_route_id: deliveryRoute?.id || '',
           delivery_route_string_id: deliveryRoute?.string_id || '',
 
-          start_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate, true)
-            : toISTISOString(data.prescriptionStartDate, true).replace('+05:30', 'Z'),
+          start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
           end_date: isOneTimeFrequency
-            ? toISTISOString(data.prescriptionStartDate, true)
+            ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
             : formatDateWithCurrentTime(
                 calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value)
               ),
@@ -1616,14 +1698,12 @@ export default function AddMedicineToPrescription() {
 
             notes: data?.notes || '',
 
-            start_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
-              : toISTISOString(data.prescriptionStartDate, true).replace('+05:30', 'Z'),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
             stop_date: null,
             show_stop_button: 'no',
             administer_date: null,
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate, true)
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
               : formatDateWithCurrentTime(
                   calculateEndDate(data.prescriptionStartDate, data.dosageDuration, interval?.value)
                 ),
@@ -1836,6 +1916,84 @@ export default function AddMedicineToPrescription() {
 
   const prescriptionSubmitHandler = handleSubmit(
     async data => {
+      // Validate dates for discharged patients
+      if (patientData?.discharge_at) {
+        // Convert UTC discharge date to local time for comparison
+        const dischargeDate = dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).endOf('day')
+        const isOneTime = data.frequency === '2' || data.frequency === 2
+
+        // For Direct Administer - validate that dates don't exceed discharge date
+        if (data.selectMedicineType === 'Direct Administer') {
+          if (data.prescriptionStartDate) {
+            const startDate = dayjs(data.prescriptionStartDate).startOf('day')
+            if (startDate.isAfter(dischargeDate)) {
+              Toaster({
+                type: 'error',
+                message: `Prescription start date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+              })
+              return
+            }
+          }
+
+          // For regular intervals, also validate end date
+          if (!isOneTime && data.prescriptionEndDate) {
+            const endDate = dayjs(data.prescriptionEndDate).endOf('day')
+            if (endDate.isAfter(dischargeDate)) {
+              Toaster({
+                type: 'error',
+                message: `Prescription end date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+              })
+              return
+            }
+          }
+        }
+
+        // For Schedule - validate that start date doesn't exceed discharge date
+        if (data.selectMedicineType === 'Schedule' && data.prescriptionStartDate) {
+          const startDate = dayjs(data.prescriptionStartDate).startOf('day')
+          if (startDate.isAfter(dischargeDate)) {
+            Toaster({
+              type: 'error',
+              message: `Prescription start date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+            })
+            return
+          }
+        }
+
+        // For Schedule - validate that end date doesn't exceed discharge date (if calculated end date exists)
+        if (data.selectMedicineType === 'Schedule' && !isOneTime) {
+          // The end date will be calculated based on start date and duration
+          // We need to validate the calculated end date against discharge date
+          if (data.prescriptionStartDate && data.dosageDuration?.value && data.dosageDuration?.unit) {
+            // Parse the duration
+            const durationValue = data.dosageDuration.value
+            const durationUnit = data.dosageDuration.unit.toLowerCase()
+
+            const startDate = dayjs(data.prescriptionStartDate).startOf('day')
+            let calculatedEndDate
+
+            // Calculate end date based on duration unit
+            if (durationUnit === 'days') {
+              calculatedEndDate = startDate.add(durationValue - 1, 'day').endOf('day')
+            } else if (durationUnit === 'weeks') {
+              calculatedEndDate = startDate.add(durationValue * 7 - 1, 'day').endOf('day')
+            } else if (durationUnit === 'months') {
+              calculatedEndDate = startDate.add(durationValue, 'month').subtract(1, 'day').endOf('day')
+            } else {
+              calculatedEndDate = startDate.add(durationValue - 1, 'day').endOf('day')
+            }
+
+            if (calculatedEndDate.isAfter(dischargeDate)) {
+              Toaster({
+                type: 'error',
+                message: `Prescription duration extends beyond the discharge date (${dayjs(patientData.discharge_at).format('DD MMM YYYY')}). Please adjust the duration.`
+              })
+              return
+            }
+          }
+        }
+      }
+
       const interval = medicalMasterData?.intervalList?.find(item => item?.value === data?.interval)
       const frequency = medicalMasterData?.prescriptionFrequency?.find(item => item?.id == data.frequency)
 
@@ -1908,11 +2066,11 @@ export default function AddMedicineToPrescription() {
             delivery_route_string_id: deliveryRoute?.string_id || '',
             delivery_route_label: deliveryRoute?.label, //new added
 
-            start_date: toISTISOString(data.prescriptionStartDate),
+            start_date: formatPrescriptionUTCDateTime(data.prescriptionStartDate, true),
 
             //  end_date: calculateEndDate(data.prescriptionStartDate, data.dosageDuration),
             end_date: isOneTimeFrequency
-              ? toISTISOString(data.prescriptionStartDate)
+              ? formatPrescriptionUTCDateTime(data.prescriptionStartDate, true)
               : calculateEndDate(data.prescriptionStartDate, data.dosageDuration, intervalItem),
 
             restart_reason: '',
@@ -1939,7 +2097,7 @@ export default function AddMedicineToPrescription() {
         const tempKey = discharge_tab === 'TransferHospital' ? 'transfer_temp_medicines' : 'enclosure_temp_medicines'
 
         // Get the existing array from context
-        const existing = data[tempKey] || []
+        const existing = hospitalData[tempKey] || []
         const alreadyExists = existing.some(med => med.id === newMedicine.id)
 
         // Merge new medicine into list (avoid duplicates)
@@ -1948,7 +2106,7 @@ export default function AddMedicineToPrescription() {
           : [newMedicine, ...existing]
 
         // Save to context under the correct key
-        updateState(tempKey, updatedList)
+        dispatch(updateState({ key: tempKey, value: updatedList }))
         router.back()
 
         return
@@ -1987,7 +2145,7 @@ export default function AddMedicineToPrescription() {
 
   const getUnitFromLabel = (unitName, medicalMasterData) => {
     const unit = medicalMasterData?.prescriptionDosageMeasurementType?.find(
-      item => item?.label === unitName
+      item => item?.label?.toLowerCase() == unitName?.toLowerCase()
     )
 
     return unit?.key || ''
@@ -2001,7 +2159,7 @@ export default function AddMedicineToPrescription() {
     return unit?.string_id || ''
   }
 
-  const calculateEndDate = (startDate, dosageDuration, interval) => {
+  const calculateEndDate = (startDate, dosageDuration, interval, includeTime = true) => {
     if (!startDate || !dosageDuration?.value) return ''
 
     const start = moment(startDate.toISOString ? startDate.toISOString() : startDate)
@@ -2031,7 +2189,7 @@ export default function AddMedicineToPrescription() {
       }
     }
 
-    return endDate.format('YYYY-MM-DDTHH:mm:ss.SSS[Z]')
+    return formatPrescriptionUTCDateTime(endDate, includeTime)
   }
 
   const calculateStartDate = (endDate, dosageDuration) => {
@@ -2065,10 +2223,14 @@ export default function AddMedicineToPrescription() {
 
   const handleAIDDisplay = () => {
     if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
-      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+      return patientData?.animal_detail?.local_identifier_value
     } else {
       return patientData?.animal_detail?.animal_id
     }
+  }
+
+  const handleClearMedicine = () => {
+    setTemporarilySelectedMedicine(null)
   }
 
   return (
@@ -2081,7 +2243,13 @@ export default function AddMedicineToPrescription() {
         age={`${patientData?.animal_detail?.age}`}
         gender={`${patientData?.animal_detail?.sex}`}
         additionalFields={[
-          { label: 'AID', value: handleAIDDisplay() },
+          {
+            label:
+              patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                ? patientData?.animal_detail?.local_identifier_name
+                : 'AID',
+            value: handleAIDDisplay()
+          },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
@@ -2104,17 +2272,19 @@ export default function AddMedicineToPrescription() {
               Select the medicine to
             </Typography>
           </Grid>
-          <Grid size={{ xs: 12, md: 4, lg: 4 }}>
-            <TreatmentTypeRadioButtons
-              label='Schedule'
-              isSelected={watch('selectMedicineType') === 'Schedule'}
-              sx={{
-                borderColor: `${theme.palette.customColors.OutlineVariant}`
-              }}
-              onClick={() => setValue('selectMedicineType', 'Schedule')}
-            />
-          </Grid>
-          {!discharge_tab && !fromPage && (
+          {!isDischargedAnimal && (
+            <Grid size={{ xs: 12, md: 4, lg: 4 }}>
+              <TreatmentTypeRadioButtons
+                label='Schedule'
+                isSelected={watch('selectMedicineType') === 'Schedule'}
+                sx={{
+                  borderColor: `${theme.palette.customColors.OutlineVariant}`
+                }}
+                onClick={() => setValue('selectMedicineType', 'Schedule')}
+              />
+            </Grid>
+          )}
+          {(!discharge_tab && !fromPage) || isDischargedAnimal ? (
             <Grid size={{ xs: 12, md: 4, lg: 4 }}>
               <TreatmentTypeRadioButtons
                 label='Direct Administer'
@@ -2125,13 +2295,14 @@ export default function AddMedicineToPrescription() {
                 onClick={() => setValue('selectMedicineType', 'Direct Administer')}
               />
             </Grid>
-          )}
+          ) : null}
         </Grid>
         <Grid container spacing={5} className='match-height' sx={{ pt: 6 }}>
           <Grid size={{ xs: 12, md: 6, lg: 6 }}>
             <PrescriptionMedicineList
               medicineList={apiMedicineList.length > 0 ? apiMedicineList : []}
               temporarilySelectedMedicine={temporarilySelectedMedicine}
+              handleClearMedicine={handleClearMedicine}
               // selectedMedicine={selectedMedicine ? selectedMedicine.label : null}
               selectedMedicine={selectedMedicine ? selectedMedicine?.id : null}
               onSelect={handleMedicineSelect}
@@ -2172,6 +2343,7 @@ export default function AddMedicineToPrescription() {
               stopDate={medicineDetail?.stop_date}
               reset={reset}
               loadingSideEffects={sideEffectMedicinesLoading}
+              patientData={patientData}
             />
           </Grid>
         </Grid>

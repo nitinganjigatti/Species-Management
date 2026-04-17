@@ -23,10 +23,12 @@ import EggDisCarded from '../../../../../components/egg/EggDiscarded'
 import { DeleteEggById, GetDiscardedEggList, GetDiscardedSummary } from 'src/lib/api/egg/discard'
 import { position } from 'stylis'
 import { getGalleryImgList } from 'src/lib/api/egg/egg'
+import { useTranslation } from 'react-i18next'
 import Utility from 'src/utility'
 
 const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTableData }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [status, setStatus] = useState('Overview')
   const [summary, setSummary] = useState({})
   const [eggList, setEggList] = useState([])
@@ -159,7 +161,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
-            <Typography variant='h6'>Discard Details</Typography>
+            <Typography variant='h6'>{t('egg_module.discard_details')}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -250,7 +252,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            Nursery
+                            {t('navigation.nursery')}
                           </Typography>
                         </Box>
 
@@ -295,7 +297,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                               color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
-                            Discard
+                            {t('necropsy_module.discard')}
                           </Typography>
                         </Box>
 
@@ -332,7 +334,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Notes
+                      {t('notes')}
                     </Typography>
                     <Tooltip
                       title={
@@ -406,7 +408,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Added Photos
+                    {t('egg_module.added_photos')}
                   </Typography>
 
                   <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
@@ -439,7 +441,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       <img src='/icons/pending_security_check_icon.png' style={{ width: '100%' }} alt='Pending' />
                     </Box>
                     <Typography sx={{ textTransform: 'uppercase', fontSize: '15px', fontWeight: 500 }}>
-                      Security Check Pending
+                      {t('egg_module.security_check_pending')}
                     </Typography>
                   </Stack>
                 </Box>
@@ -544,7 +546,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                           color: theme.palette.primary.main
                         }}
                       >
-                        Security Checked
+                        {t('egg_module.security_checked')}
                       </Typography>
                     </Stack>
                   </Box>

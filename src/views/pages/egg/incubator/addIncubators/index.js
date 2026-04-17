@@ -18,7 +18,7 @@ import { useTheme } from '@mui/material/styles'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import { addIncubator, updateIncubator } from 'src/lib/api/egg/incubator'
-
+import { useTranslation } from 'react-i18next'
 import Toaster from 'src/components/Toaster'
 
 const AddIncubators = ({
@@ -31,6 +31,7 @@ const AddIncubators = ({
   detailsApi
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const router = useRouter()
   const { id } = router.query
 
@@ -186,7 +187,7 @@ const AddIncubators = ({
         type='submit'
         variant='contained'
       >
-        {isEdit ? 'EDIT' : 'ADD'} INCUBATOR
+        {isEdit ? t('edit') : t('add')} {t('navigation.incubator')}
       </LoadingButton>
     )
   }
@@ -298,7 +299,7 @@ const AddIncubators = ({
                             searchNursery(e.target.value)
                           }}
                           {...params}
-                          label='Select Nursery *'
+                          label={`${t('egg_module.select_nursery')} *`}
                           placeholder='Search & Select'
                           error={Boolean(errors.nursery)}
                         />
@@ -344,7 +345,7 @@ const AddIncubators = ({
                             searchRoom(defaultNursery.nursery_id, e.target.value)
                           }}
                           {...params}
-                          label='Select Room *'
+                          label={`${t('egg_module.select_room')} *`}
                           placeholder='Search & Select'
                           error={Boolean(errors.nursery)}
                         />
@@ -361,7 +362,7 @@ const AddIncubators = ({
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label='Incubator Name *'
+                      label={`${t('egg_module.incubator_name')} *`}
                       value={value}
                       onChange={onChange}
                       placeholder='Incubator Name'
@@ -381,11 +382,11 @@ const AddIncubators = ({
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label='Max Number Of Eggs *'
+                      label={`${t('egg_module.max_number_eggs')} *`}
                       value={value}
                       type='number'
                       onChange={onChange}
-                      placeholder='Max Number Of Eggs'
+                      placeholder={`${t('egg_module.max_number_eggs')}`}
                       error={Boolean(errors.maxNumberOfEggs)}
                       name='maxNumberOfEggs'
                       slotProps={{

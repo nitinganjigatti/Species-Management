@@ -1,16 +1,30 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { useRouter } from 'next/router'
 
-import { Breadcrumbs, Typography, Card, Box, Button, IconButton, Grid, Tooltip, Collapse } from '@mui/material'
+import {
+  Breadcrumbs,
+  Typography,
+  Card,
+  Box,
+  Button,
+  IconButton,
+  Grid,
+  Tooltip,
+  Collapse,
+  Autocomplete,
+  TextField
+} from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
+import { useHospital } from 'src/context/HospitalContext'
 
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { useQuery } from '@tanstack/react-query'
+import { debounce } from 'lodash'
 
 dayjs.extend(customParseFormat)
 
@@ -23,6 +37,7 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledDateTimePicker from 'src/views/forms/form-fields/ControlledDateTimePicker'
 import AddEditSurgeryDrawer from 'src/views/pages/hospital/masters/surgery'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog/index'
@@ -32,6 +47,7 @@ import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import Utility from 'src/utility'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import useDebounce from 'src/hooks/useDebounce'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 import {
   addSurgeryMaster,
@@ -40,6 +56,7 @@ import {
   getSurgeryMaster
 } from 'src/lib/api/hospital/surgeryMaster'
 import enforceModuleAccess from 'src/components/ProtectedRoute'
+import { borderRadius } from '@mui/system'
 
 const FORM_ID = 'add-surgery-record-form'
 
@@ -218,7 +235,50 @@ const schema = yup.object().shape({
 
       return !dayjs(value).startOf('day').isAfter(dayjs().startOf('day'))
     }),
-  startTime: yup.mixed().test('start-required', 'Start time is required', value => Boolean(value)),
+  startTime: yup
+    .mixed()
+    .test('start-required', 'Start time is required', value => Boolean(value))
+    .when('date', (date, schema) =>
+      schema.test('starttime', function (value) {
+        if (!value || !date) return true
+
+        const selectedStartDate = dayjs(date)
+        const selectedStartTime = dayjs(value)
+
+        const patientData = this.options?.context?.patientData
+        if (!patientData) return true
+
+        const admittedAt = dayjs.utc(patientData.admitted_at).local()
+        const dischargeAt = dayjs.utc(patientData.discharge_at).local()
+        const now = dayjs()
+
+        const selectedDateTime = selectedStartDate
+          .hour(selectedStartTime.hour())
+          .minute(selectedStartTime.minute())
+          .second(0)
+
+        if (selectedStartDate.isSame(admittedAt, 'day') && selectedDateTime.isBefore(admittedAt)) {
+          return this.createError({
+            message: `Time cannot be before the admitted time (${admittedAt.format('hh:mm A')})`
+          })
+        }
+
+        if (
+          selectedStartDate.isSame(dischargeAt, 'day') &&
+          selectedDateTime.isAfter(dischargeAt.clone().subtract(1, 'hour'))
+        ) {
+          return this.createError({
+            message: `Time should be at least 1 hour less than the discharge time (${dischargeAt.format('hh:mm A')})`
+          })
+        }
+
+        if (selectedStartDate.isSame(now, 'day') && selectedDateTime.isAfter(now)) {
+          return this.createError({ message: `Time cannot be later than the current time (${now.format('hh:mm A')})` })
+        }
+
+        return true
+      })
+    ),
   endTime: yup
     .mixed()
     .test('end-required', 'End time is required', value => Boolean(value))
@@ -297,7 +357,10 @@ const AddSurgeryRecord = () => {
     }),
     []
   )
-  const formResolver = useMemo(() => yupResolver(schema, { context: { admissionDateTime } }), [admissionDateTime])
+  const formResolver = useMemo(
+    () => yupResolver(schema, { context: { patientData, admissionDateTime } }),
+    [patientData, admissionDateTime]
+  )
 
   const {
     control,
@@ -305,36 +368,51 @@ const AddSurgeryRecord = () => {
     reset,
     clearErrors,
     setValue,
+    trigger,
     watch,
     formState: { errors, isDirty }
   } = useForm({
     resolver: formResolver,
     mode: 'onChange',
     reValidateMode: 'onChange',
+    context: { patientData },
     defaultValues: defaultFormValues
   })
 
   const [openAddanesthesiaDrawer, setOpenAddanesthesiaDrawer] = useState(false)
   const [openSelectAnesthesiaDrawer, setOpenSelectAnesthesiaDrawer] = useState(false)
   const [selectedAnesthesiaRecord, setSelectedAnesthesiaRecord] = useState(null)
+  const [editingAnesthesiaRecordId, setEditingAnesthesiaRecordId] = useState('')
   const [initialAnesthesiaRecord, setInitialAnesthesiaRecord] = useState(null)
   const [pendingAnesthesiaRecord, setPendingAnesthesiaRecord] = useState(null)
+  const [anesthesiaRecordJustAdded, setAnesthesiaRecordJustAdded] = useState(false)
+  const [anesthesiaRefetchTrigger, setAnesthesiaRefetchTrigger] = useState(0)
   const [richNote, setRichNote] = useState('')
   const [initialRichNote, setInitialRichNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [prefillDetail, setPrefillDetail] = useState(null)
   const [procedureSearchTerm, setProcedureSearchTerm] = useState('')
+  const [searchAttendDoctor, setSearchAttendDoctor] = useState('')
   const [openAddSurgeryDrawer, setOpenAddSurgeryDrawer] = useState(false)
   const [isSurgerySaving, setIsSurgerySaving] = useState(false)
   const [localProcedureOptions, setLocalProcedureOptions] = useState([])
   const [surgeonSearchTerm, setSurgeonSearchTerm] = useState('')
   const [doctors, setDoctors] = useState([])
+  const [attendingDoctors, setAttendingDoctors] = useState([])
   const [doctorsPage, setDoctorsPage] = useState(1)
   const [hasMoreDoctors, setHasMoreDoctors] = useState(true)
   const [doctorsLoading, setDoctorsLoading] = useState(false)
   const [careInstructionsExpanded, setCareInstructionsExpanded] = useState(false)
   const [formResetKey, setFormResetKey] = useState(0)
   const [showNavWarning, setShowNavWarning] = useState(false)
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [selectedDoctor, setSelectedDoctor] = useState(null)
+  const [selectedAttendingDoctors, setSelectedAttendingDoctors] = useState([])
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 10
+  })
+
   const [pendingRoute, setPendingRoute] = useState(null)
   const isNavigatingRef = useRef(false)
   const selectedDate = watch('date')
@@ -349,6 +427,10 @@ const AddSurgeryRecord = () => {
   }, [startTimeValue])
   const debouncedProcedureSearchTerm = useDebounce(procedureSearchTerm, 400)
   const debouncedSurgeonSearchTerm = useDebounce(surgeonSearchTerm, 400)
+  const debouncedAttendingDoctorSearch = useDebounce(searchAttendDoctor, 400)
+
+  const { selectedHospital } = useHospital()
+
   const parseUtcDateToLocalDayjs = useCallback(value => {
     if (!value) return null
 
@@ -356,6 +438,12 @@ const AddSurgeryRecord = () => {
 
     return dayjs(localDate && localDate !== 'Invalid date' ? localDate : value)
   }, [])
+
+  useEffect(() => {
+    if (selectedDate) {
+      trigger('startTime')
+    }
+  }, [selectedDate, trigger]) //time validation dependent on date field
 
   const convertUtcTimeToLocalString = useCallback((dateValue, timeValue) => {
     if (!timeValue) return null
@@ -460,6 +548,16 @@ const AddSurgeryRecord = () => {
         shouldDirty: false,
         shouldTouch: false
       })
+      const secondarySurgeonOptions =
+        detail?.secondary_surgeons?.map(item => ({
+          label: item.user_full_name,
+          value: item.user_id
+        })) || []
+
+      setValue('secondarySurgeon', secondarySurgeonOptions)
+
+      setSelectedAttendingDoctors(secondarySurgeonOptions)
+
       const existingAttachments = Array.isArray(detail?.attachments)
         ? detail.attachments.map(item => ({
             id: item?.id,
@@ -499,6 +597,7 @@ const AddSurgeryRecord = () => {
     setSelectedAnesthesiaRecord(null)
     setInitialAnesthesiaRecord(null)
     setPendingAnesthesiaRecord(null)
+    setAnesthesiaRecordJustAdded(false)
     setRichNote('')
     setInitialRichNote('')
     setProcedureSearchTerm('')
@@ -570,38 +669,54 @@ const AddSurgeryRecord = () => {
       const params = {
         hospital_id: hospitalId,
         page_no: pageNo,
-        limit: 10
+        limit: 10,
+        is_hospital_chief_doctor: '1'
       }
+
       if (searchTerm.trim()) {
         params.q = searchTerm.trim()
       }
+
       const res = await getHospitalStaff({ params })
-      const data = res?.data
+      if (res?.success === true) {
+        const data = res?.data
 
-      if (!data?.records?.length) {
-        setHasMoreDoctors(pageNo > 1)
-        if (pageNo === 1) setDoctors([])
-        return
+        if (!data?.records?.length) {
+          setHasMoreDoctors(pageNo > 1)
+          if (pageNo === 1) setDoctors([])
+          return
+        }
+
+        const mapped = data.records.map(item => ({
+          id: String(item.user_id),
+          name: item.user_full_name
+        }))
+
+        if (!prefilledRef.current && mapped.length === 1 && selectedHospital?.id) {
+          const prefilledDoc = {
+            value: mapped[0].id,
+            label: mapped[0].name
+          }
+
+          setValue('surgeon', prefilledDoc)
+          setSelectedDoctor(prefilledDoc)
+          clearErrors('surgeon')
+
+          prefilledRef.current = true
+        }
+
+        if (pageNo === 1) {
+          setDoctors(mapped)
+        } else {
+          setDoctors(prev => {
+            const merged = [...prev, ...mapped]
+            return Array.from(new Map(merged.map(item => [item.id, item])).values())
+          })
+        }
+
+        setHasMoreDoctors(data.current_page < data.total_pages)
+        setDoctorsPage(data.current_page)
       }
-
-      const mapped = data.records.map(item => ({
-        id: String(item.user_id),
-        name: item.user_full_name,
-        default_icon: item.user_profile_pic,
-        role_name: item.role_name
-      }))
-
-      if (pageNo === 1) {
-        setDoctors(mapped)
-      } else {
-        setDoctors(prev => {
-          const merged = [...prev, ...mapped]
-          return Array.from(new Map(merged.map(item => [item.id, item])).values())
-        })
-      }
-
-      setHasMoreDoctors(data.current_page < data.total_pages)
-      setDoctorsPage(data.current_page)
     } catch (e) {
       console.error(e)
       Toaster({ type: 'error', message: 'Failed to load doctors' })
@@ -609,6 +724,66 @@ const AddSurgeryRecord = () => {
       setDoctorsLoading(false)
     }
   }, []) // Empty dependency array for useCallback as it's a stable function definition
+
+  const getStaffList = async (searchTerm = '') => {
+    try {
+      if (!selectedHospital?.id) return
+
+      const params = {
+        page_no: 1,
+        limit: 10,
+        hospital_id: selectedHospital.id
+      }
+
+      if (searchTerm.trim()) {
+        params.q = searchTerm.trim()
+      }
+
+      const response = await getHospitalStaff({ params })
+
+      if (response?.success && response?.data?.records) {
+        const mappedData = response.data.records.map(item => ({
+          value: String(item.user_id),
+          label: item.user_full_name
+        }))
+
+        setAttendingDoctors(mappedData)
+      }
+    } catch (error) {
+      console.error('Error fetching hospital staff:', error?.message)
+    } finally {
+      setStaffLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedHospital?.id) return
+
+    getStaffList(debouncedAttendingDoctorSearch)
+  }, [debouncedAttendingDoctorSearch, selectedHospital?.id])
+
+  //   useEffect(() => {
+  //   const hospitalId = patientData?.hospital_id
+  //   if (!hospitalId) {
+  //     setDoctors([])
+  //     return
+  //   }
+
+  //   getDoctorList(hospitalId, 1, debouncedSurgeonSearchTerm)
+  // }, [patientData?.hospital_id, debouncedSurgeonSearchTerm, getDoctorList])
+
+  //same person cannot be selected as chief and attending
+  useEffect(() => {
+    if (!selectedDoctor?.value) return
+
+    setSelectedAttendingDoctors(prev => {
+      const updated = prev.filter(attendingDoctor => String(attendingDoctor.value) !== String(selectedDoctor.value))
+
+      setValue('secondarySurgeon', updated)
+
+      return updated
+    })
+  }, [selectedDoctor, setValue])
 
   useEffect(() => {
     const hospitalId = patientData?.hospital_id
@@ -625,11 +800,29 @@ const AddSurgeryRecord = () => {
     getDoctorList(patientData?.hospital_id, doctorsPage + 1, debouncedSurgeonSearchTerm)
   }
 
-  const surgeonOptions = useMemo(
-    () => doctors.map(d => ({ label: d.name, value: d.id, default_icon: d.default_icon })),
-    [doctors]
-  )
+  const handleSurgeonSelect = doctor => {
+    setSelectedDoctor(doctor)
+    clearErrors('surgeon')
+  }
+
+  const surgeonOptions = useMemo(() => {
+    return doctors.map(d => ({
+      label: d.name,
+      value: d.id,
+      is_hospital_chief_doctor: d.is_hospital_chief_doctor === '1'
+    }))
+  }, [doctors])
   const doctorOptions = doctors
+
+  const filteredAttendingDoctors = useMemo(() => {
+    if (!selectedDoctor?.value) return attendingDoctors
+
+    return attendingDoctors.filter(
+      doctor =>
+        String(doctor.value) !== String(selectedDoctor.value) &&
+        !selectedAttendingDoctors?.some(secondary => String(secondary.value) === String(doctor.value))
+    )
+  }, [attendingDoctors, selectedDoctor, selectedAttendingDoctors])
 
   useEffect(() => {
     if (!isEditMode || !resolvedHospitalCaseId || !surgeryRecordId) return
@@ -703,7 +896,51 @@ const AddSurgeryRecord = () => {
 
   const animalInfoData = useMemo(() => buildAnimalInfoData(patientData), [patientData])
   const minDate = useMemo(() => (admissionDateTime ? admissionDateTime.startOf('day') : null), [admissionDateTime])
-  const maxDate = dayjs()
+  const maxDate = useMemo(
+    () => (patientData?.discharge_at ? dayjs.utc(patientData.discharge_at).local() : dayjs()),
+    [patientData?.discharge_at]
+  )
+
+  const minTime = useMemo(() => {
+    if (!patientData?.admitted_at || !selectedDate) return null
+
+    const admitted = dayjs.utc(patientData.admitted_at).local()
+
+    if (dayjs(selectedDate).isSame(admitted, 'day')) {
+      return dayjs().hour(admitted.hour()).minute(admitted.minute()).second(0)
+    }
+
+    return null
+  }, [patientData?.admitted_at, selectedDate])
+
+  const maxTime = useMemo(() => {
+    if (!patientData?.discharge_at || !selectedDate) return null
+
+    const discharge = dayjs.utc(patientData.discharge_at).local()
+
+    if (dayjs(selectedDate).isSame(discharge, 'day')) {
+      const startLimit = discharge.subtract(1, 'hour')
+
+      return dayjs().hour(startLimit.hour()).minute(startLimit.minute()).second(0)
+    }
+    return null
+  }, [patientData?.discharge_at, selectedDate])
+
+  const isDefaultDateSetRef = useRef(false)
+
+  useEffect(() => {
+    if (!isEditMode && patientData && !isDefaultDateSetRef.current) {
+      if (patientData.discharge_at) {
+        const dischargeDt = dayjs.utc(patientData.discharge_at).local()
+        setValue('date', dischargeDt, { shouldValidate: true })
+        // Start time should be 1 hour before discharge time
+        // End time should be exact discharge time
+        setValue('startTime', dischargeDt.subtract(1, 'hour'), { shouldValidate: true })
+        setValue('endTime', dischargeDt, { shouldValidate: true })
+      }
+      isDefaultDateSetRef.current = true
+    }
+  }, [patientData, isEditMode, setValue])
 
   useEffect(() => {
     if (!selectedDate || !startTimeValue || !endTimeValue) {
@@ -755,6 +992,7 @@ const AddSurgeryRecord = () => {
 
   const handleClearSelectedAnesthesia = useCallback(() => {
     setSelectedAnesthesiaRecord(null)
+    setAnesthesiaRecordJustAdded(false)
   }, [])
 
   const formatAnesthesiaDateTime = useCallback(value => {
@@ -788,6 +1026,12 @@ const AddSurgeryRecord = () => {
 
   const handleProcedureClear = useCallback(() => {
     setProcedureSearchTerm('')
+  }, [])
+
+  const handleAttendingDoctorInputChange = useCallback((event, value, reason) => {
+    if (reason === 'input') {
+      setSearchAttendDoctor(value)
+    }
   }, [])
 
   const handleCreateSurgery = useCallback(
@@ -825,7 +1069,7 @@ const AddSurgeryRecord = () => {
 
           Toaster({
             type: 'success',
-            message: response?.message || 'Surgery has been added to the masters list successfully'
+            message: 'Surgery has been added to the masters list successfully'
           })
           setOpenAddSurgeryDrawer(false)
         } else {
@@ -864,8 +1108,12 @@ const AddSurgeryRecord = () => {
     }
   }, [])
 
+  const prefilledRef = useRef(false)
+
   const handleSurgeonClear = useCallback(() => {
+    setSelectedDoctor(null)
     setSurgeonSearchTerm('')
+    prefilledRef.current = true
   }, [])
 
   const surgeonGetOptionLabel = useCallback(option => option?.label || '', [])
@@ -884,17 +1132,32 @@ const AddSurgeryRecord = () => {
   }, [])
 
   const handleAddNewanesthesia = useCallback(() => {
+    setEditingAnesthesiaRecordId('')
     setOpenAddanesthesiaDrawer(true)
   }, [setOpenAddanesthesiaDrawer])
 
+  const handleEditSelectedAnesthesia = useCallback(() => {
+    const recordId = getAnesthesiaIdentifier(selectedAnesthesiaRecord)
+    if (!recordId) return
+
+    setEditingAnesthesiaRecordId(String(recordId))
+    setOpenAddanesthesiaDrawer(true)
+    setAnesthesiaRecordJustAdded(false)
+  }, [selectedAnesthesiaRecord])
+
   const handleSelectanesthesiaRecord = useCallback(() => {
     setOpenSelectAnesthesiaDrawer(true)
+    setAnesthesiaRecordJustAdded(false)
   }, [])
 
   const handleAnesthesiaCreateSuccess = useCallback(
     record => {
       if (record) {
         setSelectedAnesthesiaRecord(record)
+        setAnesthesiaRecordJustAdded(true)
+        setEditingAnesthesiaRecordId('')
+        // Trigger refetch of anesthesia records list
+        setAnesthesiaRefetchTrigger(prev => prev + 1)
       }
     },
     [setSelectedAnesthesiaRecord]
@@ -903,6 +1166,12 @@ const AddSurgeryRecord = () => {
   const handleAnesthesiaRecordSelect = useCallback(record => {
     setPendingAnesthesiaRecord(record)
   }, [])
+
+  useEffect(() => {
+    if (!openAddanesthesiaDrawer && editingAnesthesiaRecordId) {
+      setEditingAnesthesiaRecordId('')
+    }
+  }, [openAddanesthesiaDrawer, editingAnesthesiaRecordId])
 
   const handleConfirmAnesthesiaRecord = useCallback(record => {
     if (record) {
@@ -914,7 +1183,8 @@ const AddSurgeryRecord = () => {
 
   const checkIsDirty = useCallback(() => {
     const isRichNoteDirty = richNote !== initialRichNote
-    const isAnesthesiaDirty = getAnesthesiaIdentifier(selectedAnesthesiaRecord) !== getAnesthesiaIdentifier(initialAnesthesiaRecord)
+    const isAnesthesiaDirty =
+      getAnesthesiaIdentifier(selectedAnesthesiaRecord) !== getAnesthesiaIdentifier(initialAnesthesiaRecord)
 
     return isDirty || isRichNoteDirty || isAnesthesiaDirty
   }, [isDirty, richNote, initialRichNote, selectedAnesthesiaRecord, initialAnesthesiaRecord])
@@ -996,6 +1266,9 @@ const AddSurgeryRecord = () => {
     payload.append('end_time', getSafeString(formatTimeValue(formValues.endTime)))
 
     const surgeryId = getSurgeryIdentifier(formValues.procedure)
+    const secondarySurgeonString = formValues?.secondarySurgeon?.length
+      ? JSON.stringify(formValues?.secondarySurgeon.map(doc => String(doc.value)))
+      : '[]'
 
     payload.append('surgery_id', getSafeString(surgeryId))
     payload.append('type_of_surgery', getSafeString(formValues.typeOfSurgery))
@@ -1007,6 +1280,7 @@ const AddSurgeryRecord = () => {
     payload.append('care_activity_restrictions', getSafeString(formValues.restrictions))
     payload.append('additional_notes', getSafeString(formValues.additionalNotes))
     payload.append('duration', getSafeString(formValues.duration))
+    payload.append('secondary_surgeon', secondarySurgeonString)
 
     if (Array.isArray(formValues.attachments)) {
       formValues.attachments.forEach(file => {
@@ -1053,7 +1327,7 @@ const AddSurgeryRecord = () => {
 
   const handleAIDDisplay = () => {
     if (patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value) {
-      return `${patientData?.animal_detail?.local_identifier_name}: ${patientData?.animal_detail?.local_identifier_value}`
+      return patientData?.animal_detail?.local_identifier_value
     } else {
       return patientData?.animal_detail?.animal_id
     }
@@ -1061,27 +1335,11 @@ const AddSurgeryRecord = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <Breadcrumbs aria-label='breadcrumb'>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Hospital</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Patients</Typography>
-        <Typography color={theme.palette.customColors.neutralSecondary}>Inpatient</Typography>
-        <Typography
-          color={theme.palette.customColors.neutralSecondary}
-          sx={{ cursor: 'pointer' }}
-          onClick={handleNavigateBack}
-        >
-          Details
-        </Typography>
 
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            cursor: 'pointer'
-          }}
-        >
-          {isEditMode ? 'Edit Surgery' : 'Add Surgery'}
-        </Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs
+        sx={{ mb: 0 }}
+        lastBreadcrumbLabel={isEditMode ? 'Edit Surgery' : 'Add Surgery' }
+      />
 
       <Card
         sx={{
@@ -1124,7 +1382,13 @@ const AddSurgeryRecord = () => {
           age={`${patientData?.animal_detail?.age}`}
           gender={`${patientData?.animal_detail?.sex}`}
           additionalFields={[
-            { label: 'AID', value: handleAIDDisplay() },
+            {
+              label:
+                patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
+                  ? patientData?.animal_detail?.local_identifier_name
+                  : 'AID',
+              value: handleAIDDisplay()
+            },
             { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
             // { label: 'Admitted days', value: patientData?.admitted_for_day },
             { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
@@ -1182,6 +1446,8 @@ const AddSurgeryRecord = () => {
                 label='Start Time'
                 name={'startTime'}
                 control={control}
+                minTime={minTime}
+                maxTime={maxTime}
               />
             </Grid>
             <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
@@ -1233,7 +1499,7 @@ const AddSurgeryRecord = () => {
               </Typography>
             </Typography>
             <Grid container spacing={'24px'}>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <ControlledAutocomplete
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -1252,22 +1518,22 @@ const AddSurgeryRecord = () => {
                   onItemClear={handleSurgeonClear}
                   getOptionLabel={surgeonGetOptionLabel}
                   isOptionEqualToValue={surgeonIsOptionEqualToValue}
-                  onChangeOverride={() => clearErrors?.('surgeon')}
+                  onChangeOverride={handleSurgeonSelect}
                 />
               </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <Tooltip
                   title={(() => {
                     // Get the selected value from the form
-                    const selectedValue = watch('procedure');
+                    const selectedValue = watch('procedure')
                     // Find the selected option
-                    const selectedOption = procedureOptions.find(
-                      option => procedureIsOptionEqualToValue(option, selectedValue)
-                    );
+                    const selectedOption = procedureOptions.find(option =>
+                      procedureIsOptionEqualToValue(option, selectedValue)
+                    )
                     // Return the description
-                    return selectedOption?.description || '';
+                    return selectedOption?.description || ''
                   })()}
-                  placement="top"
+                  placement='top'
                   arrow
                   enterDelay={500}
                   slotProps={{
@@ -1283,7 +1549,6 @@ const AddSurgeryRecord = () => {
                   }}
                 >
                   <Box>
-
                     <ControlledAutocomplete
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -1313,14 +1578,8 @@ const AddSurgeryRecord = () => {
                       isOptionEqualToValue={procedureIsOptionEqualToValue}
                       onChangeOverride={() => clearErrors?.('procedure')}
                       renderOption={(props, option) => (
-                        <Tooltip
-                          title={option.description || 'No description available'}
-                          placement="right"
-                          arrow
-                        >
-                          <li {...props}>
-                            {procedureGetOptionLabel(option)}
-                          </li>
+                        <Tooltip title={option.description || 'No description available'} placement='right' arrow>
+                          <li {...props}>{procedureGetOptionLabel(option)}</li>
                         </Tooltip>
                       )}
                       endAdornment={() => (
@@ -1337,7 +1596,7 @@ const AddSurgeryRecord = () => {
                   </Box>
                 </Tooltip>
               </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <ControlledTextField
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -1353,7 +1612,7 @@ const AddSurgeryRecord = () => {
                   onChangeOverride={() => clearErrors?.('typeOfSurgery')}
                 />
               </Grid>
-              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6 }}>
                 <ControlledTextField
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -1367,6 +1626,39 @@ const AddSurgeryRecord = () => {
                   errors={errors}
                   borderRadius='4px'
                   onChangeOverride={() => clearErrors?.('surgicalApproach')}
+                />
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
+                <Controller
+                  name='secondarySurgeon'
+                  control={control}
+                  defaultValue={[]}
+                  render={({ field }) => (
+                    <Autocomplete
+                      multiple
+                      options={filteredAttendingDoctors}
+                      value={field.value}
+                      loading={staffLoading}
+                      clearOnBlur
+                      filterSelectedOptions
+                      getOptionLabel={option => option?.label || ''}
+                      isOptionEqualToValue={(option, value) => option.value === value?.value}
+                      noOptionsText='No available attending vets...'
+                      onChange={(event, newValue) => {
+                        setSelectedAttendingDoctors(newValue)
+                        field.onChange(newValue)
+                      }}
+                      onInputChange={handleAttendingDoctorInputChange}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: '4px'
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                      )}
+                    />
+                  )}
                 />
               </Grid>
             </Grid>
@@ -1491,12 +1783,17 @@ const AddSurgeryRecord = () => {
                 {selectedAnesthesia?.code || getAnesthesiaIdentifier(selectedAnesthesia) || '--'}
                 <Icon icon='mdi:chevron-right' fontSize={20} />
               </Box>
-              <IconButton
-                onClick={handleClearSelectedAnesthesia}
-                sx={{ color: theme.palette.customColors.neutralSecondary }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <IconButton onClick={handleEditSelectedAnesthesia} sx={{ color: theme.palette.primary.main }}>
+                  <Icon icon='mdi:pencil-outline' fontSize={22} />
+                </IconButton>
+                <IconButton
+                  onClick={handleClearSelectedAnesthesia}
+                  sx={{ color: theme.palette.customColors.neutralSecondary }}
+                >
+                  <Icon icon='mdi:close' fontSize={24} />
+                </IconButton>
+              </Box>
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -1511,9 +1808,16 @@ const AddSurgeryRecord = () => {
                   { label: 'Location', value: selectedAnesthesia?.location || '--' },
                   {
                     label: 'Date and Time of Anesthesia',
-                    value: Utility.convertUTCToLocalDateTime(
-                      selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
-                    )
+                    value:
+                      // If record was just added, it's already in local time (use formatDateTimeDisplay)
+                      // Otherwise, it's from the database in UTC (use convertUTCToLocalDateTime)
+                      anesthesiaRecordJustAdded
+                        ? Utility.formatDateTimeDisplay(
+                            selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
+                          )
+                        : Utility.convertUTCToLocalDateTime(
+                            selectedAnesthesia?.anaesthesia_datetime || selectedAnesthesia?.anesthesia_datetime
+                          )
                   },
                   {
                     label: 'Estimated Time Required',
@@ -1631,13 +1935,13 @@ const AddSurgeryRecord = () => {
             Care Instructions
           </Typography>
           <IconButton
-            size="small"
+            size='small'
             sx={{
               transform: careInstructionsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
               transition: 'transform 0.2s ease-in-out'
             }}
           >
-            <Icon icon="mdi:chevron-down" fontSize={24} />
+            <Icon icon='mdi:chevron-down' fontSize={24} />
           </IconButton>
         </Box>
 
@@ -1804,6 +2108,7 @@ const AddSurgeryRecord = () => {
       <AddAnesthesiaRecordDrawer
         setOpenAddanesthesiaDrawer={setOpenAddanesthesiaDrawer}
         openAddanesthesiaDrawer={openAddanesthesiaDrawer}
+        editRecordId={editingAnesthesiaRecordId}
         hospitalCaseId={resolvedHospitalCaseId}
         medicalRecordId={medicalRecordId}
         vetOptions={doctorOptions}
@@ -1822,6 +2127,7 @@ const AddSurgeryRecord = () => {
         medicalRecordId={medicalRecordId}
         onSelect={handleAnesthesiaRecordSelect}
         onConfirm={handleConfirmAnesthesiaRecord}
+        refetchTrigger={anesthesiaRefetchTrigger}
       />
     </Box>
   )

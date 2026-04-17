@@ -11,7 +11,7 @@ import {
   styled,
   Typography,
   useMediaQuery,
-  useTheme
+  useTheme,
 } from '@mui/material'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Add as AddIcon } from '@mui/icons-material'
@@ -23,26 +23,35 @@ import Icon from 'src/@core/components/icon'
 import AddStaffsDrawer from './AddStaffsDrawer'
 import Toaster from 'src/components/Toaster'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
+import { addChiefDoctor } from 'src/lib/api/hospital/staff'
+import { removeChiefDoctor } from 'src/lib/api/hospital/staff'
 import HospitalAnalytics from 'src/views/pages/hospital/inpatient/HospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
+import Router from 'next/router'
+import { useRouter } from 'next/router'
+import hospital from 'src/pages/hospital/masters/hospital'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const DoctorsList = () => {
   const theme = useTheme()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
   const { selectedHospital } = useHospital()
-
+  const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
+  // const [sortColumn, setSortColumn] = useState(router.query.column || '')
+  // const [sort, setSort] = useState('asc')
 
   const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10
-  })
+      page: parseInt(router.query.page) || 0,
+      pageSize: parseInt(router.query.limit) || 50
+    })
 
   // debounce search to avoid excessive API calls
   useEffect(() => {
@@ -52,7 +61,9 @@ const DoctorsList = () => {
     }, 500)
 
     return () => clearTimeout(handler)
-  }, [searchValue])
+  }, [searchValue, debouncedSearch])
+
+  
 
   const fetchHospitalStaff = useCallback(async () => {
     setLoading(true)
@@ -90,7 +101,8 @@ const DoctorsList = () => {
     fetchHospitalStaff()
   }, [fetchHospitalStaff])
 
-  const indexedRows = useMemo(() => {
+
+    const indexedRows = useMemo(() => {
     return rows.map((row, index) => {
       const phone = row?.user_mobile_number ? `${row?.user_country_code || ''}${row?.user_mobile_number}` : ''
 
@@ -103,6 +115,77 @@ const DoctorsList = () => {
     })
   }, [rows, paginationModel.page, paginationModel.pageSize])
 
+
+  const addHospitalChiefDoctor = async user_id => {
+    try {
+      const params = {
+        action: 'add',
+        hospital_id: selectedHospital?.id,
+        hospital_chief_doctor: user_id,
+      }
+      const response = await addChiefDoctor(params)
+      if (response?.message && response?.success === true) {
+        Toaster({ type: 'success', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message })
+    }
+  }
+
+  const removeHospitalChiefDoctor = async user_id => {
+    try {
+      const params = {
+        action: 'delete',
+        hospital_id: selectedHospital?.id,
+        hospital_chief_doctor: user_id,
+      }
+      const response = await removeChiefDoctor(params)
+      if (response?.message && response?.success === true) {
+        Toaster({ type: 'success', message: response?.message })
+      }
+    } catch (error) {
+      Toaster({ type: 'error', message: error?.message })
+    }
+  }
+
+    const handleSwitchChange = async (event, userId) => {
+    const isChecked = event.target.checked
+
+    try {
+      if (isChecked) {
+        await addHospitalChiefDoctor(userId)
+      } else {
+        await removeHospitalChiefDoctor(userId)
+      }
+
+      fetchHospitalStaff(isChecked)
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+// const handleSortModel = newModel => {
+//   if (!newModel.length) return
+
+//   const newSort = newModel[0].sort 
+//   const newColumn = newModel[0].field 
+
+//   setSort(newSort)
+//   setSortColumn(newColumn)
+
+//   if (newColumn === 'hospital_chief_doctor') {
+//     const sortedData = [...rows].sort((a, b) => {
+//       if (newSort === 'asc') {
+//         return Number(a.is_hospital_chief_doctor) - Number(b.is_hospital_chief_doctor)
+//       } else {
+//         return Number(b.is_hospital_chief_doctor) - Number(a.is_hospital_chief_doctor)
+//       }
+//     })
+
+//     setRows(sortedData)
+//     return
+//   }
+// }
   const columns = [
     {
       width: 80,
@@ -227,6 +310,20 @@ const DoctorsList = () => {
           <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>{phoneNumber || '-'}</Typography>
         )
       }
+    },
+    {
+      minWidth: 180,
+      field: 'hospital_chief_doctor',
+      headerName: 'Chief Doctor',
+      align: 'left',
+      headerAlign: 'left',
+      flex: 1,
+      renderCell: params => (
+        <MUISwitch
+          checked={params.row.is_hospital_chief_doctor === '1'}
+          onChange={event => handleSwitchChange(event, params.row.user_id)}
+        />
+      )
     }
 
     // {
@@ -259,10 +356,9 @@ const DoctorsList = () => {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Doctors And Staffs</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+            sx={{ mb: 5 }}
+          />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
@@ -325,6 +421,20 @@ const DoctorsList = () => {
                   paginationModel={paginationModel}
                   setPaginationModel={setPaginationModel}
                   loading={loading}
+                  // handleSortModel={handleSortModel}
+                  // externalTableStyle={
+                  //   {'& .MuiDataGrid-cell': {
+                  //     // display: 'flex',
+                  //     // alignItems: 'center',
+                  //     // lineHeight: 'normal'
+                  //   },
+                  // '& .MuiDataGrid-cell:focus': {
+                  //   outline: 'none'
+                  // },
+                  // '& .MuiDataGrid-cell:focus-within': {
+                  //   outline: 'none'
+                  // }}
+                  // }
                 />
               </Grid>
             </CardContent>

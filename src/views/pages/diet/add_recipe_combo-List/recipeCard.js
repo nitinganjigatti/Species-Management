@@ -11,6 +11,7 @@ import { Stack } from '@mui/system'
 import { Tooltip, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import toast from 'react-hot-toast'
+import { useTranslation } from 'react-i18next'
 
 const RecipeCard = ({
   rows,
@@ -33,8 +34,10 @@ const RecipeCard = ({
   const [remarks, setRemarks] = useState({})
 
   const theme = useTheme()
+  const { t } = useTranslation()
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
+  const [validationErrors, setValidationErrors] = useState([])
 
   const [expandedIndex, setExpandedIndex] = useState([])
 
@@ -101,11 +104,14 @@ const RecipeCard = ({
         if (selectedItem) {
           return {
             cardId: row.id,
-            days: Day.map(day => ({
-              id: day.id,
-              name: day.name,
-              isActive: selectedItem.days_of_week?.includes(day.id) || false
-            }))
+            days: Day.map(day => {
+              const allDaysSelected = Day.filter(d => d.id !== 0).every(d => selectedItem.days_of_week?.includes(d.id))
+              return {
+                id: day.id,
+                name: day.name,
+                isActive: day.id === 0 ? allDaysSelected : selectedItem.days_of_week?.includes(day.id) || false
+              }
+            })
           }
         } else {
           return {
@@ -141,11 +147,14 @@ const RecipeCard = ({
       cardIds.forEach((cardId, index) => {
         updatedSelectedDays.push({
           cardId: cardId,
-          days: Day.map(day => ({
-            id: day.id,
-            name: day.name,
-            isActive: days[index]?.includes(day.id) ? true : false
-          }))
+          days: Day.map(day => {
+            const allDaysSelected = Day.filter(d => d.id !== 0).every(d => days[index]?.includes(d.id))
+            return {
+              id: day.id,
+              name: day.name,
+              isActive: day.id === 0 ? allDaysSelected : days[index]?.includes(day.id) ? true : false
+            }
+          })
         })
       })
 
@@ -267,54 +276,53 @@ const RecipeCard = ({
         return card
       }
 
-      let lastSelectedDayId = null
+      const updatedCard = { ...card, days: [...card.days] }
 
-      const updatedCard = {
-        ...card,
-        days: card.days.map(day => {
-          if (dayId === 0) {
-            return {
-              ...day,
-              isActive: true
-            }
-          } else if (day.id === dayId) {
-            lastSelectedDayId = dayId
-
+      if (dayId === 0) {
+        // Toggle All
+        const isAllCurrentlyActive = card.days.find(d => d.id === 0)?.isActive
+        updatedCard.days = updatedCard.days.map(day => ({
+          ...day,
+          isActive: !isAllCurrentlyActive
+        }))
+      } else {
+        // Toggle specific day
+        updatedCard.days = updatedCard.days.map(day => {
+          if (day.id === dayId) {
             return {
               ...day,
               isActive: !day.isActive
             }
-          } else {
+          }
+          return day
+        })
+
+        // Check if all individual days are selected
+        const anyDayUnselected = updatedCard.days.filter(d => d.id !== 0).some(day => !day.isActive)
+
+        // Update 'All' day status based on whether all other days are selected
+        updatedCard.days = updatedCard.days.map(day => {
+          if (day.id === 0) {
             return {
               ...day,
-              isActive: day.isActive
+              isActive: !anyDayUnselected
             }
           }
+          return day
         })
-      }
-
-      if (dayId === 0) {
-        updatedCard.days = updatedCard.days.map((day, index) => ({
-          ...day,
-          isActive: index !== 0
-        }))
-      }
-
-      const anyDayUnselected = updatedCard.days.slice(1).some(day => !day.isActive)
-      updatedCard.days[0].isActive = !anyDayUnselected
-
-      const allOtherDaysInactive = updatedCard.days.slice(1).every(day => !day.isActive)
-      if (lastSelectedDayId && allOtherDaysInactive) {
-        updatedCard.days = updatedCard.days.map(day => ({
-          ...day,
-          isActive: day.id === lastSelectedDayId
-        }))
       }
 
       return updatedCard
     })
 
     setSelectedDays(updatedDays)
+
+    // Remove validation error for this card if it now has at least one day selected
+    const updatedCard = updatedDays.find(c => c.cardId === cardId)
+    const activeDaysCount = updatedCard?.days.filter(d => d.isActive && d.id !== 0).length || 0
+    if (activeDaysCount > 0) {
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== cardId))
+    }
   }
 
   const handleCardClick = item => {
@@ -331,6 +339,7 @@ const RecipeCard = ({
 
     if (index !== -1) {
       setSelectedCardRecipe(prevValues => prevValues.filter(card => card.id !== item.id))
+      setValidationErrors(prevValues => prevValues.filter(id => id !== item.id))
     } else {
       setSelectedCardRecipe(prevValues => {
         if (daysSelected) {
@@ -349,11 +358,25 @@ const RecipeCard = ({
       return
     }
 
+    const invalidRecipes = selectedCardRecipe.filter(item => {
+      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
+      const activeDays = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0) || []
+
+      return activeDays.length === 0
+    })
+
+    if (invalidRecipes.length > 0) {
+      toast.error('Please select at least one feeding day for each selected recipe.')
+      setValidationErrors(invalidRecipes.map(recipe => recipe.id))
+
+      return
+    }
+
     const filteredItems = selectedCardRecipe.map(item => {
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
 
       const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
-      const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
+      const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0).map(d => d.id) || []
 
       const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
 
@@ -365,8 +388,8 @@ const RecipeCard = ({
 
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
       console.log(item, 'item')
-      
-return {
+
+      return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
         days_of_week: preservedDaysOfWeek,
@@ -419,14 +442,15 @@ return {
 
   const filteredRecipeList = rows.filter(item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()))
 
-  let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  //let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  let sortedRecipeList = [...filteredRecipeList]
 
   if (fromrow !== '' && fromrow === 'rowedit_recipe') {
     sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid && item.recipe_name === recipeName)
   }
 
   return (
-    <Box>
+    <Box sx={{ pb: '100px' }}>
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
           <CircularProgress />
@@ -438,7 +462,9 @@ return {
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: selectedCardRecipe?.some(card => card.id === item.id)
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
+                    : selectedCardRecipe?.some(card => card.id === item.id)
                     ? `2px solid ${theme.palette.primary.main}`
                     : theme.palette.primary.contrastText,
                   boxShadow: 0,
@@ -554,7 +580,7 @@ return {
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Items
+                        {t('diet_module.items')}
                       </Typography>
                       <Typography
                         sx={{
@@ -564,7 +590,7 @@ return {
                           mr: 20
                         }}
                       >
-                        Cut size
+                        {t('diet_module.cut_size')}
                       </Typography>
                     </Box>
                     {item.ingredients.map((ingredient, index) => (
@@ -677,7 +703,7 @@ return {
                 {selectedCardRecipe?.some(card => card.id === item.id) ? (
                   <>
                     <Divider />
-                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
+                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days*</Typography>
                     <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
                       {Day?.map(day => (
                         <Box
@@ -763,35 +789,35 @@ return {
               fontSize: '16px'
             }}
           >
-            No records to show
+            {t('diet_module.no_records')}
           </Box>
         </Box>
       )}
 
       <Box
         sx={{
-          height: '100px',
-          ml: -4,
-
+          height: { xs: '80px', sm: '90px', md: '100px' },
           width: '100%',
-
           maxWidth: '562px',
           position: 'fixed',
           bottom: 0,
+          right: 0,
           px: 4,
           bgcolor: 'white',
+          display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          display: 'flex'
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          zIndex: 9999
         }}
       >
         {fromrow === 'rowedit_recipe' ? (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD RECIPE
+            {t('diet_module.add_recipe')}
           </Button>
         ) : (
           <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-            ADD RECIPE - {selectedCardRecipe?.length} SELECTED
+            {t('diet_module.add_recipe')}- {selectedCardRecipe?.length} {t('selected')}
           </Button>
         )}
       </Box>

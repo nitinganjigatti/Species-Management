@@ -38,6 +38,7 @@ const AnimalList = () => {
 
   const {
     selectedAnimal,
+    setSelectedAnimal,
     apiFilterParams,
     setApiFilterParams,
     selectedSites,
@@ -335,6 +336,10 @@ const AnimalList = () => {
         setTotal(total_animal)
         setHeaderList(header)
         setAnimalList(loadServerRows(paginationModel.page, animal_list))
+        const primaryAnimal = Array.isArray(animal_list) && animal_list.length > 0 ? animal_list[0] : null
+        if (primaryAnimal) {
+          setSelectedAnimal(prev => prev || primaryAnimal)
+        }
       } else {
         setTotal(0)
         setAnimalList([])

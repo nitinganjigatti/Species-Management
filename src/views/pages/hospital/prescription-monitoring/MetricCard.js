@@ -93,6 +93,7 @@ const MetricCard = ({
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 minWidth: 0,
+                lineHeight: 1.5,
                 flex: 1
               }}
             >

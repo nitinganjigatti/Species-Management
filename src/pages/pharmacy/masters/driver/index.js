@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { getDrivers, addDriver, updateDriver } from 'src/lib/api/pharmacy/driver'
-import CardHeader from '@mui/material/CardHeader'
+import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-
-import Typography from '@mui/material/Typography'
+import { Box, IconButton, Typography, Grid } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Grid, TextField } from '@mui/material'
-import Card from '@mui/material/Card'
-import IconButton from '@mui/material/IconButton'
 
 import { debounce } from 'lodash'
 import { useTheme } from '@emotion/react'
 import toast from 'react-hot-toast'
 import AddDriver from 'src/views/pages/pharmacy/medicine/driver/addDriverForm'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
@@ -23,6 +20,9 @@ import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const Driver = () => {
   const theme = useTheme()
@@ -32,6 +32,13 @@ const Driver = () => {
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  const [openSnackbar, setOpenSnackbar] = useState(false)
+  const [snackbarMessage, setSnackbarMessage] = useState('')
+  const [severity, setSeverity] = useState('success')
+  const [exportLoading, setExportLoading] = useState(false)
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const authData = useContext(AuthContext)
   const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
@@ -72,9 +79,7 @@ const Driver = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.driver_name}
@@ -91,9 +96,7 @@ const Driver = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.phone_number}
@@ -110,9 +113,7 @@ const Driver = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.vehicle_number}
@@ -214,7 +215,12 @@ const Driver = () => {
     <div>
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add Driver' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add Driver'
+            styles={{ margin: 0 }}
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+          />
         </Grid>
       )}
     </div>
@@ -260,94 +266,86 @@ const Driver = () => {
     sl_no: getSlNo(index)
   }))
 
+  const handleExport = async () => {
+    const params = {
+      q: searchValue,
+      sort: sort,
+      column: sortColumn,
+      response_type: 'csv'
+    }
+    try {
+      setExportLoading(true)
+      const response = await getDrivers({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+        setExportLoading(false)
+      }
+    } catch (error) {
+      setExportLoading(false)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {pharmacyRole ? (
         <>
-          <>
-            <Card>
-              <CardHeader
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start', // Align items to the top left
-                  gap: { xs: 3, sm: 0 },
-                  '& .MuiCardHeader-action': {
-                    width: { xs: '100% ', sm: 'auto' }
-                  }
-                }}
-                title={RenderUtility.pageTitle('Drivers')}
-                action={headerAction}
-              />
-              <Grid
-                item
-                sx={{
-                  mx: { xs: 4 },
-                  ml: { md: 4 }
-                }}
-              >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    height: '40px',
-                    width: {
-                      xs: '100%',
-                      sm: '250px'
-                    }
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
+          {loading ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <PageCardLayout title={'Drivers'} action={headerAction}>
+                <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                  <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                    <MUISearch
+                      sx={{
+                        width: {
+                          xs: '100%',
+                          sm: '250px'
                         }
-                      }
-                    }}
+                      }}
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      onClear={() => handleSearch('')}
+                      value={searchValue}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                  </Grid>
+                </Grid>
+                <Grid>
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
                   />
-                </Box>
-              </Grid>
-              <Grid
-                sx={{
-                  mx: 4
-                }}
-              >
-                <CommonTable
-                  onRowClick={''}
-                  indexedRows={indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  handleSortModel={handleSortModel}
-                  setPaginationModel={setPaginationModel}
-                  loading={loading}
-                  searchValue={searchValue}
-                />
-              </Grid>
-            </Card>
-            <AddDriver
-              drawerWidth={400}
-              addEventSidebarOpen={openDrawer}
-              handleSidebarClose={handleSidebarClose}
-              handleSubmitData={handleSubmitData}
-              resetForm={resetForm}
-              submitLoader={submitLoader}
-              editParams={editParams}
-            />
-          </>
+                </Grid>
+              </PageCardLayout>
+              <AddDriver
+                drawerWidth={400}
+                addEventSidebarOpen={openDrawer}
+                handleSidebarClose={handleSidebarClose}
+                handleSubmitData={handleSubmitData}
+                resetForm={resetForm}
+                submitLoader={submitLoader}
+                editParams={editParams}
+              />
+              {/* <UserSnackbar
+                status={openSnackbar}
+                message={snackbarMessage}
+                severity={severity}
+                handleClose={handleClose}
+              /> */}
+            </>
+          )}
         </>
       ) : (
         <>

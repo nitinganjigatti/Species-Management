@@ -28,6 +28,7 @@ import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { right } from '@popperjs/core'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import { useTranslation } from 'react-i18next'
 
 const EditAnimalSpeciesMapped = ({
   setIsOpenTabs,
@@ -65,6 +66,7 @@ const EditAnimalSpeciesMapped = ({
   siteSpeciesTotalCount
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [loader, setLoader] = useState(false)
   const [removedIds, setRemovedIds] = useState([])
@@ -748,7 +750,7 @@ const EditAnimalSpeciesMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Animals assigned
+                    {t('diet_module.no_animals_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -773,7 +775,7 @@ const EditAnimalSpeciesMapped = ({
                           pb: 1
                         }}
                       >
-                        {speciestotalcount || ''} Animals
+                        {speciestotalcount || ''} {t('navigation.animals')}
                       </Typography>
                     )
                   ) : (
@@ -823,7 +825,7 @@ const EditAnimalSpeciesMapped = ({
                                   pl: 3
                                 }}
                               >
-                                Animals
+                                {t('diet_module.animals')}
                               </Typography>
                               <Typography
                                 variant='body1'
@@ -834,7 +836,7 @@ const EditAnimalSpeciesMapped = ({
                                   width: '30%'
                                 }}
                               >
-                                Mark as Primary
+                                {t('diet_module.mark_as_primary')}
                               </Typography>
                               <Typography
                                 variant='body1'
@@ -845,7 +847,7 @@ const EditAnimalSpeciesMapped = ({
                                   width: '12%'
                                 }}
                               >
-                                Remove
+                                {t('remove')}
                               </Typography>
                             </Box>
 
@@ -964,7 +966,7 @@ const EditAnimalSpeciesMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Species assigned
+                    {t('diet_module.no_species_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -1023,7 +1025,7 @@ const EditAnimalSpeciesMapped = ({
                             pb: 1
                           }}
                         >
-                          {tempSelectedSpecies?.length} Species Selected
+                          {tempSelectedSpecies?.length} {t('diet_module.species_selected')}
                         </Typography>
                       ) : (
                         <Typography
@@ -1035,7 +1037,7 @@ const EditAnimalSpeciesMapped = ({
                             pb: 1
                           }}
                         >
-                          {speciestotalcount || ''} Sites
+                          {speciestotalcount || ''} {speciestotalcount == 1 ? 'Site' : 'Sites'}
                         </Typography>
                       )
                     ) : (
@@ -1082,7 +1084,7 @@ const EditAnimalSpeciesMapped = ({
                                   pl: 3
                                 }}
                               >
-                                Species
+                                {t('navigation.species')}
                               </Typography>
                               <Typography
                                 variant='body1'
@@ -1093,7 +1095,7 @@ const EditAnimalSpeciesMapped = ({
                                   width: '30%'
                                 }}
                               >
-                                Mark as Primary
+                                {t('diet_module.mark_as_primary')}
                               </Typography>
                               <Typography
                                 variant='body1'
@@ -1104,7 +1106,7 @@ const EditAnimalSpeciesMapped = ({
                                   width: '12%'
                                 }}
                               >
-                                Remove
+                                {t('remove')}
                               </Typography>
                             </Box>
 
@@ -1135,7 +1137,9 @@ const EditAnimalSpeciesMapped = ({
 
                                     <Chip
                                       label={`${
-                                        site.species?.length === 1 ? '1 Specie' : `${site.species?.length || 0} Species`
+                                        site.species?.length === 1
+                                          ? '1 Species'
+                                          : `${site.species?.length || 0} Species`
                                       }`}
                                       size='small'
                                       sx={{
@@ -1231,9 +1235,9 @@ const EditAnimalSpeciesMapped = ({
         sx={{
           width: '100%',
           maxWidth: '562px',
-          height: isSmallDevice ? '90px' : checkForSite === 'site_species' ? '120px' : '150px',
+          height: isSmallDevice ? '170px' : checkForSite === 'site_species' ? '120px' : '150px',
           position: isSmallDevice ? 'absolute' : 'fixed',
-          bottom: isSmallDevice ? 75 : 0,
+          bottom: isSmallDevice ? 65 : 0,
           px: 4,
           bgcolor: 'white',
           display: 'flex',
@@ -1281,7 +1285,7 @@ const EditAnimalSpeciesMapped = ({
                 color: theme.palette.customColors.OnTertiaryContainer
               }}
             >
-              This diet will override any previously set primary diet for the selected species
+              {t('diet_module.diet_override')}
             </Typography>
           </Box>
         ) : (
@@ -1308,7 +1312,7 @@ const EditAnimalSpeciesMapped = ({
               height: '45px'
             }}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
 
           <LoadingButton
@@ -1320,7 +1324,7 @@ const EditAnimalSpeciesMapped = ({
             sx={{ flex: 1, height: '45px' }}
             loadingIndicator={
               <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1px' }}>
-                CONFIRM CHANGES
+                {t('diet_module.confirm_changes')}
                 <CircularProgress size={20} sx={{ color: '#ccc' }} />
               </span>
             }

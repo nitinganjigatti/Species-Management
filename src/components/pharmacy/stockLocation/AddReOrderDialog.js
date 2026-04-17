@@ -16,6 +16,7 @@ import { Controller, useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
 import { addMedicineMinQuantity } from 'src/lib/api/pharmacy/getMedicineList'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import * as Yup from 'yup'
 
@@ -52,6 +53,8 @@ const AddReOrderDialog = ({
   })
 
   const [submitLoader, setSubmitLoader] = useState(false)
+  const { selectedPharmacy } = usePharmacyContext()
+  const hasViewPermission = selectedPharmacy?.permission?.key === 'VIEW'
 
   const inputRef = useRef(null)
 
@@ -71,22 +74,24 @@ const AddReOrderDialog = ({
       const payload = {
         min_qty: minQty.reorder_level
       }
-      const result = await addMedicineMinQuantity(payload, stockId)
-      if (result.success == true) {
-        console.log('result', result)
 
-        toast.success(result.data)
+      const result = await addMedicineMinQuantity(payload, stockId)
+      if (result?.success == true) {
+        toast.success(result?.data)
         reset(defaultValues)
         close()
         setOpenDrawer(false)
         setStockDetails(null)
         setDialogCheck(!dialogCheck)
       } else {
-        toast.error(result.data.config)
+        // toast.error(result.data.config)
+        setSubmitLoader(false)
       }
-      setSubmitLoader(false)
+
+      // setSubmitLoader(false)
     } catch (error) {
       console.error('Error saving reorder level:', error)
+      setSubmitLoader(false)
     }
   }
 
@@ -221,7 +226,7 @@ const AddReOrderDialog = ({
               <Button variant='outlined' color='secondary' onClick={handleCancel}>
                 Cancel
               </Button>
-              <Button variant='contained' color='primary' type='submit'>
+              <Button variant='contained' color='primary' type='submit' disabled={hasViewPermission}>
                 {submitLoader ? <CircularProgress size={20} /> : ' Save'}
               </Button>
             </Box>

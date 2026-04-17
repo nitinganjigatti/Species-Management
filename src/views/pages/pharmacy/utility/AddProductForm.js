@@ -194,10 +194,10 @@ export const AddProductForm = ({
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
 
     const submitData = product_batches.map(batch => ({
-      request_item_batch_no: batch.request_item_batch_no.value,
-      request_item_qty: batch.request_item_qty,
-      available_item_qty: batch.available_item_qty,
-      expiry_date: batch.expiry_date,
+      request_item_batch_no: batch?.request_item_batch_no.value,
+      request_item_qty: batch?.request_item_qty,
+      available_item_qty: batch?.available_item_qty,
+      expiry_date: batch?.expiry_date !== '0000-00-00' ? batch?.expiry_date : '',
       request_item_medicine_id: request_item.value,
       product_name: request_item.label,
       priority_item: 'Normal',
@@ -206,11 +206,10 @@ export const AddProductForm = ({
       packageDetails,
       manufacture,
       control_substance,
-      variant_id: batch.variant_id,
-      multiplier: batch.multiplier,
+      variant_id: batch?.variant_id,
+      multiplier: batch?.multiplier,
       unit_price
     }))
-    console.log('onSubmit - submitData:', submitData)
 
     onSubmitData(submitData, type)
   }
@@ -311,7 +310,7 @@ export const AddProductForm = ({
           request_item_batch_no: {
             label: nestedMedicine?.request_item_batch_no,
             value: nestedMedicine?.request_item_batch_no,
-            expiry_date: nestedMedicine?.expiry_date,
+            expiry_date: nestedMedicine?.expiry_date !== '0000-00-00' ? nestedMedicine?.expiry_date : '',
             available_item_qty: nestedMedicine?.available_item_qty,
             multiplier: nestedMedicine?.multiplier,
             variant_id: nestedMedicine?.variant_id,
@@ -328,11 +327,11 @@ export const AddProductForm = ({
         request_item_batch_no: {
           label: nestedMedicine?.request_item_batch_no,
           value: nestedMedicine?.request_item_batch_no,
-          expiry_date: nestedMedicine?.expiry_date
+          expiry_date: nestedMedicine?.expiry_date !== '0000-00-00' ? nestedMedicine?.expiry_date : ''
         },
         product_batches: productBatches || [],
         request_item_qty: nestedMedicine?.request_item_qty,
-        expiry_date: nestedMedicine?.expiry_date,
+        expiry_date: nestedMedicine?.expiry_date !== '0000-00-00' ? nestedMedicine?.expiry_date : '',
         available_item_qty: nestedMedicine?.available_item_qty,
         stock_type: nestedMedicine?.stock_type,
         packageDetails: nestedMedicine?.packageDetails,
@@ -494,11 +493,7 @@ export const AddProductForm = ({
               display: 'flex'
             }}
           >
-            <Grid
-              item
-              size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? (isEdit ? 4 : 3.4) : isEdit ? 3 : 2.5 }}
-              sm={getValues('stock_type') === 'non_medical' ? 6 : 4}
-            >
+            <Grid item size={{ xs: 12, sm: isEdit ? 3 : 2.5 }}>
               <ControlledAutocomplete
                 name={`product_batches[${index}].request_item_batch_no`}
                 label='Enter Batch No*'
@@ -510,14 +505,11 @@ export const AddProductForm = ({
                 getOptionLabel={option => option.label || ''}
                 required
                 onChangeOverride={value => handleBatchChange(value, index)}
-                renderOption={(props, option) => <BatchOption option={option} {...props} />}
+                renderOption={(props, option) => <BatchOption key={option.value} option={option} {...props} />}
                 inputBackgroundColor={theme.palette.customColors.OnPrimary}
               />
             </Grid>
-            <Grid
-              item
-              size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? (isEdit ? 4 : 3.4) : isEdit ? 3 : 2.5 }}
-            >
+            <Grid item size={{ xs: 12, sm: isEdit ? 3 : 2.5 }}>
               <ControlledTextField
                 name={`product_batches[${index}].multiplier`}
                 label='Product Variant'
@@ -525,28 +517,24 @@ export const AddProductForm = ({
                 errors={errors}
                 required
                 disabled
-                inputBackgroundColor={theme.palette.customColors.OnPrimary}
+                sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
               />
             </Grid>
-            {getValues('stock_type') === 'non_medical' ? null : (
-              <Grid item size={{ xs: 12, sm: isEdit ? 3 : 2.5 }}>
-                <ControlledTextField
-                  dateReader={true}
-                  name={`product_batches[${index}].expiry_date`}
-                  label='Expiry Date*'
-                  control={control}
-                  errors={errors}
-                  required
-                  readOnly
-                  inputBackgroundColor={theme.palette.customColors.OnPrimary}
-                />
-              </Grid>
-            )}
 
-            <Grid
-              item
-              size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? (isEdit ? 4 : 3.4) : isEdit ? 3 : 2.5 }}
-            >
+            <Grid item size={{ xs: 12, sm: isEdit ? 3 : 2.5 }}>
+              <ControlledTextField
+                dateReader={true}
+                name={`product_batches[${index}].expiry_date`}
+                label='Expiry Date*'
+                control={control}
+                errors={errors}
+                required
+                readOnly
+                sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
+              />
+            </Grid>
+
+            <Grid item size={{ xs: 12, sm: isEdit ? 3 : 2.5 }}>
               <ControlledTextField
                 name={`product_batches[${index}].request_item_qty`}
                 label='Quantity*'
@@ -558,13 +546,13 @@ export const AddProductForm = ({
                 onPaste={checkTotalCount}
                 onInput={checkTotalCount}
                 onChangeOverride={checkTotalCount}
-                inputBackgroundColor={theme.palette.customColors.OnPrimary}
+                sx={{ backgroundColor: theme.palette.customColors.OnPrimary, borderRadius: '10px' }}
               />
             </Grid>
             {!isEdit && (
               <Grid
                 item
-                size={{ xs: 12, sm: 1.6, md: 1.6 }}
+                size={{ xs: 12, sm: 2, md: 1.6 }}
                 sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', mt: '8px' }}
               >
                 {handleAddRemoveSalts(fields, index)}

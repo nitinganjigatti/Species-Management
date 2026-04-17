@@ -159,23 +159,26 @@ const AddDiet = () => {
 
   const [feedSearchValue, setFeedSearchValue] = useState('')
 
-  const fetchData = useCallback(async (pageNum = 1) => {
-    setLoadingFeed(true)
-    const params = { page: pageNum, limit: 20, status: 1, q: feedSearchValue }
+  const fetchData = useCallback(
+    async (pageNum = 1) => {
+      setLoadingFeed(true)
+      const params = { page: pageNum, limit: 20, status: 1, q: feedSearchValue }
 
-    try {
-      const response = await getFeedTypeList(params)
-      const newData = response?.data?.result || []
-      const total = response?.data?.total_count || 0
+      try {
+        const response = await getFeedTypeList(params)
+        const newData = response?.data?.result || []
+        const total = response?.data?.total_count || 0
 
-      setFeedTotalCount(total)
-      setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
-    } catch (error) {
-      console.log('error', error)
-    } finally {
-      setLoadingFeed(false)
-    }
-  }, [feedSearchValue])
+        setFeedTotalCount(total)
+        setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
+      } catch (error) {
+        console.log('error', error)
+      } finally {
+        setLoadingFeed(false)
+      }
+    },
+    [feedSearchValue]
+  )
 
   const handleFeedSearch = useCallback(
     debounce(val => {
@@ -383,6 +386,21 @@ const AddDiet = () => {
   const handleStepBillingSubmit = async () => {
     console.log(formData, 'formdata')
 
+    const deepCleanImages = data => {
+      if (Array.isArray(data)) {
+        return data.map(item => deepCleanImages(item))
+      } else if (data !== null && typeof data === 'object') {
+        const cleaned = {}
+        for (const [key, value] of Object.entries(data)) {
+          if (key !== 'recipe_image' && key !== 'ingredient_image') {
+            cleaned[key] = deepCleanImages(value)
+          }
+        }
+        return cleaned
+      }
+      return data
+    }
+
     let mealTypeError = false
     let genericError = false
 
@@ -437,6 +455,11 @@ const AddDiet = () => {
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              }).map(([key, value]) => {
+                if (Array.isArray(value)) {
+                  return [key, deepCleanImages(value)]
+                }
+                return [key, value]
               })
             )
 
@@ -493,6 +516,11 @@ const AddDiet = () => {
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              }).map(([key, value]) => {
+                if (Array.isArray(value)) {
+                  return [key, deepCleanImages(value)]
+                }
+                return [key, value]
               })
             )
 
@@ -559,6 +587,11 @@ const AddDiet = () => {
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
                 return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+              }).map(([key, value]) => {
+                if (Array.isArray(value)) {
+                  return [key, deepCleanImages(value)]
+                }
+                return [key, value]
               })
             )
 

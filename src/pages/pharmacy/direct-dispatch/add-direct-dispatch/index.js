@@ -1,38 +1,43 @@
 /* eslint-disable lines-around-comment */
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
-import { styled } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
 
+import {
+  Card,
+  Table,
+  Divider,
+  TableRow,
+  TableHead,
+  TableBody,
+  Typography,
+  Box,
+  TableContainer,
+  TableCell,
+  Button,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Autocomplete,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  Grid
+} from '@mui/material'
+
+import styled from '@emotion/styled'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 
 // ** React Imports
-import { forwardRef, useState, useEffect, useCallback } from 'react'
+import { forwardRef, useState, useEffect, useCallback, useContext } from 'react'
+import { useForm, Controller, useFieldArray } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -56,6 +61,7 @@ import Error404 from 'src/pages/404'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { AuthContext } from 'src/context/AuthContext'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -74,9 +80,29 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import { Stack } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
-import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { AddProductForm } from 'src/views/pages/pharmacy/utility/AddProductForm'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+
+// ** Stage 1: yup schema for top-level dispatch fields
+const dispatchTopFieldsSchema = yup.object().shape({
+  to_store_id: yup
+    .mixed()
+    .nullable()
+    .test('required', 'This field is required', v => {
+      if (v === null || v === undefined || v === '') return false
+      if (typeof v === 'object') return Boolean(v?.id || v?.value)
+
+      return true
+    }),
+  ro_date: yup
+    .string()
+    .nullable()
+    .test('required', 'This field is required', v => Boolean(v)),
+  to_store_type: yup.mixed().nullable().notRequired(),
+  user_id: yup.mixed().nullable().notRequired()
+})
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -107,25 +133,62 @@ const initialNestedRowMedicine = {
   // to_store_id: '14'
 }
 
-const CustomInput = forwardRef(({ ...props }, ref) => {
-  return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
-})
-
 const AddDirectDispatch = () => {
   // ** Hook
   const [toStocks, setToStocks] = useState([])
   const [fromStocks, setFromStocks] = useState([])
-  const [editParams, setEditParams] = useState(editParamsInitialState)
+
+  // ** Stage 2a: single react-hook-form owning ALL dispatch state
+  // (replaces the previous `editParams` useState)
+  // const [editParams, setEditParams] = useState(editParamsInitialState)
+  const {
+    control: dispatchFormControl,
+    setValue: setDispatchFormValue,
+    getValues: getDispatchValues,
+    watch: watchDispatch,
+    reset: resetDispatchForm,
+    handleSubmit: rhfHandleSubmit,
+    formState: { errors: dispatchFormErrors }
+  } = useForm({
+    mode: 'onChange',
+    resolver: yupResolver(dispatchTopFieldsSchema),
+    defaultValues: {
+      to_store_id: null,
+      to_store_type: '',
+      ro_date: Utility.formattedPresentDate(),
+      total_qty: '',
+      priority_item: 'Normal',
+      user_id: null,
+      request_item_details: [],
+      id: undefined,
+      dispatch_id: undefined
+    }
+  })
+
+  const {
+    fields: requestItemFields,
+    append: appendRequestItems,
+    remove: removeRequestItem,
+    update: updateRequestItem,
+    replace: replaceRequestItems
+  } = useFieldArray({
+    control: dispatchFormControl,
+    name: 'request_item_details',
+    keyName: '_rhfKey'
+  })
+
+  // Live subscription for table render + totals (triggers re-render on mutations)
+  const requestItemDetails = watchDispatch('request_item_details') || []
+
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [optionsBatchList, setOptionsBatchList] = useState([])
   const [totalBatchQuantity, setTotalBatchQuantity] = useState(0)
   const [show, setShow] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [itemErrors, setItemErrors] = useState({})
   const [medicineItemId, setMedicineItemId] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState(false)
 
+  // UI-ephemeral: which item row is currently loaded into the Add/Edit dialog
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
   const [productLoading, setProductLoading] = useState(false)
@@ -133,6 +196,8 @@ const AddDirectDispatch = () => {
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
   const [users, setUsers] = useState([])
   const [isEdit, setIsEdit] = useState(false)
+
+  const authData = useContext(AuthContext)
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -142,6 +207,7 @@ const AddDirectDispatch = () => {
     setCancelRequestDialog(false)
   }
   const router = useRouter()
+
   const { id, action } = router.query
 
   const storesType = {
@@ -152,6 +218,25 @@ const AddDirectDispatch = () => {
   }
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  // Stage 2a: editParams→RHF sync useEffect removed — RHF now owns state.
+  // Edit-mode hydration happens in getListOfItemsById via `resetDispatchForm(...)`.
+
+  // If reset happened before toStocks/users loaded, promote pending ids to full option objects.
+  const watchedToStore = watchDispatch('to_store_id')
+  const watchedUser = watchDispatch('user_id')
+  useEffect(() => {
+    if (watchedToStore?._pendingId && toStocks?.length) {
+      const match = toStocks.find(s => s?.id === watchedToStore._pendingId)
+      if (match) setDispatchFormValue('to_store_id', match, { shouldValidate: false })
+    }
+  }, [watchedToStore, toStocks, setDispatchFormValue])
+  useEffect(() => {
+    if (watchedUser?._pendingId && users?.length) {
+      const match = users.find(u => u?.value === watchedUser._pendingId)
+      if (match) setDispatchFormValue('user_id', match, { shouldValidate: false })
+    }
+  }, [watchedUser, users, setDispatchFormValue])
 
   const filteredStoreType = value => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
@@ -177,22 +262,15 @@ const AddDirectDispatch = () => {
   }
 
   const removeItemsFromTable = itemId => {
-    const updatedItems = editParams?.request_item_details?.filter(el => {
-      return el.uuid != itemId
-    })
-    setEditParams({ ...editParams, request_item_details: updatedItems })
+    const idx = requestItemDetails.findIndex(el => el.uuid === itemId)
+    if (idx !== -1) removeRequestItem(idx)
     setMedicineItemId('')
   }
 
-  const totalQty = editParams.request_item_details?.reduce((acc, row) => acc + parseInt(row.request_item_qty), 0)
+  const totalQty = requestItemDetails?.reduce((acc, row) => acc + parseInt(row.request_item_qty || 0), 0) || 0
 
   const addItemsToTable = params => {
-    const updatedNestedRows = [...editParams.request_item_details, ...params]
-    setEditParams({
-      ...editParams,
-      request_item_details: updatedNestedRows
-    })
-
+    appendRequestItems(params)
     setNestedRowMedicine(initialNestedRowMedicine)
   }
   function formatDate(dateString) {
@@ -212,52 +290,14 @@ const AddDirectDispatch = () => {
     return new Date(year, month, day)
   }
 
-  const validate = values => {
-    const itemErrors = {}
-    if (!values.medicine_name || values.medicine_name === '') {
-      itemErrors.medicine_name = 'This field is required'
-    }
-    if (!values.request_item_qty) {
-      itemErrors.request_item_qty = 'This field is required'
-    }
-    if (!values.priority_item) {
-      itemErrors.priority_item = 'This field is required'
-    }
-    if (!values.control_substance_file) {
-      itemErrors.control_substance_file = 'This field is required'
-    }
-    // if (values.control_substance) {
-    if (values.control_substance === true) {
-      if (values?.control_substance_file?.length === 0) {
-        itemErrors.control_substance_file = 'This field is required'
-      }
-    }
-    // itemErrors.control_substance = 'This field is required'
-    // }
-
-    return itemErrors
-  }
-
-  const validateItems = values => {
-    const errors = {}
-
-    // if (!values.from_store_id) {
-    //   errors.from_store_id = 'This field is required'
-    // }
-    if (!values.to_store_id) {
-      errors.to_store_id = 'This field is required'
-    }
-    if (!values.ro_date) {
-      errors.ro_date = 'This field is required'
-    }
-
-    return errors
-  }
+  // Stage 2a: manual `validate`/`validateItems` removed — RHF+yup handle it in
+  // AddProductForm (item-level) and dispatchTopFieldsSchema (top-level).
 
   const submitItems = (params, type) => {
     setDuplicateMedError(false)
 
-    const isMedicineAlreadyExists = editParams?.request_item_details?.some(
+    const currentItems = getDispatchValues('request_item_details') || []
+    const isMedicineAlreadyExists = currentItems.some(
       item =>
         item.request_item_medicine_id === params.request_item_medicine_id &&
         item.request_item_batch_no === params.request_item_batch_no &&
@@ -270,8 +310,6 @@ const AddDirectDispatch = () => {
       return
     }
 
-    setErrors({})
-
     const allHaveUUIDs = params.every(item => item.uuid && item.uuid !== '')
 
     const processedItems = params.map(item => ({
@@ -280,7 +318,7 @@ const AddDirectDispatch = () => {
     }))
 
     if (allHaveUUIDs) {
-      updateFormItems(processedItems[0])
+      updateTableItems(processedItems[0])
     } else {
       addItemsToTable(processedItems)
     }
@@ -289,21 +327,11 @@ const AddDirectDispatch = () => {
   }
 
   const updateTableItems = params => {
-    //
-    const itemId = medicineItemId
-    const updatedState = { ...editParams }
-
-    const updatedIndex = updatedState?.request_item_details?.findIndex(row => row.uuid === params.uuid)
+    const currentItems = getDispatchValues('request_item_details') || []
+    const updatedIndex = currentItems.findIndex(row => row.uuid === params.uuid)
 
     if (updatedIndex !== -1) {
-      const updatedNestedRows = [...updatedState.request_item_details]
-      updatedNestedRows[updatedIndex] = {
-        ...updatedNestedRows[updatedIndex],
-        ...params
-      }
-      updatedState.request_item_details = updatedNestedRows
-
-      setEditParams(updatedState)
+      updateRequestItem(updatedIndex, { ...currentItems[updatedIndex], ...params })
       setNestedRowMedicine(initialNestedRowMedicine)
       setMedicineItemId('')
     } else {
@@ -311,35 +339,9 @@ const AddDirectDispatch = () => {
     }
   }
 
-  const updateFormItems = params => {
-    const HasErrors = !params.product_name || !params.request_item_qty || !params.priority_item
-    if (HasErrors) {
-      setItemErrors(validate(params))
-
-      return
-    }
-    if (params.control_substance === true) {
-      if (params?.control_substance_file?.length === 0) {
-        setItemErrors(validate(params))
-
-        return
-      }
-    }
-    setErrors({})
-    updateTableItems(params)
-  }
-
-  const handleSubmit = () => {
-    const formHasErrors = !editParams.to_store_id || !editParams.ro_date
-    if (formHasErrors) {
-      setErrors(validateItems(editParams))
-
-      return
-    }
-
-    setErrors({})
+  const handleSubmit = rhfHandleSubmit(() => {
     showDialog()
-  }
+  })
 
   const filterToStocks = id => {
     const optionsForSelectB = fromStocks?.filter(option => option.id !== id)
@@ -445,7 +447,7 @@ const AddDirectDispatch = () => {
 
   const getUserLists = async (searchText, limit, page) => {
     try {
-      const userDetails = await readAsync('userDetails')
+      const userDetails = authData?.userData
       if (userDetails?.user?.zoos.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
 
@@ -542,16 +544,21 @@ const AddDirectDispatch = () => {
           }
         })
 
-        setEditParams({
-          ...editParams,
+        // Hydrate RHF. to_store_id/user_id need option-object shape — we
+        // temporarily store the raw ids; two small effects below will swap
+        // them for the matching option once `toStocks`/`users` resolve.
+        const toStoreIdOption = toStocks?.find(s => s?.id === result?.data?.to_store_id) || null
+        const userOption = users?.find(u => u?.value === result?.data?.user_id) || null
+
+        resetDispatchForm({
           id: result.data.id,
           dispatch_id: result?.data?.dispatch_id,
-          // from_store_id: result.data.from_store_id,
-          to_store_id: result?.data?.to_store_id,
+          to_store_id: toStoreIdOption || { id: result?.data?.to_store_id, _pendingId: result?.data?.to_store_id },
           ro_date: result.data.request_date,
-          // from_store_type: result.data.from_store_type,
-          to_store_type: result?.data?.to_store_type,
-          user_id: result?.data?.user_id,
+          to_store_type: result?.data?.to_store_type || '',
+          user_id: userOption || { value: result?.data?.user_id, _pendingId: result?.data?.user_id },
+          total_qty: '',
+          priority_item: 'Normal',
           request_item_details: lineItems
         })
       }
@@ -586,7 +593,8 @@ const AddDirectDispatch = () => {
     // } else {
     setIsEdit(true)
 
-    const getItems = editParams?.request_item_details?.filter(el => {
+    const currentItems = getDispatchValues('request_item_details') || []
+    const getItems = currentItems.filter(el => {
       return el.uuid === itemId
     })
 
@@ -624,8 +632,19 @@ const AddDirectDispatch = () => {
 
   const postItemsData = async () => {
     setSubmitLoader(true)
-    const postData = editParams
-    postData.total_qty = totalQty
+    const values = getDispatchValues()
+
+    // Strip RHF-internal keys from line items (_rhfKey)
+    const cleanItems = (values.request_item_details || []).map(({ _rhfKey, ...rest }) => rest)
+
+    const postData = {
+      ...values,
+      to_store_id: values?.to_store_id?.id || values?.to_store_id?._pendingId || '',
+      user_id: values?.user_id?.value || values?.user_id?._pendingId || '',
+      to_store_type: values?.to_store_type || '',
+      total_qty: totalQty,
+      request_item_details: cleanItems
+    }
 
     if (id) {
       try {
@@ -648,7 +667,7 @@ const AddDirectDispatch = () => {
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)
-          setEditParams(editParamsInitialState)
+          resetDispatchForm()
           setSubmitLoader(false)
           Router.replace(`/pharmacy/direct-dispatch/${response?.data}`)
         } else {
@@ -660,50 +679,6 @@ const AddDirectDispatch = () => {
       }
     }
   }
-
-  // data posting section
-  // const createForm = () => {
-  //
-
-  //   return (
-  //     <AddItemsForm
-  //       searchBatchData={searchBatchData}
-  //       searchMedicineData={searchMedicineData}
-  //       productList={optionsMedicineList}
-  //       productLoading={productLoading}
-  //       batchLoading={batchLoading}
-  //       onSubmitData={submitItems}
-  //       batchList={optionsBatchList}
-  //       nestedMedicine={nestedRowMedicine}
-  //       error={duplicateMedError}
-  //       totalQuantity={totalBatchQuantity}
-  //       editParams={editParams}
-  //     />
-  //   )
-  // }
-  // const deleteLineItemFromDb = async lineItemId => {
-  //
-  //   console.log('lineItemId', lineItemId)
-  //   if (lineItemId) {
-  //     try {
-  //       const result = await deleteLineItem(lineItemId)
-  //       console.log('deleteLineItem result', result)
-  //       if (result?.data?.success === true) {
-  //         toast.success(result?.data?.data)
-  //         setDeleteDialog(false)
-  //         setDeleteItemId(null)
-  //         getListOfItemsById(id)
-  //       } else {
-  //         toast.error(result?.data?.data)
-  //         setDeleteDialog(false)
-  //         setDeleteItemId(null)
-  //       }
-  //     } catch (error) {
-  //       toast.error(error.data)
-  //       console.log('error', error)
-  //     }
-  //   }
-  // }
 
   const cancelDirectDispatch = async id => {
     if (id) {
@@ -743,257 +718,120 @@ const AddDirectDispatch = () => {
   //   }
   // }
 
-  const totalDispatchValue = editParams.request_item_details.reduce((total, item) => {
-    return total + item.request_item_qty * parseFloat(item.unit_price)
+  const totalDispatchValue = (requestItemDetails || []).reduce((total, item) => {
+    return total + (Number(item.request_item_qty) || 0) * parseFloat(item.unit_price || 0)
   }, 0)
 
   return (
     <>
       {selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
-        <Card>
-          <Grid
-            container
-            size={{ xs: 12, sm: 12 }}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <CardHeader
-              avatar={
-                <Icon
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    Router.back('/pharmacy/direct-dispatch/')
-                  }}
-                  icon='ep:back'
+        <PageCardLayout
+          title='Add Direct Dispatch'
+          showIcon={true}
+          titleStyles={{ fontSize: '20px' }}
+          onIconClick={() => {
+            Router.back('/pharmacy/direct-dispatch/')
+          }}
+        >
+          <Grid container>
+            <CommonDialogBox
+              title={'Add Dispatch Item'}
+              dialogBoxStatus={show}
+              formComponent={
+                <AddProductForm
+                  searchBatchData={searchBatchData}
+                  searchMedicineData={searchMedicineData}
+                  productList={optionsMedicineList}
+                  productLoading={productLoading}
+                  visibleExpiryField={visibleExpiryField}
+                  batchLoading={batchLoading}
+                  onSubmitData={submitItems}
+                  batchList={optionsBatchList}
+                  nestedMedicine={nestedRowMedicine}
+                  error={duplicateMedError}
+                  totalQuantity={totalBatchQuantity}
+                  editParams={{ request_item_details: requestItemDetails }}
+                  closeDialog={closeDialog}
+                  isEdit={isEdit}
                 />
               }
-              title='Add Direct Dispatch'
+              close={closeDialog}
+              show={showDialog}
             />
           </Grid>
-          <CardContent>
-            <Grid container>
-              <CommonDialogBox
-                title={'Add Dispatch Item'}
-                dialogBoxStatus={show}
-                formComponent={
-                  <AddProductForm
-                    searchBatchData={searchBatchData}
-                    searchMedicineData={searchMedicineData}
-                    productList={optionsMedicineList}
-                    productLoading={productLoading}
-                    visibleExpiryField={visibleExpiryField}
-                    batchLoading={batchLoading}
-                    onSubmitData={submitItems}
-                    batchList={optionsBatchList}
-                    nestedMedicine={nestedRowMedicine}
-                    error={duplicateMedError}
-                    totalQuantity={totalBatchQuantity}
-                    editParams={editParams}
-                    closeDialog={closeDialog}
-                    isEdit={isEdit}
-                  />
-                }
-                close={closeDialog}
-                show={showDialog}
+          <Grid container spacing={5}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'customColors.customTextColorGray2',
+                  letterSpacing: '.1px',
+                  fontSize: '16px',
+                  fontWeight: 500
+                }}
+              >
+                Dispatch to :
+              </Typography>
+            </Grid>
+
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5, width: '100%' }}>
+              <ControlledAutocomplete
+                name='to_store_id'
+                label='Store*'
+                control={dispatchFormControl}
+                errors={dispatchFormErrors}
+                required
+                disabled={id ? true : false}
+                options={toStocks || []}
+                getOptionLabel={option => option?.name || option?.label || ''}
+                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                showIcons={false}
+                onChangeOverride={value => {
+                  const nextId = value?.id || null
+                  const nextType = nextId ? storesType[filteredStoreType(nextId)] : ''
+                  setDispatchFormValue('to_store_type', nextType, { shouldValidate: false })
+                }}
+                autocompleteProps={{
+                  getOptionDisabled: option => option?.status === 'inactive'
+                }}
               />
             </Grid>
-          </CardContent>
-          <CardContent>
-            <form>
-              <Grid container spacing={5}>
-                <Grid item size={{ xs: 12, sm: 12 }}>
-                  <Typography
-                    variant='subtitle2'
-                    sx={{
-                      color: 'customColors.customTextColorGray2',
-                      letterSpacing: '.1px',
-                      fontSize: '16px',
-                      fontWeight: 500
-                    }}
-                  >
-                    Dispatch to :
-                  </Typography>
-                </Grid>
 
-                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5, width: '100%' }}>
-                  <FormControl fullWidth>
-                    <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                      Store*
-                    </InputLabel>
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
+              <ControlledAutocomplete
+                name='user_id'
+                label='To '
+                control={dispatchFormControl}
+                errors={dispatchFormErrors}
+                options={users || []}
+                getOptionLabel={option => option?.label || ''}
+                isOptionEqualToValue={(option, value) => option?.value === value?.value}
+                showIcons={false}
+                onKeyUp={e => {
+                  searchUsersList(e.target.value)
+                }}
+                onBlur={async () => {
+                  await searchUsersList()
+                }}
+                onChangeOverride={() => {
+                  // RHF stores the full option object; no manual mirror needed.
+                }}
+                textFieldProps={{ placeholder: 'To ' }}
+              />
+            </Grid>
+          </Grid>
 
-                    <Select
-                      error={Boolean(errors.to_store_id)}
-                      value={editParams.to_store_id}
-                      label='Store*'
-                      disabled={id ? true : false}
-                      onChange={e => {
-                        setEditParams({
-                          ...editParams,
-                          to_store_id: e.target.value,
-                          to_store_type: storesType[filteredStoreType(e.target.value)]
-                        })
-                        setErrors({})
-                      }}
-                    >
-                      {toStocks?.map((item, index) => (
-                        <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                          {item?.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-
-                    {errors.to_store_id && (
-                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        This field is required
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
-                  <Autocomplete
-                    fullWidth
-                    disablePortal
-                    options={users}
-                    value={users?.find(user => user?.value === editParams?.user_id) || null}
-                    getOptionLabel={option => option?.label || ''}
-                    isOptionEqualToValue={(option, value) => option.value === value.value}
-                    onKeyUp={e => {
-                      searchUsersList(e.target.value)
-                    }}
-                    renderOption={(props, option) => (
-                      <li {...props} key={option.value}>
-                        {option.label}
-                      </li>
-                    )}
-                    renderInput={params => (
-                      <TextField
-                        fullWidth
-                        {...params}
-                        name='search'
-                        label='To '
-                        error={Boolean(errors.search)}
-                        helperText={errors.search}
-                        placeholder='To '
-                      />
-                    )}
-                    onBlur={async () => {
-                      await searchUsersList()
-                    }}
-                    onChange={(event, value) => {
-                      if (value) {
-                        setEditParams({
-                          ...editParams,
-                          user_id: value?.value
-                        })
-                      } else {
-                        setEditParams({
-                          ...editParams,
-                          user_id: null
-                        })
-                      }
-                    }}
-                  />
-                </Grid>
-                {/* </Grid> */}
-                {/* <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                      &nbsp;
-                    </Typography>
-                  </Grid> */}
-                {/* <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
-                <FormControl fullWidth>
-                  <InputLabel error={Boolean(errors.from_store_id)}>Store*</InputLabel>
-                  <Select
-                    value={editParams.from_store_id}
-                    error={Boolean(errors.from_store_id)}
-                    label='Store*'
-                    disabled={id ? true : false}
-                    onChange={e => {
-                      filterToStocks(e.target.value)
-                      setEditParams({
-                        ...editParams,
-                        from_store_id: e.target.value,
-                        from_store_type: storesType[filteredStoreType(e.target.value)]
-                      })
-                      setErrors({})
-                    }}
-                    // error={Boolean(errors?.state_id)}
-                    // labelId='state_id'
-                  >
-                    {fromStocks?.map((item, index) => (
-                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                        {item?.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-
-                  {errors.from_store_id && (
-                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                      This field is required
-                    </FormHelperText>
-                  )}
-                </FormControl>
-              </Grid> */}
-                {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
-                    <FormControl fullWidth>
-                      <SingleDatePicker
-                        fullWidth
-                        date={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                        width={'100%'}
-                        value={editParams.ro_date ? parseFormattedDate(editParams.ro_date) : null}
-                        name={'Date*'}
-                        onChangeHandler={date => {
-                          // setStores({ ...stores, date: date })
-                          setEditParams({ ...editParams, ro_date: formatDate(date) })
-                          setErrors({})
-                        }}
-                        maxDate={new Date()}
-                        customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
-                        isClearable={false}
-                      />
-                      {errors.ro_date && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid> */}
-                {/* </Grid> */}
-              </Grid>
-            </form>
-          </CardContent>
-
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6 }}>
-            <Box>
+          <Grid container spacing={3} alignItems='center' sx={{ py: 5 }}>
+            <Grid item size={{ xs: 12, sm: 'auto', md: 6.5, lg: 8 }}>
               <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                 Dispatch items
               </Typography>
 
-              {/* <Stack
-                direction='row'
-                spacing={2}
-                divider={<Divider orientation='vertical' flexItem />}
-                sx={{ mb: 2, textAlign: 'center' }}
-              >
-                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary' }}>
-                  Total Dispatch Quantity: <Typography sx={{ color: 'primary.light' }}>0</Typography>
-                </Typography>
-                <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary' }}>
-                  Total Dispatch Value: <Typography sx={{ color: 'primary.light' }}>₹0</Typography>
-                </Typography>
-              </Stack> */}
-
               <Stack
-                direction='row'
-                spacing={2}
-                divider={<Divider orientation='vertical' flexItem />}
-                sx={{ textAlign: 'center' }}
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 0, sm: 6 }}
+                divider={<Divider orientation='vertical' flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />}
               >
                 <Typography
                   variant='body2'
@@ -1014,28 +852,22 @@ const AddDirectDispatch = () => {
                   </Typography>
                 </Typography>
               </Stack>
-            </Box>
+            </Grid>
 
             {/* Button Grid - Exactly as in your code */}
-            {/* <Grid
-              container
-              spacing={6}
-              sm={12}
-              xs={12}
-              // sx={{
-              //   display: 'flex',
-              //   justifyContent: 'flex-end',
-              //   alignItems: 'center',
-              //   mb: 4
-              // }}
-            > */}
-            <AddButtonContained
-              title='Add Dispatch Item'
-              action={() => {
-                handleSubmit()
-              }}
-            />
-          </Box>
+            <Grid item sx={{ marginLeft: 'auto' }}>
+              <AddButtonContained
+                title='Add Dispatch Item'
+                action={() => {
+                  handleSubmit()
+                }}
+                styles={{
+                  mr: 0
+                }}
+              />
+            </Grid>
+          </Grid>
+          {/* </Box> */}
           {/* <Grid
             container
             spacing={6}
@@ -1055,11 +887,11 @@ const AddDirectDispatch = () => {
               }}
             />
           </Grid> */}
-          {editParams?.request_item_details.length ? (
+          {requestItemDetails?.length ? (
             <Box>
               <Card
                 sx={{
-                  m: 6,
+                  my: 5,
                   border: '1px solid',
                   borderColor: 'customColors.customTableBorderBg',
                   boxShadow: 'none'
@@ -1079,8 +911,8 @@ const AddDirectDispatch = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
-                      {editParams?.request_item_details
-                        ? editParams?.request_item_details?.map((el, index) => {
+                      {requestItemDetails
+                        ? requestItemDetails.map((el, index) => {
                             return (
                               <TableRow key={index} sx={{ '&:last-child td': { borderBottom: 'none' } }}>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
@@ -1120,9 +952,9 @@ const AddDirectDispatch = () => {
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                    {el?.stock_type === 'non_medical'
-                                      ? 'NA'
-                                      : Utility?.formatDisplayDate(el?.expiry_date)}
+                                    {el?.expiry_date && el?.expiry_date !== '0000-00-00'
+                                      ? Utility?.formatDisplayDate(el?.expiry_date)
+                                      : 'NA'}
                                   </Typography>
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
@@ -1184,7 +1016,6 @@ const AddDirectDispatch = () => {
                   </Table>
                 </TableContainer>
               </Card>
-
               {/* <CardContent sx={{ pt: 8 }}>
                  {totalQty ? (
                    <Grid container>
@@ -1230,7 +1061,7 @@ const AddDirectDispatch = () => {
                     </>
                   ) : null}
                   <LoadingButton
-                    disabled={editParams?.request_item_details?.length > 0 ? false : true}
+                    disabled={requestItemDetails?.length > 0 ? false : true}
                     sx={{ marginRight: '8px' }}
                     size='large'
                     onClick={() => {
@@ -1244,7 +1075,7 @@ const AddDirectDispatch = () => {
                   {id ? null : (
                     <Button
                       onClick={() => {
-                        setEditParams(editParamsInitialState)
+                        resetDispatchForm()
                       }}
                       size='large'
                       variant='outlined'
@@ -1385,7 +1216,7 @@ const AddDirectDispatch = () => {
               </Box>
             }
           />
-        </Card>
+        </PageCardLayout>
       ) : (
         <>
           <Error404></Error404>

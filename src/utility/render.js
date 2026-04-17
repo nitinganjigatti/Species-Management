@@ -2,7 +2,6 @@ import { Typography, Box, Avatar, Tooltip, Skeleton } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
-import { format, formatDistanceToNow } from 'date-fns'
 import { useTheme } from '@emotion/react'
 import moment from 'moment'
 import { useState } from 'react'
@@ -48,7 +47,6 @@ export const pageTitle = title => (
   <Box
     sx={{
       fontSize: { xs: '20px', md: '24px' },
-      fontFamily: 'Inter',
       fontWeight: 500,
       ml: 1
     }}
@@ -147,16 +145,16 @@ export function renderUserAvatarDetails({
             {date && (
               <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
                 <span>
-                  {show_time ? (
+                  {date ? (
                     <>
-                      {Utility.convertUTCToLocaltime(date)}
-                      <span> &bull; </span>
+                      {Utility.convertUtcToLocalReadableDate(date)}
+                      {show_time && <span> &bull; </span>}
                     </>
                   ) : (
                     ''
                   )}
                 </span>
-                <span>{date ? Utility.convertUtcToLocalReadableDate(date) : ''}</span>
+                <span>{show_time ? Utility.convertUTCToLocaltime(date) : ''}</span>
               </Typography>
             )}
           </Box>

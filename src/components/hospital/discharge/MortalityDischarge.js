@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import debounce from 'lodash/debounce'
 import { getMannerOfDeath, getCarcassCondition, getCarcassDeposition } from 'src/lib/api/housing'
 import { addInpatientDischarge, getNecropsyCenter } from 'src/lib/api/hospital/inpatientDischarge'
@@ -6,17 +6,25 @@ import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 
-function MortalityDischarge() {
+function useMortalityDischarge() {
   const [causeOfDeath, setCauseOfDeath] = useState([])
   const [carcassCondition, setCarcassCondition] = useState([])
   const [carcassDeposition, setCarcassDeposition] = useState([])
   const [necropsyCenter, setNecropsyCenter] = useState([])
 
-  const [fetchLoading, setFetchLoading] = useState(true)
-  const [submitLoader, setSubmitLoader] = useState(false)
+  const [loading, setLoading] = useState({
+    manner: false,
+    condition: false,
+    disposition: false,
+    necropsy: false,
+    submit: false
+  })
 
   const { selectedHospital, updateHospitalStats } = useHospital()
 
+  const setLoader = (key, value) => setLoading(prev => ({ ...prev, [key]: value }))
+
+  // Fetch and refresh hospital bed stats in context after successful discharge
   const fetchAndUpdateHospitalStats = async hospitalId => {
     if (!hospitalId) return
 
@@ -30,9 +38,9 @@ function MortalityDischarge() {
     }
   }
 
-  //  Fetch cause of death list
-  const fetchManner = async (q = '') => {
+  const fetchManner = useCallback(async (q = '') => {
     try {
+      setLoader('manner', true)
       const params = { q, limit: 10, page: 1 }
       const res = await getMannerOfDeath(params)
 
@@ -47,13 +55,15 @@ function MortalityDischarge() {
         setCauseOfDeath([])
       }
     } catch (error) {
-      console.error('Error fetchManner:', error?.response?.data?.message || error?.message)
+      console.error('Error fetchManner:', error?.message)
+    } finally {
+      setLoader('manner', false)
     }
-  }
+  }, [])
 
-  //  Fetch carcass condition list
-  const fetchCondition = async (q = '') => {
+  const fetchCondition = useCallback(async (q = '') => {
     try {
+      setLoader('condition', true)
       const params = { q, limit: 10, page: 1 }
       const res = await getCarcassCondition(params)
 
@@ -67,13 +77,15 @@ function MortalityDischarge() {
         setCarcassCondition([])
       }
     } catch (error) {
-      console.error('Error fetchCondition:', error?.response?.data?.message || error?.message)
+      console.error('Error fetchCondition:', error?.message)
+    } finally {
+      setLoader('condition', false)
     }
-  }
+  }, [])
 
-  //  Fetch carcass Disposition list
-  const fetchDisposition = async (q = '') => {
+  const fetchDisposition = useCallback(async (q = '') => {
     try {
+      setLoader('disposition', true)
       const params = { q, limit: 10, page: 1 }
       const res = await getCarcassDeposition(params)
 
@@ -87,15 +99,17 @@ function MortalityDischarge() {
         setCarcassDeposition([])
       }
     } catch (error) {
-      console.error('Error fetchDisposition:', error?.response?.data?.message || error?.message)
+      console.error('Error fetchDisposition:', error?.message)
+    } finally {
+      setLoader('disposition', false)
     }
-  }
+  }, [])
 
-  const fetchNecropsyCenter = async (q = '') => {
+  const fetchNecropsyCenter = useCallback(async (q = '') => {
     try {
+      setLoader('necropsy', true)
       const params = { q, limit: 10, page: 1 }
 
-      // debugger
       const res = await getNecropsyCenter(params)
 
       if (res?.status) {
@@ -108,39 +122,20 @@ function MortalityDischarge() {
         setNecropsyCenter([])
       }
     } catch (error) {
-      console.error('Error fetchNecropsyCenter:', error?.response?.data?.message || error?.message)
+      console.error('Error fetchNecropsyCenter:', error?.message)
+    } finally {
+      setLoader('necropsy', false)
     }
-  }
+  }, [])
 
-  // Debounced versions
-  const debouncedFetchManner = useCallback(
-    debounce(q => fetchManner(q), 500),
-    []
-  )
+  // Debounce search
+  const debouncedFetchManner = useMemo(() => debounce(q => fetchManner(q), 500), [fetchManner])
+  const debouncedFetchCondition = useMemo(() => debounce(q => fetchCondition(q), 500), [fetchCondition])
+  const debouncedFetchDisposition = useMemo(() => debounce(q => fetchDisposition(q), 500), [fetchDisposition])
+  const debouncedFetchNecropsyCenter = useMemo(() => debounce(q => fetchNecropsyCenter(q), 500), [fetchNecropsyCenter])
 
-  const debouncedFetchCondition = useCallback(
-    debounce(q => fetchCondition(q), 500),
-    []
-  )
-
-  const debouncedFetchDisposition = useCallback(
-    debounce(q => fetchDisposition(q), 500),
-    []
-  )
-
-  const debouncedFetchNecropsyCenter = useCallback(
-    debounce(q => fetchNecropsyCenter(q), 500),
-    []
-  )
-
-  // Initial fetch on mount
+  // Cancel debounced calls on unmount to prevent memory leaks
   useEffect(() => {
-    setFetchLoading(true)
-
-    Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition(''), fetchNecropsyCenter('')])
-      .catch(error => console.error('Initial fetch error:', error?.response?.data?.message || error?.message))
-      .finally(() => setFetchLoading(false))
-
     return () => {
       debouncedFetchManner.cancel()
       debouncedFetchCondition.cancel()
@@ -149,7 +144,7 @@ function MortalityDischarge() {
     }
   }, [debouncedFetchManner, debouncedFetchCondition, debouncedFetchDisposition, debouncedFetchNecropsyCenter])
 
-  // Functions to be called when user types in each autocomplete
+  // Dropdown handler to trigger debounced search based on user input
   const handleMannerSearch = text => debouncedFetchManner(text || '')
   const handleConditionSearch = text => debouncedFetchCondition(text || '')
   const handleDispositionSearch = text => debouncedFetchDisposition(text || '')
@@ -157,7 +152,7 @@ function MortalityDischarge() {
 
   // Handle mortality form submission
   const handleSubmitData = async payload => {
-    setSubmitLoader(true)
+    setLoader('submit', true)
 
     try {
       const response = await addInpatientDischarge(payload)
@@ -180,11 +175,11 @@ function MortalityDischarge() {
 
       return false
     } catch (error) {
-      console.error('Mortality submission error:', error?.response?.data?.message || error?.message)
+      console.error('Mortality submission error:', error?.message)
 
       return false
     } finally {
-      setSubmitLoader(false)
+      setLoader('submit', false)
     }
   }
 
@@ -193,16 +188,21 @@ function MortalityDischarge() {
     carcassCondition,
     carcassDeposition,
     necropsyCenter,
-    fetchLoading,
-
+    mannerLoading: loading.manner,
+    conditionLoading: loading.condition,
+    dispositionLoading: loading.disposition,
+    necropsyLoading: loading.necropsy,
+    submitLoader: loading.submit,
+    fetchManner,
+    fetchCondition,
+    fetchDisposition,
+    fetchNecropsyCenter,
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
     handleNecropsyCenterSearch,
-
-    submitLoader,
     handleSubmitData
   }
 }
 
-export default MortalityDischarge
+export default useMortalityDischarge

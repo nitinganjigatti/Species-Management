@@ -1,11 +1,15 @@
 import {
   ADD_CLINICAL_ASSESSMENT,
+  CREATE_MEDICAL_TEMPLATE,
+  DELETE_MEDICAL_TEMPLATE,
   DELETE_NOTE_CLINICAL_ASSESSMENT,
   GET_ANIMAL_STATUS_BY_TYPE,
   GET_CLINICAL_ASSESSMENTS,
   GET_CLINICAL_DIAGNOSIS_LIST,
   GET_CLINICAL_DIAGNOSIS_TYPE,
+  GET_MEDICAL_TEMPLATE,
   GET_NOTES,
+  UPDATE_MEDICAL_TEMPLATE,
   UPDATE_NOTES
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
@@ -105,5 +109,45 @@ export const deleteNote = async (noteId, params) => {
     return response?.data
   } catch (error) {
     console.error('Error fetching clinical notes:', error.message)
+  }
+}
+
+export async function getMedicalTemplates(params) {
+  try {
+    const response = await axiosGet({ url: GET_MEDICAL_TEMPLATE, params })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error fetching medical templates:', error.message)
+  }
+}
+
+export async function createMedicalTemplate(payload) {
+  try {
+    const response = await axiosPost({ url: CREATE_MEDICAL_TEMPLATE, body: payload })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error creating medical template:', error.message)
+  }
+}
+
+export async function updateMedicalTemplate(id, payload) {
+  try {
+    const response = await axiosPost({ url: `${UPDATE_MEDICAL_TEMPLATE}/${id}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error updating medical template:', error.message)
+  }
+}
+
+export async function deleteMedicalTemplate(id) {
+  try {
+    const response = await axiosPost({ url: `${DELETE_MEDICAL_TEMPLATE}/${id}`, body: {} })
+
+    return response?.data
+  } catch (error) {
+    console.error('Error deleting medical template:', error.message)
   }
 }

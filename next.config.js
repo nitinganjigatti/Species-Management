@@ -9,17 +9,21 @@ const path = require('path')
 module.exports = {
   trailingSlash: true,
   reactStrictMode: false,
-  // devIndicators: false,
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true
+  // Suppress Emotion SSR warnings for :first-child pseudo-class
+  compiler: {
+    emotion: true
   },
+  // devIndicators: false,
   images: {
-    domains: ['api.dev.antzsystems.com']
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.dev.antzsystems.com'
+      }
+    ]
   },
   async rewrites() {
-    return [
+    const rules = [
       {
         source: '/reports/keyinsights',
         destination: '/reports/keyinsights/index.html'
@@ -45,6 +49,22 @@ module.exports = {
         destination: '/reports/assessment-dashboard/index.html'
       }
     ]
+
+    // Proxy API calls to local backend in development to avoid CORS
+    if (process.env.NODE_ENV === 'development') {
+      rules.push({
+        source: '/api/:path*',
+        destination: 'http://localhost:8080/api/:path*'
+      })
+    }
+
+    return rules
+  },
+  turbopack: {
+    resolveAlias: {
+      apexcharts: './node_modules/apexcharts-clevision',
+      'apexcharts/dist/apexcharts.common': './node_modules/apexcharts-clevision/dist/apexcharts.common.js'
+    }
   },
   webpack: config => {
     config.resolve.alias = {

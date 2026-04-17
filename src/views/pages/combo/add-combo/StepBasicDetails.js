@@ -1,8 +1,4 @@
-// ** React Imports
 import { useEffect, useState } from 'react'
-
-// ** MUI Components
-import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
@@ -16,10 +12,7 @@ import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller } from 'react-hook-form'
-
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
-
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 const defaultValues = {
@@ -43,7 +36,6 @@ const schema = yup.object().shape({
 })
 
 const StepBasicDetails = ({ handleNext, formData, uomList }) => {
-  
   const [uploadedImage, setUploadedImage] = useState(null)
   const router = useRouter()
 
@@ -102,7 +94,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
   const onSubmit = async data => {
     window.scrollTo(0, 0)
 
-   
     Object.keys(defaultValues).forEach(field => {
       clearErrors(field)
     })
@@ -112,7 +103,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
 
-   
       const formDataWithImage = {
         ...data,
         recipe_image: uploadedImage
@@ -355,7 +345,6 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
               <Button
                 color='secondary'
                 variant='outlined'
-
                 // startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
                 onClick={cancelBack}
