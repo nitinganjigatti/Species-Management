@@ -667,7 +667,7 @@ const AddMedicine = () => {
       status: active,
       url,
       priority,
-      category: category?.length > 0 ? category.map(item => item?.label || item).join(',') : ''
+      category: category?.length > 0 ? category.map(item => item?.value || item).join(',') : ''
     }
     if (files.length > 0) {
       payload.image = files[0]
