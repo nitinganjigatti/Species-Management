@@ -2510,7 +2510,7 @@ const EggList = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Egg List' action={headerAction} />
+            <CardHeader title={t('egg_module.egg_list')} action={headerAction} />
 
             {/* <CardContent> */}
             <TabContext value={status}>

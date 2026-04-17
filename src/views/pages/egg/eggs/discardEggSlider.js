@@ -579,7 +579,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   {t('egg_module.security_checked')}
                 </Typography>
               ) : (
-                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
+                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>
+                  {t('egg_module.security_check_pending')}
+                </Typography>
               )}
             </Box>
             <Divider sx={{ my: 4 }} />

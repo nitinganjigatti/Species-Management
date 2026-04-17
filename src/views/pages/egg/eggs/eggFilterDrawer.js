@@ -724,10 +724,10 @@ const EggFilterDrawer = ({
 
               {(tab_Value === 'all' || tab_Value === 'eggs_incubation') && selectedMenu?.name === 'Stage' && (
                 <FormControl fullWidth>
-                  <InputLabel id='dropdown-label'>Select Status</InputLabel>
+                  <InputLabel id='dropdown-label'>{t('egg_module.select_status')}</InputLabel>
                   <Select
                     labelId='dropdown-label'
-                    label='Select Status'
+                    label={t('egg_module.select_status')}
                     value={selectedDropdownID ? selectedDropdownID : 'all'}
                     onChange={handleDropdownChange}
                   >
