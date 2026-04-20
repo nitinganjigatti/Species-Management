@@ -7,7 +7,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Icon from 'src/@core/components/icon'
 import { useQuery } from '@tanstack/react-query'
 import { Add as AddIcon } from '@mui/icons-material'
-import { GridRenderCellParams, GridColDef, GridPaginationModel, GridRowParams } from '@mui/x-data-grid'
+import { GridRenderCellParams, GridColDef } from '@mui/x-data-grid'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import { getChildNoteTypesList, getNoteTypesList } from 'src/lib/api/notesModule'
@@ -28,11 +28,7 @@ const SubNoteTypeListing = () => {
   const [openParentNoteDrawer, setOpenParentNoteDrawer] = useState<boolean>(false)
   const [editParentNoteType, setEditParentNoteType] = useState<NoteTypeItem | null>(null)
 
-  const {
-    data: childNoteTypes = [],
-    isLoading: loading,
-    refetch: fetchChildNoteTypes
-  } = useQuery<NoteTypeItem[]>({
+  const { data: childNoteTypes = [], isLoading: loading } = useQuery<NoteTypeItem[]>({
     queryKey: ['child', id],
     queryFn: async () => {
       const res = await getChildNoteTypesList(id as string)
@@ -49,8 +45,8 @@ const SubNoteTypeListing = () => {
     }))
   }, [childNoteTypes])
 
-  const { data: parentNoteTypes = [], refetch: fetchParentNoteTypes } = useQuery<NoteTypeItem[]>({
-    queryKey: ['parent'],
+  const { data: parentNoteTypes = [] } = useQuery<NoteTypeItem[]>({
+    queryKey: ['noteTypes', 'parent'],
     queryFn: async () => {
       const res = await getNoteTypesList({ type: 'parent' })
 
@@ -58,12 +54,7 @@ const SubNoteTypeListing = () => {
     }
   })
 
-  const refetchAll = async () => {
-    await Promise.all([fetchChildNoteTypes(), fetchParentNoteTypes()])
-  }
-
-  const parentNoteType = parentNoteTypes.find(nt => String(nt.id) === String(id))
-
+  const parentNoteType = parentNoteTypes?.find(note => String(note.id) === String(id))
   const parentTitle = parentNoteType
     ? (t(parentNoteType.string_id || '', { defaultValue: parentNoteType.type_name }) as string)
     : ''
@@ -118,7 +109,6 @@ const SubNoteTypeListing = () => {
               <IconButton
                 onClick={e => {
                   e.stopPropagation()
-                  console.log('alert')
                   openEditSubNoteTypeDrawer(params)
                 }}
                 size='small'
@@ -178,11 +168,13 @@ const SubNoteTypeListing = () => {
           }
           action={
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Tooltip title='Edit Note Type'>
-                <IconButton onClick={openEditParentNoteDrawer} size='small'>
-                  <Icon icon='mdi:pencil-outline' style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                </IconButton>
-              </Tooltip>
+              {Number(parentNoteType?.zoo_id) !== 0 && (
+                <Tooltip title='Edit Note Type'>
+                  <IconButton onClick={openEditParentNoteDrawer} size='small'>
+                    <Icon icon='mdi:pencil-outline' style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                  </IconButton>
+                </Tooltip>
+              )}
 
               <Button
                 variant='contained'
@@ -219,7 +211,6 @@ const SubNoteTypeListing = () => {
         <AddSubNoteTypeDrawer
           openDrawer={openDrawer}
           closeDrawer={() => setOpenDrawer(false)}
-          refetch={refetchAll}
           editSubNote={editSubNote}
           noteTypeId={id}
           parentTitle={parentTitle}
@@ -230,7 +221,6 @@ const SubNoteTypeListing = () => {
         <AddNoteTypeDrawer
           openDrawer={openParentNoteDrawer}
           closeDrawer={closeParentNoteDrawer}
-          refetch={fetchParentNoteTypes}
           editNoteType={editParentNoteType}
         />
       )}

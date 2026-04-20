@@ -14,9 +14,8 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import { addNoteTypes, getNoteTypesList, deleteNoteType, updateNoteType } from 'src/lib/api/notesModule'
 import Toaster from 'src/components/Toaster'
-import { AddNoteTypePayload, UpdateNoteTypePayload } from 'src/types/notes/api'
 import { NoteTypeItem } from 'src/types/notes'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 
 interface AddSubNoteTypeDrawerProps {
@@ -24,7 +23,6 @@ interface AddSubNoteTypeDrawerProps {
   closeDrawer: () => void
   editSubNote: NoteTypeItem | null
   noteTypeId: string
-  refetch: () => void
   parentTitle: string
 }
 
@@ -38,12 +36,12 @@ const AddSubNoteTypeDrawer = ({
   closeDrawer,
   editSubNote,
   noteTypeId,
-  refetch,
   parentTitle
 }: AddSubNoteTypeDrawerProps) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [deleteSubNoteTypeOpen, setDeleteSubNoteTypeOpen] = useState<boolean>(false)
 
@@ -93,10 +91,12 @@ const AddSubNoteTypeDrawer = ({
             parent_id: formData?.parent_name
           })
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message })
         reset(defaultValues)
         closeDrawer()
-        await refetch()
+        Toaster({ type: 'success', message: response?.message })
+
+        await queryClient.invalidateQueries({ queryKey: ['child'] })
+
         const selectedParentId = formData?.parent_name ? String(formData.parent_name) : ''
         const selectedParent = parentNoteTypes.find(nt => String(nt.id) === selectedParentId)
         const selectedParentTitle = selectedParent
@@ -111,7 +111,7 @@ const AddSubNoteTypeDrawer = ({
           router.push('/notes/masters/note-types')
         }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+        Toaster({ type: 'error', message: response?.message || t('notes_module.something_went_wrong') })
       }
     } catch (error: any) {
       console.error('Error adding sub note type:', error?.message || error)
@@ -125,10 +125,11 @@ const AddSubNoteTypeDrawer = ({
       setSubmitLoader(true)
       const response = await deleteNoteType({ observation_type_id: editSubNote?.id as number })
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message })
         reset(defaultValues)
         closeDrawer()
-        await refetch()
+        Toaster({ type: 'success', message: response?.message })
+
+        await queryClient.invalidateQueries({ queryKey: ['child'] })
       }
     } catch (error: any) {
       console.error('Error deleting note types:', error?.message || error)
@@ -142,21 +143,16 @@ const AddSubNoteTypeDrawer = ({
     closeDrawer()
   }
 
-  const handleDeleteOpen = () => {
-    setDeleteSubNoteTypeOpen(true)
-  }
-
   useEffect(() => {
     if (editSubNote) {
-      const parentValue = editSubNote?.parent_type_id ?? editSubNote?.parent_id ?? noteTypeId
       reset({
         type_name: editSubNote?.type_name || '',
-        parent_name: parentValue ? String(parentValue) : ''
+        parent_name: editSubNote?.parent_id ? String(editSubNote.parent_id) : ''
       })
     } else {
       reset(defaultValues)
     }
-  }, [editSubNote, noteTypeId, reset])
+  }, [editSubNote])
 
   return (
     <>

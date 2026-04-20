@@ -61,10 +61,6 @@ export interface UpdateNoteTypePayload {
   type_name: string
   parent_type_id?: string
 }
-export interface DeleteNoteTypePayload {
-  observation_type_id: number | string
-}
-
 export interface AddNoteTypeResponse {
   success: boolean
   data: unknown[]

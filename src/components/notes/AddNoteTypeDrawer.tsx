@@ -21,11 +21,10 @@ import { NoteTypeItem } from 'src/types/notes'
 interface AddNoteTypeDrawerProps {
   openDrawer: boolean
   closeDrawer: () => void
-  refetch: () => void
   editNoteType: NoteTypeItem | null
 }
 
-const AddNoteTypeDrawer = ({ openDrawer, closeDrawer, refetch, editNoteType }: AddNoteTypeDrawerProps) => {
+const AddNoteTypeDrawer = ({ openDrawer, closeDrawer, editNoteType }: AddNoteTypeDrawerProps) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
@@ -33,12 +32,7 @@ const AddNoteTypeDrawer = ({ openDrawer, closeDrawer, refetch, editNoteType }: A
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [deleteNoteTypeOpen, setDeleteNoteTypeOpen] = useState<boolean>(false)
 
-  const invalidateNoteTypeCaches = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['noteTypes', 'parent'] }),
-      queryClient.invalidateQueries({ queryKey: ['parent'] }),
-      queryClient.invalidateQueries({ queryKey: ['child'] })
-    ])
+  const invalidateNoteTypeCaches = () => queryClient.invalidateQueries({ queryKey: ['noteTypes', 'parent'] })
 
   const schema = yup.object().shape({
     type_name: yup
@@ -75,7 +69,6 @@ const AddNoteTypeDrawer = ({ openDrawer, closeDrawer, refetch, editNoteType }: A
         reset(defaultValues)
         closeDrawer()
         Toaster({ type: 'success', message: response?.message })
-        // await refetch()
         await invalidateNoteTypeCaches()
         router.push('/notes/masters/note-types/')
       } else {
@@ -99,21 +92,16 @@ const AddNoteTypeDrawer = ({ openDrawer, closeDrawer, refetch, editNoteType }: A
       if (childNoteTypes && childNoteTypes.length > 0) {
         setSubmitLoader(false)
         setDeleteNoteTypeOpen(false)
-        Toaster({
-          type: 'warning',
-          message:
-            t('notes_module.cannot_delete_note_type_with_children') ||
-            'Cannot delete note type with child data. Please delete sub-note types first.'
-        })
+        Toaster({ type: 'warning', message: t('notes_module.cannot_delete_sub_note_type_available') })
         return
       }
 
       const response = await deleteNoteType({ observation_type_id: editNoteType?.id as number })
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message })
         reset(defaultValues)
         closeDrawer()
-        await refetch()
+        Toaster({ type: 'success', message: response?.message })
+
         await invalidateNoteTypeCaches()
         router.push('/notes/masters/note-types/')
       }
@@ -238,15 +226,15 @@ const AddNoteTypeDrawer = ({ openDrawer, closeDrawer, refetch, editNoteType }: A
         <ConfirmationDialog
           dialogBoxStatus={deleteNoteTypeOpen}
           onClose={() => setDeleteNoteTypeOpen(false)}
-          title={'Delete Note Type?'}
-          cancelText={'CANCEL'}
+          title={t('notes_module.delete_note_type' + '?')}
+          cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={handleDelete}
           loading={submitLoader}
-          ConfirmationText={'DELETE'}
-          description={'Are you sure you want to delete this Note Type?'}
+          ConfirmationText={t('delete')}
+          description={t('notes_module.are_you_sure_you_want_to_delete_this_note_type')}
         />
       )}
     </>

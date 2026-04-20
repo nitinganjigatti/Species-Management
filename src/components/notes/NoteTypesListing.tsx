@@ -21,11 +21,7 @@ const NoteTypeListing = () => {
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [editNoteType, setEditNoteType] = useState<NoteTypeItem | null>(null)
 
-  const {
-    data: noteTypes = [],
-    isLoading: loading,
-    refetch: fetchNoteTypes
-  } = useQuery<NoteTypeItem[]>({
+  const { data: noteTypes = [], isLoading: loading } = useQuery<NoteTypeItem[]>({
     queryKey: ['noteTypes', 'parent'],
     queryFn: async () => {
       const res = await getNoteTypesList({ type: 'parent' })
@@ -139,12 +135,7 @@ const NoteTypeListing = () => {
       </Card>
 
       {openDrawer && (
-        <AddNoteTypeDrawer
-          openDrawer={openDrawer}
-          closeDrawer={closeDrawer}
-          refetch={fetchNoteTypes}
-          editNoteType={editNoteType}
-        />
+        <AddNoteTypeDrawer openDrawer={openDrawer} closeDrawer={closeDrawer} editNoteType={editNoteType} />
       )}
     </>
   )
