@@ -7,10 +7,7 @@ import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
 import Search from 'src/views/utility/Search'
-import {
-  AssessmentCategoryChips,
-  AssessmentCard
-} from 'src/components/housing/animals/assessment'
+import { AssessmentCategoryChips, AssessmentCard } from 'src/components/housing/animals/assessment'
 import AddEditEntityAssessmentDrawer from './AddEditEntityAssessmentDrawer'
 import EntityAssessmentSummaryDrawer from './EntityAssessmentSummaryDrawer'
 import AddEntityAssessmentTypeDrawer from './AddEntityAssessmentTypeDrawer'
@@ -23,6 +20,7 @@ import type {
   GetAssessmentTypesResponse,
   GetMeasurementUnitsResponse
 } from 'src/types/housing/assessment'
+import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 
 export type EntityType = 'site' | 'section' | 'enclosure'
 
@@ -249,27 +247,19 @@ const EntityAssessment: React.FC<EntityAssessmentProps> = ({
   }
 
   return (
-    <Box sx={{ p: 4 }}>
+    <Box sx={{ mt: 2 }}>
       {/* Header */}
       <Box
         sx={{
           display: 'flex',
+          alignItems: ' center',
           justifyContent: 'space-between',
-          alignItems: 'center',
-          mb: 3,
-          gap: 2
+          flexWrap: 'wrap',
+          mb: 2,
+          gap: 4
         }}
       >
-        {/* Left: Search */}
-        <Search
-          value={searchQuery}
-          onChange={handleSearchChange}
-          onClear={handleSearchClear}
-          placeholder={t('animals_module.search_assessments') as string}
-          width={250}
-        />
-
-        {/* Right: Add Button */}
+        <ListingHeader title={t('housing_module.all_assessments')} totalCount={assessmentTypes.length} />
         {canAddAssessment && (
           <Button
             variant='contained'
@@ -289,6 +279,28 @@ const EntityAssessment: React.FC<EntityAssessmentProps> = ({
           </Button>
         )}
       </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 4 }}>
+        <Search
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onClear={handleSearchClear}
+          placeholder={t('animals_module.search_assessments') as string}
+          width={250}
+        />
+      </Box>
+      {/* <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 6,
+            gap: 2
+          }}
+        >
+          
+        </Box>
+      </Box> */}
 
       {/* Category Chips */}
       {categories.length > 1 && (

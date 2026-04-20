@@ -349,9 +349,9 @@ const MortalityListing: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title={t('navigation.mortality')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('navigation.mortality')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -384,6 +384,7 @@ const MortalityListing: React.FC = () => {
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
             loading={isFetching}
             searchValue={inputValue}
             maxHeight='80vh'

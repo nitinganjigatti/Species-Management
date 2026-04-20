@@ -66,10 +66,6 @@ const Listing: React.FC<SiteListingProps> = ({
   })
   const [totalAnimalCount, setTotalAnimalCount] = useState<number>(0)
 
-  const [downloading, setDownloading] = useState<boolean>(false)
-
-  const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
-
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   // Populate filters from query string on mount
@@ -548,9 +544,9 @@ const Listing: React.FC<SiteListingProps> = ({
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -579,6 +575,7 @@ const Listing: React.FC<SiteListingProps> = ({
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
             loading={isFetching}
+            getRowHeight={() => 60}
             searchValue=''
             maxHeight='80vh'
           />

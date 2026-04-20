@@ -19,7 +19,6 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { GridCellParams } from '@mui/x-data-grid'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { debounce } from 'lodash'
-import Search from 'src/views/utility/Search'
 import { useAuth } from 'src/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
 
@@ -77,15 +76,12 @@ const getStatusColorsFromTheme = (status: string, theme: Theme): { backgroundCol
   )
 }
 
-// Sub-tabs configuration
 const getTransferTabs = (t: (key: string) => string) => [
   { id: 'intra', label: t('housing_module.in_house'), icon: 'mdi:arrow-down' },
   { id: 'inter', label: t('housing_module.inter_site'), icon: 'mdi:swap-horizontal' },
   { id: 'external', label: t('housing_module.external'), icon: 'mdi:location-exit' }
 ]
 
-// Mobile allocateButtonCheck function (TransferListCard.js lines 55-66)
-// Transforms activity_status to "ALLOCATE" when needed for color lookup
 const allocateButtonCheck = (
   activityStatus: string,
   item: AnimalTransferItem,
@@ -109,15 +105,15 @@ const allocateButtonCheck = (
   return activityStatus
 }
 
-// Mobile allocateText function (TransferListCard.js lines 68-91)
-// Get status text matching mobile implementation
-const getStatusText = (item: AnimalTransferItem, loggedInUserId?: number | string, t?: (key: string) => string): string => {
+const getStatusText = (
+  item: AnimalTransferItem,
+  loggedInUserId?: number | string,
+  t?: (key: string) => string
+): string => {
   const activityStatus = item.activity_status || ''
   const comments = item.comments || ''
   const transferType = item.transfer_type
 
-  // Check for "Allocate" status - matching mobile allocateText function
-  // 1. If comments is "Received Animals" and user is in user_details
   if (comments === 'Received Animals') {
     try {
       const userDetails = item.user_details ? JSON.parse(item.user_details) : []
@@ -185,7 +181,7 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
   const [transferList, setTransferList] = useState<AnimalTransferItem[]>([])
   const [totalCount, setTotalCount] = useState<number>(0)
   const [filterStatus, setFilterStatus] = useState<string>('ALL')
-  const [searchValue, setSearchValue] = useState<string>('')
+  // const [searchValue, setSearchValue] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [page, setPage] = useState<number>(1)
   const [pageSize, setPageSize] = useState<number>(10)
@@ -202,19 +198,19 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
     []
   )
 
-  const handleSearchChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setSearchValue(e.target.value)
-      debouncedSearch(e.target.value)
-    },
-    [debouncedSearch]
-  )
+  // const handleSearchChange = useCallback(
+  //   (e: React.ChangeEvent<HTMLInputElement>) => {
+  //     setSearchValue(e.target.value)
+  //     debouncedSearch(e.target.value)
+  //   },
+  //   [debouncedSearch]
+  // )
 
-  const handleSearchClear = (): void => {
-    setSearchValue('')
-    setSearchQuery('')
-    setPage(1)
-  }
+  // const handleSearchClear = (): void => {
+  //   setSearchValue('')
+  //   setSearchQuery('')
+  //   setPage(1)
+  // }
 
   const fetchTransferList = async (): Promise<void> => {
     if (!siteId) {

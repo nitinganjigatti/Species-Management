@@ -364,9 +364,9 @@ const AnimalTreatmentListing: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -404,6 +404,7 @@ const AnimalTreatmentListing: React.FC = () => {
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
             loading={isFetching}
+            getRowHeight={() => 60}
             searchValue={inputValue}
             maxHeight='80vh'
           />

@@ -7,11 +7,9 @@ import { useQuery } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { getAllSections } from 'src/lib/api/housing'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
-import { ExportButton } from 'src/views/utility/render-snippets'
-import RenderUtility, { CellInfo } from 'src/utility/render'
+import { CellInfo } from 'src/utility/render'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import SpeciesDrawer from '../utils/SpeciesDrawer'
 import AnimalDrawer from '../utils/AnimalDrawer'
@@ -338,7 +336,8 @@ const SectionListing: React.FC<SectionListingProps> = ({
                     queryKey: 'section-species-drawer',
                     id: (params.row as IndexedSectionRow).section_id,
                     name: (params.row as IndexedSectionRow).section_name,
-                    image: (params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')?.file,
+                    image: (params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')
+                      ?.file,
                     params: {
                       section_id: (params.row as IndexedSectionRow).section_id
                     }
@@ -383,7 +382,8 @@ const SectionListing: React.FC<SectionListingProps> = ({
                     queryKey: 'section-animals-drawer',
                     id: (params.row as IndexedSectionRow).section_id,
                     name: (params.row as IndexedSectionRow).section_name,
-                    image: (params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')?.file,
+                    image: (params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')
+                      ?.file,
                     params: {
                       section_id: (params.row as IndexedSectionRow).section_id
                     }
@@ -447,7 +447,10 @@ const SectionListing: React.FC<SectionListingProps> = ({
       headerAlign: 'left' as const,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <UserAvatarDetails profile_image={(params.row as IndexedSectionRow)?.incharge_image} user_name={(params.row as IndexedSectionRow)?.incharge_name} />
+        <UserAvatarDetails
+          profile_image={(params.row as IndexedSectionRow)?.incharge_image}
+          user_name={(params.row as IndexedSectionRow)?.incharge_name}
+        />
       )
     },
     {
@@ -523,9 +526,9 @@ const SectionListing: React.FC<SectionListingProps> = ({
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_sections')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.all_sections')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -563,6 +566,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
             loading={isFetching}
             searchValue=''
             maxHeight='80vh'

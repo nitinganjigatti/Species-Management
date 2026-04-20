@@ -67,7 +67,12 @@ const allTabConfig: TabConfigItem[] = [
   { labelKey: 'housing_module.users', value: 'users', component: UsersListing },
   { labelKey: 'housing_module.incharges', value: 'incharges', component: InchargeListing },
   { labelKey: 'navigation.mortality', value: 'mortality', component: MortalityListing, requiresPermission: 'access_mortality_module' },
-  { labelKey: 'housing_module.animals_under_treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
+  {
+    labelKey: 'housing_module.animals_under_treatment',
+    value: 'animalTreatment',
+    component: AnimalTreatmentListing,
+    requiresPermission: 'medical_records'
+  },
   { labelKey: 'housing_module.food_wastage', value: 'foodWastage', component: FoodWastageListing }
 ]
 
@@ -97,21 +102,6 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
   const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
   const permissions: Record<string, boolean> = { ...userSettingsPermissions, ...rolesSettingsPermissions }
 
-  const tabConfig = useMemo(() => {
-    return allTabConfig.filter(tab => {
-      if (tab.requiresPermission) {
-        if (permissions?.[tab.requiresPermission] !== true) {
-          return false
-        }
-      }
-
-      return true
-    })
-  }, [permissions])
-
-  const availableTabs = useMemo(() => tabConfig.map(t => t.value), [tabConfig])
-  const [selectedTab, setSelectedTab] = useTabSync(allTabConfig[0].value, availableTabs)
-
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['section-insights', id],
     queryFn: () =>
@@ -121,6 +111,25 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
       }),
     enabled: !!id && !!zooId
   })
+
+  const tabConfig = useMemo(() => {
+    return allTabConfig.filter(tab => {
+      if (tab.requiresPermission) {
+        if (permissions?.[tab.requiresPermission] !== true) {
+          return false
+        }
+      }
+
+      if (tab.value === 'foodWastage' && String((data?.data as any)?.is_system_generated) === '1') {
+        return false
+      }
+
+      return true
+    })
+  }, [permissions, data])
+
+  const availableTabs = useMemo(() => tabConfig.map(t => t.value), [tabConfig])
+  const [selectedTab, setSelectedTab] = useTabSync(allTabConfig[0].value, availableTabs)
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string): void => {
     setSelectedTab(newValue)

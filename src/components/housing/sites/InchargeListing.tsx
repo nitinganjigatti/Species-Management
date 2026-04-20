@@ -234,28 +234,19 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
 
   return (
     <>
-      {/* Row 1: Header */}
-      <Box sx={{ mt: 4, mb: 2 }}>
-        <ListingHeader title={`${entityLabel} Incharge List`} totalCount={total} />
-      </Box>
-
-      {/* Row 2: Search (left) and Add Button (right) */}
+      {/* Row 1: Header (left) and Add Button (right) */}
       <Box
         sx={{
+          mt: 4,
+          mb: 2,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          mb: 4,
           flexWrap: { xs: 'wrap', sm: 'nowrap' },
           gap: 2
         }}
       >
-        <Search
-          value={searchInput}
-          onChange={handleSearchChange}
-          onClear={handleSearchClear}
-          placeholder={t('housing_module.search_incharges') as string}
-        />
+        <ListingHeader title={`${entityLabel} Incharge List`} totalCount={total} />
 
         {(userInList || hasAddAccess) && (
           <Button
@@ -273,6 +264,23 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
             {t('housing_module.choose_manager', { entity: entityLabel })}
           </Button>
         )}
+      </Box>
+
+      {/* Row 2: Search (right) */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+          mb: 4
+        }}
+      >
+        <Search
+          value={searchInput}
+          onChange={handleSearchChange}
+          onClear={handleSearchClear}
+          placeholder={t('housing_module.search_incharges') as string}
+        />
       </Box>
       <Box sx={{ mt: 4 }}>
         <CommonTable
