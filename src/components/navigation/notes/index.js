@@ -8,11 +8,22 @@ const composeNotesNavigation = () => {
     path: '/notes/',
     icon: 'mdi:note-text-outline'
   }
+  const masters = {
+    title: 'Masters',
+    icon: 'tabler:settings',
+    children: [
+      {
+        title: 'Note Types',
+        path: '/notes/masters/note-types/'
+      }
+    ]
+  }
 
   const notesNavigationArray = []
 
   notesNavigationArray.push(Title)
   notesNavigationArray.push(notes)
+  notesNavigationArray.push(masters)
 
   return notesNavigationArray
 }

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Breadcrumbs, Typography } from '@mui/material'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 
 const DynamicBreadcrumbs = ({
   pageItems,

@@ -189,3 +189,18 @@ export interface NotesDetailsData {
   child_master_type: ChildMasterType | null
   ref_data: RefData[]
 }
+
+// Note types
+export interface NoteTypeItem {
+  id: number
+  type_name: string
+  key: string
+  string_id: string | null
+  zoo_id: string
+  parent_id?: number | null
+  parent_type_id?: number | null
+}
+
+export interface IndexedNoteTypeRow extends NoteTypeItem {
+  sl_no: number
+}

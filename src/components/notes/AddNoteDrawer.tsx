@@ -333,9 +333,9 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
 
         onClose()
       } else {
-        Toaster({type: 'error',message: res?.message})
+        Toaster({ type: 'error', message: res?.message })
       }
-    } catch (error:any) {
+    } catch (error: any) {
       console.error('Error submitting note:', error?.message || error)
     } finally {
       setSubmitLoader(false)
@@ -559,7 +559,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                         </IconButton>
                       </Box>
                     </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column'}}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                       <Box sx={{ px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <Typography
                           sx={{
@@ -636,9 +636,9 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label={t('notes_module.notes')}
+                  label={t('notes_module.enter_notes')}
                   name='observation_name'
-                  placeholder={t('notes_module.notes')}
+                  placeholder={t('notes_module.enter_notes')}
                   fullWidth
                   multiline
                   minRows={3}
@@ -778,10 +778,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                         {selectedAnimals?.length} {t('notes_module.entities')}
                       </Typography>
                       {!editData?.observation_id && (
-                        <IconButton
-                          size='small'
-                          sx={{ color: theme.palette.customColors.Secondary }}
-                        >
+                        <IconButton size='small' sx={{ color: theme.palette.customColors.Secondary }}>
                           <AddCircleOutline />
                         </IconButton>
                       )}
