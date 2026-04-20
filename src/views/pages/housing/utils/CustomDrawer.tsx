@@ -1,5 +1,5 @@
 import React, { ReactNode, ReactElement } from 'react'
-import { Drawer, Box, Typography, IconButton } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, useMediaQuery } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
 
@@ -16,6 +16,7 @@ interface CustomDrawerProps {
 
 const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon, iconColor, children, backgroundColor, zIndex }) => {
   const theme = useTheme()
+  const isTouch = useMediaQuery('(pointer: coarse)')
 
   return (
     <Drawer
@@ -37,7 +38,9 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon,
           width: 570,
           maxWidth: '100vw',
           minHeight: '100vh',
-          p: theme.spacing(4, 5)
+          overflowY: { lg: 'auto' },
+          p: theme.spacing(4, 5),
+
         }}
       >
         {/* Header */}
@@ -63,7 +66,11 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon,
                   } as any)
                 ))}
               <Typography
-                sx={{ fontSize: '1.5rem', fontWeight: 500, color: (theme.palette as any).customColors?.OnSurfaceVariant }}
+                sx={{
+                  fontSize: '1.5rem',
+                  fontWeight: 500,
+                  color: (theme.palette as any).customColors?.OnSurfaceVariant
+                }}
               >
                 {title}
               </Typography>
@@ -77,7 +84,9 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon,
         {/* Content */}
         <Box
           sx={{
-            mt: 3
+            mt: 3,
+            overscrollBehavior:  {lg: 'auto'},
+            WebkitOverflowScrolling: {lg: 'auto'}
           }}
         >
           {children}
