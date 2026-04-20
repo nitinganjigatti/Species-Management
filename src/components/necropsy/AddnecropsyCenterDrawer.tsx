@@ -57,8 +57,6 @@ const defaultValues: FormValues = {
   site: null
 }
 
-
-
 const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
   open,
   setOpen,
@@ -71,19 +69,19 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
   const isEditMode = Boolean(editData)
 
   const schema = Yup.object().shape({
-  necropsy_center_name: Yup.string()
-    .trim()
-    .required(t('necropsy_module.necropsy_center_name_is_required'))
-    .min(3, t('necropsy_module.necropsy_center_name_must_be_at_least_3_characters'))
-    .max(100, t('necropsy_module.necropsy_center_name_must_not_exceed_100_characters')),
-  description: Yup.string().trim().max(500, t('description_must_not_exceed_500_characters')).nullable(),
-  site: Yup.object()
-    .shape({
-      label: Yup.string(),
-      value: Yup.string()
-    })
-    .nullable()
-})
+    necropsy_center_name: Yup.string()
+      .trim()
+      .required(t('necropsy_module.necropsy_center_name_is_required'))
+      .min(3, t('necropsy_module.necropsy_center_name_must_be_at_least_3_characters'))
+      .max(100, t('necropsy_module.necropsy_center_name_must_not_exceed_100_characters')),
+    description: Yup.string().trim().max(500, t('description_must_not_exceed_500_characters')).nullable(),
+    site: Yup.object()
+      .shape({
+        label: Yup.string(),
+        value: Yup.string()
+      })
+      .nullable()
+  })
 
   const {
     control,
@@ -192,10 +190,14 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
 
       const response = await addUpdateNecropsyCenter(payload, status, necropsyId)
 
-      if (response?.success) {
+      const isSuccess = isEditMode ? response?.status : response?.success
+
+      if (isSuccess) {
         Toaster({
           type: 'success',
-          message: isEditMode ? t('necropsy_module.necropsy_center_updated_successfully') : t('necropsy_module.necropsy_center_added_successfully')
+          message: isEditMode
+            ? t('necropsy_module.necropsy_center_updated_successfully')
+            : t('necropsy_module.necropsy_center_added_successfully')
         })
         if (onSuccess) {
           onSuccess()

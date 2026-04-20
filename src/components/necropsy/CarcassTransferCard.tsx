@@ -78,9 +78,13 @@ const getTransferStatus = (item: TransferItem, t: (key: string) => string): stri
     case 'REJECTED':
       return t('necropsy_module.rejected')
     case 'RIDE_STARTED':
-      return item?.is_checkout_required == 1 ? t('necropsy_module.security_checkout_pending') : t('necropsy_module.security_checkin_pending')
+      return item?.is_checkout_required == 1
+        ? t('necropsy_module.security_checkout_pending')
+        : t('necropsy_module.security_checkin_pending')
     case 'SECURITY_CHECKOUT_ALLOWED':
-      return item?.is_checkin_required == 1 ? t('necropsy_module.security_checkin_pending') : t('necropsy_module.awaiting_approval')
+      return item?.is_checkin_required == 1
+        ? t('necropsy_module.security_checkin_pending')
+        : t('necropsy_module.awaiting_approval')
     case 'SECURITY_CHECKIN_ALLOWED':
       return t('necropsy_module.awaiting_approval')
     default:
@@ -251,11 +255,15 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
               width: 'fit-content'
             }}
           >
-            <Typography sx={{ fontSize: '14px', fontWeight: 400, color: (theme.palette as any).customColors.OnSurfaceVariant }}>
+            <Typography
+              sx={{ fontSize: '14px', fontWeight: 400, color: (theme.palette as any).customColors.OnSurfaceVariant }}
+            >
               {params.row.transfer_code}
             </Typography>
           </Box>
-          <Typography sx={{ fontSize: '14px', fontWeight: 500, color: (theme.palette as any).customColors.OnSurfaceVariant }}>
+          <Typography
+            sx={{ fontSize: '14px', fontWeight: 500, color: (theme.palette as any).customColors.OnSurfaceVariant }}
+          >
             {getTransferStatus(params.row, t)}
           </Typography>
         </Box>
@@ -270,7 +278,21 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => {
         const priority = (params.row.mortality_priority || params.row.priority || '')?.toLowerCase()
 
-        if (!priority) return null
+        if (!priority) {
+          return (
+            <Typography
+              variant='body2'
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                color: (theme.palette as any).customColors.OnSurfaceVariant,
+                px: 2
+              }}
+            >
+              -
+            </Typography>
+          )
+        }
 
         const isHigh = priority === 'high'
 
@@ -285,13 +307,15 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
               bgcolor: isHigh
                 ? (theme.palette as any).customColors.Tertiary30
                 : alpha((theme.palette as any).customColors.SecondaryContainer, 0.5),
-              color: isHigh ? (theme.palette as any).customColors.Tertiary : (theme.palette as any).customColors.addPrimary,
+              color: isHigh
+                ? (theme.palette as any).customColors.Tertiary
+                : (theme.palette as any).customColors.addPrimary,
               fontWeight: 600,
               fontSize: '14px'
             }}
           >
             {isHigh ? '!!! ' : '! '}
-            {priority?.charAt(0).toUpperCase() + priority?.slice(1)}
+            {priority.charAt(0).toUpperCase() + priority.slice(1)}
           </Box>
         )
       }
@@ -333,7 +357,9 @@ const CarcassTransferCard: FC<CarcassTransferCardProps> = ({ filterDate }) => {
       field: 'requested_by',
       headerName: t('necropsy_module.requested_by'),
       renderCell: (params: GridRenderCellParams<IndexedTransferRow>) => (
-        <Typography sx={{ fontSize: '14px', fontWeight: 400, color: (theme.palette as any).customColors.OnSurfaceVariant }}>
+        <Typography
+          sx={{ fontSize: '14px', fontWeight: 400, color: (theme.palette as any).customColors.OnSurfaceVariant }}
+        >
           {params.row.user_first_name} {params?.row?.user_last_name}
         </Typography>
       )
