@@ -45,7 +45,17 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
   const selectedType = useMemo(() => assessmentTypes[selectedTypeIndex], [assessmentTypes, selectedTypeIndex])
-  const isWeightType = selectedType?.assessment_name?.toLowerCase() === 'weight'
+  const isNumericType = selectedType?.response_type === 'numeric_value'
+
+  // Get the measurement type for current assessment based on the first record's unit
+  const getCurrentMeasurementType = () => {
+    if (assessmentData.length === 0) return null
+    const firstRecord = assessmentData[0]
+    const unit = measurementUnits.find(u => u?.id == firstRecord?.assessment_unit_id)
+    return unit?.measurement_type?.toLowerCase() || null
+  }
+
+  const currentMeasurementType = getCurrentMeasurementType()
 
   // Fetch assessment types when drawer opens
   useEffect(() => {
@@ -73,15 +83,20 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     }
   }, [inView])
 
-  // Set default unit to base unit when weight data loads
+  // Reset unit selection when assessment type changes
   useEffect(() => {
-    if (isWeightType && assessmentData.length > 0 && !selectedWeightUnit) {
-      const baseUnit = getBaseUnit()
+    setSelectedWeightUnit(null)
+  }, [selectedTypeIndex])
+
+  // Set default unit to base unit when numeric data loads
+  useEffect(() => {
+    if (isNumericType && assessmentData.length > 0 && !selectedWeightUnit) {
+      const baseUnit = getBaseUnit(currentMeasurementType)
       if (baseUnit) {
         setSelectedWeightUnit(baseUnit.id)
       }
     }
-  }, [isWeightType, assessmentData, measurementUnits])
+  }, [isNumericType, assessmentData, measurementUnits, currentMeasurementType])
 
   const fetchAssessmentTypes = async () => {
     setLoading(true)
@@ -172,6 +187,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     setSelectedTypeIndex(newValue)
     setExpandedNotes({})
     setWeightSubTab(0)
+    setSelectedWeightUnit(null) // Reset unit selection when switching assessment types
   }
 
   const handleMenuOpen = event => {
@@ -185,6 +201,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
   const handleMenuItemClick = index => {
     setSelectedTypeIndex(index)
     setExpandedNotes({})
+    setSelectedWeightUnit(null) // Reset unit selection when switching assessment types
     handleMenuClose()
   }
 
@@ -204,11 +221,12 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     return unit?.uom_abbr || ''
   }
 
-  const getBaseUnit = () => {
-    // Base unit is the one with conversion_factor = 1
-    const weightUnits = measurementUnits.filter(u => u?.measurement_type?.toLowerCase() === 'weight')
-    const baseUnit = weightUnits.find(u => u?.base_uom_name == 'gram')
-    return baseUnit || (weightUnits.length > 0 ? weightUnits[0] : null)
+  const getBaseUnit = (measurementType = currentMeasurementType) => {
+    if (!measurementType) return null
+    const units = measurementUnits.filter(u => u?.measurement_type?.toLowerCase() === measurementType)
+    // Find base unit (conversion_factor = 1) or first unit
+    const baseUnit = units.find(u => parseFloat(u?.conversion_factor) === 1)
+    return baseUnit || (units.length > 0 ? units[0] : null)
   }
 
   const convertValueToGram = (value, fromUnitId) => {
@@ -261,11 +279,11 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     const { date, time } = formatDateTime(item?.recorded_date_time)
     const isEven = index % 2 === 0
 
-    // Convert value to selected unit if weight type
+    // Convert value to selected unit if numeric type
     let displayValue = item?.assessment_value
     let displayUnit = getUnitAbbr(item?.assessment_unit_id)
 
-    if (isWeightType && selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
+    if (isNumericType && selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
       const convertedValue = convertToUnit(item?.assessment_value, item?.assessment_unit_id, selectedWeightUnit)
       displayValue = parseFloat(convertedValue).toFixed(2)
       displayUnit = getUnitAbbr(selectedWeightUnit)
@@ -539,8 +557,8 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
               backgroundColor: theme.palette.common.white
             }}
           >
-            {/* Internal tabs for Weight type */}
-            {isWeightType && (
+            {/* Internal tabs for numeric types */}
+            {isNumericType && (
               <>
                 <Box
                   sx={{
@@ -576,8 +594,8 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                   </Tabs>
                 </Box>
 
-                {/* Unit Selector for Weight */}
-                {(weightSubTab === 0 || weightSubTab === 1) && measurementUnits.length > 0 && (
+                {/* Unit Selector for numeric types */}
+                {(weightSubTab === 0 || weightSubTab === 1) && measurementUnits.length > 0 && currentMeasurementType && (
                   <FormControl fullWidth sx={{ mb: 3 }}>
                     <InputLabel id='unit-select-label'>Unit of Measurement</InputLabel>
                     <Select
@@ -588,7 +606,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                       onChange={e => setSelectedWeightUnit(parseInt(e.target.value))}
                     >
                       {measurementUnits
-                        .filter(unit => unit?.measurement_type?.toLowerCase() === 'weight')
+                        .filter(unit => unit?.measurement_type?.toLowerCase() === currentMeasurementType)
                         .map(unit => (
                           <MenuItem key={unit?.id} value={unit?.id}>
                             {unit?.uom_abbr}
@@ -601,7 +619,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
             )}
 
             {/* Records Tab Content */}
-            {!isWeightType || weightSubTab === 0 ? (
+            {!isNumericType || weightSubTab === 0 ? (
               loading && assessmentData.length === 0 ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
                   <CircularProgress />
@@ -671,7 +689,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                     },
                     yaxis: {
                       title: {
-                        text: `Weight (${
+                        text: `${selectedType?.assessment_name || 'Value'} (${
                           selectedWeightUnit
                             ? getUnitAbbr(selectedWeightUnit)
                             : getUnitAbbr(assessmentData[0]?.assessment_unit_id)
@@ -708,7 +726,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                   }}
                   series={[
                     {
-                      name: 'Weight',
+                      name: selectedType?.assessment_name || 'Value',
                       data: [...assessmentData].reverse().map(item => {
                         const value = parseFloat(item?.assessment_value)
                         if (selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
