@@ -135,21 +135,21 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
         let newData = response.data?.result || []
         setTotalCount(response.data?.total_count || 0)
 
-        // Convert all assessment values to gram (base unit) before storing
-        newData = newData.map(item => {
-          const unit = measurementUnits.find(u => u?.id == item?.assessment_unit_id)
-          const conversionFactor = parseFloat(unit?.conversion_factor || 1)
-          const valueInGram = parseFloat(item?.assessment_value) * conversionFactor
+        // Only convert weight values to gram (base unit). Other assessment types should remain unchanged
+        if (selectedType?.assessment_name?.toLowerCase() === 'weight') {
+          newData = newData.map(item => {
+            const unit = measurementUnits.find(u => u?.id == item?.assessment_unit_id)
+            const conversionFactor = parseFloat(unit?.conversion_factor || 1)
+            const valueInGram = parseFloat(item?.assessment_value) * conversionFactor
 
-          // console.log(`Normalizing: ${item?.assessment_value} ${unit?.uom_abbr} = ${valueInGram} g`)
-
-          return {
-            ...item,
-            assessment_value: valueInGram, // Store in gram
-            original_unit_id: item.assessment_unit_id, // Keep original unit reference
-            assessment_unit_id: measurementUnits.find(u => u?.base_uom_name === 'gram')?.id // Set to gram unit id
-          }
-        })
+            return {
+              ...item,
+              assessment_value: valueInGram, // Store in gram
+              original_unit_id: item.assessment_unit_id, // Keep original unit reference
+              assessment_unit_id: measurementUnits.find(u => u?.base_uom_name === 'gram')?.id // Set to gram unit id
+            }
+          })
+        }
 
         if (reset) {
           setAssessmentData(newData)
