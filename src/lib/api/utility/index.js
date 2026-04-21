@@ -28,8 +28,8 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   }
 
   header['CurrentTimeZone'] = currentTimeZone
-  // header['X-Client-Platform'] = clientPlatform
-  // header['X-Client-Version'] = clientVersion
+  header['X-Client-Platform'] = clientPlatform
+  header['X-Client-Version'] = clientVersion
 
   return header
 }
