@@ -59,6 +59,7 @@ const StatBox = ({ avatarSrc, value, label, tooltipContent, onClick, valueColor 
 
 const EggsStats = ({ allStats, setOpenDiscard }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const statsData = [
     {
