@@ -101,7 +101,7 @@ const DoctorsList = () => {
     if (selectedHospital?.id) {
     fetchHospitalStaff()
     }
-  }, [fetchHospitalStaff])
+  }, [fetchHospitalStaff, selectedHospital])
 
 
     const indexedRows = useMemo(() => {
