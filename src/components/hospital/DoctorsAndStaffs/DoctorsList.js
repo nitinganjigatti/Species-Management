@@ -98,7 +98,9 @@ const DoctorsList = () => {
   }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
 
   useEffect(() => {
+    if (selectedHospital?.id) {
     fetchHospitalStaff()
+    }
   }, [fetchHospitalStaff])
 
 
