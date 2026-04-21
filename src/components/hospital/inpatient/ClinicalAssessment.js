@@ -250,8 +250,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
-
-    //setRecords([])
+    setRecords([])
   }
 
   const filteredRecords = records
