@@ -171,11 +171,19 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
     return null
   }
 
+  const cleanTimeFormat = (timeStr: string | null | undefined): string | null => {
+    if (!timeStr) return null
+    // Extract time before any dash (removes "- 2 Asdfasf" etc)
+    const timePart = timeStr.split('-')[0].trim()
+    // Remove spaces around colons between time units, but keep space before AM/PM
+    return timePart.replace(/(\d+)\s*:\s*(\d+)\s*:\s*([AP]M)/i, '$1:$2 $3')
+  }
+
   const buildDosageChips = (item: PrescriptionItem): DosageChip[] => {
     if (Array.isArray(item.schedule_doses) && item.schedule_doses.length > 0) {
       return item.schedule_doses
         .map(dose => ({
-          time: dose.time ? dose.time : null,
+          time: cleanTimeFormat(dose.time),
           dosage:
             dose.quantity && dose.unit_name
               ? `${dose.quantity} ${dose.unit_name}`
@@ -187,10 +195,11 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
     }
 
     const timeStr = item.created_at ? Utility.convertUTCToLocaltime(item.created_at) : null
+    const cleanedTime = cleanTimeFormat(timeStr)
     const dosageStr = item.dosage || null
 
-    if (timeStr || dosageStr) {
-      return [{ time: timeStr, dosage: dosageStr }]
+    if (cleanedTime || dosageStr) {
+      return [{ time: cleanedTime, dosage: dosageStr }]
     }
 
     return []
