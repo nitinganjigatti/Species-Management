@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 function SpeciesCard({ species, edit }) {
   const theme = useTheme()
   const [loading, setLoading] = useState(true)
-  const [imgSrc, setImgSrc] = useState(species?.default_icon)
+  const [imgSrc, setImgSrc] = useState(species?.default_icon || '/branding/antz/Antz_logomark_h_color.svg')
 
   const handleImageLoad = () => {
     setLoading(false)
@@ -39,8 +39,8 @@ function SpeciesCard({ species, edit }) {
               // borderRadius:species?.default_icon && species.default_icon.includes('.svg') ? '50%' : species?.default_icon ? '50%' : 'unset'
               borderRadius: imgSrc.includes('.svg') ? '50%' : 'unset'
             }}
-            // src={imgSrc}
-            src={species?.default_icon || '/images/housing/species-icon-colored.svg'}
+            src={imgSrc}
+            // src={species?.default_icon || '/images/housing/species-icon-colored.svg'}
             alt={species.scientific_name}
             slotProps={{
               img: {
