@@ -25,7 +25,7 @@ import {
   Chip
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import {
@@ -480,12 +480,25 @@ const MealGroup = () => {
     }
   }
 
+  const lastEnclosureKeyRef = useRef('')
+  const lastSiteKeyRef = useRef('')
+  const lastGroupNamesKeyRef = useRef('')
+  const speciesFetchedRef = useRef(false)
+
   useEffect(() => {
+    if (!selectedOption) return
+    const key = [
+      selectedOption,
+      status,
+      paginationModel.page,
+      paginationModel.pageSize,
+      status === 'mealgroup' ? '' : selectedSection,
+      status === 'mealgroup' ? '' : selectedSpecies,
+      status === 'mealgroup' ? '' : selectedGroup
+    ].join('|')
+    if (lastEnclosureKeyRef.current === key) return
+    lastEnclosureKeyRef.current = key
     fetchEnclosure()
-    fetchSiteStats()
-    fetchSectionList()
-    fetchSpeciesList()
-    fetchMealGroupNames()
     updateUrlParams({
       status: status,
       site_id: selectedOption,
@@ -501,6 +514,36 @@ const MealGroup = () => {
     selectedSpecies,
     selectedGroup
   ])
+
+  useEffect(() => {
+    if (!selectedOption) return
+    const siteKey = String(selectedOption)
+    if (lastSiteKeyRef.current === siteKey) return
+    lastSiteKeyRef.current = siteKey
+    fetchSiteStats()
+    fetchSectionList()
+  }, [selectedOption])
+
+  useEffect(() => {
+    if (!selectedOption) return
+    if (status === 'mealgroup') return
+    const siteKey = String(selectedOption)
+    if (lastGroupNamesKeyRef.current === siteKey) return
+    lastGroupNamesKeyRef.current = siteKey
+    fetchMealGroupNames()
+  }, [selectedOption, status])
+
+  useEffect(() => {
+    if (status === 'mealgroup' && menuGroupList?.length > 0) {
+      setGroupList(menuGroupList)
+    }
+  }, [menuGroupList, status])
+
+  useEffect(() => {
+    if (speciesFetchedRef.current) return
+    speciesFetchedRef.current = true
+    fetchSpeciesList()
+  }, [])
 
   const StatCard = ({ value, label, bgColor, textColor }) => (
     <Card
@@ -832,7 +875,7 @@ const MealGroup = () => {
   const groupcolumns = [
     {
       flex: 0.4,
-      width: 40,
+      minWidth: 240,
       sortable: false,
       field: 'group_name',
       headerName: t('diet_module.meal_group_name'),
@@ -928,7 +971,7 @@ const MealGroup = () => {
     },
     {
       flex: 0.2,
-      width: 20,
+      minWidth: 130,
       field: 'enclosure_count',
       type: 'number',
       sortable: false,
@@ -976,7 +1019,7 @@ const MealGroup = () => {
     },
     {
       flex: 0.15,
-      width: 10,
+      minWidth: 110,
       field: 'species_count',
       sortable: false,
       type: 'number',
@@ -1024,7 +1067,7 @@ const MealGroup = () => {
     },
     {
       flex: 0.15,
-      width: 20,
+      minWidth: 110,
       field: 'animal_count',
       headerName: t('navigation.animals'),
       sortable: false,
@@ -1070,7 +1113,53 @@ const MealGroup = () => {
       )
     },
     {
+      flex: 0.35,
+      minWidth: 180,
+      field: 'drop_point_name',
+      sortable: false,
+      headerAlign: 'left',
+      align: 'left',
+      renderHeader: () => (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', gap: 1 }}>
+          <Typography
+            variant='subtitle2'
+            sx={{
+              fontWeight: 600,
+              fontSize: '12px',
+              fontFamily: 'Inter',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              textTransform: 'uppercase'
+            }}
+          >
+            {t('diet_module.drop_point_name')}
+          </Typography>
+        </Box>
+      ),
+      renderCell: params => (
+        <Tooltip title={params.row.drop_point_name || ''}>
+          <Typography
+            noWrap
+            variant='body2'
+            sx={{
+              fontSize: '16px',
+              fontWeight: 400,
+              color: params.row.drop_point_name
+                ? theme.palette.customColors.OnSurfaceVariant
+                : theme.palette.customColors.customDropdownColor,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '100%'
+            }}
+          >
+            {params.row.drop_point_name || '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
       flex: 1,
+      minWidth: 320,
       field: 'actions',
       sortable: false,
       headerAlign: 'right',
