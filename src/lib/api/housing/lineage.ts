@@ -184,7 +184,7 @@ export async function getOffspringStats(params: OffspringStatsPayload): Promise<
 
 export async function deleteOffspring(params: DeleteOffspringPayload): Promise<DeleteOffspringResponse> {
   try {
-    const response = await axiosPost({ url: DELETE_FAMILY_TREE_OFFSPRINGS, body: params })
+    const response = await axiosFormPost({ url: DELETE_FAMILY_TREE_OFFSPRINGS, body: params })
 
     return response?.data
   } catch (error: any) {

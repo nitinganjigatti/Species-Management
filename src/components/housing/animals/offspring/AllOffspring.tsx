@@ -1,45 +1,52 @@
-import React, { FC, useEffect, useMemo, useState } from 'react'
-import { Box, Typography, useTheme, Button, Skeleton } from '@mui/material'
+import React, { FC, useCallback, useContext, useEffect, useState } from 'react'
+import { Box, Button, CircularProgress, IconButton, Skeleton, Typography, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
-import styled from '@emotion/styled'
 import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
+import { useInView } from 'react-intersection-observer'
 import useSafeRouter from 'src/hooks/useSafeRouter'
-
+import { AuthContext } from 'src/context/AuthContext'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
-
-import { StyledTypographyProps, TabProps } from 'src/types/housing/animalsOffspring'
+import { DeleteOffspringPayload, OffspringListItem, TabProps } from 'src/types/housing/animalsOffspring'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import { deleteOffspring } from 'src/lib/api/housing'
-import { useQueryClient } from '@tanstack/react-query'
-import { IconButton } from '@mui/material'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import AddOffspringDrawer from './AddOffspringDrawer'
+import Toaster from 'src/components/Toaster'
 
 const AllOffspring: FC<TabProps> = props => {
   const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as any
   const { t } = useTranslation()
+  const authData = useContext(AuthContext)
   const queryClient = useQueryClient()
-  const [data, setData] = useState<any[] | null>(null)
+
   const [isEditing, setIsEditing] = useState<boolean>(false)
-  const [isLoading, setIsLoading] = useState<boolean>(true)
   const [confirmOpen, setConfirmOpen] = useState<boolean>(false)
   const [selectedOffspring, setSelectedOffspring] = useState<string[]>([])
-  const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false)
+  const [offspringList, setOffspringList] = useState<OffspringListItem[]>([])
+  const [page, setPage] = useState<number>(1)
+  const [hasMore, setHasMore] = useState<boolean>(true)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const onEdit = () => {
-    setIsEditing(!isEditing)
-    setSelectedOffspring([])
-  }
-  const onAdd = () => setIsDrawerOpen(true)
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
-  const fetchOffspringList = async () => {
+  const hasPermission = (authData as any)?.userData?.roles?.settings?.collection_animal_record_access
+
+  const fetchOffspringList = async (pageNo: number = 1) => {
+    if (!props.animalId || !props.isMother) return
+
     setIsLoading(true)
+
+    if (pageNo === 1) {
+      setHasMore(true)
+    }
+
     try {
       const payload = {
         parent_id: props.animalId,
@@ -47,95 +54,108 @@ const AllOffspring: FC<TabProps> = props => {
         use_case: 'offspring',
         ignore_permission: 1,
         include_dead_animal: 1,
-        page_no: 1
+        page_no: pageNo
       }
       const response = await getNewAnimalListWithFilters(payload)
+
       if (response?.success) {
-        setData(response.data)
+        const newData: OffspringListItem[] = response?.data || []
+
+        if (pageNo === 1) {
+          setOffspringList(newData)
+        } else {
+          setOffspringList(prev => [...prev, ...newData])
+        }
+
+        if (newData?.length < 10) {
+          setHasMore(false)
+        }
+      } else {
+        if (pageNo === 1) {
+          setOffspringList([])
+        }
+        setHasMore(false)
       }
     } catch (error: any) {
-      console.log(error?.message)
+      console.error('Error fetching offspring list:', error?.message || error)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDeleteOffspring = async () => {
-    setIsDeleting(true)
-    try {
-      const payload = {
+  const handleLoadMore = useCallback(() => {
+    if (isLoading || !hasMore) return
+
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchOffspringList(nextPage)
+  }, [isLoading, page, hasMore])
+
+  useEffect(() => {
+    if (inView && !isLoading && hasMore) {
+      handleLoadMore()
+    }
+  }, [inView])
+
+  useEffect(() => {
+    setPage(1)
+    setOffspringList([])
+    setHasMore(true)
+    fetchOffspringList(1)
+  }, [props.animalId, props.isMother])
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const payload: DeleteOffspringPayload = {
         parent_id: props.animalId,
-        is_mother: props.isMother as 0 | 1,
-        offspring_ids: JSON.stringify(selectedOffspring.map(Number)),
-        confirm_delete: 1 as 0 | 1
+        is_mother: props.isMother,
+        offspring_ids: JSON.stringify(selectedOffspring),
+        confirm_delete: 1
       }
       const response = await deleteOffspring(payload)
-      if (response?.success) {
-        fetchOffspringList()
-        queryClient.invalidateQueries({ queryKey: ['offspring-stats', id, props.isMother] })
-        setIsEditing(false)
-        setSelectedOffspring([])
-      }
-    } catch (error: any) {
-      console.log(error?.message)
-    } finally {
-      setIsDeleting(false)
+      if (!response?.success) throw new Error(response?.message || 'Failed to delete offspring')
+      return response
+    },
+    onSuccess: response => {
+      setPage(1)
+      setOffspringList([])
+      setHasMore(true)
+      fetchOffspringList(1)
+      queryClient.invalidateQueries({ queryKey: ['offspring-stats', id, props.isMother] })
+      setIsEditing(false)
+      setSelectedOffspring([])
+      Toaster({ type: 'success', message: response?.message || 'Offspring deleted successfully' })
+    },
+    onError: (error: any) => {
+      Toaster({ type: 'error', message: error?.message || 'Failed to delete offspring' })
+    },
+    onSettled: () => {
       setConfirmOpen(false)
     }
-  }
+  })
 
-  const handleConfirm = () => {
-    handleDeleteOffspring()
+  const isDeleting = deleteMutation.isPending
+
+  const onEdit = () => {
+    setIsEditing(!isEditing)
+    setSelectedOffspring([])
   }
+  const onAdd = () => setIsDrawerOpen(true)
 
   const handleCancel = () => {
     setConfirmOpen(false)
   }
 
   const toggleSelection = (id: string) => {
-    if (selectedOffspring.includes(id)) {
-      setSelectedOffspring(selectedOffspring.filter(i => i !== id))
-    } else {
-      setSelectedOffspring([...selectedOffspring, id])
-    }
+    setSelectedOffspring(prev => (prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]))
   }
-
-  useEffect(() => {
-    fetchOffspringList()
-  }, [])
-
-  // if (isLoading) {
-  //   return <LoadingSkeleton />
-  // }
-
-  // if (!data || data.length === 0) {
-  //   return (
-  //     <Box
-  //       sx={{
-  //         display: 'flex',
-  //         flexDirection: 'column',
-  //         gap: 4
-  //       }}
-  //     >
-  //       <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-  //         <Button startIcon={<Icon icon='mdi:add' />} variant='contained' onClick={onAdd}>
-  //           Add Offspring
-  //         </Button>
-  //       </Box>
-
-  //       <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-  //         <NoDataFound />
-  //       </Box>
-  //     </Box>
-  //   )
-  // }
 
   return (
     <Box sx={{ position: 'relative', width: '100%', minHeight: '100%' }}>
-      {isLoading && <LoadingSkeleton />}
+      {isLoading && offspringList?.length === 0 && <LoadingSkeleton />}
 
       {/* Empty State */}
-      {!isLoading && (!data || data.length === 0) && (
+      {!isLoading && offspringList?.length === 0 && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
             <Button startIcon={<Icon icon='mdi:add' />} variant='contained' onClick={onAdd}>
@@ -149,7 +169,7 @@ const AllOffspring: FC<TabProps> = props => {
         </Box>
       )}
 
-      {!isLoading && data && data.length > 0 && (
+      {offspringList?.length > 0 && (
         <>
           <Box
             sx={{
@@ -167,27 +187,33 @@ const AllOffspring: FC<TabProps> = props => {
             <Typography sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
               {t('animals_module.offspring')}
             </Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <IconButton size='small' onClick={onAdd} sx={{ color: theme.palette.customColors.addPrimary }}>
-                <Icon icon='gala:add' fontSize={24} />
-              </IconButton>
 
-              <IconButton
-                size='small'
-                onClick={onEdit}
-                sx={{ color: isEditing ? theme.palette.error.main : theme.palette.customColors.OnSurfaceVariant }}
-              >
-                <Icon icon='fluent:edit-28-regular' fontSize={24} />
-              </IconButton>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {hasPermission !== 'VIEW' && (
+                <IconButton size='small' onClick={onAdd} sx={{ color: theme.palette.customColors.addPrimary }}>
+                  <Icon icon='gala:add' fontSize={24} />
+                </IconButton>
+              )}
+
+              {hasPermission === 'DELETE' && (
+                <IconButton
+                  size='small'
+                  onClick={onEdit}
+                  sx={{ color: isEditing ? theme.palette.error.main : theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  <Icon icon='fluent:edit-28-regular' fontSize={24} />
+                </IconButton>
+              )}
             </Box>
           </Box>
 
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            {data?.map((item, index) => {
-              const isSelected = selectedOffspring.includes(item.animal_id)
+            {offspringList?.map(item => {
+              const isSelected = selectedOffspring?.includes(item?.animal_id)
+
               return (
                 <Box
-                  key={index}
+                  key={item?.animal_id}
                   sx={{
                     p: 4,
                     display: 'flex',
@@ -213,7 +239,7 @@ const AllOffspring: FC<TabProps> = props => {
                     <Box
                       onClick={e => {
                         e.stopPropagation()
-                        toggleSelection(item.animal_id)
+                        toggleSelection(item?.animal_id)
                       }}
                       sx={{
                         display: 'flex',
@@ -237,9 +263,21 @@ const AllOffspring: FC<TabProps> = props => {
               )
             })}
           </Box>
+
+          {hasMore && (
+            <Box ref={loaderRef} display='flex' justifyContent='center' p={4}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
+
+          {!hasMore && offspringList.length > 10 && (
+            <Typography align='center' sx={{ mt: 4, color: 'text.disabled', pb: 4 }}>
+              {t('animals_module.no_more_offspring_to_load')}
+            </Typography>
+          )}
         </>
       )}
-      {selectedOffspring.length > 0 && (
+      {selectedOffspring?.length > 0 && (
         <BottomActionBar
           children={null}
           submitLabel='Save'
@@ -266,7 +304,7 @@ const AllOffspring: FC<TabProps> = props => {
           description={t('animals_module.removing_animal_from_list_warning')}
           cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.error.main, py: 2 }}
-          confirmAction={handleConfirm}
+          confirmAction={() => deleteMutation.mutate()}
           ConfirmationText={t('yes')}
           image={'/images/warning-icon.svg'}
         />
@@ -279,7 +317,10 @@ const AllOffspring: FC<TabProps> = props => {
             setIsDrawerOpen(false)
           }}
           onAcceptSuccess={() => {
-            fetchOffspringList()
+            setPage(1)
+            setOffspringList([])
+            setHasMore(true)
+            fetchOffspringList(1)
             queryClient.invalidateQueries({ queryKey: ['offspring-stats', id, props.isMother] })
           }}
           animalId={Array.isArray(id) ? id[0] : id ?? ''}
@@ -291,12 +332,6 @@ const AllOffspring: FC<TabProps> = props => {
 }
 
 export default AllOffspring
-const StyledTypography = styled(Typography)<StyledTypographyProps>(({ theme, fontWeight, fontSize, color, sx }) => ({
-  fontSize: fontSize || '1rem',
-  fontWeight: fontWeight || 400,
-  color: color || (theme as any).palette?.customColors?.OnSurfaceVariant || (theme as any).palette?.text?.primary,
-  ...(sx as any)
-}))
 
 function LoadingSkeleton() {
   const theme = useTheme() as any

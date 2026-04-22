@@ -8,6 +8,8 @@ import { AnimalOffspringProps, OffspringStats } from 'src/types/housing/animalsO
 import { AllOffspring, Litter, Mortality, FetalDeath, Clutch, Egg } from './offspring'
 import { useTranslation } from 'react-i18next'
 
+type Binary = 0 | 1
+
 const OFFSPRING_TABS = [
   { value: 'all_offspring', labelKey: 'animals_module.all_offspring', key: 'all_offspring' },
   { value: 'litter_count', labelKey: 'animals_module.litter', key: 'litter_count' },
@@ -26,10 +28,7 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
 
   const [activeTab, setActiveTab] = useState('all_offspring')
 
-  const isMother = useMemo(
-    () => (animalDetails?.sex === 'female' ? 1 : 0),
-    [animalDetails?.sex]
-  )
+  const isMother: Binary = animalDetails?.sex === 'female' ? 1 : 0
 
   //  Fetch stats
   const { data: statsData, isLoading: isStatsLoading } = useQuery({
@@ -63,9 +62,7 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
 
     //  Egg-laying
     if (reproductionType === 'egg-laying') {
-      tabs = tabs.filter(tab =>
-        ['all_offspring', 'clutch_count', 'egg_count'].includes(tab.value)
-      )
+      tabs = tabs.filter(tab => ['all_offspring', 'clutch_count', 'egg_count'].includes(tab.value))
 
       if (sex === 'male') {
         tabs = tabs.filter(tab => tab.value !== 'clutch_count')
@@ -137,11 +134,7 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
           }}
         >
           {filteredTabs.map(tab => (
-            <Tab
-              key={tab.value}
-              value={tab.value}
-              label={getTabLabel(tab.key, tab.labelKey)}
-            />
+            <Tab key={tab.value} value={tab.value} label={getTabLabel(tab.key, tab.labelKey)} />
           ))}
         </Tabs>
       </Box>

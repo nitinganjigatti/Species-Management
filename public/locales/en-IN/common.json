@@ -1663,7 +1663,9 @@
     "unknown": "Unknown",
     "update_parent": "Update Parent",
     "upload_diet": "Upload diet",
-    "write_notes_placeholder": "Write notes here"
+    "write_notes_placeholder": "Write notes here",
+    "incharge_list": "Incharge List",
+    "no_more_offspring_to_load": "No more offspring to load"
   },
   "necropsy_module": {
     "edit_necropsy_center": "Edit Necropsy Center",

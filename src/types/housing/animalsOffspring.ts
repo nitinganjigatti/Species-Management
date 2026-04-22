@@ -538,7 +538,7 @@ export interface AnimalOffspringProps {
 
 export interface TabProps {
   animalId: string
-  isMother: number
+  isMother: 0 | 1
   stats?: OffspringStats | null
   animalDetails?: any
 }
