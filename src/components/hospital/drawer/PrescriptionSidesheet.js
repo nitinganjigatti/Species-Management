@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import { Box, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -6,6 +6,7 @@ import PrescriptionList from 'src/components/necropsy/PrescriptionList'
 
 const PrescriptionSidesheet = ({ open, onClose, animalId }) => {
   const theme = useTheme()
+  const scrollContainerRef = useRef(null)
 
   return (
     <Drawer
@@ -61,6 +62,7 @@ const PrescriptionSidesheet = ({ open, onClose, animalId }) => {
         </Box>
 
         <Box
+          ref={scrollContainerRef}
           sx={{
             flex: 1,
             overflowY: 'auto',
@@ -83,7 +85,7 @@ const PrescriptionSidesheet = ({ open, onClose, animalId }) => {
             }
           }}
         >
-          {animalId ? <PrescriptionList animalId={animalId} /> : null}
+          {animalId ? <PrescriptionList animalId={animalId} scrollContainerRef={scrollContainerRef} /> : null}
         </Box>
       </Box>
     </Drawer>
