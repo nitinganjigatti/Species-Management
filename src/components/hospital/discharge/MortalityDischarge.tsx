@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import debounce from 'lodash/debounce'
 import { getMannerOfDeath, getCarcassCondition, getCarcassDeposition } from 'src/lib/api/housing'
 import { addInpatientDischarge, getNecropsyCenter } from 'src/lib/api/hospital/inpatientDischarge'
@@ -9,6 +10,7 @@ import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 
 function useMortalityDischarge() {
+  const { t } = useTranslation()
   const [causeOfDeath, setCauseOfDeath] = useState<any[]>([])
   const [carcassCondition, setCarcassCondition] = useState<any[]>([])
   const [carcassDeposition, setCarcassDeposition] = useState<any[]>([])
@@ -165,7 +167,7 @@ function useMortalityDischarge() {
       if (response?.success) {
         Toaster({
           type: 'success',
-          message: response?.message || 'Mortality discharge submitted successfully'
+          message: response?.message || t('hospital_module.mortality_discharge_submitted_successfully')
         })
 
         fetchAndUpdateHospitalStats(selectedHospital?.id)
@@ -175,7 +177,7 @@ function useMortalityDischarge() {
 
       Toaster({
         type: 'error',
-        message: response?.message || 'Failed to submit mortality discharge'
+        message: response?.message || t('hospital_module.failed_to_submit_mortality_discharge')
       })
 
       return false

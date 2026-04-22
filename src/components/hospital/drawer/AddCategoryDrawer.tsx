@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Toaster from 'src/components/Toaster'
 import { addMedicalCategory } from 'src/lib/api/medical/masters'
 import { useState } from 'react'
@@ -22,18 +23,22 @@ interface FormValues {
   label_name: string
 }
 
-const schema = yup.object().shape({
-  label_name: yup.string().trim().required('Label is required')
+// Schema needs to be created after useTranslation, but validation messages are set dynamically
+const createSchema = (t: any) => yup.object().shape({
+  label_name: yup.string().trim().required(t('hospital_module.label_is_required') || 'Label is required')
 })
 
 const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
   const { open, onClose, onSuccess, type } = props
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
 
   const defaultValues: FormValues = {
     label_name: ''
   }
+
+  const validationSchema = createSchema(t)
 
   const {
     control,
@@ -42,7 +47,7 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(validationSchema) as any,
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
@@ -59,7 +64,7 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
       const response: any = await addMedicalCategory(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Category added successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.category_added_successfully') })
 
         // Create the new category object to pass back
         const newCategory = {
@@ -76,11 +81,11 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
           onSuccess(newCategory)
         }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add category' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_add_category') })
       }
     } catch (error: any) {
       console.error('Error adding category:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      Toaster({ type: 'error', message: error.message || t('hospital_module.unexpected_error_occurred') })
     } finally {
       setLoading(false)
     }
@@ -122,7 +127,7 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
               icon='material-symbols-light:add-notes-outline-rounded'
               fontSize={'32px'}
             />
-            <Typography variant='h6'>Add Category</Typography>
+            <Typography variant='h6'>{t('hospital_module.add_category')}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -150,8 +155,8 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
               name='label_name'
               control={control}
               errors={errors}
-              label='Category*'
-              placeholder='Category'
+              label={t('hospital_module.category') + '*'}
+              placeholder={(t('hospital_module.category') as string)}
             />
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -172,7 +177,7 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
                 }}
               >
                 <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
-                  Add Category
+                  {t('hospital_module.add_category')}
                 </LoadingButton>
               </Box>
             </Box>

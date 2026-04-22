@@ -2,6 +2,7 @@
 
 import { Box, Drawer, IconButton, Skeleton, Typography, useTheme } from '@mui/material'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getPatientListByEnclosures } from 'src/lib/api/hospital/hospitalBeds'
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -13,6 +14,7 @@ interface EnclosureOccupantsDrawerProps {
 }
 
 const EnclosureOccupantsDrawer = ({ open, onClose, selectedEnclosure }: EnclosureOccupantsDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   console.log(selectedEnclosure)
 
@@ -94,7 +96,7 @@ const EnclosureOccupantsDrawer = ({ open, onClose, selectedEnclosure }: Enclosur
           }}
         >
           <Typography sx={{ fontWeight: 500, fontSize: '24px', color: theme.palette.customColors.OnSurfaceVariant }}>
-            Enclosure Occupants
+            {t('hospital_module.enclosure_occupants')}
           </Typography>
           <IconButton onClick={onClose}>
             <Icon icon='mdi:close' />
@@ -147,7 +149,7 @@ const EnclosureOccupantsDrawer = ({ open, onClose, selectedEnclosure }: Enclosur
                   mt: 4
                 }}
               >
-                No occupants found
+                {t('hospital_module.no_occupants_found')}
               </Typography>
             )}
           </Box>

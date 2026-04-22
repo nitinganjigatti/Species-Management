@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme, Card, Typography, IconButton, Drawer, Box, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
@@ -45,6 +46,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
     isActive
   } = props
 
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const isRoomEditMode = Boolean(roomStatus)
@@ -172,7 +174,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
     if (isRoomEditMode) return 'Update Room'
     if (editParams?.id) return 'Edit Enclosure'
 
-    return 'Add New Enclosure'
+    return t('hospital_module.add_new_enclosure')
   }, [isRoomEditMode, editParams])
 
   return (

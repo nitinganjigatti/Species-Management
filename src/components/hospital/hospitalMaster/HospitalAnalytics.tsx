@@ -12,6 +12,7 @@ import {
   CircularProgress,
   useMediaQuery
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import styled from '@emotion/styled'
@@ -22,6 +23,7 @@ interface HospitalAnalyticsProps {
 }
 
 const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }: HospitalAnalyticsProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const isBelowMd = useMediaQuery(theme.breakpoints.down('md')) // screen width < 900px
   const isBelowSm = useMediaQuery(theme.breakpoints.down('sm')) // screen width < 600px
@@ -85,7 +87,7 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }: Hospital
                     }}
                   />
                   <Box>
-                    <StyledTypography>Hospital Name</StyledTypography>
+                    <StyledTypography>{t('hospital_module.hospital_name')}</StyledTypography>
                     {isHospitalStatsLoading ? (
                       <CircularProgress size={20} />
                     ) : (
@@ -163,7 +165,7 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }: Hospital
                     }}
                   />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <StyledTypography>Hospital Name</StyledTypography>
+                    <StyledTypography>{t('hospital_module.hospital_name')}</StyledTypography>
                     {isHospitalStatsLoading ? (
                       <CircularProgress size={20} />
                     ) : (
@@ -186,15 +188,15 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }: Hospital
 
           {/* Stats Section */}
           <Grid size={{ xs: 6, sm: 2, md: 1.3 }}>
-            <StatBox label='Rooms' value={hospitalDetails?.active_room_count ?? '-'} />
+            <StatBox label={(t('hospital_module.rooms') as string)} value={hospitalDetails?.active_room_count ?? '-'} />
           </Grid>
 
           <Grid size={{ xs: 6, sm: 2, md: 1.3 }}>
-            <StatBox label='Enclosures' value={hospitalDetails?.active_bed_count ?? '-'} />
+            <StatBox label={(t('hospital_module.enclosures') as string)} value={hospitalDetails?.active_bed_count ?? '-'} />
           </Grid>
 
           <Grid size={{ xs: 6, sm: 2, md: 1.3 }}>
-            <StatBox label='Occupied' value={hospitalDetails?.no_of_occupied ?? '-'} />
+            <StatBox label={(t('hospital_module.occupied') as string)} value={hospitalDetails?.no_of_occupied ?? '-'} />
           </Grid>
 
           <Grid size={{ xs: 6, sm: 3, md: 1.9 }}>
@@ -204,7 +206,7 @@ const HospitalAnalytics = ({ isHospitalStatsLoading, hospitalDetails }: Hospital
                 fontSize: '0.875rem'
               }}
             >
-              Site
+              {t('hospital_module.site')}
             </Typography>
             {isHospitalStatsLoading ? (
               <CircularProgress size={20} />

@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Box, Card, CardContent, Typography, Grid, useTheme, CircularProgress } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
@@ -11,6 +12,7 @@ interface RoomAnalyticsProps {
 }
 
 const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }: RoomAnalyticsProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const StatBox = ({ label, value }: { label: string; value: any }) => (
@@ -56,7 +58,7 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }: RoomAnalyticsProps) 
                 fontSize: '0.875rem'
               }}
             >
-              Room Name
+              {t('hospital_module.room_name')}
             </Typography>
             {isRoomStatsLoading ? (
               <CircularProgress size={20} />
@@ -80,7 +82,7 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }: RoomAnalyticsProps) 
                 fontSize: '0.875rem'
               }}
             >
-              Hospital Name
+              {t('hospital_module.hospital_name')}
             </Typography>
             {isRoomStatsLoading ? (
               <CircularProgress size={20} />
@@ -99,13 +101,13 @@ const RoomAnalytics = ({ isRoomStatsLoading, roomDetails }: RoomAnalyticsProps) 
           </Grid>
 
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
-            <StatBox label='Enclosures' value={roomDetails?.active_bed_count ?? '-'} />
+            <StatBox label={(t('hospital_module.enclosures') as string)} value={roomDetails?.active_bed_count ?? '-'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
-            <StatBox label='Occupied' value={roomDetails?.no_of_occupied ?? '-'} />
+            <StatBox label={(t('hospital_module.occupied') as string)} value={roomDetails?.no_of_occupied ?? '-'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 1.5 }}>
-            <StatBox label='Floor' value={roomDetails?.floor_name ?? '-'} />
+            <StatBox label={(t('hospital_module.floor') as string)} value={roomDetails?.floor_name ?? '-'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2.7 }}>
             {isRoomStatsLoading ? (

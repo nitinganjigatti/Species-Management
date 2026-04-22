@@ -19,6 +19,7 @@ import {
   Grid
 } from '@mui/material'
 import { useTheme } from '@emotion/react'
+import { useTranslation } from 'react-i18next'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { VisitType } from './hospitalSnippets'
 import AdmissionStatusCard from '../inpatient/AdmissionStatusCard'
@@ -48,6 +49,7 @@ interface PatientCardProps {
 }
 
 const PatientCard = ({ patientData, animalData, loading, refetch, category }: PatientCardProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const isPatientDischarged = patientData?.status === 'discharge'
@@ -118,8 +120,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
 
     options.push({
       label: (
-        <Tooltip title='Hospital Visit Summary'>
-          <Typography>Hospital Visit Summary</Typography>
+        <Tooltip title={(t('hospital_module.hospital_visit_summary') as string)}>
+          <Typography>{t('hospital_module.hospital_visit_summary')}</Typography>
         </Tooltip>
       ),
       icon: <Icon icon='hugeicons:download-square-02' />,
@@ -131,8 +133,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
     if (isPatientDischarged) {
       options.push({
         label: (
-          <Tooltip title='Discharge Summary'>
-            <Typography>Discharge Summary</Typography>
+          <Tooltip title={(t('hospital_module.discharge_summary') as string)}>
+            <Typography>{t('hospital_module.discharge_summary')}</Typography>
           </Tooltip>
         ),
         icon: dischargeSummaryLoading ? <CircularProgress size={18} /> : <Icon icon='hugeicons:download-square-02' />,
@@ -143,8 +145,8 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
     if (!isPatientDischarged) {
       options.push({
         label: (
-          <Tooltip title='Edit Details'>
-            <Typography>Edit Patient</Typography>
+          <Tooltip title={(t('hospital_module.edit_patient_details') as string)}>
+            <Typography>{t('hospital_module.edit_patient')}</Typography>
           </Tooltip>
         ),
         icon: <Icon icon='mynaui:edit-one' />,
@@ -214,7 +216,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
                       textTransform: 'uppercase'
                     }}
                   >
-                    DISCHARGED
+                    {t('hospital_module.discharged_col').toUpperCase()}
                   </Typography>
                 ) : (
                   <VisitType title={patientData?.treatment_type} />
@@ -249,7 +251,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
                             }}
                           />
                           <Typography sx={{ fontSize: '12px', fontWeight: 600, color: theme.palette.primary.main }}>
-                            Current
+                            {t('hospital_module.current')}
                           </Typography>
                         </>
                       )}
@@ -280,7 +282,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
                         gap: { xs: '4px', sm: '0' }
                       }}
                     >
-                      Health Status
+                      {t('hospital_module.health_status')}
                     </Typography>
                     <FormControl size='small' sx={{ minWidth: 120 }}>
                       <Select
@@ -335,7 +337,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
                                 }}
                               />
                             </Box>
-                            <span>{value === 'critical' ? 'Critical' : 'Stable'}</span>
+                            <span>{value === 'critical' ? t('hospital_module.health_status_critical') : t('hospital_module.health_status_stable')}</span>
                           </Box>
                         )}
                       >
@@ -343,13 +345,13 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
                           value='stable'
                           sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
                         >
-                          Stable
+                          {t('hospital_module.health_status_stable')}
                         </MenuItem>
                         <MenuItem
                           value='critical'
                           sx={{ color: theme.palette.customColors.Tertiary, fontWeight: 500 }}
                         >
-                          Critical
+                          {t('hospital_module.health_status_critical')}
                         </MenuItem>
                       </Select>
                     </FormControl>
@@ -444,7 +446,7 @@ const PatientCard = ({ patientData, animalData, loading, refetch, category }: Pa
                   }}
                   onClick={() => setOpenAddAnimalDrawer(true)}
                 >
-                  Admit Animal
+                  {t('hospital_module.admit_animal')}
                 </Button>
               ) : null}
             </Box>

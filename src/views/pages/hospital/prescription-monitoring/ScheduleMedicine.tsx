@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Button, Grid, Paper, IconButton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useFieldArray, useWatch } from 'react-hook-form'
@@ -61,6 +62,7 @@ export default function ScheduleMedicine({
   loadingSideEffects,
   patientData = null
 }: ScheduleMedicineProps) {
+  const { t } = useTranslation()
   const {
     caseTypes,
     prescriptionDosageMeasurementType,
@@ -374,7 +376,7 @@ export default function ScheduleMedicine({
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              {selectedMedicineTo === 'Direct Administer' ? 'Direct Administer' : 'Schedule Medicine'}
+              {selectedMedicineTo === 'Direct Administer' ? t('hospital_module.direct_administer') : t('hospital_module.schedule_medicine')}
             </Typography>
 
             <Box sx={{ mb: 3 }}>
@@ -383,7 +385,7 @@ export default function ScheduleMedicine({
                 name='frequency'
                 sx={commonFieldStyles}
                 size='large'
-                label='Set Frequency*'
+                label={(t('hospital_module.set_frequency') as string)}
                 control={control}
                 errors={errors}
                 options={prescriptionFrequency}
@@ -410,7 +412,7 @@ export default function ScheduleMedicine({
                       color: theme.palette.customColors.OnSurface
                     }}
                   >
-                    Every
+                    {t('hospital_module.every')}
                   </Typography>
                 </Box>
                 <ControlledSelect
@@ -418,7 +420,7 @@ export default function ScheduleMedicine({
                   name='interval'
                   sx={commonFieldStyles}
                   size='large'
-                  label='Set Interval*'
+                  label={(t('hospital_module.set_interval') as string)}
                   control={control}
                   errors={errors}
                   options={intervalList}
@@ -446,10 +448,10 @@ export default function ScheduleMedicine({
                 <Grid size={4.5}>
                   <ControlledTimePicker
                     name={`schedules.${idx}.time`}
-                    label='Time*'
+                    label={(t('time') as string)}
                     control={control}
                     errors={errors}
-                    placeholder='12:30 PM'
+                    placeholder={(t('hospital_module.time_placeholder') as string)}
                     required
                     sx={commonFieldStyles}
                     size='large'
@@ -466,8 +468,8 @@ export default function ScheduleMedicine({
                       control,
                       errors,
                       options: prescriptionDosageMeasurementType,
-                      label: 'Quantity*',
-                      placeholder: 'Enter quantity',
+                      label: t('quantity'),
+                      placeholder: t('hospital_module.enter_quantity'),
                       type: 'number',
                       selectWidth: { xs: 80, sm: 100, md: 100, lg: 120 },
                       getOptionLabel: (option: any) => option.label,
@@ -521,14 +523,14 @@ export default function ScheduleMedicine({
                 }}
                 onClick={handleAddTime}
               >
-                Add Time
+                {t('hospital_module.add_time')}
               </Button>
             )}
 
             <Box sx={{ mb: 3 }}>
               <ControlledSelect
                 name='deliveryRoute'
-                label='Select Delivery Route*'
+                label={(t('hospital_module.select_delivery_route') as string)}
                 fullWidth={true}
                 sx={{
                   textAlign: 'left',
@@ -559,13 +561,7 @@ export default function ScheduleMedicine({
                   }
                   size='large'
                   name='prescriptionStartDate'
-                  label={
-                    isDirectAdministerRegular
-                      ? 'Prescription Start Date*'
-                      : selectedMedicineTo === 'Direct Administer'
-                      ? 'Prescription Start Date*'
-                      : 'Prescription Start Date*'
-                  }
+                  label={(t('hospital_module.prescription_start_date') as string)}
                   control={control}
                   errors={errors}
                   required
@@ -582,7 +578,7 @@ export default function ScheduleMedicine({
                   maxDate={patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs(now)}
                   size='large'
                   name='prescriptionEndDate'
-                  label='Prescription End Date*'
+                  label={(t('hospital_module.prescription_end_date') as string)}
                   control={control}
                   errors={errors}
                   required
@@ -596,7 +592,7 @@ export default function ScheduleMedicine({
                   <Grid size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledTextField
                       name='dosageDuration.value'
-                      label='Dosage Duration*'
+                      label={(t('hospital_module.dosage_duration') as string)}
                       control={control}
                       errors={errors}
                       type='number'
@@ -642,13 +638,13 @@ export default function ScheduleMedicine({
                   mt: 2
                 }}
               >
-                {`Prescription ends on ${endsOn}`}
+                {t('hospital_module.prescription_ends_on', { date: endsOn })}
               </Typography>
             )}
 
             <Box sx={{ mb: 3 }}>
               <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2, textAlign: 'left' }}>
-                Notes
+                {t('notes')}
               </Typography>
               <ControlledTextArea
                 fullWidth={true}
@@ -661,7 +657,7 @@ export default function ScheduleMedicine({
                   }
                 }}
                 name='notes'
-                placeholder='Enter Notes'
+                placeholder={(t('hospital_module.enter_notes') as string)}
                 control={control}
                 errors={errors}
                 rows={4}
@@ -680,7 +676,7 @@ export default function ScheduleMedicine({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Add Wastage & Batch Number
+                      {t('hospital_module.add_wastage_batch_number')}
                       <span
                         style={{
                           color: theme.palette.customColors.neutralSecondary,
@@ -688,14 +684,14 @@ export default function ScheduleMedicine({
                           fontWeight: '500'
                         }}
                       >
-                        (Optional)
+                        ({t('optional')})
                       </span>
                     </Typography>
                   </Grid>
                   <Grid size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledTextField
                       name='wastageQuantity'
-                      label='Quantity'
+                      label={(t('quantity') as string)}
                       control={control}
                       errors={errors}
                       type='number'
@@ -711,7 +707,7 @@ export default function ScheduleMedicine({
                   <Grid size={{ xs: 6, md: 6, lg: 6 }}>
                     <ControlledSelect
                       name='wastageUOM'
-                      label={'UOM'}
+                      label={(t('hospital_module.uom') as string)}
                       sx={{
                         textAlign: 'left',
                         borderRadius: '4px'
@@ -727,7 +723,7 @@ export default function ScheduleMedicine({
                 </Grid>
                 <Box sx={{ mb: 3 }}>
                   <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2, textAlign: 'left' }}>
-                    Notes
+                    {t('notes')}
                   </Typography>
                   <ControlledTextArea
                     fullWidth={true}
@@ -739,7 +735,7 @@ export default function ScheduleMedicine({
                       }
                     }}
                     name='wastageNotes'
-                    placeholder='Enter Notes'
+                    placeholder={(t('hospital_module.enter_notes') as string)}
                     control={control}
                     errors={errors}
                     rows={2}
@@ -758,9 +754,7 @@ export default function ScheduleMedicine({
                         : theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {isControlledSubstance
-                      ? '! Batch Number is Mandatory for controlled substances'
-                      : '! Batch Number is Mandatory for controlled substances'}
+                    {t('hospital_module.batch_number_mandatory_message')}
                   </Typography>
                 </Grid>
                 <Grid size={{ xs: 12, md: 12, lg: 12 }}>
@@ -770,7 +764,7 @@ export default function ScheduleMedicine({
                     errors={errors}
                     sx={commonFieldStyles}
                     label={
-                      isControlledSubstance ? 'Enter batch number (required)' : 'Enter batch number if any (optional)'
+                      isControlledSubstance ? t('hospital_module.enter_batch_number_required') || "" : t('hospital_module.enter_batch_number_optional') || ""
                     }
                     options={batchList}
                     getOptionLabel={(option: any) => {
@@ -795,7 +789,7 @@ export default function ScheduleMedicine({
                     required={isControlledSubstance}
                     autocompleteProps={{
                       filterOptions: (x: any) => x,
-                      noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                      noOptionsText: batchLoading ? t('loading') : t('hospital_module.type_to_search_batches')
                     }}
                   />
                 </Grid>
@@ -804,7 +798,7 @@ export default function ScheduleMedicine({
                   control={control}
                   errors={errors}
                   sx={commonFieldStyles}
-                  label='Batch Image'
+                  label={(t('hospital_module.batch_image') as string)}
                   maxFiles={1}
                   maxFileSize={5 * 1024 * 1024}
                   acceptedFileTypes='images'
@@ -840,7 +834,7 @@ export default function ScheduleMedicine({
                 color: theme.palette.customColors.neutralSecondary
               }}
             >
-              Please select a medicine to schedule.
+              {t('hospital_module.please_select_medicine_to_schedule')}
             </Typography>
           </Box>
         )}

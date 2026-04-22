@@ -10,6 +10,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
@@ -32,14 +33,15 @@ interface FormValues {
   label_name: string
 }
 
-const schema = yup.object().shape({
-  category: yup.object().nullable().required('Category is required'),
-  label_name: yup.string().trim().required('Label is required')
+const createSchema = (t: any) => yup.object().shape({
+  category: yup.object().nullable().required(t('hospital_module.category_is_required') || 'Category is required'),
+  label_name: yup.string().trim().required(t('hospital_module.clinical_assessment_is_required') || 'Clinical assessment is required')
 })
 
 const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
   const { open, onClose, onSuccess, categoryOptions: initialCategoryOptions, medicalRecordId } = props
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false)
   const [categoryOptions, setCategoryOptions] = useState<any[]>(initialCategoryOptions || [])
@@ -50,6 +52,8 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
     label_name: ''
   }
 
+  const validationSchema = createSchema(t)
+
   const {
     control,
     handleSubmit,
@@ -58,7 +62,7 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(validationSchema) as any,
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
@@ -90,7 +94,7 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
       return []
     } catch (error) {
       console.error('Error fetching categories:', error)
-      Toaster({ type: 'error', message: 'Failed to fetch categories' })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_fetch_categories') || 'Failed to fetch categories' })
 
       return []
     } finally {
@@ -109,7 +113,7 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
       const response: any = await addMedicalComplaintOrDiagnosis('diagnosis', payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Clinical assessment added successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.clinical_assessment_added_successfully') })
         reset(defaultValues)
         onClose()
         if (onSuccess) {
@@ -119,11 +123,11 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
           })
         }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add clinical assessment' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_add_clinical_assessment') })
       }
     } catch (error: any) {
       console.error('Error adding diagnosis:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      Toaster({ type: 'error', message: error.message || t('hospital_module.unexpected_error_occurred') })
     } finally {
       setLoading(false)
     }
@@ -181,7 +185,7 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'>Add Clinical Assessment</Typography>
+              <Typography variant='h6'>{t('hospital_module.add_clinical_assessment')}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -210,8 +214,8 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
                 name='label_name'
                 control={control}
                 errors={errors}
-                label='Clinical Assessment*'
-                placeholder='Clinical Assessment'
+                label={t('hospital_module.clinical_assessment') + '*'}
+                placeholder={(t('hospital_module.clinical_assessment') as string)}
               />
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -219,7 +223,7 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
                   name='category'
                   control={control}
                   errors={errors}
-                  label='Category*'
+                  label={t('hospital_module.category') + '*'}
                   options={categoryOptions?.filter((cat: any) => cat.id !== '0') || []}
                   loading={categoryLoading}
                   required
@@ -263,7 +267,7 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
                   }}
                 >
                   <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
-                    Add Clinical Assessment
+                    {t('hospital_module.add_clinical_assessment')}
                   </LoadingButton>
                 </Box>
               </Box>

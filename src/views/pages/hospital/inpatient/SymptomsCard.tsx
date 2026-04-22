@@ -13,6 +13,7 @@ import { updateSymptoms, getNotesListForSymptom } from 'src/lib/api/hospital/sym
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
+import { useTranslation } from 'react-i18next'
 
 interface SymptomsCardProps {
   record?: any
@@ -24,6 +25,7 @@ interface SymptomsCardProps {
 }
 
 const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData, isDischared }: SymptomsCardProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const params = useParams()
   const { id }: any = params
@@ -294,7 +296,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
           {record?.comment_count > 0 && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-                Activity:
+                {t('hospital_module.activity')}:
               </Typography>
 
               <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
@@ -320,7 +322,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Severity :{' '}
+                {t('hospital_module.severity')} :{' '}
               </Typography>
               <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }}>
                 <span style={{ color: theme.palette.customColors.secondaryBg }}>
@@ -341,7 +343,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Severity :{' '}
+              {t('hospital_module.severity')} :{' '}
               <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                 {record?.additional_info?.severity}
               </strong>
@@ -372,13 +374,13 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                   whiteSpace: 'pre-wrap'
                 }}
               >
-                Notes : {record?.latest_note?.note}
+                {t('hospital_module.notes_label')} : {record?.latest_note?.note}
               </Typography>
             </Tooltip>
           )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
-            Last Updated:{' '}
+            {t('hospital_module.last_updated')}:{' '}
             {record?.comment_count > 1 ? `${Utility?.convertUtcToLocalReadableDate(
               record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
             )} • ${Utility.convertUTCToLocaltime(
@@ -408,9 +410,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
             >
               {record?.status === 'active'
                 ? record?.latest_note?.modified_at?.slice(0, 19) === record?.created_at
-                  ? 'Created by'
-                  : 'Updated by'
-                : 'Resolved by'}
+                  ? t('hospital_module.created_by')
+                  : t('hospital_module.updated_by')
+                : t('hospital_module.resolved_by')}
             </Typography>
             <UserAvatarDetails
               profile_image={
@@ -471,14 +473,14 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         <ConfirmationDialog
           dialogBoxStatus={isDeleteDialogOpen}
           onClose={handleDeleteDialogClose}
-          title={'Are you sure you want to save the changes?'}
-          cancelText={'CANCEL'}
+          title={(t('hospital_module.save_changes_confirmation') as string)}
+          cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.primary.main, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.mdAntzNeutral, p: 4 }}
           confirmAction={handleConfirmAddSymptom as any}
           loading={deleteLoading}
-          ConfirmationText={'YES'}
+          ConfirmationText={t('yes')}
           description={''}
         />
       )}

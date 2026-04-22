@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { Grid, Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import PrescriptionMonitoringGrid from './PrescriptionMonitoringGrid'
@@ -46,6 +47,7 @@ interface PrescriptionLayoutProps {
 }
 
 function PrescriptionLayout({ drawerType, overviewData, category }: PrescriptionLayoutProps) {
+  const { t } = useTranslation()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
   const searchParams: any = useSearchParams()
@@ -161,7 +163,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       const response: any = await stopPrescription(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Medicine stopped successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.medicine_stopped_success') })
 
         // Refresh the prescription list
         getPrescriptionList()
@@ -176,7 +178,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       }
     } catch (error: any) {
       console.error('Error stopping medicine:', error)
-      Toaster({ type: 'error', message: error?.message || 'Failed to stop medicine' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_stop_medicine') })
     } finally {
       setIsStopMedicineLoading(false)
     }
@@ -201,7 +203,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       const response: any = await undoPrescription(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Entry refreshed successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.entry_refreshed_success') })
 
         // Refresh the prescription list
         getPrescriptionList()
@@ -215,7 +217,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       }
     } catch (error: any) {
       console.error('Error refreshing entry:', error)
-      Toaster({ type: 'error', message: error?.message || 'Failed to refresh entry' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_refresh_entry') })
     } finally {
       setIsUndoLoading(false)
     }
@@ -257,7 +259,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
     } catch (error: any) {
       console.error('Error fetching prescription list:', error)
 
-      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsPrescriptionListLoading(false)
     }
@@ -311,7 +313,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsDetailLoading(false)
     }
@@ -345,7 +347,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsDatesLoading(false)
     }
@@ -670,7 +672,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
 
       const response: any = await administerAllMedicines(payload)
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Medicines administered successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.medicines_administered_success') })
         setSelectedMetrics([])
         getPrescriptionList()
       } else {
@@ -730,7 +732,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsAdministerLoading(false)
       setIsSkipLoading(false)
@@ -842,7 +844,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       const response: any = await administerDose(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Medications administered successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.medications_administered_success') })
         setSelectedMedicationsFromDetail([])
 
         // Refresh the prescription list
@@ -855,7 +857,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
           getDetails(medicineData, selectedDate)
         }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to administer medications' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_administer_medications') })
       }
     } catch (error: any) {
       console.error('Error administering medications:', error)
@@ -905,7 +907,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       const response: any = await administerDose(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Medications skipped successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.medications_skipped_success') })
         setSelectedMedicationsFromDetail([])
 
         // Refresh the prescription list
@@ -918,7 +920,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
           getDetails(medicineData, selectedDate)
         }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to skip medications' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_skip_medications') })
       }
     } catch (error: any) {
       console.error('Error skipping medications:', error)

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo, useContext } from 'react'
 import { Box, Typography, Menu, MenuItem, CircularProgress, useTheme, Tooltip, Avatar } from '@mui/material'
 import { KeyboardArrowDown } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats, getHospitalDetail, getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
@@ -18,6 +19,7 @@ interface HospitalDropdownProps {
 
 const HospitalDropdown = ({ disabled = false }: HospitalDropdownProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   const {
@@ -336,7 +338,7 @@ const HospitalDropdown = ({ disabled = false }: HospitalDropdownProps) => {
       >
         <Box sx={{ maxWidth: 400, display: 'flex', alignItems: 'center' }}>
           {hasNoHospitalsOnInitialFetch ? (
-            <Box>No hospitals found</Box>
+            <Box>{t('hospital_module.no_hospitals_found')}</Box>
           ) : isCheckingHospitalAccess ? (
             (<Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '100%' }}>
               <ShimmerBox width='160px' height='24px' mb={0} />
@@ -406,7 +408,7 @@ const HospitalDropdown = ({ disabled = false }: HospitalDropdownProps) => {
               value={localSearch}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
               onClear={handleSearchClear}
-              placeholder='Search hospitals...'
+              placeholder={(t('hospital_module.search_hospital') as string)}
             />
           </Box>
 
@@ -433,7 +435,7 @@ const HospitalDropdown = ({ disabled = false }: HospitalDropdownProps) => {
                 ))}
               </Box>)
             ) : hospitalList.length === 0 ? (
-              <MenuItem disabled>{searchQuery ? 'No hospitals found' : 'No hospitals available'}</MenuItem>
+              <MenuItem disabled>{searchQuery ? t('hospital_module.no_hospitals_found') : t('hospital_module.no_hospitals_available')}</MenuItem>
             ) : (
               hospitalList.map((hospital: any) => (
                 <MenuItem
@@ -515,7 +517,7 @@ const HospitalDropdown = ({ disabled = false }: HospitalDropdownProps) => {
 
             {!hasNextPage && hospitalList.length > 0 && (
               <Box sx={{ display: 'flex', justifyContent: 'center', p: 1 }}>
-                <Typography color='text.secondary'>No more results</Typography>
+                <Typography color='text.secondary'>{t('hospital_module.no_more_results')}</Typography>
               </Box>
             )}
           </Box>

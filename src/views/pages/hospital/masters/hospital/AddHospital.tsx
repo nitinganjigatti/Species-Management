@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useContext, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
@@ -63,6 +64,7 @@ const AddHospital = ({
   sitesLoading,
   onSiteSearch
 }: AddHospitalProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const authData = useContext(AuthContext)
 
@@ -153,7 +155,7 @@ const AddHospital = ({
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='Hospital Name*'
+                  label={`${t('hospital_module.hospital_name')}*`}
                   name='hospital_name'
                   placeholder='Enter Hospital Name'
                   fullWidth

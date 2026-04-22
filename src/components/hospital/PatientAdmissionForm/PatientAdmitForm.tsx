@@ -21,6 +21,7 @@ import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
 import React, { useContext, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { MedicalIdChip, VisitType } from 'src/views/pages/hospital/utility/hospitalSnippets'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
@@ -54,26 +55,8 @@ import BottomActionBarRaw from 'src/views/utility/BottomActionBar'
 const BottomActionBar: any = BottomActionBarRaw
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
-const treatmentType = [
-  { label: 'OPD (outpatient)', value: 'opd' },
-  { label: 'Hospital Admission (inpatient)', value: 'inpatient' }
-]
-
-const healthStatusOptions = [
-  { label: 'Stable', value: 'stable' },
-  { label: 'Critical', value: 'critical' }
-]
-
-const defaultValues: any = {
-  treatmentType: 'inpatient',
-  healthStatus: 'stable',
-  holdingEnclosure: null,
-  room: null,
-  admission_date: dayjs(),
-  admission_time: dayjs()
-}
-
 const PatientAdmitForm = () => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
@@ -91,38 +74,57 @@ const PatientAdmitForm = () => {
   const [staffLoading, setStaffLoading] = useState<boolean>(false)
   const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState<any[]>([])
 
+  const treatmentType = [
+    { label: t('hospital_module.opd_outpatient'), value: 'opd' },
+    { label: t('hospital_module.hospital_admission_inpatient'), value: 'inpatient' }
+  ]
+
+  const healthStatusOptions = [
+    { label: t('hospital_module.stable'), value: 'stable' },
+    { label: t('hospital_module.critical'), value: 'critical' }
+  ]
+
+  const defaultValues: any = {
+    treatmentType: 'inpatient',
+    healthStatus: 'stable',
+    holdingEnclosure: null,
+    room: null,
+    admission_date: dayjs(),
+    admission_time: dayjs()
+  }
+
   const createdAt = patientData?.transfer_details?.created_at
     ? dayjs(Utility.convertUTCToLocal(patientData?.transfer_details?.created_at))
     : null
 
-  const schema = yup.object().shape({
-    treatmentType: yup.string().required('Treatment Type is Required'),
+  const createSchema = (t: any, createdAt: any) => yup.object().shape({
+    treatmentType: yup.string().required(t('hospital_module.treatment_type_required') || 'Treatment Type is Required'),
     healthStatus: yup.string().notRequired(),
-    selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-    room: yup.object().required('Room is required'),
-    holdingEnclosure: yup.object().required('Holding Enclosure is required'),
+    selectedDoctor: yup.mixed().nullable().required(t('hospital_module.doctor_is_required') || 'Doctor is required'),
+    room: yup.object().required(t('hospital_module.room_is_required') || 'Room is required'),
+    holdingEnclosure: yup.object().required(t('hospital_module.holding_enclosure_is_required') || 'Holding Enclosure is required'),
 
     admission_date: yup
       .date()
-      .typeError('Invalid date')
+      .typeError(t('hospital_module.invalid_date') || 'Invalid date')
       .nullable()
-      .required('Date is required')
+      .required(t('hospital_module.date_is_required') || 'Date is required')
 
-      .test('not-future-date', 'Date cannot be in the future', function (value: any) {
+      .test('not-future-date', t('hospital_module.date_cannot_be_in_future') || 'Date cannot be in the future', function (value: any) {
         if (!value) return true
         const now = dayjs()
         if (dayjs(value).isAfter(now, 'day')) {
-          return this.createError({ message: 'Date cannot be in the future' })
+          return this.createError({ message: t('hospital_module.date_cannot_be_in_future') || 'Date cannot be in the future' })
         }
 
         return true
       })
 
-      .test('not-before-transfer', 'Date cannot be before the transfer request date', function (value: any) {
+      .test('not-before-transfer', t('hospital_module.date_cannot_be_before_transfer') || 'Date cannot be before the transfer request date', function (value: any) {
         if (!value || !createdAt) return true
         if (dayjs(value).isBefore(createdAt, 'day')) {
           return this.createError({
-            message: `Date cannot be before the transfer request date (${createdAt.format('DD MMM YYYY')})`
+            message: `${t('hospital_module.date_cannot_be_before_transfer') || 'Date cannot be before the transfer request date'} (${createdAt.format('DD MMM YYYY')})`
           })
         }
 
@@ -131,10 +133,10 @@ const PatientAdmitForm = () => {
 
     admission_time: yup
       .date()
-      .typeError('Invalid time')
+      .typeError(t('hospital_module.invalid_time') || 'Invalid time')
       .nullable()
-      .required('Time is required')
-      .test('is-valid-time', 'Time is invalid', function (value: any) {
+      .required(t('hospital_module.time_is_required') || 'Time is required')
+      .test('is-valid-time', t('hospital_module.time_is_invalid') || 'Time is invalid', function (value: any) {
         const { admission_date } = (this as any).parent
         if (!value || !admission_date) return true
 
@@ -150,14 +152,14 @@ const PatientAdmitForm = () => {
           const minAllowedTime = createdAt.subtract(1, 'minute')
           if (selectedTime.isBefore(minAllowedTime)) {
             return this.createError({
-              message: `Time cannot be before the transfer request time (${minAllowedTime.format('hh:mm A')})`
+              message: `${t('hospital_module.time_cannot_be_before_transfer_time') || 'Time cannot be before the transfer request time'} (${minAllowedTime.format('hh:mm A')})`
             })
           }
         }
 
         if (dayjs(admission_date).isSame(now, 'day')) {
           if (selectedTime.isAfter(now)) {
-            return this.createError({ message: 'Time cannot be in the future' })
+            return this.createError({ message: t('hospital_module.time_cannot_be_in_future') || 'Time cannot be in the future' })
           }
         }
 
@@ -174,7 +176,7 @@ const PatientAdmitForm = () => {
     clearErrors,
     watch
   } = useForm<any>({
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(createSchema(t, createdAt)) as any,
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange',

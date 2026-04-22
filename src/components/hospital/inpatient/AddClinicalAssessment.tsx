@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { Box, Breadcrumbs, Grid, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import ClinicalAssessmentList from 'src/components/hospital/ClinicalAssessment/ClinicalAssessmentList'
 import SelectedClinicalAssessment from 'src/components/hospital/ClinicalAssessment/SelectedClinicalAssessment'
 import AddClinicalAsmntDrawer from 'src/components/hospital/drawer/AddClinicalAsmntDrawer'
@@ -33,6 +34,7 @@ interface AddClinicalAssessmentProps {
 }
 
 function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
@@ -399,14 +401,14 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     const submittableSymptoms = selectedSymptoms.filter((symptom: any) => !alreadySelectedIds.includes(symptom?.id))
 
     if (selectedSymptoms.length === 0) {
-      Toaster({ type: 'error', message: 'Please select at least one Assessment' })
+      Toaster({ type: 'error', message: t('hospital_module.select_at_least_one_assessment') })
       setIsSubmitLoading(false)
 
       return
     }
 
     if (submittableSymptoms.length === 0) {
-      Toaster({ type: 'error', message: 'All selected clinical assessments are already prescribed' })
+      Toaster({ type: 'error', message: t('hospital_module.all_assessments_already_prescribed') })
       setIsSubmitLoading(false)
 
       return
@@ -456,14 +458,14 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
       const response: any = await addClinicalAssessment(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Assessment created successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.assessment_created_successfully') })
         router.back()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.something_went_wrong') })
       }
     } catch (error: any) {
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      Toaster({ type: 'error', message: error.message || t('hospital_module.an_unexpected_error_occurred') })
     } finally {
       setIsSubmitLoading(false)
     }
@@ -481,15 +483,15 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     () => (
       <DynamicBreadcrumbs
         pageItems={[
-            { title: 'Hospital' },
-            { title: 'Patients' },
+            { title: t('navigation.hospital') },
+            { title: t('hospital_module.patients') },
             { title: from },
-            { title: 'Details',onClick: handleBack},
-            { title: 'Add Clinical Assessment'}
+            { title: t('hospital_module.details'),onClick: handleBack},
+            { title: t('hospital_module.add_clinical_assessment')}
           ]}
       />
     ),
-    [handleBack]
+    [handleBack, t]
   )
 
   const getPatientInfo = async () => {
@@ -574,14 +576,14 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
             label:
               patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
                 ? patientData?.animal_detail?.local_identifier_name
-                : 'AID',
+                : t('hospital_module.aid'),
             value: handleAIDDisplay()
           },
-          { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+          { label: t('hospital_module.health_status'), value: patientData?.health_status || 'stable', isStatusCard: true },
 
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
-          { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
-          { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
+          { label: t('hospital_module.holding_location'), value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+          { label: t('hospital_module.chief_veterinarian'), value: patientData?.attend_by_full_name }
         ]}
         isLoading={patientLoading}
         backgroundColor={theme.palette.customColors.OnPrimary}
@@ -594,7 +596,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
       >
         <Grid size={{ xs: 12 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            Add Clinical assessment
+            {t('hospital_module.add_clinical_assessment')}
           </Typography>
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -629,7 +631,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
               selectedItems={selectedSymptoms}
               availableItems={pickerItems}
               onApplyTemplate={setSelectedSymptoms}
-              templateLabel='clinical assessment template'
+              templateLabel={(t('hospital_module.clinical_assessment_template') as string)}
               mapTemplateItem={(item: any) => ({
                 id: item?.id,
                 name: item?.name,
@@ -658,8 +660,8 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
                   <SaveMedicalTemplateSection
                     templateType='diagnosis'
                     selectedItems={selectedSymptoms}
-                    templateLabel='clinical assessment template'
-                    itemLabel='clinical assessments'
+                    templateLabel={(t('hospital_module.clinical_assessment_template') as string)}
+                    itemLabel={(t('hospital_module.clinical_assessments') as string)}
                     refreshToken={templateRefreshToken}
                     onTemplateSaved={() => setTemplateRefreshToken((prev: number) => prev + 1)}
                   />
@@ -672,8 +674,8 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
       <Box>
         <BottomActionBar
           {...({
-            submitLabel: 'ADD',
-            cancelLabel: 'CANCEL',
+            submitLabel: t('add'),
+            cancelLabel: t('cancel'),
             onSubmit: handleAddAssessment,
             loading: isSubmitLoading,
             disabled: isSubmitLoading,
@@ -697,9 +699,9 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
 
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
-        title={`Clinical assessment${duplicateAssessments?.length > 1 ? 's' : ''} already exists`}
-        description={`Duplicate Clinical Assessment: ${duplicateAssessments?.map((item: any) => item?.diagnosis)?.join(', ')}`}
-        additionalDescription={`To proceed choose a different Clinical Assessment`}
+        title={`${t('hospital_module.clinical_assessment')}${duplicateAssessments?.length > 1 ? 's' : ''} ${t('hospital_module.already_exists')}`}
+        description={`${t('hospital_module.duplicate_clinical_assessment')}: ${duplicateAssessments?.map((item: any) => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={t('hospital_module.choose_different_assessment')}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
@@ -707,7 +709,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
           setDuplicatesErrorModelOpen(false)
           setIsSubmitLoading(false)
         }}
-        ConfirmationText={'OK'}
+        ConfirmationText={t('ok')}
         allowCancel={false}
       />
 

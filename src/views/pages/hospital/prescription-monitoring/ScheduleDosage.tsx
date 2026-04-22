@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer, Box, Typography, IconButton, Grid, Card, CardContent, Divider, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
@@ -46,6 +47,7 @@ const ScheduleDosageSidesheet = ({
   selectedDate,
   medicalMasterData
 }: ScheduleDosageSidesheetProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const hasSetDefaults = useRef(false)
 
@@ -369,7 +371,7 @@ const ScheduleDosageSidesheet = ({
                         <ControlledTimePicker
                           name={`schedules.${idx}.time`}
                           control={control}
-                          label='Select Time'
+                          label={(t('select_time') as string)}
                           format='hh:mm A'
                           error={(errors as any)?.schedules?.[idx]?.time}
                           sx={commonFieldStyles}
@@ -390,8 +392,8 @@ const ScheduleDosageSidesheet = ({
                               [`schedules.${idx}.dosageUnit`]: (errors as any)?.schedules?.[idx]?.dosageUnit
                             },
                             options: prescriptionDosageMeasurementType,
-                            label: 'Quantity',
-                            placeholder: 'Enter quantity',
+                            label: t('quantity'),
+                            placeholder: t('hospital_module.enter_quantity'),
                             type: 'number',
                             maxDecimals: 4,
                             getOptionLabel: (option: any) => option.label,
@@ -438,7 +440,7 @@ const ScheduleDosageSidesheet = ({
                       }}
                       onClick={handleAddTime}
                     >
-                      Add Time
+                      {t('hospital_module.add_time')}
                     </Button>
                   </Grid>
 
@@ -453,7 +455,7 @@ const ScheduleDosageSidesheet = ({
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Apply Dosage
+                      {t('hospital_module.apply_dosage')}
                     </Typography>
 
                     <Controller
@@ -464,7 +466,7 @@ const ScheduleDosageSidesheet = ({
                         <Grid container spacing={4}>
                           <Grid size={{ xs: 12 }}>
                             <TreatmentTypeRadioButtons
-                              label='Only for this day'
+                              label={(t('hospital_module.only_for_this_day') as string)}
                               isSelected={field.value === 'only_for_this_day'}
                               onClick={() => !submitLoader && field.onChange('only_for_this_day')}
                               radioPosition='right'
@@ -477,7 +479,7 @@ const ScheduleDosageSidesheet = ({
 
                           <Grid size={{ xs: 12 }}>
                             <TreatmentTypeRadioButtons
-                              label='Till prescription ends'
+                              label={(t('hospital_module.till_prescription_ends') as string)}
                               isSelected={field.value === 'till_prescription_ends'}
                               onClick={() => !submitLoader && field.onChange('till_prescription_ends')}
                               radioPosition='right'
@@ -525,7 +527,7 @@ const ScheduleDosageSidesheet = ({
             loadingPosition='start'
             startIcon={submitLoader ? <Icon icon='mdi:loading' spin /> : null}
           >
-            {submitLoader ? 'Scheduling...' : 'Schedule'}
+            {submitLoader ? t('hospital_module.scheduling') : t('schedule')}
           </LoadingButton>
         </Box>
       </Box>

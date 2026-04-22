@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import Icon from 'src/@core/components/icon'
@@ -86,6 +87,7 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
     onDirtyChange
   } = props
 
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const params = useParams()
   const router: any = useRouter()
@@ -223,7 +225,7 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
                   control={control}
                   name='transfer_hospital_id'
                   errors={errors}
-                  label='Select Hospital'
+                  label={(t('hospital_module.select_hospital') as string)}
                   options={hospitalData}
                   getOptionLabel={(option: any) => option?.label || ''}
                   getOptionValue={(option: any) => option?.value || ''}
@@ -239,21 +241,21 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
                 <ControlledDatePicker
                   control={control}
                   name={'discharge_date'}
-                  label='Date'
+                  label={(t('date') as string)}
                   errors={errors}
                   minDate={dayjs(patientData?.admitted_at)}
                   maxDate={dayjs(new Date())}
                 />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTimePicker control={control} name={'discharge_time'} label='Time' errors={errors} />
+                <ControlledTimePicker control={control} name={'discharge_time'} label={(t('time') as string)} errors={errors} />
               </Grid>
               <Grid size={{ xs: 12 }}>
                 <ControlledTextArea
                   control={control}
                   errors={errors}
                   name='reason_for_transfer'
-                  placeholder='Enter Reason or Transferring'
+                  placeholder={(t('hospital_module.enter_reason_for_transfer') as string)}
                   fullWidth
                   rows={2}
                 />
@@ -265,7 +267,7 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
             control={control}
             render={({ field, fieldState }: any) => (
               <TemplateSection
-                label='Enter summary'
+                label={(t('hospital_module.enter_summary') as string)}
                 value={field.value}
                 onChange={field.onChange}
                 error={!!fieldState.error}
@@ -303,11 +305,11 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
               >
                 <Box>
                   <StyledTypography fontSize='1.25rem'>
-                    Active Prescriptions - {prescriptionData?.length}
+                    {t('hospital_module.active_prescriptions')} - {prescriptionData?.length}
                   </StyledTypography>
 
                   <StyledTypography fontSize='0.875rem'>
-                    You can stop the below prescriptions if its not needed after discharge
+                    {t('hospital_module.you_can_stop_prescriptions')}
                   </StyledTypography>
                 </Box>
               </Box>
@@ -352,7 +354,7 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
               }}
             >
               <StyledTypography fontSize='1.25rem'>
-                Medications {indexedMedicines?.length > 0 && `- ${indexedMedicines?.length}`}
+                {t('hospital_module.medications')} {indexedMedicines?.length > 0 && `- ${indexedMedicines?.length}`}
               </StyledTypography>
               <Box sx={{ display: 'flex', gap: 4 }}>
                 <Button
@@ -369,7 +371,7 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
                     })
                   }}
                 >
-                  Add New Prescription
+                  {t('hospital_module.add_new_prescription')}
                 </Button>
               </Box>
             </Box>
@@ -395,47 +397,47 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
           <Divider />
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <StyledTypography fontSize='1.25rem'>Care Instructions</StyledTypography>
+            <StyledTypography fontSize='1.25rem'>{t('hospital_module.care_instructions')}</StyledTypography>
 
             <ControlledTextField
               control={control}
               name={'care_diet_instruction'}
               errors={errors}
-              placeholder={'Enter text'}
-              label='Enter diet instructions'
+              placeholder={(t('enter_text') as string)}
+              label={(t('hospital_module.enter_diet_instructions') as string)}
             />
             <ControlledTextField
               control={control}
               name={'care_restriction'}
               errors={errors}
-              placeholder={'Enter text'}
-              label='Enter restriction activities with duration'
+              placeholder={(t('enter_text') as string)}
+              label={(t('hospital_module.enter_restriction_activities_with_duration') as string)}
             />
             <ControlledTextField
               inputBackgroundColor={alpha(theme.palette.customColors.antzNotes, 0.6)}
-              placeholder={'Enter text'}
+              placeholder={(t('enter_text') as string)}
               control={control}
               name={'care_notes'}
               errors={errors}
-              label=' Additional notes'
+              label={(t('hospital_module.additional_notes') as string)}
             />
           </Box>
 
           <Divider />
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <StyledTypography>Attachments</StyledTypography>
+            <StyledTypography>{t('hospital_module.attachments')}</StyledTypography>
             <ControlledMultiFileUpload
               name={'attachments'}
               control={control}
               errors={errors}
-              label='Upload attachment'
+              label={(t('hospital_module.upload_attachment') as string)}
             />
           </Box>
         </Box>
         <BottomActionBar
           {...({
-            submitLabel: 'Discharge Animal',
+            submitLabel: t('hospital_module.discharge_animal'),
             submitBtnVariant: 'contained',
             showCancel: false,
             submitBtnStyle: { px: 12, py: 3 },

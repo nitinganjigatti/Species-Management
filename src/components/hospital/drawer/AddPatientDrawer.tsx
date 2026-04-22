@@ -4,6 +4,7 @@ import { Box, Button, CircularProgress, Drawer, Grid, IconButton, Tooltip, Typog
 import { debounce } from 'lodash'
 import React, { useContext, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
@@ -54,7 +55,86 @@ const defaultValues: FormValues = {
   // patient_status: false
 }
 
+const createSchema = (t: any, patientData?: any) => yup.object().shape({
+  room: yup.object().required(t('hospital_module.room_is_required') || 'Room is required'),
+  holdingEnclosure: yup.object().required(t('hospital_module.holding_enclosure_is_required') || 'Holding Enclosure is required'),
+  selectedDoctor: yup.mixed().nullable().required(t('hospital_module.doctor_is_required') || 'Doctor is required'),
+
+  // Must not be in the future and must not be before the admitted date
+  admission_date: yup
+    .date()
+    .typeError(t('hospital_module.invalid_date') || 'Invalid date')
+    .nullable()
+    .required(t('hospital_module.date_is_required') || 'Date is required')
+
+    // Must not be a future date (after today)
+    .test('not-future-date', t('hospital_module.date_cannot_be_in_future') || 'Date cannot be in the future', function (value) {
+      if (!value) return true
+      const now = dayjs()
+      if (dayjs(value).isAfter(now, 'day')) {
+        return this.createError({ message: t('hospital_module.date_cannot_be_in_future') || 'Date cannot be in the future' })
+      }
+
+      return true
+    })
+
+    // Must not be before the admitted date
+    .test('not-before-admitted', t('hospital_module.date_cannot_be_before_admitted') || 'Date cannot be before the admitted date', function (value) {
+      const admittedAt = patientData?.admitted_at ? dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)) : null
+      if (!value || !admittedAt) return true
+      if (dayjs(value).isBefore(admittedAt, 'day')) {
+        return this.createError({
+          message: `${t('hospital_module.date_cannot_be_before_admitted')} (${admittedAt.format('DD MMM YYYY')})`
+        })
+      }
+
+      return true
+    }),
+
+  // Must not be in the future and must not be before the admitted time
+  admission_time: yup
+    .date()
+    .typeError(t('hospital_module.invalid_time') || 'Invalid time')
+    .nullable()
+    .required(t('hospital_module.time_is_required') || 'Time is required')
+    .test('is-valid-time', t('hospital_module.time_is_invalid') || 'Time is invalid', function (value) {
+      const { admission_date } = this.parent
+      const admittedAt = patientData?.admitted_at ? dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)) : null
+      if (!value || !admission_date) return true
+
+      const now = dayjs()
+
+      const selectedTime = dayjs(admission_date)
+        .startOf('day')
+        .set('hour', dayjs(value).hour())
+        .set('minute', dayjs(value).minute())
+        .set('second', 0)
+
+      // Must not be before the admitted time (on the same day)
+      if (admittedAt && dayjs(admission_date).isSame(admittedAt, 'day')) {
+        if (selectedTime.isBefore(admittedAt)) {
+          return this.createError({
+            message: `${t('hospital_module.time_cannot_be_before_admitted')} (${admittedAt.format('hh:mm A')})`
+          })
+        }
+      }
+
+      // Must not be in the future (on today)
+      if (dayjs(admission_date).isSame(now, 'day')) {
+        if (selectedTime.isAfter(now)) {
+          return this.createError({ message: t('hospital_module.time_cannot_be_in_future') || 'Time cannot be in the future' })
+        }
+      }
+
+      return true
+    }),
+  reason: yup.string().required(t('hospital_module.reason_for_admission_is_required') || 'Reason for admission is required')
+
+    // patient_status: yup.boolean().required('Patient status is required')
+})
+
 const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: AddPatientDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const authData: any = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
@@ -73,83 +153,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
 
-  const schema = yup.object().shape({
-    room: yup.object().required('Room is required'),
-    holdingEnclosure: yup.object().required('Holding Enclosure is required'),
-    selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-
-    // Must not be in the future and must not be before the admitted date
-    admission_date: yup
-      .date()
-      .typeError('Invalid date')
-      .nullable()
-      .required('Date is required')
-
-      // Must not be a future date (after today)
-      .test('not-future-date', 'Date cannot be in the future', function (value) {
-        if (!value) return true
-        const now = dayjs()
-        if (dayjs(value).isAfter(now, 'day')) {
-          return this.createError({ message: 'Date cannot be in the future' })
-        }
-
-        return true
-      })
-
-      // Must not be before the admitted date
-      .test('not-before-admitted', 'Date cannot be before the admitted date', function (value) {
-        const admittedAt = patientData?.admitted_at ? dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)) : null
-        if (!value || !admittedAt) return true
-        if (dayjs(value).isBefore(admittedAt, 'day')) {
-          return this.createError({
-            message: `Date cannot be before the admitted date (${admittedAt.format('DD MMM YYYY')})`
-          })
-        }
-
-        return true
-      }),
-
-    // Must not be in the future and must not be before the admitted time
-    admission_time: yup
-      .date()
-      .typeError('Invalid time')
-      .nullable()
-      .required('Time is required')
-      .test('is-valid-time', 'Time is invalid', function (value) {
-        const { admission_date } = this.parent
-        const admittedAt = patientData?.admitted_at ? dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)) : null
-        if (!value || !admission_date) return true
-
-        const now = dayjs()
-
-        const selectedTime = dayjs(admission_date)
-          .startOf('day')
-          .set('hour', dayjs(value).hour())
-          .set('minute', dayjs(value).minute())
-          .set('second', 0)
-
-        // Must not be before the admitted time (on the same day)
-        if (admittedAt && dayjs(admission_date).isSame(admittedAt, 'day')) {
-          if (selectedTime.isBefore(admittedAt)) {
-            return this.createError({
-              message: `Time cannot be before the admitted time (${admittedAt.format('hh:mm A')})`
-            })
-          }
-        }
-
-        // Must not be in the future (on today)
-        if (dayjs(admission_date).isSame(now, 'day')) {
-          if (selectedTime.isAfter(now)) {
-            return this.createError({ message: 'Time cannot be in the future' })
-          }
-        }
-
-        return true
-      }),
-    reason: yup.string().required('Reason for admission is required')
-
-      // patient_status: yup.boolean().required('Patient status is required')
-  })
+  const validationSchema = createSchema(t, patientData)
 
   const {
     control,
@@ -162,7 +166,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(validationSchema) as any,
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
@@ -378,10 +382,10 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
         >
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography sx={{ fontWeight: 500, fontSize: '24px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Admit Patient
+              {t('hospital_module.admit_patient')}
             </Typography>
             <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.neutralSecondary }}>
-              Admitting animal to the hospital
+              {t('hospital_module.admitting_animal_to_hospital')}
             </Typography>
           </Box>
           <IconButton onClick={onClose}>
@@ -405,7 +409,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
               <Typography
                 sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Admitting Animal
+                {t('hospital_module.admitting_animal')}
               </Typography>
               <MedicalIdChip leftImage={true} medId={patientData?.medical_record_code} />
             </Box>
@@ -420,7 +424,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                   <Typography
                     sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Attending Chief Doctor
+                    {t('hospital_module.attending_chief_doctor')}
                   </Typography>
                   {selectedDoctor === null ? (
                     <Box
@@ -447,7 +451,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                             : theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        Select doctor
+                        {t('hospital_module.select_doctor')}
                       </Typography>
                       <Icon icon='mdi:chevron-down' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                     </Box>
@@ -496,14 +500,14 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Admitting Date & Time
+                  {t('hospital_module.admitting_date_time')}
                 </Typography>
                 <Grid container spacing={6}>
                   <Grid size={{ sm: 6, xs: 6 }}>
                     <ControlledDatePicker
                       control={control}
                       name={'admission_date'}
-                      label='Date'
+                      label={(t('date') as string)}
                       defaultValue={dayjs()}
                       minDate={minDate}
                       maxDate={maxDate}
@@ -516,7 +520,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                     <ControlledTimePicker
                       control={control}
                       name={'admission_time'}
-                      label='Time'
+                      label={(t('time') as string)}
                       minTime={minTime}
                       maxTime={maxTime}
                     />
@@ -553,11 +557,11 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Room
+                  {t('hospital_module.room')}
                 </Typography>
                 <ControlledAutocomplete
                   name='room'
-                  label='Select Room'
+                  label={(t('hospital_module.select_room') as string)}
                   control={control}
                   errors={errors}
                   options={rooms}
@@ -571,7 +575,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                   loading={roomLoading}
                   endAdornment={() =>
                     havePermissionToAddHospital && (
-                      <Tooltip title='Add Rooms'>
+                      <Tooltip title={(t('hospital_module.add_room') as string)}>
                         <IconButton
                           size='small'
                           onMouseDown={e => e.preventDefault()}
@@ -589,11 +593,11 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Holding Enclosure
+                  {t('hospital_module.holding_enclosure')}
                 </Typography>
                 <ControlledAutocomplete
                   name='holdingEnclosure'
-                  label='Select Holding Enclosure'
+                  label={(t('hospital_module.select_holding_enclosure') as string)}
                   control={control}
                   errors={errors}
                   options={holdingEnclosures}
@@ -607,7 +611,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                   loading={enclosureLoading}
                   endAdornment={() =>
                     havePermissionToAddHospital && (
-                      <Tooltip title='Add Enclosures'>
+                      <Tooltip title={(t('hospital_module.add_enclosure') as string)}>
                         <IconButton
                           size='small'
                           onMouseDown={e => e.preventDefault()}
@@ -630,7 +634,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                       fontWeight: 400
                     }}
                   >
-                    No active/available enclosures available for this Room
+                    {t('hospital_module.no_available_enclosures')}
                   </Typography>
                 )}
               </Box>
@@ -638,12 +642,12 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Reason for Admission
+                  {t('hospital_module.reason_for_admission')}
                 </Typography>
                 <ControlledTextArea
                   control={control}
                   errors={errors}
-                  placeholder={'Enter Reason for Admission'}
+                  placeholder={(t('hospital_module.enter_reason_for_admission') as string)}
                   name={'reason'}
                   rows={4}
                   sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
@@ -683,7 +687,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
               onClose()
             }}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
           <Button
             variant='contained'
@@ -692,7 +696,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
             sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.customColors.OnPrimaryContainer }}
             onClick={handleSubmit(onSubmit)}
           >
-            {submitLoader ? <CircularProgress size={24} /> : 'ADMIT TO HOSPITAL'}
+            {submitLoader ? <CircularProgress size={24} /> : t('hospital_module.admit_to_hospital')}
           </Button>
         </Box>
       </Drawer>

@@ -19,6 +19,7 @@ import {
 
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useContext, useEffect, useState, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import RenderUtility from 'src/utility/render'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import Icon from 'src/@core/components/icon'
@@ -54,49 +55,31 @@ import Utility from 'src/utility'
 
 // import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
-const treatmentType = [
-  { label: 'OPD(outpatient)', value: 'opd' },
-  { label: 'Hospital Admission(inpatient)', value: 'inpatient' }
-]
-
-const visitTypes = [
-  { label: 'Check Up', value: 'checkup' },
-  { label: 'Emergency', value: 'emergency' },
-  { label: 'Outpatient', value: 'opd' },
-  { label: 'Follow up', value: 'follow_up' },
-  { label: 'Planned', value: 'planned' }
-]
-
-const healthStatusOptions = [
-  { label: 'Stable', value: 'stable' },
-  { label: 'Critical', value: 'critical' }
-]
-
-const schema = yup.object().shape({
-  treatmentType: yup.string().required('Treatment Type is Required'),
+const createSchema = (t: any, createdAt: any) => yup.object().shape({
+  treatmentType: yup.string().required(t('hospital_module.treatment_type_required') || 'Treatment Type is Required'),
   healthStatus: yup.string().notRequired(),
-  purposeOfVisit: yup.string().required('Purpose of Visit is Required'),
-  visitType: yup.string().required('Visit type is required'),
+  purposeOfVisit: yup.string().required(t('hospital_module.purpose_of_visit_required') || 'Purpose of Visit is Required'),
+  visitType: yup.string().required(t('hospital_module.visit_type_required') || 'Visit type is required'),
   medicalRecordId: yup.string().when('medicalRecordChoice', {
     is: 'existing',
-    then: schema => schema.required('Medical id is required'),
+    then: schema => schema.required(t('hospital_module.medical_id_required') || 'Medical id is required'),
     otherwise: schema => schema.notRequired()
   }),
-  holdingEnclosure: yup.object().required('Holding Enclosure is required'),
-  selectedAnimal: yup.mixed().nullable().required('Animal is required'),
-  selectedDoctor: yup.mixed().nullable().required('Doctor is required'),
-  room: yup.object().required('Room is required'),
+  holdingEnclosure: yup.object().required(t('hospital_module.holding_enclosure_is_required') || 'Holding Enclosure is required'),
+  selectedAnimal: yup.mixed().nullable().required(t('hospital_module.animal_is_required') || 'Animal is required'),
+  selectedDoctor: yup.mixed().nullable().required(t('hospital_module.doctor_is_required') || 'Doctor is required'),
+  room: yup.object().required(t('hospital_module.room_is_required') || 'Room is required'),
 
   // Must not be a future date (after today)
   admission_date: yup
     .date()
-    .typeError('Invalid date')
+    .typeError(t('hospital_module.invalid_date') || 'Invalid date')
     .nullable()
-    .required('Date is required')
-    .test('not-future-date', 'Date cannot be in the future', function (value) {
+    .required(t('hospital_module.date_is_required') || 'Date is required')
+    .test('not-future-date', t('hospital_module.date_cannot_be_in_future') || 'Date cannot be in the future', function (value) {
       if (!value) return true
       if (dayjs(value).isAfter(dayjs(), 'day')) {
-        return this.createError({ message: 'Date cannot be in the future' })
+        return this.createError({ message: t('hospital_module.date_cannot_be_in_future') || 'Date cannot be in the future' })
       }
 
       return true
@@ -105,10 +88,10 @@ const schema = yup.object().shape({
   // Must not be in the future time
   admission_time: yup
     .date()
-    .typeError('Invalid time')
+    .typeError(t('hospital_module.invalid_time') || 'Invalid time')
     .nullable()
-    .required('Time is required')
-    .test('is-valid-time', 'Time is invalid', function (value) {
+    .required(t('hospital_module.time_is_required') || 'Time is required')
+    .test('is-valid-time', t('hospital_module.time_is_invalid') || 'Time is invalid', function (value) {
       const { admission_date } = this.parent
       if (!value || !admission_date) return true
 
@@ -123,7 +106,7 @@ const schema = yup.object().shape({
       // Must not be in the future (on today)
       if (dayjs(admission_date).isSame(now, 'day')) {
         if (selectedTime.isAfter(now)) {
-          return this.createError({ message: 'Time cannot be in the future' })
+          return this.createError({ message: t('hospital_module.time_cannot_be_in_future') || 'Time cannot be in the future' })
         }
       }
 
@@ -138,7 +121,26 @@ interface AddPatientFormProps {
 }
 
 const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
+
+  const treatmentType = [
+    { label: t('hospital_module.opd_outpatient'), value: 'opd' },
+    { label: t('hospital_module.hospital_admission_inpatient'), value: 'inpatient' }
+  ]
+
+  const visitTypes = [
+    { label: t('hospital_module.check_up'), value: 'checkup' },
+    { label: t('hospital_module.emergency'), value: 'emergency' },
+    { label: t('hospital_module.outpatient'), value: 'opd' },
+    { label: t('hospital_module.follow_up'), value: 'follow_up' },
+    { label: t('hospital_module.planned'), value: 'planned' }
+  ]
+
+  const healthStatusOptions = [
+    { label: t('hospital_module.stable'), value: 'stable' },
+    { label: t('hospital_module.critical'), value: 'critical' }
+  ]
 
   const router = useSafeRouter()
   const authData: any = useContext(AuthContext)
@@ -200,8 +202,8 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   })
 
   const medicalRecordType = [
-    { label: 'Create a new ID', value: 'new', disabled: false },
-    { label: 'Add to existing ID', value: 'existing', disabled: medicalId.length === 0 }
+    { label: t('hospital_module.create_new_id'), value: 'new', disabled: false },
+    { label: t('hospital_module.add_to_existing_id'), value: 'existing', disabled: medicalId.length === 0 }
   ]
 
   const applyFilters = (selectedOptions: any) => {
@@ -228,7 +230,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     reset
   } = useForm<any>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(createSchema(t, defaultValues.admission_date)) as any,
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'

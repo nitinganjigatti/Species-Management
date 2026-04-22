@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { Box, Typography, Select, MenuItem, TextField, IconButton, Drawer, FormControlLabel } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import SideSheetActionButtons from '../SideSheetActionButtons'
@@ -52,6 +53,7 @@ const AddClinicalAsmntDrawer = ({
   dischargedDate,
   isDischarged
 }: AddClinicalAsmntDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
@@ -151,7 +153,7 @@ const AddClinicalAsmntDrawer = ({
         <Box sx={{ pb: 2 }}>
           <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
             <Typography sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1 }}>
-              Date & Time
+              {t('hospital_module.date_and_time')}
             </Typography>
             <Box sx={{ mb: 6 }}>
               <MUIDateTimePicker
@@ -173,7 +175,7 @@ const AddClinicalAsmntDrawer = ({
                 mb: 1.7
               }}
             >
-              Type*
+              {t('hospital_module.assessment_type')}*
             </Typography>
 
             <Select
@@ -195,8 +197,8 @@ const AddClinicalAsmntDrawer = ({
                 }
               }}
             >
-              <MenuItem value='Tentative'>Tentative</MenuItem>
-              <MenuItem value='Diagnosis'>Diagnosis</MenuItem>
+              <MenuItem value='Tentative'>{t('hospital_module.assessment_type_tentative')}</MenuItem>
+              <MenuItem value='Diagnosis'>{t('hospital_module.assessment_type_diagnosis')}</MenuItem>
             </Select>
             {!clinicalAsmnt && (
               <Typography
@@ -207,7 +209,7 @@ const AddClinicalAsmntDrawer = ({
                   ml: 2
                 }}
               >
-                Clinical Assessment is required
+                {t('hospital_module.clinical_assessment_required')}
               </Typography>
             )}
 
@@ -222,7 +224,7 @@ const AddClinicalAsmntDrawer = ({
                       mb: 1.7
                     }}
                   >
-                    Is it Chronic?
+                    {t('hospital_module.is_chronic')}
                   </Typography>
                   <Box
                     display='flex'
@@ -240,7 +242,7 @@ const AddClinicalAsmntDrawer = ({
                       justifyContent: 'space-between'
                     }}
                   >
-                    <Typography sx={{ marginRight: 2 }}>{chronicVal}</Typography>
+                    <Typography sx={{ marginRight: 2 }}>{chronicVal === 'Yes' ? t('yes') : t('no')}</Typography>
                     <FormControlLabel
                       control={
                         <MUISwitch
@@ -264,7 +266,7 @@ const AddClinicalAsmntDrawer = ({
                       mb: 1.7
                     }}
                   >
-                    Prognosis
+                    {t('hospital_module.prognosis')}
                   </Typography>
 
                   <Select
@@ -299,11 +301,11 @@ const AddClinicalAsmntDrawer = ({
                       }
                     }}
                   >
-                    <MenuItem value='Favourable'>Favourable</MenuItem>
-                    <MenuItem value='Guarded'>Guarded</MenuItem>
-                    <MenuItem value='Doubtful'>Doubtful</MenuItem>
-                    <MenuItem value='Poor'>Poor</MenuItem>
-                    <MenuItem value='Grave'>Grave</MenuItem>
+                    <MenuItem value='Favourable'>{t('hospital_module.prognosis_favourable')}</MenuItem>
+                    <MenuItem value='Guarded'>{t('hospital_module.prognosis_guarded')}</MenuItem>
+                    <MenuItem value='Doubtful'>{t('hospital_module.prognosis_doubtful')}</MenuItem>
+                    <MenuItem value='Poor'>{t('hospital_module.prognosis_poor')}</MenuItem>
+                    <MenuItem value='Grave'>{t('hospital_module.prognosis_grave')}</MenuItem>
                   </Select>
                 </Box>
               </Box>
@@ -312,10 +314,10 @@ const AddClinicalAsmntDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
-              Notes
+              {t('notes')}
             </Typography>
             <TextField
-              placeholder='Add notes'
+              placeholder={(t('hospital_module.add_notes') as string)}
               fullWidth
               multiline
               rows={3}
@@ -331,8 +333,8 @@ const AddClinicalAsmntDrawer = ({
         </Box>
         <Box sx={{ position: 'fixed', bottom: 0 }}>
           <SideSheetActionButtons
-            addLabel='ADD'
-            cancelLabel='CANCEL'
+            addLabel={t('add')}
+            cancelLabel={t('cancel')}
             onAdd={handleSave}
             onCancel={handleCancel}
             width={260}

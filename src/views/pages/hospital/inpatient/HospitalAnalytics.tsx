@@ -2,6 +2,7 @@
 
 import React from 'react'
 import { Box, Card, CardContent, Typography, Avatar, Grid, useTheme } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useHospital } from 'src/context/HospitalContext'
 import HospitalDropdown from 'src/components/hospital/inpatient/HospitalDropdown'
 
@@ -35,6 +36,7 @@ interface HospitalAnalyticsProps {
 }
 
 const HospitalAnalytics = ({ disabled = false }: HospitalAnalyticsProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const { selectedHospital, hospitalStats, isHospitalStatsLoading }: any = useHospital()
 
@@ -104,7 +106,7 @@ const HospitalAnalytics = ({ disabled = false }: HospitalAnalyticsProps) => {
                     fontSize: '14px'
                   }}
                 >
-                  Total Enclosures
+                  {t('hospital_module.total_enclosures')}
                 </Typography>
               </Box>
             </Grid>
@@ -132,7 +134,7 @@ const HospitalAnalytics = ({ disabled = false }: HospitalAnalyticsProps) => {
                     fontSize: '14px'
                   }}
                 >
-                  Available
+                  {t('hospital_module.available')}
                 </Typography>
               </Box>
             </Grid>
@@ -160,7 +162,7 @@ const HospitalAnalytics = ({ disabled = false }: HospitalAnalyticsProps) => {
                     fontSize: '14px'
                   }}
                 >
-                  Occupied
+                  {t('hospital_module.occupied')}
                 </Typography>
               </Box>
             </Grid>

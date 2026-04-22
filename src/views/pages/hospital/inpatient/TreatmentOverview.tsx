@@ -5,6 +5,7 @@ import { Box, Typography, Grid, Avatar, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useParams } from 'next/navigation'
 import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 
 interface StatsCardProps {
   icon?: string
@@ -93,6 +94,7 @@ interface HealthcareOverviewProps {
 }
 
 const HealthcareOverview = ({ data }: HealthcareOverviewProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const params = useParams()
   const { id }: any = params
@@ -102,7 +104,7 @@ const HealthcareOverview = ({ data }: HealthcareOverviewProps) => {
       icon: '/icons/hospital/TreatmentMonitoring.svg',
       count: data?.treatment_monitoring,
       navigateTo: `/hospital/inpatient/${id}?tab=treatmentMonitoring`,
-      label: 'Treatment Monitoring',
+      label: t('hospital_module.treatment_monitoring_label'),
       color: theme.palette.customColors.Error,
       backgroundColor: '#FFD3D333'
     },
@@ -110,7 +112,7 @@ const HealthcareOverview = ({ data }: HealthcareOverviewProps) => {
       icon: '/icons/hospital/ActiveSymptoms.svg',
       count: data?.active_diagnosis_count,
       navigateTo: `/hospital/inpatient/${id}?tab=clinicalAssessment`,
-      label: 'Active Clinical assessment',
+      label: t('hospital_module.active_clinical_assessment_label'),
       color: theme.palette.primary.dark,
       backgroundColor: '#FCF4AE99'
     },
@@ -118,7 +120,7 @@ const HealthcareOverview = ({ data }: HealthcareOverviewProps) => {
       icon: '/icons/hospital/ActiveClinicalAassesment.svg',
       count: data?.active_complaints_count,
       navigateTo: `/hospital/inpatient/${id}?tab=symptoms`,
-      label: 'Active Symptoms',
+      label: t('hospital_module.active_symptoms_label'),
       color: theme.palette.primary.main,
       backgroundColor: '#E1F9EDCC'
     },
@@ -126,7 +128,7 @@ const HealthcareOverview = ({ data }: HealthcareOverviewProps) => {
       icon: '/icons/hospital/Prescription.svg',
       count: data?.active_prescriptions_count,
       navigateTo: `/hospital/inpatient/${id}?tab=prescriptionMonitoring`,
-      label: 'Prescription',
+      label: t('hospital_module.prescription_label'),
       color: theme.palette.customColors.addPrimary,
       backgroundColor: theme.palette.customColors.bodyBg
     }

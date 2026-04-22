@@ -13,6 +13,7 @@ import {
   Typography,
   useTheme
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
@@ -45,6 +46,7 @@ const resolveBooleanStatus = (value: any) => {
 }
 
 const Surgery = () => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
 
@@ -257,7 +259,7 @@ const Surgery = () => {
       const payload = new FormData()
       const surgeryName = values?.surgery_name?.trim() || ''
       const description = values?.description?.trim() || ''
-      const status = values?.status ? 'Active' : 'Inactive'
+      const status = values?.status ? t('hospital_module.active') : t('hospital_module.inactive')
 
       payload.append('surgery_name', surgeryName)
       payload.append('description', description)
@@ -271,16 +273,16 @@ const Surgery = () => {
         if (response?.success) {
           Toaster({
             type: 'success',
-            message: response?.message || (surgeryId ? 'Surgery updated successfully' : 'Surgery created successfully')
+            message: response?.message || (surgeryId ? t('hospital_module.surgery_updated_successfully') : t('hospital_module.surgery_created_successfully'))
           })
           refetch()
           handleCloseDrawer()
         } else {
-          Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.something_went_wrong') })
         }
       } catch (error: any) {
         console.error(error)
-        Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+        Toaster({ type: 'error', message: error?.message || t('hospital_module.an_unexpected_error_occurred') })
       } finally {
         setSubmitLoader(false)
       }
@@ -300,16 +302,16 @@ const Surgery = () => {
     try {
       const response: any = await deleteSurgeryMaster(surgeryId)
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Surgery deleted successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.surgery_deleted_successfully') })
         refetch()
         handleCloseDeleteDialog()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to delete surgery' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_delete_surgery') })
         setDeleteLoading(false)
       }
     } catch (error: any) {
       console.error(error)
-      Toaster({ type: 'error', message: error?.message || 'An unexpected error occurred' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.an_unexpected_error_occurred') })
       setDeleteLoading(false)
     }
   }, [handleCloseDeleteDialog, refetch, resolveSurgeryId, surgeryToDelete])
@@ -318,7 +320,7 @@ const Surgery = () => {
     () => [
       {
         field: 'sl_no',
-        headerName: 'SL.NO',
+        headerName: t('hospital_module.sl_no'),
         minWidth: 80,
         width: 80,
         align: 'center',
@@ -340,7 +342,7 @@ const Surgery = () => {
       },
       {
         field: 'display_name',
-        headerName: 'Name of Surgery',
+        headerName: t('hospital_module.name_of_surgery'),
         minWidth: 220,
         flex: 1,
         sortable: false,
@@ -360,7 +362,7 @@ const Surgery = () => {
       },
       {
         field: 'display_description',
-        headerName: 'Description',
+        headerName: t('hospital_module.description'),
         minWidth: 320,
         flex: 2,
         sortable: false,
@@ -405,7 +407,7 @@ const Surgery = () => {
       },
       {
         field: 'status_value',
-        headerName: 'Status',
+        headerName: t('hospital_module.status'),
         minWidth: 150,
         sortable: false,
         renderCell: (params: any) => {
@@ -415,7 +417,7 @@ const Surgery = () => {
             <CustomChip
               skin='light'
               size='small'
-              label={isActive ? 'Active' : 'Inactive'}
+              label={isActive ? t('hospital_module.active') : t('hospital_module.inactive')}
               color={isActive ? 'success' : 'error'}
               sx={{
                 height: 20,
@@ -439,7 +441,7 @@ const Surgery = () => {
         headerAlign: 'right',
         renderCell: (params: any) => (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0 }}>
-            <Tooltip title='Edit'>
+            <Tooltip title={(t('edit') as string)}>
               <IconButton size='small' onClick={() => handleEditSurgery(params.row)}>
                 <Icon color={theme.palette.customColors.OnSurfaceVariant} icon='mdi:pencil-outline' />
               </IconButton>
@@ -453,7 +455,7 @@ const Surgery = () => {
         )
       }
     ],
-    [handleDeletePrompt, handleEditSurgery, theme]
+    [handleDeletePrompt, handleEditSurgery, theme, t]
   )
 
   return (
@@ -476,7 +478,7 @@ const Surgery = () => {
                 letterSpacing: 0
               }}
             >
-              Surgery Master
+              {t('hospital_module.surgery_master')}
             </Typography>
           }
           action={
@@ -486,7 +488,7 @@ const Surgery = () => {
               sx={{ py: 2, borderRadius: '4px' }}
               onClick={handleAddSurgery}
             >
-              Add New Surgery
+              {t('hospital_module.add_new_surgery')}
             </Button>
           }
         />
@@ -504,7 +506,7 @@ const Surgery = () => {
             value={searchValue}
             onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)}
             onClear={handleSearchClear}
-            placeholder='Search by Name'
+            placeholder={(t('hospital_module.search_by_name') as string)}
             textFielsSX={{
               '& .MuiInputBase-input::placeholder': {
                 fontFamily: 'Inter',
@@ -542,10 +544,10 @@ const Surgery = () => {
         <ConfirmationDialog
           dialogBoxStatus={deleteDialogOpen}
           onClose={handleCloseDeleteDialog}
-          title='Delete Surgery?'
-          description='Are you sure you want to permanently delete this surgery?'
-          cancelText='Cancel'
-          ConfirmationText='Delete'
+          title={(t('hospital_module.delete_surgery_confirm') as string)}
+          description={t('hospital_module.delete_surgery_confirm_desc')}
+          cancelText={t('cancel')}
+          ConfirmationText={t('delete')}
           confirmAction={handleConfirmDelete}
           loading={deleteLoading}
           image='/images/warning-icon.svg'

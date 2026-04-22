@@ -2,6 +2,7 @@
 
 /* eslint-disable lines-around-comment */
 import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -149,6 +150,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
   isControlledSubstance = false
 }: MedicinePrescriptionCardForMultipleTimeSlotsProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
   const [activeTab, setActiveTab] = useState<any>(medicineData?.defaultTab || 1)
@@ -771,14 +773,14 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                     render={({ field }) => (
                       <Box sx={{ display: 'flex', gap: 2 }}>
                         <TreatmentTypeRadioButtons
-                          label='Administer'
+                          label={(t('hospital_module.administer') as string)}
                           isSelected={field.value === 'administer'}
                           onClick={() => field.onChange('administer')}
                           radioPosition='right'
                           sx={{ flex: 1 }}
                         />
                         <TreatmentTypeRadioButtons
-                          label='Skipped'
+                          label={(t('hospital_module.skipped') as string)}
                           isSelected={field.value === 'skipped'}
                           onClick={() => field.onChange('skipped')}
                           radioPosition='right'
@@ -937,8 +939,8 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           control={control}
                                           errors={errors}
                                           sx={commonFieldStyles}
-                                          label='Quantity'
-                                          placeholder='Enter Quantity'
+                                          label={(t('quantity') as string)}
+                                          placeholder={(t('hospital_module.enter_quantity') as string)}
                                           type='number'
                                         />
                                       </Grid>
@@ -946,7 +948,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                       <Grid size={{ xs: 12, md: 6 }}>
                                         <ControlledSelect
                                           name='wastageUnit'
-                                          label='Unit'
+                                          label={(t('type') as string)}
                                           control={control}
                                           errors={errors}
                                           sx={commonFieldStyles}
@@ -959,14 +961,14 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
 
                                       <Grid size={{ xs: 12 }}>
                                         <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
-                                          Notes
+                                          {t('notes')}
                                         </Typography>
                                         <ControlledTextArea
                                           name='notes'
                                           control={control}
                                           errors={errors}
                                           sx={commonFieldStyles}
-                                          placeholder='Enter Notes'
+                                          placeholder={(t('hospital_module.enter_notes') as string)}
                                           rows={3}
                                         />
                                       </Grid>
@@ -1016,7 +1018,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                           control={control}
                                           errors={errors}
                                           sx={commonFieldStyles}
-                                          label='Batch Image'
+                                          label={(t('hospital_module.batch_image') as string)}
                                           maxFiles={1}
                                           maxFileSize={5 * 1024 * 1024}
                                           acceptedFileTypes='images'
@@ -1039,7 +1041,7 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                   control={control}
                                   errors={errors}
                                   sx={commonFieldStyles}
-                                  placeholder='Enter reason for skipping'
+                                  placeholder={(t('hospital_module.enter_reason_for_skipping') as string)}
                                   rows={4}
                                   required={actionType === 'skipped'}
                                 />

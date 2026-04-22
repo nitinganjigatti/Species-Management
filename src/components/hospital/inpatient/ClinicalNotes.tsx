@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback, useRef } from 'react'
 import { useTheme } from '@emotion/react'
 import { useMutation, useQuery, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
 import Toaster from 'src/components/Toaster'
@@ -18,6 +19,7 @@ interface ClinicalNotesProps {
 }
 
 const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
+  const { t } = useTranslation()
   const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false)
   const [selectedItemToDelete, setSelectedItemToDelete] = useState<any>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
@@ -112,13 +114,13 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
       const response: any = await addClinicalNotes({ payload } as any)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Note added successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.note_added_successfully') })
         queryClient.invalidateQueries({ queryKey: ['clinicalNotes'] })
 
         return true
       } else {
         console.error('Submit Error:', response?.message)
-        Toaster({ type: 'error', message: response?.message || 'Note failed to add' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.note_failed_to_add') })
 
         return false
       }
@@ -134,14 +136,14 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
   const deleteClinicalNotesMutation: any = useMutation({
     mutationFn: (noteId: any) => deleteClinicalNotes(noteId),
     onSuccess: async (response: any) => {
-      Toaster({ type: 'success', message: response?.message || 'Note deleted successfully' })
+      Toaster({ type: 'success', message: response?.message || t('hospital_module.note_deleted_successfully') })
 
       queryClient.invalidateQueries({ queryKey: ['clinicalNotes'] })
       handleDeleteDialogClose()
     },
     onError: (error: any) => {
       console.error('Delete Error:', error?.message || error)
-      Toaster({ type: 'error', message: error?.message || 'An error occurred while deleting' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.error_occurred_while_deleting') })
     }
   })
 
@@ -183,15 +185,15 @@ const ClinicalNotes = ({ patientData }: ClinicalNotesProps) => {
         <ConfirmationDialog
           dialogBoxStatus={isDeleteDialogOpen}
           onClose={handleDeleteDialogClose}
-          title={'Delete Clinical Note?'}
-          cancelText={'CANCEL'}
+          title={(t('hospital_module.delete_clinical_note') as string)}
+          cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={handleConfirmDeleteNote}
           loading={deleteClinicalNotesMutation.isPending}
-          ConfirmationText={'DELETE'}
-          description={'Are you sure you want to permanently delete this Clinical Note?'}
+          ConfirmationText={t('delete')}
+          description={t('hospital_module.delete_clinical_note_confirm_msg')}
         />
       )}
     </>

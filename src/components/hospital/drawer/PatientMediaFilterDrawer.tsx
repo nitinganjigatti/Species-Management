@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import MediaFilterContent from './MediaFilterContent'
 import type { BaseDrawerProps } from 'src/types/hospital'
@@ -18,13 +19,14 @@ const PatientMediaFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }: PatientMediaFilterDrawerProps) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState('Media Type')
   const [localFilterCount, setLocalFilterCount] = useState(0)
 
   const [selectedOptions, setSelectedOptions] = useState<any>({
     'Media Type': [],
     'Medical Record': [],
-    Feature: []
+    'Feature': []
   })
 
   const leftMenu = ['Media Type', 'Medical Record', 'Feature']
@@ -32,19 +34,19 @@ const PatientMediaFilterDrawer = ({
   // Static data for filters
   const menuData: any = {
     'Media Type': [
-      { label: 'Images', value: 'image' },
-      { label: 'Documents', value: 'document' },
-      { label: 'Videos', value: 'video' },
-      { label: 'Audio', value: 'audio' }
+      { label: t('hospital_module.images'), value: 'image' },
+      { label: t('hospital_module.documents'), value: 'document' },
+      { label: t('hospital_module.videos'), value: 'video' },
+      { label: t('hospital_module.audio'), value: 'audio' }
     ],
     'Medical Record': [
-      { label: 'Current Medical Record', value: 'current' },
-      { label: 'All Medical Records', value: 'all' }
+      { label: t('hospital_module.current_medical_record'), value: 'current' },
+      { label: t('hospital_module.all_medical_records'), value: 'all' }
     ],
-    Feature: [
-      { label: 'Surgery', value: 'surgery' },
-      { label: 'Discharge', value: 'discharge' },
-      { label: 'Mortality', value: 'mortality' }
+    'Feature': [
+      { label: t('hospital_module.surgery'), value: 'surgery' },
+      { label: t('hospital_module.discharge'), value: 'discharge' },
+      { label: t('hospital_module.mortality'), value: 'mortality' }
     ]
   }
 
@@ -52,7 +54,7 @@ const PatientMediaFilterDrawer = ({
     setSelectedOptions({
       'Media Type': [],
       'Medical Record': [],
-      Feature: []
+      'Feature': []
     })
     setLocalFilterCount(0)
     setFilterCount(0)

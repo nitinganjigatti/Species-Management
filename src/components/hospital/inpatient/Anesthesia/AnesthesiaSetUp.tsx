@@ -17,6 +17,7 @@ import {
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import { useFormContext } from 'react-hook-form'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
 
@@ -183,6 +184,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
     setValue,
     formState: { errors }
   } = useFormContext()
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
@@ -298,7 +300,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
     const isInSelected = selectedItemNames.includes(normalizedNewItem)
 
     if (isInPredefined || isInCustomItems || isInSelected) {
-      setDuplicateError('Item already exists')
+      setDuplicateError(t('hospital_module.item_already_exists') as string)
 
       return
     }
@@ -500,7 +502,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
 
           {monitoringState.otherItems && monitoringState.otherItems.length > 0 && (
             <Box>
-              <Typography sx={{ ...firstColumnTextStyles, mb: '10px' }}>Other Monitoring Items Added</Typography>
+              <Typography sx={{ ...firstColumnTextStyles, mb: '10px' }}>{t('hospital_module.other_monitoring_items_added')}</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px', mt: '10px', mb: '10px' }}>
                 {monitoringState.otherItems.map((item: any) => (
                   <Tooltip key={item} title={item} arrow placement='top'>
@@ -532,12 +534,12 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
             }}
           >
             <Typography sx={{ fontFamily: 'Inter', fontWeight: 600, fontSize: '14px', color: onSurface }}>
-              Add New Other Item
+              {t('hospital_module.add_new_other_item')}
             </Typography>
             <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <TextField
                 fullWidth
-                placeholder='Enter New Item'
+                placeholder={(t('hospital_module.enter_new_monitoring_item') as string)}
                 value={newMonitoringItem}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e.target.value)}
                 onKeyDown={(e: React.KeyboardEvent) => handleNewItemKeyDown(e, key, sectionMeta)}
@@ -565,7 +567,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
                   '&:hover': { backgroundColor: newMonitoringItem.trim() ? primaryMain : outlineColor }
                 }}
               >
-                ADD
+                {t('add')}
               </Button>
             </Box>
             {duplicateError && (

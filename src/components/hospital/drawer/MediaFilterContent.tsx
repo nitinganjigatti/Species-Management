@@ -3,6 +3,7 @@
 import React from 'react'
 import { Box, Checkbox, Typography, Divider, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 interface MediaFilterContentProps {
   menuName: string
@@ -23,6 +24,7 @@ const MediaFilterContent = ({
   isAllSelected,
   hideSelectAll = false
 }: MediaFilterContentProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -60,7 +62,7 @@ const MediaFilterContent = ({
                   fontWeight: 500
                 }}
               >
-                Select All
+                {t('hospital_module.select_all')}
               </Typography>
             </Box>
             <Divider sx={{ mb: 2 }} />
@@ -114,7 +116,7 @@ const MediaFilterContent = ({
                 color: theme.palette.text.secondary
               }}
             >
-              No options available
+              {t('hospital_module.no_options_available')}
             </Typography>
           </Box>
         )}

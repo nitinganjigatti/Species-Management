@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   TextField,
@@ -82,6 +83,7 @@ export default function PrescriptionMedicineList({
   setValue
 }: PrescriptionMedicineListProps) {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const searchParams = useSearchParams()
   const fromPage = searchParams?.get('fromPage')
   const medicine_edit_id = searchParams?.get('medicine_edit_id')
@@ -135,7 +137,7 @@ export default function PrescriptionMedicineList({
       <Box sx={{ pt: 1, width: '100%' }}>
         <ControlledAutocomplete
           name='selectedMedicine'
-          label='Search Medicine'
+          label={(t('hospital_module.search_medicine') as string)}
           control={control}
           errors={formErrors}
           options={autocompleteOptions}
@@ -233,7 +235,7 @@ export default function PrescriptionMedicineList({
     >
       {fromPage === 'prescriptionDetail' || medicine_edit_id ? null : (
         <TextField
-          placeholder='Search'
+          placeholder={(t('search') as string)}
           fullWidth
           size='small'
           sx={{ mb: 2, borderRadius: '8px' }}

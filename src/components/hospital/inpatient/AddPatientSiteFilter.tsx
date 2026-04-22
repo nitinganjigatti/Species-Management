@@ -4,6 +4,7 @@ import { useTheme } from '@emotion/react'
 import { Card, CardContent, CardHeader, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import SectionsDrawer from './SectionsDrawer'
 import SitesDrawer from './SitesDrawer'
@@ -16,6 +17,7 @@ interface AddPatientSiteFilterProps {
 }
 
 const AddPatientSiteFilter = ({ localSelections, setLocalSelections }: AddPatientSiteFilterProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const auth: any = useAuth()
 
@@ -82,7 +84,7 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }: AddPatien
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%' }}>
       <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', width: '100%' }}>
         <CardHeader
-          title='Select Site'
+          title={(t('hospital_module.select_site') as string)}
           onClick={() => {
             if (localSelections?.Sections?.length === 0 && localSelections?.Enclosures?.length === 0) {
               setSiteListDrawer(true)
@@ -158,7 +160,7 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }: AddPatien
       {localSelections?.Sites?.length === 1 && (
         <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%' }}>
           <CardHeader
-            title='Select Section'
+            title={(t('hospital_module.select_section') as string)}
             onClick={() => setOpenSectionsListDrawer(true)}
             sx={{
               background: localSelections.Enclosures.length > 0 ? '#0000000D' : '#E8F4F2',
@@ -217,7 +219,7 @@ const AddPatientSiteFilter = ({ localSelections, setLocalSelections }: AddPatien
       {localSelections?.Sites?.length === 1 && localSelections?.Sections?.length === 1 && (
         <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%' }}>
           <CardHeader
-            title='Select Enclosure'
+            title={(t('hospital_module.select_enclosure') as string)}
             onClick={() => setOpenEnclosuresListDrawer(true)}
             sx={{
               background: '#E8F4F2',

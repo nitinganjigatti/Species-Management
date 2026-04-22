@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { Box, Button, Typography, CircularProgress, Skeleton } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
@@ -40,6 +41,7 @@ interface ClinicalAssessmentProps {
 }
 
 const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAssessmentProps) => {
+  const { t } = useTranslation()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
@@ -497,7 +499,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        {`${tab} ${
+                        {`${tab === 'Active' ? t('hospital_module.active') : tab === 'Resolved' ? t('hospital_module.resolved') : t('hospital_module.all')} ${
                           tab === 'Active'
                             ? ` - ${getTabCount('Active')}`
                             : tab === 'Resolved'
@@ -527,13 +529,13 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
                 }}
               />
                 <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
-                  ADD NEW
+                  {t('hospital_module.add_new')}
                 </Button>
             </Box>
           </Box>
           <Box>
             <MUISwitch
-              label='Current Medical Record Only'
+              label={(t('hospital_module.current_medical_record_only') as string)}
               checked={currentRecordOnly}
               onChange={handleRecordOnlyChange}
               size='small'
@@ -544,7 +546,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
       ) : !isLoading ? (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
           <MUISwitch
-            label='Current Medical Record Only'
+            label={(t('hospital_module.current_medical_record_only') as string)}
             checked={currentRecordOnly}
             onChange={handleRecordOnlyChange}
             size='small'
@@ -583,8 +585,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
             }}
           >
             <NoMedicalData
-              btnText={'ADD NEW CLINICAL ASSESSMENT'}
-              text={'All Added Clinical Assessments Will Appear here'}
+              btnText={t('hospital_module.add_new_clinical_assessment')}
+              text={t('hospital_module.all_added_clinical_assessments_appear_here')}
               btnAction={handleRouterNavigation}
             />
           </Box>
@@ -592,7 +594,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
 
         {!hasMore && filteredRecords.length > 10 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more assessments to load
+            {t('hospital_module.no_more_assessments_to_load')}
           </Typography>
         )}
       </Box>
@@ -638,14 +640,14 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
         <ConfirmationDialog
           dialogBoxStatus={isSaveDialogOpen}
           onClose={() => setIsSaveDialogOpen(false)}
-          title={'Are you sure you want to save the changes?'}
-          cancelText={'CANCEL'}
+          title={(t('hospital_module.save_changes_confirm') as string)}
+          cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.primary.main, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.mdAntzNeutral, p: 4 }}
           confirmAction={updateAssessment}
           loading={isSubmitLoading}
-          ConfirmationText={'YES'}
+          ConfirmationText={t('yes')}
           description={''}
         />
       )}

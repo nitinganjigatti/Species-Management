@@ -11,6 +11,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 interface DoctorsDrawerProps {
   open?: boolean
@@ -20,6 +21,7 @@ interface DoctorsDrawerProps {
 }
 
 const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const { setValue } = useForm<any>()
   const [searchValue, setSearchValue] = useState<string>('')
@@ -132,7 +134,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <img src='/icons/Activity.svg' alt='Activity' />
               <Typography variant='h6' sx={{ fontWeight: 'bold' }}>
-                Select Chief Veterinarian
+                {t('hospital_module.select_chief_doctor')}
               </Typography>
             </Box>
             <IconButton onClick={() => setOpen && setOpen(false)}>
@@ -143,7 +145,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
             <Grid item size={{ xs: 12, sm: 12 } as any}>
               <Search
                 width='100%'
-                placeholder='Search by name'
+                placeholder={(t('hospital_module.search_staff') as string)}
                 value={searchValue}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
                 onClear={handleClearSearch}
@@ -233,7 +235,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
             sx={{ p: 3, fontWeight: 600 }}
             disabled={selected === null}
           >
-            ADD
+            {t('add')}
           </Button>
         </Box>
       </Drawer>

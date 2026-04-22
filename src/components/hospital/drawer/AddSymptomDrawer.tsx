@@ -12,6 +12,7 @@ import {
   InputAdornment
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import SideSheetActionButtons from '../SideSheetActionButtons'
@@ -58,6 +59,7 @@ const AddSymptomDrawer = ({
   dischargedDate,
   isDischarged
 }: AddSymptomDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
   const [recordedDateTime, setRecordedDateTime] = useState<any>(dayjs())
@@ -132,7 +134,7 @@ const AddSymptomDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 0 }}
             >
-              Date & Time
+              {t('hospital_module.date_and_time')}
             </Typography>
             <Box sx={{ mb: 6 }}>
               <MUIDateTimePicker
@@ -156,7 +158,7 @@ const AddSymptomDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Severity
+                  {t('hospital_module.severity')}
                 </Typography>
 
                 <Select
@@ -183,10 +185,10 @@ const AddSymptomDrawer = ({
                     }
                   }}
                 >
-                  <MenuItem value='Mild'>Mild</MenuItem>
-                  <MenuItem value='Moderate'>Moderate</MenuItem>
-                  <MenuItem value='High'>High</MenuItem>
-                  <MenuItem value='Extreme'>Extreme</MenuItem>
+                  <MenuItem value='Mild'>{t('hospital_module.severity_mild')}</MenuItem>
+                  <MenuItem value='Moderate'>{t('hospital_module.severity_moderate')}</MenuItem>
+                  <MenuItem value='High'>{t('hospital_module.severity_high')}</MenuItem>
+                  <MenuItem value='Extreme'>{t('hospital_module.severity_extreme')}</MenuItem>
                 </Select>
               </Box>
 
@@ -199,7 +201,7 @@ const AddSymptomDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Duration
+                  {t('hospital_module.duration')}
                 </Typography>
                 <TextField
                   type='number'
@@ -231,9 +233,9 @@ const AddSymptomDrawer = ({
                               }
                             }}
                           >
-                            <MenuItem value='Days'>Days</MenuItem>
-                            <MenuItem value='Weeks'>Weeks</MenuItem>
-                            <MenuItem value='Months'>Months</MenuItem>
+                            <MenuItem value='Days'>{t('hospital_module.duration_days')}</MenuItem>
+                            <MenuItem value='Weeks'>{t('hospital_module.duration_weeks')}</MenuItem>
+                            <MenuItem value='Months'>{t('hospital_module.duration_months')}</MenuItem>
                           </Select>
                         </InputAdornment>
                       )
@@ -246,10 +248,10 @@ const AddSymptomDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
-              Notes
+              {t('notes')}
             </Typography>
             <TextField
-              placeholder='Add notes'
+              placeholder={(t('hospital_module.add_notes') as string)}
               fullWidth
               multiline
               rows={3}
@@ -264,8 +266,8 @@ const AddSymptomDrawer = ({
         </Box>
 
         <SideSheetActionButtons
-          addLabel='ADD'
-          cancelLabel='CANCEL'
+          addLabel={t('add')}
+          cancelLabel={t('cancel')}
           onAdd={handleSave}
           onCancel={handleCancel}
           width={260}

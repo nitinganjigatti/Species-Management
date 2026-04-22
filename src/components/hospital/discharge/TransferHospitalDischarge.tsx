@@ -7,8 +7,10 @@ import { addInpatientDischarge } from 'src/lib/api/hospital/inpatientDischarge'
 import Toaster from 'src/components/Toaster'
 import { useHospital } from 'src/context/HospitalContext'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
+import { useTranslation } from 'react-i18next'
 
 function TransferHospitalDischarge() {
+  const { t } = useTranslation()
   const [hospitalData, setHospitalData] = useState<any[]>([])
   const [isLoadingHospital, setIsLoadingHospital] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
@@ -80,14 +82,14 @@ function TransferHospitalDischarge() {
       const res: any = await addInpatientDischarge(payload)
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Transfer to hospital Submitted successfully' })
+        Toaster({ type: 'success', message: res?.message || t('hospital_module.transfer_hospital_submitted_successfully') })
 
         fetchAndUpdateHospitalStats(selectedHospital?.id)
 
         return true
       }
 
-      Toaster({ type: 'error', message: res?.message || 'Failed to submit Transfer to hospital' })
+      Toaster({ type: 'error', message: res?.message || t('hospital_module.failed_submit_transfer_hospital') })
 
       return false
     } catch (error: any) {

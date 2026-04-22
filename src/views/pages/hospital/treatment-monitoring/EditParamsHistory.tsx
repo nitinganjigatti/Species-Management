@@ -10,6 +10,7 @@ import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePick
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { deleteAssessmentHistory, updateHospitalAssessmentHistory } from 'src/lib/api/hospital/treatmentMonitoring'
 import Toaster from 'src/components/Toaster'
@@ -75,6 +76,7 @@ interface EditParamsHistoryProps {
 }
 
 const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData, interval, refetchPatient }: EditParamsHistoryProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
@@ -199,7 +201,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
             }}
           >
             <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}>
-              Edit Selected Entry
+              {t('hospital_module.edit_selected_entry')}
             </Typography>
 
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={() => setOpen(false)}>
@@ -227,12 +229,12 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Observation Time
+                    {t('hospital_module.observation_time')}
                   </Typography>
                   <ControlledTimePicker
                     control={control}
                     name={'observation_time'}
-                    label='Time'
+                    label={(t('time') as string)}
                     minTime={parseIntervalToTimeRange(interval)?.start || null}
                     maxTime={parseIntervalToTimeRange(interval)?.end || null}
                   />
@@ -247,7 +249,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Enter Observation
+                      {t('hospital_module.enter_observation')}
                     </Typography>
                   </Grid>
 
@@ -256,7 +258,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                       <ControlledTextField
                         control={control}
                         name='observation_value'
-                        label='Enter Value'
+                        label={(t('hospital_module.enter_value') as string)}
                         type='number'
                         errors={errors}
                         required
@@ -272,7 +274,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                         <ControlledTextField
                           control={control}
                           name='observation_value'
-                          label='Enter Value'
+                          label={(t('hospital_module.enter_value') as string)}
                           errors={errors}
                           type='number'
                           required
@@ -284,7 +286,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                         <ControlledSelect
                           control={control}
                           errors={errors}
-                          label='Select Unit'
+                          label={(t('hospital_module.select_unit') as string)}
                           name='value_unit'
                           options={data?.unitsData || []}
                           getOptionLabel={(option: any) => option.label}
@@ -304,7 +306,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                       <ControlledSelect
                         control={control}
                         errors={errors}
-                        label='Select Value'
+                        label={(t('hospital_module.select_value') as string)}
                         name='observation_value'
                         options={data?.unitsData || []}
                         getOptionLabel={(option: any) => option.label}
@@ -323,7 +325,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                       <ControlledTextField
                         control={control}
                         name='observation_value'
-                        label='Enter Text'
+                        label={(t('hospital_module.enter_text') as string)}
                         errors={errors}
                         required
                         inputBackgroundColor={theme.palette.customColors.Surface}
@@ -339,7 +341,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                     <ControlledTextField
                       control={control}
                       name={'note'}
-                      label='Notes (Optional)'
+                      label={(t('hospital_module.notes_optional') as string)}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           '& fieldset': { border: 'none' },
@@ -381,7 +383,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                 fontWeight: 500
               }}
             >
-              Delete Entry
+              {t('hospital_module.delete_entry')}
             </Button>
             <Button
               type='submit'
@@ -393,7 +395,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
                 backgroundColor: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              {updateLoading ? <CircularProgress size={24} /> : 'UPDATE'}
+              {updateLoading ? <CircularProgress size={24} /> : t('update').toUpperCase()}
             </Button>
           </Box>
         </Box>
@@ -403,7 +405,7 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
         <ConfirmationDialog
           dialogBoxStatus={openDeleteDialog}
           onClose={() => setOpenDeleteDialog(false)}
-          description='Are you sure you want to delete this current entry?'
+          description={t('hospital_module.confirm_delete_entry')}
           cancelText='CANCEL'
           cancelBtnStyle={{
             borderColor: theme.palette.customColors.OnPrimaryContainer,

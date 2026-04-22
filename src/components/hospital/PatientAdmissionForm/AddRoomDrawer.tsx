@@ -18,6 +18,7 @@ import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { addHospitalRoom } from 'src/lib/api/hospital/hospitalRooms'
 import Toaster from 'src/components/Toaster'
@@ -58,9 +59,9 @@ const defaultValues: FormValues = {
   floor: ''
 }
 
-const schema = yup.object().shape({
-  room: yup.string().trim().required('Room is required'),
-  floor: yup.string().trim().required('Floor is required')
+const createSchema = (t: any) => yup.object().shape({
+  room: yup.string().trim().required(t('hospital_module.room_name_is_required') || 'Room is required'),
+  floor: yup.string().trim().required(t('hospital_module.floor_is_required') || 'Floor is required')
 })
 
 interface AddRoomDrawerProps {
@@ -80,6 +81,7 @@ const AddRoomDrawer = ({
   isHospitalStatsLoading,
   updateHospitalStats
 }: AddRoomDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const {
@@ -89,7 +91,7 @@ const AddRoomDrawer = ({
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(createSchema(t)) as any,
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
@@ -192,7 +194,7 @@ const AddRoomDrawer = ({
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Add Rooms
+                {t('hospital_module.add_room')}
               </Typography>
             </Box>
 
@@ -380,11 +382,11 @@ const AddRoomDrawer = ({
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Room
+                  {t('hospital_module.room')}
                 </Typography>
                 <ControlledTextField
                   name='room'
-                  label='Enter Room Name*'
+                  label={(t('hospital_module.enter_room_name_required') as string)}
                   control={control}
                   errors={errors}
                   required
@@ -396,11 +398,11 @@ const AddRoomDrawer = ({
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Floor
+                  {t('hospital_module.floor')}
                 </Typography>
                 <ControlledTextField
                   name='floor'
-                  label='Enter Floor*'
+                  label={(t('hospital_module.enter_floor_required') as string)}
                   control={control}
                   errors={errors}
                   required
@@ -431,7 +433,7 @@ const AddRoomDrawer = ({
                 height: '56px'
               }}
             >
-              Close
+              {t('close')}
             </Button>
             <Button
               variant='contained'
@@ -440,7 +442,7 @@ const AddRoomDrawer = ({
               sx={{ height: '56px' }}
               disabled={addLoading}
             >
-              {addLoading ? <CircularProgress size={24} /> : 'ADD ROOM'}
+              {addLoading ? <CircularProgress size={24} /> : t('hospital_module.add_room').toUpperCase()}
             </Button>
           </Box>
         </Box>

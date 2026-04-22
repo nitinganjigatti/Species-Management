@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Drawer,
   Box,
@@ -78,6 +79,7 @@ const AdministerMedicineSidesheet = ({
   mastersDataLoading
 }: AdministerMedicineSidesheetProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
 
   const commonFieldStyles = {
     textAlign: 'left',
@@ -320,7 +322,7 @@ const AdministerMedicineSidesheet = ({
                 <Typography
                   sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Administer medicine
+                  {t('hospital_module.administer_medicine')}
                 </Typography>
               </Box>
             </Box>
@@ -399,7 +401,7 @@ const AdministerMedicineSidesheet = ({
                         <ControlledTimePicker
                           name={'time'}
                           control={control}
-                          label='Select Time'
+                          label={(t('hospital_module.select_time') as string)}
                           format='hh:mm A'
                           error={errors.time}
                           sx={commonFieldStyles}
@@ -416,8 +418,8 @@ const AdministerMedicineSidesheet = ({
                             control,
                             errors,
                             options: medicalMasterData?.prescriptionDosageMeasurementType,
-                            label: 'Quantity',
-                            placeholder: 'Enter quantity',
+                            label: t('quantity'),
+                            placeholder: t('hospital_module.enter_quantity'),
                             type: 'number',
                             maxDecimals: 4,
                             getOptionLabel: (option: any) => option.label,
@@ -438,7 +440,7 @@ const AdministerMedicineSidesheet = ({
                         <ControlledTimePicker
                           name={'time'}
                           control={control}
-                          label='Select Time'
+                          label={(t('hospital_module.select_time') as string)}
                           format='hh:mm A'
                           sx={{ backgroundColor: theme.palette.customColors.Surface }}
                           error={errors.time}
@@ -453,8 +455,8 @@ const AdministerMedicineSidesheet = ({
                             control,
                             errors,
                             options: medicalMasterData?.prescriptionDosageMeasurementType,
-                            label: 'Quantity',
-                            placeholder: 'Enter quantity',
+                            label: t('quantity'),
+                            placeholder: t('hospital_module.enter_quantity'),
                             type: 'number',
                             maxDecimals: 4,
                             getOptionLabel: (option: any) => option.label,
@@ -500,7 +502,7 @@ const AdministerMedicineSidesheet = ({
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          Add wastage if any
+                          {t('hospital_module.add_wastage_if_any')}
                           <Typography
                             component='span'
                             sx={{
@@ -509,7 +511,7 @@ const AdministerMedicineSidesheet = ({
                               ml: 1
                             }}
                           >
-                            (Optional)
+                            ({t('optional')})
                           </Typography>
                         </Typography>
                       </AccordionSummary>
@@ -521,8 +523,8 @@ const AdministerMedicineSidesheet = ({
                               control={control}
                               errors={errors}
                               sx={commonFieldStyles}
-                              label='Quantity'
-                              placeholder='Enter Quantity'
+                              label={(t('quantity') as string)}
+                              placeholder={(t('hospital_module.enter_quantity') as string)}
                               type='number'
                             />
                           </Grid>
@@ -530,7 +532,7 @@ const AdministerMedicineSidesheet = ({
                           <Grid size={{ xs: 12, md: 6 }}>
                             <ControlledSelect
                               name='wastageUnit'
-                              label='Unit'
+                              label={(t('type') as string)}
                               control={control}
                               sx={commonFieldStyles}
                               errors={errors}
@@ -543,14 +545,14 @@ const AdministerMedicineSidesheet = ({
 
                           <Grid size={{ xs: 12 }}>
                             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
-                              Notes
+                              {t('notes')}
                             </Typography>
                             <ControlledTextArea
                               name='notes'
                               control={control}
                               errors={errors}
                               sx={commonFieldStyles}
-                              placeholder='Enter Notes'
+                              placeholder={(t('hospital_module.enter_notes') as string)}
                               rows={3}
                             />
                           </Grid>
@@ -562,8 +564,8 @@ const AdministerMedicineSidesheet = ({
                               sx={commonFieldStyles}
                               label={
                                 isControlledSubstance
-                                  ? 'Enter batch number (required)'
-                                  : 'Enter batch number if any (optional)'
+                                  ? t('hospital_module.enter_batch_number_required') || ""
+                                  : t('hospital_module.enter_batch_number_optional') || ""
                               }
                               options={batchList}
                               getOptionLabel={(option: any) => {
@@ -588,7 +590,7 @@ const AdministerMedicineSidesheet = ({
                               required={isControlledSubstance}
                               autocompleteProps={{
                                 filterOptions: (x: any) => x,
-                                noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                                noOptionsText: batchLoading ? t('loading') : t('hospital_module.type_to_search_batches')
                               }}
                             />
                           </Grid>
@@ -598,7 +600,7 @@ const AdministerMedicineSidesheet = ({
                               control={control}
                               errors={errors}
                               sx={commonFieldStyles}
-                              label='Batch Image'
+                              label={(t('hospital_module.batch_image') as string)}
                               maxFiles={1}
                               maxFileSize={5 * 1024 * 1024}
                               acceptedFileTypes='images'
@@ -636,7 +638,7 @@ const AdministerMedicineSidesheet = ({
               onClick={handleSubmit(handleFormSubmit)}
               sx={{ flex: 1, py: 2 }}
             >
-              ADMINISTER
+              {t('hospital_module.administer')}
             </LoadingButton>
           ) : (
             <>
@@ -647,7 +649,7 @@ const AdministerMedicineSidesheet = ({
                 sx={{ flex: 1, py: 2 }}
                 onClick={handleSkip}
               >
-                SKIPPED
+                {t('hospital_module.skipped')}
               </LoadingButton>
               <LoadingButton
                 variant='contained'
@@ -656,7 +658,7 @@ const AdministerMedicineSidesheet = ({
                 onClick={handleSubmit(handleFormSubmit)}
                 sx={{ flex: 1, py: 2 }}
               >
-                ADMINISTER
+                {t('hospital_module.administer')}
               </LoadingButton>
             </>
           )}

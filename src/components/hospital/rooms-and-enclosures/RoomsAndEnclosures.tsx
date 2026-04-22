@@ -15,6 +15,7 @@ import {
   useTheme,
   Tooltip
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
@@ -41,14 +42,18 @@ import AddEnclosures from 'src/views/pages/hospital/add-enclosure-drawer'
 import Search from 'src/views/utility/Search'
 
 const RoomsAndEnclosures = () => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const queryClient = useQueryClient()
 
-  const occupancyOptions = [
-    { label: 'Available', value: '0' },
-    { label: 'Occupied', value: '1' }
-  ]
+  const occupancyOptions = useMemo(
+    () => [
+      { label: t('hospital_module.available'), value: '0' },
+      { label: t('hospital_module.occupied'), value: '1' }
+    ],
+    [t]
+  )
 
   const editParamsInitialState: any = { id: null, bed_name: '' }
 
@@ -198,13 +203,13 @@ const RoomsAndEnclosures = () => {
       return await deleteRoomsAndEnclosures(payload)
     },
     onSuccess: (response: any) => {
-      Toaster({ type: 'success', message: response?.message || 'Enclosure deleted successfully' })
+      Toaster({ type: 'success', message: response?.message || t('hospital_module.enclosure_deleted_successfully') })
       queryClient.invalidateQueries({ queryKey: ['enclosure-list'] } as any)
       handleDeleteDialogClose()
     },
     onError: (error: any) => {
       console.error('Delete Error:', error)
-      Toaster({ type: 'error', message: error?.message || 'An error occurred while deleting' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.error_occurred_deleting') })
     }
   } as any)
 
@@ -225,58 +230,59 @@ const RoomsAndEnclosures = () => {
       }
       if (response?.success) {
         setResetForm(true)
-        Toaster({ type: 'success', message: response?.message || 'Enclosure created successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.enclosure_created_successfully') })
 
         await refetch()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.something_went_wrong') })
       }
     } catch (error: any) {
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      Toaster({ type: 'error', message: error.message || t('hospital_module.an_unexpected_error_occurred') })
     } finally {
       setSubmitLoader(false)
       setOpenDrawer(false)
     }
   }
 
-  const columns: any = [
-    {
-      minWidth: 50,
-      field: 'id',
-      headerName: 'SL.NO',
-      sortable: false,
-      renderCell: (params: any) => (
-        <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.OnSurfaceVariant, pl: 3 }}>
-          {parseInt(params.row.sl_no)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 300,
-      field: 'bed_name',
-      headerName: 'Enclosure Name',
-      textAlign: 'center',
-      sortable: false,
-      renderCell: (params: any) => (
-        <TextEllipsisWithModal
-          enableDialog={false}
-          text={params.row.bed_name}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '1rem',
-            fontWeight: 400,
-            pl: 1.4,
-            maxWidth: '230px'
-          }}
-        />
-      )
-    },
-    {
-      minWidth: 200,
-      field: 'is_occupied',
-      headerName: 'Occupancy',
-      sortable: false,
+  const columns: any = useMemo(
+    () => [
+      {
+        minWidth: 50,
+        field: 'id',
+        headerName: t('hospital_module.sl_no'),
+        sortable: false,
+        renderCell: (params: any) => (
+          <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.OnSurfaceVariant, pl: 3 }}>
+            {parseInt(params.row.sl_no)}
+          </Typography>
+        )
+      },
+      {
+        minWidth: 300,
+        field: 'bed_name',
+        headerName: t('hospital_module.enclosure_name'),
+        textAlign: 'center',
+        sortable: false,
+        renderCell: (params: any) => (
+          <TextEllipsisWithModal
+            enableDialog={false}
+            text={params.row.bed_name}
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '1rem',
+              fontWeight: 400,
+              pl: 1.4,
+              maxWidth: '230px'
+            }}
+          />
+        )
+      },
+      {
+        minWidth: 200,
+        field: 'is_occupied',
+        headerName: t('hospital_module.occupancy'),
+        sortable: false,
       renderCell: (params: any) => {
         const styles = getOccupancyStyles(params.row.is_occupied)
 
@@ -321,24 +327,26 @@ const RoomsAndEnclosures = () => {
         )
       }
     },
-    {
-      minWidth: 150,
-      field: 'Action',
-      headerAlign: 'right',
-      headerName: 'Actions',
-      align: 'right',
-      sortable: false,
-      renderCell: (params: any) => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title='Delete'>
-            <IconButton size='small' onClick={() => handleDeleteDialogOpen(params.row)}>
+      {
+        minWidth: 150,
+        field: 'Action',
+        headerAlign: 'right',
+        headerName: t('action'),
+        align: 'right',
+        sortable: false,
+        renderCell: (params: any) => (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title={(t('delete') as string)}>
+              <IconButton size='small' onClick={() => handleDeleteDialogOpen(params.row)}>
               <Icon icon='mdi:delete' color={theme.palette.customColors.Error} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      )
-    }
-  ]
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )
+      }
+    ],
+    [t]
+  )
 
   return (
     <>
@@ -356,7 +364,7 @@ const RoomsAndEnclosures = () => {
                 fontWeight: 500
               }}
             >
-              Enclosures
+              {t('hospital_module.rooms_and_enclosures')}
             </Typography>
           }
           action={
@@ -387,7 +395,7 @@ const RoomsAndEnclosures = () => {
             value={searchValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={handleSearchClear}
-            placeholder='Search by Enclosure Name'
+            placeholder={(t('hospital_module.search_by_enclosure_name') as string)}
             textFielsSX={{
               '& .MuiInputBase-input::placeholder': {
                 fontSize: '13px'
@@ -448,15 +456,15 @@ const RoomsAndEnclosures = () => {
         <ConfirmationDialog
           dialogBoxStatus={deleteDialog}
           onClose={handleDeleteDialogClose}
-          title={'Delete Enclosure?'}
-          cancelText={'CANCEL'}
+          title={(t('hospital_module.delete_enclosure_confirm') as string)}
+          cancelText={t('cancel')}
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={confirmDeleteAction}
           loading={(deleteEnclosureMutation as any).isPending}
-          ConfirmationText={'DELETE'}
-          description={'Are you sure you want to permanently delete this Enclosure?'}
+          ConfirmationText={t('delete')}
+          description={t('hospital_module.delete_enclosure_confirm_desc')}
         />
       )}
     </>

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 
 import { Button, Tooltip, Typography, Skeleton } from '@mui/material'
 import { Box, Grid } from '@mui/system'
@@ -245,6 +246,7 @@ interface InpatientSurgeryProps {
 }
 
 function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false, category }: InpatientSurgeryProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const router: any = useSafeRouter()
@@ -844,7 +846,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <DetailsHeader text={'Basic details'} />
+              <DetailsHeader text={t('hospital_module.basic_details')} />
               <Grid sx={{ px: '8px' }} container spacing={4}>
                 {basicDetails.map((detail: any) => (
                   <Grid size={{ xs: 12, sm: 6, md: 3 }} key={detail.label}>
@@ -886,7 +888,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <DetailsHeader text={'Anaesthesia details'} />
+              <DetailsHeader text={t('hospital_module.anesthesia_setup')} />
               <Box
                 sx={{
                   px: '8px',
@@ -955,7 +957,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <DetailsHeader text={'Surgery details'} />
+              <DetailsHeader text={t('hospital_module.surgery_details')} />
               <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <Grid container spacing={4}>
                   {surgeryDetailItems.map((item: any) => (
@@ -1149,7 +1151,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <DetailsHeader text={'Care instructions'} />
+              <DetailsHeader text={t('hospital_module.care_instructions')} />
               <Box sx={{ px: '8px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 {careInstructionItems.map((item: any) => (
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }} key={item.label}>
@@ -1194,7 +1196,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              <DetailsHeader text={'ATTACHMENTS'} />
+              <DetailsHeader text={t('hospital_module.attachments')} />
               <MediaScroller items={attachments} />
             </Box>
           </Box>

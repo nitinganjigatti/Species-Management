@@ -1,6 +1,7 @@
 'use client'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { getSpeciesList } from 'src/lib/api/compliance/exports'
 import { getDocumentTypeList } from 'src/lib/api/compliance/masters'
 import { Toaster } from 'react-hot-toast'
@@ -30,6 +31,7 @@ const AddPatientFiltersDrawer = ({
   initialSelectedOptions,
   filterCount
 }: AddPatientFiltersDrawerProps) => {
+  const { t } = useTranslation()
   const auth: any = useAuth()
 
   const [selectedMenu, setSelectedMenu] = useState<string>('Gender')
@@ -162,7 +164,7 @@ const AddPatientFiltersDrawer = ({
         console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
         ;(Toaster as any)({
           type: 'error',
-          message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+          message: t('hospital_module.failed_to_load_options')
         })
       } finally {
         setSearchLoading(false)

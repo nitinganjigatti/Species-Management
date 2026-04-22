@@ -5,6 +5,7 @@ import { alpha, useTheme } from '@mui/material/styles'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { LoadingButton } from '@mui/lab'
@@ -21,18 +22,6 @@ const stripHtmlToText = (value: any) => {
     .trim();
 }
 
-// Validation schema
-const schema = yup.object().shape({
-  name: yup.string().required('Template name is required'),
-
-  // description: yup.string().required('Description is required')
-  description: yup.string().test('rich-text-required', 'Description is required', (value: any) => {
-    const text = stripHtmlToText(value || '')
-
-    return text.length > 0
-  })
-})
-
 interface FormValues {
   name: string
   description: string
@@ -48,7 +37,17 @@ interface EditTemplateFormProps {
 }
 
 const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading = false }: EditTemplateFormProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
+
+  // Validation schema (moved inside component to access t())
+  const schema = yup.object().shape({
+    name: yup.string().required(t('hospital_module.template_name_is_required') || ""),
+    description: yup.string().test('rich-text-required', t('hospital_module.description_is_required') || "", (value: any) => {
+      const text = stripHtmlToText(value || '')
+      return text.length > 0
+    })
+  })
 
   const {
     control,
@@ -137,7 +136,7 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
             name='name'
             control={control}
             errors={errors}
-            label={'Template Name'}
+            label={(t('hospital_module.template_name') as string)}
             sx={{
               '& .MuiOutlinedInput-root:not(.Mui-focused) .MuiOutlinedInput-notchedOutline': {
                 borderColor: theme.palette.customColors.OutlineVariant,
@@ -156,8 +155,8 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
                   key={template?.id} // Force re-render when template changes
                   value={field.value || ''}
                   onChange={(value: any) => field.onChange(value?.html || value || '')}
-                  label='Description'
-                  placeholder='Enter description...'
+                  label={(t('hospital_module.description') as string)}
+                  placeholder={(t('hospital_module.enter_description') as string)}
                   minHeight={160}
                 />
               )}
@@ -197,7 +196,7 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
             }
           }}
         >
-          Delete
+          {t('delete')}
         </LoadingButton>
         <LoadingButton
           type='submit'
@@ -212,7 +211,7 @@ const EditTemplateForm = ({ open, onClose, template, onUpdate, onDelete, loading
             color: theme.palette.primary.contrastText
           }}
         >
-          UPDATE
+          {t('update')}
         </LoadingButton>
       </Box>
     </Dialog>

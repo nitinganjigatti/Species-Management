@@ -6,6 +6,7 @@ import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
@@ -23,6 +24,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalInpatient = () => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const router: any = useSafeRouter()
 
   const { selectedHospital, isHospitalAccessChecked }: any = useHospital()
@@ -199,7 +201,7 @@ const HospitalInpatient = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'SL. NO',
+      headerName: t('hospital_module.sl_no'),
       renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -211,7 +213,7 @@ const HospitalInpatient = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: 'Animal Name & ID',
+      headerName: t('hospital_module.animal_name_and_id'),
       renderCell: (params: any) => (
         <>
           <AnimalCard
@@ -236,7 +238,7 @@ const HospitalInpatient = () => {
       minWidth: 120,
       field: 'health_status',
       sortable: true,
-      headerName: 'HEALTH STATUS',
+      headerName: t('hospital_module.health_status'),
       renderCell: (params: any) => {
         const status = params.row.health_status || 'stable'
         const isCritical = status === 'critical'
@@ -283,7 +285,7 @@ const HospitalInpatient = () => {
       minWidth: 120,
       field: 'case_code',
       sortable: false,
-      headerName: 'CASE ID',
+      headerName: t('hospital_module.case_id'),
       renderCell: (params: any) => (
         <Typography
           sx={{
@@ -291,7 +293,7 @@ const HospitalInpatient = () => {
             color: theme.palette.customColors.OnSurfaceVariant,
           }}
         >
-          {params.row.case_code || 'N/A'}
+          {params.row.case_code || t('hospital_module.na')}
         </Typography>
       )
     },
@@ -300,7 +302,7 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
-      headerName: 'Purpose of Visit',
+      headerName: t('hospital_module.purpose_of_visit'),
       renderCell: (params: any) => (
         <>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
@@ -343,7 +345,7 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: true,
-      headerName: 'Admission Date',
+      headerName: t('hospital_module.admission_date'),
       align: 'left',
       headerAlign: 'left',
 
@@ -369,7 +371,7 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'total_admitted_days',
       sortable: false,
-      headerName: 'duration',
+      headerName: t('hospital_module.duration'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => {
@@ -385,7 +387,7 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'bed_name',
       sortable: false,
-      headerName: 'Location',
+      headerName: t('hospital_module.location'),
       renderCell: (params: any) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
@@ -399,7 +401,7 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'doctor_full_name',
       sortable: false,
-      headerName: 'Chief Doctor',
+      headerName: t('hospital_module.chief_doctor'),
       renderCell: (params: any) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
@@ -421,7 +423,7 @@ const HospitalInpatient = () => {
   const headerAction = (
     <>
       <Button variant='contained' onClick={() => router.push('/hospital/inpatient/add-patient')}>
-        ADD PATIENT
+        {t('hospital_module.add_patient_btn')}
       </Button>
     </>
   )
@@ -431,12 +433,12 @@ const HospitalInpatient = () => {
       <Box>
         <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Inpatient' }]}
+          pageItems={[{ title: t('navigation.hospital') }, { title: t('hospital_module.patients') }, { title: t('hospital_module.inpatient') }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Inpatients')} action={headerAction} />
+            <CardHeader title={RenderUtility?.pageTitle(t('hospital_module.inpatients'))} action={headerAction} />
             <Box
               sx={{
                 p: 3,
@@ -450,7 +452,7 @@ const HospitalInpatient = () => {
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id / AID / animal identifier'
+                  placeholder={(t('hospital_module.search_by_medical_id') as string)}
                   value={searchValue}
                   onClear={handleSearchClear}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}

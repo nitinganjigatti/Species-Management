@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { LoadingButton } from '@mui/lab'
 import { Box, Button, Drawer, IconButton, Typography, useTheme } from '@mui/material'
@@ -58,6 +59,7 @@ const AddEditSurgeryDrawer = ({
   loading = false,
   initialData
 }: AddEditSurgeryDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const {
@@ -98,8 +100,8 @@ const AddEditSurgeryDrawer = ({
     onSubmit?.(values)
   }
 
-  const title = initialData ? 'Edit Surgery' : 'Create New Surgery'
-  const actionLabel = initialData ? 'Update' : 'Save'
+  const title = initialData ? t('hospital_module.edit_surgery') : t('hospital_module.create_new_surgery')
+  const actionLabel = initialData ? t('update') : t('save')
 
   return (
     <Drawer
@@ -164,7 +166,7 @@ const AddEditSurgeryDrawer = ({
             <ControlledTextField
               control={control}
               name='surgery_name'
-              label='Surgery Name'
+              label={(t('hospital_module.name_of_surgery') as string)}
               placeholder='Enter surgery name'
               errors={errors}
               borderRadius='8px'

@@ -3,6 +3,7 @@
 import React from 'react'
 import { Box, Typography, Modal, Radio, RadioGroup, FormControlLabel, IconButton, Divider, Paper } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 
 interface SortBottomSheetProps {
@@ -14,10 +15,11 @@ interface SortBottomSheetProps {
 
 const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }: SortBottomSheetProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
 
   const sortOptions = [
-    { value: 'recent', label: 'Recent most first (default)', icon: '/images/hospital/clock_arrow_down.svg' },
-    { value: 'oldest', label: 'Oldest First', icon: '/images/hospital/clock_arrow_up.svg' }
+    { value: 'recent', label: t('hospital_module.recent_most_first_default'), icon: '/images/hospital/clock_arrow_down.svg' },
+    { value: 'oldest', label: t('hospital_module.oldest_first'), icon: '/images/hospital/clock_arrow_up.svg' }
   ]
 
   const handleSortChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +76,7 @@ const SortBottomSheet = ({ open, onClose, currentSort, onSortChange }: SortBotto
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVarient }}
               >
-                Sort by
+                {t('hospital_module.sort_by')}
               </Typography>
             </Box>
             <IconButton onClick={onClose} {...({ height: 14, width: 14 } as any)}>

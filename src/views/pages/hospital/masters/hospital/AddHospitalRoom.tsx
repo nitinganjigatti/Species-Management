@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useMemo, useCallback, useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme, Card, Typography, IconButton, Drawer, Box, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
@@ -52,6 +53,7 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
     onSiteSearch
   } = props
 
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const authData = useContext(AuthContext)
 
@@ -263,7 +265,7 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
                   <ControlledTextField
                     control={control}
                     errors={errors}
-                    label='Room Name*'
+                    label={`${t('hospital_module.room_name')}*`}
                     name='room_name'
                     placeholder='Enter Room Name'
                     fullWidth

@@ -4,6 +4,7 @@ import { Tooltip, Typography, useTheme, CircularProgress, Skeleton } from '@mui/
 import { Box, Grid } from '@mui/system'
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import MoreMediaListing from 'src/components/MoreMediaListing'
 import HealthcareOverview from './TreatmentOverview'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -43,6 +44,7 @@ const InpatientOverview = ({
   setVisitFilters,
   patientData
 }: InpatientOverviewProps) => {
+  const { t } = useTranslation()
   const params = useParams()
   const theme: any = useTheme()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
@@ -60,8 +62,8 @@ const InpatientOverview = ({
     const options = [
       {
         label: (
-          <Tooltip title='Hospital Visit Summary'>
-            <Typography>Hospital Visit Summary</Typography>
+          <Tooltip title={(t('hospital_module.hospital_visit_summary') as string)}>
+            <Typography>{t('hospital_module.hospital_visit_summary')}</Typography>
           </Tooltip>
         ),
         icon: <Icon icon='hugeicons:download-square-02' />,
@@ -72,8 +74,8 @@ const InpatientOverview = ({
       },
       {
         label: (
-          <Tooltip title='Discharge Summary'>
-            <Typography>Discharge Summary</Typography>
+          <Tooltip title={(t('hospital_module.discharge_summary') as string)}>
+            <Typography>{t('hospital_module.discharge_summary')}</Typography>
           </Tooltip>
         ),
         icon: dischargeSummaryLoading ? <CircularProgress size={18} /> : <Icon icon='hugeicons:download-square-02' />,

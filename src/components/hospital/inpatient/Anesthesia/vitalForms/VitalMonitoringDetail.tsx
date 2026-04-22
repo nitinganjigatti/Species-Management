@@ -4,6 +4,7 @@ import React, { useMemo } from 'react'
 import { Box, Divider, Typography } from '@mui/material'
 import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 const HEADER_CELL_HEIGHT = '48px'
 const DATA_CELL_HEIGHT = '72px'
@@ -17,6 +18,7 @@ interface VitalMonitoringDetailProps {
 }
 
 export default function VitalMonitoringDetail({ data }: VitalMonitoringDetailProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const monitoringData = useMemo(() => data || { timeSlots: [], rows: [] }, [data])
@@ -38,13 +40,13 @@ export default function VitalMonitoringDetail({ data }: VitalMonitoringDetailPro
     )
   }
 
-  const rowLabels = ['Recorded Time', ...monitoringData.rows.map((row: any) => row.label)]
+  const rowLabels = [t('hospital_module.recorded_time'), ...monitoringData.rows.map((row: any) => row.label)]
 
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Divider sx={{ mb: 6, mt: 3 }} />
       <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.text.primary, mb: 1 }}>
-        Vital Monitoring
+        {t('hospital_module.vital_monitoring')}
       </Typography>
 
       <Box

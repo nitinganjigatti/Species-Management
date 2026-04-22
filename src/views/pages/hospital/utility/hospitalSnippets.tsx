@@ -2,6 +2,7 @@
 
 import { useMemo, CSSProperties } from 'react'
 import { alpha, Box, SxProps, Theme, Typography, useTheme } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 interface SymptomsPriorityChipsProps {
@@ -177,6 +178,7 @@ interface StatusChipProps {
 }
 
 export const StatusChip = ({ status, chipStyles, labelStyles }: StatusChipProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const styles = useMemo(() => {
@@ -184,12 +186,12 @@ export const StatusChip = ({ status, chipStyles, labelStyles }: StatusChipProps)
       0: {
         backgroundColor: theme.palette.customColors.Tertiary30,
         color: theme.palette.customColors.customDropdownColor,
-        label: 'Inactive'
+        label: t('inactive')
       },
       1: {
         backgroundColor: alpha(theme.palette.customColors.OnBackground, 0.6),
         color: theme.palette.primary.main,
-        label: 'Active'
+        label: t('active')
       }
     }
 
@@ -200,7 +202,7 @@ export const StatusChip = ({ status, chipStyles, labelStyles }: StatusChipProps)
         label: 'Unknown'
       }
     )
-  }, [status, theme])
+  }, [status, theme, t])
 
   return (
     <Box

@@ -6,6 +6,7 @@ import type { SelectChangeEvent } from '@mui/material'
 import { debounce } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
@@ -24,6 +25,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalOutPatient = () => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const router = useSafeRouter()
 
   const { selectedHospital } = useHospital()
@@ -190,7 +192,7 @@ const HospitalOutPatient = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('hospital_module.sl_no'),
       renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -202,7 +204,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: 'Animal Name & ID',
+      headerName: t('hospital_module.animal_name_and_id'),
       renderCell: (params: any) => (
         <>
           <AnimalCard
@@ -227,7 +229,7 @@ const HospitalOutPatient = () => {
       minWidth: 120,
       field: 'health_status',
       sortable: true,
-      headerName: 'HEALTH STATUS',
+      headerName: t('hospital_module.health_status'),
       renderCell: (params: any) => {
         const status = params.row.health_status || 'stable'
         const isCritical = status === 'critical'
@@ -274,7 +276,7 @@ const HospitalOutPatient = () => {
       minWidth: 120,
       field: 'case_code',
       sortable: false,
-      headerName: 'CASE ID',
+      headerName: t('hospital_module.case_id'),
       renderCell: (params: any) => (
         <Typography
           sx={{
@@ -291,7 +293,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
-      headerName: 'Purpose of Visit',
+      headerName: t('hospital_module.purpose_of_visit'),
       renderCell: (params: any) => (
         <>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -334,7 +336,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: true,
-      headerName: 'OPD Visit Date',
+      headerName: t('hospital_module.admission_date'),
       align: 'left',
       headerAlign: 'left',
 
@@ -360,7 +362,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       field: 'total_admitted_days',
       sortable: false,
-      headerName: 'duration',
+      headerName: t('hospital_module.duration'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => {
@@ -376,7 +378,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       field: 'bed_name',
       sortable: false,
-      headerName: 'Location',
+      headerName: t('hospital_module.location'),
       renderCell: (params: any) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
@@ -390,7 +392,7 @@ const HospitalOutPatient = () => {
       minWidth: 20,
       field: 'doctor_full_name',
       sortable: false,
-      headerName: 'Chief Doctor',
+      headerName: t('hospital_module.chief_doctor'),
       renderCell: (params: any) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
@@ -412,7 +414,7 @@ const HospitalOutPatient = () => {
   const headerAction = (
     <>
       <Button variant='contained' onClick={() => router.push('/hospital/outpatient/add-outpatient')}>
-        ADD PATIENT
+        {t('hospital_module.add_patient_btn')}
       </Button>
     </>
   )
@@ -422,12 +424,12 @@ const HospitalOutPatient = () => {
       <Box>
          <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Outpatients' }]}
+          pageItems={[{ title: t('navigation.hospital') }, { title: t('hospital_module.patients') }, { title: t('hospital_module.outpatient') }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Outpatients')} action={headerAction} />
+            <CardHeader title={RenderUtility?.pageTitle(t('hospital_module.outpatient'))} action={headerAction} />
             <Box
               sx={{
                 p: 3,
@@ -441,7 +443,7 @@ const HospitalOutPatient = () => {
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id or animal id'
+                  placeholder={(t('hospital_module.search_by_medical_id') as string)}
                   value={searchValue}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                   onClear={handleSearchClear}

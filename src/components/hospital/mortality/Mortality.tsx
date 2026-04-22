@@ -19,6 +19,7 @@ import type { SelectChangeEvent } from '@mui/material'
 import { debounce } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
@@ -40,6 +41,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalMortality = () => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const router = useSafeRouter()
 
   const { selectedHospital } = useHospital()
@@ -69,9 +71,9 @@ const HospitalMortality = () => {
   const [selectedMortalityType, setSelectedMortalityType] = useState<string>('')
 
   const mortalityTabs = [
-    { label: 'All', value: '' },
-    { label: 'Inpatient', value: 'inpatient' },
-    { label: 'Outpatient', value: 'opd' }
+    { label: t('hospital_module.all'), value: '' },
+    { label: t('hospital_module.inpatient'), value: 'inpatient' },
+    { label: t('hospital_module.outpatient'), value: 'opd' }
   ]
 
   const applyFilters = (selectedOptions: any) => {
@@ -253,7 +255,7 @@ const HospitalMortality = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('hospital_module.sl_no'),
       renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -265,7 +267,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: 'Animal Name & ID',
+      headerName: t('hospital_module.animal_name_and_id'),
       renderCell: (params: any) => (
         <>
           <AnimalCard
@@ -289,7 +291,7 @@ const HospitalMortality = () => {
       width: 200,
       minWidth: 20,
       field: 'medical_record_code',
-      headerName: 'Medical Record ID',
+      headerName: t('hospital_module.medical_record_id'),
       renderCell: (params: any) => (
         <MedicalIdChip
           medId={params?.row?.medical_record_code}
@@ -302,7 +304,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       field: 'manner_of_death',
       sortable: false,
-      headerName: 'Reason',
+      headerName: t('hospital_module.reason'),
       renderCell: (params: any) => (
         <>
           <Tooltip title={params.row.manner_of_death}>
@@ -332,7 +334,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       field: 'notes',
       sortable: false,
-      headerName: 'Mortality Summary',
+      headerName: t('hospital_module.mortality_summary'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => (
@@ -373,7 +375,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       field: 'date_of_death',
       sortable: false,
-      headerName: 'Mortality Date And Time',
+      headerName: t('hospital_module.mortality_date_and_time'),
       align: 'left',
       headerAlign: 'left',
 
@@ -407,7 +409,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: false,
-      headerName: 'Admission',
+      headerName: t('hospital_module.admission'),
       align: 'left',
       headerAlign: 'left',
 
@@ -433,7 +435,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       field: 'duration',
       sortable: false,
-      headerName: 'duration',
+      headerName: t('hospital_module.duration'),
       align: 'left',
       headerAlign: 'left',
 
@@ -452,7 +454,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       field: 'visit_type',
       sortable: false,
-      headerName: 'Visit Type',
+      headerName: t('hospital_module.visit_type'),
       renderCell: (params: any) => (
         <>
           <VisitType title={params.row.visit_type} />
@@ -464,7 +466,7 @@ const HospitalMortality = () => {
       minWidth: 20,
       field: 'attend_by_full_name',
       sortable: false,
-      headerName: 'Chief Doctor',
+      headerName: t('hospital_module.chief_doctor'),
       renderCell: (params: any) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
@@ -478,12 +480,12 @@ const HospitalMortality = () => {
       miWidth: 20,
       field: 'action',
       sortable: false,
-      headerName: 'Action',
+      headerName: t('action'),
       renderCell: (params: any) => {
         const isRowLoading = downloadingRowId === params.row.id
 
         return (
-          <Tooltip title='Download Discharge Summary'>
+          <Tooltip title={(t('hospital_module.download_discharge_summary') as string)}>
             <IconButton onClick={() => handleDownloadDischargeSummary(params.row)} disabled={isRowLoading}>
               {isRowLoading ? <CircularProgress size={22} /> : <Icon icon='hugeicons:download-square-02' />}
             </IconButton>
@@ -508,12 +510,12 @@ const HospitalMortality = () => {
       <Box>
         <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Mortality' }]}
+          pageItems={[{ title: t('navigation.hospital') }, { title: t('hospital_module.patients') }, { title: t('hospital_module.mortality') }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Mortality')} />
+            <CardHeader title={RenderUtility?.pageTitle(t('hospital_module.mortality'))} />
             <Box
               sx={{
                 p: 3,

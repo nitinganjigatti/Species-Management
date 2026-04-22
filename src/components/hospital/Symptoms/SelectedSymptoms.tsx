@@ -5,6 +5,7 @@ import { Box, Typography, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
+import { useTranslation } from 'react-i18next'
 
 interface SelectedSymptomsProps {
   selected?: any[]
@@ -23,6 +24,7 @@ export default function SelectedSymptoms({
 }: SelectedSymptomsProps) {
   const theme: any = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
+  const { t } = useTranslation()
 
   return (
     <Box
@@ -46,7 +48,7 @@ export default function SelectedSymptoms({
           mb: 5
         }}
       >
-        Selected Symptoms
+        {t('hospital_module.selected_symptoms')}
       </Typography>
 
       {selected.length === 0 ? (
@@ -63,7 +65,7 @@ export default function SelectedSymptoms({
         >
           <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
-            Selected Symptoms will appear here
+            {t('hospital_module.selected_symptoms_appear_here')}
           </Typography>
         </Box>
       ) : (

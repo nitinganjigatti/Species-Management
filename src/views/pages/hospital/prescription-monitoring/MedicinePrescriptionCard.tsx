@@ -2,6 +2,7 @@
 
 /* eslint-disable lines-around-comment */
 import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -188,6 +189,7 @@ const MedicinePrescriptionCard = ({
   mastersDataLoading,
   onUpdateMedicine
 }: MedicinePrescriptionCardProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -611,7 +613,7 @@ const MedicinePrescriptionCard = ({
                 }}
               >
                 {entry?.status?.toLowerCase() === 'withheld'
-                  ? 'Skipped'
+                  ? t('hospital_module.skipped')
                   : entry.status?.charAt(0).toUpperCase() + entry.status?.slice(1)}
               </Typography>
             </Box>

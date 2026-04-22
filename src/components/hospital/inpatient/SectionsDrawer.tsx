@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Avatar } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
 
@@ -20,6 +21,7 @@ interface SectionsDrawerProps {
 }
 
 const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: SectionsDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const queryClient = useQueryClient()
 
@@ -174,7 +176,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Sections'
+      title={(t('hospital_module.sections') as string)}
       icon='/images/housing/section-icon-colored.png'
       iconColor={theme.palette.primary.main}
     >
@@ -187,7 +189,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
             borderRadius: '8px',
             backgroundColor: theme.palette.common.white
           }}
-          placeholder='Search for a section'
+          placeholder={(t('hospital_module.search_for_a_section') as string)}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -205,7 +207,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
                 indeterminate={selectedCount > 0 && !isAllSelected}
               />
             }
-            label='Select All'
+            label={(t('hospital_module.select_all') as string)}
             sx={{ mr: 0 }}
           />
         )}
@@ -295,13 +297,13 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
 
         {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No sections found
+            {t('hospital_module.no_sections_found')}
           </Typography>
         )}
 
         {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more sections to load
+            {t('hospital_module.no_more_sections_to_load')}
           </Typography>
         )}
       </Box>
@@ -323,7 +325,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
           }}
         >
           <Button variant='contained' onClick={handleContinue} fullWidth size='large'>
-            Continue ({selectedCount})
+            {t('hospital_module.continue')} ({selectedCount})
           </Button>
         </Box>
       )}

@@ -5,6 +5,7 @@ import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { useForm, FormProvider } from 'react-hook-form'
@@ -107,6 +108,7 @@ const AddanesthesiaRecordDrawer = ({
   loadMoreDoctors = () => {},
   loadingDoctors = false
 }: AddAnesthesiaRecordDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [purposeOptions, setPurposeOptions] = useState<any[]>([])
   const [vetDoctors, setVetDoctors] = useState<any[]>([])
@@ -375,7 +377,7 @@ const AddanesthesiaRecordDrawer = ({
       } catch (error: any) {
         if (!isMounted) return
         console.error('Failed to fetch anesthesia detail:', error)
-        Toaster({ type: 'error', message: error?.message || 'Failed to load anesthesia record' })
+        Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_load_anesthesia_record') })
       }
     }
 
@@ -514,11 +516,11 @@ const AddanesthesiaRecordDrawer = ({
         reset(defaultValues)
         setOpenAddanesthesiaDrawer(false)
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to save anesthesia' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_save_anesthesia') })
       }
     } catch (error: any) {
       console.error('Add anesthesia failed:', error)
-      Toaster({ type: 'error', message: error?.message || 'Something went wrong. Please try again.' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.something_went_wrong_please_try_again') })
     }
   }
 
@@ -545,7 +547,7 @@ const AddanesthesiaRecordDrawer = ({
         }
       } catch (error) {
         console.error('Failed to load anesthesia purposes', error)
-        Toaster({ type: 'error', message: 'Failed to load purpose options' })
+        Toaster({ type: 'error', message: t('hospital_module.failed_to_load_purpose_options') })
         setPurposeOptions([])
       }
     }

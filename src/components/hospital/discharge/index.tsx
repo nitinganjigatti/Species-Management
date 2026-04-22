@@ -14,6 +14,7 @@ import {
   Tooltip
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
@@ -40,13 +41,6 @@ const EnclosureDischargeForm: any = EnclosureDischargeFormRaw
 const STORAGE_KEY = 'medical_record_data'
 const STORAGE_KEY_FORM = 'transfer_enclosure_form'
 
-const dischargeTypeOptions = [
-  { label: 'Mortality', value: 'Mortality' },
-  { label: 'Transfer to Enclosure', value: 'TransferEnclosure' }
-
-  // { label: 'Transfer to Hospital', value: 'TransferHospital' }
-]
-
 interface InpatientDischargeProps {
   patientData?: any
   refetchPatient?: () => void
@@ -57,11 +51,17 @@ interface DischargeFormValues {
 }
 
 const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router = useSafeRouter()
   const routerParams: any = useParams()
   // Get id from dynamic route params (App Router) or from router.query fallback
   const id = routerParams?.id || (router.query as any)?.id
+
+  const dischargeTypeOptions = [
+    { label: t('hospital_module.mortality'), value: 'Mortality' },
+    { label: t('hospital_module.transfer_to_enclosure'), value: 'TransferEnclosure' }
+  ]
 
   const dispatch = useDispatch()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
@@ -259,7 +259,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
       const response: any = await stopPrescription(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Medicine stopped successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.medicine_stopped_successfully') })
         getPrescriptionList()
       } else {
         Toaster({ type: 'error', message: response?.message })
@@ -666,7 +666,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
         Number(payload.transfer_to_enclosure_id) !== Number(originalEnclosure)
 
       const isCritical = patientData?.health_status === 'critical'
-      const criticalWarning = isCritical ? ' The animal’s health status is currently marked as critical.' : ''
+      const criticalWarning = isCritical ? "The animal's health status is currently marked as critical." : ''
 
       const titleMessage = isLocationChanged
         ? `Are you sure you want to proceed with the discharge?`

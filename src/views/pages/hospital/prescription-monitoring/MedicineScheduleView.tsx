@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer, Box, Typography, IconButton, Button } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
@@ -26,6 +27,7 @@ const MedicineScheduleView = ({
   onStopMedicine = () => {},
   onAddDosage = () => {}
 }: MedicineScheduleViewProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [administerModalOpen, setAdministerModalOpen] = useState<boolean>(false)
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<any>(null)
@@ -329,7 +331,7 @@ const MedicineScheduleView = ({
                     fontFamily: 'Inter'
                   }}
                 >
-                  Stop Medicine
+                  {t('hospital_module.stop_medicine')}
                 </Typography>
               </Box>
               <Box
@@ -357,7 +359,7 @@ const MedicineScheduleView = ({
                     fontFamily: 'Inter'
                   }}
                 >
-                  Add New Dosage
+                  {t('hospital_module.add_dosage')}
                 </Typography>
               </Box>
             </Box>
@@ -392,7 +394,7 @@ const MedicineScheduleView = ({
                 }
               }}
             >
-              SKIPPED
+              {t('hospital_module.skipped').toUpperCase()}
             </Button>
             <Button
               variant='contained'
@@ -412,7 +414,7 @@ const MedicineScheduleView = ({
                 }
               }}
             >
-              ADMINISTER
+              {t('hospital_module.administer_medicine').toUpperCase()}
             </Button>
           </Box>
         </Box>

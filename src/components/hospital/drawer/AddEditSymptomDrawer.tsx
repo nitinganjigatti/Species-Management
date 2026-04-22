@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -103,6 +104,7 @@ const AddEditSymptomDrawer = ({
   isDischarged
 }: AddEditSymptomDrawerProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
@@ -187,7 +189,7 @@ const AddEditSymptomDrawer = ({
 
   const handleUpdateNotes = async (newNotes?: any) => {
     if (!notes?.trim()) {
-      Toaster({ type: 'error', message: 'Please enter notes before updating.' })
+      Toaster({ type: 'error', message: t('hospital_module.enter_notes_before_updating') })
 
       return
     }
@@ -205,7 +207,7 @@ const AddEditSymptomDrawer = ({
       const response: any = await updateNotes(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Notes updated successfully.' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.notes_updated_successfully') })
         setNotes('')
         setSymptomNoteModal(false)
 
@@ -214,7 +216,7 @@ const AddEditSymptomDrawer = ({
           setActivityListData(responseNotes?.data || [])
         }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to update notes.' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_update_notes') })
       }
     } catch (error) {
       console.error('Error updating notes:', error)
@@ -225,7 +227,7 @@ const AddEditSymptomDrawer = ({
 
   const handleDeleteNotes = async () => {
     if (!notes?.trim()) {
-      Toaster({ type: 'error', message: 'Please enter notes to delete.' })
+      Toaster({ type: 'error', message: t('hospital_module.enter_notes_to_delete') })
 
       return
     }
@@ -235,7 +237,7 @@ const AddEditSymptomDrawer = ({
       const response: any = await deleteNoteSymptoms(noteId)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.notes_deleted_successfully') })
         setNotes('')
         setSymptomNoteModal(false)
         const responseNotes: any = await fetchNotesForSymptom(temporarilySelected)
@@ -243,7 +245,7 @@ const AddEditSymptomDrawer = ({
           setActivityListData(responseNotes?.data || [])
         }
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to delete notes.' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_delete_notes') })
       }
     } catch (error) {
       console.error('Error deleting notes:', error)
@@ -338,7 +340,7 @@ const AddEditSymptomDrawer = ({
                 <Typography
                   sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
                 >
-                  Date & Time
+                  {t('hospital_module.date_and_time')}
                 </Typography>
                 <Box sx={{ mb: 6 }}>
                   <MUIDateTimePicker
@@ -358,7 +360,7 @@ const AddEditSymptomDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
-              Status
+              {t('status')}
             </Typography>
             <Select
               value={status}
@@ -374,20 +376,20 @@ const AddEditSymptomDrawer = ({
               renderValue={(selected: any) => (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {renderStatusIcon(selected)}
-                  <Typography>{selected === 'active' ? 'Active' : 'Resolved'}</Typography>
+                  <Typography>{selected === 'active' ? t('hospital_module.active') : t('hospital_module.resolved')}</Typography>
                 </Box>
               )}
             >
               <MenuItem value='active'>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {renderStatusIcon('active')}
-                  <Typography>Active</Typography>
+                  <Typography>{t('hospital_module.active')}</Typography>
                 </Box>
               </MenuItem>
               <MenuItem value='closed'>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {renderStatusIcon('closed')}
-                  <Typography>Resolved</Typography>
+                  <Typography>{t('hospital_module.resolved')}</Typography>
                 </Box>
               </MenuItem>
             </Select>
@@ -402,7 +404,7 @@ const AddEditSymptomDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Severity
+                  {t('hospital_module.severity')}
                 </Typography>
 
                 <Select
@@ -429,10 +431,10 @@ const AddEditSymptomDrawer = ({
                     }
                   }}
                 >
-                  <MenuItem value='Mild'>Mild</MenuItem>
-                  <MenuItem value='Moderate'>Moderate</MenuItem>
-                  <MenuItem value='High'>High</MenuItem>
-                  <MenuItem value='Extreme'>Extreme</MenuItem>
+                  <MenuItem value='Mild'>{t('hospital_module.severity_mild')}</MenuItem>
+                  <MenuItem value='Moderate'>{t('hospital_module.severity_moderate')}</MenuItem>
+                  <MenuItem value='High'>{t('hospital_module.severity_high')}</MenuItem>
+                  <MenuItem value='Extreme'>{t('hospital_module.severity_extreme')}</MenuItem>
                 </Select>
               </Box>
               <Box>
@@ -444,7 +446,7 @@ const AddEditSymptomDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Duration
+                  {t('hospital_module.duration')}
                 </Typography>
                 <TextField
                   type='number'
@@ -478,9 +480,9 @@ const AddEditSymptomDrawer = ({
                               }
                             }}
                           >
-                            <MenuItem value='Days'>Days</MenuItem>
-                            <MenuItem value='Weeks'>Weeks</MenuItem>
-                            <MenuItem value='Months'>Months</MenuItem>
+                            <MenuItem value='Days'>{t('hospital_module.duration_days')}</MenuItem>
+                            <MenuItem value='Weeks'>{t('hospital_module.duration_weeks')}</MenuItem>
+                            <MenuItem value='Months'>{t('hospital_module.duration_months')}</MenuItem>
                           </Select>
                         </InputAdornment>
                       )
@@ -493,10 +495,10 @@ const AddEditSymptomDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
-              Notes
+              {t('notes')}
             </Typography>
             <TextField
-              placeholder='Add notes'
+              placeholder={(t('hospital_module.add_notes') as string)}
               disabled={status === 'closed'}
               fullWidth
               multiline
@@ -536,8 +538,8 @@ const AddEditSymptomDrawer = ({
           }}
         >
           <SideSheetActionButtons
-            addLabel='UPDATE'
-            cancelLabel='CANCEL'
+            addLabel={t('update')}
+            cancelLabel={t('cancel')}
             onAdd={handleSave}
             isSubmitLoading={isSubmitLoading}
             onCancel={handleCancel}

@@ -13,6 +13,7 @@ import {
   useTheme
 } from '@mui/material'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -29,6 +30,7 @@ const MUISwitch: any = MUISwitchRaw
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const DoctorsList = () => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
@@ -158,7 +160,7 @@ const DoctorsList = () => {
       minWidth: 20,
       field: 'sl_no',
       sortable: false,
-      headerName: 'SL.NO',
+      headerName: t('hospital_module.sl_no'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => (
@@ -171,7 +173,7 @@ const DoctorsList = () => {
       minWidth: 300,
       field: 'user_full_name',
       sortable: false,
-      headerName: 'Doctors Name',
+      headerName: t('hospital_module.doctors_name'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => (
@@ -187,7 +189,7 @@ const DoctorsList = () => {
       minWidth: 180,
       field: 'assigned_patients',
       sortable: false,
-      headerName: 'Assigned Patients',
+      headerName: t('hospital_module.assigned_patients'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => <StyledTypography paddingLeft={1}>{params.row.assigned_patients ?? '-'}</StyledTypography>
@@ -205,7 +207,7 @@ const DoctorsList = () => {
         const handleLongPress = () => {
           if (phoneNumber) {
             navigator.clipboard.writeText(phoneNumber)
-            alert('Number copied to clipboard')
+            alert(t('hospital_module.number_copied_to_clipboard'))
           }
         }
 
@@ -255,7 +257,7 @@ const DoctorsList = () => {
     {
       minWidth: 180,
       field: 'hospital_chief_doctor',
-      headerName: 'Chief Doctor',
+      headerName: t('hospital_module.chief_doctor'),
       align: 'left',
       headerAlign: 'left',
       flex: 1,
@@ -270,7 +272,7 @@ const DoctorsList = () => {
 
   const headerTitle = (
     <StyledTypography fontWeight={500} fontSize={'20px'}>
-      Hospital Staffs
+      {t('hospital_module.hospital_staffs')}
     </StyledTypography>
   )
 
@@ -279,7 +281,7 @@ const DoctorsList = () => {
       <Box>
         <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Doctors & Staffs' }]}
+          pageItems={[{ title: t('navigation.hospital') }, { title: t('hospital_module.patients') }, { title: t('hospital_module.doctors_and_staffs') }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
@@ -300,7 +302,7 @@ const DoctorsList = () => {
                   value={searchValue}
                   onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSearchValue(event.target.value)}
                   onClear={() => setSearchValue('')}
-                  placeholder='Search staff'
+                  placeholder={(t('hospital_module.search_staff') as string)}
                 />
               </Box>
               <Grid>

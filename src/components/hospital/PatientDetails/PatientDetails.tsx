@@ -4,6 +4,7 @@ import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Tab, Tabs, Typography, Box, Tooltip } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useState, Suspense, lazy, useMemo, useCallback, useEffect, useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 import PatientCard from 'src/views/pages/hospital/utility/PatientCard'
 import CircularProgress from '@mui/material/CircularProgress'
 
@@ -75,6 +76,7 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
   const router: any = useSafeRouter()
   const theme: any = useTheme()
   const authData: any = useContext(AuthContext)
+  const { t } = useTranslation()
 
   const queryClient = useQueryClient()
   const dispatch = useDispatch()
@@ -662,7 +664,7 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
         <ConfirmationDialog
           dialogBoxStatus={showConfirmation}
           onClose={() => setShowConfirmation(false)}
-          title={'Access Restricted'}
+          title={(t('hospital_module.access_restricted') as string)}
           // cancelText={'G'}
           cancelBtnStyle={{
             borderColor: theme.palette.grey[500],
@@ -682,10 +684,10 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
           description={
             <Box>
               <Typography variant='body1' sx={{ mb: 1 }}>
-                You don't have permission to view this patient's details.
+                {t('hospital_module.no_permission_view_patient')}
               </Typography>
               <Typography variant='body2' color='text.secondary'>
-                Either Select the correct hospital or contact your administrator for access.
+                {t('hospital_module.select_correct_hospital_or_contact_admin')}
               </Typography>
             </Box>
           }

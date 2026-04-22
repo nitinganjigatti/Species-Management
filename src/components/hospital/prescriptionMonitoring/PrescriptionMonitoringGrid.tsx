@@ -2,6 +2,7 @@
 
 /* eslint-disable lines-around-comment */
 import React, { useEffect, useRef, useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Grid as MuiGrid, Button } from '@mui/material'
 const Grid: any = MuiGrid
 import { alpha, styled } from '@mui/material/styles'
@@ -280,6 +281,7 @@ const PrescriptionMonitoringGrid = ({
   setSelectedMetrics,
   category
 }: PrescriptionMonitoringGridProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
@@ -721,7 +723,7 @@ const PrescriptionMonitoringGrid = ({
           >
             <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               <MUICheckbox
-                label='Select all'
+                label={(t('hospital_module.select_all') as string)}
                 labelStyle={isAllSelected ? { color: 'green' } : undefined}
                 checked={isAllSelected}
                 indeterminate={isIndeterminate}
@@ -731,7 +733,7 @@ const PrescriptionMonitoringGrid = ({
               {selectedMetrics.length > 0 && (
                 <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                    Pending Dosage:
+                    {t('hospital_module.pending_dosage')}
                   </Typography>
                   <Typography sx={{ fontWeight: 600, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}>
                     {selectedMetrics.reduce((total: number, metric: any) => {
@@ -751,7 +753,7 @@ const PrescriptionMonitoringGrid = ({
             <MUISwitch
               checked={isCurrentMedicalRecord}
               onChange={handleSwitchChange}
-              label='Current medical records only'
+              label={(t('hospital_module.current_medical_records_only') as string)}
             />
           </Grid>
         )}
@@ -760,7 +762,7 @@ const PrescriptionMonitoringGrid = ({
             <MUISwitch
               checked={isCurrentMedicalRecord}
               onChange={handleSwitchChange}
-              label='Current medical records only'
+              label={(t('hospital_module.current_medical_records_only') as string)}
               size='small'
               sx={{ ml: 2.6 }}
             />
@@ -919,8 +921,8 @@ const PrescriptionMonitoringGrid = ({
               }}
             >
               <NoMedicalData
-                btnText={'ADD PRESCRIPTION'}
-                text={'All Added Prescriptions Will Appear here'}
+                btnText={t('hospital_module.add_prescription')}
+                text={t('hospital_module.all_added_prescriptions_will_appear_here')}
                 btnAction={handleRouterNavigation}
               />
             </Box>
@@ -930,8 +932,8 @@ const PrescriptionMonitoringGrid = ({
       {selectedMetrics?.length ? (
         <ActionButtonsWithSelection
           selectedCount={selectedMetrics?.length}
-          cancelLabel='SKIPPED'
-          addLabel='ADMINISTER'
+          cancelLabel={t('hospital_module.skipped')}
+          addLabel={t('hospital_module.administer')}
           onCancel={() => handleSkip && handleSkip(selectedMetrics)}
           onAdd={() => handleAdminister && handleAdminister(selectedMetrics)}
           width='140px'

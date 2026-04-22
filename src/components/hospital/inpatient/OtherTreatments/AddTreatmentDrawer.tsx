@@ -6,6 +6,7 @@ import { Box, Button, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
@@ -40,6 +41,7 @@ const AddTreatmentDrawer = ({
   admissionDate,
   dischargedDate
 }: AddTreatmentDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const resolveLabel = (value: any) => {

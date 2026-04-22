@@ -12,23 +12,13 @@ import {
   useTheme
 } from '@mui/material'
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getPatientVisitSummary } from 'src/lib/api/hospital/inpatient'
 import Utility from 'src/utility'
 import type { BaseDrawerProps } from 'src/types/hospital'
 
 const ALL_REPORTS_KEY = 'all_reports'
-
-const REPORT_OPTIONS = [
-  { key: 'treatment_monitoring', label: 'Treatment Monitoring' },
-  { key: 'symptoms', label: 'Symptoms' },
-  { key: 'clinical_assessment', label: 'Clinical Assessment' },
-  { key: 'clinical_notes', label: 'Clinical Notes' },
-  { key: 'other_treatments', label: 'Other Treatments' },
-  { key: 'prescription', label: 'Prescriptions' },
-  { key: 'anaesthesia', label: 'Anesthesia' },
-  { key: 'surgery', label: 'Surgery' }
-]
 
 interface PatientVisitSummaryFilterDrawerProps extends BaseDrawerProps {
   caseId?: any
@@ -41,9 +31,22 @@ const PatientVisitSummaryFilterDrawer = ({
   caseId,
   animalId
 }: PatientVisitSummaryFilterDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const [submitLoader, setSubmitLoader] = useState(false)
+
+  // Report Options with translations
+  const REPORT_OPTIONS = [
+    { key: 'treatment_monitoring', label: t('hospital_module.treatment_monitoring') },
+    { key: 'symptoms', label: t('hospital_module.symptoms') },
+    { key: 'clinical_assessment', label: t('hospital_module.clinical_assessment') },
+    { key: 'clinical_notes', label: t('hospital_module.clinical_notes') },
+    { key: 'other_treatments', label: t('hospital_module.other_treatments') },
+    { key: 'prescription', label: t('hospital_module.prescriptions') },
+    { key: 'anaesthesia', label: t('hospital_module.anesthesia') },
+    { key: 'surgery', label: t('hospital_module.surgery') }
+  ]
 
   const [selectedReports, setSelectedReports] = useState<string[]>(REPORT_OPTIONS.map(option => option.key))
 
@@ -130,7 +133,7 @@ const PatientVisitSummaryFilterDrawer = ({
           <Box sx={{ display: 'flex', flexDirection: 'row', gap: 1.5, alignItems: 'center' }}>
             <Icon icon='hugeicons:download-square-02' />
             <Typography sx={{ fontWeight: 500, fontSize: '24px', color: theme.palette.customColors.onSurfaceVariant }}>
-              Download Hospital Visit Summary
+              {t('hospital_module.download_hospital_visit_summary')}
             </Typography>
           </Box>
           <IconButton onClick={onClose}>
@@ -168,7 +171,7 @@ const PatientVisitSummaryFilterDrawer = ({
                   onChange={handleToggleAll}
                 />
               }
-              label={<Typography fontWeight={600}>All Reports</Typography>}
+              label={<Typography fontWeight={600}>{t('hospital_module.all_reports')}</Typography>}
             />
 
             {REPORT_OPTIONS.map(option => (
@@ -208,7 +211,7 @@ const PatientVisitSummaryFilterDrawer = ({
           }}
         >
           <Button variant='contained' fullWidth color='primary' sx={{ p: 3, fontWeight: 600 }} onClick={handleDownload}>
-            {submitLoader ? <CircularProgress size={24} color = {'white' as any}/> : 'Download'}
+            {submitLoader ? <CircularProgress size={24} color = {'white' as any}/> : t('hospital_module.download')}
           </Button>
         </Box>
       </Drawer>

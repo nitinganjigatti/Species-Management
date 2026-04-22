@@ -18,6 +18,7 @@ import {
   useTheme
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import SelectParameterDrawer from './SelectParameterDrawer'
 import { useQuery } from '@tanstack/react-query'
@@ -48,6 +49,7 @@ const AddParameterDrawer = ({
   selectedDate,
   refetchMonitoringParams
 }: AddParameterDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const { selectedHospital }: any = useHospital()
 
@@ -394,7 +396,7 @@ const AddParameterDrawer = ({
                 {saveTemplate === true ? (
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
                     <TextField
-                      placeholder='Enter Template Name'
+                      placeholder={(t('hospital_module.enter_template_name') as string)}
                       sx={{
                         '& .MuiInputBase-root': {
                           backgroundColor: theme.palette.customColors.Surface
@@ -419,7 +421,7 @@ const AddParameterDrawer = ({
                       onClick={handleSaveTemplate}
                       disabled={templateName.trim() === '' || saveLoading}
                     >
-                      {saveLoading ? <CircularProgress size={24} /> : 'SAVE'}
+                      {saveLoading ? <CircularProgress size={24} /> : t('save').toUpperCase()}
                     </Button>
                     <Button
                       sx={{
@@ -434,7 +436,7 @@ const AddParameterDrawer = ({
                         setSaveTemplate(false)
                       }}
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                   </Box>
                 ) : (
@@ -456,7 +458,7 @@ const AddParameterDrawer = ({
                       <Typography
                         sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.customColors.OnSurface }}
                       >
-                        Save as template
+                        {t('hospital_module.save_as_template')}
                       </Typography>
                     </Box>
                     <Typography
@@ -474,7 +476,7 @@ const AddParameterDrawer = ({
                         setSelectedTemplates([])
                       }}
                     >
-                      Clear all
+                      {t('hospital_module.clear_all')}
                     </Typography>
                   </Box>
                 )}
@@ -485,7 +487,7 @@ const AddParameterDrawer = ({
                 <Typography
                   sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
                 >
-                  Your Template
+                  {t('hospital_module.your_template')}
                 </Typography>
                 {templateLoading ? (
                   <Box
@@ -552,7 +554,7 @@ const AddParameterDrawer = ({
                           }}
                           onClick={() => setShowAllTemplates((prev: boolean) => !prev)}
                         >
-                          {showAllTemplates ? 'Show less' : 'Show all'}
+                          {showAllTemplates ? t('hospital_module.show_less') : t('hospital_module.show_all')}
                         </Typography>
                       </Box>
                     )}
@@ -590,7 +592,7 @@ const AddParameterDrawer = ({
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Select Parameter Frequency
+                {t('hospital_module.select_parameter_frequency')}
               </FormLabel>
 
               <RadioGroup
@@ -604,7 +606,7 @@ const AddParameterDrawer = ({
                 <FormControlLabel
                   value='1'
                   control={<Radio />}
-                  label='Only for today'
+                  label={(t('hospital_module.only_for_today') as string)}
                   sx={{
                     '& .MuiTypography-root': {
                       fontSize: '0.95rem',
@@ -615,7 +617,7 @@ const AddParameterDrawer = ({
                 <FormControlLabel
                   value='0'
                   control={<Radio />}
-                  label='Set For all days'
+                  label={(t('hospital_module.set_for_all_days') as string)}
                   sx={{
                     '& .MuiTypography-root': {
                       fontSize: '0.95rem',
@@ -633,7 +635,7 @@ const AddParameterDrawer = ({
                     marginLeft: 0.5
                   }}
                 >
-                  Please select one option.
+                  {t('hospital_module.please_select_one_option')}
                 </FormHelperText>
               )}
             </FormControl>

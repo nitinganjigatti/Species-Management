@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -330,6 +331,7 @@ const sections = [
 ]
 
 export default function AddAnesthesiaRecord() {
+  const { t } = useTranslation()
   const appRouter: any = useRouter()
   const routerParams: any = useParams()
   const searchParams: any = useSearchParams()
@@ -992,12 +994,12 @@ export default function AddAnesthesiaRecord() {
           setValue('medicationsGas.medications', updatedMedications)
           Toaster({
             type: 'success',
-            message: apiResponse.message || 'Medication saved successfully'
+            message: apiResponse.message || t('hospital_module.medication_saved_success')
           })
         } else {
           Toaster({
             type: 'error',
-            message: apiResponse?.message || 'Failed to update medication'
+            message: apiResponse?.message || t('hospital_module.failed_update_medication')
           })
         }
       } catch (err) {
@@ -1036,7 +1038,7 @@ export default function AddAnesthesiaRecord() {
           setValue('medicationsGas.gases', updatedGases)
           Toaster({
             type: 'success',
-            message: apiResponse.message || 'Gas saved successfully'
+            message: apiResponse.message || t('hospital_module.gas_saved_success')
           })
         } else {
           Toaster({
@@ -1886,7 +1888,7 @@ export default function AddAnesthesiaRecord() {
         if (!hasMedicationsGasData(medsPayload, gasPayload)) {
           handleChange('preAnesthesia')
         }
-        Toaster({ type: 'success', message: response?.message })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.something_went_wrong') })
         setAnesthesiaDetail(response?.data?.anaesthesia_detail)
         fetchAnesthesiaSetup()
         fetchAssessmentList()

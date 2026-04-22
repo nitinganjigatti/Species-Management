@@ -19,6 +19,7 @@ import type { SelectChangeEvent } from '@mui/material'
 import { debounce } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
@@ -43,6 +44,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalDischarged = () => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const router = useSafeRouter()
 
   const { selectedHospital } = useHospital()
@@ -60,9 +62,9 @@ const HospitalDischarged = () => {
   const [excelDownload, setExcelDownload] = useState<boolean>(false)
 
   const dischargeTabs = [
-    { label: 'All', value: '' },
-    { label: 'Inpatient', value: 'inpatient' },
-    { label: 'Outpatient', value: 'opd' }
+    { label: t('hospital_module.all'), value: '' },
+    { label: t('hospital_module.inpatient'), value: 'inpatient' },
+    { label: t('hospital_module.outpatient'), value: 'opd' }
   ]
 
   const [selectedOptions, setSelectedOptions] = useState<any>({
@@ -255,7 +257,7 @@ const HospitalDischarged = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('hospital_module.sl_no'),
       renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -267,7 +269,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: 'Animal Name & ID',
+      headerName: t('hospital_module.animal_name_and_id'),
       renderCell: (params: any) => (
         <>
           <AnimalCard
@@ -291,7 +293,7 @@ const HospitalDischarged = () => {
       width: 200,
       minWidth: 20,
       field: 'medical_record_code',
-      headerName: 'Medical Record ID',
+      headerName: t('hospital_module.medical_record_id'),
       renderCell: (params: any) => (
         <MedicalIdChip
           medId={params?.row?.medical_record_code}
@@ -304,7 +306,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'discharge_reason',
       sortable: false,
-      headerName: 'Discharge Summary',
+      headerName: t('hospital_module.discharge_summary'),
       renderCell: (params: any) => (
         <>
           <Tooltip title={(extractTextFromHtml as any)(params?.row?.discharge_reason || 'NA')}>
@@ -333,7 +335,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'discharge_at',
       sortable: false,
-      headerName: 'Discharged',
+      headerName: t('hospital_module.discharged_col'),
       align: 'left',
       headerAlign: 'left',
 
@@ -359,7 +361,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: false,
-      headerName: 'Admission',
+      headerName: t('hospital_module.admission'),
       align: 'left',
       headerAlign: 'left',
 
@@ -385,7 +387,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'total_admitted_days',
       sortable: false,
-      headerName: 'duration',
+      headerName: t('hospital_module.duration'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => {
@@ -393,7 +395,7 @@ const HospitalDischarged = () => {
 
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
-            {totalDuration} {totalDuration > 1 ? 'Days' : 'Day'}
+            {totalDuration} {totalDuration > 1 ? t('hospital_module.days') : t('hospital_module.day')}
           </Typography>
         )
       }
@@ -403,7 +405,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'visit_type',
       sortable: false,
-      headerName: 'Visit Type',
+      headerName: t('hospital_module.visit_type'),
       renderCell: (params: any) => (
         <>
           <VisitType title={params.row.visit_type} />
@@ -415,7 +417,7 @@ const HospitalDischarged = () => {
       minWidth: 20,
       field: 'doctor_full_name',
       sortable: false,
-      headerName: 'Chief Veterinarian',
+      headerName: t('hospital_module.chief_veterinarian'),
       renderCell: (params: any) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
@@ -430,12 +432,12 @@ const HospitalDischarged = () => {
       miWidth: 20,
       field: 'action',
       sortable: false,
-      headerName: 'Action',
+      headerName: t('action'),
       renderCell: (params: any) => {
         const isRowLoading = downloadingRowId === params.row.id
 
         return (
-          <Tooltip title='Download Discharge Summary'>
+          <Tooltip title={(t('hospital_module.download_discharge_summary') as string)}>
             <IconButton onClick={() => handleDownloadDischargeSummary(params.row)} disabled={isRowLoading}>
               {isRowLoading ? <CircularProgress size={22} /> : <Icon icon='hugeicons:download-square-02' />}
             </IconButton>
@@ -460,12 +462,12 @@ const HospitalDischarged = () => {
       <Box>
          <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Discharged' }]}
+          pageItems={[{ title: t('navigation.hospital') }, { title: t('hospital_module.patients') }, { title: t('hospital_module.discharged') }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Discharged')} />
+            <CardHeader title={RenderUtility?.pageTitle(t('hospital_module.discharged'))} />
             <Box
               sx={{
                 p: 3,
@@ -479,7 +481,7 @@ const HospitalDischarged = () => {
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id / AID / animal identifier'
+                  placeholder={(t('hospital_module.search_by_medical_id') as string)}
                   value={searchValue}
                   onClear={handleSearchClear}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { Box, Grid, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { useParams, useSearchParams } from 'next/navigation'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { getSymptomsListForAdding, addSymptoms } from 'src/lib/api/hospital/symptoms'
@@ -48,6 +49,7 @@ const useDebounce = (callback: (...args: any[]) => void, delay: number) => {
 }
 
 function AddSymptoms() {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
@@ -441,13 +443,13 @@ function AddSymptoms() {
 
     try {
       if (selectedSymptoms.length === 0) {
-        Toaster({ type: 'error', message: 'Please select at least one Symptom' })
+        Toaster({ type: 'error', message: t('hospital_module.select_at_least_one_symptom') })
 
         return
       }
 
       if (submittableSymptoms.length === 0) {
-        Toaster({ type: 'error', message: 'All selected symptoms are already prescribed' })
+        Toaster({ type: 'error', message: t('hospital_module.all_symptoms_already_prescribed') })
 
         return
       }
@@ -491,7 +493,7 @@ function AddSymptoms() {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'Something went wrong. Please try again.' })
+      Toaster({ type: 'error', message: t('hospital_module.something_went_wrong') })
     } finally {
       setAddLoading(false)
     }
@@ -536,12 +538,12 @@ function AddSymptoms() {
             label:
               patientData?.animal_detail?.local_identifier_name && patientData?.animal_detail?.local_identifier_value
                 ? patientData?.animal_detail?.local_identifier_name
-                : 'AID',
+                : t('hospital_module.aid'),
             value: handleAIDDisplay()
           },
-          { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
-          { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
-          { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
+          { label: t('hospital_module.health_status'), value: patientData?.health_status || 'stable', isStatusCard: true },
+          { label: t('hospital_module.location'), value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+          { label: t('hospital_module.consulting_veterinarian'), value: patientData?.attend_by_full_name }
         ]}
         isLoading={patientLoading}
         backgroundColor={theme.palette.customColors.OnPrimary}
@@ -553,7 +555,7 @@ function AddSymptoms() {
       >
         <Grid size={{ xs: 12 }}>
           <Typography variant='h6' sx={{ mb: 2 }}>
-            Add Symptoms
+            {t('hospital_module.add_symptoms')}
           </Typography>
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
@@ -587,7 +589,7 @@ function AddSymptoms() {
                 (symptom: any) => !selectedSymptoms.some((s: any) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
               )}
               onApplyTemplate={setSelectedSymptoms}
-              templateLabel='symptom template'
+              templateLabel={t('hospital_module.symptom_template') as string}
               mapTemplateItem={(item: any) => ({
                 id: item?.id,
                 name: item?.name,
@@ -615,8 +617,8 @@ function AddSymptoms() {
                   <SaveMedicalTemplateSection
                     templateType='complaints'
                     selectedItems={selectedSymptoms}
-                    templateLabel='symptom template'
-                    itemLabel='symptoms'
+                    templateLabel={t('hospital_module.symptom_template') as string}
+                    itemLabel={t('hospital_module.symptoms') as string}
                     refreshToken={templateRefreshToken}
                     onTemplateSaved={() => setTemplateRefreshToken((prev: number) => prev + 1)}
                   />
@@ -633,8 +635,8 @@ function AddSymptoms() {
           onSubmit: handleAddClick,
           loading: addLoading,
           disabled: addLoading,
-          submitLabel: 'ADD',
-          cancelLabel: 'CANCEL',
+          submitLabel: t('add'),
+          cancelLabel: t('cancel'),
           cancelBtnStyle: {
             borderColor: theme.palette.customColors.OnSurfaceVariant,
             color: theme.palette.customColors.OnSurfaceVariant,
@@ -652,9 +654,9 @@ function AddSymptoms() {
       >{undefined}</BottomActionBar>
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
-        title={`Symptoms${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
-        description={`Duplicate Symptoms: ${duplicateSymptoms?.map((item: any) => item?.diagnosis)?.join(', ')}`}
-        additionalDescription={`To proceed choose a different Symptoms`}
+        title={`${t('hospital_module.symptoms')}${duplicateSymptoms?.length > 1 ? 's' : ''} ${t('hospital_module.already_exists')}`}
+        description={`${t('hospital_module.duplicate_symptoms')}: ${duplicateSymptoms?.map((item: any) => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={t('hospital_module.choose_different_symptoms')}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
@@ -662,7 +664,7 @@ function AddSymptoms() {
           setDuplicatesErrorModelOpen(false)
           setAddLoading(false)
         }}
-        ConfirmationText={'OK'}
+        ConfirmationText={t('ok')}
         allowCancel={false}
       />
       {temporarilySelected && (

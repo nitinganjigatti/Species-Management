@@ -5,6 +5,7 @@ import { Box, Typography, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
+import { useTranslation } from 'react-i18next'
 
 interface SelectedClinicalAssessmentProps {
   selected?: any[]
@@ -25,6 +26,7 @@ export default function SelectedClinicalAssessment({
 }: SelectedClinicalAssessmentProps) {
   const theme: any = useTheme()
   const { getSeverityColor } = useHospitalColorUtils()
+  const { t } = useTranslation()
 
   return (
     <Box
@@ -48,7 +50,7 @@ export default function SelectedClinicalAssessment({
           mb: 5
         }}
       >
-        Selected Clinical Assessment
+        {t('hospital_module.selected_clinical_assessment')}
       </Typography>
 
       {selected.length === 0 ? (
@@ -65,7 +67,7 @@ export default function SelectedClinicalAssessment({
         >
           <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
-            Selected clinical assessment will appear here
+            {t('hospital_module.selected_clinical_assessment_appear_here')}
           </Typography>
         </Box>
       ) : (
@@ -165,7 +167,7 @@ export default function SelectedClinicalAssessment({
                         fontWeight: 500
                       }}
                     >
-                      • Chronic
+                      • {t('hospital_module.chronic')}
                     </Typography>
                   ) : (
                     ''

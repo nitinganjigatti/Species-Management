@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react'
 import { Box, Grid, Typography, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -50,6 +51,7 @@ interface AddMedicineToPrescriptionProps {
 }
 
 export default function AddMedicineToPrescription({ from, params }: AddMedicineToPrescriptionProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const searchParams: any = useSearchParams()
@@ -141,7 +143,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
               // Check if selected time is in the future
               if (selectedTime.isAfter(now)) {
                 return this.createError({
-                  message: "Time cannot be in the future for today's date"
+                  message: t('hospital_module.time_cannot_be_future_today') as string
                 })
               }
 
@@ -185,7 +187,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             if (seenTimes.has(times[i])) {
               return this.createError({
                 path: `schedules[${i}].time`,
-                message: 'This time is already selected'
+                message: t('hospital_module.this_time_already_selected') as string
               })
             }
             seenTimes.set(times[i], i)
@@ -220,14 +222,14 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         // Check if start date is before admitted date
         if (startDate.isBefore(admittedDate, 'day')) {
           return this.createError({
-            message: `Start date cannot be before admission date (${admittedDate.format('DD MMM YYYY')})`
+            message: `${t('hospital_module.start_date_before_admission')} (${admittedDate.format('DD MMM YYYY')})`
           })
         }
 
         // Check if start date is after end date
         if (startDate.isAfter(endDate, 'day')) {
           return this.createError({
-            message: 'Start date cannot be after end date'
+            message: t('hospital_module.start_date_after_end_date') as string
           })
         }
 
@@ -594,7 +596,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setMedicineLoading(false)
     }
@@ -614,7 +616,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         return response?.data
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
       router.back()
     } finally {
       setSideEffectMedicinesLoading(false)
@@ -983,7 +985,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
     } catch (error: any) {
       console.error('Error fetching prescription list:', error)
 
-      Toaster({ type: 'error', message: error || 'Something went wrong' })
+      Toaster({ type: 'error', message: error || t('hospital_module.something_went_wrong') })
     } finally {
       setIsPrescriptionListLoading(false)
     }
@@ -1348,7 +1350,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
       const response: any = await addDirectAdministerPrescription(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Direct administer record added successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.direct_administer_record_added') })
         resetForm()
 
         await getPrescriptionList()
@@ -1783,7 +1785,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             if (startDate.isAfter(dischargeDate)) {
               Toaster({
                 type: 'error',
-                message: `Prescription start date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+                message: `${t('hospital_module.prescription_start_after_discharge')} (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
               })
               return
             }
@@ -1794,7 +1796,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             if (endDate.isAfter(dischargeDate)) {
               Toaster({
                 type: 'error',
-                message: `Prescription end date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+                message: `${t('hospital_module.prescription_end_after_discharge')} (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
               })
               return
             }
@@ -1806,7 +1808,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           if (startDate.isAfter(dischargeDate)) {
             Toaster({
               type: 'error',
-              message: `Prescription start date cannot be after the discharge date (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
+              message: `${t('hospital_module.prescription_start_after_discharge')} (${dayjs(Utility.convertUTCToLocal(patientData.discharge_at)).format('DD MMM YYYY')})`
             })
             return
           }
@@ -1833,7 +1835,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
             if (calculatedEndDate.isAfter(dischargeDate)) {
               Toaster({
                 type: 'error',
-                message: `Prescription duration extends beyond the discharge date (${dayjs(patientData.discharge_at).format('DD MMM YYYY')}). Please adjust the duration.`
+                message: `${t('hospital_module.prescription_duration_beyond_discharge')} (${dayjs(patientData.discharge_at).format('DD MMM YYYY')})`
               })
               return
             }
@@ -2072,7 +2074,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           {!isDischargedAnimal && (
             <Grid size={{ xs: 12, md: 4, lg: 4 }}>
               <TreatmentTypeRadioButtons
-                label='Schedule'
+                label={(t('hospital_module.schedule') as string)}
                 isSelected={watch('selectMedicineType') === 'Schedule'}
                 sx={{
                   borderColor: `${theme.palette.customColors.OutlineVariant}`
@@ -2084,7 +2086,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           {(!discharge_tab && !fromPage) || isDischargedAnimal ? (
             <Grid size={{ xs: 12, md: 4, lg: 4 }}>
               <TreatmentTypeRadioButtons
-                label='Direct Administer'
+                label={(t('hospital_module.direct_administer') as string)}
                 isSelected={watch('selectMedicineType') === 'Direct Administer'}
                 sx={{
                   borderColor: `${theme.palette.customColors.OutlineVariant}`
@@ -2178,7 +2180,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
         <ConfirmationDialog
           dialogBoxStatus={showSideEffectWarning && warningMedicine}
           onClose={handleSideEffectCancel}
-          title={'Caused adverse side effects, Do you want to add?'}
+          title={(t('hospital_module.caused_adverse_side_effects') as string)}
           cancelText={'No'}
           confirmBtnStyle={{ background: theme.palette.primary.main, py: 2 }}
           image={'/images/warning-icon.svg'}

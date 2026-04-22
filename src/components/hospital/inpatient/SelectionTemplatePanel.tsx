@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -39,6 +40,7 @@ export function SaveMedicalTemplateSection({
   refreshToken = 0,
   onTemplateSaved = () => {}
 }: SaveMedicalTemplateSectionProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [showSaveTemplate, setShowSaveTemplate] = useState<boolean>(false)
   const [templateName, setTemplateName] = useState<string>('')
@@ -87,7 +89,7 @@ export function SaveMedicalTemplateSection({
       setTemplates(list)
     } catch (error) {
       console.error(`Error loading ${templateType} templates:`, error)
-      Toaster({ type: 'error', message: `Failed to load ${templateLabel}s` })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_load_templates') })
     }
   }, [responseKey, templateLabel, templateType])
 
@@ -99,14 +101,14 @@ export function SaveMedicalTemplateSection({
     const trimmedName = templateName.trim()
 
     if (!trimmedName) {
-      Toaster({ type: 'error', message: 'Please enter the template name' })
+      Toaster({ type: 'error', message: t('hospital_module.please_enter_template_name') })
 
       return
     }
 
     const duplicateName = mappedTemplates.some((item: any) => item?.name?.toLowerCase() === trimmedName.toLowerCase())
     if (duplicateName) {
-      Toaster({ type: 'error', message: 'Template name already exists' })
+      Toaster({ type: 'error', message: t('hospital_module.template_name_already_exists') })
 
       return
     }
@@ -120,17 +122,17 @@ export function SaveMedicalTemplateSection({
       })
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.template_saved_successfully') })
         setTemplateName('')
         setShowSaveTemplate(false)
         await loadTemplates()
         onTemplateSaved()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_save_template') })
       }
     } catch (error) {
       console.error(`Error saving ${templateType} template:`, error)
-      Toaster({ type: 'error', message: 'Failed to save template' })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_save_template') })
     } finally {
       setIsSaving(false)
     }
@@ -247,6 +249,7 @@ function SelectionTemplatePanel({
   onTemplatesChanged = () => {}
 }: SelectionTemplatePanelProps) {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const [editingTemplate, setEditingTemplate] = useState<any>(null)
   const [editingName, setEditingName] = useState<string>('')
   const [editingItems, setEditingItems] = useState<any[]>([])
@@ -323,7 +326,7 @@ function SelectionTemplatePanel({
       setTemplates(list)
     } catch (error) {
       console.error(`Error loading ${templateType} templates:`, error)
-      Toaster({ type: 'error', message: `Failed to load ${templateLabel}s` })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_load_templates') })
     }
   }, [responseKey, templateLabel, templateType])
 
@@ -335,14 +338,14 @@ function SelectionTemplatePanel({
     const templateItems = Array.isArray(template?.template_items) ? template.template_items : []
 
     if (templateItems.length === 0) {
-      Toaster({ type: 'error', message: `This ${templateLabel} has no items` })
+      Toaster({ type: 'error', message: t('hospital_module.template_has_no_items') })
 
       return
     }
 
     const mappedItems = templateItems.map((item: any) => mapTemplateItem(item)).filter(Boolean)
     onApplyTemplate(mappedItems)
-    Toaster({ type: 'success', message: 'Template applied successfully' })
+    Toaster({ type: 'success', message: t('hospital_module.template_applied_successfully') })
   }
 
   const openEditDialog = (template: any) => {
@@ -379,13 +382,13 @@ function SelectionTemplatePanel({
     if (!editingTemplate?.id) return
 
     if (!trimmedName) {
-      Toaster({ type: 'error', message: 'Please enter the template name' })
+      Toaster({ type: 'error', message: t('hospital_module.please_enter_template_name') })
 
       return
     }
 
     if (editingItems.length === 0) {
-      Toaster({ type: 'error', message: 'Template must contain at least one item' })
+      Toaster({ type: 'error', message: t('hospital_module.template_must_contain_at_least_one_item') })
 
       return
     }
@@ -394,7 +397,7 @@ function SelectionTemplatePanel({
       (item: any) => item?.id !== editingTemplate.id && item?.name?.toLowerCase() === trimmedName.toLowerCase()
     )
     if (duplicateName) {
-      Toaster({ type: 'error', message: 'Template name already exists' })
+      Toaster({ type: 'error', message: t('hospital_module.template_name_already_exists') })
 
       return
     }
@@ -408,12 +411,12 @@ function SelectionTemplatePanel({
       })
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Template updated successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.template_updated_successfully') })
         await loadTemplates()
         onTemplatesChanged()
         closeEditDialog()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to update template' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_update_template') })
       }
     } catch (error) {
       console.error(`Error updating ${templateType} template:`, error)

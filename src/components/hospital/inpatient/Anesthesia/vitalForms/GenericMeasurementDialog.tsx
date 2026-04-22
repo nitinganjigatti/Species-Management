@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Box, MenuItem, TextField, Typography, ToggleButton, ToggleButtonGroup, Radio } from '@mui/material'
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 import VitalFormDialog from './VitalFormDialog'
 import {
@@ -83,6 +84,7 @@ export default function GenericMeasurementDialog({
   initialData = {},
   timeLabel = ''
 }: GenericMeasurementDialogProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const fieldsMeta: any[] = sectionMeta?.fields || []
   const firstField: any = fieldsMeta[0] ?? null
@@ -197,7 +199,7 @@ export default function GenericMeasurementDialog({
         submitButtonSx={measurementSubmitButtonSx(theme)}
         paperSx={measurementDialogPaperSx(theme)}
         disableSubmit={!String(singleValue).trim()}
-        submitLabel='Add Entry'
+        submitLabel={t('hospital_module.add_entry') as string}
       >
         <Box
           component='form'
@@ -208,10 +210,10 @@ export default function GenericMeasurementDialog({
           sx={measurementFieldsContainerSx}
         >
           <Box sx={measurementPrimaryFieldColumnSx}>
-            <Typography sx={measurementFieldLabelSx(theme)}>{firstField?.field_label ?? 'Enter Value'}</Typography>
+            <Typography sx={measurementFieldLabelSx(theme)}>{firstField?.field_label ?? t('hospital_module.enter_value')}</Typography>
             <TextField
               fullWidth
-              placeholder='Enter Value'
+              placeholder={(t('hospital_module.enter_value') as string)}
               value={singleValue}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSingleValue(event.target.value)}
               type='number'
@@ -294,10 +296,10 @@ export default function GenericMeasurementDialog({
         submitButtonSx={measurementSubmitButtonSx(theme)}
         paperSx={measurementDialogPaperSx(theme)}
         disableSubmit={!selection}
-        submitLabel='Add Entry'
+        submitLabel={t('hospital_module.add_entry') as string}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '16px' }}>
-          <Typography sx={measurementFieldLabelSx(theme)}>{firstField?.field_label ?? 'Select'}</Typography>
+          <Typography sx={measurementFieldLabelSx(theme)}>{firstField?.field_label ?? t('select')}</Typography>
 
           <Box
             component='form'
@@ -355,7 +357,7 @@ export default function GenericMeasurementDialog({
       submitButtonSx={measurementSubmitButtonSx(theme)}
       paperSx={measurementDialogPaperSx(theme)}
       disableSubmit={false}
-      submitLabel='Add Entry'
+      submitLabel={t('hospital_module.add_entry') as string}
     >
       <Box
         component='form'
@@ -370,7 +372,7 @@ export default function GenericMeasurementDialog({
             <Typography sx={measurementFieldLabelSx(theme)}>{f.field_label}</Typography>
             <TextField
               fullWidth
-              placeholder='Enter Value'
+              placeholder={(t('hospital_module.enter_value') as string)}
               value={multiValues[f.field_key] ?? ''}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) => setMultiValues((prev: any) => ({ ...prev, [f.field_key]: event.target.value }))}
               type={f.input_type === 'number' ? 'number' : 'text'}

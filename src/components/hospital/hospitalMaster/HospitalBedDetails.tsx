@@ -17,6 +17,7 @@ import {
   CircularProgress,
   alpha
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { Add as AddIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -43,18 +44,22 @@ import { useHospital } from 'src/context/HospitalContext'
 import EnclosureOccupantsDrawer from 'src/views/pages/hospital/masters/hospital/EnclosureOccupantsDrawer'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
-const statusOptions = [
-  { label: 'All Status', value: 'all' },
-  { label: 'Active', value: 'active' },
-  { label: 'Inactive', value: 'inactive' }
-]
-
 const HospitalBedDetails = () => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router = useRouter()
   const routerParams: any = useParams()
   const searchParams: any = useSearchParams()
   const queryClient = useQueryClient()
+
+  const statusOptions = useMemo(
+    () => [
+      { label: t('hospital_module.all_status'), value: 'all' },
+      { label: t('hospital_module.active'), value: 'active' },
+      { label: t('hospital_module.inactive'), value: 'inactive' }
+    ],
+    [t]
+  )
 
   // Get id and roomId from dynamic route parameters, fall back to prop
   const id = routerParams?.id
@@ -170,7 +175,7 @@ const HospitalBedDetails = () => {
           refetchBeds()
         } else {
           console.error('Status update failed:', response.message)
-          Toaster({ type: 'error', message: response?.message || 'Failed to update room status' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_update_room_status') })
         }
       } catch (error: any) {
         console.error('Status update failed:', error?.message || error)
@@ -320,10 +325,10 @@ const HospitalBedDetails = () => {
             console.error('Failed to update query cache', error?.message || error)
           }
 
-          Toaster({ type: 'success', message: response?.message || 'Room updated successfully' })
+          Toaster({ type: 'success', message: response?.message || t('hospital_module.room_updated_successfully') })
           refetchBeds()
         } else {
-          Toaster({ type: 'error', message: response?.message || 'Failed to update room' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_update_room') })
         }
       } else {
         const updatePayload = { ...payload, bed_id: editParams?.id }
@@ -339,7 +344,7 @@ const HospitalBedDetails = () => {
             fetchAndUpdateHospitalStats(id)
           }
         } else {
-          Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.something_went_wrong') })
         }
       }
     } catch (error: any) {

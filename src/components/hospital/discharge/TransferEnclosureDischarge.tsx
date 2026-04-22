@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useContext, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
@@ -12,6 +13,7 @@ import { getSectionList } from 'src/lib/api/egg/egg/createAnimal'
 import { AuthContext } from 'src/context/AuthContext'
 
 function useTransferEnclosureDischarge() {
+  const { t } = useTranslation()
   const authData: any = useContext(AuthContext)
   const zoo_id = authData?.userData?.user?.zoos[0]?.zoo_id || null
 
@@ -179,7 +181,7 @@ function useTransferEnclosureDischarge() {
       if (response?.success) {
         Toaster({
           type: 'success',
-          message: response?.message || 'Transfer to enclosure submitted successfully'
+          message: response?.message || t('hospital_module.transfer_to_enclosure_submitted_successfully')
         })
 
         fetchAndUpdateHospitalStats(selectedHospital?.id)
@@ -189,7 +191,7 @@ function useTransferEnclosureDischarge() {
 
       Toaster({
         type: 'error',
-        message: response?.message || 'Failed to submit transfer to enclosure'
+        message: response?.message || t('hospital_module.failed_to_submit_transfer_to_enclosure')
       })
 
       return false

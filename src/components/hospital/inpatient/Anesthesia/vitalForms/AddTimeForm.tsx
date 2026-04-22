@@ -7,6 +7,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 import VitalFormDialog from './VitalFormDialog'
 
@@ -37,6 +38,7 @@ interface AddTimeFormProps {
 }
 
 export default function AddTimeForm({ open, onClose, onSubmit, initialValue = '' }: AddTimeFormProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [timeValue, setTimeValue] = useState<any>(() => parseInitialValue(initialValue))
   const timeInputRef = useRef<HTMLInputElement | null>(null)
@@ -105,9 +107,9 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
       open={open}
       onClose={onClose}
       onSubmit={handleSubmit}
-      submitLabel={initialValue ? 'Update Time' : 'Add Time'}
+      submitLabel={initialValue ? t('hospital_module.update_time') || "" : t('hospital_module.add_time') || ""}
       hideCancel
-      title={initialValue ? 'Edit Time' : 'Add Time'}
+      title={initialValue ? t('edit') || "" : t('hospital_module.add_time') || ""}
       disableSubmit={disableSubmit}
       headerSx={{
         height: '52px',
@@ -164,7 +166,7 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
           onSubmit={handleFormSubmit}
           sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}
         >
-          <Typography sx={labelStyles}>Recorded Time</Typography>
+          <Typography sx={labelStyles}>{t('hospital_module.recorded_time')}</Typography>
 
           <TimePicker
             value={timeValue}
@@ -173,11 +175,11 @@ export default function AddTimeForm({ open, onClose, onSubmit, initialValue = ''
             slotProps={{
               textField: {
                 fullWidth: true,
-                placeholder: 'Select time',
+                placeholder: t('hospital_module.select_time'),
                 sx: timePickerTextFieldStyles,
                 inputRef: timeInputRef,
                 inputProps: {
-                  placeholder: 'Select time'
+                  placeholder: t('hospital_module.select_time')
                 }
               },
               openPickerButton: {

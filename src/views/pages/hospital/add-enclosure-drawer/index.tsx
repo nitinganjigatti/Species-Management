@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useMemo } from 'react'
 
 import { useTheme, Card, Typography, IconButton, Drawer, Box, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
+import { useTranslation } from 'react-i18next'
 
 import Icon from 'src/@core/components/icon'
 
@@ -54,6 +55,7 @@ interface AddEnclosuresProps {
 
 const AddEnclosures = (props: AddEnclosuresProps) => {
   const { handleSidebarOpen, handleSidebarClose, submitLoader, editParams, handleSubmitData, resetForm } = props
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const authData: any = useContext(AuthContext)
   const { selectedHospital }: any = useHospital()
@@ -127,7 +129,7 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Filter Icon' />
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {editParams?.id !== null ? 'Edit Enclosure' : 'Add New Enclosure'}
+            {editParams?.id !== null ? t('hospital_module.edit_enclosure') : t('hospital_module.add_new_enclosure')}
           </Typography>
         </Box>
         <IconButton
@@ -158,7 +160,7 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   control={control}
                   name={'site_id'}
                   errors={errors}
-                  label={'Site Name*'}
+                  label={(t('hospital_module.site_name') as string)}
                   options={sitesList}
                   getOptionLabel={(option: any) => option?.site_name || ''}
                   isOptionEqualToValue={(option: any, value: any) => option?.site_id === value?.site_id}
@@ -169,8 +171,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   name={'bed_name'}
                   control={control}
                   errors={errors}
-                  label={'Enclosure name*'}
-                  placeholder={'Enter Enclosure name'}
+                  label={(t('hospital_module.enclosure_name') as string)}
+                  placeholder={(t('hospital_module.enter_enclosure_name') as string)}
                   fullWidth
                 />
               </Grid>
@@ -179,8 +181,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   name={'prefix'}
                   control={control}
                   errors={errors}
-                  label={'Bed code*'}
-                  placeholder={'Enter Bed code'}
+                  label={(t('hospital_module.bed_code') as string)}
+                  placeholder={(t('hospital_module.enter_bed_code') as string)}
                   fullWidth
                 />
               </Grid>
@@ -189,8 +191,8 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
                   name={'no_of_bed'}
                   control={control}
                   errors={errors}
-                  label={'Number of Enclosures*'}
-                  placeholder={'Enter Number of Enclosures'}
+                  label={(t('hospital_module.number_of_enclosures') as string)}
+                  placeholder={(t('hospital_module.enter_number_of_enclosures') as string)}
                   fullWidth
                 />
               </Grid>
@@ -211,7 +213,7 @@ const AddEnclosures = (props: AddEnclosuresProps) => {
             }}
           >
             <LoadingButton variant='contained' type='submit' loading={submitLoader} sx={{ flex: 1, py: 2 }}>
-              {editParams?.id ? 'Update' : 'Add'}
+              {editParams?.id ? t('update') : t('add')}
             </LoadingButton>
           </Box>
         </form>

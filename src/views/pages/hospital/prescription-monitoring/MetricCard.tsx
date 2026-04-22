@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
@@ -27,7 +28,9 @@ const MetricCard = ({
   MetricLabel,
   theme,
   prescriptionCardColorsConfig
-}: MetricCardProps) => (
+}: MetricCardProps) => {
+  const { t } = useTranslation()
+  return (
   <>
     <MUICheckbox
       checked={metric.canEdit === false || metric?.controlled_substance == 1 || selected}
@@ -120,7 +123,7 @@ const MetricCard = ({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <ReportProblemIcon sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary }} />
             <Typography sx={{ fontSize: '10px', color: theme.palette.customColors.Tertiary, fontWeight: 500 }}>
-              CAUSED ADVERSE SIDE EFFECTS
+              {t('hospital_module.caused_adverse_side_effects')}
             </Typography>
           </Box>
         )}
@@ -172,6 +175,7 @@ const MetricCard = ({
       {children}
     </MetricLabel>
   </>
-)
+  )
+}
 
 export default MetricCard

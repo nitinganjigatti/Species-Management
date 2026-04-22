@@ -4,6 +4,7 @@ import React from 'react'
 import { Box, Typography, Paper, IconButton, alpha, CircularProgress } from '@mui/material'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
 import Utility from 'src/utility'
 
@@ -15,6 +16,7 @@ interface ActivityListProps {
 }
 
 const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessment = false }: ActivityListProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   if (activityLoader) {
@@ -34,7 +36,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
         </Box>
       ) : (
         <>
-          <Typography sx={{ fontWeight: 600, mb: 2 }}>Activity</Typography>
+          <Typography sx={{ fontWeight: 600, mb: 2 }}>{t('hospital_module.activity_label')}</Typography>
           {activities.map((activity: any, i: number) => {
             return (
               <Paper
@@ -58,7 +60,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                     <Typography
                       sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}
                     >
-                      Status Update
+                      {t('hospital_module.status_update')}
                     </Typography>
                   )}
 
@@ -83,7 +85,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                             fontSize: '12px'
                           }}
                         >
-                          Severity: <strong>{activity?.oldSeverity}</strong>
+                          {t('hospital_module.severity_label')} <strong>{activity?.oldSeverity}</strong>
                           {activity?.oldSeverity && activity?.newSeverity && ' → '}
                           <strong>{activity?.newSeverity}</strong>
                         </Typography>
@@ -91,7 +93,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                       {activity?.isSystemGenerated && (activity?.oldRecord || activity?.newRecord) && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
                           <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
-                            Clinical Assessment :{' '}
+                            {t('hospital_module.clinical_assessment_label')}{' '}
                           </Typography>
                           {activity?.oldRecord && (
                             <Typography
@@ -121,7 +123,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                       {activity?.isSystemGenerated && (activity?.oldPrognosis || activity?.newPrognosis) && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
                           <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
-                            Prognosis :{' '}
+                            {t('hospital_module.prognosis_label')}{' '}
                           </Typography>
                           {activity?.oldPrognosis && (
                             <Typography
@@ -151,7 +153,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                       {activity?.isSystemGenerated && (activity?.oldIsChronical || activity?.newIsChronical) ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
                           <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
-                            Is Cronical :{' '}
+                            {t('hospital_module.is_chronic_label')}{' '}
                           </Typography>
                           {activity?.oldIsChronical !== undefined && (
                             <Typography
@@ -189,7 +191,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                             fontSize: '12px'
                           }}
                         >
-                          Status:{' '}
+                          {t('hospital_module.status_label')}:{' '}
                           <strong>{activity?.status.charAt(0).toUpperCase() + activity?.status.slice(1)}</strong>
                         </Typography>
                       )}
@@ -207,7 +209,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                               fontSize: '12px'
                             }}
                           >
-                            Duration:{' '}
+                            {t('hospital_module.duration_label')}:{' '}
                             <strong>
                               {activity.duration} {formatDurationUnit(activity.duration, activity.duration_unit)}
                             </strong>
@@ -224,7 +226,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
                               mb: 0.5
                             }}
                           >
-                            {isFromAssessment ? 'Notes' : 'Comment'}
+                            {isFromAssessment ? t('hospital_module.notes_label') : t('hospital_module.comment_label')}
                           </Typography>
                           <Typography
                             sx={{

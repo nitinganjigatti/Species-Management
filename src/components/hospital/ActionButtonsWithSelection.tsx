@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles'
 import { Box, Button, CircularProgress, Typography, useMediaQuery } from '@mui/material'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import themeConfig from 'src/configs/themeConfig'
+import { useTranslation } from 'react-i18next'
 
 interface ActionButtonsWithSelectionProps {
   selectedCount?: number
@@ -29,6 +30,7 @@ export default function ActionButtonsWithSelection({
   isSubmitLoading,
   isCancelLoading
 }: ActionButtonsWithSelectionProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const { settings } = useSettings()
   const { navCollapsed } = settings
@@ -64,7 +66,7 @@ export default function ActionButtonsWithSelection({
           color: theme.palette.customColors.OnSurface
         }}
       >
-        Selected - {selectedCount}
+        {t('hospital_module.selected')} - {selectedCount}
       </Typography>
 
       {/* Action Buttons */}

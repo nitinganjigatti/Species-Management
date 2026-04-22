@@ -5,6 +5,7 @@ import { Drawer, IconButton, Typography, TextField, CircularProgress } from '@mu
 import { alpha, Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { LoadingButton } from '@mui/lab'
 import EditTemplateForm from '../../../../components/hospital/inpatient/EditTemplateForm'
 import SurgeryTemplateCard from './SurgeryTemplateCard'
@@ -28,6 +29,7 @@ const SurgeryRecordTemplateList = ({
   onApplyTemplate = () => {},
   onTemplatesUpdated = () => {}
 }: SurgeryRecordTemplateListProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [searchValue, setSearchValue] = useState<string>('')
   const [selectedTemplate, setSelectedTemplate] = useState<any>(null)
@@ -203,7 +205,7 @@ const SurgeryRecordTemplateList = ({
             <Typography
               sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              All Templates - {templates?.length || 0}
+              {t('hospital_module.all_templates')} - {templates?.length || 0}
             </Typography>
           </Box>
           <IconButton size='small' onClick={handleEditTemplateClose}>
@@ -284,7 +286,7 @@ const SurgeryRecordTemplateList = ({
                   mt: 6
                 }}
               >
-                No templates found.
+                {t('hospital_module.no_templates_found')}
               </Typography>
             )}
           </Box>
@@ -330,7 +332,7 @@ const SurgeryRecordTemplateList = ({
             }
           }}
         >
-          {selectedTemplate ? 'Edit' : 'Close'}
+          {selectedTemplate ? t('edit') : t('close')}
         </LoadingButton>
         <LoadingButton
           variant='contained'
@@ -347,7 +349,7 @@ const SurgeryRecordTemplateList = ({
             }
           }}
         >
-          APPLY
+          {t('apply')}
         </LoadingButton>
       </Box>
 

@@ -5,6 +5,7 @@ import { Box, Button, CircularProgress, Drawer, IconButton, Typography, useTheme
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { useHospital } from 'src/context/HospitalContext'
 import * as yup from 'yup'
@@ -28,12 +29,13 @@ const defaultValues: FormValues = {
   doctor_specialty: ''
 }
 
-const schema = yup.object().shape({
-  doctor_role: yup.object().required('Doctor Role is required'),
-  selected_user: yup.mixed().required('Doctor is required'),
-  doctor_designation: yup.string().nullable().required('Doctor Designation is required'),
-  doctor_specialty: yup.string().required('Doctor Specialty is required')
-})
+const createSchema = (t: any) =>
+  yup.object().shape({
+    doctor_role: yup.object().required(t('hospital_module.doctor_role_is_required')),
+    selected_user: yup.mixed().required(t('hospital_module.doctor_is_required')),
+    doctor_designation: yup.string().nullable().required(t('hospital_module.doctor_designation_is_required')),
+    doctor_specialty: yup.string().required(t('hospital_module.doctor_specialty_is_required'))
+  })
 
 interface AddStaffsDrawerProps {
   open?: boolean
@@ -41,6 +43,7 @@ interface AddStaffsDrawerProps {
 }
 
 const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const { selectedHospital }: any = useHospital()
   const router: any = useSafeRouter()
@@ -53,7 +56,7 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
     clearErrors,
     formState: { errors }
   } = useForm<FormValues>({
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(createSchema(t)) as any,
     defaultValues,
     shouldUnregister: false,
     mode: 'onChange',
@@ -133,7 +136,7 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
                   fontWeight: 'bold'
                 }}
               >
-                Add Staffs
+                {t('hospital_module.add_staffs')}
               </Typography>
             </Box>
             <IconButton onClick={onClose}>
@@ -164,11 +167,11 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
                 <Typography
                   sx={{ fontSize: '1rem', fontWeight: '400', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select Role
+                  {t('hospital_module.select_role')}
                 </Typography>
                 <ControlledAutocomplete
                   name='doctor_role'
-                  label='Doctor'
+                  label={(t('hospital_module.doctor') as string)}
                   control={control}
                   errors={errors}
                   options={doctorRoles}
@@ -186,7 +189,7 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
                   <Typography
                     sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Select user
+                    {t('hospital_module.select_user')}
                   </Typography>
                   {selectedDoctor === null ? (
                     <Box
@@ -213,7 +216,7 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
                             : theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        Select doctor
+                        {t('hospital_module.select_doctor')}
                       </Typography>
                       <Icon icon='mdi:chevron-down' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
                     </Box>
@@ -261,13 +264,13 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
                 <Typography
                   sx={{ fontSize: '1rem', fontWeight: '400', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Enter Designation
+                  {t('hospital_module.enter_designation')}
                 </Typography>
                 <ControlledTextField
                   control={control}
                   errors={errors}
                   name='doctor_designation'
-                  placeholder='Chief Veterinarian'
+                  placeholder={(t('hospital_module.chief_veterinarian') as string)}
                   fullWidth
                   required
                   sx={{ borderRadius: 1 }}
@@ -277,13 +280,13 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
                 <Typography
                   sx={{ fontSize: '1rem', fontWeight: '400', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Enter Specialty
+                  {t('hospital_module.enter_specialty')}
                 </Typography>
                 <ControlledTextField
                   control={control}
                   errors={errors}
                   name='doctor_specialty'
-                  placeholder='Enter Specialty'
+                  placeholder={(t('hospital_module.enter_specialty') as string)}
                   fullWidth
                   required
                   sx={{ borderRadius: 1 }}
@@ -309,7 +312,7 @@ const AddStaffsDrawer = ({ open, setOpen }: AddStaffsDrawerProps) => {
             fullWidth
             sx={{ height: '56px', backgroundColor: theme.palette.primary.main }}
           >
-            {addLoading ? <CircularProgress size={24} /> : 'ADD'}
+            {addLoading ? <CircularProgress size={24} /> : t('add')}
           </Button>
         </Box>
       </Drawer>

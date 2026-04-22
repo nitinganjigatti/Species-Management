@@ -4,11 +4,13 @@ import { Button } from '@mui/material'
 import { Box, Grid } from '@mui/system'
 import React from 'react'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
+import { useTranslation } from 'react-i18next'
 
 // @ts-ignore - module may not exist at build time
 import PatientMontoring from '../utility/PatientMontoring'
 
 const InpatinetTreatmentMonitoring = () => {
+  const { t } = useTranslation()
   return (
     <>
       <Box sx={{ mt: 6 }}>
@@ -21,7 +23,7 @@ const InpatinetTreatmentMonitoring = () => {
             sx={{ display: 'flex', justifyContent: 'flex-end', height: '100%', alignItems: 'stretch' }}
           >
             <Button variant='contained' sx={{ height: '100%' }}>
-              SCHEDULE
+              {t('hospital_module.schedule_label')}
             </Button>
           </Grid>
         </Grid>

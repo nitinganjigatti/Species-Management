@@ -5,6 +5,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded'
 import { v4 as uuidv4 } from 'uuid'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useFormContext, useWatch } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import Toaster from 'src/components/Toaster'
 import AddTimeForm from './vitalForms/AddTimeForm'
 import GenericMeasurementDialog from './vitalForms/GenericMeasurementDialog'
@@ -256,6 +257,7 @@ interface VitalMonitoringProps {
 }
 
 export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitoringProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const styles: any = useMemo(() => createStyles(theme), [theme])
   const { control, setValue } = useFormContext()
@@ -277,10 +279,10 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
 
   const ROWS = useMemo(() => {
     return [
-      { key: 'recordedTime', label: 'Recorded Time' },
+      { key: 'recordedTime', label: t('hospital_module.recorded_time') },
       ...(vitalMonitorList || []).map((s: any) => ({ key: s.string_id, label: s.section_name }))
     ]
-  }, [vitalMonitorList])
+  }, [vitalMonitorList, t])
 
   const updateColumns = (newColumns: any[]) => {
     setValue('vitalMonitoring', newColumns, {
@@ -501,7 +503,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
         } else {
           Toaster({
             type: 'error',
-            message: response.message || 'Failed to delete time column'
+            message: response.message || t('hospital_module.failed_to_delete_time_column')
           })
           setIsDeleting(false)
           setColumnToDelete(null)
@@ -512,7 +514,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
     } catch (error) {
       Toaster({
         type: 'error',
-        message: 'An error occurred while deleting the time column'
+        message: t('hospital_module.error_deleting_time_column')
       })
 
       setIsDeleting(false)
@@ -601,7 +603,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
                         onClick={() => handleOpenCellForm(column.id, row.key)}
                       >
                         <Typography sx={styles.dataPrimaryText}>
-                          {display.primary === 'no_reflex' ? 'no reflex' : display.primary}
+                          {display.primary === 'no_reflex' ? t('hospital_module.no_reflex') : display.primary}
                         </Typography>
                         <Typography sx={styles.dataSecondaryText}>{display.secondary}</Typography>
                       </Box>

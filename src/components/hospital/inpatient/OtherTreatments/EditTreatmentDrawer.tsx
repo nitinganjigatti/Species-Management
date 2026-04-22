@@ -7,6 +7,7 @@ import { alpha, useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { Icon } from '@iconify/react'
 import { Controller, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
@@ -51,6 +52,7 @@ const EditTreatmentDrawer = ({
   admissionDate,
   dischargedDate
 }: EditTreatmentDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const resolvedStartDate = dayjs.isDayjs(formData.startDate)

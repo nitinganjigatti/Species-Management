@@ -3,6 +3,7 @@ import React, { useState, useMemo, useCallback, useEffect, useContext } from 're
 import { Box, Typography, CircularProgress, Skeleton, Chip, Button } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useTheme } from '@emotion/react'
+import { useTranslation } from 'react-i18next'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'react-intersection-observer'
 import { debounce } from 'lodash'
@@ -24,6 +25,7 @@ interface PatientMediaProps {
 }
 
 const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMediaProps) => {
+  const { t } = useTranslation()
   const authData: any = useContext(AuthContext)
 
   const uploadSettings = authData?.userData?.settings
@@ -382,15 +384,15 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
   // Get display labels for filter values
   const getFilterLabel = (category: string, value: any) => {
     const labels: any = {
-      image: 'Images',
-      document: 'Documents',
-      video: 'Videos',
-      audio: 'Audio',
-      current: 'Current medical record',
-      all: 'All Records',
-      surgery: 'Surgery',
-      discharge: 'Discharge',
-      mortality: 'Mortality'
+      image: t('hospital_module.images'),
+      document: t('hospital_module.documents'),
+      video: t('hospital_module.videos'),
+      audio: t('hospital_module.audio'),
+      current: t('hospital_module.current_medical_record'),
+      all: t('hospital_module.all_records'),
+      surgery: t('hospital_module.surgery'),
+      discharge: t('hospital_module.discharge'),
+      mortality: t('hospital_module.mortality')
     }
 
     return labels[value] || value
@@ -442,11 +444,11 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Typography variant='h6' sx={{ fontWeight: 600 }}>
-            Media Files
+            {t('hospital_module.media_files')}
           </Typography>
           {total > 0 && !isFetching && (
             <Chip
-              label={`${total} ${total === 1 ? 'file' : 'files'}`}
+              label={`${total} ${total === 1 ? t('hospital_module.file') : t('hospital_module.files')}`}
               size='small'
               sx={{
                 bgcolor: theme.palette.customColors.OutlineVariant,
@@ -463,7 +465,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
-              placeholder='Search media…'
+              placeholder={(t('hospital_module.search_media') as string)}
             />
           </Box>
 
@@ -480,7 +482,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
             ) : (
               <Icon icon='ic:outline-file-upload' />
             )}
-            &nbsp; Upload File
+            &nbsp; {t('hospital_module.upload_files')}
             <input {...getInputProps()} />
           </Button>
 
@@ -558,7 +560,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
         {/* End of list message */}
         {!hasNextPage && mediaFiles.length > 0 && (
           <Typography align='center' sx={{ mt: 6, color: 'text.disabled' }}>
-            No more files to load.
+            {t('hospital_module.no_more_files_to_load')}
           </Typography>
         )}
       </Box>

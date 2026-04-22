@@ -1,6 +1,7 @@
 'use client'
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Typography, styled, Box, useTheme, Grid, IconButton, Tooltip } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useFormContext } from 'react-hook-form'
@@ -33,6 +34,7 @@ function RecoveryAndReversal({
   onUpdateReversalDrug,
   onDeleteReversalDrug
 }: RecoveryAndReversalProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [editIndex, setEditIndex] = useState<any>(null)
@@ -230,7 +232,7 @@ function RecoveryAndReversal({
     },
     {
       field: 'drug_name',
-      headerName: 'Drug',
+      headerName: t('drug'),
       minWidth: 260,
       flex: 1,
       sortable: false,
@@ -250,7 +252,7 @@ function RecoveryAndReversal({
     },
     {
       field: 'amount',
-      headerName: 'Amount',
+      headerName: t('amount'),
       minWidth: 100,
       sortable: false,
       renderCell: (params: any) => (
@@ -261,14 +263,14 @@ function RecoveryAndReversal({
     },
     {
       field: 'route',
-      headerName: 'Route',
+      headerName: t('delivery_route'),
       minWidth: 140,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'delivery_time',
-      headerName: 'Delivery Time',
+      headerName: t('hospital_module.delivery_time'),
       minWidth: 130,
       sortable: false,
       renderCell: (params: any) => {
@@ -277,14 +279,14 @@ function RecoveryAndReversal({
     },
     {
       field: 'delivery_status',
-      headerName: 'Delivery',
+      headerName: t('hospital_module.delivery'),
       minWidth: 120,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.delivery_status || '-'}</StyledTypography>
     },
     {
       field: 'max_effect_time',
-      headerName: 'Max.Effect',
+      headerName: t('hospital_module.max_effect'),
       minWidth: 130,
       sortable: false,
       renderCell: (params: any) => {
@@ -293,7 +295,7 @@ function RecoveryAndReversal({
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('action'),
       headerAlign: 'center',
       align: 'center',
       width: 120,
@@ -302,13 +304,13 @@ function RecoveryAndReversal({
         <Box sx={{ display: 'flex', gap: 1 }}>
           {params?.row?.reversal_row_id !== undefined ? (
             <>
-              <Tooltip title='Edit'>
+              <Tooltip title={(t('edit') as string)}>
                 <IconButton size='small' onClick={() => handleEditDrug(params.row.id - 1)}>
                   <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
                 </IconButton>
               </Tooltip>
 
-              <Tooltip title='Delete'>
+              <Tooltip title={(t('delete') as string)}>
                 <IconButton
                   size='small'
                   onClick={() => onDeleteReversalDrug && onDeleteReversalDrug(params.row.id - 1, params?.row?.reversal_row_id)}
@@ -353,7 +355,7 @@ function RecoveryAndReversal({
               fontWeight: 500
             }}
           >
-            Add Reversal Drug
+            {t('hospital_module.add_reversal_drug')}
           </Button>
         </Box>
       ) : (
@@ -364,7 +366,7 @@ function RecoveryAndReversal({
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <StyledTypography {...({ fontSize: '1rem', fontWeight: 600 } as any)}>
-              Reversal drug - {reversalDrugs.length}
+              {t('hospital_module.reversal_drug_section')} - {reversalDrugs.length}
             </StyledTypography>
             <Button
               variant='contained'
@@ -374,7 +376,7 @@ function RecoveryAndReversal({
                 setOpenDrawer(true)
               }}
             >
-              Add New
+              {t('add_new')}
             </Button>
           </Box>
 
@@ -405,7 +407,7 @@ function RecoveryAndReversal({
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          Recovery details
+          {t('hospital_module.recovery_details')}
         </Typography>
         <Grid container spacing={6}>
           <Grid size={{ xs: 4 }}>
@@ -413,7 +415,7 @@ function RecoveryAndReversal({
               control={control}
               name='recoveryAndReversal.recovery_type'
               errors={errors}
-              label='Recovery Type*'
+              label={`${t('hospital_module.recovery_type')}*`}
               options={recoveryTypeOptions}
               getOptionLabel={(option: any) => option.label}
               getOptionValue={(option: any) => option.value}
@@ -423,7 +425,7 @@ function RecoveryAndReversal({
             <ControlledTimePicker
               control={control}
               name={'recoveryAndReversal.recovery_first_effect'}
-              label='Recovery 1st Effect*'
+              label={`${t('hospital_module.recovery_first_effect')}*`}
               errors={errors}
               inputProps={{ 'data-field': 'recovery_first_effect' }}
             />
@@ -432,7 +434,7 @@ function RecoveryAndReversal({
             <ControlledTimePicker
               control={control}
               name={'recoveryAndReversal.recovery_full_effect'}
-              label='Recovery Full Effect*'
+              label={`${t('hospital_module.recovery_full_effect')}*`}
               errors={errors}
               inputProps={{ 'data-field': 'recovery_full_effect' }}
             />
@@ -440,23 +442,23 @@ function RecoveryAndReversal({
           {recoveryType === 'Problem' && (
             <Grid size={{ xs: 12 }}>
               <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
-                Describe the Problem
+                {t('hospital_module.describe_the_problem')}
               </Typography>
               <ControlledTextArea
                 name='recoveryAndReversal.describe_problem'
                 control={control}
-                placeholder='Enter the Problem'
+                placeholder={(t('hospital_module.enter_the_problem') as string)}
                 fullWidth={true}
                 rows={2}
               />
             </Grid>
           )}
           <Grid size={{ xs: 12 }}>
-            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>Notes</Typography>
+            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>{t('notes')}</Typography>
             <ControlledTextArea
               name='recoveryAndReversal.notes'
               control={control}
-              placeholder='Enter notes'
+              placeholder={(t('hospital_module.enter_notes') as string)}
               fullWidth={true}
               rows={2}
               inputBackgroundColor={theme.palette.customColors.Notes}
@@ -464,7 +466,7 @@ function RecoveryAndReversal({
           </Grid>
           <Grid size={{ xs: 12 }}>
             <StyledTypography {...({ fontSize: '1rem', fontWeight: 600 } as any)}>
-              Anaesthesia ratings
+              {t('hospital_module.anesthesia_ratings')}
             </StyledTypography>
           </Grid>
           <Grid size={{ xs: 3 }}>
@@ -472,7 +474,7 @@ function RecoveryAndReversal({
               control={control}
               name='recoveryAndReversal.induction'
               errors={errors}
-              label='Induction*'
+              label={`${t('hospital_module.induction')}*`}
               options={anesthesiaRatingOptions}
               getOptionLabel={(option: any) => option.label}
               getOptionValue={(option: any) => option.value}
@@ -483,7 +485,7 @@ function RecoveryAndReversal({
               control={control}
               name='recoveryAndReversal.tolerance'
               errors={errors}
-              label='Tolerance*'
+              label={`${t('hospital_module.tolerance')}*`}
               options={anesthesiaRatingOptions}
               getOptionLabel={(option: any) => option.label}
               getOptionValue={(option: any) => option.value}
@@ -494,7 +496,7 @@ function RecoveryAndReversal({
               control={control}
               name='recoveryAndReversal.recovery'
               errors={errors}
-              label='Recovery*'
+              label={`${t('hospital_module.recovery')}*`}
               options={anesthesiaRatingOptions}
               getOptionLabel={(option: any) => option.label}
               getOptionValue={(option: any) => option.value}
@@ -505,7 +507,7 @@ function RecoveryAndReversal({
               control={control}
               name='recoveryAndReversal.overall'
               errors={errors}
-              label='Overall*'
+              label={`${t('hospital_module.overall')}*`}
               options={anesthesiaRatingOptions}
               getOptionLabel={(option: any) => option.label}
               getOptionValue={(option: any) => option.value}

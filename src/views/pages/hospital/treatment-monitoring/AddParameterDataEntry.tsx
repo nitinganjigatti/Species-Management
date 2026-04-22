@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -105,6 +106,7 @@ const AddParameterDataEntry = ({
   isPatientDischarged,
   refetchPatient
 }: AddParameterDataEntryProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const [addLoading, setAddLoading] = useState<boolean>(false)
@@ -412,7 +414,7 @@ const AddParameterDataEntry = ({
                               <ControlledTextField
                                 control={control}
                                 name='observation_value'
-                                label='Enter Value'
+                                label={(t('hospital_module.enter_value') as string)}
                                 type='number'
                                 errors={errors}
                                 required
@@ -428,7 +430,7 @@ const AddParameterDataEntry = ({
                                 <ControlledTextField
                                   control={control}
                                   name='observation_value'
-                                  label='Enter Value'
+                                  label={(t('hospital_module.enter_value') as string)}
                                   errors={errors}
                                   type='number'
                                   required
@@ -479,7 +481,7 @@ const AddParameterDataEntry = ({
                               <ControlledTextField
                                 control={control}
                                 name='observation_value'
-                                label='Enter Text'
+                                label={(t('hospital_module.enter_text') as string)}
                                 errors={errors}
                                 required
                                 inputBackgroundColor={theme.palette.customColors.Surface}

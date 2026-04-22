@@ -2,6 +2,7 @@
 
 import { Box, Drawer, Grid, IconButton, Typography, useTheme } from '@mui/material'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import type { BaseDrawerProps } from 'src/types/hospital'
@@ -11,6 +12,7 @@ interface OverviewMediaListingDrawerProps extends BaseDrawerProps {
 }
 
 const OverviewMediaListingDrawer = ({ open, onClose, media = [] }: OverviewMediaListingDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   return (
@@ -44,7 +46,7 @@ const OverviewMediaListingDrawer = ({ open, onClose, media = [] }: OverviewMedia
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
           <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
           <Typography sx={{ fontWeight: 500, fontSize: '1.5rem', color: theme.palette.customColors.OnSurfaceVariant }}>
-            Attachments
+            {t('hospital_module.attachments')}
           </Typography>
         </Box>
         <IconButton onClick={onClose}>
@@ -78,7 +80,7 @@ const OverviewMediaListingDrawer = ({ open, onClose, media = [] }: OverviewMedia
           ) : (
             <Grid size={{ xs: 12 }}>
               <Typography variant='body2' color='text.secondary' sx={{ textAlign: 'center', mt: 4 }}>
-                No attachments available
+                {t('hospital_module.no_attachments_available')}
               </Typography>
             </Grid>
           )}

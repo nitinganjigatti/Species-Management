@@ -18,6 +18,7 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import IncomingFilterDrawer from 'src/components/hospital/drawer/IncomingFilterDrawer'
 import { visitTypeOptions } from 'src/constants/Constants'
@@ -36,6 +37,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalIncoming = () => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const router = useSafeRouter()
 
   const { selectedHospital, isHospitalAccessChecked } = useHospital()
@@ -186,7 +188,7 @@ const HospitalIncoming = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('hospital_module.sl_no'),
       renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -198,7 +200,7 @@ const HospitalIncoming = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: 'Animal Name & ID',
+      headerName: t('hospital_module.animal_name_and_id'),
       renderCell: (params: any) => (
         <AnimalCard
           data={{
@@ -225,7 +227,7 @@ const HospitalIncoming = () => {
       minWidth: 20,
       field: 'reason_for_transfer',
       sortable: false,
-      headerName: 'Purpose of Visit',
+      headerName: t('hospital_module.purpose_of_visit'),
       renderCell: (params: any) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
@@ -265,7 +267,7 @@ const HospitalIncoming = () => {
       width: 260,
       minWidth: 20,
       field: 'requested_user_full_name',
-      headerName: 'Requested By',
+      headerName: t('hospital_module.requested_by'),
       renderCell: (params: any) => (
         <UserAvatarDetails
           date={params?.row?.created_at}
@@ -283,7 +285,7 @@ const HospitalIncoming = () => {
       minWidth: 20,
       field: 'reason_for_rejection',
       sortable: false,
-      headerName: 'Reason for Rejection',
+      headerName: t('hospital_module.reason_for_rejection'),
       renderCell: (params: any) => (
         <Tooltip title={params.row.reason_for_rejection || ''} arrow>
           <Typography
@@ -310,7 +312,7 @@ const HospitalIncoming = () => {
       width: 260,
       minWidth: 20,
       field: 'rejected_by',
-      headerName: 'Rejected By',
+      headerName: t('hospital_module.rejected_by'),
       renderCell: (params: any) => (
         <UserAvatarDetails
           date={params?.row?.rejected_at}
@@ -349,12 +351,12 @@ const HospitalIncoming = () => {
       <Box>
         <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Incoming' }]}
+          pageItems={[{ title: t('navigation.hospital') }, { title: t('hospital_module.patients') }, { title: t('hospital_module.incoming') }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 4 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Incoming Patient')} />
+            <CardHeader title={RenderUtility?.pageTitle(t('hospital_module.incoming_patient'))} />
             <Box
               sx={{
                 p: 3,
@@ -368,7 +370,7 @@ const HospitalIncoming = () => {
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id / AID / animal identifier'
+                  placeholder={(t('hospital_module.search_by_medical_id') as string)}
                   value={searchValue}
                   onClear={handleSearchClear}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -428,8 +430,8 @@ const HospitalIncoming = () => {
                   }
                 }}
               >
-                <Tab value='pending' label={getTabLabel('pending', 'Pending')} />
-                <Tab value='rejected' label={getTabLabel('rejected', 'Rejected')} />
+                <Tab value='pending' label={getTabLabel('pending', t('hospital_module.pending'))} />
+                <Tab value='rejected' label={getTabLabel('rejected', t('hospital_module.rejected'))} />
               </Tabs>
             </Box>
 

@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Icon, Avatar } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
@@ -18,6 +19,7 @@ interface SitesDrawerProps {
 }
 
 const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: SitesDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const queryClient = useQueryClient()
 
@@ -169,7 +171,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Sites'
+      title={(t('hospital_module.sites') as string)}
       icon='/images/housing/site-icon-colored.svg'
       iconColor={theme.palette.primary.main}
     >
@@ -182,7 +184,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
             borderRadius: '8px',
             backgroundColor: theme.palette.common.white
           }}
-          placeholder='Search for a site'
+          placeholder={(t('hospital_module.search_for_site') as string)}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -199,7 +201,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
                 indeterminate={selectedCount > 0 && !isAllSelected}
               />
             }
-            label='Select All'
+            label={(t('hospital_module.select_all') as string)}
             sx={{ mr: 0 }}
           />
         )}
@@ -284,13 +286,13 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
 
         {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No sites found
+            {t('hospital_module.no_sites_found')}
           </Typography>
         )}
 
         {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more sites to load
+            {t('hospital_module.no_more_sites')}
           </Typography>
         )}
       </Box>
@@ -312,7 +314,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
           }}
         >
           <Button variant='contained' onClick={handleContinue} fullWidth size='large'>
-            Continue ({selectedCount})
+            {t('hospital_module.continue')} ({selectedCount})
           </Button>
         </Box>
       )}

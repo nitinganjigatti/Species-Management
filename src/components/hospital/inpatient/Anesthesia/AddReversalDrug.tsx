@@ -12,57 +12,54 @@ import { LoadingButton } from '@mui/lab'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
-const schema = yup.object().shape({
-  drug_name: yup
-    .object()
-    .nullable()
-    .required('Please select a drug from the list')
-    .test('is-valid-drug', 'Please select a valid drug from the list', function (value: any) {
-      if (!value) return false
-      return Boolean(value.id && value.name)
-    }),
-  amount: yup
-    .string()
-    .trim()
-    .required('Amount is required')
-    .test('is-valid-amount', 'Amount must be greater than 0', (value: any) => {
-      if (!value) return false
-      const num = parseFloat(value)
-      return !isNaN(num) && num > 0
-    }),
-  unit: yup.string().required('Unit is required'),
-  delivery_time: yup
-    .date()
-    .nullable()
-    .required('Delivery Time is required')
-    .typeError('Please select a valid delivery time'),
-  delivery_route: yup.object().required('Delivery Route is required').nullable(),
-  max_effect_time: yup
-    .date()
-    .nullable()
-    .required('Max Effect Time is required')
-    .typeError('Please select a valid max effect time')
-    .test('is-after-delivery', 'Max effect time cannot be less than delivery time', function (value: any) {
-      const { delivery_time } = this.parent
-      if (!delivery_time || !value) return true
+const createSchema = (t: any) => {
+  return yup.object().shape({
+    drug_name: yup
+      .object()
+      .nullable()
+      .required(t('hospital_module.drug_is_required', 'Please select a drug from the list'))
+      .test('is-valid-drug', t('hospital_module.please_select_valid_drug', 'Please select a valid drug from the list'), function (value: any) {
+        if (!value) return false
+        return Boolean(value.id && value.name)
+      }),
+    amount: yup
+      .string()
+      .trim()
+      .required(t('hospital_module.amount_is_required', 'Amount is required'))
+      .test('is-valid-amount', t('hospital_module.amount_must_be_greater_than_zero', 'Amount must be greater than 0'), (value: any) => {
+        if (!value) return false
+        const num = parseFloat(value)
+        return !isNaN(num) && num > 0
+      }),
+    unit: yup.string().required(t('hospital_module.unit_is_required', 'Unit is required')),
+    delivery_time: yup
+      .date()
+      .nullable()
+      .required(t('hospital_module.delivery_time_is_required', 'Delivery Time is required'))
+      .typeError(t('hospital_module.please_select_valid_delivery_time', 'Please select a valid delivery time')),
+    delivery_route: yup.object().required(t('hospital_module.delivery_route_is_required', 'Delivery Route is required')).nullable(),
+    max_effect_time: yup
+      .date()
+      .nullable()
+      .required(t('hospital_module.max_effect_time_is_required', 'Max Effect Time is required'))
+      .typeError(t('hospital_module.please_select_valid_max_effect_time', 'Please select a valid max effect time'))
+      .test('is-after-delivery', t('hospital_module.max_effect_time_cannot_be_less_than_delivery_time', 'Max effect time cannot be less than delivery time'), function (value: any) {
+        const { delivery_time } = this.parent
+        if (!delivery_time || !value) return true
 
-      const delivery = dayjs(delivery_time)
-      const maxEffect = dayjs(value)
+        const delivery = dayjs(delivery_time)
+        const maxEffect = dayjs(value)
 
-      return maxEffect.isAfter(delivery) || maxEffect.isSame(delivery)
-    }),
-  delivery_status: yup.string().nullable()
-})
-
-const deliveryStatus = [
-  { label: 'Complete', value: 'Complete' },
-  { label: 'Partial', value: 'Partial' },
-  { label: 'None', value: 'None' }
-]
+        return maxEffect.isAfter(delivery) || maxEffect.isSame(delivery)
+      }),
+    delivery_status: yup.string().nullable()
+  })
+}
 
 interface FormValues {
   drug_name: any
@@ -116,6 +113,15 @@ function AddReversalDrug({
   onSearch
 }: AddReversalDrugProps) {
   const theme: any = useTheme()
+  const { t } = useTranslation()
+
+  const schema = createSchema(t)
+
+  const deliveryStatus = [
+    { label: t('hospital_module.complete', 'Complete'), value: 'Complete' },
+    { label: t('hospital_module.partial', 'Partial'), value: 'Partial' },
+    { label: t('hospital_module.none', 'None'), value: 'None' }
+  ]
   const [selectedStatus, setSelectedStatus] = useState<any>(null)
   const [drugNameTouched, setDrugNameTouched] = useState<boolean>(false)
 
@@ -292,7 +298,7 @@ function AddReversalDrug({
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {editData ? 'Edit Reversal Drug' : 'Add Reversal Drug'}
+            {editData ? t('hospital_module.edit_reversal_drug') : t('hospital_module.add_reversal_drug')}
           </Typography>
         </Box>
 
@@ -324,7 +330,7 @@ function AddReversalDrug({
                       control={control}
                       name='drug_name'
                       errors={errors}
-                      label='Enter Drug Name*'
+                      label={(t('hospital_module.enter_drug_name') as string)}
                       options={filteredDrugOptions}
                       getOptionLabel={(option: any) => option?.name || ''}
                       isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
@@ -395,9 +401,9 @@ function AddReversalDrug({
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='Enter amount*'
+                  label={(t('hospital_module.enter_amount') as string)}
                   name='amount'
-                  placeholder='Enter amount'
+                  placeholder={(t('hospital_module.enter_amount') as string)}
                   fullWidth
                   type='number'
                   inputProps={{ min: 0, step: 0.01 }}
@@ -408,7 +414,7 @@ function AddReversalDrug({
                   control={control}
                   name='unit'
                   errors={errors}
-                  label='Unit*'
+                  label={(t('hospital_module.unit', 'Unit') as string)}
                   options={unitList}
                   getOptionLabel={(option: any) => option.uom_abbr}
                   getOptionValue={(option: any) => option.id}
@@ -418,7 +424,7 @@ function AddReversalDrug({
                 <ControlledTimePicker
                   control={control}
                   name={'delivery_time'}
-                  label='Delivery Time*'
+                  label={(t('hospital_module.delivery_time', 'Delivery Time') as string)}
                   {...({ format: 'hh:mm a' } as any)}
                   errors={errors}
                 />
@@ -428,7 +434,7 @@ function AddReversalDrug({
                   control={control}
                   name='delivery_route'
                   errors={errors}
-                  label='Delivery Route*'
+                  label={(t('hospital_module.delivery_route') as string)}
                   options={deliveryRouteOptions}
                   getOptionLabel={(option: any) => option?.delivery || ''}
                   isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
@@ -441,7 +447,7 @@ function AddReversalDrug({
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mr: 2 }}>
-                  Delivery status:{' '}
+                  {t('hospital_module.delivery_status_label')}{' '}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                   {deliveryStatus.map((status: any, index: number) => (
@@ -485,7 +491,7 @@ function AddReversalDrug({
                 <ControlledTimePicker
                   control={control}
                   name={'max_effect_time'}
-                  label='Max Effect Time*'
+                  label={(t('hospital_module.max_effect_time') as string)}
                   {...({ format: 'hh:mm a' } as any)}
                   errors={errors}
                 />
@@ -521,7 +527,7 @@ function AddReversalDrug({
                 }}
                 onClick={handleClose}
               >
-                Cancel
+                {t('cancel')}
               </LoadingButton>
               <LoadingButton
                 variant='contained'
@@ -530,7 +536,7 @@ function AddReversalDrug({
                 sx={{ flex: 1, py: 4 }}
                 disabled={!isValid || submitLoader || !selectedStatus}
               >
-                {editData ? 'Update' : 'Add'}
+                {editData ? t('update') : t('add')}
               </LoadingButton>
             </Box>
           </Box>

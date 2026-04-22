@@ -6,6 +6,7 @@ import { Add as AddIcon } from '@mui/icons-material'
 
 import dayjs from 'dayjs'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import DialogConfirmationDialog from 'src/views/utility/DeleteConfirmationDialog'
@@ -178,6 +179,7 @@ interface OtherTreatmentProps {
 }
 
 const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDischarged = false, patientData }: OtherTreatmentProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [isAddDrawerOpen, setAddDrawerOpen] = useState<boolean>(false)
   const [isEditDrawerOpen, setEditDrawerOpen] = useState<boolean>(false)
@@ -262,7 +264,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
       setTreatmentGroups(mapRecordsToGroups(getApiRecords(response)) as any[])
     } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || 'Failed to fetch treatments.' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_fetch_treatments') })
       setTreatmentGroups([])
     } finally {
       setTreatmentsLoading(false)
@@ -685,7 +687,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
             letterSpacing: 0
           }}
         >
-          Treatments {totalTreatments > 0 ? ` - ${totalTreatments}` : ''}
+          {t('hospital_module.treatments')} {totalTreatments > 0 ? ` - ${totalTreatments}` : ''}
         </Typography>
         {!isTreatmentsLoading && treatmentGroups.length > 0 && (
           <Button
@@ -700,7 +702,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
               fontWeight: 600
             }}
           >
-            Add New Treatment
+            {t('hospital_module.add_new_treatment')}
           </Button>
         )}
       </Box>
@@ -732,8 +734,8 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
             }}
           >
             <NoMedicalData
-              btnText={'ADD NEW TREATMENT'}
-              text={'All Added Treatments Will Appear here'}
+              btnText={t('hospital_module.add_new_treatment').toUpperCase()}
+              text={t('hospital_module.all_added_treatments_will_appear_here')}
               btnAction={handleOpenAddDrawer}
             />
           </Box>)
@@ -871,7 +873,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                                   color: theme.palette.customColors.neutralSecondary
                                 }}
                               >
-                                Notes
+                                {t('hospital_module.notes')}
                               </Typography>
                             )}
 
@@ -925,7 +927,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                               fontSize: '12px'
                             }}
                           >
-                            Last Updated: {formatTimestamp(treatment.lastUpdated)}
+                            {t('hospital_module.last_updated')} {formatTimestamp(treatment.lastUpdated)}
                           </Typography>
                         </Box>
 
@@ -947,7 +949,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                               ml: { xs: 0, md: 1 }
                             }}
                           >
-                            {treatment?.isModified == 1 ? 'Updated by' : 'Created by'}
+                            {treatment?.isModified == 1 ? t('hospital_module.updated_by') : t('hospital_module.created_by')}
                           </Typography>
                           <UserInfoCard
                             avatarUrl={treatment?.record?.profile_pic || ''}

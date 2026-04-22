@@ -5,6 +5,7 @@ import { Box, Avatar, Typography, TextField, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 
 import Icon from 'src/@core/components/icon'
 import RichTextEditorRaw from 'src/components/RichTextEditor'
@@ -259,6 +260,7 @@ const TemplateSection = ({
   hospitalId,
   templateType = 'discharge'
 }: TemplateSectionProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const [richNote, setRichNote] = useState<any>(() =>
@@ -298,7 +300,7 @@ const TemplateSection = ({
       }),
     onError: (error: any) => {
       console.error('Failed to fetch surgery templates:', error?.message || error)
-      Toaster({ type: 'error', message: error?.message || 'Failed to load templates' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_load_templates') })
     }
   } as any)
 
@@ -366,7 +368,7 @@ const TemplateSection = ({
       const trimmedName = templateName?.trim()
 
       if (!trimmedName) {
-        Toaster({ type: 'error', message: 'Template name is required' })
+        Toaster({ type: 'error', message: t('hospital_module.template_name_is_required') })
 
         return false
       }
@@ -384,7 +386,7 @@ const TemplateSection = ({
         const response: any = await createSurgeryTemplate(payload)
 
         if (response?.success) {
-          Toaster({ type: 'success', message: response?.message || 'Template saved successfully' })
+          Toaster({ type: 'success', message: response?.message || t('hospital_module.template_saved_successfully') })
           setActiveTemplate(trimmedName)
 
           const refetchResult: any = await refetchTemplates()
@@ -395,7 +397,7 @@ const TemplateSection = ({
 
           return true
         } else {
-          Toaster({ type: 'error', message: response?.message || 'Failed to save template' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_save_template') })
 
           return false
         }
@@ -403,7 +405,7 @@ const TemplateSection = ({
         console.error('Create template error:', error?.message)
         Toaster({
           type: 'error',
-          message: error?.response?.data?.message || error?.message || 'An unexpected error occurred'
+          message: error?.response?.data?.message || error?.message || t('hospital_module.an_unexpected_error_occurred')
         })
 
         return false

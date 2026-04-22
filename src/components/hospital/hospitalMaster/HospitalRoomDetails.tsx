@@ -12,6 +12,7 @@ import {
   Tooltip,
   alpha
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import styled from '@emotion/styled'
 import { Add as AddIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
@@ -43,6 +44,7 @@ import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalRoomDetails = () => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router = useRouter()
   const routerParams: any = useParams()
@@ -388,10 +390,10 @@ const HospitalRoomDetails = () => {
             console.error('Failed to update query cache', error?.message || error)
           }
 
-          Toaster({ type: 'success', message: response?.message || 'Hospital updated successfully' })
+          Toaster({ type: 'success', message: response?.message || t('hospital_module.hospital_updated_successfully') })
           refetchRooms()
         } else {
-          Toaster({ type: 'error', message: response?.message || 'Failed to update hospital' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_update_hospital') })
         }
       } else {
         const updatePayload = { ...payload, room_id: editParams?.id }
@@ -455,7 +457,7 @@ const HospitalRoomDetails = () => {
           }
           refetchRooms()
         } else {
-          Toaster({ type: 'error', message: response?.message || 'Failed to update room' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_update_room') })
         }
       }
     } catch (error: any) {
@@ -473,13 +475,13 @@ const HospitalRoomDetails = () => {
         label: (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: theme.palette.customColors.neutralPrimary }}>
             <Icon icon='mdi:pencil-outline' fontSize='1rem' color={theme.palette.customColors.neutralPrimary} />
-            Edit
+            {t('edit')}
           </Box>
         ),
         action: () => openEditRoomDrawer(row)
       }
     ],
-    [openEditRoomDrawer]
+    [openEditRoomDrawer, t]
   )
 
   const handleSortModel = (newModel: any) => {
@@ -502,71 +504,72 @@ const HospitalRoomDetails = () => {
     sl_no: (filters.page - 1) * filters.limit + index + 1
   }))
 
-  const columns: any = [
-    {
-      minWidth: 50,
-      field: 'id',
-      headerName: 'SL.NO',
-      sortable: false,
-      renderCell: (params: any) => {
-        return (
-          <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
-            {params?.row?.sl_no}
-          </StyledTypography>
+  const columns: any = useMemo(
+    () => [
+      {
+        minWidth: 50,
+        field: 'id',
+        headerName: t('hospital_module.sl_no'),
+        sortable: false,
+        renderCell: (params: any) => {
+          return (
+            <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
+              {params?.row?.sl_no}
+            </StyledTypography>
+          )
+        }
+      },
+      {
+        minWidth: 240,
+        field: 'room_name',
+        headerName: t('hospital_module.room_name'),
+        sortable: false,
+        renderCell: (params: any) => (
+          <TextEllipsisWithModal
+            enableDialog={false}
+            text={params.row.room_name ?? '-'}
+            style={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '1rem',
+              fontWeight: 400,
+              pl: 1.4,
+              maxWidth: '230px',
+              cursor: 'pointer'
+            }}
+          />
         )
-      }
-    },
-    {
-      minWidth: 240,
-      field: 'room_name',
-      headerName: 'Room Name',
-      sortable: false,
-      renderCell: (params: any) => (
-        <TextEllipsisWithModal
-          enableDialog={false}
-          text={params.row.room_name ?? '-'}
-          style={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '1rem',
-            fontWeight: 400,
-            pl: 1.4,
-            maxWidth: '230px',
-            cursor: 'pointer'
-          }}
-        />
-      )
-    },
-    {
-      minWidth: 160,
-      field: 'enclosures',
-      headerName: 'Enclosures',
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.active_bed_count ?? '-'}</StyledTypography>
-    },
-    {
-      minWidth: 150,
-      field: 'occupants',
-      headerName: 'Occupants',
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
-    },
-    {
-      minWidth: 160,
-      field: 'floor_name',
-      headerName: 'Floor',
-      sortable: false,
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.floor_name ?? '-'}</StyledTypography>
-    },
-    {
-      minWidth: 140,
-      field: 'status',
-      headerName: 'Status',
-      sortable: false,
-      renderCell: (params: any) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.status} />
-    },
-    {
-      minWidth: 120,
-      field: 'actions',
-      headerName: 'Actions',
-      sortable: false,
+      },
+      {
+        minWidth: 160,
+        field: 'enclosures',
+        headerName: t('hospital_module.enclosures'),
+        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.active_bed_count ?? '-'}</StyledTypography>
+      },
+      {
+        minWidth: 150,
+        field: 'occupants',
+        headerName: t('hospital_module.occupants'),
+        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
+      },
+      {
+        minWidth: 160,
+        field: 'floor_name',
+        headerName: t('hospital_module.floor'),
+        sortable: false,
+        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.floor_name ?? '-'}</StyledTypography>
+      },
+      {
+        minWidth: 140,
+        field: 'status',
+        headerName: t('hospital_module.status'),
+        sortable: false,
+        renderCell: (params: any) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.status} />
+      },
+      {
+        minWidth: 120,
+        field: 'actions',
+        headerName: t('action'),
+        sortable: false,
       renderCell: (params: any) => (
         <Box
           onClick={(e: any) => e.stopPropagation()}
@@ -590,7 +593,9 @@ const HospitalRoomDetails = () => {
         </Box>
       )
     }
-  ]
+    ],
+    [t]
+  )
 
   // getRowClassName function
   const getRowClassName = (params: any) => {
@@ -656,12 +661,12 @@ const HospitalRoomDetails = () => {
           }}
           title={
             <StyledTypography fontSize={'1.5rem'} fontWeight={500}>
-              Hospital Detail
+              {t('hospital_module.hospital_detail')}
             </StyledTypography>
           }
           action={
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 4 }}>
-              <Tooltip title='Edit'>
+              <Tooltip title={(t('edit') as string)}>
                 <IconButton onClick={openEditHospitalDrawer} size='small' disabled={isLoadingRooms}>
                   <Icon icon='mdi:pencil-outline' style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
                 </IconButton>
@@ -673,7 +678,7 @@ const HospitalRoomDetails = () => {
                 disabled={isLoadingRooms}
                 onClick={openAddRoomDrawer}
               >
-                Add Room
+                {t('hospital_module.add_room')}
               </Button>
             </Box>
           }
@@ -696,7 +701,7 @@ const HospitalRoomDetails = () => {
             value={searchValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={handleSearchClear}
-            placeholder='Search by Rooms'
+            placeholder={(t('hospital_module.search_by_rooms') as string)}
             textFielsSX={{
               '& .MuiInputBase-input::placeholder': {
                 fontSize: '0.875rem'
@@ -763,12 +768,12 @@ const HospitalRoomDetails = () => {
       {isOccupiedRoomWarningOpen && (
         <ConfirmationDialog
           dialogBoxStatus={isOccupiedRoomWarningOpen}
-          title='The hospital status cannot be changed because there are patients currently occupying the Enclosures'
+          title={(t('hospital_module.occupied_room_warning') as string)}
           confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
           image={'/images/warning-icon.svg'}
           imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
           confirmAction={() => setIsOccupiedRoomWarningOpen(false)}
-          ConfirmationText={'OK'}
+          ConfirmationText={t('ok')}
           allowCancel={false}
         />
       )}

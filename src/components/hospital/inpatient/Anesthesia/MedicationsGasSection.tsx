@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { Button, Typography, styled, Box, useTheme, IconButton, Tooltip } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useFormContext } from 'react-hook-form'
@@ -35,6 +36,7 @@ function MedicationsGasSection({
   purposeStageOptions,
   unitList
 }: MedicationsGasSectionProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [drawerType, setDrawerType] = useState<any>(null)
   const [editIndex, setEditIndex] = useState<any>(null)
@@ -161,7 +163,7 @@ function MedicationsGasSection({
     },
     {
       field: 'purpose_stage',
-      headerName: 'Purpose/Stage',
+      headerName: t('hospital_module.purpose_stage'),
       minWidth: 180,
       flex: 1,
       sortable: false,
@@ -181,7 +183,7 @@ function MedicationsGasSection({
     },
     {
       field: 'amount',
-      headerName: 'Amount',
+      headerName: t('amount'),
       minWidth: 100,
       sortable: false,
       renderCell: (params: any) => (
@@ -192,14 +194,14 @@ function MedicationsGasSection({
     },
     {
       field: 'route',
-      headerName: 'Route',
+      headerName: t('delivery_route'),
       minWidth: 140,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'delivery_time',
-      headerName: 'Delivery Time',
+      headerName: t('hospital_module.delivery_time'),
       minWidth: 130,
       sortable: false,
       renderCell: (params: any) => {
@@ -208,14 +210,14 @@ function MedicationsGasSection({
     },
     {
       field: 'delivery',
-      headerName: 'Delivery',
+      headerName: t('hospital_module.delivery'),
       minWidth: 120,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.delivery_status || '-'}</StyledTypography>
     },
     {
       field: 'notes',
-      headerName: 'Notes',
+      headerName: t('notes'),
       minWidth: 200,
       sortable: false,
       renderCell: (params: any) => (
@@ -234,7 +236,7 @@ function MedicationsGasSection({
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('action'),
       headerAlign: 'center',
       align: 'center',
       width: 120,
@@ -243,13 +245,13 @@ function MedicationsGasSection({
         <Box sx={{ display: 'flex', gap: 1 }}>
           {params?.row?.medication_row_id !== undefined ? (
             <>
-              <Tooltip title='Edit'>
+              <Tooltip title={(t('edit') as string)}>
                 <IconButton size='small' onClick={() => handleEditMedication(params.row.id - 1)}>
                   <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
                 </IconButton>
               </Tooltip>
 
-              <Tooltip title='Delete'>
+              <Tooltip title={(t('delete') as string)}>
                 <IconButton
                   size='small'
                   onClick={() => onDeleteMedication && onDeleteMedication(params.row.id - 1, params?.row?.medication_row_id)}
@@ -299,42 +301,42 @@ function MedicationsGasSection({
     },
     {
       field: 'o2_flow',
-      headerName: 'O2 L/Min',
+      headerName: t('hospital_module.o2_l_min'),
       minWidth: 100,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.o2_flow}</StyledTypography>
     },
     {
       field: 'concentration',
-      headerName: 'Concentration %',
+      headerName: t('hospital_module.concentration_percent'),
       minWidth: 180,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.concentration}</StyledTypography>
     },
     {
       field: 'route',
-      headerName: 'Route',
+      headerName: t('delivery_route'),
       minWidth: 150,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.delivery_route?.delivery || ''}</StyledTypography>
     },
     {
       field: 'start_time',
-      headerName: 'Start Time',
+      headerName: t('hospital_module.start_time'),
       minWidth: 120,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.display_start_time ?? '-'}</StyledTypography>
     },
     {
       field: 'end_time',
-      headerName: 'End Time',
+      headerName: t('hospital_module.end_time'),
       minWidth: 120,
       sortable: false,
       renderCell: (params: any) => <StyledTypography>{params.row.display_end_time ?? '-'}</StyledTypography>
     },
     {
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('action'),
       headerAlign: 'center',
       align: 'center',
       width: 120,
@@ -344,13 +346,13 @@ function MedicationsGasSection({
           <Box sx={{ display: 'flex', gap: 1 }}>
             {params?.row?.gas_row_id !== undefined ? (
               <>
-                <Tooltip title='Edit'>
+                <Tooltip title={(t('edit') as string)}>
                   <IconButton size='small' onClick={() => handleEditGas(params.row.id - 1)}>
                     <Icon icon='mdi:pencil-outline' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title='Delete'>
+                <Tooltip title={(t('delete') as string)}>
                   <IconButton size='small' onClick={() => onDeleteGas && onDeleteGas(params.row.id - 1, params?.row?.gas_row_id)}>
                     <Icon icon='mdi:delete-outline' fontSize={20} color={theme.palette.customColors.Error} />
                   </IconButton>
@@ -503,7 +505,7 @@ function MedicationsGasSection({
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <StyledTypography {...({ fontSize: '1rem', fontWeight: 600 } as any)}>
-              Medication - {medications.length}
+              {t('hospital_module.medication')} - {medications.length}
             </StyledTypography>
             <Button
               variant='contained'
@@ -513,7 +515,7 @@ function MedicationsGasSection({
                 setDrawerType('medication')
               }}
             >
-              Add New
+              {t('add_new')}
             </Button>
           </Box>
           <CommonTable
@@ -538,7 +540,7 @@ function MedicationsGasSection({
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 4 }}>
             <StyledTypography {...({ fontSize: '1rem', fontWeight: 600 } as any)}>
-              Gas - {gases.length}
+              {t('hospital_module.gas')} - {gases.length}
             </StyledTypography>
             <Button
               variant='contained'
@@ -548,7 +550,7 @@ function MedicationsGasSection({
                 setDrawerType('gas')
               }}
             >
-              Add New
+              {t('add_new')}
             </Button>
           </Box>
           <CommonTable
@@ -570,8 +572,8 @@ function MedicationsGasSection({
       )}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width: '100%', mb: 4 }}>
-        {medications.length === 0 && renderAddSection('Medication', 'medication', 'Add Drug')}
-        {gases.length === 0 && renderAddSection('Gas', 'gas', 'Add Gas')}
+        {medications.length === 0 && renderAddSection(t('hospital_module.medication'), 'medication', t('hospital_module.add_drug'))}
+        {gases.length === 0 && renderAddSection(t('hospital_module.gas'), 'gas', t('hospital_module.add_gas'))}
       </Box>
 
       {drawerType === 'medication' && (

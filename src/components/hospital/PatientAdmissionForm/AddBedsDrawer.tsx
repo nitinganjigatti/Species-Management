@@ -18,6 +18,7 @@ import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { debounce } from 'lodash'
@@ -61,9 +62,9 @@ const defaultValues: FormValues = {
   bed: ''
 }
 
-const schema = yup.object().shape({
-  room: yup.object().required('Room is required'),
-  bed: yup.string().required('Room is required')
+const createSchema = (t: any) => yup.object().shape({
+  room: yup.object().required(t('hospital_module.room_is_required') || 'Room is required'),
+  bed: yup.string().required(t('hospital_module.enclosure_name_is_required') || 'Enclosure name is required')
 })
 
 interface AddBedsDrawerProps {
@@ -83,6 +84,7 @@ const AddBedsDrawer = ({
   isHospitalStatsLoading,
   updateHospitalStats
 }: AddBedsDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const {
@@ -93,7 +95,7 @@ const AddBedsDrawer = ({
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(createSchema(t)) as any,
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
@@ -238,7 +240,7 @@ const AddBedsDrawer = ({
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Add Enclosures
+                {t('hospital_module.add_enclosure')}
               </Typography>
             </Box>
 
@@ -333,7 +335,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Total Rooms
+                      {t('hospital_module.total_rooms')}
                     </Typography>
                   </Box>
                 </Grid>
@@ -360,7 +362,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Total Enclosures
+                      {t('hospital_module.total_enclosures')}
                     </Typography>
                   </Box>
                 </Grid>
@@ -388,7 +390,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Available Enclosures
+                      {t('hospital_module.available_enclosures')}
                     </Typography>
                   </Box>
                 </Grid>
@@ -416,7 +418,7 @@ const AddBedsDrawer = ({
                         fontSize: '14px'
                       }}
                     >
-                      Occupied Enclosures
+                      {t('hospital_module.occupied_enclosures')}
                     </Typography>
                   </Box>
                 </Grid>
@@ -427,11 +429,11 @@ const AddBedsDrawer = ({
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Room
+                  {t('hospital_module.room')}
                 </Typography>
                 <ControlledAutocomplete
                   name='room'
-                  label='Select Room*'
+                  label={(t('hospital_module.select_room_required') as string)}
                   control={control}
                   errors={errors}
                   options={rooms}
@@ -451,11 +453,11 @@ const AddBedsDrawer = ({
                 <Typography
                   sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Enclosure
+                  {t('hospital_module.enclosure')}
                 </Typography>
                 <ControlledTextField
                   name='bed'
-                  label='Enter Enclosure Name*'
+                  label={(t('hospital_module.enter_enclosure_name_required') as string)}
                   control={control}
                   errors={errors}
                   required
@@ -487,7 +489,7 @@ const AddBedsDrawer = ({
                 height: '56px'
               }}
             >
-              Close
+              {t('close')}
             </Button>
             <Button
               variant='contained'
@@ -496,7 +498,7 @@ const AddBedsDrawer = ({
               sx={{ height: '56px' }}
               disabled={addLoading}
             >
-              {addLoading ? <CircularProgress size={24} /> : 'ADD ENCLOSURE'}
+              {addLoading ? <CircularProgress size={24} /> : t('hospital_module.add_enclosure').toUpperCase()}
             </Button>
           </Box>
         </Box>

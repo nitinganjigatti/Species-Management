@@ -3,6 +3,7 @@
 import React from 'react'
 import { Box, Typography, IconButton, Tooltip, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 
 interface SurgeryTemplateCardProps {
@@ -16,6 +17,7 @@ interface SurgeryTemplateCardProps {
 }
 
 const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onDelete, disabled = false, isDeleting }: SurgeryTemplateCardProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   return (
@@ -76,7 +78,7 @@ const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onD
       </Box>
 
       <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-        <Tooltip title='Edit Template'>
+        <Tooltip title={(t('hospital_module.edit_template') as string)}>
           <IconButton
             onClick={(e: React.MouseEvent<HTMLElement>) => {
               e.stopPropagation()
@@ -88,7 +90,7 @@ const SurgeryTemplateCard = ({ template, selectedTemplate, onSelect, onEdit, onD
           </IconButton>
         </Tooltip>
 
-        <Tooltip title='Delete Template'>
+        <Tooltip title={(t('hospital_module.delete_template') as string)}>
           <IconButton
             onClick={(e: React.MouseEvent<HTMLElement>) => {
               e.stopPropagation()

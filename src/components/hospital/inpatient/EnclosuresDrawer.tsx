@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Icon, Avatar } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
 
@@ -20,6 +21,7 @@ interface EnclosuresDrawerProps {
 
 const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }: EnclosuresDrawerProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   const [localSearch, setLocalSearch] = useState<string>('')
@@ -181,7 +183,7 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }: 
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Enclosures'
+      title={(t('hospital_module.enclosures_title') as string)}
       icon='/images/housing/enclosure-icon-colored.svg'
       iconColor={theme.palette.primary.main}
     >
@@ -194,7 +196,7 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }: 
             borderRadius: '8px',
             backgroundColor: theme.palette.common.white
           }}
-          placeholder='Search for an enclosure'
+          placeholder={(t('hospital_module.search_enclosure') as string)}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -212,7 +214,7 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }: 
                 indeterminate={selectedCount > 0 && !isAllSelected}
               />
             }
-            label='Select All'
+            label={(t('hospital_module.select_all') as string)}
             sx={{ mr: 0 }}
           />
         )}
@@ -272,7 +274,7 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }: 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                       <Icon {...({ icon: 'mdi:account-group-outline' } as any)} fontSize={16} color='textSecondary' />
                       <Typography variant='body2' color='textSecondary'>
-                        Capacity: {enclosure.capacity || enclosure.animal_capacity}
+                        {t('hospital_module.capacity')}: {enclosure.capacity || enclosure.animal_capacity}
                       </Typography>
                     </Box>
                   )}
@@ -322,13 +324,13 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }: 
 
         {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No enclosures found
+            {t('hospital_module.no_enclosures_found')}
           </Typography>
         )}
 
         {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more enclosures to load
+            {t('hospital_module.no_more_enclosures_to_load')}
           </Typography>
         )}
       </Box>

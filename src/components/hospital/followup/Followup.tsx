@@ -16,6 +16,7 @@ import {
 import { debounce } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import InpatientFilterDrawer from 'src/components/hospital/drawer/InpatientFilterDrawer'
 import { useHospital } from 'src/context/HospitalContext'
@@ -35,6 +36,7 @@ import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const HospitalFollowUp = () => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const router = useSafeRouter()
 
   const { selectedHospital } = useHospital()
@@ -232,7 +234,7 @@ const HospitalFollowUp = () => {
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('hospital_module.sl_no'),
       renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
@@ -244,7 +246,7 @@ const HospitalFollowUp = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: 'Animal Name & ID',
+      headerName: t('hospital_module.animal_name_and_id'),
       renderCell: (params: any) => (
         <>
           <AnimalCard
@@ -268,7 +270,7 @@ const HospitalFollowUp = () => {
       width: 200,
       minWidth: 20,
       field: 'medical_record_code',
-      headerName: 'Medical Record ID',
+      headerName: t('hospital_module.medical_record_id'),
       renderCell: (params: any) => (
         <MedicalIdChip
           medId={params?.row?.medical_record_code}
@@ -281,7 +283,7 @@ const HospitalFollowUp = () => {
       minWidth: 20,
       field: 'reason',
       sortable: false,
-      headerName: 'Discharge Summary',
+      headerName: t('hospital_module.discharge_summary'),
       renderCell: (params: any) => (
         <>
           <Tooltip
@@ -320,7 +322,7 @@ const HospitalFollowUp = () => {
       minWidth: 20,
       field: 'follow_up_date',
       sortable: false,
-      headerName: 'Follow Up',
+      headerName: t('hospital_module.follow_up'),
       align: 'left',
       headerAlign: 'left',
 
@@ -341,7 +343,7 @@ const HospitalFollowUp = () => {
       minWidth: 20,
       field: 'due_in_days',
       sortable: false,
-      headerName: activeTab === 0 ? 'Due in' : 'Due For',
+      headerName: activeTab === 0 ? t('hospital_module.due_in') : t('hospital_module.due_for'),
       align: 'left',
       headerAlign: 'left',
       renderCell: (params: any) => {
@@ -357,7 +359,7 @@ const HospitalFollowUp = () => {
       minWidth: 20,
       field: 'attend_by_full_name',
       sortable: false,
-      headerName: 'Chief Doctor',
+      headerName: t('hospital_module.chief_doctor'),
       renderCell: (params: any) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
@@ -371,12 +373,12 @@ const HospitalFollowUp = () => {
       miWidth: 20,
       field: 'action',
       sortable: false,
-      headerName: 'Action',
+      headerName: t('action'),
       renderCell: (params: any) => {
         const isRowLoading = downloadingRowId === params.row.id
 
         return (
-          <Tooltip title='Download Discharge Summary'>
+          <Tooltip title={(t('hospital_module.download_discharge_summary') as string)}>
             <IconButton onClick={() => handleDownloadDischargeSummary(params.row)} disabled={isRowLoading}>
               {isRowLoading ? <CircularProgress size={22} /> : <Icon icon='hugeicons:download-square-02' />}
             </IconButton>
@@ -411,12 +413,12 @@ const HospitalFollowUp = () => {
       <Box>
          <DynamicBreadcrumbs
             sx={{ mb: 5 }}
-            pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Follow Up' }]}
+            pageItems={[{ title: t('navigation.hospital') }, { title: t('hospital_module.patients') }, { title: t('navigation.follow_up') }]}
           />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>
-            <CardHeader title={RenderUtility?.pageTitle('Follow Up')} />
+            <CardHeader title={RenderUtility?.pageTitle(t('navigation.follow_up'))} />
             <Box
               sx={{
                 p: 3,
@@ -430,7 +432,7 @@ const HospitalFollowUp = () => {
                 <Search
                   borderRadius='4px'
                   width='343px'
-                  placeholder='Search by medical Id / AID / animal identifier'
+                  placeholder={(t('hospital_module.search_by_medical_id') as string)}
                   value={searchValue}
                   onClear={handleSearchClear}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -489,8 +491,8 @@ const HospitalFollowUp = () => {
                   }
                 }}
               >
-                <Tab value={0} label={getTabLabel(0, 'Active')} />
-                <Tab value={1} label={getTabLabel(1, 'Overdue')} />
+                <Tab value={0} label={getTabLabel(0, t('hospital_module.active'))} />
+                <Tab value={1} label={getTabLabel(1, t('hospital_module.overdue'))} />
               </Tabs>
             </Box>
             <Grid

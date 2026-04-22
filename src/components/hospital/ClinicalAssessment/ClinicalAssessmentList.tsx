@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -55,6 +56,7 @@ export default function ClinicalAssessmentList({
   handleAddNewClick,
   alreadySelectedIds = []
 }: ClinicalAssessmentListProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const authData: any = useContext(AuthContext)
@@ -96,7 +98,7 @@ export default function ClinicalAssessmentList({
               px: 3
             }}
           >
-            ADD NEW
+            {t('hospital_module.add_new')}
           </Button>
         )}
       </Box>
@@ -171,8 +173,8 @@ export default function ClinicalAssessmentList({
           alignItems: 'center'
         }}
       >
-        <Box sx={{ flex: 1 }}>CLINICAL ASSESSMENT</Box>
-        <Box sx={{ minWidth: '192px', textAlign: 'left' }}>TYPE</Box>
+        <Box sx={{ flex: 1 }}>{t('hospital_module.clinical_assessment_header')}</Box>
+        <Box sx={{ minWidth: '192px', textAlign: 'left' }}>{t('hospital_module.type_header')}</Box>
       </Box>
 
       <Box sx={{ maxHeight: listHeight, overflowY: 'auto', mt: 0 }}>
@@ -192,7 +194,7 @@ export default function ClinicalAssessmentList({
           >
             <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
-              No Clinical Assessment to show
+              {t('hospital_module.no_clinical_assessment_to_show')}
             </Typography>
           </Box>
         ) : (

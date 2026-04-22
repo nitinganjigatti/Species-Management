@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Radio, Typography, FormControlLabel, RadioGroup } from '@mui/material'
 import { debounce } from 'lodash'
+import { useTranslation } from 'react-i18next'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
@@ -10,14 +11,6 @@ import { readAsync } from 'src/lib/windows/utils'
 import type { BaseDrawerProps } from 'src/types/hospital'
 
 const LEFT_MENU = ['Medical Type', 'User']
-
-const MEDICAL_TYPE_OPTIONS = [
-  { label: 'All Activities', value: '' },
-  { label: 'Vaccination', value: 'vaccination' },
-  { label: 'Prescription', value: 'prescription' },
-  { label: 'Clinical Assessment', value: 'clinical_assessment' },
-  { label: 'Symptoms', value: 'symptoms' }
-]
 
 const DEFAULT_OPTIONS: any = { 'Medical Type': [], User: [] }
 
@@ -36,12 +29,22 @@ const MedicalSummaryFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }: MedicalSummaryFilterDrawerProps) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState('Medical Type')
   const [selectedOptions, setSelectedOptions] = useState<any>(DEFAULT_OPTIONS)
   const [menuData, setMenuData] = useState<any>({ User: [] })
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
   const [drawerCount, setDrawerCount] = useState(0)
+
+  // Medical Type Options with translations
+  const MEDICAL_TYPE_OPTIONS = [
+    { label: t('hospital_module.all_activities'), value: '' },
+    { label: t('hospital_module.vaccination'), value: 'vaccination' },
+    { label: t('hospital_module.prescription'), value: 'prescription' },
+    { label: t('hospital_module.clinical_assessment'), value: 'clinical_assessment' },
+    { label: t('hospital_module.symptoms'), value: 'symptoms' }
+  ]
 
   // Count active filters
   const calculateFilterCount = (filters: any) => {
@@ -203,7 +206,7 @@ const MedicalSummaryFilterDrawer = ({
           items={menuData.User}
           isAllSelected={menuData.User.length > 0 && selectedOptions.User.length === menuData.User.length}
           searchLoading={searchLoading}
-          placeholder='Search User'
+          placeholder={(t('hospital_module.search_user') as string)}
         />
       )}
     </CustomFilterDrawer>

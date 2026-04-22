@@ -7,6 +7,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
 import { alpha, useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
@@ -45,6 +46,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
     isFetchingNextPage,
     patientData
   } = props
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
@@ -93,7 +95,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
           }}
         >
           <Typography sx={{ fontSize: '1rem', fontWeight: 500, color: theme.palette.customColors.deepDark, mb: 4 }}>
-            Enter clinical notes
+            {t('hospital_module.enter_clinical_notes')}
           </Typography>
 
           <form noValidate autoComplete='off' onSubmit={!isSubmitting ? handleSubmit(onSubmit) : undefined}>
@@ -102,7 +104,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                 <ControlledTextArea
                   name='note'
                   control={control}
-                  placeholder='Add notes'
+                  placeholder={(t('hospital_module.add_notes') as string)}
                   fullWidth={true}
                   minRows={3}
                   inputBackgroundColor={theme.palette.customColors.OnPrimary}
@@ -120,7 +122,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                   size='small'
                   disabled={isSubmitting}
                 >
-                  Clear Text
+                  {t('hospital_module.clear_text')}
                 </Button>
                 <LoadingButton
                   variant='contained'
@@ -133,7 +135,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                     minWidth: { sm: '12.5rem' }
                   }}
                 >
-                  Add
+                  {t('add')}
                 </LoadingButton>
               </Box>
             )}
@@ -216,7 +218,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                 color: theme.palette.text.disabled
               }}
             >
-              No more clinical notes to load
+              {t('hospital_module.no_more_clinical_notes_to_load')}
             </Typography>
           )}
         </>

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme, CircularProgress } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import Icon from 'src/@core/components/icon'
@@ -90,6 +91,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
   const isRestoring = useRef<boolean>(true)
 
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const params = useParams()
   const router: any = useRouter()
   const { id }: any = params
@@ -461,7 +463,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
             <ControlledCheckBox
               {...({
                 name: 'returnToOriginal',
-                label: 'Transfer back to animal’s original location',
+                label: t('hospital_module.transfer_back_to_original_location'),
                 control,
                 errors,
                 labelStyle: {
@@ -473,14 +475,14 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
               } as any)}
               />
 
-            <StyledTypography>Select location to transfer</StyledTypography>
+            <StyledTypography>{t('hospital_module.select_location_to_transfer')}</StyledTypography>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <ControlledAutocomplete
                   control={control}
                   name={'site_name'}
                   errors={errors}
-                  label={'Site*'}
+                  label={(t('navigation.site') as string)}
                   options={sites}
                   getOptionLabel={(option: any) => option?.label || ''}
                   onInputChange={(value: any) => {
@@ -524,7 +526,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
                   control={control}
                   name={'section_name'}
                   errors={errors}
-                  label={'Section*'}
+                  label={(t('hospital_module.section') as string)}
                   options={sections}
                   getOptionLabel={(option: any) => option?.label || ''}
                   onInputChange={(value: any) => {
@@ -559,7 +561,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
                   control={control}
                   name={'user_enclosure_name'}
                   errors={errors}
-                  label={'Enclosure*'}
+                  label={(t('hospital_module.enclosure') as string)}
                   options={enclosures}
                   getOptionLabel={(option: any) => option?.label}
                   onInputChange={(value: any) => {
@@ -578,13 +580,13 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
             </Grid>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mt: 4 }}>
-              <StyledTypography>Discharge Date & Time</StyledTypography>
+              <StyledTypography>{t('hospital_module.discharge_date_time')}</StyledTypography>
               <Grid container spacing={6}>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <ControlledDatePicker
                     control={control}
                     name='discharge_date'
-                    label='Date*'
+                    label={(t('date') as string)}
                     errors={errors}
                     minDate={dayjs(patientData?.admitted_at)}
                     maxDate={dayjs(new Date())}
@@ -597,7 +599,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
                   <ControlledTimePicker
                     control={control}
                     name='discharge_time'
-                    label='Time*'
+                    label={(t('time') as string)}
                     errors={errors}
                     minTime={minTime}
                     maxTime={maxTime}
@@ -629,7 +631,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
             <Grid size={{ xs: 12, sm: 6 }}>
               <ControlledSwitch
                 name='follow_up_required'
-                label={(<StyledTypography fontSize='1.25rem'>Is any follow up required?</StyledTypography>) as any}
+                label={(<StyledTypography fontSize='1.25rem'>{t('hospital_module.is_any_followup_required')}</StyledTypography>) as any}
                 labelPosition='start'
                 control={control}
                 errors={errors}
@@ -647,7 +649,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Grid container spacing={2} alignItems='center'>
                   <Grid size={{ xs: 'auto' }}>
-                    <StyledTypography fontWeight={400}>Enter follow up date</StyledTypography>
+                    <StyledTypography fontWeight={400}>{t('hospital_module.enter_followup_date')}</StyledTypography>
                   </Grid>
                   <Grid
                     sx={{
@@ -664,7 +666,7 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
                     <ControlledDatePicker
                       control={control}
                       name='follow_up_date'
-                      label='Date'
+                      label={(t('date') as string)}
                       errors={errors}
                       minDate={dayjs(new Date())}
                       onChangeOverride={((selectedDate: any) => {
@@ -721,11 +723,11 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
                 >
                   <Box>
                     <StyledTypography fontSize='1.25rem'>
-                      Active Prescriptions - {prescriptionData?.length}
+                      {t('hospital_module.active_prescriptions')} - {prescriptionData?.length}
                     </StyledTypography>
 
                     <StyledTypography fontSize='0.875rem'>
-                      You can stop the below prescriptions if its not needed after discharge
+                      {t('hospital_module.can_stop_prescriptions_after_discharge')}
                     </StyledTypography>
                   </Box>
                 </Box>
@@ -810,41 +812,41 @@ const EnclosureDischargeForm = (props: EnclosureDischargeFormProps) => {
 
           <Divider />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <StyledTypography fontSize='1.25rem'>Care Instructions</StyledTypography>
+            <StyledTypography fontSize='1.25rem'>{t('hospital_module.care_instructions')}</StyledTypography>
 
             <ControlledTextField
               control={control}
               name={'care_diet_instruction'}
               errors={errors}
-              placeholder={'Enter text'}
-              label='Enter diet instructions'
+              placeholder={(t('hospital_module.enter_text') as string)}
+              label={(t('hospital_module.enter_diet_instructions') as string)}
             />
             <ControlledTextField
               control={control}
               name={'care_restriction'}
               errors={errors}
-              placeholder={'Enter text'}
-              label='Enter restriction activities with duration'
+              placeholder={(t('hospital_module.enter_text') as string)}
+              label={(t('hospital_module.enter_restriction_activities_with_duration') as string)}
             />
             <ControlledTextField
               inputBackgroundColor={alpha(theme.palette.customColors.antzNotes, 0.6)}
-              placeholder={'Enter text'}
+              placeholder={(t('hospital_module.enter_text') as string)}
               control={control}
               name={'care_notes'}
               errors={errors}
-              label=' Additional notes'
+              label={(t('hospital_module.additional_notes') as string)}
             />
           </Box>
 
           <Divider />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <StyledTypography>Attachments</StyledTypography>
-            <ControlledMultiFileUpload name='attachments' control={control} errors={errors} label='Upload attachment' />
+            <StyledTypography>{t('hospital_module.attachments')}</StyledTypography>
+            <ControlledMultiFileUpload name='attachments' control={control} errors={errors} label={(t('hospital_module.upload_attachment') as string)} />
           </Box>
         </Box>
         <BottomActionBar
           {...({
-            submitLabel: 'Discharge Animal',
+            submitLabel: t('hospital_module.discharge_animal'),
             submitBtnVariant: 'contained',
             showCancel: false,
             submitBtnStyle: { px: 12, py: 3 },

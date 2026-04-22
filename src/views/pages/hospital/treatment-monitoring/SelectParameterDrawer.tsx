@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -31,6 +32,7 @@ interface SelectParameterDrawerProps {
 }
 
 const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSelectedAssessments, onAddSelected }: SelectParameterDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const queryClient = useQueryClient()
   const cooldownRef = useRef<boolean>(false)
@@ -207,7 +209,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments = [], setSel
           <Box sx={{ flex: 1, overflow: 'auto' }}>
             <Box sx={{ px: 6, pt: 6, pb: 3 }}>
               <Search
-                placeholder='Search Parameters'
+                placeholder={(t('hospital_module.search_parameters') as string)}
                 value={localSearch}
                 onChange={handleSearchChange}
                 onClear={handleSearchClear}

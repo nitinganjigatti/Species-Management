@@ -2,6 +2,7 @@
 
 import { Box, Button, CircularProgress, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import React, { useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from '../PatientAdmissionForm/DoctorsDrawer'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
@@ -44,6 +45,7 @@ const defaultValues: FormValues = {
 }
 
 const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const authData: any = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
@@ -235,7 +237,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
           setSubmitLoader(false)
           Toaster({
             type: 'error',
-            message: `Admission date and time cannot be before ${minDateTime.format('YYYY-MM-DD HH:mm')}`
+            message: `${t('hospital_module.admission_datetime_cannot_be_before')} ${minDateTime.format('YYYY-MM-DD HH:mm')}`
           })
           return
         }
@@ -245,7 +247,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
           setSubmitLoader(false)
           Toaster({
             type: 'error',
-            message: 'Admission date and time cannot be in the future'
+            message: t('hospital_module.admission_datetime_cannot_be_in_future') || 'Admission date and time cannot be in the future'
           })
           return
         }
@@ -322,7 +324,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
             variant='h6'
             sx={{ fontWeight: 500, fontSize: '24px', color: theme.palette.customColors.OnSurfaceVariant }}
           >
-            Edit Patient Details
+            {t('hospital_module.edit_patient_details')}
           </Typography>
           <IconButton onClick={onClose}>
             <Icon icon='mdi:close' />
@@ -342,7 +344,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
         >
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Attending Chief Doctor
+              {t('hospital_module.attending_chief_doctor')}
             </Typography>
             {selectedDoctor === null ? (
               <Box
@@ -368,7 +370,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
                       : theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Select doctor
+                  {t('hospital_module.select_doctor')}
                 </Typography>
                 <Icon icon='mdi:chevron-down' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
               </Box>
@@ -401,11 +403,11 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Room
+              {t('hospital_module.room')}
             </Typography>
             <ControlledAutocomplete
               name='room'
-              label='Select Room'
+              label={(t('hospital_module.select_room') as string)}
               control={control}
               errors={errors}
               options={rooms}
@@ -419,7 +421,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
               loading={roomLoading}
               endAdornment={() =>
                 havePermissionToAddHospital && (
-                  <Tooltip title='Add Rooms'>
+                  <Tooltip title={(t('hospital_module.add_room') as string)}>
                     <IconButton
                       size='small'
                       onMouseDown={e => e.preventDefault()}
@@ -435,11 +437,11 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Holding Enclosure
+              {t('hospital_module.holding_enclosure')}
             </Typography>
             <ControlledAutocomplete
               name='holdingEnclosure'
-              label='Select area/cell/enclosure'
+              label={(t('hospital_module.select_holding_enclosure') as string)}
               control={control}
               errors={errors}
               options={holdingEnclosures}
@@ -453,7 +455,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
               loading={enclosureLoading}
               endAdornment={() =>
                 havePermissionToAddHospital && (
-                  <Tooltip title='Add Enclosures'>
+                  <Tooltip title={(t('hospital_module.add_enclosure') as string)}>
                     <IconButton
                       size='small'
                       onMouseDown={e => e.preventDefault()}
@@ -476,17 +478,17 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
                   fontWeight: 400
                 }}
               >
-                No active/available enclosures available for this Room
+                {t('hospital_module.no_available_enclosures')}
               </Typography>
             )}
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Admission Date
+              {t('hospital_module.admission_date')}
             </Typography>
             <ControlledDatePicker
               name='admissionDate'
-              label='Select Admission Date'
+              label={(t('hospital_module.select_admission_date') as string)}
               control={control}
               errors={errors}
               sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
@@ -497,11 +499,11 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-              Admission Time
+              {t('hospital_module.admission_time')}
             </Typography>
             <ControlledTimePicker
               name='admissionTime'
-              label='Select Admission Time'
+              label={(t('hospital_module.select_admission_time') as string)}
               control={control}
               errors={errors}
               sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
@@ -561,7 +563,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
             }}
             onClick={onClose}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
           <Button
             variant='contained'
@@ -570,7 +572,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
             sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.customColors.OnPrimaryContainer }}
             onClick={handleSubmit(onSubmit)}
           >
-            {submitLoader ? <CircularProgress size={24} /> : 'SAVE'}
+            {submitLoader ? <CircularProgress size={24} /> : t('save')}
           </Button>
         </Box>
       </Drawer>

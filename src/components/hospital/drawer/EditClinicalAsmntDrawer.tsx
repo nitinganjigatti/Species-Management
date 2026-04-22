@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -94,6 +95,7 @@ const EditClinicalAsmntDrawer = ({
   medical_record_id
 }: EditClinicalAsmntDrawerProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const { getSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
   const [minDate, setMinDate] = useState<any>(null)
@@ -272,7 +274,7 @@ const EditClinicalAsmntDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Status
+                  {t('status')}
                 </Typography>
 
                 <Select
@@ -294,20 +296,20 @@ const EditClinicalAsmntDrawer = ({
                   renderValue={(selected: any) => (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {renderStatusIcon(selected)}
-                      <Typography>{selected === 'Active' ? 'Active' : 'Resolved'}</Typography>
+                      <Typography>{selected === 'Active' ? t('hospital_module.active') : t('hospital_module.resolved')}</Typography>
                     </Box>
                   )}
                 >
                   <MenuItem value='Active'>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {renderStatusIcon('Active')}
-                      <Typography>Active</Typography>
+                      <Typography>{t('hospital_module.active')}</Typography>
                     </Box>
                   </MenuItem>
                   <MenuItem value='Inactive'>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       {renderStatusIcon('Inactive')}
-                      <Typography>Resolved</Typography>
+                      <Typography>{t('hospital_module.resolved')}</Typography>
                     </Box>
                   </MenuItem>
                 </Select>
@@ -322,7 +324,7 @@ const EditClinicalAsmntDrawer = ({
                     mb: 1.7
                   }}
                 >
-                  Clinical Assessment
+                  {t('hospital_module.clinical_assessment')}
                 </Typography>
 
                 <Select
@@ -339,8 +341,8 @@ const EditClinicalAsmntDrawer = ({
                     '& .MuiSelect-select': { py: 4.0 }
                   }}
                 >
-                  <MenuItem value='diagnosis'>Diagnosis</MenuItem>
-                  <MenuItem value='tentative'>Tentative</MenuItem>
+                  <MenuItem value='diagnosis'>{t('hospital_module.diagnosis')}</MenuItem>
+                  <MenuItem value='tentative'>{t('hospital_module.tentative')}</MenuItem>
                 </Select>
               </Box>
             </Box>
@@ -356,7 +358,7 @@ const EditClinicalAsmntDrawer = ({
                       mb: 1.7
                     }}
                   >
-                    Is it Chronic?
+                    {t('hospital_module.is_it_chronic')}
                   </Typography>
                   <Box
                     display='flex'
@@ -374,7 +376,7 @@ const EditClinicalAsmntDrawer = ({
                       justifyContent: 'space-between'
                     }}
                   >
-                    <Typography sx={{ marginRight: 2 }}>{chronicVal}</Typography>
+                    <Typography sx={{ marginRight: 2 }}>{chronicVal === 'Yes' ? t('yes') : t('no')}</Typography>
                     <FormControlLabel
                       control={
                         <MUISwitch
@@ -399,7 +401,7 @@ const EditClinicalAsmntDrawer = ({
                       mb: 1.7
                     }}
                   >
-                    Prognosis
+                    {t('hospital_module.prognosis')}
                   </Typography>
 
                   <Select
@@ -427,11 +429,11 @@ const EditClinicalAsmntDrawer = ({
                       }
                     }}
                   >
-                    <MenuItem value='Favourable'>Favourable</MenuItem>
-                    <MenuItem value='Guarded'>Guarded</MenuItem>
-                    <MenuItem value='Doubtful'>Doubtful</MenuItem>
-                    <MenuItem value='Poor'>Poor</MenuItem>
-                    <MenuItem value='Grave'>Grave</MenuItem>
+                    <MenuItem value='Favourable'>{t('hospital_module.favourable')}</MenuItem>
+                    <MenuItem value='Guarded'>{t('hospital_module.guarded')}</MenuItem>
+                    <MenuItem value='Doubtful'>{t('hospital_module.doubtful')}</MenuItem>
+                    <MenuItem value='Poor'>{t('hospital_module.poor')}</MenuItem>
+                    <MenuItem value='Grave'>{t('hospital_module.grave')}</MenuItem>
                   </Select>
                 </Box>
               </Box>
@@ -440,10 +442,10 @@ const EditClinicalAsmntDrawer = ({
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
             >
-              Notes
+              {t('notes')}
             </Typography>
             <TextField
-              placeholder='Add notes'
+              placeholder={(t('hospital_module.add_notes') as string)}
               fullWidth
               multiline
               rows={3}
@@ -471,8 +473,8 @@ const EditClinicalAsmntDrawer = ({
         <Box sx={{ position: 'fixed', bottom: 0 }}>
           <SideSheetActionButtons
             isSubmitLoading={isSubmitLoading}
-            addLabel='UPDATE'
-            cancelLabel='CANCEL'
+            addLabel={t('update')}
+            cancelLabel={t('cancel')}
             onAdd={handleSave}
             onCancel={handleCancel}
             width={260}

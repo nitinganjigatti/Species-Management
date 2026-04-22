@@ -18,6 +18,7 @@ import {
 } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
+import { useTranslation } from 'react-i18next'
 import { useHospital } from 'src/context/HospitalContext'
 
 import { Controller, useForm } from 'react-hook-form'
@@ -331,6 +332,7 @@ const AddSurgeryRecord = () => {
   }, [])
 
   const router: any = useSafeRouter()
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const resolvedHospitalCaseId = useMemo(() => resolveHospitalCaseId(router.query), [router.query])
   const surgeryRecordId = useMemo(() => {
@@ -656,7 +658,7 @@ const AddSurgeryRecord = () => {
     retry: false,
     onError: (error: any) => {
       console.error('Failed to fetch surgeries:', error)
-      Toaster({ type: 'error', message: error?.message || 'Failed to load surgery list' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_load_surgery_list') })
     }
   } as any)
 
@@ -739,7 +741,7 @@ const AddSurgeryRecord = () => {
       }
     } catch (e) {
       console.error(e)
-      Toaster({ type: 'error', message: 'Failed to load doctors' })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_load_doctors') })
     } finally {
       setDoctorsLoading(false)
     }
@@ -860,7 +862,7 @@ const AddSurgeryRecord = () => {
         if (match) {
           applyPrefillFromRecord(match?.detail || match)
         } else {
-          Toaster({ type: 'error', message: 'Surgery record not found.' })
+          Toaster({ type: 'error', message: t('hospital_module.surgery_record_not_found') })
         }
       } catch (error: any) {
         if (!isMounted) return
@@ -896,13 +898,13 @@ const AddSurgeryRecord = () => {
           setPatientData(response.data)
         } else {
           setPatientData(null)
-          Toaster({ type: 'error', message: response?.message || 'Failed to load patient details' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_load_patient_details') })
         }
       } catch (error: any) {
         if (!isMounted) return
 
         console.error('Failed to fetch patient details:', error)
-        Toaster({ type: 'error', message: error?.message || 'Failed to load patient details' })
+        Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_load_patient_details') })
         setPatientData(null)
       }
     }
@@ -1089,15 +1091,15 @@ const AddSurgeryRecord = () => {
 
           Toaster({
             type: 'success',
-            message: 'Surgery has been added to the masters list successfully'
+            message: t('hospital_module.surgery_added_to_masters_successfully')
           })
           setOpenAddSurgeryDrawer(false)
         } else {
-          Toaster({ type: 'error', message: response?.message || 'Failed to create surgery' })
+          Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_create_surgery') })
         }
       } catch (error: any) {
         console.error('Failed to create surgery:', error)
-        Toaster({ type: 'error', message: error?.message || 'Failed to create surgery' })
+        Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_create_surgery') })
       } finally {
         setIsSurgerySaving(false)
       }
@@ -1250,14 +1252,14 @@ const AddSurgeryRecord = () => {
 
   const onSubmit = async (formValues: any) => {
     if (!resolvedHospitalCaseId) {
-      Toaster({ type: 'error', message: 'Hospital case id is missing' })
+      Toaster({ type: 'error', message: t('hospital_module.hospital_case_id_is_missing') })
 
       return
     }
 
     const selectedAnesthesiaId = getAnesthesiaIdentifier(selectedAnesthesia)
     if (!selectedAnesthesiaId) {
-      Toaster({ type: 'error', message: 'Please select an anesthesia record' })
+      Toaster({ type: 'error', message: t('hospital_module.please_select_anesthesia_record') })
 
       return
     }

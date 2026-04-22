@@ -1,5 +1,6 @@
 'use client'
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import {
@@ -95,6 +96,7 @@ interface AnesthesiaProps {
 }
 
 function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData, patientDischarged = false, category }: AnesthesiaProps) {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const scrollContainerRef = useRef<HTMLDivElement | null>(null)
@@ -830,7 +832,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               variant='contained'
               sx={{ flex: '0 0 auto', whiteSpace: 'nowrap', height: '48px' }}
             >
-              Add Anesthesia
+              {t('hospital_module.add_anesthesia')}
             </Button>
           )}
         </Box>
@@ -844,8 +846,8 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             }}
           >
             <NoMedicalData
-              btnText={'ADD ANESTHESIA'}
-              text={'All Added Anesthesia Will Appear here'}
+              btnText={t('hospital_module.add_anesthesia')}
+              text={t('hospital_module.all_added_anesthesia_appear_here')}
               // isDischarged={isDischared}
               btnAction={handleRouterNavigation}
             />
@@ -862,7 +864,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Anesthesia Details
+                {t('hospital_module.anesthesia_details')}
               </Typography>
 
               <Box
@@ -891,7 +893,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Last updated : {lastUpdatedValue}
+                    {t('hospital_module.last_updated')} : {lastUpdatedValue}
                   </Typography>
                 </Box>
 
@@ -923,7 +925,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <DetailsHeader text={'Basic details'} />
+              <DetailsHeader text={t('hospital_module.basic_details')} />
               <Grid container spacing={4}>
                 {Object.entries(basicDetails).map(([label, value]: any) => (
                   <Grid size={{ xs: 12, sm: 6, md: 4 }} key={label}>
@@ -1016,7 +1018,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
             {environmentalDetails.length || examDetails.length || riskOfConcernText || clinPathText ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {environmentalDetails.length ? <DetailsHeader text={'Pre Anesthesia'} /> : ''}
+                {environmentalDetails.length ? <DetailsHeader text={t('hospital_module.pre_anesthesia')} /> : ''}
                 <Box
                   sx={{
                     display: 'flex',
@@ -1255,7 +1257,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 {medicationRecords.length ? (
                   <>
-                    <DetailsHeader text={'Medication & Gas'} />
+                    <DetailsHeader text={t('hospital_module.medications_gas')} />
                     <Box sx={{ mb: 4 }}>
                       <Typography
                         variant='subtitle1'
@@ -1397,7 +1399,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {reversalRecords.length ? (
                 <>
-                  <DetailsHeader text={'Recovery & Reversal'} />
+                  <DetailsHeader text={t('hospital_module.recovery_and_reversal')} />
                   <Box sx={{ mb: 4 }}>
                     <Typography
                       variant='subtitle1'
@@ -1733,7 +1735,7 @@ function Anesthesia({ hospitalCaseId, medicalRecordId, patientData, overviewData
 
             {setupFieldItems.length || monitoringItems.length ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {setupFieldItems.length ? <DetailsHeader text={'Anesthesia Set Up'} /> : ''}
+                {setupFieldItems.length ? <DetailsHeader text={t('hospital_module.anesthesia_setup')} /> : ''}
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {setupFieldItems.length ? (
                     <Grid container spacing={{ xs: 3, sm: 4 }}>

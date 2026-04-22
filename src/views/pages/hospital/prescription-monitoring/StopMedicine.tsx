@@ -4,6 +4,7 @@ import React from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { Box, Typography, Button, IconButton, useTheme } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
@@ -30,6 +31,7 @@ interface FormValues {
 }
 
 const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }: StopMedicineProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const {
@@ -79,7 +81,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }: Sto
             color: theme.palette.customColors.OnTertaiaryContainer
           }}
         >
-          Stop Medicine
+          {t('hospital_module.stop_medicine')}
         </Typography>
         <IconButton onClick={handleClose} size='small' disabled={isLoading}>
           <Icon icon='mdi:close' color={theme.palette.customColors.OnPrimaryContainer} />
@@ -97,7 +99,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }: Sto
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Any Adverse Side Effects?
+            {t('hospital_module.any_adverse_side_effects')}
           </Typography>
 
           <Controller
@@ -139,17 +141,17 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }: Sto
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Reason For Stop*
+            {t('hospital_module.reason_for_stop')}
           </Typography>
 
           <ControlledTextArea
             name='reason'
             control={control}
             errors={errors}
-            required={'Reason is required' as any}
+            required={t('hospital_module.reason_is_required') as any}
             fullWidth
             rows={3}
-            placeholder='No need of this medicine anymore'
+            placeholder={(t('hospital_module.no_need_medicine_anymore') as string)}
             disabled={isLoading}
             sx={{
               '& .MuiOutlinedInput-root': {
@@ -185,7 +187,7 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }: Sto
             borderColor: theme.palette.customColors.OutlineVariant
           }}
         >
-          CANCEL
+          {t('cancel')}
         </Button>
         <Button
           onClick={handleSubmit(onSubmit)}
@@ -211,10 +213,10 @@ const StopMedicine = ({ open, onClose, onConfirm, medicineData, isLoading }: Sto
           {isLoading ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Icon icon='mdi:loading' spin />
-              STOPPING...
+              {t('hospital_module.stopping')}
             </Box>
           ) : (
-            'STOP'
+            t('hospital_module.stop')
           )}
         </Button>
       </Box>

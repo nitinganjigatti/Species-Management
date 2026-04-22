@@ -12,19 +12,13 @@ import TimelineOppositeContent from '@mui/lab/TimelineOppositeContent'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import { useTheme, styled } from '@mui/material/styles'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import { useTranslation } from 'react-i18next'
 import Search from 'src/views/utility/Search'
 import Utility from 'src/utility'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
-const medicalTypeOptions = [
-  { label: 'All Activities', value: '' },
-  { label: 'Vaccination', value: 'vaccination' },
-  { label: 'Prescription', value: 'prescription' },
-  { label: 'Clinical Assessment', value: 'clinical_assessment' },
-  { label: 'Symptoms', value: 'symptoms' }
-]
 
 const DETAIL_LABELS: Record<string, string> = {
   case_type: 'Case Type',
@@ -357,7 +351,16 @@ const GroupedTimeline = ({
   setFilterDate,
   hasActiveFilters
 }: GroupedTimelineProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
+
+  const medicalTypeOptions = [
+    { label: t('hospital_module.all_activities'), value: '' },
+    { label: t('hospital_module.vaccination'), value: 'vaccination' },
+    { label: t('hospital_module.prescription_label'), value: 'prescription' },
+    { label: t('hospital_module.clinical_assessment'), value: 'clinical_assessment' },
+    { label: t('hospital_module.symptoms'), value: 'symptoms' }
+  ]
 
   const dataLength = medicalSummaryData?.length || 0
   const noData = dataLength === 0
@@ -470,7 +473,7 @@ const GroupedTimeline = ({
 
       {!hasNextPage && dataLength > 9 && (
         <StyledTypography align='center' sx={{ mt: 4, color: theme.palette.text.disabled }}>
-          No more medical summary data to load
+          {t('hospital_module.no_more_medical_summary_data_to_load')}
         </StyledTypography>
       )}
     </Box>

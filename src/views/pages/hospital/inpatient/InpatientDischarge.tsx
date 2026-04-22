@@ -1,7 +1,8 @@
 'use client'
 
 import { Box, Button, Divider, Grid, Typography, useTheme } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import TreatmentTypeRadioButtons from '../utility/TreatmentTypeRadioButtons'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -16,12 +17,6 @@ import Icon from 'src/@core/components/icon'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
-const dischargeType = [
-  { label: 'Mortality', value: 'mortality' },
-  { label: 'Transfer to another hospital', value: 'transfer' },
-  { label: 'Discharge to enclosure', value: 'discharge' }
-]
-
 const templates = [
   'Avian summary',
   'Feline summary',
@@ -31,12 +26,6 @@ const templates = [
   'reptilian summary',
   'reptilian summary',
   'reptilian summary'
-]
-
-const necropsyPriorityList = [
-  { label: 'High', value: 'high' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Low', value: 'low' }
 ]
 
 const defaultValues = {
@@ -67,6 +56,7 @@ const schema = yup.object().shape({})
 
 const InpatientDischarge = () => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
 
   const {
     control,
@@ -90,6 +80,24 @@ const InpatientDischarge = () => {
   const watchRequestNecropsy = watch('requestNecropsy')
   const watchDischargeType = watch('dischargeType')
 
+  const dischargeTypeOptions = useMemo(
+    () => [
+      { label: t('hospital_module.mortality'), value: 'mortality' },
+      { label: t('hospital_module.transfer_to_hospital'), value: 'transfer' },
+      { label: t('hospital_module.discharge_to_enclosure'), value: 'discharge' }
+    ],
+    [t]
+  )
+
+  const necropsyPriorityList = useMemo(
+    () => [
+      { label: t('hospital_module.high_priority'), value: 'high' },
+      { label: t('hospital_module.medium_priority'), value: 'medium' },
+      { label: t('hospital_module.low_priority'), value: 'low' }
+    ],
+    [t]
+  )
+
   return (
     <>
       <form>
@@ -98,7 +106,7 @@ const InpatientDischarge = () => {
             sx={{ background: '#FCF4AE99', p: 6, borderRadius: 1, display: 'flex', flexDirection: 'column', gap: 1 }}
           >
             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.neutralPrimary }}>
-              Reason of Admission
+              {t('hospital_module.reason_of_admission')}
             </Typography>
             <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.neutralPrimary }}>
               Leopard was observed with reduced mobility and swelling in the right forelimb, suspected fracture due to
@@ -106,14 +114,14 @@ const InpatientDischarge = () => {
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <StyledTypography>Discharge Type</StyledTypography>
+            <StyledTypography>{t('hospital_module.discharge_type')}</StyledTypography>
 
             <Controller
               name='dischargeType'
               control={control}
               render={({ field }) => (
                 <Grid container spacing={6}>
-                  {dischargeType?.map((item: any, index: number) => (
+                  {dischargeTypeOptions?.map((item: any, index: number) => (
                     <Grid key={index} size={{ xs: 12, sm: 6, md: 4 }}>
                       <TreatmentTypeRadioButtons
                         label={item?.label}
@@ -131,20 +139,20 @@ const InpatientDischarge = () => {
             />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <StyledTypography>Mortality Details</StyledTypography>
+            <StyledTypography>{t('hospital_module.mortality_details')}</StyledTypography>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledDatePicker control={control} name={'dateOfDeath'} label='Date of Death' errors={errors} />
+                <ControlledDatePicker control={control} name={'dateOfDeath'} label={(t('hospital_module.date_of_death') as string)} errors={errors} />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                <ControlledTimePicker control={control} name={'timeOfDeath'} label='Time of Death' />
+                <ControlledTimePicker control={control} name={'timeOfDeath'} label={(t('hospital_module.time_of_death') as string)} />
               </Grid>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <ControlledSelect
                   control={control}
                   name={'causeOfDeath'}
                   errors={errors}
-                  label={'Cause of Death'}
+                  label={(t('hospital_module.cause_of_death') as string)}
                   options={deathCauses}
                   getOptionLabel={(option: any) => option.label}
                   getOptionValue={(option: any) => option.value}
@@ -155,7 +163,7 @@ const InpatientDischarge = () => {
                   control={control}
                   name={'carcassCondition'}
                   errors={errors}
-                  label={'Carcass Condition'}
+                  label={(t('hospital_module.carcass_condition') as string)}
                   options={carcassCondition}
                   getOptionLabel={(option: any) => option.label}
                   getOptionValue={(option: any) => option.value}
@@ -166,7 +174,7 @@ const InpatientDischarge = () => {
                   control={control}
                   name={'carcassDeposition'}
                   errors={errors}
-                  label={'Carcass Deposition'}
+                  label={(t('hospital_module.carcass_deposition') as string)}
                   options={carcassDeposition}
                   getOptionLabel={(option: any) => option.label}
                   getOptionValue={(option: any) => option.value}
@@ -177,19 +185,19 @@ const InpatientDischarge = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', background: '#E8F4F266', borderRadius: 1 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', pt: 5, px: 5, gap: 4 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <StyledTypography>Enter summary</StyledTypography>
-                <RichTextEditor value={content} onChange={setContent} placeholder='Write something amazing...' label={undefined as any} />
+                <StyledTypography>{t('hospital_module.enter_summary')}</StyledTypography>
+                <RichTextEditor value={content} onChange={setContent} placeholder={(t('hospital_module.write_something_amazing') as string)} label={undefined as any} />
               </Box>
               <SaveTemplateButton fontColor={undefined as any} iconSize={undefined as any} />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', px: 5, pb: 5, gap: 3 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <StyledTypography fontWeight={400}>Select from templates</StyledTypography>
+                <StyledTypography fontWeight={400}>{t('hospital_module.select_from_templates')}</StyledTypography>
                 <Button
                   endIcon={<Icon icon={'mingcute:right-fill'} color={theme.palette.primary.OnSurface} />}
                   sx={{ fontSize: '1rem', fontWeight: 600, color: theme.palette.primary.OnSurface }}
                 >
-                  See all
+                  {t('hospital_module.see_all')}
                 </Button>
               </Box>
               <Box
@@ -243,10 +251,10 @@ const InpatientDischarge = () => {
               size={{ sm: 12, md: 6 }}
               sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 4 }}
             >
-              <StyledTypography fontSize={'20px'}>Request Necropsy</StyledTypography>
+              <StyledTypography fontSize={'20px'}>{t('hospital_module.request_necropsy')}</StyledTypography>
               <ControlledSwitch
                 name={'requestNecropsy'}
-                label={'Yes'}
+                label={(t('yes') as string)}
                 labelPlacement='right'
                 control={control}
                 errors={errors}
@@ -259,7 +267,7 @@ const InpatientDischarge = () => {
                   control={control}
                   name={'necropsyPriority'}
                   errors={errors}
-                  label={'Select Priority'}
+                  label={(t('hospital_module.select_priority') as string)}
                   fullWidth
                   options={necropsyPriorityList}
                   getOptionLabel={(option: any) => option.label}
@@ -269,9 +277,9 @@ const InpatientDischarge = () => {
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label={'Enter reason why necropsy will not be performed'}
+                  label={(t('hospital_module.enter_reason_for_no_necropsy') as string)}
                   name={'noNecropsyReason'}
-                  placeholder={'Enter Reason'}
+                  placeholder={(t('hospital_module.enter_reason') as string)}
                   fullWidth
                 />
               )}

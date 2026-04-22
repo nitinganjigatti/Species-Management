@@ -19,6 +19,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 interface SymptomsListProps {
   symptoms?: any[]
@@ -64,6 +65,7 @@ export default function SymptomsList({
   const theme: any = useTheme()
   const authData: any = useContext(AuthContext)
   const userSettings = authData?.userData?.permission?.user_settings
+  const { t } = useTranslation()
   const listHeight = 620
 
   return (
@@ -114,7 +116,7 @@ export default function SymptomsList({
               px: 3
             }}
           >
-            ADD NEW
+            {t('hospital_module.add_new')}
           </Button>
         )}
       </Box>
@@ -189,8 +191,8 @@ export default function SymptomsList({
           alignItems: 'center'
         }}
       >
-        <Box sx={{ flex: 1 }}>SYMPTOMS</Box>
-        <Box sx={{ minWidth: '177px', textAlign: 'left' }}>TYPE</Box>
+        <Box sx={{ flex: 1 }}>{t('hospital_module.symptoms_header')}</Box>
+        <Box sx={{ minWidth: '177px', textAlign: 'left' }}>{t('hospital_module.type_header')}</Box>
       </Box>
 
       <Box sx={{ maxHeight: listHeight, overflowY: 'auto', mt: 0 }} onScroll={handleScroll}>
@@ -210,7 +212,7 @@ export default function SymptomsList({
           >
             <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
-              No Symptoms to show
+              {t('hospital_module.no_symptoms_to_show')}
             </Typography>
           </Box>
         ) : (

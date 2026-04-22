@@ -1,22 +1,10 @@
 'use client'
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useMemo } from 'react'
 import { Box, Radio, Typography, FormControlLabel, RadioGroup } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
-
-const MENU_DATA: any = {
-  Availability: [
-    { label: 'Available', value: 'Available' },
-    { label: 'Occupied', value: 'Occupied' }
-
-    // { label: 'Unavailable', value: 'Unavailable' }
-  ],
-  Status: [
-    { label: 'Active', value: 'active' },
-    { label: 'Inactive', value: 'inactive' }
-  ]
-}
 
 const DEFAULT_OPTIONS: any = { Availability: [], Status: [] }
 
@@ -37,11 +25,26 @@ const RoomFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }: RoomFilterDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const [selectedMenu, setSelectedMenu] = useState<string>('Availability')
   const [selectedOptions, setSelectedOptions] = useState<any>(DEFAULT_OPTIONS)
   const [localFilterCount, setLocalFilterCount] = useState<number>(0)
+
+  const MENU_DATA: any = useMemo(
+    () => ({
+      Availability: [
+        { label: t('hospital_module.available'), value: 'Available' },
+        { label: t('hospital_module.occupied'), value: 'Occupied' }
+      ],
+      Status: [
+        { label: t('hospital_module.active'), value: 'active' },
+        { label: t('hospital_module.inactive'), value: 'inactive' }
+      ]
+    }),
+    [t]
+  )
 
   const isFilterEmpty = (filters: any) => {
     if (!filters) return true

@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react'
 import { useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 import { getAnesthesiaList } from 'src/lib/api/hospital/anesthesia'
 import Utility from 'src/utility'
@@ -32,6 +33,7 @@ const SelectAnesthesiaRecordDrawer = ({
   onConfirm = () => {},
   refetchTrigger = 0
 }: SelectAnesthesiaRecordDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const [selectedId, setSelectedId] = useState<any>(initialSelectedId)
 
@@ -143,7 +145,7 @@ const SelectAnesthesiaRecordDrawer = ({
             }}
             component='div'
           >
-            Select Anesthesia Record
+            {t('hospital_module.select_anesthesia_record')}
           </Typography>
         </Box>
         <IconButton onClick={onClose} sx={{ alignSelf: 'flex-start', mr: '-10px' }}>
@@ -165,7 +167,7 @@ const SelectAnesthesiaRecordDrawer = ({
         {isAnesthesiaLoading && renderSkeletonCard(7)}
         {!isAnesthesiaLoading && items.length === 0 && (
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary }}>
-            No anesthesia records found.
+            {t('hospital_module.no_anesthesia_records_found')}
           </Typography>
         )}
         {!isAnesthesiaLoading &&
@@ -256,7 +258,7 @@ const SelectAnesthesiaRecordDrawer = ({
                       }}
                       component='span'
                     >
-                      Anesthetists: {record?.created_by_name || record?.createdBy || '--'}
+                      {t('hospital_module.anesthetists')} {record?.created_by_name || record?.createdBy || '--'}
                     </Typography>
                     <Typography
                       sx={{
@@ -340,7 +342,7 @@ const SelectAnesthesiaRecordDrawer = ({
             letterSpacing: '0.5px'
           }}
         >
-          ADD
+          {t('add')}
         </Button>
       </Box>
     </Drawer>

@@ -2,6 +2,7 @@
 
 import { debounce } from 'lodash'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import Toaster from 'src/components/Toaster'
@@ -26,6 +27,7 @@ const IncomingFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }: IncomingFilterDrawerProps) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState('User')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
@@ -109,7 +111,7 @@ const IncomingFilterDrawer = ({
         console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
         Toaster({
           type: 'error',
-          message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+          message: t('hospital_module.failed_to_load_hospital_staff')
         })
       } finally {
         setSearchLoading(false)
@@ -250,7 +252,7 @@ const IncomingFilterDrawer = ({
             items={menuData['User']}
             isAllSelected={isAllSelected('User')}
             searchLoading={searchLoading}
-            placeholder='Search User'
+            placeholder={(t('search') as string)}
           />
         )}
 
@@ -265,7 +267,7 @@ const IncomingFilterDrawer = ({
             items={menuData['Origin Site']}
             isAllSelected={isAllSelected('Origin Site')}
             searchLoading={searchLoading}
-            placeholder='Search Origin Sites...'
+            placeholder={(t('search') as string)}
           />
         )}
       </CustomFilterDrawer>

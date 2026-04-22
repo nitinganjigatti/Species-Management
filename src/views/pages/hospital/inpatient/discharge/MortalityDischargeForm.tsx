@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Divider, Grid, Typography, useTheme } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 
@@ -65,6 +66,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
     refetchPatient
   } = props
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const params = useParams()
   const { id }: any = params
 
@@ -309,13 +311,13 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
       <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 4 }}>
-            <StyledTypography>Mortality Details</StyledTypography>
+            <StyledTypography>{t('hospital_module.mortality_details')}</StyledTypography>
             <Grid container spacing={6}>
               <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                 <ControlledDatePicker
                   control={control}
                   name={'date_of_death'}
-                  label='Date of Death*'
+                  label={(t('hospital_module.date_of_death') as string)}
                   errors={errors}
                   minDate={dayjs(patientData?.admitted_at)}
                   maxDate={dayjs(new Date())}
@@ -328,7 +330,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
                 <ControlledTimePicker
                   control={control}
                   name={'time_of_death'}
-                  label='Time of Death*'
+                  label={(t('hospital_module.time_of_death') as string)}
                   errors={errors}
                   minTime={minTime}
                   maxTime={maxTime}
@@ -340,7 +342,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
                   control={control}
                   name={'manner_of_death'}
                   errors={errors}
-                  label={'Cause of Death*'}
+                  label={(t('hospital_module.cause_of_death') as string)}
                   options={causeOfDeath}
                   getOptionLabel={(option: any) => option?.label || ''}
                   onInputChange={(value: any) => handleMannerSearch(value)}
@@ -357,7 +359,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
                   control={control}
                   name={'carcass_condition'}
                   errors={errors}
-                  label={'Carcass Condition*'}
+                  label={(t('hospital_module.carcass_condition') as string)}
                   options={carcassCondition}
                   getOptionLabel={(option: any) => option?.label || ''}
                   onInputChange={(value: any) => handleConditionSearch(value)}
@@ -374,7 +376,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
                   control={control}
                   name={'carcass_disposition'}
                   errors={errors}
-                  label={'Carcass Deposition*'}
+                  label={(t('hospital_module.carcass_deposition') as string)}
                   options={carcassDeposition}
                   getOptionLabel={(option: any) => option?.label || ''}
                   onInputChange={(value: any) => handleDispositionSearch(value)}
@@ -394,7 +396,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
             control={control}
             render={({ field, fieldState }: any) => (
               <TemplateSection
-                label='Enter summary'
+                label={(t('hospital_module.enter_summary') as string)}
                 value={field.value}
                 onChange={field.onChange}
                 error={!!fieldState.error}
@@ -420,10 +422,10 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
                 }
               }}
             >
-              <StyledTypography fontSize={'1.25rem'}>Request Necropsy</StyledTypography>
+              <StyledTypography fontSize={'1.25rem'}>{t('hospital_module.request_necropsy')}</StyledTypography>
               <ControlledSwitch
                 name={'necropsy_requested'}
-                label={watchRequestNecropsy ? 'Yes' : 'No'}
+                label={watchRequestNecropsy ? t('yes') || "" : t('no') || ''}
                 control={control}
                 errors={errors}
                 gap={4}
@@ -474,7 +476,7 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label={'Enter reason why necropsy will not be performed'}
+                  label={(t('hospital_module.enter_reason_for_no_necropsy') as string)}
                   name={'necropsy_reason'}
                   placeholder={'Enter Reason'}
                   fullWidth
@@ -488,13 +490,13 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
           {watchRequestNecropsy && (
             <>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 4 }}>
-                <StyledTypography>Necropsy Center*</StyledTypography>
+                <StyledTypography>{t('hospital_module.necropsy_center')}</StyledTypography>
 
                 <ControlledAutocomplete
                   control={control}
                   name={'necropsy_center_id'}
                   errors={errors}
-                  label={'Necropsy Center*'}
+                  label={(t('hospital_module.necropsy_center') as string)}
                   options={necropsyCenter}
                   getOptionLabel={(option: any) => option?.label || ''}
                   getOptionValue={(option: any) => option?.value || ''}
@@ -513,12 +515,12 @@ const MortalityDischargeForm = (props: MortalityDischargeFormProps) => {
           )}
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <StyledTypography>Attachments</StyledTypography>
+            <StyledTypography>{t('hospital_module.attachments')}</StyledTypography>
             <ControlledMultiFileUpload
               name={'attachments'}
               control={control}
               errors={errors}
-              label='Upload attachment'
+              label={(t('hospital_module.upload_attachment') as string)}
               acceptedFileTypes={'images,pdf,document'}
             />
           </Box>

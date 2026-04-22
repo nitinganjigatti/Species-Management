@@ -4,6 +4,7 @@ import { Box, Button, Typography, CircularProgress, Skeleton } from '@mui/materi
 import { debounce } from 'lodash'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useParams, useSearchParams, useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
@@ -23,6 +24,7 @@ interface SymptomsProps {
 }
 
 const Symptoms = ({ selectedTab, patientData, overviewData, category }: SymptomsProps = {}) => {
+  const { t } = useTranslation()
   const router: any = useRouter()
   const params: any = useParams()
   const searchParams: any = useSearchParams()
@@ -251,7 +253,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
                             whiteSpace: 'nowrap'
                           }}
                         >
-                          {tab} - {tabCount}
+                          {t(`hospital_module.status_${tab.toLowerCase()}`)} - {tabCount}
                         </Typography>
                       </Box>
                     )
@@ -268,14 +270,14 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
                   onClear={handleSearchClear}
                 />
                 <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
-                  ADD NEW
+                  {t('hospital_module.add_new')}
                 </Button>
               </Box>
             {/* )} */}
           </Box>
           <Box>
             <MUISwitch
-              label='Current Medical Record Only'
+              label={(t('hospital_module.current_medical_record_only') as string)}
               checked={currentRecordOnly}
               onChange={handleSwitchChange}
               size='small'
@@ -293,7 +295,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
             }}
           >
             <MUISwitch
-              label='Current Medical Record Only'
+              label={(t('hospital_module.current_medical_record_only') as string)}
               checked={currentRecordOnly}
               onChange={handleSwitchChange}
               size='small'
@@ -320,8 +322,8 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
             }}
           >
             <NoMedicalData
-              btnText={'ADD NEW SYMPTOM'}
-              text={'All Added SYMPTOMS Will Appear here'}
+              btnText={t('hospital_module.add_symptom')}
+              text={t('hospital_module.symptoms_appear_here')}
               // isDischarged={isDischared}
               btnAction={handleRouterNavigation}
             />
@@ -354,7 +356,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
 
         {!loading && !isFetchingMore && records?.length > 10 && (
           <Typography sx={{ textAlign: 'center', color: theme.palette.text.disabled }}>
-            No more symptoms to load
+            {t('hospital_module.no_more_symptoms_to_load')}
           </Typography>
         )}
       </Box>

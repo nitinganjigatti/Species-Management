@@ -2,22 +2,13 @@
 import React, { useState } from 'react'
 import { Typography, styled, Box, useTheme, Grid, InputAdornment } from '@mui/material'
 import { useFormContext, Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import CustomOtherPurposeSection from 'src/views/utility/CustomOtherPurposeSection'
 import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
-
-const fastingTimeOptions = [
-  { label: 'Hours', value: 'Hours' },
-  { label: 'Minutes', value: 'Minutes' }
-]
-
-const weightOptions = [
-  { label: 'Kg', value: 'Kg' },
-  { label: 'Gram', value: 'Gram' }
-]
 
 interface PreAnesthesiaProps {
   physicalHealthStatusOptions?: any[]
@@ -35,6 +26,7 @@ function PreAnesthesia({
   clinPathOptions = []
 }: PreAnesthesiaProps) {
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const {
     control,
     formState: { errors },
@@ -43,6 +35,16 @@ function PreAnesthesia({
   } = useFormContext()
 
   const [duplicateError, setDuplicateError] = useState<string>('')
+
+  const fastingTimeOptions = [
+    { label: t('hospital_module.hours', 'Hours'), value: 'Hours' },
+    { label: t('hospital_module.minutes', 'Minutes'), value: 'Minutes' }
+  ]
+
+  const weightOptions = [
+    { label: t('hospital_module.kg', 'Kg'), value: 'Kg' },
+    { label: t('hospital_module.gram', 'Gram'), value: 'Gram' }
+  ]
 
   const normalizeName = (name: string) => {
     if (!name) return ''
@@ -61,7 +63,7 @@ function PreAnesthesia({
     const isInCustomItems = currentItems.some((item: string) => normalizeName(item) === normalizedNewItem)
 
     if (isInClinPathOptions || isInCustomItems) {
-      setDuplicateError('Item already exists')
+      setDuplicateError(t('hospital_module.item_already_exists') as string)
       return currentItems
     }
     setDuplicateError('')
@@ -72,16 +74,16 @@ function PreAnesthesia({
     <Box sx={{ p: '0 0px 24px 0px' }}>
       <Grid container spacing={6}>
         <Grid size={{ xs: 12 }}>
-          <StyledTypography>Environmental Condition</StyledTypography>
+          <StyledTypography>{t('hospital_module.environmental_condition')}</StyledTypography>
         </Grid>
 
         <Grid size={{ xs: 4 }}>
           <ControlledTextField
             control={control}
             errors={errors}
-            label='Temperature'
+            label={(t('hospital_module.temperature') as string)}
             name='preAnesthesia.temperature'
-            placeholder='Enter Temperature'
+            placeholder={(t('hospital_module.enter_temperature') as string)}
             type='number'
             inputSlotProps={{
               endAdornment: (
@@ -97,9 +99,9 @@ function PreAnesthesia({
           <ControlledTextField
             control={control}
             errors={errors}
-            label='Humidity'
+            label={(t('hospital_module.humidity') as string)}
             name='preAnesthesia.humidity'
-            placeholder='Enter Humidity'
+            placeholder={(t('hospital_module.enter_humidity') as string)}
             type='number'
             inputSlotProps={{
               endAdornment: (
@@ -112,7 +114,7 @@ function PreAnesthesia({
         </Grid>
 
         <Grid size={{ xs: 12 }}>
-          <StyledTypography>Pre Anesthetic Examination</StyledTypography>
+          <StyledTypography>{t('hospital_module.pre_anesthetic_examination')}</StyledTypography>
         </Grid>
 
         <Grid size={{ xs: 4 }}>
@@ -120,7 +122,7 @@ function PreAnesthesia({
             control={control}
             name='preAnesthesia.physical_health_status'
             errors={errors}
-            label='Physical Health Status'
+            label={(t('hospital_module.physical_health_status') as string)}
             options={physicalHealthStatusOptions}
             getOptionLabel={(opt: any) => opt.label}
             getOptionValue={(opt: any) => opt.value}
@@ -132,7 +134,7 @@ function PreAnesthesia({
             control={control}
             name='preAnesthesia.body_condition'
             errors={errors}
-            label='Body Condition'
+            label={(t('hospital_module.body_condition') as string)}
             options={bodyConditionOptions}
             getOptionLabel={(opt: any) => opt.label}
             getOptionValue={(opt: any) => opt.value}
@@ -144,7 +146,7 @@ function PreAnesthesia({
             control={control}
             name='preAnesthesia.animal_activity'
             errors={errors}
-            label='Animal Activity'
+            label={(t('hospital_module.animal_activity') as string)}
             options={animalActivityOptions}
             getOptionLabel={(opt: any) => opt.label}
             getOptionValue={(opt: any) => opt.value}
@@ -158,8 +160,8 @@ function PreAnesthesia({
             control={control}
             errors={errors}
             {...({ options: fastingTimeOptions } as any)}
-            label='Fasting Time'
-            placeholder='Enter fasting time'
+            label={(t('hospital_module.fasting_time') as string)}
+            placeholder={(t('hospital_module.enter_fasting_time') as string)}
             type='number'
             getOptionLabel={(option: any) => option.label}
             getOptionValue={(option: any) => option.value}
@@ -173,9 +175,9 @@ function PreAnesthesia({
           <ControlledTextField
             control={control}
             errors={errors}
-            label='Previous endotracheal tube size'
+            label={(t('hospital_module.previous_endotracheal_tube_size') as string)}
             name='preAnesthesia.previous_endotracheal_tube_size'
-            placeholder='Previous endotracheal tube size'
+            placeholder={(t('hospital_module.previous_endotracheal_tube_size') as string)}
             type='text'
           />
         </Grid>
@@ -185,7 +187,7 @@ function PreAnesthesia({
             control={control}
             name='preAnesthesia.code_status'
             errors={errors}
-            label='Code status'
+            label={(t('hospital_module.code_status') as string)}
             options={codeStatusOptions}
             getOptionLabel={(opt: any) => opt.label}
             getOptionValue={(opt: any) => opt.value}
@@ -199,8 +201,8 @@ function PreAnesthesia({
             control={control}
             errors={errors}
             {...({ options: weightOptions } as any)}
-            label='Weight'
-            placeholder='Weight'
+            label={(t('hospital_module.weight') as string)}
+            placeholder={(t('hospital_module.weight') as string)}
             type='number'
             getOptionLabel={(option: any) => option.label}
             getOptionValue={(option: any) => option.value}
@@ -211,7 +213,7 @@ function PreAnesthesia({
           <ControlledCheckBox
             name='preAnesthesia.mark_weight_as_approximate'
             control={control}
-            label='Mark weight as approximate'
+            label={(t('hospital_module.mark_weight_as_approximate') as string)}
             {...({ labelStyle: {
               fontSize: '14px',
               fontWeight: 400,
@@ -224,14 +226,14 @@ function PreAnesthesia({
           <ControlledTextField
             control={control}
             errors={errors}
-            label='Risk / Concerns'
+            label={(t('hospital_module.risk_concerns') as string)}
             name='preAnesthesia.pre_anesthesia_notes'
-            placeholder='Enter Risk / Concerns'
+            placeholder={(t('hospital_module.enter_risk_concerns') as string)}
           />
         </Grid>
 
         <Grid size={{ xs: 12 }}>
-          <StyledTypography>Clin Path</StyledTypography>
+          <StyledTypography>{t('hospital_module.clin_path')}</StyledTypography>
         </Grid>
 
         <Grid size={{ xs: 12 }} sx={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
@@ -261,8 +263,8 @@ function PreAnesthesia({
             render={({ field }: any) => {
               return (
                 <CustomOtherPurposeSection
-                  title='Add New other Item'
-                  addedLabel='Other Clin Path Items Added'
+                  title={(t('hospital_module.add_new_other_item') as string)}
+                  addedLabel={t('hospital_module.other_clin_path_items_added') as string}
                   value={field.value || []}
                   onChange={(newValue: any) => {
                     field.onChange(newValue)

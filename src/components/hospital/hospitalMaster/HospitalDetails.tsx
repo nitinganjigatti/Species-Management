@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react'
 import { Box, Button, Card, CardHeader, Typography, useTheme, MenuItem, Select, alpha } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
 import { useSearchParams, useRouter } from 'next/navigation'
@@ -20,17 +21,21 @@ import { addHospitalMaster, getHospitalMaster } from 'src/lib/api/hospital/hospi
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
-const statusOptions = [
-  { label: 'All Status', value: 'all' },
-  { label: 'Active', value: 1 },
-  { label: 'In Active', value: 0 }
-]
-
 const HospitalDetails = () => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const appRouter = useRouter()
   const searchParams: any = useSearchParams()
   const queryClient = useQueryClient()
+
+  const statusOptions = useMemo(
+    () => [
+      { label: t('hospital_module.all_status'), value: 'all' },
+      { label: t('hospital_module.active'), value: 1 },
+      { label: t('hospital_module.in_active'), value: 0 }
+    ],
+    [t]
+  )
 
   // Get query string parameters from App Router
   const page = searchParams.get('page') || ''
@@ -206,11 +211,11 @@ const HospitalDetails = () => {
         queryClient.invalidateQueries(['hospital-list'] as any)
 
         setOpenDrawer(false)
-        Toaster({ type: 'success', message: response?.message || 'Hospital created successfully' })
+        Toaster({ type: 'success', message: response?.message || t('hospital_module.hospital_created_successfully') })
 
         return true
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to create Hospital ' })
+        Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_create_hospital') })
 
         return false
       }
@@ -244,23 +249,24 @@ const HospitalDetails = () => {
     }))
   }, [rows, filters.page, filters.limit])
 
-  const columns: any = [
-    {
-      minWidth: 50,
-      field: 'id',
-      headerName: 'Sl.No',
-      sortable: false,
-      renderCell: (params: any) => (
-        <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
-          {params?.row?.sl_no}
-        </StyledTypography>
-      )
-    },
-    {
-      minWidth: 250,
-      field: 'hospital_name',
-      headerName: 'Hospital Name',
-      sortable: false,
+  const columns: any = useMemo(
+    () => [
+      {
+        minWidth: 50,
+        field: 'id',
+        headerName: t('hospital_module.sl_no'),
+        sortable: false,
+        renderCell: (params: any) => (
+          <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
+            {params?.row?.sl_no}
+          </StyledTypography>
+        )
+      },
+      {
+        minWidth: 250,
+        field: 'hospital_name',
+        headerName: t('hospital_module.hospital_name'),
+        sortable: false,
       renderCell: (params: any) => (
         <TextEllipsisWithModal
           enableDialog={false}
@@ -276,30 +282,30 @@ const HospitalDetails = () => {
         />
       )
     },
-    {
-      minWidth: 120,
-      field: 'rooms',
-      headerName: 'Rooms',
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_rooms ?? '-'}</StyledTypography>
-    },
-    {
-      minWidth: 150,
-      field: 'occupants',
-      headerName: 'Occupants',
-      renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_occupants ?? '-'}</StyledTypography>
-    },
-    {
-      minWidth: 140,
-      field: 'active',
-      headerName: 'Status',
-      sortable: false,
-      renderCell: (params: any) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.active} />
-    },
-    {
-      minWidth: 200,
-      field: 'site_name',
-      headerName: 'Site Name',
-      sortable: false,
+      {
+        minWidth: 120,
+        field: 'rooms',
+        headerName: t('hospital_module.rooms'),
+        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_rooms ?? '-'}</StyledTypography>
+      },
+      {
+        minWidth: 150,
+        field: 'occupants',
+        headerName: t('hospital_module.occupants'),
+        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_occupants ?? '-'}</StyledTypography>
+      },
+      {
+        minWidth: 140,
+        field: 'active',
+        headerName: t('hospital_module.status'),
+        sortable: false,
+        renderCell: (params: any) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.active} />
+      },
+      {
+        minWidth: 200,
+        field: 'site_name',
+        headerName: t('hospital_module.site_name'),
+        sortable: false,
       renderCell: (params: any) => (
         <TextEllipsisWithModal
           enableDialog={false}
@@ -315,41 +321,43 @@ const HospitalDetails = () => {
         />
       )
     },
-    {
-      minWidth: 230,
-      field: 'created_by_name',
-      headerName: 'Added By',
-      sortable: false,
-      renderCell: (params: any) => (
-        <Box sx={{ pl: 1.4 }}>
-          <UserAvatarDetails
-            user_name={params?.row?.created_by_name}
-            date={params.row.created_at}
-            dateType={'created'}
-            size='medium'
-            profile_image={params?.row?.profile_image}
-          />
-        </Box>
-      )
-    },
-    {
-      minWidth: 230,
-      field: 'updated_by_name',
-      headerName: 'Updated By',
-      sortable: false,
-      renderCell: (params: any) => (
-        <Box sx={{ pl: 1.4 }}>
-          <UserAvatarDetails
-            user_name={params?.row?.updated_by_name}
-            date={params.row.updated_at}
-            dateType={'updated'}
-            size='medium'
-            profile_image={params?.row?.updated_user_profile_image}
-          />
-        </Box>
-      )
-    }
-  ]
+      {
+        minWidth: 230,
+        field: 'created_by_name',
+        headerName: t('hospital_module.added_by'),
+        sortable: false,
+        renderCell: (params: any) => (
+          <Box sx={{ pl: 1.4 }}>
+            <UserAvatarDetails
+              user_name={params?.row?.created_by_name}
+              date={params.row.created_at}
+              dateType={'created'}
+              size='medium'
+              profile_image={params?.row?.profile_image}
+            />
+          </Box>
+        )
+      },
+      {
+        minWidth: 230,
+        field: 'updated_by_name',
+        headerName: t('hospital_module.updated_by'),
+        sortable: false,
+        renderCell: (params: any) => (
+          <Box sx={{ pl: 1.4 }}>
+            <UserAvatarDetails
+              user_name={params?.row?.updated_by_name}
+              date={params.row.updated_at}
+              dateType={'updated'}
+              size='medium'
+              profile_image={params?.row?.updated_user_profile_image}
+            />
+          </Box>
+        )
+      }
+    ],
+    [t]
+  )
 
   // getRowClassName function
   const getRowClassName = (params: any) => {
@@ -420,7 +428,7 @@ const HospitalDetails = () => {
                 fontWeight: 500
               }}
             >
-              Hospital List
+              {t('hospital_module.hospital_list')}
             </Typography>
           }
           action={
@@ -430,7 +438,7 @@ const HospitalDetails = () => {
               sx={{ py: 2, px: 3, borderRadius: '4px' }}
               onClick={() => setOpenDrawer(true)}
             >
-              Add Hospital
+              {t('hospital_module.add_hospital')}
             </Button>
           }
         />
@@ -448,7 +456,7 @@ const HospitalDetails = () => {
             value={searchValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={handleSearchClear}
-            placeholder='Search by Hospital Name'
+            placeholder={(t('hospital_module.search_by_hospital_name') as string)}
             textFielsSX={{
               '& .MuiInputBase-input::placeholder': {
                 fontSize: '0.875rem'

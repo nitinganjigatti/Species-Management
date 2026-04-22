@@ -12,59 +12,56 @@ import { Grid } from '@mui/system'
 import { LoadingButton } from '@mui/lab'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 dayjs.extend(customParseFormat)
 
-const schema = yup.object().shape({
-  gas_name: yup
-    .object()
-    .nullable()
-    .required('Please select a Gas from the list')
-    .test('is-valid-drug', 'Please select a valid gas from the list', function (value: any) {
-      if (!value) return false
-      return Boolean(value.id && value.name)
-    }),
-  o2_flow: yup.string().trim().required('O2 Flow is required'),
-  concentration: yup.string().trim().required('Concentration is required'),
-  start_time: yup
-    .date()
-    .nullable()
-    .required('Start time is required')
-    .typeError('Please select a valid start time')
-    .test('is-before-end-time', 'Start time cannot be greater than end time', function (value: any) {
-      const { end_time } = this.parent
-      if (!value || !end_time) return true
+const createSchema = (t: any) => {
+  return yup.object().shape({
+    gas_name: yup
+      .object()
+      .nullable()
+      .required(t('hospital_module.gas_is_required', 'Please select a Gas from the list'))
+      .test('is-valid-drug', t('hospital_module.please_select_valid_gas', 'Please select a valid gas from the list'), function (value: any) {
+        if (!value) return false
+        return Boolean(value.id && value.name)
+      }),
+    o2_flow: yup.string().trim().required(t('hospital_module.o2_flow_is_required', 'O2 Flow is required')),
+    concentration: yup.string().trim().required(t('hospital_module.concentration_is_required', 'Concentration is required')),
+    start_time: yup
+      .date()
+      .nullable()
+      .required(t('hospital_module.start_time_required', 'Start time is required'))
+      .typeError(t('hospital_module.please_select_valid_start_time', 'Please select a valid start time'))
+      .test('is-before-end-time', t('hospital_module.start_time_cannot_be_greater_than_end_time', 'Start time cannot be greater than end time'), function (value: any) {
+        const { end_time } = this.parent
+        if (!value || !end_time) return true
 
-      const start = dayjs(value)
-      const end = dayjs(end_time)
+        const start = dayjs(value)
+        const end = dayjs(end_time)
 
-      return start.isBefore(end) || start.isSame(end)
-    }),
+        return start.isBefore(end) || start.isSame(end)
+      }),
 
-  end_time: yup
-    .date()
-    .nullable()
-    .required('End time is required')
-    .typeError('Please select a valid end time')
-    .test('is-after-start-time', 'End time cannot be less than start time', function (value: any) {
-      const { start_time } = this.parent
-      if (!value || !start_time) return true
+    end_time: yup
+      .date()
+      .nullable()
+      .required(t('hospital_module.end_time_required', 'End time is required'))
+      .typeError(t('hospital_module.please_select_valid_end_time', 'Please select a valid end time'))
+      .test('is-after-start-time', t('hospital_module.end_time_cannot_be_less_than_start_time', 'End time cannot be less than start time'), function (value: any) {
+        const { start_time } = this.parent
+        if (!value || !start_time) return true
 
-      const start = dayjs(start_time)
-      const end = dayjs(value)
+        const start = dayjs(start_time)
+        const end = dayjs(value)
 
-      return end.isAfter(start) || end.isSame(start)
-    }),
-  delivery_status: yup.string().required('Delivery status is required'),
-  delivery_route: yup.object().required('Delivery Route is required')
-})
-
-const deliveryStatus = [
-  { label: 'Complete', value: 'Complete' },
-  { label: 'Partial', value: 'Partial' },
-  { label: 'None', value: 'None' }
-]
+        return end.isAfter(start) || end.isSame(start)
+      }),
+    delivery_status: yup.string().required(t('hospital_module.delivery_status_required', 'Delivery status is required')),
+    delivery_route: yup.object().required(t('hospital_module.delivery_route_is_required', 'Delivery Route is required'))
+  })
+}
 
 interface FormValues {
   gas_name: any
@@ -116,6 +113,15 @@ function AddGasDrawer({
   onSearch
 }: AddGasDrawerProps) {
   const theme: any = useTheme()
+  const { t } = useTranslation()
+
+  const schema = createSchema(t)
+
+  const deliveryStatus = [
+    { label: t('hospital_module.complete'), value: 'Complete' },
+    { label: t('hospital_module.partial'), value: 'Partial' },
+    { label: t('hospital_module.none'), value: 'None' }
+  ]
   const [selectedStatus, setSelectedStatus] = useState<any>(null)
   const [drugNameTouched, setDrugNameTouched] = useState<boolean>(false)
   const {
@@ -282,7 +288,7 @@ function AddGasDrawer({
           <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
 
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {editData ? 'Edit Gas' : 'Add Gas'}
+            {editData ? t('hospital_module.edit_gas') : t('hospital_module.add_gas')}
           </Typography>
         </Box>
 
@@ -313,7 +319,7 @@ function AddGasDrawer({
                       control={control}
                       name='gas_name'
                       errors={errors}
-                      label='Enter Gas Name*'
+                      label={(t('hospital_module.enter_gas_name') as string)}
                       options={filteredGasOptions}
                       getOptionLabel={(option: any) => option?.name || ''}
                       isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
@@ -384,9 +390,9 @@ function AddGasDrawer({
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='O2 Flow (L/min)*'
+                  label={(t('hospital_module.o2_flow_label') as string)}
                   name='o2_flow'
-                  placeholder='O2 Flow (L/min)'
+                  placeholder={(t('hospital_module.o2_flow_label') as string)}
                   fullWidth
                   type='number'
                 />
@@ -395,9 +401,9 @@ function AddGasDrawer({
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='Concentration (%)*'
+                  label={(t('hospital_module.concentration_label') as string)}
                   name='concentration'
-                  placeholder='Concentration (%)'
+                  placeholder={(t('hospital_module.concentration_label') as string)}
                   fullWidth
                   type='number'
                 />
@@ -406,7 +412,7 @@ function AddGasDrawer({
                 <ControlledTimePicker
                   control={control}
                   name={'start_time'}
-                  label='Start Time*'
+                  label={(t('hospital_module.start_time', 'Start Time') as string)}
                   errors={errors}
                   {...({ format: 'hh:mm a' } as any)}
                 />
@@ -416,7 +422,7 @@ function AddGasDrawer({
                   control={control}
                   name='delivery_route'
                   errors={errors}
-                  label='Delivery Route*'
+                  label={(t('hospital_module.delivery_route') as string)}
                   options={deliveryRouteOptions}
                   getOptionLabel={(option: any) => option?.delivery || ''}
                   isOptionEqualToValue={(option: any, value: any) => option?.id === value?.id}
@@ -429,7 +435,7 @@ function AddGasDrawer({
               </Grid>
               <Grid size={{ xs: 12 }} sx={{ display: 'flex', alignItems: 'center' }}>
                 <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mr: 2 }}>
-                  Delivery status:{' '}
+                  {t('hospital_module.delivery_status_label')}{' '}
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
                   {deliveryStatus.map((status: any, index: number) => (
@@ -468,7 +474,7 @@ function AddGasDrawer({
                 <ControlledTimePicker
                   control={control}
                   name={'end_time'}
-                  label='End Time*'
+                  label={(t('hospital_module.end_time', 'End Time') as string)}
                   errors={errors}
                   {...({ format: 'hh:mm a' } as any)}
                 />
@@ -503,7 +509,7 @@ function AddGasDrawer({
                 }}
                 onClick={handleClose}
               >
-                Cancel
+                {t('cancel')}
               </LoadingButton>
               <LoadingButton
                 variant='contained'
@@ -512,7 +518,7 @@ function AddGasDrawer({
                 sx={{ flex: 1, py: 4 }}
                 disabled={!isValid || submitLoader}
               >
-                {editData ? 'Update' : 'Add'}
+                {editData ? t('update') : t('add')}
               </LoadingButton>
             </Box>
           </Box>

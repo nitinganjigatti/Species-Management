@@ -15,6 +15,7 @@ import {
   Collapse,
   Skeleton
 } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
@@ -81,9 +82,15 @@ export default function BasicDetails({
     trigger,
     formState: { errors }
   } = useFormContext()
+  const { t } = useTranslation()
   const router: any = useSafeRouter()
   const theme: any = useTheme()
   const [newPurpose, setNewPurpose] = useState<string>('')
+
+  const timeUnits = [
+    { label: t('hospital_module.hr'), value: 'hr' },
+    { label: t('hospital_module.min'), value: 'min' }
+  ]
   const [expanded, setExpanded] = useState<boolean>(false)
   const [showToggle, setShowToggle] = useState<boolean>(false)
   const [fullHeight, setFullHeight] = useState<any>(0 || '')
@@ -96,10 +103,6 @@ export default function BasicDetails({
   const id = routerParams?.id
   const { anaesthesia_id } = router.query
   const effectiveAnesthesiaId = anesthesiaId || anaesthesia_id
-  const timeUnits = [
-    { label: 'hr', value: 'hr' },
-    { label: 'min', value: 'min' }
-  ]
   const data = watch()
   const anaesthesiaDateTimeValue = watch('basicDetails.anaesthesia_datetime')
 
@@ -331,7 +334,7 @@ export default function BasicDetails({
         <Grid size={{ xs: 12, md: 4 }}>
           <ControlledTextField
             name='basicDetails.location'
-            label='Location*'
+            label={`${t('hospital_module.location')}*`}
             control={control}
             errors={errors}
             sx={commonTextFieldSx}
@@ -344,7 +347,7 @@ export default function BasicDetails({
             name='basicDetails.anaesthesia_datetime'
             control={control}
             errors={errors}
-            label='Date & Time of Anesthesia*'
+            label={`${t('hospital_module.date_and_time_of_anesthesia')}*`}
             ampm
             {...({
               minDateTime: dayjs((Utility as any).convertUTCToLocal(patientData?.admitted_at)),
@@ -361,8 +364,8 @@ export default function BasicDetails({
             control={control}
             errors={errors}
             {...({ options: timeUnits } as any)}
-            label='Estimated Time*'
-            placeholder='Enter'
+            label={`${t('hospital_module.estimated_time')}*`}
+            placeholder={(t('add') as string)}
             type='number'
             getOptionLabel={(option: any) => option.label}
             getOptionValue={(option: any) => option.value}
@@ -413,7 +416,7 @@ export default function BasicDetails({
                   renderInput={(params: any) => (
                     <TextField
                       {...params}
-                      label='Veterinarian*'
+                      label={`${t('hospital_module.veterinarian')}*`}
                       fullWidth
                       error={!!(errors as any)?.basicDetails?.veterinarian_id}
                       helperText={(errors as any)?.basicDetails?.veterinarian_id?.message}
@@ -465,7 +468,7 @@ export default function BasicDetails({
                 renderInput={(params: any) => (
                   <TextField
                     {...params}
-                    label='Anesthetist*'
+                    label={`${t('hospital_module.anesthetist')}*`}
                     fullWidth
                     error={!!(errors as any)?.basicDetails?.anesthetist_id}
                     helperText={(errors as any)?.basicDetails?.anesthetist_id?.message}
@@ -496,7 +499,7 @@ export default function BasicDetails({
               fontWeight={600}
               sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Purpose of Anesthesia*{' '}
+              {`${t('hospital_module.purpose_of_anesthesia')}*`}{' '}
               <Box sx={{ display: 'inline-flex', pl: { sm: 4 } }}>
                 <Typography
                   component="span"
@@ -507,7 +510,7 @@ export default function BasicDetails({
                     color: theme.palette.customColors.secondaryBg
                   }}
                 >
-                  Select all that apply
+                  {t('hospital_module.select_all_that_apply')}
                 </Typography>
               </Box>
             </Typography>
@@ -637,7 +640,7 @@ export default function BasicDetails({
                         }}
                       >
                         {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-                        {expanded ? 'View Less' : 'View More'}
+                        {expanded ? t('hospital_module.view_less') : t('hospital_module.view_more')}
                       </Typography>
                     </Grid>
                   )}
@@ -657,7 +660,7 @@ export default function BasicDetails({
                       fontWeight: 600
                     }}
                   >
-                    Other Purposes Added
+                    {t('hospital_module.other_purposes_added')}
                   </Typography>
 
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
@@ -716,13 +719,13 @@ export default function BasicDetails({
                   mb={2}
                   sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Add New Other Purpose
+                  {t('hospital_module.add_new_other_purpose')}
                 </Typography>
 
                 <Box display='flex' flexDirection={{ xs: 'column', sm: 'row' }} gap={2}>
                   <TextField
                     fullWidth
-                    placeholder='Enter new purpose'
+                    placeholder={(t('hospital_module.enter_new_purpose') as string)}
                     value={newPurpose}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const val = e.target.value
@@ -745,7 +748,7 @@ export default function BasicDetails({
                       borderRadius: '4px'
                     }}
                   >
-                    ADD
+                    {t('add')}
                   </Button>
                 </Box>
                 {newPurposeError && (
@@ -768,13 +771,13 @@ export default function BasicDetails({
 
       <Box mt={5}>
         <Typography fontWeight={600} mb={3}>
-          Notes
+          {t('notes')}
         </Typography>
         <ControlledTextArea
           control={control}
           errors={errors}
           name='basicDetails.notes'
-          placeholder='Enter Notes'
+          placeholder={(t('hospital_module.enter_notes') as string)}
           fullWidth
           rows={2}
           sx={{

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Drawer,
   Box,
@@ -82,6 +83,7 @@ const AdministerOrSkipSidesheet = ({
   disableTimeField = true
 }: AdministerOrSkipSidesheetProps) => {
   const theme: any = useTheme()
+  const { t } = useTranslation()
 
   const commonFieldStyles = {
     textAlign: 'left',
@@ -351,7 +353,7 @@ const AdministerOrSkipSidesheet = ({
                 <Typography
                   sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Administer / Skip
+                  {t('hospital_module.administer_or_skip')}
                 </Typography>
               </Box>
             </Box>
@@ -430,14 +432,14 @@ const AdministerOrSkipSidesheet = ({
                       render={({ field }) => (
                         <Box sx={{ display: 'flex', gap: 2 }}>
                           <TreatmentTypeRadioButtons
-                            label='Administer'
+                            label={(t('hospital_module.administer') as string)}
                             isSelected={field.value === 'administer'}
                             onClick={() => field.onChange('administer')}
                             radioPosition='right'
                             sx={{ flex: 1 }}
                           />
                           <TreatmentTypeRadioButtons
-                            label='Skipped'
+                            label={(t('hospital_module.skipped') as string)}
                             isSelected={field.value === 'skipped'}
                             onClick={() => field.onChange('skipped')}
                             radioPosition='right'
@@ -454,7 +456,7 @@ const AdministerOrSkipSidesheet = ({
                     <ControlledTimePicker
                       name='time'
                       control={control}
-                      label='Time'
+                      label={(t('time') as string)}
                       format='hh:mm A'
                       sx={{ backgroundColor: theme.palette.customColors.Surface, ...commonFieldStyles }}
                       error={errors.time}
@@ -471,9 +473,9 @@ const AdministerOrSkipSidesheet = ({
                         errors,
                         sx: commonFieldStyles,
                         options: medicalMasterData?.prescriptionDosageMeasurementType,
-                        label: 'Quantity',
+                        label: t('quantity'),
                         loading: mastersDataLoading,
-                        placeholder: 'Enter quantity',
+                        placeholder: t('hospital_module.enter_quantity'),
                         type: 'number',
                         getOptionLabel: (option: any) => option.label,
                         getOptionValue: (option: any) => option.value,
@@ -518,7 +520,7 @@ const AdministerOrSkipSidesheet = ({
                                 color: theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
-                              Add wastage if any
+                              {t('hospital_module.add_wastage_if_any')}
                               <Typography
                                 component='span'
                                 sx={{
@@ -527,7 +529,7 @@ const AdministerOrSkipSidesheet = ({
                                   ml: 1
                                 }}
                               >
-                                (Optional)
+                                ({t('optional')})
                               </Typography>
                             </Typography>
                           </AccordionSummary>
@@ -539,8 +541,8 @@ const AdministerOrSkipSidesheet = ({
                                   control={control}
                                   errors={errors}
                                   sx={commonFieldStyles}
-                                  label='Quantity'
-                                  placeholder='Enter Quantity'
+                                  label={(t('quantity') as string)}
+                                  placeholder={(t('hospital_module.enter_quantity') as string)}
                                   type='number'
                                 />
                               </Grid>
@@ -548,7 +550,7 @@ const AdministerOrSkipSidesheet = ({
                               <Grid size={{ xs: 12, md: 6 }}>
                                 <ControlledSelect
                                   name='wastageUnit'
-                                  label='Unit'
+                                  label={(t('type') as string)}
                                   control={control}
                                   errors={errors}
                                   sx={commonFieldStyles}
@@ -561,14 +563,14 @@ const AdministerOrSkipSidesheet = ({
 
                               <Grid size={{ xs: 12 }}>
                                 <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
-                                  Notes
+                                  {t('notes')}
                                 </Typography>
                                 <ControlledTextArea
                                   name='notes'
                                   control={control}
                                   errors={errors}
                                   sx={commonFieldStyles}
-                                  placeholder='Enter Notes'
+                                  placeholder={(t('hospital_module.enter_notes') as string)}
                                   rows={3}
                                 />
                               </Grid>
@@ -581,8 +583,8 @@ const AdministerOrSkipSidesheet = ({
                                   sx={commonFieldStyles}
                                   label={
                                     isControlledSubstance
-                                      ? 'Enter batch number (required)'
-                                      : 'Enter batch number if any (optional)'
+                                      ? t('hospital_module.enter_batch_number_required') || ""
+                                      : t('hospital_module.enter_batch_number_optional') || ""
                                   }
                                   options={batchList}
                                   getOptionLabel={(option: any) => {
@@ -608,7 +610,7 @@ const AdministerOrSkipSidesheet = ({
                                   required={isControlledSubstance}
                                   autocompleteProps={{
                                     filterOptions: (x: any) => x,
-                                    noOptionsText: batchLoading ? 'Loading...' : 'Type to search batches'
+                                    noOptionsText: batchLoading ? t('loading') : t('hospital_module.type_to_search_batches')
                                   }}
                                 />
                               </Grid>
@@ -619,7 +621,7 @@ const AdministerOrSkipSidesheet = ({
                                   control={control}
                                   errors={errors}
                                   sx={commonFieldStyles}
-                                  label='Batch Image'
+                                  label={(t('hospital_module.batch_image') as string)}
                                   maxFiles={1}
                                   maxFileSize={5 * 1024 * 1024}
                                   acceptedFileTypes='images'
@@ -635,14 +637,14 @@ const AdministerOrSkipSidesheet = ({
                       {/* Reason for Skip Section */}
                       <Grid size={{ xs: 12 }}>
                         <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
-                          Reason for Skipping
+                          {t('hospital_module.reason_for_skipping')}
                         </Typography>
                         <ControlledTextArea
                           name='skipReason'
                           control={control}
                           errors={errors}
                           sx={commonFieldStyles}
-                          placeholder='Enter reason for skipping'
+                          placeholder={(t('hospital_module.enter_reason_for_skipping') as string)}
                           rows={4}
                           required={actionType === 'skipped'}
                         />
@@ -676,7 +678,7 @@ const AdministerOrSkipSidesheet = ({
             onClick={handleSidesheetClose}
             sx={{ flex: 1, py: 2 }}
           >
-            CANCEL
+            {t('cancel')}
           </LoadingButton>
           <LoadingButton
             variant='contained'
@@ -685,7 +687,7 @@ const AdministerOrSkipSidesheet = ({
             onClick={handleSubmit(onFormSubmit)}
             sx={{ flex: 1, py: 2 }}
           >
-            {actionType === 'administer' ? 'ADMINISTER' : 'SKIPPED'}
+            {actionType === 'administer' ? t('hospital_module.administer') : t('hospital_module.skipped')}
           </LoadingButton>
         </Box>
       </Box>

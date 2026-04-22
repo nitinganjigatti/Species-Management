@@ -5,6 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { Box, Drawer, IconButton, Typography } from '@mui/material'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
@@ -25,14 +26,15 @@ interface FormValues {
   label_name: string
 }
 
-const schema = yup.object().shape({
-  category: yup.object().nullable().required('Category is required'),
-  label_name: yup.string().trim().required('Label is required')
+const createSchema = (t: any) => yup.object().shape({
+  category: yup.object().nullable().required(t('hospital_module.category_is_required') || 'Category is required'),
+  label_name: yup.string().trim().required(t('hospital_module.label_is_required') || 'Label is required')
 })
 
 const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
   const { open, setOpen, onComplaintAdded } = props
   const theme: any = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [categoryDrawerOpen, setCategoryDrawerOpen] = useState(false)
   const [categoriesList, setCategoriesList] = useState<any[]>([])
@@ -43,6 +45,8 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
     label_name: ''
   }
 
+  const validationSchema = createSchema(t)
+
   const {
     control,
     handleSubmit,
@@ -51,7 +55,7 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(validationSchema) as any,
     mode: 'onBlur'
   })
 
@@ -106,7 +110,7 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'Something went wrong. Please try again.' })
+      Toaster({ type: 'error', message: t('hospital_module.something_went_wrong') || 'Something went wrong. Please try again.' })
     } finally {
       setLoading(false)
     }
@@ -153,7 +157,7 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'>Add Symptom</Typography>
+              <Typography variant='h6'>{t('hospital_module.add_complaint')}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -181,15 +185,15 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
                 name='label_name'
                 control={control}
                 errors={errors}
-                label='Symptom*'
-                placeholder='Symptom'
+                label={t('hospital_module.complaint') + '*'}
+                placeholder={(t('hospital_module.complaint') as string)}
               />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <ControlledAutocomplete
                   name='category'
                   control={control}
                   errors={errors}
-                  label='Category*'
+                  label={t('hospital_module.category') + '*'}
                   options={categoriesList}
                   loading={categoriesLoading}
                   required
@@ -233,7 +237,7 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
                   }}
                 >
                   <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={loading}>
-                    Add Symptom
+                    {t('hospital_module.add_complaint')}
                   </LoadingButton>
                 </Box>
               </Box>

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -189,6 +190,7 @@ interface PatientMonitoringProps {
 }
 
 const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatient }: PatientMonitoringProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
@@ -561,7 +563,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
       }}
     >
       <Typography sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-        How would you like to apply this change?
+        {t('hospital_module.delete_scope_question')}
       </Typography>
 
       <RadioGroup
@@ -575,10 +577,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
           label={
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}>
-                Only for Today
+                {t('hospital_module.only_for_today')}
               </Typography>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-                Remove only for today.
+                {t('hospital_module.remove_only_today_desc')}
               </Typography>
             </Box>
           }
@@ -593,10 +595,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
           label={
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
               <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.neutralPrimary }}>
-                From Today Onward
+                {t('hospital_module.from_today_onward')}
               </Typography>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
-                Remove this parameter for today and future days.
+                {t('hospital_module.remove_from_today_onwards_desc')}
               </Typography>
             </Box>
           }
@@ -671,7 +673,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                 onClick={() => setSelectedDate(dayjs().format('YYYY-MM-DD'))}
                 startIcon={<Icon icon={'uil:calender'} />}
               >
-                Today
+                {t('today')}
               </Button>
             ) : (
               isToday &&
@@ -681,7 +683,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                   variant='contained'
                   onClick={() => setOpenScheduleDrawer(true)}
                 >
-                  {monitoringDataListings?.show_edit_schedule_button == '1' ? 'Edit Schedule' : 'Schedule'}
+                  {monitoringDataListings?.show_edit_schedule_button == '1' ? t('hospital_module.edit_schedule') : t('hospital_module.schedule')}
                 </Button>
               )
             )}
@@ -735,8 +737,8 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
               }}
             >
               <NoMedicalData
-                btnText={'Add Monitoring'}
-                text={'All Added Treatments Will Appear here'}
+                btnText={t('hospital_module.add_monitoring')}
+                text={t('hospital_module.all_added_treatments_will_appear_here')}
                 btnAction={() => setAddParameterDrawerOpen(true)}
               />
             </Box>
@@ -748,7 +750,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
                     <Typography
                       sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.neutralPrimary }}
                     >
-                      Monitoring
+                      {t('hospital_module.monitoring')}
                     </Typography>
                     <IconButton size='small' onClick={() => setAddParameterDrawerOpen(true)}>
                       <Icon icon={'icons8:plus'} fontSize={30} color={theme.palette.primary.main} />
@@ -858,10 +860,10 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
           title={`Remove ${paramData?.label} parameter`}
           description={
             paramData?.hasEntries
-              ? 'This parameter has recorded entries. Removing it will also delete all recorded values'
+              ? t('hospital_module.remove_parameter_with_entries_desc')
               : null
           }
-          cancelText='CANCEL'
+          cancelText={t('cancel')}
           cancelBtnStyle={{
             borderColor: theme.palette.customColors.OnPrimaryContainer,
             color: theme.palette.customColors.OnPrimaryContainer,

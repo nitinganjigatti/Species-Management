@@ -17,6 +17,7 @@ import {
 import dayjs from 'dayjs'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import { addIntervalsForParameters } from 'src/lib/api/hospital/treatmentMonitoring'
@@ -45,6 +46,7 @@ const AddScheduleDrawer = ({
   monitoringParams,
   refetchMonitoringParams
 }: AddScheduleDrawerProps) => {
+  const { t } = useTranslation()
   const theme: any = useTheme()
 
   const [selectedInterval, setSelectedInterval] = useState<any>('1')
@@ -188,10 +190,10 @@ const AddScheduleDrawer = ({
             <Typography
               sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Schedule Monitoring
+              {t('hospital_module.schedule_monitoring')}
             </Typography>
             <Typography sx={{ fontSize: '1rem', fontWeight: 400, color: theme.palette.customColors.neutralSecondary }}>
-              Set the frequency of monitoring for each parameter.
+              {t('hospital_module.set_frequency_of_monitoring')}
             </Typography>
           </Box>
         </Box>
@@ -204,26 +206,26 @@ const AddScheduleDrawer = ({
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, mb: 3 }}>
             <Typography sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Monitoring Start Date and Time
+              {t('hospital_module.monitoring_start_date_time')}
             </Typography>
             <Grid container spacing={4}>
               <Grid size={{ xs: 8 }}>
                 <ControlledDatePicker
                   control={control}
                   minDate={dayjs()}
-                  label='Start date'
+                  label={(t('hospital_module.start_date') as string)}
                   name='monitoring_start_date'
                   required
                 />
               </Grid>
               <Grid size={{ xs: 4 }}>
-                <ControlledTimePicker control={control} name='monitoring_start_time' required label='Start Time' />
+                <ControlledTimePicker control={control} name='monitoring_start_time' required label={(t('hospital_module.start_time') as string)} />
               </Grid>
             </Grid>
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, py: 3, mb: 3 }}>
             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Select an interval to apply to all parameters
+              {t('hospital_module.select_interval_apply_all')}
             </Typography>
             {intervalLoading ? (
               <Box
@@ -287,7 +289,7 @@ const AddScheduleDrawer = ({
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, py: 3 }}>
             <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Or enter individually
+              {t('hospital_module.or_enter_individually')}
             </Typography>
             {intervalLoading ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -324,7 +326,7 @@ const AddScheduleDrawer = ({
                         errors={errors}
                         name={item?.id}
                         options={intervalList}
-                        label='Select Intervals'
+                        label={(t('hospital_module.select_intervals') as string)}
                         getOptionLabel={(option: any) => option.label}
                         getOptionValue={(option: any) => option.id}
                         sx={{ background: theme.palette.customColors.OnPrimary }}
@@ -354,7 +356,7 @@ const AddScheduleDrawer = ({
       >
         <FormControlLabel
           control={<Checkbox {...(control as any).register('setAsDefault')} />}
-          label='Set this schedule just for today'
+          label={(t('hospital_module.set_schedule_for_today') as string)}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 2 }}>
           <Button
@@ -367,7 +369,7 @@ const AddScheduleDrawer = ({
               height: '56px'
             }}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant='contained'
@@ -376,7 +378,7 @@ const AddScheduleDrawer = ({
             sx={{ height: '56px' }}
             disabled={addScheduleLoading}
           >
-            {addScheduleLoading ? <CircularProgress size={30} /> : 'SAVE'}
+            {addScheduleLoading ? <CircularProgress size={30} /> : t('save').toUpperCase()}
           </Button>
         </Box>
       </Box>
