@@ -73,7 +73,12 @@ interface AnimalDrawerData {
   }
 }
 
-const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData
+}) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
   const router: any = useSafeRouter()
@@ -359,7 +364,8 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
             )
           },
           {
-            width: 160,
+            flex: 1,
+            minWidth: 160,
             field: 'indeterminate',
             headerName: t('housing_module.indeterminate') as string,
             headerAlign: 'left' as const,
@@ -415,9 +421,9 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4 }}>
+          <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -443,7 +449,6 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
           }}
         >
           <CommonTable
-
             // onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
@@ -455,6 +460,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
             loading={isLoading}
             searchValue={filters.search}
             maxHeight='80vh'

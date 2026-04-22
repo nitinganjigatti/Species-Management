@@ -117,6 +117,7 @@ const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
     {
       field: 'phone',
       headerName: t('phone') as string,
+      flex: 1,
       minWidth: 200,
       sortable: false,
       renderCell: params => {

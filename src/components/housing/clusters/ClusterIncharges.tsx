@@ -220,7 +220,8 @@ const ClusterIncharges: React.FC = () => {
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'actions',
       headerName: t('actions'),
       align: 'center' as const,

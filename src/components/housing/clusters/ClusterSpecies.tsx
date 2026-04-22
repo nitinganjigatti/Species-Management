@@ -352,7 +352,8 @@ const ClusterSpecies: React.FC = () => {
             )
           },
           {
-            width: 160,
+            flex: 1,
+            minWidth: 160,
             field: 'indeterminate',
             align: 'left' as const,
             headerAlign: 'left' as const,

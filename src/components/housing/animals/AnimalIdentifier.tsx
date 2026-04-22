@@ -266,8 +266,8 @@ const AnimalIdentifier: React.FC = () => {
       field: 'actions',
       headerName: t('actions'),
       headerAlign: 'right' as const,
-      minWidth: 20,
-      width: 140,
+      flex: 1,
+      minWidth: 140,
       sortable: false,
       align: 'right' as const,
       renderCell: (params: GridRenderCellParams<IndexedIdentifierRow>) => (

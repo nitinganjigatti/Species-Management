@@ -67,7 +67,14 @@ interface PaginationModel {
   pageSize: number
 }
 
-const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const SpeciesListing: React.FC<SpeciesListingProps> = ({
+  selectedTab,
+  setSelectedTab,
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData
+}) => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
   const router = useSafeRouter()
@@ -313,7 +320,8 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
             )
           },
           {
-            width: 160,
+            flex: 1,
+            minWidth: 160,
             field: 'indeterminate',
             headerAlign: 'center' as const,
             align: 'center' as const,
@@ -353,9 +361,9 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -392,6 +400,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({ selectedTab, setSelecte
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
             loading={isLoading}
             searchValue={filters.search}
             maxHeight='80vh'

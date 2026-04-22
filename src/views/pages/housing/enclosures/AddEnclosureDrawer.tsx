@@ -60,6 +60,9 @@ interface AddEnclosureDrawerProps {
   setRefechEnclosure: (refetch: boolean) => void
   enclosureData?: EnclosureData | null // If provided, drawer is in edit mode
   refetch?: () => void
+  parentEnclosureId?: number | string | null // Pre-selected parent for sub-enclosure mode
+  parentEnclosureName?: string | null // Parent's display name for sub-enclosure mode
+  isSubEnclosureMode?: boolean // When true, drawer is in "Add Sub Enclosure" mode
 }
 
 interface SelectOption {
@@ -127,7 +130,10 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   refetchEnclosure,
   setRefechEnclosure,
   enclosureData,
-  refetch
+  refetch,
+  parentEnclosureId = null,
+  parentEnclosureName = null,
+  isSubEnclosureMode = false
 }) => {
   const theme = useTheme() as any
   const router = useSafeRouter()
@@ -428,6 +434,31 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
     }
   }, [isEditMode, enclosureData, parentEnclosureList, setValue])
 
+  // Pre-select parent enclosure in sub-enclosure mode
+  useEffect(() => {
+    if (isSubEnclosureMode && parentEnclosureId && open && !isEditMode) {
+      const parentIdStr = String(parentEnclosureId)
+      const fromList = parentEnclosureList.find(p => String(p.value) === parentIdStr)
+      const parentOption: SelectOption =
+        fromList || { value: parentIdStr, label: parentEnclosureName || '' }
+      const current = getValues('parentEnclosure') as SelectOption | null | string
+      const currentValue =
+        current && typeof current !== 'string' ? (current as SelectOption).value : undefined
+      if (String(currentValue ?? '') !== parentIdStr) {
+        setValue('parentEnclosure', parentOption, { shouldValidate: true })
+      }
+    }
+  }, [
+    isSubEnclosureMode,
+    parentEnclosureId,
+    parentEnclosureName,
+    parentEnclosureList,
+    open,
+    isEditMode,
+    setValue,
+    getValues
+  ])
+
   const handleEnvironmentTypeChange = (selectedEnvironmentType: string): void => {
     if (!allEnclosureData) return
 
@@ -519,16 +550,20 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
           batch_count: data?.batchEnclosureCount,
           commistioned_date: dayjs(data?.commissioned_date).format('YYYY-MM-DD'),
           user_enclosure_id: user_id,
-          enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value
+          enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value || null
         }
 
         if (sectionId || currentSectionId) {
           const response = (await addEnclosureToHousing(payload)) as any
           if (response?.success) {
             Toaster({ type: 'success', message: response?.message })
+            const newEnclosureId = response?.data?.enclosure_id
             resetAllFields()
             setAddEnclosureDrawerOpen(false)
             setRefechEnclosure(!refetchEnclosure)
+            if (isSubEnclosureMode && newEnclosureId) {
+              router.push(`/housing/enclosure/${newEnclosureId}`)
+            }
           } else {
             Toaster({ type: 'error', message: response?.message })
           }
@@ -607,7 +642,13 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
         >
           <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Enclosure Icon' width='30px' />
-            <Typography variant='h6'>{isEditMode ? 'Edit Enclosure' : 'Add New Enclosure'}</Typography>
+            <Typography variant='h6'>
+              {isEditMode
+                ? (t('housing_module.edit_enclosure') as string)
+                : isSubEnclosureMode
+                  ? (t('housing_module.add_sub_enclosure') as string)
+                  : (t('housing_module.add_new_enclosure') as string)}
+            </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -860,6 +901,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                   errors={errors}
                   label={'Choose Section*'}
                   required={true}
+                  disabled={isSubEnclosureMode}
                   options={sectionList}
                   getOptionLabel={(option: unknown) => (option as SelectOption)?.label || ''}
                   isOptionEqualToValue={(option: unknown, value: unknown) =>
@@ -872,8 +914,9 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
                     name={'parentEnclosure'}
                     control={control}
                     errors={errors}
-                    label={'Parent Enclosure'}
-                    required={false}
+                    label={isSubEnclosureMode ? 'Parent Enclosure*' : 'Parent Enclosure'}
+                    required={isSubEnclosureMode}
+                    disabled={isSubEnclosureMode}
                     options={parentEnclosureList}
                     getOptionLabel={(option: unknown) => (option as SelectOption)?.label || ''}
                     isOptionEqualToValue={(option: unknown, value: unknown) =>

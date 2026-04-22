@@ -273,7 +273,8 @@ const EnclosureWiseEnclosure: React.FC = () => {
             )
           },
           {
-            width: 250,
+            flex: 1,
+            minWidth: 250,
             field: 'site_name',
             headerName: t('housing_module.site') as string,
             sortable: false,

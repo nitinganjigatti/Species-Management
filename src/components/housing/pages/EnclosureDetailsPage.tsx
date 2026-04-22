@@ -58,6 +58,7 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
   const [drawerType, setDrawerType] = useState<string | null>(null)
   const [drawerData, setDrawerData] = useState<DrawerData | null>(null)
   const [showEditEnclosureDrawer, setShowEditEnclosureDrawer] = useState<boolean>(false)
+  const [showAddSubEnclosureDrawer, setShowAddSubEnclosureDrawer] = useState<boolean>(false)
   const [refetchEnclosure, setRefetchEnclosure] = useState<boolean>(false)
 
   const auth = useAuth()
@@ -89,7 +90,12 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
 
   const allTabConfig: TabConfigItem[] = [
     { labelKey: 'overview', value: 'overview', component: EnclosureOverview },
-    { labelKey: 'species', value: 'species', component: EnclosureWiseSpecies, requiresPermission: 'collection_animal_records' },
+    {
+      labelKey: 'species',
+      value: 'species',
+      component: EnclosureWiseSpecies,
+      requiresPermission: 'collection_animal_records'
+    },
     { labelKey: 'enclosures', value: 'enclosures', component: EnclosureWiseEnclosure },
     { labelKey: 'notes', value: 'notes', component: NotesListing },
     { labelKey: 'housing_module.assessment', value: 'assessment', component: EntityAssessment },
@@ -107,6 +113,10 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
       }
 
       if (tab.value === 'enclosures' && !((data?.data as any)?.total_sub_enclosure_count > 0)) {
+        return false
+      }
+
+      if (tab.value === 'foodWastage' && String((data?.data as any)?.is_system_generated) === '1') {
         return false
       }
 
@@ -225,10 +235,7 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography
-            onClick={handleBreadcrumbClick}
-            sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}
-          >
+          <Typography onClick={handleBreadcrumbClick} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
             {sectionName || t('housing_module.section_details')}
           </Typography>
           <Typography color={theme.palette.text.primary}>{t('housing_module.enclosure_details')}</Typography>
@@ -242,13 +249,15 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
           zooName={(data?.data as any)?.user_enclosure_name}
           subtitle={(data?.data as any)?.enclosure_desc}
           userName={(data?.data as any)?.incharge_name}
-          userImage=""
-          description=""
+          userImage=''
+          description=''
           pageTitle={t('housing_module.enclosure_details')}
           haveInsightsViewAccess={insightsViewAccess}
           actions={{
+            onAddNew: addEnclosureAccess ? () => setShowAddSubEnclosureDrawer(true) : null,
             onEdit: addEnclosureAccess ? () => setShowEditEnclosureDrawer(true) : null
           }}
+          addNewTooltip={t('housing_module.add_sub_enclosure') as string}
           editTooltip={t('housing_module.edit_enclosure') as string}
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_phone_no || ''
@@ -279,10 +288,10 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
               setDrawerType={setDrawerType}
               drawerData={drawerData}
               setDrawerData={setDrawerData}
-              refType="enclosure"
+              refType='enclosure'
               entityName={(data?.data as any)?.user_enclosure_name}
               entityImage={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
-              entityType="enclosure"
+              entityType='enclosure'
               entityId={id || ''}
               entityDetails={data?.data}
             />
@@ -296,6 +305,20 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
           onClose={handleDrawerClose}
           data={drawerData as any}
           defaultImage={'/images/housing/Enclosure icon.png'}
+        />
+      )}
+      {showAddSubEnclosureDrawer && (
+        <AddEnclosureDrawer
+          open={showAddSubEnclosureDrawer}
+          setAddEnclosureDrawerOpen={setShowAddSubEnclosureDrawer}
+          sectionId={(data?.data as any)?.section_id?.toString() || null}
+          zooId={zooId}
+          refetchEnclosure={refetchEnclosure}
+          setRefechEnclosure={setRefetchEnclosure}
+          refetch={refetch}
+          isSubEnclosureMode={true}
+          parentEnclosureId={(data?.data as any)?.enclosure_id}
+          parentEnclosureName={(data?.data as any)?.user_enclosure_name}
         />
       )}
       {showEditEnclosureDrawer && (
@@ -313,11 +336,14 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
             section_id: (data?.data as any)?.section_id,
             section_name: (data?.data as any)?.section_name,
             enclosure_desc: (data?.data as any)?.enclosure_desc,
-            enclosure_environment: (data?.data as any)?.enclosure_environment || enclosureBasicInfo?.data?.enclosure_environment,
+            enclosure_environment:
+              (data?.data as any)?.enclosure_environment || enclosureBasicInfo?.data?.enclosure_environment,
             enclosure_type: (data?.data as any)?.enclosure_type || enclosureBasicInfo?.data?.enclosure_type,
             enclosure_type_id: (data?.data as any)?.enclosure_type_id || enclosureBasicInfo?.data?.enclosure_type_id,
-            enclosure_is_movable: (data?.data as any)?.enclosure_is_movable || enclosureBasicInfo?.data?.enclosure_is_movable,
-            enclosure_is_walkable: (data?.data as any)?.enclosure_is_walkable || enclosureBasicInfo?.data?.enclosure_is_walkable,
+            enclosure_is_movable:
+              (data?.data as any)?.enclosure_is_movable || enclosureBasicInfo?.data?.enclosure_is_movable,
+            enclosure_is_walkable:
+              (data?.data as any)?.enclosure_is_walkable || enclosureBasicInfo?.data?.enclosure_is_walkable,
             enclosure_sunlight: (data?.data as any)?.enclosure_sunlight || enclosureBasicInfo?.data?.enclosure_sunlight,
             enclosure_parent_id: (data?.data as any)?.enclosure_parent_id,
             parent_enclosure_name: (data?.data as any)?.parent_enclosure_name,

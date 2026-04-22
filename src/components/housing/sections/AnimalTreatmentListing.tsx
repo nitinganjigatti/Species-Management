@@ -364,7 +364,8 @@ const AnimalTreatmentListing: React.FC = () => {
     },
 
     {
-      width: 250,
+      flex: 1,
+      minWidth: 250,
       field: 'user_enclosure_name',
       headerName: t('housing_module.enclosure_name') as string,
       headerAlign: 'left',
@@ -391,9 +392,9 @@ const AnimalTreatmentListing: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -430,6 +431,7 @@ const AnimalTreatmentListing: React.FC = () => {
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
             loading={isFetching}
             searchValue={inputValue}
             maxHeight='80vh'

@@ -639,8 +639,9 @@ export const GenderInfoCard = ({ value, bgcolor, color }) => {
         color: color, // maroonish-red
         fontSize: '14px',
         fontWeight: 600,
-        display: 'inline-block',
-        textAlign: 'center',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         minWidth: 40
       }}
     >
