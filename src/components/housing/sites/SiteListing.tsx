@@ -463,7 +463,8 @@ const Listing: React.FC<SiteListingProps> = ({
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'actions',
       headerName: t('actions'),
       align: 'left' as const,

@@ -349,7 +349,8 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
             )
           },
           {
-            width: 250,
+            flex: 1,
+            minWidth: 250,
             field: 'site_name',
             headerName: t('housing_module.site'),
             sortable: false,

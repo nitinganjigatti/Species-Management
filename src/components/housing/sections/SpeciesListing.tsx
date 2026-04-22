@@ -320,7 +320,8 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({
             )
           },
           {
-            width: 160,
+            flex: 1,
+            minWidth: 160,
             field: 'indeterminate',
             headerAlign: 'center' as const,
             align: 'center' as const,

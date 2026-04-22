@@ -449,8 +449,8 @@ const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
       }
     },
     {
-      minWidth: 150,
-      width: 300,
+      flex: 1,
+      minWidth: 300,
       field: 'activity_status',
       headerName: t('status'),
       align: 'left' as const,

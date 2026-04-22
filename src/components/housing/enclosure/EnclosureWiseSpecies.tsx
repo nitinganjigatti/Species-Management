@@ -364,7 +364,8 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({
             )
           },
           {
-            width: 160,
+            flex: 1,
+            minWidth: 160,
             field: 'indeterminate',
             headerName: t('housing_module.indeterminate') as string,
             headerAlign: 'left' as const,

@@ -266,6 +266,7 @@ const HospitalTransferListing = () => {
     {
       field: 'requested_by',
       headerName: t('housing_module.requested_by') as string,
+      flex: 1,
       minWidth: 250,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (

@@ -159,6 +159,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
     {
       field: 'phone',
       headerName: t('phone') as string,
+      flex: 1,
       minWidth: 180,
       sortable: false,
       renderCell: params => {

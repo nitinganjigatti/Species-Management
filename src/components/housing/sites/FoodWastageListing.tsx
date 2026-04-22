@@ -434,8 +434,8 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       }
     },
     {
-      minWidth: 150,
-      width: 200,
+      flex: 1,
+      minWidth: 200,
       field: 'total_wastage',
       headerName: t('housing_module.total_wastage'),
       align: 'right' as const,
@@ -570,8 +570,8 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
       }
     },
     {
-      minWidth: 150,
-      width: 200,
+      flex: 1,
+      minWidth: 200,
       field: 'total_wastage',
       headerName: t('housing_module.total_wastage'),
       align: 'right' as const,

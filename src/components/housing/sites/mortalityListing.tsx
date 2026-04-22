@@ -292,7 +292,8 @@ const MortalityListing: React.FC = () => {
       )
     },
     {
-      width: 300,
+      flex: 1,
+      minWidth: 300,
       field: 'reason',
       headerName: t('housing_module.reason') as string,
       align: 'left' as const,

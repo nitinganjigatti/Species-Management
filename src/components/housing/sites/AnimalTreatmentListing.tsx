@@ -341,7 +341,8 @@ const AnimalTreatmentListing: React.FC = () => {
     // },
 
     {
-      width: 250,
+      flex: 1,
+      minWidth: 250,
       field: 'user_enclosure_name',
       align: 'left' as const,
       headerAlign: 'left' as const,
