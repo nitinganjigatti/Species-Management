@@ -118,7 +118,7 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
 
   return (
     <Box sx={{ py: 3 }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4, display: 'inline-block' }}>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}

@@ -46,7 +46,7 @@ const Egg: FC<TabProps> = props => {
         type: 'offspring',
         q: searchEgg,
         parent_id: props.animalId,
-        is_mother: 1,
+        is_mother: 0,
         page_no: pageNo
       })
 

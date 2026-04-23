@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react'
-import { Box, Typography, useTheme, Skeleton, Divider } from '@mui/material'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Box, Typography, useTheme, Skeleton, Divider, CircularProgress } from '@mui/material'
 import styled from '@emotion/styled'
 import { alpha } from '@mui/material/styles'
+import { useInView } from 'react-intersection-observer'
 
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { useTranslation } from 'react-i18next'
@@ -17,27 +18,56 @@ const Litter: React.FC<TabProps> = props => {
   const [litterDrawerOpen, setLitterDrawerOpen] = useState<boolean>(false)
   const [litter, setLitter] = useState<LitterItem[]>([])
   const [isLitterFetching, setIsLitterFetching] = useState<boolean>(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [selectedLitter, setSelectedLitter] = useState<LitterItem | null>(null)
 
-  const fetchLitter = async () => {
-    setIsLitterFetching(true)
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
+
+  const fetchLitter = async (pageNo: number = 1) => {
+    if (!props.animalId) return
+
+    if (pageNo === 1) {
+      setIsLitterFetching(true)
+      setHasMore(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
     try {
       const response = await getLitterList({
         animal_id: props.animalId,
         is_recent: 0,
-        page_no: 1
+        page_no: pageNo
       })
       if (response?.success) {
         const result = response.data?.result as LitterItem[] | undefined
-        setLitter(result ?? [])
+
+        if (pageNo === 1) {
+          setLitter(result ?? [])
+        } else {
+          setLitter(prev => [...prev, ...(result ?? [])])
+        }
+
+        if ((result ?? []).length < 10) {
+          setHasMore(false)
+        }
       } else {
-        setLitter([])
+        if (pageNo === 1) {
+          setLitter([])
+        }
+        setHasMore(false)
       }
     } catch (error: any) {
       console.error(error?.message)
-      setLitter([])
+      if (pageNo === 1) {
+        setLitter([])
+      }
+      setHasMore(false)
     } finally {
       setIsLitterFetching(false)
+      setIsFetchingMore(false)
     }
   }
 
@@ -46,8 +76,25 @@ const Litter: React.FC<TabProps> = props => {
     setSelectedLitter(null)
   }
 
+  const handleLoadMore = useCallback(() => {
+    if (isLitterFetching || isFetchingMore || !hasMore) return
+
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchLitter(nextPage)
+  }, [isLitterFetching, isFetchingMore, hasMore, page, props.animalId])
+
   useEffect(() => {
-    fetchLitter()
+    if (inView && !isLitterFetching && !isFetchingMore && hasMore && litter.length) {
+      handleLoadMore()
+    }
+  }, [inView, isLitterFetching, isFetchingMore, hasMore, litter.length, handleLoadMore])
+
+  useEffect(() => {
+    setPage(1)
+    setLitter([])
+    setHasMore(true)
+    fetchLitter(1)
   }, [props.animalId])
 
   if (isLitterFetching) return <LitterSkeleton />
@@ -61,6 +108,7 @@ const Litter: React.FC<TabProps> = props => {
       {litter?.map((item, index) => {
         return (
           <Box
+            key={item?.litter_id || index}
             sx={{
               display: 'flex',
               flexDirection: 'column',
@@ -71,7 +119,6 @@ const Litter: React.FC<TabProps> = props => {
             }}
           >
             <Box
-              key={index}
               onClick={() => {
                 setSelectedLitter(item)
                 setLitterDrawerOpen(true)
@@ -159,6 +206,19 @@ const Litter: React.FC<TabProps> = props => {
           </Box>
         )
       })}
+      {(hasMore || isFetchingMore) && litter.length > 0 && (
+        <Box
+          ref={loaderRef}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            py: 4
+          }}
+        >
+          {isFetchingMore && <CircularProgress size={24} />}
+        </Box>
+      )}
       {litterDrawerOpen && (
         <LitterDrawer open={litterDrawerOpen} onClose={handleLiterDrawerClose} litterDetails={selectedLitter} />
       )}

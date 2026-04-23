@@ -1,42 +1,67 @@
-import React, { useState, useEffect } from 'react'
-import { Box, Typography, useTheme, Skeleton, Divider } from '@mui/material'
-import styled from '@emotion/styled'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Box, useTheme, Skeleton, Divider, CircularProgress } from '@mui/material'
 import { alpha } from '@mui/material/styles'
+import { useInView } from 'react-intersection-observer'
 
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { useTranslation } from 'react-i18next'
-import { StyledTypographyProps, TabProps, ClutchItem } from 'src/types/housing/animalsOffspring'
+import { TabProps, ClutchItem } from 'src/types/housing/animalsOffspring'
 import ClutchDrawer from './ClutchDrawer'
 import { getClutchList } from 'src/lib/api/housing'
-import Utility from 'src/utility'
+import ClutchView from './ClutchView'
 
 const Clutch: React.FC<TabProps> = props => {
-  const theme = useTheme() as any
-  const { t } = useTranslation()
-
   const [clutchDrawerOpen, setClutchDrawerOpen] = useState<boolean>(false)
   const [clutch, setClutch] = useState<ClutchItem[]>([])
   const [isClutchFetching, setIsClutchFetching] = useState<boolean>(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [selectedClutch, setSelectedClutch] = useState<ClutchItem | null>(null)
 
-  const fetchClutch = async () => {
-    setIsClutchFetching(true)
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
+
+  const fetchClutch = async (pageNo: number = 1) => {
+    if (!props.animalId) return
+
+    if (pageNo === 1) {
+      setIsClutchFetching(true)
+      setHasMore(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
     try {
       const response = await getClutchList({
         animal_id: props.animalId,
-        page_no: 1
+        page_no: pageNo
       })
       if (response?.success) {
         const result = response.data?.result as ClutchItem[] | undefined
-        setClutch(result ?? [])
+
+        if (pageNo === 1) {
+          setClutch(result ?? [])
+        } else {
+          setClutch(prev => [...prev, ...(result ?? [])])
+        }
+
+        if ((result ?? []).length < 10) {
+          setHasMore(false)
+        }
       } else {
-        setClutch([])
+        if (pageNo === 1) {
+          setClutch([])
+        }
+        setHasMore(false)
       }
     } catch (error: any) {
       console.error(error?.message)
-      setClutch([])
+      if (pageNo === 1) {
+        setClutch([])
+      }
+      setHasMore(false)
     } finally {
       setIsClutchFetching(false)
+      setIsFetchingMore(false)
     }
   }
 
@@ -45,8 +70,25 @@ const Clutch: React.FC<TabProps> = props => {
     setSelectedClutch(null)
   }
 
+  const handleLoadMore = useCallback(() => {
+    if (isClutchFetching || isFetchingMore || !hasMore) return
+
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchClutch(nextPage)
+  }, [isClutchFetching, isFetchingMore, hasMore, page, props.animalId])
+
   useEffect(() => {
-    fetchClutch()
+    if (inView && !isClutchFetching && !isFetchingMore && hasMore && clutch.length) {
+      handleLoadMore()
+    }
+  }, [inView, isClutchFetching, isFetchingMore, hasMore, clutch.length, handleLoadMore])
+
+  useEffect(() => {
+    setPage(1)
+    setClutch([])
+    setHasMore(true)
+    fetchClutch(1)
   }, [props.animalId])
 
   if (isClutchFetching) return <ClutchSkeleton />
@@ -59,105 +101,30 @@ const Clutch: React.FC<TabProps> = props => {
     <>
       {clutch?.map((item, index) => {
         return (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: '8px',
-              cursor: 'pointer',
-              mb: 4
+          <ClutchView
+            key={item?.clutch_id || index}
+            clutchDetails={item}
+            sx={{ mb: 4 }}
+            onClick={() => {
+              setSelectedClutch(item)
+              setClutchDrawerOpen(true)
             }}
-          >
-            <Box
-              key={index}
-              onClick={() => {
-                setSelectedClutch(item)
-                setClutchDrawerOpen(true)
-              }}
-            >
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  p: 4,
-                  gap: 1,
-                  backgroundColor: alpha(theme.palette.customColors.addPrimary, 0.1),
-                  borderRadius: '8px 8px 0 0'
-                }}
-              >
-                <StyledTypography fontWeight={500}>{t('animals_module.clutch')} {item?.clutch_no}</StyledTypography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <img src='/images/line_start_circle.svg' alt='line-start-circle' />
-                    <StyledTypography>{Utility.convertUtcToLocalReadableDate(item?.start_date)}</StyledTypography>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <img src='/images/line_end_square.svg' alt='line-end-square' />
-                    <StyledTypography>{Utility.convertUtcToLocalReadableDate(item?.end_date)}</StyledTypography>
-                  </Box>
-                </Box>
-              </Box>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mx: 4, my: 6 }}>
-                  {Number(item?.male_count) > 0 && (
-                    <SexBadge
-                      label='M'
-                      value={item?.male_count}
-                      bgColor={alpha(theme.palette.customColors.SecondaryContainer, 0.8)}
-                    />
-                  )}
-
-                  {Number(item?.female_count) > 0 && (
-                    <SexBadge
-                      label='F'
-                      value={item?.female_count}
-                      bgColor={alpha(theme.palette.customColors.customDropdownColor, 0.4)}
-                    />
-                  )}
-
-                  {Number(item?.indeterminate_count) > 0 && (
-                    <SexBadge
-                      label='ID'
-                      value={item?.indeterminate_count}
-                      color={theme.palette.customColors.OnPrimaryContainer}
-                      bgColor={theme.palette.customColors.displaybgSecondary}
-                    />
-                  )}
-                  {Number(item?.undetermined_count) > 0 && (
-                    <SexBadge
-                      label='UD'
-                      value={item?.undetermined_count}
-                      color={theme.palette.customColors.Error}
-                      bgColor={theme.palette.customColors.SurfaceVariant}
-                    />
-                  )}
-                </Box>
-
-                <Divider />
-
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mx: 4, my: 3 }}>
-                  <StyledTypography>
-                    {t('total')}: <span style={{ fontWeight: 600 }}>{item?.total_egg_count || 0}</span>
-                  </StyledTypography>
-                  <StyledTypography>
-                    {t('animals_module.discarded')}: <span style={{ fontWeight: 600 }}>{item?.discarded_count || 0}</span>
-                  </StyledTypography>
-                  <StyledTypography>
-                    {t('animals_module.hatched')}: <span style={{ fontWeight: 600 }}>{item?.hatched_count || 0}</span>
-                  </StyledTypography>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
+          />
         )
       })}
+      {(hasMore || isFetchingMore) && clutch.length > 0 && (
+        <Box
+          ref={loaderRef}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            py: 4
+          }}
+        >
+          {isFetchingMore && <CircularProgress size={24} />}
+        </Box>
+      )}
       {clutchDrawerOpen && (
         <ClutchDrawer open={clutchDrawerOpen} onClose={handleClutchDrawerClose} clutchDetails={selectedClutch} />
       )}
@@ -166,28 +133,6 @@ const Clutch: React.FC<TabProps> = props => {
 }
 
 export default React.memo(Clutch)
-
-const StyledTypography = styled(Typography)<StyledTypographyProps>(({ theme, fontWeight, fontSize, color, sx }) => ({
-  fontSize: fontSize || '1rem',
-  fontWeight: fontWeight || 400,
-  color: color || (theme as any).palette?.customColors?.OnSurfaceVariant || (theme as any).palette?.text?.primary,
-  ...(sx as any)
-}))
-
-const SexBadge = ({ label, value, bgColor, color }: any) => (
-  <Box
-    sx={{
-      p: '6px 12px',
-      borderRadius: 1,
-      backgroundColor: bgColor,
-      display: 'inline-flex'
-    }}
-  >
-    <StyledTypography fontWeight={500} color={color}>
-      {label} - {value}
-    </StyledTypography>
-  </Box>
-)
 
 const ClutchSkeleton = () => {
   const theme = useTheme() as any

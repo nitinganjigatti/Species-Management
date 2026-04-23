@@ -39,7 +39,7 @@ const AllOffspring: FC<TabProps> = props => {
   const hasPermission = (authData as any)?.userData?.roles?.settings?.collection_animal_record_access
 
   const fetchOffspringList = async (pageNo: number = 1) => {
-    if (!props.animalId || !props.isMother) return
+    if (!props.animalId) return
 
     setIsLoading(true)
 
@@ -150,6 +150,10 @@ const AllOffspring: FC<TabProps> = props => {
     setSelectedOffspring(prev => (prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]))
   }
 
+   const handleRouteToAnimalDetails = (animalId: string) => {
+    router.push(`/animals/${animalId}`)
+  }
+
   return (
     <Box sx={{ position: 'relative', width: '100%', minHeight: '100%' }}>
       {isLoading && offspringList?.length === 0 && <LoadingSkeleton />}
@@ -232,7 +236,7 @@ const AllOffspring: FC<TabProps> = props => {
                     mb: 2
                   }}
                 >
-                  <Box sx={{ flexGrow: 1 }}>
+                  <Box sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => handleRouteToAnimalDetails(item?.animal_id)}>
                     <AnimalCard data={item} />
                   </Box>
                   {isEditing && (

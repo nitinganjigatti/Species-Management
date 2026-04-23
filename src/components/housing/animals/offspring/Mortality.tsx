@@ -1,9 +1,9 @@
-import React from 'react'
-import { Box, useTheme, Skeleton } from '@mui/material'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Box, useTheme, Skeleton, CircularProgress } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
 import useSafeRouter from 'src/hooks/useSafeRouter'
-import { useQuery } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 
 import AnimalCard from 'src/views/utility/AnimalCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
@@ -13,29 +13,92 @@ import { TabProps, AnimalItem } from 'src/types/housing/animalsOffspring'
 const Mortality: React.FC<TabProps> = props => {
   const theme = useTheme() as any
   const router = useSafeRouter()
+  const [mortality, setMortality] = useState<AnimalItem[]>([])
+  const [isMortalityFetching, setIsMortalityFetching] = useState(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
 
-  const { data: mortalityData, isFetching: isMortalityFetching } = useQuery({
-    queryKey: ['recent-litter', props.animalId],
-    queryFn: () =>
-      getNewAnimalListWithFilters({
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
+
+  const fetchMortality = async (pageNo: number = 1) => {
+    if (!props.animalId) return
+
+    if (pageNo === 1) {
+      setIsMortalityFetching(true)
+      setHasMore(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
+    try {
+      const response = await getNewAnimalListWithFilters({
         parent_id: props.animalId,
         is_mother: props.isMother,
         use_case: 'mortality_offspring',
         ignore_permission: 1,
         include_dead_animal: 1,
-        page_no: 1
-      }),
-    enabled: !!props.animalId
-  })
-  const mortality: AnimalItem[] | null = mortalityData?.data || null
+        page_no: pageNo
+      })
+
+      if (response?.success) {
+        const result = (response?.data || []) as AnimalItem[]
+
+        if (pageNo === 1) {
+          setMortality(result)
+        } else {
+          setMortality(prev => [...prev, ...result])
+        }
+
+        if (result.length < 10) {
+          setHasMore(false)
+        }
+      } else {
+        if (pageNo === 1) {
+          setMortality([])
+        }
+        setHasMore(false)
+      }
+    } catch (error: any) {
+      console.error(error?.message)
+      if (pageNo === 1) {
+        setMortality([])
+      }
+      setHasMore(false)
+    } finally {
+      setIsMortalityFetching(false)
+      setIsFetchingMore(false)
+    }
+  }
 
   const handleAnimalClick = (animalId: string) => {
     router.push(`/animals/${animalId}`)
   }
 
+  const handleLoadMore = useCallback(() => {
+    if (isMortalityFetching || isFetchingMore || !hasMore) return
+
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchMortality(nextPage)
+  }, [isMortalityFetching, isFetchingMore, hasMore, page, props.animalId, props.isMother])
+
+  useEffect(() => {
+    if (inView && !isMortalityFetching && !isFetchingMore && hasMore && mortality.length) {
+      handleLoadMore()
+    }
+  }, [inView, isMortalityFetching, isFetchingMore, hasMore, mortality.length, handleLoadMore])
+
+  useEffect(() => {
+    setPage(1)
+    setMortality([])
+    setHasMore(true)
+    fetchMortality(1)
+  }, [props.animalId, props.isMother])
+
   if (isMortalityFetching) return <LoadingSkeleton />
 
-  if (!mortality || mortality.length === 0) return <NoDataFound />
+  if (!mortality.length) return <NoDataFound />
 
   return (
     <>
@@ -43,7 +106,7 @@ const Mortality: React.FC<TabProps> = props => {
         {mortality?.map((item, index) => {
           return (
             <Box
-              key={index}
+              key={item?.animal_id || index}
               sx={{
                 p: 4,
                 display: 'flex',
@@ -77,6 +140,19 @@ const Mortality: React.FC<TabProps> = props => {
             </Box>
           )
         })}
+        {(hasMore || isFetchingMore) && mortality.length > 0 && (
+          <Box
+            ref={loaderRef}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              py: 4
+            }}
+          >
+            {isFetchingMore && <CircularProgress size={24} />}
+          </Box>
+        )}
       </Box>
     </>
   )
