@@ -3,14 +3,7 @@
  * Used by: common.ts API (species, mortality, media, users, incharge, permissions)
  */
 
-import type {
-  Site,
-  Species,
-  Mortality,
-  Treatment,
-  Media,
-  User
-} from '../models'
+import type { Site, Species, Mortality, Treatment, Media, User } from '../models'
 
 // ==================== Generic API Types ====================
 
@@ -36,6 +29,10 @@ export interface PaginatedListingData<T> {
   total_scies_count?: number
   page?: number
   limit?: number
+  stats: {
+    total_species_count?: number
+    total_animal_count?: number
+  }
 }
 
 export interface PaginatedResponse<T> extends ApiResponse<PaginatedData<T>> {}

@@ -461,8 +461,15 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                 >
                   {t('observation_date_time')}
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 3 }}>
-                  <Box sx={{ flex: 1 }}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' },
+                    gap: 3,
+                    width: '100%'
+                  }}
+                >
+                  <Box sx={{ width: '100%', minWidth: 0 }}>
                     <ControlledDatePicker
                       name='date'
                       control={control}
@@ -472,7 +479,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                       disabled={isViewMode}
                     />
                   </Box>
-                  <Box sx={{ flex: 1 }}>
+                  <Box sx={{ width: '100%', minWidth: 0 }}>
                     <ControlledTimePicker
                       name='time'
                       control={control}
