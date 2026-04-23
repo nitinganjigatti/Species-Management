@@ -512,6 +512,12 @@ export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
 
+export const GET_TAXONOMY_LIST_BY_TYPES = 'v1/master/taxonomy/list'
+
+export const GET_DYNAMIC_SPECIES_FORMDATA = 'v1/species/generate-section'
+
+export const ADD_TAXONOMY_SPECIES = 'v1/master/create/taxonomy/species'
+
 // Housing
 
 export const HOUSING_SITE_ANALYTICS = 'zoo/home'
