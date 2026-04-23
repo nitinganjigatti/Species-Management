@@ -13,13 +13,13 @@ import EggDrawer from './EggDrawer'
 const Egg: FC<TabProps> = props => {
   const theme = useTheme() as any
 
-  const [searchInput, setSearchInput] = useState('')
-  const [searchEgg, setSearchEgg] = useState('')
+  const [searchInput, setSearchInput] = useState<string>('')
+  const [searchEgg, setSearchEgg] = useState<string>('')
   const [eggData, setEggData] = useState<ClutchEgg[] | null>(null)
-  const [isEggFetching, setIsEggFetching] = useState(false)
-  const [isFetchingMore, setIsFetchingMore] = useState(false)
-  const [page, setPage] = useState(1)
-  const [totalCount, setTotalCount] = useState(0)
+  const [isEggFetching, setIsEggFetching] = useState<boolean>(false)
+  const [isFetchingMore, setIsFetchingMore] = useState<boolean>(false)
+  const [page, setPage] = useState<number>(1)
+  const [totalCount, setTotalCount] = useState<number>(0)
 
   const [eggDrawerOpen, setEggDrawerOpen] = useState<boolean>(false)
   const [selectedEgg, setSelectedEgg] = useState<ClutchEgg | null>(null)
@@ -34,7 +34,7 @@ const Egg: FC<TabProps> = props => {
     }
   }, [debouncedSearch])
 
-  const fetchEggList = async (pageNo = 1, isLoadMore = false) => {
+  const fetchEggList = async (pageNo: number = 1, isLoadMore: boolean = false) => {
     if (isLoadMore) {
       setIsFetchingMore(true)
     } else {
@@ -46,7 +46,7 @@ const Egg: FC<TabProps> = props => {
         type: 'offspring',
         q: searchEgg,
         parent_id: props.animalId,
-        is_mother: 0,
+        is_mother: props.isMother,
         page_no: pageNo
       })
 

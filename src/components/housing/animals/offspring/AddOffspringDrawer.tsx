@@ -453,7 +453,12 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                   sx={{ padding: 4, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-                    <Icon icon='ph:paw-print' fontSize={24} />
+                    {/* <Icon icon=isEggLayingAnimal ?'ph:paw-print' fontSize={24} /> */}
+                    <img
+                      src={isEggLayingAnimal ? '/icons/Group.png' :'/icons/icon_species_diet.png' }
+                      style={{ width: '25px', height: '25px' }}
+                      alt='clutch'
+                    />
                     <StyledTypography fontWeight={600}>
                       {t(isEggLayingAnimal ? 'animals_module.add_clutch_details' : 'animals_module.add_litter_details')}
                     </StyledTypography>
