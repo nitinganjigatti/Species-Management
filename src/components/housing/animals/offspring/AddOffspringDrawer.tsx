@@ -106,7 +106,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
       if (isEggLayingAnimal) {
         const response = await getRecentClutchList({ mother_id: referenceAnimalId })
         const result = response?.data
-        const rawRecentClutch = Array.isArray(result) ? result[0] || null : (result ?? null)
+        const rawRecentClutch = Array.isArray(result) ? result[0] || null : result ?? null
         const recentClutch = rawRecentClutch
           ? ({
               ...rawRecentClutch,
@@ -453,9 +453,8 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                   sx={{ padding: 4, boxShadow: 0, border: `2px solid ${theme.palette.customColors.SurfaceVariant}` }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-                    {/* <Icon icon=isEggLayingAnimal ?'ph:paw-print' fontSize={24} /> */}
                     <img
-                      src={isEggLayingAnimal ? '/icons/Group.png' :'/icons/icon_species_diet.png' }
+                      src={isEggLayingAnimal ? '/icons/clutchEgg.svg' : '/icons/icon_species_diet.png'}
                       style={{ width: '25px', height: '25px' }}
                       alt='clutch'
                     />
@@ -876,7 +875,7 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                             textAlign: 'center'
                           }}
                         >
-                          {showAllSelectedOffspring ? 'Show Less' : `+ ${selectedOffspring.length - 2} More`}
+                          {showAllSelectedOffspring ? t('show_less') : `+ ${selectedOffspring.length - 2} ${t('more')}`}
                         </Typography>
                       </Box>
                     )}
@@ -971,8 +970,14 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
                 : []
               : (selectedOffspring as unknown as MultiSelectAnimal[])
           }
-          title={selectionType === 'dam' ? 'Select Dam' : selectionType === 'sire' ? 'Select Sire' : 'Select Offspring'}
-          btnText='ADD'
+          title={
+            selectionType === 'dam'
+              ? t('animals_module.select_dam')
+              : selectionType === 'sire'
+              ? t('animals_module.select_sire')
+              : t('animals_module.select_offspring')
+          }
+          btnText={t('add')}
           selectionMode={selectionType === 'dam' || selectionType === 'sire' ? 'single' : 'multi'}
           extraParams={
             selectionType === 'dam'

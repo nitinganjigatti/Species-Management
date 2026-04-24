@@ -1,5 +1,5 @@
 import React, { useState, FC, useMemo, useEffect } from 'react'
-import { Box, Tabs, Tab } from '@mui/material'
+import { Box, Tabs, Tab, Typography } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useQuery } from '@tanstack/react-query'
 
@@ -119,6 +119,7 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
   return (
     <Box sx={{ py: 3 }}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4, display: 'inline-block' }}>
+        <Typography variant='h6'>{t('animals_module.offspring')}</Typography>
         <Tabs
           value={activeTab}
           onChange={handleTabChange}

@@ -150,7 +150,7 @@ const AllOffspring: FC<TabProps> = props => {
     setSelectedOffspring(prev => (prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]))
   }
 
-   const handleRouteToAnimalDetails = (animalId: string) => {
+  const handleRouteToAnimalDetails = (animalId: string) => {
     router.push(`/animals/${animalId}`)
   }
 
@@ -236,7 +236,10 @@ const AllOffspring: FC<TabProps> = props => {
                     mb: 2
                   }}
                 >
-                  <Box sx={{ flexGrow: 1, cursor: 'pointer' }} onClick={() => handleRouteToAnimalDetails(item?.animal_id)}>
+                  <Box
+                    sx={{ flexGrow: 1, cursor: 'pointer' }}
+                    onClick={() => handleRouteToAnimalDetails(item?.animal_id)}
+                  >
                     <AnimalCard data={item} />
                   </Box>
                   {isEditing && (
