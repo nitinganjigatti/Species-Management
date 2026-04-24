@@ -15,6 +15,7 @@ import EnclosuresDrawer from '../hospital/inpatient/EnclosuresDrawer'
 import { Card, CardHeader, CardContent } from '@mui/material'
 import SortBottomSheet from '../hospital/inpatient/SortBottomSheet'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import { getSectionsList, getEnclosureList } from 'src/lib/api/diet/dietList'
 
 const AddAnimalDrawer: React.FC<{
   open: boolean
@@ -638,11 +639,19 @@ const AddAnimalDrawer: React.FC<{
           data={{
             id: localSelections.Sites[0]?.site_id,
             name: localSelections.Sites[0]?.site_name,
-            queryKey: 'hospital-sections',
-            params: { site_id: localSelections.Sites[0]?.site_id, list_all_sections: true }
+            queryKey: 'notes-sections',
+            params: { site_id: localSelections.Sites[0]?.site_id }
           }}
           disabledIds={disabledSectionIds as never[]}
           showCount={true}
+          fetchFn={getSectionsList}
+          fetchParams={{
+            zoo_id: zooId,
+            site_id: localSelections.Sites[0]?.site_id,
+            ignore_sys_gen: 1,
+            other: 'include_all',
+            module: 'Observation'
+          }}
         />
       )}
 
@@ -655,11 +664,17 @@ const AddAnimalDrawer: React.FC<{
           data={{
             id: localSelections.Sections[0]?.section_id,
             name: localSelections.Sections[0]?.section_name,
-            queryKey: 'hospital-enclosures',
-            params: { section_id: localSelections.Sections[0]?.section_id, filter_user_enclosure: 0 }
+            queryKey: 'notes-enclosures',
+            params: { section_id: localSelections.Sections[0]?.section_id }
           }}
           disabledIds={disabledEnclosureIds as never[]}
           showCount={true}
+          fetchFn={getEnclosureList}
+          fetchParams={{
+            section_id: localSelections.Sections[0]?.section_id,
+            other: 'include_all',
+            module: 'Observation'
+          }}
         />
       )}
 

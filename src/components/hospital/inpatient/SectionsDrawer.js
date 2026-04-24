@@ -10,7 +10,7 @@ import Search from 'src/views/utility/Search'
 import { getAllSections } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [], showCount = false }) => {
+const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [], showCount = false,fetchFn,fetchParams }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -39,23 +39,39 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disa
     isFetchingNextPage,
     remove
   } = useInfiniteQuery({
-    queryKey: [data?.queryKey, data?.id, search, open],
+    queryKey: [data?.queryKey, data?.id, search, open, !!fetchFn],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getAllSections({
-        ...data?.params,
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        search
-      })
+      let result = []
+      let total = 0
+
+      if (fetchFn) {
+        const res = await fetchFn({
+          ...(fetchParams || {}),
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search
+        })
+        result = res?.data?.result || []
+        total = res?.data?.total_count || 0
+      } else {
+        const res = await getAllSections({
+          ...data?.params,
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          search
+        })
+        result = res?.data?.result || []
+        total = res?.data?.total_count || 0
+      }
 
       return {
-        result: res?.data?.result || [],
-        nextPage: res?.data?.result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total: res?.data?.total_count || 0
+        result,
+        nextPage: result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: Boolean(open && !!data?.id && data?.queryKey)
+    enabled: Boolean(open && data?.queryKey && (fetchFn || !!data?.id))
   })
 
   // Reset local state on open
@@ -234,7 +250,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disa
               {showCount ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
                   <Avatar
-                    src={section?.images?.[0]?.file || '/images/housing/section-icon-colored.png'}
+                    src={section?.images?.[0]?.file || section?.default_icon || '/images/housing/section-icon-colored.png'}
                     alt={section?.section_name}
                     sx={{ width: 40, height: 40, borderRadius: 0.5 }}
                   >
@@ -271,7 +287,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disa
                   >
                     <CellInfo
                       value={section?.section_name}
-                      imgUrl={section?.images?.[0]?.file}
+                      imgUrl={section?.images?.[0]?.file || section?.default_icon}
                       defaultImage={'/images/housing/section-icon-colored.png'}
                       defaultImageAlt={'section image'}
                       inchagename={section?.incharge_name || ''}

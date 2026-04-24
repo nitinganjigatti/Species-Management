@@ -9,7 +9,7 @@ import Search from 'src/views/utility/Search'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-  const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [],showCount = false}) => {
+  const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [],showCount = false,fetchFn,fetchParams}) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -38,23 +38,39 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
     isFetchingNextPage,
     remove
   } = useInfiniteQuery({
-    queryKey: ['hospital-enclosures', data?.id, search, open],
+    queryKey: ['hospital-enclosures', data?.id, search, open, !!fetchFn],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getEnclosureListSectionWise({
-        ...data?.params,
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        q: search
-      })
+      let result = []
+      let total = 0
+
+      if (fetchFn) {
+        const res = await fetchFn({
+          ...(fetchParams || {}),
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search
+        })
+        result = res?.data?.result || res?.data?.list_items || []
+        total = res?.data?.total_count || 0
+      } else {
+        const res = await getEnclosureListSectionWise({
+          ...data?.params,
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search
+        })
+        result = res?.data?.list_items || []
+        total = res?.data?.total_count || 0
+      }
 
       return {
-        result: res?.data?.list_items || [],
-        nextPage: res?.data?.list_items?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total: res?.data?.total_count || 0
+        result,
+        nextPage: result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: Boolean(open && !!data?.id)
+    enabled: Boolean(open && (fetchFn || !!data?.id))
   })
 
   // Reset local state on open
