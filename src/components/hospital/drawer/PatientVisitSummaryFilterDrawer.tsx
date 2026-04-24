@@ -211,7 +211,7 @@ const PatientVisitSummaryFilterDrawer = ({
           }}
         >
           <Button variant='contained' fullWidth color='primary' sx={{ p: 3, fontWeight: 600 }} onClick={handleDownload}>
-            {submitLoader ? <CircularProgress size={24} color = {'white' as any}/> : t('hospital_module.download')}
+            {submitLoader ? <CircularProgress size={24} color = {'white' as any}/> : t('download')}
           </Button>
         </Box>
       </Drawer>
