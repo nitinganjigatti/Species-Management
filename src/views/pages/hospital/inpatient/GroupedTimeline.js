@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography } from '@mui/material'
+import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography, Tooltip } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -42,7 +42,14 @@ const DETAIL_LABELS = {
   attachments: 'Attachments'
 }
 
-const HIDDEN_DETAIL_KEYS = new Set(['medical_record_number'])
+const HIDDEN_DETAIL_KEYS = new Set([
+  'medical_record_number',
+  'status',
+  'created_for',
+  'createdFor',
+  'created_by',
+  'created_at'
+])
 
 const isEmptyDetailValue = value => {
   if (value === null || value === undefined) return true
@@ -228,31 +235,35 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
                     key={item.key}
                     sx={{
                       display: 'flex',
-                      alignItems: 'flex-start',
+                      alignItems: 'center',
                       gap: 1,
                       minWidth: 0,
-                      flexWrap: 'wrap'
+                      flexWrap: { xs: 'wrap', sm: 'nowrap' }
                     }}
                   >
                     <StyledTypography
                       fontSize={'1rem'}
                       fontWeight={600}
                       color={theme.palette.customColors.OnSurface}
+                      sx={{ flexShrink: { xs: 'none', lg: 0 } }}
                     >
                       {item.label}:
                     </StyledTypography>
-                    <StyledTypography
-                      fontSize={'1rem'}
-                      fontWeight={500}
-                      sx={{
-                        whiteSpace: 'pre-wrap',
-                        wordBreak: 'break-word',
-                        minWidth: 0,
-                        flex: 1
-                      }}
-                    >
-                      {item.value}
-                    </StyledTypography>
+                    <Tooltip title={item.value} arrow>
+                      <StyledTypography
+                        fontSize={'1rem'}
+                        fontWeight={500}
+                        sx={{
+                          whiteSpace: { xs: 'normal', sm: 'nowrap' },
+                          overflow: { xs: 'visible', sm: 'hidden' },
+                          textOverflow: { xs: 'clip', sm: 'ellipsis' },
+                          minWidth: 0,
+                          flex: 1
+                        }}
+                      >
+                        {item.value}
+                      </StyledTypography>
+                    </Tooltip>
                   </Box>
                 ))
               ) : (
