@@ -80,7 +80,9 @@ const EditTreatmentDrawer = ({
   const activityList = activities || []
 
   const activeActivity = activityList.find(a => a.id === formData.activeActivityId)
-  const originalStartDate = activeActivity ? activeActivity.treatment_start_date_time : null
+  const originalStartDate = activeActivity
+    ? activeActivity.treatment_start_date_time
+    : treatment?.treatment_start_date_time || null
 
   const dateHasChanged = originalStartDate
     ? !dayjs(Utility.convertUTCToLocal(originalStartDate)).isSame(dayjs(formData.startDate), 'day')
@@ -88,7 +90,7 @@ const EditTreatmentDrawer = ({
 
   const trimmedNotes = (formData.notes || '').trim()
   const isUpdateDisabled = isSubmitting || (!trimmedNotes && !dateHasChanged)
-  const isAddDisabled = isAdding || isSubmitting || !trimmedNotes
+  const isAddDisabled = isAdding || isSubmitting || (!trimmedNotes && !dateHasChanged)
 
   const formatTreatmentName = name => {
     if (!name || typeof name !== 'string') return ''
@@ -294,6 +296,124 @@ const EditTreatmentDrawer = ({
             ) : (
               activityList.map(activity => {
                 const isSelected = formData?.activeActivityId === activity.id
+
+                // if (activity.displayAsStatusCard) {
+                //   return (
+                //     <Box
+                //       key={activity.id}
+                //       role={activity.isEditable ? 'button' : undefined}
+                //       tabIndex={activity.isEditable ? 0 : undefined}
+                //       onClick={() => activity.isEditable && onActivityPrefill?.(activity)}
+                //       onKeyDown={event => {
+                //         if (!activity.isEditable) return
+
+                //         if (event.key === 'Enter' || event.key === ' ') {
+                //           event.preventDefault()
+                //           onActivityPrefill?.(activity)
+                //         }
+                //       }}
+                //       sx={{
+                //         display: 'flex',
+                //         flexDirection: 'column',
+                //         gap: '12px',
+                //         borderRadius: '8px',
+                //         padding: '16px',
+                //         border: activity.isEditable
+                //           ? `1px solid ${isSelected ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant}`
+                //           : 'none',
+                //         backgroundColor: isSelected
+                //           ? alpha(theme.palette.primary.main, 0.08)
+                //           : theme.palette.customColors.Background,
+                //         cursor: activity.isEditable ? 'pointer' : 'default'
+                //       }}
+                //     >
+                //       <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                //         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                //           <Typography
+                //             sx={{
+                //               color: theme.palette.customColors.OnSurfaceVariant,
+                //               fontWeight: 500,
+                //               fontSize: '16px'
+                //             }}
+                //           >
+                //             {activity.treatmentName || activity.title || 'Treatment Activity'}
+                //           </Typography>
+                //           {activity.medicalRecordCode ? (
+                //             <Typography
+                //               sx={{
+                //                 color: theme.palette.customColors.neutralSecondary,
+                //                 fontWeight: 400,
+                //                 fontSize: '12px'
+                //               }}
+                //             >
+                //               Medical Record: {activity.medicalRecordCode}
+                //             </Typography>
+                //           ) : null}
+                //           <Typography
+                //             sx={{
+                //               color: theme.palette.customColors.neutralSecondary,
+                //               fontWeight: 400,
+                //               fontSize: '12px',
+                //               lineHeight: '100%'
+                //             }}
+                //           >
+                //             {activity.author} • {formatTimestamp(activity.timestamp)}
+                //           </Typography>
+                //         </Box>
+
+                //         {activity.isEditable ? (
+                //           <IconButton
+                //             size='small'
+                //             sx={{ color: theme.palette.customColors.OnSurfaceVariant, p: 1 }}
+                //             onClick={event => {
+                //               event.stopPropagation()
+                //               onActivityPrefill?.(activity)
+                //             }}
+                //           >
+                //             <Icon icon='mdi:pencil-outline' />
+                //           </IconButton>
+                //         ) : null}
+                //       </Box>
+
+                //       <Typography
+                //         sx={{
+                //           color: theme.palette.customColors.OnSurfaceVariant,
+                //           fontWeight: 400,
+                //           fontSize: '12px'
+                //         }}
+                //       >
+                //         Treatment Start Date:{' '}
+                //         <Box component='span' sx={{ fontWeight: 600 }}>
+                //           {formatShortDate(activity.treatment_start_date_time)}
+                //         </Box>
+                //       </Typography>
+
+                //       {activity.note ? (
+                //         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                //           <Typography
+                //             sx={{
+                //               color: theme.palette.customColors.neutralSecondary,
+                //               fontWeight: 400,
+                //               fontSize: '12px'
+                //             }}
+                //           >
+                //             Notes
+                //           </Typography>
+                //           <Typography
+                //             sx={{
+                //               color: theme.palette.customColors.OnSurfaceVariant,
+                //               fontWeight: 400,
+                //               fontSize: '14px',
+                //               whiteSpace: 'pre-wrap'
+                //             }}
+                //           >
+                //             {activity.note}
+                //           </Typography>
+                //         </Box>
+                //       ) : null}
+                //     </Box>
+                //   )
+                // }
 
                 if (activity.isEditable) {
                   return (
