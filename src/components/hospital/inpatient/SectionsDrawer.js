@@ -10,7 +10,20 @@ import Search from 'src/views/utility/Search'
 import { getAllSections } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [], showCount = false,fetchFn,fetchParams }) => {
+/**
+ * @param {{
+ *   open: boolean,
+ *   onClose: () => void,
+ *   data: any,
+ *   onContinue: (result: any) => void,
+ *   localSelections?: any[],
+ *   disabledIds?: any[],
+ *   showCount?: boolean,
+ *   fetchFn?: (params: any) => Promise<any>,
+ *   fetchParams?: Record<string, any>
+ * }} props
+ */
+const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [], showCount = false, fetchFn, fetchParams }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
