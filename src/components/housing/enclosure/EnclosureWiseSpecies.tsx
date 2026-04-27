@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Card, CardContent, FormControlLabel, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
@@ -126,7 +126,8 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({
         },
         Number(id)
       ),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const listing: SpeciesRow[] = (data?.data?.listing || []) as unknown as SpeciesRow[]

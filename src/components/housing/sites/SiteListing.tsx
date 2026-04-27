@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Box, CircularProgress, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -92,7 +92,8 @@ const Listing: React.FC<SiteListingProps> = ({
         q: filters.search,
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder
-      })
+      }),
+    placeholderData: keepPreviousData
   })
 
   const total: number = data?.data?.total_count || 0

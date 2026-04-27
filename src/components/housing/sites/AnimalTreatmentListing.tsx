@@ -13,7 +13,7 @@ import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { GenderInfoCard, IdentifierInfoCard } from 'src/utility/render'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getAnimalTreatmentList } from 'src/lib/api/housing'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { GridCellParams, GridSortModel, GridRowParams } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
 
@@ -75,7 +75,8 @@ const AnimalTreatmentListing: React.FC = () => {
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const animalTreatmentList: TreatmentRow[] = data?.data?.result || []

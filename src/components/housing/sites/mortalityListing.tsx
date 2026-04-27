@@ -2,7 +2,7 @@ import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, Theme } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
@@ -70,7 +70,8 @@ const MortalityListing: React.FC = () => {
         site_id: Number(id),
         type: 'animals'
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const sectionList: MortalityRow[] = data?.data?.result || []
