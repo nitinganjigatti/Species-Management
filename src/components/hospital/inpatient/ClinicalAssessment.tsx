@@ -336,7 +336,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
       }
     } catch (error) {
       console.error('Error fetching notes for symptom:', error)
-      Toaster({ type: 'error', message: 'An error occurred while fetching notes.' })
+      Toaster({ type: 'error', message: t('hospital_module.an_error_occurred_while_fetching_notes') })
     } finally {
       setActivityLoader(false)
     }
@@ -401,7 +401,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
       }
     } catch (error: any) {
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || 'An unexpected error occurred' })
+      Toaster({ type: 'error', message: error.message || t('hospital_module.an_unexpected_error_occurred') })
     } finally {
       setIsSubmitLoading(false)
     }

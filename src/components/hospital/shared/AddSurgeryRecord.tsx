@@ -1439,7 +1439,7 @@ const AddSurgeryRecord = () => {
                   }
                 }}
                 name={'date'}
-                label='Date'
+                label={t('hospital_module.date') as any}
                 control={control}
                 minDate={minDate as any}
                 maxDate={maxDate as any}
@@ -1453,7 +1453,7 @@ const AddSurgeryRecord = () => {
                     height: '56px'
                   }
                 }}
-                label='Start Time'
+                label={t('hospital_module.start_time') as any}
                 name={'startTime'}
                 control={control}
                 minTime={minTime}
@@ -1470,7 +1470,7 @@ const AddSurgeryRecord = () => {
                 }}
                 name={'endTime'}
                 control={control}
-                label='End Time'
+                label={t('hospital_module.end_time') as any}
                 minTime={minEndTime}
               />
             </Grid>
@@ -1484,7 +1484,7 @@ const AddSurgeryRecord = () => {
                   }
                 }}
                 name={'duration'}
-                label='Surgery Duration'
+                label={t('hospital_module.surgery_duration') as any}
                 control={control}
                 errors={errors}
                 borderRadius='4px'
@@ -1521,7 +1521,7 @@ const AddSurgeryRecord = () => {
                   errors={errors}
                   name={'surgeon'}
                   key={`surgeon-${formResetKey}`}
-                  label='Name of Surgeon'
+                  label={t('hospital_module.name_of_surgeon') as any}
                   options={surgeonOptions}
                   loading={doctorsLoading}
                   onInputChange={handleSurgeonInputChange}
@@ -1579,7 +1579,7 @@ const AddSurgeryRecord = () => {
                       errors={errors}
                       name={'procedure'}
                       key={`procedure-${formResetKey}`}
-                      label='Name of Procedure'
+                      label={t('hospital_module.name_of_procedure') as any}
                       options={procedureOptions}
                       loading={isProceduresLoading}
                       onInputChange={handleProcedureInputChange}
@@ -1615,7 +1615,7 @@ const AddSurgeryRecord = () => {
                     }
                   }}
                   name={'typeOfSurgery'}
-                  label='Type of Surgery'
+                  label={t('hospital_module.type_of_surgery') as any}
                   control={control}
                   errors={errors}
                   borderRadius='4px'
@@ -1631,7 +1631,7 @@ const AddSurgeryRecord = () => {
                     }
                   }}
                   name={'surgicalApproach'}
-                  label='Surgical Approach'
+                  label={t('hospital_module.surgical_approach') as any}
                   control={control}
                   errors={errors}
                   borderRadius='4px'
@@ -1665,7 +1665,7 @@ const AddSurgeryRecord = () => {
                         }
                       }}
                       renderInput={params => (
-                        <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                        <TextField {...params} label={t('hospital_module.select_attending_vet') as any} placeholder={t('hospital_module.search_and_select') as any} />
                       )}
                     />
                   )}
@@ -1674,7 +1674,7 @@ const AddSurgeryRecord = () => {
             </Grid>
 
             <TemplateSection
-              label='Enter surgery notes'
+              label={t('hospital_module.enter_surgery_notes') as any}
               value={richNote}
               onChange={setRichNote}
               hospitalId={resolvedHospitalCaseId || ''}
@@ -1817,7 +1817,7 @@ const AddSurgeryRecord = () => {
                 {[
                   { label: 'Location', value: selectedAnesthesia?.location || '--' },
                   {
-                    label: 'Date and Time of Anesthesia',
+                    label: t('hospital_module.date_and_time_of_anesthesia'),
                     value:
                       // If record was just added, it's already in local time (use formatDateTimeDisplay)
                       // Otherwise, it's from the database in UTC (use convertUTCToLocalDateTime)
@@ -1841,7 +1841,7 @@ const AddSurgeryRecord = () => {
                     value: joinNames(selectedAnesthesia?.veterinarians)
                   },
                   {
-                    label: 'Anesthetists',
+                    label: t('hospital_module.anesthetists'),
                     value: joinNames(selectedAnesthesia?.anesthetists)
                   }
                 ].map(info => (
@@ -2056,13 +2056,13 @@ const AddSurgeryRecord = () => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          Attachments
+          {t('hospital_module.attachments')}
         </Typography>
 
         <ControlledMultiFileUpload
           name='attachments'
           control={control}
-          label='Upload files'
+          label={t('hospital_module.upload_files') as any}
           maxFiles={0}
           acceptedFileTypes='images,pdf,csv,audio,videos'
         />

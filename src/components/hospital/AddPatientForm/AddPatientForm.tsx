@@ -810,19 +810,19 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                                 color: theme.palette.customColors.OnSurfaceVariant
                               }}
                             >
-                              Select ID
+                              {t('hospital_module.select_id')}
                             </Typography>
                             <ControlledSelect
                               control={control}
                               name={'medicalRecordId'}
                               errors={errors}
-                              label={'Select ID'}
+                              label={t('hospital_module.select_id') as any}
                               options={
                                 !selectedAnimal
-                                  ? [{ label: ' Select Animal first', value: '' }]
+                                  ? [{ label: t('hospital_module.select_animal_first'), value: '' }]
                                   : medicalId.length > 0
                                   ? medicalId
-                                  : [{ label: 'No medical IDs available', value: '' }]
+                                  : [{ label: t('hospital_module.no_medical_ids_available'), value: '' }]
                               }
                               getOptionLabel={(option: any) => (
                                 <>
@@ -993,7 +993,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                           }}
                           noOptionsText='No available attending vets...'
                           renderInput={params => (
-                            <TextField {...params} label='Select Attending Veterinarian' placeholder='Search & Select' />
+                            <TextField {...params} label={t('hospital_module.select_attending_vet') as any} placeholder={t('hospital_module.search_and_select') as any} />
                           )}
                         />
                       )}

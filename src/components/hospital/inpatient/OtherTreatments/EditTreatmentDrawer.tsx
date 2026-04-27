@@ -234,14 +234,14 @@ const EditTreatmentDrawer = ({
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Notes</Typography>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{t('hospital_module.notes_label')}</Typography>
                 <ControlledTextArea
                   name='editNotes'
                   control={control}
                   errors={{}}
                   disabled={isSubmitting || isAdding}
                   rows={4}
-                  placeholder='Add notes'
+                  placeholder={t('hospital_module.add_notes_placeholder') as any}
                   onChangeOverride={(event: any) => onChange('notes', event?.target?.value || '')}
                   inputBackgroundColor={theme.palette.primary.contrastText}
                   sx={{

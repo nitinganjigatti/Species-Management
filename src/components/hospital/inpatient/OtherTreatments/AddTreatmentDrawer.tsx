@@ -155,7 +155,7 @@ const AddTreatmentDrawer = ({
               letterSpacing: 0
             }}
           >
-            Add Treatment
+            {t('hospital_module.add_treatment')}
           </Typography>
           <IconButton onClick={onClose} sx={{ color: theme.palette.primary.light, mr: -3 }}>
             <CloseIcon />
@@ -172,7 +172,7 @@ const AddTreatmentDrawer = ({
                   color: theme.palette.primary.deepDark
                 }}
               >
-                Treatment Start Date
+                {t('hospital_module.treatment_start_date')}
               </Typography>
               <MUIDatePicker
                 {...({
@@ -206,7 +206,7 @@ const AddTreatmentDrawer = ({
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Treatment Name
+                {t('hospital_module.treatment_name_label')}
               </Typography>
               <ControlledAutocomplete
                 name='treatmentName'
@@ -225,7 +225,7 @@ const AddTreatmentDrawer = ({
                 {...({ onInputChange: handleTreatmentInputChange } as any)}
                 inputBackgroundColor={theme.palette.primary.contrastText}
                 textFieldProps={{
-                  placeholder: 'Enter treatment',
+                  placeholder: t('hospital_module.enter_treatment'),
                   sx: {
                     ...commonFieldStyles,
                     '& .MuiOutlinedInput-root': {
@@ -249,14 +249,14 @@ const AddTreatmentDrawer = ({
               />
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Notes</Typography>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{t('hospital_module.notes_label')}</Typography>
               <ControlledTextArea
                 name='notes'
                 control={control}
                 errors={errors}
-                {...({ required: 'Notes is required' } as any)}
+                {...({ required: t('hospital_module.notes_required') } as any)}
                 rows={4}
-                placeholder='Add notes'
+                placeholder={t('hospital_module.add_notes_placeholder') as any}
                 onChangeOverride={(event: any) => onChange('notes', event?.target?.value || '')}
                 inputBackgroundColor={theme.palette.primary.contrastText}
                 sx={{
@@ -297,7 +297,7 @@ const AddTreatmentDrawer = ({
               }
             }}
           >
-            {isSubmitting ? 'Adding...' : 'Add'}
+            {isSubmitting ? t('hospital_module.adding') : t('hospital_module.add')}
           </Button>
         </Box>
       </Box>

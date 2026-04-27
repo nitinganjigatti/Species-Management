@@ -226,7 +226,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
         setUploadLoading(false)
       } catch (error) {
         console.error('Error uploading files:', error)
-        Toaster({ type: 'error', message: 'Failed to upload files' })
+        Toaster({ type: 'error', message: t('hospital_module.failed_to_upload_files') })
         setUploadLoading(false)
       }
     }
@@ -364,7 +364,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       const response: any = await deletePatientMedia(mediaId)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Medical attachments deleted successfully.' })
+        Toaster({ type: 'success', message: t('hospital_module.medical_attachments_deleted_successfully') })
 
         // Refetch the media list after successful deletion
         await refetch()
@@ -373,7 +373,7 @@ const PatientMedia = ({ hospitalCaseId, animalId, medicalRecordId }: PatientMedi
       }
     } catch (error) {
       console.error('Error deleting media:', error)
-      Toaster({ type: 'error', message: 'Failed to delete media' })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_delete_media') })
     } finally {
       setDeletingMediaId(null)
     }

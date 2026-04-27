@@ -676,10 +676,10 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
         setSelectedMetrics([])
         getPrescriptionList()
       } else {
-        Toaster({ type: 'error', message: 'Something went wrong' }) // TODO: Update to error message
+        Toaster({ type: 'error', message: t('hospital_module.something_went_wrong') }) // TODO: Update to error message
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: 'Something went wrong' })
+      Toaster({ type: 'error', message: t('hospital_module.something_went_wrong') })
     } finally {
       setIsAdministerLoading(false)
       setIsSkipLoading(false)
@@ -861,7 +861,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       }
     } catch (error: any) {
       console.error('Error administering medications:', error)
-      Toaster({ type: 'error', message: error?.message || 'Something went wrong' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.something_went_wrong') })
     } finally {
       setIsAdministerLoading(false)
     }
@@ -924,7 +924,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       }
     } catch (error: any) {
       console.error('Error skipping medications:', error)
-      Toaster({ type: 'error', message: error?.message || 'Something went wrong' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.something_went_wrong') })
     } finally {
       setIsSkipLoading(false)
     }
@@ -1075,7 +1075,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }: Prescription
       />
       {/* Add dosage flow */}
       <ScheduleDosage
-        label='Add Dosage'
+        label={t('hospital_module.add_dosage') as any}
         handleOpen={isAddDosageModelOpen}
         handleSidebarClose={() => setIsAddDosageModelOpen(false)}
         scheduleDosage={{

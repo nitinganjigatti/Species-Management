@@ -903,7 +903,7 @@ const PatientAdmitForm = () => {
                               }}
                               noOptionsText='No available attending vets...'
                               renderInput={(params: any) => (
-                                <TextField {...params} label='Select Attending Veterinarian' placeholder='Search & Select' />
+                                <TextField {...params} label={t('hospital_module.select_attending_vet') as any} placeholder={t('hospital_module.search_and_select') as any} />
                               )}
                             />
                           )}
@@ -916,11 +916,11 @@ const PatientAdmitForm = () => {
                       <Typography
                         sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                       >
-                        Room
+                        {t('hospital_module.room')}
                       </Typography>
                       <ControlledAutocomplete
                         name='room'
-                        label='Select Room*'
+                        label={t('hospital_module.select_room_required') as any}
                         control={control}
                         errors={errors}
                         options={rooms}
@@ -938,7 +938,7 @@ const PatientAdmitForm = () => {
                         disabled={submitLoader}
                         endAdornment={() =>
                           havePermissionToAddHospital && (
-                            <Tooltip title='Add Rooms'>
+                            <Tooltip title={t('hospital_module.add_room')}>
                               <IconButton
                                 size='small'
                                 onMouseDown={(e: any) => e.preventDefault()}
@@ -961,7 +961,7 @@ const PatientAdmitForm = () => {
                             fontWeight: 400
                           }}
                         >
-                          No available Enclosures, All Enclosures are occupied
+                          {t('hospital_module.no_available_enclosures')}
                         </Typography>
                       )}
                     </Grid>
@@ -969,11 +969,11 @@ const PatientAdmitForm = () => {
                       <Typography
                         sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                       >
-                        Holding Enclosure
+                        {t('hospital_module.holding_enclosure')}
                       </Typography>
                       <ControlledAutocomplete
                         name='holdingEnclosure'
-                        label='Select Holding Enclosure*'
+                        label={t('hospital_module.select_holding_enclosure_required') as any}
                         control={control}
                         errors={errors}
                         options={holdingEnclosures}

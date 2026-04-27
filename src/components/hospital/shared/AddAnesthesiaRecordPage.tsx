@@ -321,13 +321,13 @@ export const anesthesiaSchema: any = yup.object({
     .default([])
 })
 
-const sections = [
-  { id: 'basicDetails', label: 'Basic Detail', component: BasicDetails },
-  { id: 'preAnesthesia', label: 'Pre Anesthesia', component: PreAnesthesia },
-  { id: 'medicationsGas', label: 'Medications & Gas', component: MedicationsGasSection },
-  { id: 'vitalMonitoring', label: 'Vital Monitoring', component: VitalMonitoring },
-  { id: 'recoveryAndReversal', label: 'Recovery And Reversal', component: RecoveryAndReversal },
-  { id: 'anesthesiaSetUp', label: 'Anesthesia Set Up', component: AnesthesiaSetUpSection }
+const getSections = (t: any) => [
+  { id: 'basicDetails', label: t('hospital_module.basic_detail'), component: BasicDetails },
+  { id: 'preAnesthesia', label: t('hospital_module.pre_anesthesia'), component: PreAnesthesia },
+  { id: 'medicationsGas', label: t('hospital_module.medications_gas'), component: MedicationsGasSection },
+  { id: 'vitalMonitoring', label: t('hospital_module.vital_monitoring'), component: VitalMonitoring },
+  { id: 'recoveryAndReversal', label: t('hospital_module.recovery_and_reversal'), component: RecoveryAndReversal },
+  { id: 'anesthesiaSetUp', label: t('hospital_module.anesthesia_set_up'), component: AnesthesiaSetUpSection }
 ]
 
 export default function AddAnesthesiaRecord() {
@@ -744,51 +744,51 @@ export default function AddAnesthesiaRecord() {
   }
 
   const purposeStageOptions = [
-    { label: 'Premedication', value: 'Premedication' },
-    { label: 'Induction', value: 'Induction' },
-    { label: 'Analgesia', value: 'Analgesia' }
+    { label: t('hospital_module.premedication'), value: 'Premedication' },
+    { label: t('hospital_module.induction'), value: 'Induction' },
+    { label: t('hospital_module.analgesia'), value: 'Analgesia' }
   ]
 
   const physicalHealthStatusOptions = [
-    { label: 'Class I | Normal Health', value: 'Class I | Normal Health' },
-    { label: 'Class II | Minor Health Problem', value: 'Class II | Minor Health Problem' },
-    { label: 'Class III | Major Health Problem', value: 'Class III | Major Health Problem' },
-    { label: 'Class IV | Serious or Chronic illness', value: 'Class IV | Serious or Chronic illness' },
-    { label: 'Class V | May not Survive', value: 'Class V | May not Survive' }
+    { label: t('hospital_module.class_i_normal_health'), value: 'Class I | Normal Health' },
+    { label: t('hospital_module.class_ii_minor_problem'), value: 'Class II | Minor Health Problem' },
+    { label: t('hospital_module.class_iii_major_problem'), value: 'Class III | Major Health Problem' },
+    { label: t('hospital_module.class_iv_chronic_illness'), value: 'Class IV | Serious or Chronic illness' },
+    { label: t('hospital_module.class_v_not_survive'), value: 'Class V | May not Survive' }
   ]
 
   const bodyConditionOptions = [
-    { label: 'Fair/Thin ', value: 'Fair/Thin' },
-    { label: 'Good', value: 'Good' },
-    { label: 'Obese/Fat', value: 'Obese/Fat' },
-    { label: 'Poor/Emaciated', value: 'Poor/Emaciated' }
+    { label: t('hospital_module.fair_thin'), value: 'Fair/Thin' },
+    { label: t('hospital_module.good'), value: 'Good' },
+    { label: t('hospital_module.obese_fat'), value: 'Obese/Fat' },
+    { label: t('hospital_module.poor_emaciated'), value: 'Poor/Emaciated' }
   ]
 
   const animalActivityOptions = [
-    { label: 'Calm', value: 'Calm' },
-    { label: 'Active', value: 'Active' },
-    { label: 'Excited', value: 'Excited' }
+    { label: t('hospital_module.calm'), value: 'Calm' },
+    { label: t('hospital_module.active'), value: 'Active' },
+    { label: t('hospital_module.excited'), value: 'Excited' }
   ]
 
   const codeStatusOptions = [
-    { label: 'R (Resuscitate)', value: 'R (Resuscitate)' },
-    { label: 'Y (Conditional)', value: 'Y (Conditional)' },
-    { label: 'G (Do not Resuscitate)', value: 'G (Do not Resuscitate)' }
+    { label: t('hospital_module.r_resuscitate'), value: 'R (Resuscitate)' },
+    { label: t('hospital_module.y_conditional'), value: 'Y (Conditional)' },
+    { label: t('hospital_module.g_do_not_resuscitate'), value: 'G (Do not Resuscitate)' }
   ]
 
   const recoveryTypeOptions = [
-    { label: 'Normal', value: 'Normal' },
-    { label: 'Prolonged', value: 'Prolonged' },
-    { label: 'Stormy', value: 'Stormy' },
-    { label: 'Renarcotized', value: 'Renarcotized' },
-    { label: 'Problem', value: 'Problem' }
+    { label: t('hospital_module.normal'), value: 'Normal' },
+    { label: t('hospital_module.prolonged'), value: 'Prolonged' },
+    { label: t('hospital_module.stormy'), value: 'Stormy' },
+    { label: t('hospital_module.renarcotized'), value: 'Renarcotized' },
+    { label: t('hospital_module.problem'), value: 'Problem' }
   ]
 
   const anesthesiaRatingOptions = [
-    { label: 'Good', value: 'Good' },
-    { label: 'Excellent', value: 'Excellent' },
-    { label: 'Fair', value: 'Fair' },
-    { label: 'Poor', value: 'Poor' }
+    { label: t('hospital_module.good'), value: 'Good' },
+    { label: t('hospital_module.excellent'), value: 'Excellent' },
+    { label: t('hospital_module.fair'), value: 'Fair' },
+    { label: t('hospital_module.poor'), value: 'Poor' }
   ]
 
   const methods = useForm<any>({
@@ -2157,13 +2157,13 @@ export default function AddAnesthesiaRecord() {
                       patientData?.animal_detail?.local_identifier_name &&
                       patientData?.animal_detail?.local_identifier_value
                         ? patientData?.animal_detail?.local_identifier_name
-                        : 'AID',
+                        : t('hospital_module.aid_label'),
                     value: handleAIDDisplay()
                   },
-                  { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+                  { label: t('hospital_module.health_status_label'), value: patientData?.health_status || 'stable', isStatusCard: true },
                   // { label: 'Admitted days', value: patientData?.admitted_for_day },
-                  { label: 'Holding Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
-                  { label: 'Chief Veterinarian', value: patientData?.attend_by_full_name }
+                  { label: t('hospital_module.holding_location_label'), value: `${patientData?.bed_name}, ${patientData?.room_name}` },
+                  { label: t('hospital_module.chief_veterinarian_label'), value: patientData?.attend_by_full_name }
                 ]}
                 isLoading={patientLoading}
               />
@@ -2183,7 +2183,7 @@ export default function AddAnesthesiaRecord() {
                 }
               }}
             >
-              {sections.map((sec: any) => {
+              {getSections(t).map((sec: any) => {
                 const isDisabled =
                   (sec.id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id) ||
                   (sec.id !== 'basicDetails' && !isBasicDetailsValid)
@@ -2223,7 +2223,7 @@ export default function AddAnesthesiaRecord() {
               }
             }}
           >
-            {sections.map(({ id, label, component: SectionComponent }: any) => {
+            {getSections(t).map(({ id, label, component: SectionComponent }: any) => {
               const isDisabled = id !== 'basicDetails' && !shouldEnableSections && !anaesthesia_id
               const hasData = !isDisabled && sectionHasData(id)
 
@@ -2335,8 +2335,8 @@ export default function AddAnesthesiaRecord() {
             onSubmit: handleSubmit(onValid, onInvalid),
             loading: isSubmitting,
             disabled: !isBasicDetailsValid,
-            submitLabel: isSubmitting ? 'SUBMITTING...' : anaesthesia_id ? 'SAVE' : 'ADD',
-            cancelLabel: 'RESET',
+            submitLabel: isSubmitting ? t('hospital_module.submitting') : anaesthesia_id ? t('save') : t('add'),
+            cancelLabel: t('hospital_module.reset'),
             cancelBtnStyle: {
               borderColor: theme.palette.customColors.OnSurfaceVariant,
               color: theme.palette.customColors.OnSurfaceVariant,

@@ -295,7 +295,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
         setSelectedTreatmentActivities(mapDetailRecordsToActivities(getApiRecords(response)))
       } catch (error: any) {
-        Toaster({ type: 'error', message: error?.message || 'Failed to fetch treatment details.' })
+        Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_fetch_treatment_details') })
         setSelectedTreatmentActivities([])
       } finally {
         setTreatmentActivitiesLoading(false)
@@ -387,13 +387,13 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     const treatmentNameValue = (treatmentInputValue || selectedValue || '').trim()
 
     if (!treatmentNameValue) {
-      Toaster({ type: 'error', message: 'Treatment name is required.' })
+      Toaster({ type: 'error', message: t('hospital_module.treatment_name_is_required') })
 
       return
     }
 
     if (!animalId || !medicalRecordId) {
-      Toaster({ type: 'error', message: 'Missing patient identifiers to create treatment.' })
+      Toaster({ type: 'error', message: t('hospital_module.missing_patient_identifiers_treatment') })
 
       return
     }
@@ -429,7 +429,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         fetchTreatments()
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || 'Failed to create treatment.' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_create_treatment') })
     } finally {
       setIsCreatingTreatment(false)
     }
@@ -474,13 +474,13 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
   const handleUpdateTreatment = async () => {
     if (!selectedTreatment) {
-      Toaster({ type: 'error', message: 'Select a treatment to update.' })
+      Toaster({ type: 'error', message: t('hospital_module.select_treatment_to_update') })
 
       return
     }
 
     if (!editFormData.activeActivityId) {
-      Toaster({ type: 'error', message: 'Select a note entry to update from the activity list.' })
+      Toaster({ type: 'error', message: t('hospital_module.select_note_entry_to_update') })
 
       return
     }
@@ -489,7 +489,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     const finalMedicalRecordId = selectedTreatment.medicalRecordId || medicalRecordId
 
     if (!finalAnimalId || !finalMedicalRecordId) {
-      Toaster({ type: 'error', message: 'Missing identifiers to update this treatment.' })
+      Toaster({ type: 'error', message: t('hospital_module.missing_identifiers_to_update_treatment') })
 
       return
     }
@@ -513,7 +513,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     const treatmentMasterId = selectedTreatment?.name || ''
 
     if (!treatmentMasterId) {
-      Toaster({ type: 'error', message: 'Unable to determine treatment reference for update.' })
+      Toaster({ type: 'error', message: t('hospital_module.unable_to_determine_treatment_reference_for_update') })
 
       return
     }
@@ -533,14 +533,14 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       const response: any = await updateTreatmentRecord(payload)
       Toaster({
         type: response?.success ? 'success' : 'error',
-        message: response?.message || 'Treatment update status unknown.'
+        message: response?.message || t('hospital_module.failed_to_update_treatment')
       })
       if (response?.success) {
         closeEditDrawer()
         fetchTreatments()
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || 'Failed to update treatment.' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_update_treatment') })
     } finally {
       setIsUpdatingTreatment(false)
     }
@@ -548,7 +548,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
   const handleAddTreatmentNote = async () => {
     if (!selectedTreatment) {
-      Toaster({ type: 'error', message: 'Select a treatment to add note.' })
+      Toaster({ type: 'error', message: t('hospital_module.select_treatment_to_add_note') })
 
       return
     }
@@ -557,7 +557,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     const finalMedicalRecordId = selectedTreatment.medicalRecordId || medicalRecordId
 
     if (!finalAnimalId || !finalMedicalRecordId) {
-      Toaster({ type: 'error', message: 'Missing identifiers to add this treatment note.' })
+      Toaster({ type: 'error', message: t('hospital_module.missing_identifiers_to_add_treatment_note') })
 
       return
     }
@@ -569,7 +569,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     const treatmentMasterId = selectedTreatment?.name || ''
 
     if (!treatmentMasterId) {
-      Toaster({ type: 'error', message: 'Unable to determine treatment reference.' })
+      Toaster({ type: 'error', message: t('hospital_module.unable_to_determine_treatment_reference') })
 
       return
     }
@@ -589,14 +589,14 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       const response: any = await createTreatmentRecord(payload)
       Toaster({
         type: response?.success ? 'success' : 'error',
-        message: response?.message || 'Treatment note creation status unknown.'
+        message: response?.message || t('hospital_module.failed_to_add_treatment_note')
       })
       if (response?.success) {
         closeEditDrawer()
         fetchTreatments()
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || 'Failed to add treatment note.' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_add_treatment_note') })
     } finally {
       setIsAddingTreatmentNote(false)
     }
@@ -604,7 +604,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
   const handleDeleteTreatment = () => {
     if (!editFormData.activeActivityId) {
-      Toaster({ type: 'error', message: 'Select a note entry to delete from the activity list.' })
+      Toaster({ type: 'error', message: t('hospital_module.select_note_entry_to_delete') })
 
       return
     }
@@ -614,7 +614,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
   const handleConfirmDeleteTreatment = async () => {
     if (!editFormData.activeActivityId) {
-      Toaster({ type: 'error', message: 'Missing note reference to delete.' })
+      Toaster({ type: 'error', message: t('hospital_module.missing_note_reference_to_delete') })
       setDeleteDialogOpen(false)
 
       return
@@ -625,7 +625,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       const response: any = await deleteTreatmentRecord({ treatment_id: editFormData.activeActivityId })
       Toaster({
         type: response?.success ? 'success' : 'error',
-        message: response?.message || 'Treatment delete status unknown.'
+        message: response?.message || t('hospital_module.failed_to_delete_treatment_entry')
       })
       if (response?.success) {
         setDeleteDialogOpen(false)
@@ -633,7 +633,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         fetchTreatments()
       }
     } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || 'Failed to delete treatment entry.' })
+      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_delete_treatment_entry') })
     } finally {
       setIsDeletingTreatment(false)
     }

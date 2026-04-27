@@ -420,7 +420,7 @@ function SelectionTemplatePanel({
       }
     } catch (error) {
       console.error(`Error updating ${templateType} template:`, error)
-      Toaster({ type: 'error', message: 'Failed to update template' })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_update_template') })
     } finally {
       setIsUpdating(false)
     }
@@ -443,7 +443,7 @@ function SelectionTemplatePanel({
       }
     } catch (error) {
       console.error(`Error deleting ${templateType} template:`, error)
-      Toaster({ type: 'error', message: 'Failed to delete template' })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_delete_template') })
     } finally {
       setIsDeleting(false)
     }

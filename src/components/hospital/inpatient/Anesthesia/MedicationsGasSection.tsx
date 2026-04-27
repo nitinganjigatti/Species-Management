@@ -89,7 +89,7 @@ function MedicationsGasSection({
         setProductPage(pageToLoad)
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'Failed to fetch products' })
+      Toaster({ type: 'error', message: t('hospital_module.failed_to_fetch_products') })
     } finally {
       setIsProductLoading(false)
     }

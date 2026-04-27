@@ -485,7 +485,7 @@ export default function VitalMonitoring({ vitalMonitorList = [] }: VitalMonitori
 
         Toaster({
           type: 'success',
-          message: 'Record time deleted successfully'
+          message: t('hospital_module.record_time_deleted_successfully')
         })
       } else {
         const response: any = await deleteVitalMonitoring({

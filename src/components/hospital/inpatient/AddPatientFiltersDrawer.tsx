@@ -387,7 +387,7 @@ const AddPatientFiltersDrawer = ({
           items={menuData['Gender']}
           isAllSelected={isAllSelected('Gender')}
           searchLoading={searchLoading}
-          placeholder='Search gender...'
+          placeholder={t('hospital_module.search_gender') as any}
           enableSelectAll
         />
       )}
@@ -403,7 +403,7 @@ const AddPatientFiltersDrawer = ({
           items={menuData['Species']}
           isAllSelected={isAllSelected('Species')}
           searchLoading={searchLoading}
-          placeholder='Search species...'
+          placeholder={t('hospital_module.search_species') as any}
           enableSelectAll
         />
       )}
@@ -420,7 +420,7 @@ const AddPatientFiltersDrawer = ({
             items: menuData['Site'],
             isAllSelected: isAllSelected('Site'),
             searchLoading: searchLoading,
-            placeholder: 'Search sites...'
+            placeholder: t('hospital_module.search_sites_placeholder')
           } as any)}
           localSelections={localSelections}
           setLocalSelections={setLocalSelections}
