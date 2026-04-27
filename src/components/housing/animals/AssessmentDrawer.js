@@ -684,7 +684,10 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                     xaxis: {
                       categories: [...assessmentData]
                         .reverse()
-                        .map(item => moment(item.recorded_date_time).format('DD MMM YY')),
+                        .map(item => {
+                          const stillUtc = moment.utc(item.recorded_date_time).toDate()
+                          return moment(stillUtc).local(true).format('DD MMM YY')
+                        }),
                       labels: { rotate: -45, show: true }
                     },
                     yaxis: {
