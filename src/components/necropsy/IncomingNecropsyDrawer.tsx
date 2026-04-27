@@ -114,6 +114,7 @@ interface CommentDetail {
 
 interface NecropsyData {
   total_animal_count?: number
+  transferred_animal_count?: number
   entity_details?: EntityDetail[]
   transfer_details?: TransferDetails
   transfer_attachment?: TransferAttachment[]
@@ -686,9 +687,8 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
             >
               {(() => {
                 const animalCount = necropsyData?.total_animal_count || necropsyData?.entity_details?.length || 0
-
-                const loadedAnimalItem = checklistComments?.find(item => item?.dump?.loaded_count != null)
-                const loadedCount = loadedAnimalItem?.dump?.loaded_count ?? loadedAnimalItem?.pending_count ?? null
+                const transferredCount = necropsyData?.transferred_animal_count ?? 0
+                const loadedCount = transferredCount >= 1 && transferredCount !== animalCount ? transferredCount : null
 
                 if (animalCount === 1 && necropsyData?.entity_details?.[0]) {
                   return (
