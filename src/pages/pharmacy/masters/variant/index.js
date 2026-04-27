@@ -84,7 +84,8 @@ const VariantList = () => {
       )
     },
     {
-      minWidth: 300,
+      flex: 1,
+      minWidth: 200,
       field: 'description',
       headerName: 'Description',
       textAlign: 'center',

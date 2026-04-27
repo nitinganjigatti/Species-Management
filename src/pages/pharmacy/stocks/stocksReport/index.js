@@ -327,7 +327,8 @@ const ListOfStocks = () => {
     },
 
     {
-      width: 260,
+      flex: 1,
+      minWidth: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -457,7 +458,7 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.4,
+      flex: 1,
       minWidth: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
