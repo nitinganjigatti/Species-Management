@@ -981,6 +981,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
                           filterSelectedOptions
                           getOptionLabel={option => option?.label || ''}
                           isOptionEqualToValue={(option, value) => option.value === value?.value}
+                          disableCloseOnSelect={true}
                           onInputChange={(event, value, reason) => {
                              if (reason === 'clear') {
                               setAttendingSelectedDoctors([])

@@ -352,9 +352,9 @@ const PatientAdmitForm = ()=> {
         admit_time: moment(data?.admission_time).format('HH:mm'),
         room_id: data?.room?.value,
         health_status: data?.healthStatus,
- co_attend_doctor: data?.coAttendDoctor?.length
-  ? JSON.stringify(data.coAttendDoctor.map(doc => String(doc.value)))
-  : '[]'
+        co_attend_doctor: data?.coAttendDoctor?.length
+          ? JSON.stringify(data.coAttendDoctor.map(doc => String(doc.value)))
+          : '[]'
       }
 
       const res = await admitHospitalPatient(params)
@@ -907,6 +907,7 @@ const PatientAdmitForm = ()=> {
                               value={attendingSelectedDoctors}
                               loading={staffLoading}
                               filterSelectedOptions
+                              disableCloseOnSelect={true}
                               getOptionLabel={option => option?.label || ''}
                               isOptionEqualToValue={(option, value) => option.value === value?.value}
                               onChange={(event, newValue, reason) => {
