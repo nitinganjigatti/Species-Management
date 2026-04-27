@@ -12,6 +12,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 
 const PAGE_SIZE = 10
 
@@ -71,7 +72,7 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
   searchPlaceholder: searchPlaceholderProp,
   selectionMode = 'multi',
   extraParams = {},
-  zIndex = 1300,
+  zIndex,
   showFilterButton = false,
   filterCount = 0,
   onFilterClick,
@@ -312,7 +313,7 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
       open={open}
       onClose={handleClose}
       sx={{
-        zIndex,
+        ...(zIndex !== undefined && { zIndex }),
         '& .MuiDrawer-paper': {
           width: ['100%', '562px'],
           display: 'flex',
@@ -359,27 +360,13 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
               />
             </Box>
             {showFilterButton && (
-              <IconButton
+              <FilterButtonWithNotification
                 onClick={onFilterClick}
-                sx={{
-                  border: `1px solid ${filterCount > 0 ? theme.palette.primary.main : theme.palette.divider}`,
-                  borderRadius: 1,
-                  width: 48,
-                  height: 48,
-                  backgroundColor: filterCount > 0 ? theme.palette.primary.main : 'transparent',
-                  '&:hover': {
-                    backgroundColor: filterCount > 0 ? theme.palette.primary.dark : theme.palette.action.hover
-                  }
-                }}
-              >
-                <Badge badgeContent={filterCount} color='error' invisible={filterCount === 0}>
-                  <Icon
-                    icon='mdi:filter-variant'
-                    fontSize={24}
-                    color={filterCount > 0 ? theme.palette.common.white : theme.palette.text.secondary}
-                  />
-                </Badge>
-              </IconButton>
+                appliedFiltersCount={filterCount}
+                label=''
+                showTooltip={false}
+                sx={{ minWidth: 42, width: 42, height: 42, p: 0, '& .MuiButton-startIcon': { m: 0 } }}
+              />
             )}
           </Box>
 

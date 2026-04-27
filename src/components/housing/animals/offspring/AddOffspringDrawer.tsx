@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useContext } from 'react'
-import { Box, Card, Drawer, IconButton, Typography, useTheme, Grid } from '@mui/material'
+import { Box, Card, Chip, Drawer, IconButton, Typography, useTheme, Grid } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { addOffspring, getClutchList, getLitterList, getRecentClutchList } from 'src/lib/api/housing'
@@ -23,6 +23,7 @@ import {
   ClutchItem,
   LitterItem
 } from 'src/types/housing/animalsOffspring'
+import LineageFilterDrawer, { type LineageFilters, DEFAULT_LINEAGE_FILTERS } from '../lineage/LineageFilterDrawer'
 
 type ReferenceType = 'litter' | 'clutch'
 type ReferenceItem = LitterItem | ClutchItem
@@ -63,6 +64,9 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
   const [recentReference, setRecentReference] = useState<ReferenceItem | null>(null)
   const [referenceList, setReferenceList] = useState<ReferenceItem[]>([])
   const [isReferenceFetching, setIsReferenceFetching] = useState<boolean>(false)
+  const [filterDrawerOpen, setFilterDrawerOpen] = useState<boolean>(false)
+  const [animalFilters, setAnimalFilters] = useState<LineageFilters>(DEFAULT_LINEAGE_FILTERS)
+  const [filterCount, setFilterCount] = useState<number>(0)
 
   const referenceAnimalId = requiresDamSelection ? selectedDam?.animal_id : animalId
 
@@ -275,6 +279,180 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
     setTempSelectedReference(null)
     setOffspringError(false)
     setReferenceError(false)
+    setAnimalFilters(DEFAULT_LINEAGE_FILTERS)
+    setFilterCount(0)
+    setFilterDrawerOpen(false)
+  }
+
+  // Handle filter apply
+  const handleApplyFilters = (filters: LineageFilters) => {
+    setAnimalFilters(filters)
+  }
+
+  // Build extra params for MultiSelectAnimalDrawer based on selectionType + filters
+  const buildExtraParams = (): Record<string, any> => {
+    const baseParams: Record<string, any> =
+      selectionType === 'dam'
+        ? {
+            zoo_id: zooId,
+            list_type: 'animals',
+            type: 'single',
+            ignore_permission: 1,
+            reproduction_type: animalsDetails?.reproduction_type,
+            tsn_id: animalsDetails?.taxonomy_id,
+            include_dead_animal: 1,
+            gender: 'female',
+            use_case: 'add_parent',
+            relevant_animal_id: animalsDetails?.aid
+          }
+        : selectionType === 'sire'
+        ? {
+            zoo_id: zooId,
+            list_type: 'animals',
+            type: animalsDetails?.type,
+            ignore_permission: 1,
+            reproduction_type: animalsDetails?.reproduction_type,
+            tsn_id: animalsDetails?.taxonomy_id,
+            include_dead_animal: 1,
+            gender: 'male',
+            use_case: 'add_parent',
+            relevant_animal_id: animalsDetails?.aid
+          }
+        : {
+            zoo_id: zooId,
+            list_type: 'animals',
+            type: animalsDetails?.type,
+            ignore_permission: 1,
+            reproduction_type: animalsDetails?.reproduction_type,
+            tsn_id: animalsDetails?.taxonomy_id,
+            include_dead_animal: 1,
+            use_case: requiresDamSelection ? 'add_offspring_father' : 'add_offspring_mother',
+            relevant_animal_id: requiresDamSelection
+              ? selectedDam?.animal_id
+                ? `${selectedDam.animal_id},${animalsDetails?.aid}`
+                : animalsDetails?.aid
+              : selectedSire?.animal_id
+              ? `${animalsDetails?.aid},${selectedSire.animal_id}`
+              : animalsDetails?.aid
+          }
+
+    const { localSelections, statusFilter } = animalFilters
+
+    if (localSelections.Sites.length > 0) {
+      baseParams.site_id = localSelections.Sites.map(s => String(s.site_id))
+    }
+    if (localSelections.Sections.length > 0) {
+      baseParams.section_id = localSelections.Sections.map(s => String(s.section_id))
+    }
+    if (localSelections.Enclosures.length > 0) {
+      baseParams.enclosure_id = localSelections.Enclosures.map(e => String(e.enclosure_id))
+    }
+
+    if (statusFilter === 'dead') {
+      baseParams.include_dead_animal = 1
+      baseParams.is_dead = 1
+    } else if (statusFilter === 'missing') {
+      baseParams.is_missing = 1
+    } else if (statusFilter === 'transferred') {
+      baseParams.is_transferred = 1
+    }
+
+    return baseParams
+  }
+
+  // Render active filter chips
+  const renderFilterChips = (): React.ReactNode => {
+    const chips: React.ReactNode[] = []
+    const { localSelections, statusFilter } = animalFilters
+
+    localSelections.Sites.forEach(site => {
+      chips.push(
+        <Chip
+          key={`site-${site.site_id}`}
+          label={site.site_name}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({
+              ...prev,
+              localSelections: {
+                Sites: prev.localSelections.Sites.filter(s => s.site_id !== site.site_id),
+                Sections: [],
+                Enclosures: []
+              }
+            }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    })
+
+    localSelections.Sections.forEach(section => {
+      chips.push(
+        <Chip
+          key={`section-${section.section_id}`}
+          label={section.section_name}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({
+              ...prev,
+              localSelections: {
+                ...prev.localSelections,
+                Sections: prev.localSelections.Sections.filter(s => s.section_id !== section.section_id),
+                Enclosures: []
+              }
+            }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    })
+
+    localSelections.Enclosures.forEach(enclosure => {
+      chips.push(
+        <Chip
+          key={`enclosure-${enclosure.enclosure_id}`}
+          label={enclosure.user_enclosure_name}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({
+              ...prev,
+              localSelections: {
+                ...prev.localSelections,
+                Enclosures: prev.localSelections.Enclosures.filter(e => e.enclosure_id !== enclosure.enclosure_id)
+              }
+            }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    })
+
+    if (statusFilter && statusFilter !== 'alive') {
+      const statusLabel = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)
+      chips.push(
+        <Chip
+          key='status'
+          label={statusLabel}
+          size='small'
+          color='primary'
+          variant='outlined'
+          onDelete={() => {
+            setAnimalFilters(prev => ({ ...prev, statusFilter: 'alive' }))
+            setFilterCount(prev => Math.max(0, prev - 1))
+          }}
+        />
+      )
+    }
+
+    if (chips.length === 0) return null
+
+    return <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>{chips}</Box>
   }
 
   useEffect(() => {
@@ -917,6 +1095,9 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
         <MultiSelectAnimalDrawer
           open={animalDrawerOpen}
           onClose={() => setAnimalDrawerOpen(false)}
+          showFilterButton={true}
+          filterCount={filterCount}
+          onFilterClick={() => setFilterDrawerOpen(true)}
           onSelect={animals => {
             if (selectionType === 'dam') {
               setSelectedDam(prev => {
@@ -979,53 +1160,19 @@ const AddOffspringDrawer = ({ open, onClose, onAcceptSuccess, animalId, animalsD
           }
           btnText={t('add')}
           selectionMode={selectionType === 'dam' || selectionType === 'sire' ? 'single' : 'multi'}
-          extraParams={
-            selectionType === 'dam'
-              ? {
-                  zoo_id: zooId,
-                  list_type: 'animals',
-                  type: 'single',
-                  ignore_permission: 1,
-                  reproduction_type: animalsDetails?.reproduction_type,
-                  tsn_id: animalsDetails?.taxonomy_id,
-                  include_dead_animal: 1,
-                  gender: 'female',
-                  use_case: 'add_parent',
-                  relevant_animal_id: animalsDetails?.aid
-                }
-              : selectionType === 'sire'
-              ? {
-                  zoo_id: zooId,
-                  list_type: 'animals',
-                  type: animalsDetails?.type,
-                  ignore_permission: 1,
-                  reproduction_type: animalsDetails?.reproduction_type,
-                  tsn_id: animalsDetails?.taxonomy_id,
-                  include_dead_animal: 1,
-                  gender: 'male',
-                  use_case: 'add_parent',
-                  relevant_animal_id: animalsDetails?.aid
-                }
-              : {
-                  zoo_id: zooId,
-                  list_type: 'animals',
-                  type: animalsDetails?.type,
-                  ignore_permission: 1,
-                  reproduction_type: animalsDetails?.reproduction_type,
-                  tsn_id: animalsDetails?.taxonomy_id,
-                  include_dead_animal: 1,
-                  use_case: requiresDamSelection ? 'add_offspring_father' : 'add_offspring_mother',
-                  relevant_animal_id: requiresDamSelection
-                    ? selectedDam?.animal_id
-                      ? `${selectedDam.animal_id},${animalsDetails?.aid}`
-                      : animalsDetails?.aid
-                    : selectedSire?.animal_id
-                    ? `${animalsDetails?.aid},${selectedSire.animal_id}`
-                    : animalsDetails?.aid
-                }
-          }
+          extraParams={buildExtraParams()}
+          filterChips={renderFilterChips()}
         />
       )}
+
+      {/* Filter Drawer */}
+      <LineageFilterDrawer
+        open={filterDrawerOpen}
+        onClose={() => setFilterDrawerOpen(false)}
+        onApply={handleApplyFilters}
+        initialFilters={animalFilters}
+        setFilterCount={setFilterCount}
+      />
     </>
   )
 }

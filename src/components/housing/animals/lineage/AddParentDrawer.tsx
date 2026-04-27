@@ -1359,7 +1359,6 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
         btnText={t('select') as string}
         searchPlaceholder={(parentType === 'sire' ? t('animals_module.search_male_animals') : t('animals_module.search_female_animals')) as string}
         extraParams={buildExtraParams()}
-        zIndex={1300}
         // Filter props
         showFilterButton={true}
         filterCount={filterCount}
