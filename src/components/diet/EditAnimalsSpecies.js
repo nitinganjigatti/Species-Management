@@ -370,6 +370,7 @@ const EditAnimalSpeciesMapped = ({
         </Box>
       </Box>
       <Grid item size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
+        {!selectionType ? null : (
         <TabContext value={selectionType}>
           {checkForSite !== 'site_species' && speciesview === 'details' ? (
             <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
@@ -406,7 +407,7 @@ const EditAnimalSpeciesMapped = ({
                     width: 0,
                     height: 0
                   },
-                  '-ms-overflow-style': 'none',
+                  msOverflowStyle: 'none',
                   scrollbarWidth: 'none'
                 }}
               >
@@ -440,11 +441,6 @@ const EditAnimalSpeciesMapped = ({
                           '& fieldset': {
                             border: 'none'
                           }
-                        }
-                      }}
-                      slotProps={{
-                        input: {
-                          disableUnderline: false
                         }
                       }}
                     />
@@ -1229,6 +1225,7 @@ const EditAnimalSpeciesMapped = ({
             </Box>
           </TabPanel>
         </TabContext>
+        )}
       </Grid>
       {/* bottom buttons */}
       <Box

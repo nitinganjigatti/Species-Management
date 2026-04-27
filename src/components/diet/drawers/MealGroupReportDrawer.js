@@ -148,7 +148,7 @@ const MealGroupReportDrawer = ({ open, setOpen, onApplyFilter, sites, selectedSi
                       px: '16px',
                       py: '8px',
                       '&::-webkit-scrollbar': { width: 0 },
-                      '-ms-overflow-style': 'none',
+                      msOverflowStyle: 'none',
                       scrollbarWidth: 'none',
                       bgcolor: '#FFFFFF'
                     }}

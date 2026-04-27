@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import { useTheme } from '@emotion/react'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -37,7 +37,7 @@ const Img = styled('img')(({ theme }) => ({
 
 const Error404 = () => {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -50,7 +50,7 @@ const Error404 = () => {
           fontSize: '24px',
           fontFamily: 'Inter',
           fontWeight: 600,
-          color: theme.palette.customColors.OnSurfaceVariant
+          color: theme?.palette?.customColors?.OnSurfaceVariant
         }}
       >
         Page Not Found !

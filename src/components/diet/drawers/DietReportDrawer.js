@@ -250,7 +250,7 @@ const DietReportDrawer = ({
                   width: 0,
                   height: 0
                 },
-                '-ms-overflow-style': 'none',
+                msOverflowStyle: 'none',
                 scrollbarWidth: 'none'
               }}
             > */}
@@ -267,7 +267,7 @@ const DietReportDrawer = ({
                     width: 0,
                     height: 0
                   },
-                  '-ms-overflow-style': 'none',
+                  msOverflowStyle: 'none',
                   scrollbarWidth: 'none'
                 }}
               >
@@ -295,11 +295,6 @@ const DietReportDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
-                      }
-                    }}
-                    slotProps={{
-                      input: {
-                        disableUnderline: false
                       }
                     }}
                   />
@@ -340,7 +335,7 @@ const DietReportDrawer = ({
                     width: 0,
                     height: 0
                   },
-                  '-ms-overflow-style': 'none',
+                  msOverflowStyle: 'none',
                   scrollbarWidth: 'none'
                 }}
                 onScroll={handleScrollforTaxonomy}
@@ -371,11 +366,6 @@ const DietReportDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
-                      }
-                    }}
-                    slotProps={{
-                      input: {
-                        disableUnderline: false
                       }
                     }}
                   />
@@ -423,7 +413,7 @@ const DietReportDrawer = ({
                     width: 0,
                     height: 0
                   },
-                  '-ms-overflow-style': 'none',
+                  msOverflowStyle: 'none',
                   scrollbarWidth: 'none'
                 }}
               >

@@ -1,3 +1,4 @@
+'use client';
 import { Avatar, Card, Divider, CardContent, FormControlLabel, Switch, Typography } from '@mui/material'
 
 // ** MUI Imports
@@ -8,7 +9,6 @@ import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
 
 // ** Custom Components
-import Router from 'next/router'
 
 // ** Utils Import
 import { useEffect, useState } from 'react'

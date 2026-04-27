@@ -271,7 +271,7 @@ const SpeciesMappedtoDiet = ({
             width: '562px',
             overflowY: 'auto',
             '&::-webkit-scrollbar': { width: 0, height: 0 },
-            '-ms-overflow-style': 'none',
+            msOverflowStyle: 'none',
             scrollbarWidth: 'none'
           }}
           ref={listInnerRef}
@@ -315,11 +315,6 @@ const SpeciesMappedtoDiet = ({
                       '& fieldset': {
                         border: 'none'
                       }
-                    }
-                  }}
-                  slotProps={{
-                    input: {
-                      disableUnderline: false
                     }
                   }}
                 />
@@ -521,6 +516,7 @@ const SpeciesMappedtoDiet = ({
             {speciesData?.length > 0 ? (
               speciesData.map(species => (
                 <Box
+                  key={species.species_id}
                   sx={{
                     position: 'relative',
                     background:
@@ -619,6 +615,7 @@ const SpeciesMappedtoDiet = ({
             {speciesData?.length > 0 ? (
               speciesData.map(species => (
                 <Box
+                  key={species.animal_id}
                   sx={{
                     position: 'relative',
                     background:

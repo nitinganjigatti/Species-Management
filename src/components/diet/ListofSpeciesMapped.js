@@ -303,7 +303,7 @@ const ListOfSpeciesMapped = ({
                 width: 0,
                 height: 0
               },
-              '-ms-overflow-style': 'none',
+              msOverflowStyle: 'none',
               scrollbarWidth: 'none'
             }}
           >
@@ -335,11 +335,6 @@ const ListOfSpeciesMapped = ({
                       '& fieldset': {
                         border: 'none'
                       }
-                    }
-                  }}
-                  slotProps={{
-                    input: {
-                      disableUnderline: false
                     }
                   }}
                 />

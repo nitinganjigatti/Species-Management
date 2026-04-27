@@ -232,6 +232,7 @@ const SpeciesAnimalsMapped = ({
         </Box>
       </Box>
       <Grid item size={{ md: 8, xs: 12 }}>
+        {!selectionType ? null : (
         <TabContext value={selectionType}>
           {dietDetails?.total_animals !== '0' &&
           dietDetails?.total_species !== '0' &&
@@ -280,7 +281,7 @@ const SpeciesAnimalsMapped = ({
                       width: 0,
                       height: 0
                     },
-                    '-ms-overflow-style': 'none',
+                    msOverflowStyle: 'none',
                     scrollbarWidth: 'none'
                   }}
                 >
@@ -316,11 +317,6 @@ const SpeciesAnimalsMapped = ({
                             '& fieldset': {
                               border: 'none'
                             }
-                          }
-                        }}
-                        slotProps={{
-                          input: {
-                            disableUnderline: false
                           }
                         }}
                       />
@@ -582,7 +578,7 @@ const SpeciesAnimalsMapped = ({
                       width: 0,
                       height: 0
                     },
-                    '-ms-overflow-style': 'none',
+                    msOverflowStyle: 'none',
                     scrollbarWidth: 'none'
                   }}
                 >
@@ -618,11 +614,6 @@ const SpeciesAnimalsMapped = ({
                             '& fieldset': {
                               border: 'none'
                             }
-                          }
-                        }}
-                        slotProps={{
-                          input: {
-                            disableUnderline: false
                           }
                         }}
                       />
@@ -883,7 +874,7 @@ const SpeciesAnimalsMapped = ({
                       width: 0,
                       height: 0
                     },
-                    '-ms-overflow-style': 'none',
+                    msOverflowStyle: 'none',
                     scrollbarWidth: 'none'
                   }}
                 >
@@ -919,11 +910,6 @@ const SpeciesAnimalsMapped = ({
                             '& fieldset': {
                               border: 'none'
                             }
-                          }
-                        }}
-                        slotProps={{
-                          input: {
-                            disableUnderline: false
                           }
                         }}
                       />
@@ -1229,6 +1215,7 @@ const SpeciesAnimalsMapped = ({
             </Box>
           </TabPanel>
         </TabContext>
+        )}
       </Grid>
     </Drawer>
   )

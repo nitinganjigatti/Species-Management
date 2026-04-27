@@ -1,11 +1,12 @@
+'use client';
 import { Box, Drawer, FormControl, FormHelperText, Grid, IconButton, TextField, Typography } from '@mui/material'
 import React, { useEffect, Fragment } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
@@ -23,7 +24,10 @@ const defaultValues = {
 
 const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
 
   const handelClose = () => {
     setIsOpen(false)
@@ -69,10 +73,7 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => 
 
     const pathname = type === 'recipe' ? '/diet/recipe/add-recipe' : '/diet/combo/add-combo'
 
-    Router.push({
-      pathname,
-      query: { id: recipeid, action: 'copy', name: updatedRecipeName }
-    })
+    router.push(`${pathname}?id=${recipeid}&action=copy&name=${updatedRecipeName}`)
   }
 
   return (

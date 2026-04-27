@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from 'react'
 import {
   Typography,
@@ -13,7 +14,8 @@ import {
   Menu,
   MenuItem
 } from '@mui/material'
-import Router, { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter';
+import { useParams, useSearchParams } from 'next/navigation';
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import ActivityLogs from 'src/components/diet/activityLogs'
@@ -38,8 +40,11 @@ const DietDetailCard = ({
   onDownloadPdf,
   downloadingPdf = false
 }) => {
-  const router = useRouter()
-  const { source, recipeId, ingId } = router.query
+  const router = useSafeRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const { source, recipeId, ingId } = routerQuery
   const theme = useTheme()
   const { t } = useTranslation()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
@@ -113,7 +118,7 @@ const DietDetailCard = ({
         setDeleteDialogBox(false)
         setLoading(false)
         Toaster({ type: 'success', message: response?.message })
-        Router.push('/diet/diet')
+        router.push('/diet/diet')
       } else {
         setLoading(false)
         setDeleteDialogBox(false)
@@ -143,17 +148,17 @@ const DietDetailCard = ({
 
   const handlebackClick = () => {
     if (source !== undefined && source === 'recipedetail') {
-      Router.push({
+      router.push({
         pathname: `/diet/recipe/${recipeId}`,
         query: { source: 'fromdiet' }
       })
     } else if (source !== undefined && source === 'ingdetail') {
-      Router.push({
+      router.push({
         pathname: `/diet/ingredient/${ingId}`,
         query: { source: 'fromdiet' }
       })
     } else {
-      Router.back()
+      router.back()
     }
   }
 
@@ -250,7 +255,7 @@ const DietDetailCard = ({
                   src={'/icons/pencil_outlined.svg'}
                   variant='square'
                   onClick={() =>
-                    Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                    router.push(`/diet/add-diet?id=${dietDetails.id}&action=${'update' }`)
                   }
                 />
               </Box>

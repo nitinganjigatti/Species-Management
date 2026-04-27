@@ -1,3 +1,4 @@
+'use client';
 // ** React Imports
 import React, { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
@@ -18,8 +19,8 @@ import {
   CircularProgress,
   useMediaQuery
 } from '@mui/material'
-import { useRouter } from 'next/router'
-import Router from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter';
+import { useParams, useSearchParams } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -146,7 +147,10 @@ const StepBasicDetails = ({
   const [totalCount, setTotalCount] = useState('')
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
-  const router = useRouter()
+  const router = useSafeRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
 
   const recipes = [
     // { label: 'No' },
@@ -814,9 +818,9 @@ const StepBasicDetails = ({
 
   const cancelBack = () => {
     if (id !== undefined) {
-      Router.push(`/diet/diet/${id}`)
+      router.push(`/diet/diet/${id}`)
     } else {
-      Router.push(`/diet/diet`)
+      router.push(`/diet/diet`)
     }
   }
 
@@ -1815,7 +1819,7 @@ const StepBasicDetails = ({
                             key={index}
                             sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
-                            <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                            <Typography component='div' sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
                             </Typography>
                           </Grid>
@@ -1874,7 +1878,7 @@ const StepBasicDetails = ({
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.7 }}>
                                   <Grid container spacing={1} sx={{ pl: 8 }}>
                                     {days.map((day, index) => (
-                                      <Grid key={day}>
+                                      <Grid key={`day-${index}`}>
                                         <Typography
                                           sx={{
                                             color: all.days_of_week?.includes(index + 1)
@@ -1986,7 +1990,7 @@ const StepBasicDetails = ({
                             key={index}
                             sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
-                            <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                            <Typography component='div' sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
                             </Typography>
                           </Grid>
@@ -2036,7 +2040,7 @@ const StepBasicDetails = ({
                                 <Grid size={{ xs: 12, sm: 2.8 }}>
                                   <Grid container spacing={1} sx={{ pl: isSmallDevice ? 11 : 1 }}>
                                     {days.map((day, index) => (
-                                      <Grid key={day}>
+                                      <Grid key={`day-${index}`}>
                                         <Typography
                                           sx={{
                                             color: all?.days_of_week?.includes(index + 1)

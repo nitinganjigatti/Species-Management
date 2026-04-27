@@ -1,11 +1,12 @@
+'use client';
 import { Box, Drawer, FormControl, FormHelperText, Grid, IconButton, TextField, Typography } from '@mui/material'
 import React, { useEffect, Fragment } from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter';
+import { useParams, useSearchParams } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
@@ -25,7 +26,10 @@ const defaultValues = {
 const ChangeDietName = ({ isOpen, setIsOpen, dietid, dietname }) => {
   const theme = useTheme()
   const { t } = useTranslation()
-  const router = useRouter()
+  const router = useSafeRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
 
   const handelClose = () => {
     setIsOpen(false)
@@ -63,10 +67,7 @@ const ChangeDietName = ({ isOpen, setIsOpen, dietid, dietname }) => {
 
       return
     }
-    Router.push({
-      pathname: '/diet/add-diet',
-      query: { id: dietid, action: 'copy', name: updatedDietName }
-    })
+    router.push(`/diet/add-diet?id=${dietid}&action=copy&name=${updatedDietName}`)
   }
 
   return (

@@ -321,7 +321,7 @@ const DashboardFilter = ({
                   width: 0,
                   height: 0
                 },
-                '-ms-overflow-style': 'none', // Hide scrollbar for Internet Explorer and Edge
+                msOverflowStyle: 'none', // Hide scrollbar for Internet Explorer and Edge
                 scrollbarWidth: 'none' // Hide scrollbar for Firefox
               }}
             >
@@ -347,11 +347,6 @@ const DashboardFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      slotProps={{
-                        input: {
-                          disableUnderline: false
-                        }
-                      }}
 
                       // InputProps={{
                       //   disableUnderline: false

@@ -278,7 +278,7 @@ const SpeciesDietFilterDrawer = ({
                   width: 0,
                   height: 0
                 },
-                '-ms-overflow-style': 'none',
+                msOverflowStyle: 'none',
                 scrollbarWidth: 'none'
               }}
             >
@@ -307,11 +307,6 @@ const SpeciesDietFilterDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
-                      }
-                    }}
-                    slotProps={{
-                      input: {
-                        disableUnderline: false
                       }
                     }}
                   />
