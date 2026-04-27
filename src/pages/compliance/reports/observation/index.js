@@ -354,11 +354,17 @@ const ObservationReport = () => {
   }
 
   const downloadObservationReport = async () => {
+    const childObservationIds = selectedSubObservations
+      .map(item => item?.id)
+      .filter(item => item !== undefined && item !== null && item !== '')
+
     const params = {
       animal_id: selectedAnimal?.animal_id || router.query.animal_id,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id }),
+      ...(childObservationIds.length && { child_observation_ids: childObservationIds }),
       report_type: 'pdf'
     }
     try {
