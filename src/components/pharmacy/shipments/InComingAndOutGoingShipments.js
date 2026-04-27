@@ -117,6 +117,7 @@ function InComingAndOutGoingShipments({ type }) {
     },
 
     {
+      flex: 1,
       minWidth: 200,
       field: 'from_store',
       headerName: type === 'outing' ? 'Shipped To' : 'Shipped From',

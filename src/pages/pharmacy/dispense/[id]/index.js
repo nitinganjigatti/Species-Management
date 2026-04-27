@@ -276,11 +276,14 @@ const IndividualDispense = () => {
                   />
                   {/* </Box> */}
                   <Box>
-                    {(dispenseData.dispense_user_name || dispenseData.ep_number) && (
+                    {(dispenseData?.dispense_user_name || dispenseData?.ep_number) && (
                       <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
                         Dispensed To: {dispenseData?.dispense_user_name}
                         <br />
-                        EP No: {dispenseData?.ep_number}
+                        <Box sx={{ display: 'flex' }}>
+                          <Typography sx={{ fontWeight: 600 }}>EP No: </Typography>
+                          <Typography>{dispenseData?.ep_number}</Typography>
+                        </Box>
                       </Typography>
                     )}
                     <Typography sx={{ fontSize: 24, fontWeight: 600 }}>

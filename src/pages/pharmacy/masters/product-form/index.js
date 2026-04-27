@@ -92,7 +92,8 @@ const ListOfDosageForms = () => {
       )
     },
     {
-      minWidth: 350,
+      flex: 1,
+      minWidth: 250,
       field: 'label',
       headerName: 'Product Form',
       renderCell: params => (

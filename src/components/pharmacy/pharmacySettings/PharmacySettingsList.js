@@ -137,7 +137,8 @@ const PharmacySettingsList = () => {
 
   const columns = [
     {
-      minWidth: 500,
+      flex: 1,
+      minWidth: 300,
       field: 'username',
       headerName: 'User Details',
       sortable: false,
@@ -151,21 +152,22 @@ const PharmacySettingsList = () => {
         )
       }
     },
-
-    {
-      ...(pharmacyRole && {
-        minWidth: 500,
-        field: 'action',
-        sortable: false,
-        headerName: 'Action',
-        renderCell: params =>
-          params?.row?.id === deleteLoading ? (
-            <CircularProgress size={20} color='primary' />
-          ) : (
-            <Icon onClick={() => deleteHandler(params?.row?.id)} icon='mdi:delete-outline' />
-          )
-      })
-    }
+    ...(pharmacyRole
+      ? [
+          {
+            width: 150,
+            field: 'action',
+            sortable: false,
+            headerName: 'Action',
+            renderCell: params =>
+              params?.row?.id === deleteLoading ? (
+                <CircularProgress size={20} color='primary' />
+              ) : (
+                <Icon onClick={() => deleteHandler(params?.row?.id)} icon='mdi:delete-outline' />
+              )
+          }
+        ]
+      : [])
   ]
 
   return (

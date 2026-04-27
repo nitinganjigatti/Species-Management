@@ -130,8 +130,8 @@ const StockOut = () => {
     //   )
     // },
     {
-      width: 350,
-      minWidth: 150,
+      flex: 1,
+      minWidth: 250,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -240,8 +240,8 @@ const StockOut = () => {
       )
     },
     {
-      width: 300,
-      minWidth: 300,
+      flex: 1,
+      minWidth: 250,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
