@@ -54,6 +54,22 @@ import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBarRaw from 'src/views/utility/BottomActionBar'
 const BottomActionBar: any = BottomActionBarRaw
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { ApiError, TreatmentType, HealthStatus, RoomEnclosureResponse, SelectAdmitOption, TreatmentTypeOption, HealthStatusOption, HospitalAnalyticsResponse, SelectOption, SelectDoctorOption } from 'src/types/hospital/api'
+import { RoomListResponse } from 'src/types/hospital/api/roomsAndEnclosure'
+import { AdmitPatientResponse } from 'src/types/hospital/api/Incoming/admitPatient'
+import { HospitalStaffListResponse } from 'src/types/hospital/api/doctorsAndStaffs'
+import { HospitalStaff, Id } from 'src/types/hospital/models'
+import { Dayjs } from 'dayjs'
+
+export type FormData = {
+  treatmentType: TreatmentType
+  healthStatus: HealthStatus
+  holdingEnclosure: null | SelectOption
+  room: SelectOption | null
+  admission_date: string | Dayjs 
+  admission_time: string | Dayjs 
+  coAttendDoctor?: SelectDoctorOption[]
+}
 
 const PatientAdmitForm = () => {
   const { t } = useTranslation()
@@ -72,19 +88,19 @@ const PatientAdmitForm = () => {
   const [patientLoading, setPatientLoading] = useState<boolean>(false)
   const [holdingEnclosures, setHoldingEnclosures] = useState<any[]>([])
   const [staffLoading, setStaffLoading] = useState<boolean>(false)
-  const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState<any[]>([])
+  const [attendingSelectedDoctors, setAttendingSelectedDoctors] = useState<SelectDoctorOption[]>([])
 
-  const treatmentType = [
-    { label: t('hospital_module.opd_outpatient'), value: 'opd' },
-    { label: t('hospital_module.hospital_admission_inpatient'), value: 'inpatient' }
+  const treatmentType: TreatmentTypeOption[] = [
+    { label: t('hospital_module.opd_outpatient') ?? '', value: 'opd' },
+    { label: t('hospital_module.hospital_admission_inpatient') ?? '', value: 'inpatient' }
   ]
 
-  const healthStatusOptions = [
-    { label: t('hospital_module.stable'), value: 'stable' },
-    { label: t('hospital_module.critical'), value: 'critical' }
+  const healthStatusOptions: HealthStatusOption[] = [
+    { label: t('hospital_module.stable') ?? '', value: 'stable' },
+    { label: t('hospital_module.critical') ?? '', value: 'critical' }
   ]
 
-  const defaultValues: any = {
+  const defaultValues: FormData= {
     treatmentType: 'inpatient',
     healthStatus: 'stable',
     holdingEnclosure: null,
@@ -197,7 +213,7 @@ const PatientAdmitForm = () => {
   const [bedsLoading, setBedsLoading] = useState<boolean>(false)
   const [searchEnclosure, setSearchEnclosure] = useState<string>('')
   const [searchAttendDoctor, setSearchAttendDoctor] = useState<string>('')
-  const [hasPermission, setHasPermission] = useState<any>(false)
+  const [hasPermission, setHasPermission] = useState<number | boolean>(false)
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false)
   const [openAddRoomDrawer, setOpenAddRoomDrawer] = useState<boolean>(false)
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState<boolean>(false)
@@ -243,11 +259,11 @@ const PatientAdmitForm = () => {
           page: 1,
           per_page: 20,
           q: searchRoom
-        }).then((res: any) => {
+        }).then((res: RoomListResponse) => {
           if (res?.success === true) {
-            const filteredRooms = res?.data?.records
-              ?.filter((item: any) => item?.status !== '0')
-              ?.map((item: any) => ({
+            const filteredRooms: SelectOption[] = (res?.data?.records ?? [])
+              ?.filter((item) => item?.status !== '0')
+              ?.map((item) => ({
                 label: item?.room_name,
                 value: item?.id
               }))
@@ -280,7 +296,7 @@ const PatientAdmitForm = () => {
       if (!selectedRoom?.value) return
       setBedsLoading(true)
       try {
-        const res: any = await getRoomsAndEnclosures({
+        const res: RoomEnclosureResponse = await getRoomsAndEnclosures({
           hospital_id: selectedHospital?.id,
           status: 'active',
           room_id: selectedRoom.value,
@@ -289,9 +305,9 @@ const PatientAdmitForm = () => {
         })
         if (res?.success === true) {
           setHoldingEnclosures(
-            res?.data?.records?.map((item: any) => ({
+            (res?.data?.records ?? []).map((item: SelectAdmitOption) => ({
               label: item?.bed_name,
-              value: item?.id
+              value: item?.id 
             }))
           )
         }
@@ -306,11 +322,11 @@ const PatientAdmitForm = () => {
     getHospitalBeds()
   }, [selectedRoom, selectedHospital, searchEnclosure, hospitalStats?.available_rooms])
 
-  const fetchAndUpdateHospitalStats = async (hospitalId: any) => {
+  const fetchAndUpdateHospitalStats = async (hospitalId: Id) => {
     if (!hospitalId) return
 
     try {
-      const statsResponse: any = await (getHospitalBedStats as any)(hospitalId)
+      const statsResponse: HospitalAnalyticsResponse = await (getHospitalBedStats as any)(hospitalId)
       if (statsResponse?.success) {
         updateHospitalStats(statsResponse.data)
       }
@@ -319,7 +335,7 @@ const PatientAdmitForm = () => {
     }
   }
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: FormData) => {
     setSubmitLoader(true)
     try {
       const params = {
@@ -328,16 +344,15 @@ const PatientAdmitForm = () => {
         treatment_type: data?.treatmentType,
         attend_by: selectedDoctor?.id,
         holding_enclosure: data?.holdingEnclosure?.value,
-        admit_date: moment(data?.admission_date).format('YYYY-MM-DD'),
-        admit_time: moment(data?.admission_time).format('HH:mm'),
+        admit_date: dayjs(data?.admission_date).format('YYYY-MM-DD'),
+        admit_time: dayjs(data?.admission_time).format('HH:mm'),
         room_id: data?.room?.value,
         health_status: data?.healthStatus,
-        co_attend_doctor: data?.coAttendDoctor?.length
-          ? JSON.stringify(data.coAttendDoctor.map((doc: any) => String(doc.value)))
+        co_attend_doctor: data?.coAttendDoctor?.length ? JSON.stringify(data.coAttendDoctor.map((doc: SelectDoctorOption) => String(doc.value)))
           : '[]'
-      }
+      } as const
 
-      const res: any = await admitHospitalPatient(params)
+      const res: AdmitPatientResponse = await admitHospitalPatient(params)
       if (res?.success === true) {
         Toaster({ type: 'success', message: res?.message })
         if (watchTreatmentType === 'opd') {
@@ -354,30 +369,31 @@ const PatientAdmitForm = () => {
       } else {
         throw res
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message })
-      console.error(error, 'Cannot Admit Patient')
+    } catch (error: unknown) {
+      const err = error as ApiError
+      Toaster({ type: 'error', message: err?.message })
+      // console.error(error, 'Cannot Admit Patient')
       setSubmitLoader(false)
     }
   }
 
-  const filteredAttendingDoctors = attendingDoctors.filter((item: any) => item.value !== selectedDoctor?.id)
+  const filteredAttendingDoctors = attendingDoctors.filter((item: SelectDoctorOption) => item.value !== selectedDoctor?.id)
 
   const getUserLists = async () => {
     setLoading(true)
     try {
-      const res: any = await getHospitalStaff({
+      const res: HospitalStaffListResponse = await getHospitalStaff({
         params: {
           q: searchAttendDoctor,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          hospital_id: selectedHospital?.id
+          hospital_id: selectedHospital?.id,
+          is_hospital_chief_doctor: '1'
         }
       })
       if (res?.success === true) {
-        const chiefs = res?.data?.records
-          .filter((item: any) => item?.is_hospital_chief_doctor === '1')
-          .map((item: any) => ({
+        const chiefs = (res?.data?.records ?? [])
+          .map((item: HospitalStaff) => ({
             name: item?.user_full_name,
             id: item?.user_id,
             default_icon: item?.user_profile_pic,
@@ -406,7 +422,7 @@ const PatientAdmitForm = () => {
 
   const getStaffList = async () => {
     try {
-      const response: any = await getHospitalStaff({
+      const response: HospitalStaffListResponse = await getHospitalStaff({
         params: {
           q: searchAttendDoctor,
           page_no: paginationModel.page + 1,
@@ -416,19 +432,20 @@ const PatientAdmitForm = () => {
       })
 
       if (response?.success && response?.data?.records) {
-        const mappedData = response.data.records.map((item: any) => ({
+        const mappedData = response.data.records.map((item: HospitalStaff) => ({
           label: item.user_full_name,
           value: item.user_id
         }))
 
         setAttendingDoctors(mappedData)
       }
-    } catch (error: any) {
-      console.error('Error fetching hospital staff:', error?.message)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error fetching hospital staff:', err?.message)
       setStaffLoading(false)
       Toaster({
         type: 'error',
-        message: error?.response?.data?.message || error?.message || 'Failed to load hospital staff'
+        message: err?.response?.data?.message || err?.message || 'Failed to load hospital staff'
       })
     } finally {
       setStaffLoading(false)
@@ -447,8 +464,8 @@ const PatientAdmitForm = () => {
   const minDate = createdAtLocal.startOf('day')
   const maxDate = now.endOf('day')
 
-  let minTime: any = null
-  let maxTime: any = null
+  let minTime: Dayjs | null = null
+  let maxTime: Dayjs | null = null
 
   if (selectedDate) {
     const isCreatedDate = dayjs(selectedDate).isSame(createdAtLocal, 'day')
@@ -471,16 +488,16 @@ const PatientAdmitForm = () => {
     </Box>
   )
 
-  const handleDoctorSelection = (doctor: any) => {
+  const handleFilterAttendingDoctor = (doctor: SelectDoctorOption, prev: SelectDoctorOption[]) => {
+    return prev.filter(item => item.value !== doctor.id)
+  }
+
+  const handleDoctorSelection = (doctor: SelectDoctorOption) => {
     setSelectedDoctor(doctor)
     setValue('selectedDoctor', doctor)
     clearErrors('selectedDoctor')
 
-    setAttendingSelectedDoctors((prev: any[]) => {
-      const filtered = prev.filter((item: any) => item.value !== doctor.id)
-      setValue('coAttendDoctor', filtered)
-      return filtered
-    })
+    setAttendingSelectedDoctors(prev => handleFilterAttendingDoctor(doctor, prev))
   }
 
   const handlePatientRejection = async () => {
@@ -490,8 +507,8 @@ const PatientAdmitForm = () => {
         action: 'reject',
         transfer_id: id,
         reject_reason: rejectionReason
-      }
-      await admitHospitalPatient(params).then((res: any) => {
+      } as const
+      await admitHospitalPatient(params).then((res: AdmitPatientResponse) => {
         if (res?.success === true) {
           Toaster({ type: 'success', message: res?.message })
           setIsSubmitLoading(false)
@@ -885,6 +902,7 @@ const PatientAdmitForm = () => {
                               multiple
                               options={filteredAttendingDoctors}
                               value={attendingSelectedDoctors}
+                              disableCloseOnSelect
                               loading={staffLoading}
                               filterSelectedOptions
                               getOptionLabel={(option: any) => option?.label || ''}

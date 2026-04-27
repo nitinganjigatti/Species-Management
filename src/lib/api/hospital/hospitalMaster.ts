@@ -9,21 +9,21 @@ import { axiosGet as _axiosGet, axiosPost as _axiosPost } from '../utility'
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type { ApiResponse, HospitalListResponse } from 'src/types/hospital'
+import type { ApiResponse } from 'src/types/hospital'
+import { GetHospitalListParams, GetHospitalListResponse, AddHospitalMasterPayload, AddHospitalMasterResponse } from 'src/types/hospital/api/Masters/hospitalDetailTypes';
+import { UpdateHospitalPayload, UpdateHospitalResponse } from 'src/types/hospital/api/Masters/hospitalRoomTypes';
 
 export async function getHospitalMaster({
   params
-}: {
-  params: Record<string, unknown>
-}): Promise<HospitalListResponse> {
+}: GetHospitalListParams): Promise<GetHospitalListResponse> {
   const response = await axiosGet({ url: `${GET_MASTERS_HOSPITAL}`, params })
 
   return response?.data
 }
 
 export async function addHospitalMaster(
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payload: AddHospitalMasterPayload
+): Promise<AddHospitalMasterResponse> {
   const response = await axiosPost({ url: `${CREATE_MASTERS_HOSPITAL}`, body: payload })
 
   return response?.data
@@ -36,9 +36,9 @@ export async function addHospitalMaster(
 //   return response?.data
 // }
 export async function updateHospitalMaster(
-  id: string | number,
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  id: string ,
+  payload: UpdateHospitalPayload
+): Promise<UpdateHospitalResponse> {
   const response = await axiosPost({ url: `${UPDATE_MASTERS_HOSPITAL}/${id}`, body: payload })
 
   return response?.data

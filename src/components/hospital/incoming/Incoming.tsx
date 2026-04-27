@@ -34,39 +34,58 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { PurposeOfVisit } from 'src/types/hospital/models'
+import { GridColDef, GridPaginationModel, GridRenderCellParams, GridRowParams } from '@mui/x-data-grid'
+import { GetIncomingPatientResponse, IncomingFilters } from 'src/types/hospital/api/Incoming/incoming'
+import { PatientStatus } from 'src/types/hospital/api'
+import { RouterQuery } from 'src/types/hospital/api'
+import { Incoming } from 'src/types/hospital/models'
+import { FilterDate } from 'src/types/medical'
+
+type MenuData = {
+  User: number[] | string[]
+  'Origin Site': number[] | string[]
+}
+
+type MenuDataKeys = 'User' | 'Origin Site'  
+
+export interface IndexedIncomingRow {
+  id: number | string | null
+  sl_no: number
+}
 
 const HospitalIncoming = () => {
-  const theme: any = useTheme()
+  const theme = useTheme()
   const { t } = useTranslation()
   const router = useSafeRouter()
 
   const { selectedHospital, isHospitalAccessChecked } = useHospital()
 
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedVisitType, setSelectedVisitType] = useState<string>('')
-  const [activeTab, setActiveTab] = useState<string>('pending')
+  const [selectedVisitType, setSelectedVisitType] = useState<PurposeOfVisit>('')
+  const [activeTab, setActiveTab] = useState<PatientStatus>('pending')
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(0)
   const [filterDate, setFilterDate] = useState<any>({})
 
-  const [selectedOptions, setSelectedOptions] = useState<any>({
+  const [selectedOptions, setSelectedOptions] = useState<MenuData>({
     User: [],
     'Origin Site': []
   })
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<IncomingFilters>({
     page: 1,
     limit: 50,
     q: ''
   })
 
-  const applyFilters = (selectedOptions: any) => {
+  const applyFilters = (selectedOptions: MenuData) => {
     setSelectedOptions(selectedOptions)
     setOpenFilterDrawer(false)
   }
 
   useEffect(() => {
-    const { page = '1', limit = '50', q = '' } = router.query as any
+    const { page = '1', limit = '50', q = '' } = router.query as RouterQuery
 
     setFilters({
       page: parseInt(page as string),
@@ -77,17 +96,17 @@ const HospitalIncoming = () => {
     // setSearchValue(q)
   }, [router.query])
 
-  const prepareFilterParams = (key: string) => {
+  const prepareFilterParams = (key: MenuDataKeys) => {
     return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
   }
 
-  const formatDate = (dateString: any) => {
+  const formatDate = (dateString: Date | string | null) => {
     if (!dateString) return null
 
     return new Date(dateString).toISOString().split('T')[0]
   }
 
-  const { data, isFetching, refetch } = useQuery<any>({
+  const { data, isFetching, refetch } = useQuery<GetIncomingPatientResponse>({
     queryKey: [
       'incoming-patients',
       filters,
@@ -126,18 +145,18 @@ const HospitalIncoming = () => {
   const pendingCount = data?.data?.stats?.transfer_pending_count || 0
   const rejectedCount = data?.data?.stats?.transfer_rejected_count || 0
 
-  const updateUrlParams = (updatedFilters: any) => {
+  const updateUrlParams = (updatedFilters: IncomingFilters) => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
       if (value) {
-        params.set(key, (value as any).toString())
+        params.set(key, (value as string).toString())
       }
     })
     const queryString = params.toString()
     router.push(`${router.pathname}?${queryString}`)
   }
 
-  const handlePaginationModelChange = (model: any) => {
+  const handlePaginationModelChange = (model: GridPaginationModel) => {
     const updated = {
       ...filters,
       page: model.page + 1,
@@ -176,20 +195,20 @@ const HospitalIncoming = () => {
 
   const getSlNo = (index: number) => (filters.page - 1) * filters.limit + index + 1
 
-  const indexedRows = rows.map((row: any, index: number) => ({
+  const indexedRows: IndexedIncomingRow[] = rows.map((row, index) => ({
     ...row,
-    id: +row?.transfer_id,
+    id: row?.transfer_id != null ? Number(row.transfer_id) : null,
     sl_no: getSlNo(index)
   }))
 
-  const commonColumns: any[] = [
+  const commonColumns: GridColDef[] = [
     {
       minWidth: 20,
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: t('hospital_module.sl_no'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.sl_no') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
         </Typography>
@@ -200,8 +219,8 @@ const HospitalIncoming = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: t('hospital_module.animal_name_and_id'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.animal_name_and_id') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <AnimalCard
           data={{
             default_icon: params.row?.default_icon,
@@ -221,14 +240,14 @@ const HospitalIncoming = () => {
     }
   ]
 
-  const pendingColumns: any[] = [
+  const pendingColumns: GridColDef[] = [
     {
       width: 400,
       minWidth: 20,
       field: 'reason_for_transfer',
       sortable: false,
-      headerName: t('hospital_module.purpose_of_visit'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.purpose_of_visit') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
             <VisitType title={params.row.purpose} />
@@ -267,8 +286,8 @@ const HospitalIncoming = () => {
       width: 260,
       minWidth: 20,
       field: 'requested_user_full_name',
-      headerName: t('hospital_module.requested_by'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.requested_by') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <UserAvatarDetails
           date={params?.row?.created_at}
           user_name={`${params?.row?.user_first_name} ${params?.row?.user_last_name}`}
@@ -279,14 +298,14 @@ const HospitalIncoming = () => {
     }
   ]
 
-  const rejectedColumns: any[] = [
+  const rejectedColumns: GridColDef[] = [
     {
       width: 400,
       minWidth: 20,
       field: 'reason_for_rejection',
       sortable: false,
-      headerName: t('hospital_module.reason_for_rejection'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.reason_for_rejection') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <Tooltip title={params.row.reason_for_rejection || ''} arrow>
           <Typography
             variant='body2'
@@ -312,8 +331,8 @@ const HospitalIncoming = () => {
       width: 260,
       minWidth: 20,
       field: 'rejected_by',
-      headerName: t('hospital_module.rejected_by'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.rejected_by') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <UserAvatarDetails
           date={params?.row?.rejected_at}
           user_name={`${params?.row?.rejected_user_first_name} ${params?.row?.rejected_user_last_name}`}
@@ -327,19 +346,19 @@ const HospitalIncoming = () => {
   const columns =
     activeTab === 'pending' ? [...commonColumns, ...pendingColumns] : [...commonColumns, ...rejectedColumns]
 
-  const handleRowClick = (data: any) => {
+  const handleRowClick = (data: GridRowParams) => {
     if (activeTab === 'pending') {
       router.push(`/hospital/incoming/${data?.row?.transfer_id}/patient-admit-form`)
     }
   }
 
-  const handleTabChange = (_: any, newValue: string) => {
+  const handleTabChange = (_: React.SyntheticEvent, newValue: PatientStatus): void => {
     setActiveTab(newValue)
     setSearchValue('')
     debouncedSearch('')
   }
 
-  const getTabLabel = (key: string, label: string) => {
+  const getTabLabel = (key: PatientStatus, label: string) => {
     if (key === 'pending') return `${label} - ${pendingCount}`
     if (key === 'rejected') return `${label} - ${rejectedCount}`
 
@@ -384,15 +403,15 @@ const HospitalIncoming = () => {
               <Box sx={{ mr: 2, display: 'flex', alignItems: 'center', gap: 4, ml: 2 }}>
                 <CommonDateRangePickers
                   filterDates={filterDate}
-                  onChange={(s: any, e: any) => setFilterDate({ startDate: s, endDate: e })}
+                  onChange={(s: FilterDate, e: FilterDate) => setFilterDate({ startDate: s, endDate: e })}
                 />
                 <Select
                   size='small'
                   value={selectedVisitType}
                   displayEmpty
-                  onChange={(e: SelectChangeEvent<string>) => setSelectedVisitType(e.target.value)}
+                  onChange={(e: SelectChangeEvent<PurposeOfVisit>) => setSelectedVisitType(e.target.value)}
                 >
-                  {visitTypeOptions?.map((item: any, index: number) => (
+                  {visitTypeOptions?.map((item, index: number) => (
                     <MenuItem key={index} value={item?.value}>
                       {item?.label}
                     </MenuItem>

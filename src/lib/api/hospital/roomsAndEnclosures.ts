@@ -9,15 +9,12 @@ import { axiosFormPost as _axiosFormPost, axiosGet as _axiosGet } from '../utili
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type {
-  ApiResponse,
-  RoomListResponse,
-  RoomsAndEnclosuresResponse
-} from 'src/types/hospital'
+import type { ApiResponse } from 'src/types/hospital'
+import { RoomEnclosureParams, RoomListParams, RoomListResponse, RoomEnclosureResponse } from 'src/types/hospital/api/roomsAndEnclosure';
 
 export async function getRoomsAndEnclosures(
-  params: Record<string, unknown>
-): Promise<RoomsAndEnclosuresResponse> {
+  params: RoomEnclosureParams
+): Promise<RoomEnclosureResponse> {
   const response = await axiosGet({ url: `${GET_ROOMS_AND_ENCLOSURES}`, params })
 
   return response?.data
@@ -51,7 +48,7 @@ export async function updateRoomsAndEnclosures(
 }
 
 export async function getHospitalRoomsList(
-  params: Record<string, unknown>
+  params: RoomListParams
 ): Promise<RoomListResponse> {
   const response = await axiosGet({ url: `${GET_HOSPITAL_ROOMS}`, params })
 

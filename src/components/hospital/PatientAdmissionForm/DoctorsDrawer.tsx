@@ -11,36 +11,38 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { useForm } from 'react-hook-form'
+import { SelectDoctorOption } from 'src/types/hospital/api'
+import { HospitalStaffListParams, HospitalStaffListResponse } from 'src/types/hospital/api/doctorsAndStaffs'
 import { useTranslation } from 'react-i18next'
 
 interface DoctorsDrawerProps {
   open?: boolean
   setOpen?: (v: boolean) => void
-  onSelectDoctor?: (d: any) => void
-  hospitalId?: any
+  onSelectDoctor?: (d: SelectDoctorOption) => void
+  hospitalId?: string | number
 }
 
 const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDrawerProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
-  const { setValue } = useForm<any>()
+  const theme = useTheme()
+  const { setValue } = useForm()
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selected, setSelected] = useState<any>(null)
+  const [selected, setSelected] = useState<SelectDoctorOption | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
-  const [doctors, setDoctors] = useState<any[]>([])
+  const [doctors, setDoctors] = useState<SelectDoctorOption[]>([])
 
   const getUserLists = async (query: string = '') => {
     setLoading(true)
     try {
-      const params: any = {}
+      const params: HospitalStaffListParams = {}
       if (query.trim() !== '') {
         params.q = query
       }
-      await getHospitalStaff({ params: { hospital_id: hospitalId, is_hospital_chief_doctor: '1', ...params } }).then((res: any) => {
+      await getHospitalStaff({ params: { hospital_id: hospitalId, is_hospital_chief_doctor: '1', ...params } }).then((res: HospitalStaffListResponse) => {
         console.log(res)
         if (res?.success === true) {
           setDoctors(
-            res?.data?.records.map((item: any) => ({
+            ((res?.data?.records ?? []) as SelectDoctorOption[]).map(item => ({
               name: item?.user_full_name,
               id: item?.user_id,
               default_icon: item?.user_profile_pic,
@@ -142,7 +144,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
             </IconButton>
           </Box>
           <Grid container spacing={2} alignItems='center' sx={{ pt: 4, pb: 4, px: 4 }}>
-            <Grid item size={{ xs: 12, sm: 12 } as any}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <Search
                 width='100%'
                 placeholder={(t('hospital_module.search_staff') as string)}
@@ -155,7 +157,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
             </Grid>
             <Grid
               item
-              size={{ xs: 12, sm: 1.5 } as any}
+              size={{ xs: 12, sm: 1.5 }}
               sx={{
                 display: 'none',
                 justifyContent: { xs: 'flex-end', sm: 'center' },
@@ -188,7 +190,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
             </>
           ) : (
             <>
-              {doctors?.map((doctor: any) => (
+              {doctors?.map((doctor: SelectDoctorOption) => (
                 <Box
                   key={doctor?.id}
                   sx={{

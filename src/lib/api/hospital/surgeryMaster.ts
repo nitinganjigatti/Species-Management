@@ -18,20 +18,21 @@ const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
 import type { ApiResponse, SurgeryListParams, SurgeryListResponse } from 'src/types/hospital'
+import { AddUpdateSurgeryPayload, AddUpdateSurgeryResponse, SurgeryParams, SurgeryResponse, } from 'src/types/hospital/api/Masters/surgery';
 
 export const getSurgeryMaster = async ({
   params
 }: {
-  params: Record<string, unknown>
-}): Promise<ApiResponse<unknown>> => {
+  params: SurgeryParams
+}): Promise<SurgeryResponse> => {
   const response = await axiosGet({ url: GET_MASTERS_SURGERY, params })
 
   return response?.data
 }
 
 export const addSurgeryMaster = async (
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: AddUpdateSurgeryPayload
+): Promise<AddUpdateSurgeryResponse> => {
   const response = await axiosFormPost({ url: CREATE_MASTERS_SURGERY, body: payload })
 
   return response?.data
@@ -39,8 +40,8 @@ export const addSurgeryMaster = async (
 
 export const updateSurgeryMaster = async (
   id: string | number,
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  payload: AddUpdateSurgeryPayload | FormData
+): Promise<AddUpdateSurgeryResponse> => {
   const response = await axiosFormPost({ url: `${UPDATE_MASTERS_SURGERY}/${id}`, body: payload })
 
   return response?.data

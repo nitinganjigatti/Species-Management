@@ -4,9 +4,9 @@
  * Specific endpoint types are added as APIs are converted in Phase 2.
  */
 
+import { HospitalTransferRow } from '../housing/hospitalTransfer'
 import {
   Hospital,
-  HospitalRoom,
   HospitalBed,
   HospitalAnalytics,
   Patient,
@@ -22,7 +22,12 @@ import {
   AnesthesiaRecord,
   Doctor,
   Staff,
-  PatientMedia
+  PatientMedia,
+  SiteLists,
+  Id,
+  HospitalStaff,
+  StatusAction,
+  InpatientOverview
 } from './models'
 
 // ==================== Generic ====================
@@ -33,6 +38,32 @@ export interface ApiResponse<T = unknown> {
   message?: string
   data?: T
   error?: string
+}
+
+export type ApiError = {
+  message?: string
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+}
+
+export type DateType = string | null | Date
+
+export type Availability = 'Available' | 'Occupied'
+
+export interface AppliedFilters {
+  Availability?: Availability[]
+  Status?: StatusAction[]
+  [key: string]: Availability[] | StatusAction[] | undefined
+}
+
+
+export type RouterQuery = {
+  page?: string
+  limit?: string
+  q?: string
 }
 
 export interface PaginatedData<T> {
@@ -54,6 +85,11 @@ export interface PaginationParams {
   q?: string
 }
 
+export interface SelectOption {
+  value?: string | number
+  label?: string
+}
+
 // ==================== Hospital Master ====================
 
 export interface HospitalListParams extends PaginationParams {
@@ -70,21 +106,35 @@ export interface AddHospitalPayload {
   country?: string
   [key: string]: unknown
 }
+export interface GetSiteListsResponse {
+  success: boolean
+  message?: string
+  data: {
+    result: SiteLists[]
+  }
+}
 
 // ==================== Hospital Rooms / Beds ====================
 
-export interface RoomListParams extends PaginationParams {
-  hospital_id?: string | number
-}
-
-export interface RoomListResponse extends PaginatedResponse<HospitalRoom> {}
-
 export interface BedListParams extends PaginationParams {
-  hospital_id?: string | number
-  room_id?: string | number
+  hospital_id: string | number
+  room_id: string | number
 }
 
 export interface BedListResponse extends PaginatedResponse<HospitalBed> {}
+
+export interface AddBedPayload {
+  id?: Id
+  hospital_id?: Id
+  room_id?: Id
+  bed_name?: string
+  status?: number | string
+  prefix?: string | string[]
+}
+
+export interface UpdateBedPayload extends AddBedPayload {
+  bed_id?: string
+}
 
 // ==================== Analytics ====================
 
@@ -108,7 +158,57 @@ export interface IncomingPatientsResponse extends PaginatedResponse<IncomingPati
 
 export interface PatientDetailsResponse extends ApiResponse<Patient> {}
 
-export interface AdmitPatientPayload extends FormData {}
+export type PatientStatus = 'pending' | 'rejected'
+
+export type PatientAdmitAction = 'admit' | 'reject'
+
+export type TreatmentType = 'opd' | 'inpatient'
+
+export type HealthStatus = 'stable' | 'critical'
+
+export type TreatmentTypeOption = {
+  label?: string
+  value?: 'opd' | 'inpatient'
+}
+
+export type HealthStatusOption = {
+  label?: string
+  value?: 'stable' | 'critical'
+}
+
+export type SelectAdmitOption = {
+  bed_name?: string
+  id?: Id
+}
+
+export interface RoomEnclosureResponse {
+  success?: boolean
+  data?: {
+    total?: number
+    records?: HospitalBed[]
+  }
+}
+
+export interface SelectDoctorOption {
+  value?: string | number
+  label?: string
+  id?: Id
+  user_full_name?: string
+  user_id?: Id
+  user_profile_pic?: string
+  role_name?: string
+  name?: string
+  default_icon?: string
+}
+export interface RoomEnclosureParams {
+  hospital_id?: Id
+  page?: number
+  per_page?: number
+  q?: string
+  status?: StatusAction,
+  room_id?: Id
+}
+
 
 // ==================== Inpatient ====================
 
@@ -118,6 +218,25 @@ export interface InpatientListParams extends PaginationParams {
 }
 
 export interface InpatientListResponse extends PaginatedResponse<Patient> {}
+
+export interface InpatientOverviewResponse {
+  success: boolean
+  data: {
+    data: InpatientOverview
+  }
+  total_records: number
+  limit: number
+  current_page: number
+  total_pages: number
+}
+
+export interface InpatientOverviewParams {
+  page_no: number
+  limit: number
+  animal_id: Id
+  hospital_id: Id
+  hospital_case_id: Id
+}
 
 // ==================== Discharge ====================
 
@@ -201,7 +320,42 @@ export interface StaffListParams extends PaginationParams {
   role?: string
 }
 
+export type AddRemoveDoctorAction = 'add' | 'delete'
+
 export interface StaffListResponse extends PaginatedResponse<Staff> {}
+
+export interface HospitalStaffListParams {
+  q?: string
+  page_no?: number | string
+  limit?: number | string
+  hospital_id?: Id
+  is_hospital_chief_doctor?: string
+}
+
+export interface HospitalStaffListResponse {
+  success?: boolean
+  data: {
+    total?: number
+    records?: HospitalStaff[]
+    current_page?: number
+    per_page?: number
+    total_pages?: number
+  }
+  message?: string
+}
+
+export interface AddRemoveChiefDoctorResponse {
+  success?: boolean
+  data?: unknown[]
+  message?: string
+}
+
+export interface AddRemoveChiefDoctorPayload {
+  action?: AddRemoveDoctorAction
+  hospital_id?: Id
+  hospital_chief_doctor?: Id
+}
+
 
 // ==================== Patient Media ====================
 

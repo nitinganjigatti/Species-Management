@@ -16,6 +16,7 @@ import type {
   IncomingPatientsResponse,
   PatientDetailsResponse
 } from 'src/types/hospital'
+import { AdmitPatientResponse } from 'src/types/hospital/api/Incoming/admitPatient';
 
 export const getIncomingPatients = async (
   params: IncomingPatientsParams
@@ -33,7 +34,7 @@ export const getPatientDetails = async (id: string | number): Promise<PatientDet
 
 export const admitHospitalPatient = async (
   params: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+): Promise<AdmitPatientResponse> => {
   const response = await axiosFormPost({ url: `${ADMIT_HOSPITAL_PATIENT}`, body: params })
 
   return response?.data

@@ -14,8 +14,22 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import { AuthContext } from 'src/context/AuthContext'
+import type { SelectOption } from 'src/types/hospital/api'
+import { HospitalDetail } from 'src/types/hospital/models'
+import { RoomRecord } from 'src/types/hospital/models'
+import { HandleSubmitPayload } from 'src/components/hospital/hospitalMaster/HospitalRoomDetails'
 
-const defaultValues: any = {
+interface RoomFormValues {
+  hospital_id: string | null
+  name?: string
+  room_name?: string
+  floor_name?: string
+  status?: boolean
+  description?: string
+  site_id?: SelectOption | null
+}
+
+const defaultValues: RoomFormValues = {
   hospital_id: null,
   room_name: '',
   floor_name: '',
@@ -25,16 +39,16 @@ const defaultValues: any = {
 interface AddHospitalRoomProps {
   handleSidebarOpen?: boolean
   handleSidebarClose: () => void
-  handleSubmitData: (payload: any, type: string) => Promise<any>
+  handleSubmitData: (payload: HandleSubmitPayload, type: string) => Promise<boolean | void>
   submitLoader?: boolean
-  editParams?: any
-  hospitalDetails?: any
-  hospitalId?: any
-  hospitalStatus?: any
-  isActive?: any
-  sites?: any[]
+  editParams?: RoomRecord | null
+  hospitalDetails?: HospitalDetail | null
+  hospitalId?: string | number
+  hospitalStatus?: boolean
+  isActive?: number
+  sites?: SelectOption[]
   sitesLoading?: boolean
-  onSiteSearch?: (value: any) => void
+  onSiteSearch?: (value: string) => void
 }
 
 const AddHospitalRoom = (props: AddHospitalRoomProps) => {
@@ -54,7 +68,7 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
   } = props
 
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme()
   const authData = useContext(AuthContext)
 
   const isHospitalEditMode = Boolean(hospitalStatus)
@@ -69,7 +83,7 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
   const showRoomFields = !isHospitalEditMode
   const hospitalNameDisabled = !isHospitalEditMode
 
-  const schema: any = useMemo(() => {
+  const schema = useMemo(() => {
     if (isHospitalEditMode) {
       return yup.object().shape({
         hospital_id: yup.string().trim().required('Hospital Name is required'),
@@ -94,19 +108,19 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
     control,
     handleSubmit,
     formState: { errors, isValid }
-  } = useForm<any>({
+  } = useForm<RoomFormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
-  const onSubmit = async (formData: any) => {
+  const onSubmit = async (formData: RoomFormValues) => {
     if (isHospitalEditMode) {
       const payload = {
-        name: formData?.hospital_id,
-        description: formData?.description,
+        name: formData?.hospital_id ?? '',
+        description: formData?.description ?? '',
         site_id: formData.site_id?.value || null,
         is_active: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1',
         entity_type: 'hospital',
@@ -120,8 +134,8 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
     } else {
       const payload = {
         hospital_id: hospitalId,
-        room_name: formData?.room_name,
-        floor_name: formData?.floor_name,
+        room_name: formData?.room_name ?? '',
+        floor_name: formData?.floor_name ?? '',
         status: formData?.status !== undefined ? (formData?.status ? '1' : '0') : '1'
       }
       const success = await handleSubmitData(payload, 'room')
@@ -133,27 +147,29 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
 
   useEffect(() => {
     if (!handleSidebarOpen) return
-    let prefill: any = { ...defaultValues }
+    let prefill: RoomFormValues = { ...defaultValues }
 
     if (isHospitalEditMode) {
       prefill = {
-        hospital_id: hospitalDetails?.hospital_name,
+        hospital_id: hospitalDetails?.hospital_name ?? null,
         site_id: hospitalDetails?.site_id
-          ? { value: hospitalDetails?.site_id, label: hospitalDetails?.site_name }
+          ? { value: hospitalDetails.site_id, label: hospitalDetails?.site_name ?? '' }
           : null,
         description: hospitalDetails?.description || '',
+        room_name: '',
+        floor_name: '',
         status: Boolean(isActive)
       }
     } else if (editParams?.id) {
       prefill = {
-        hospital_id: hospitalDetails?.hospital_name,
-        room_name: editParams?.room_name,
-        floor_name: editParams?.floor_name,
-        status: editParams?.status === '1' || editParams?.status === 1 || editParams?.status === 'active'
+        hospital_id: hospitalDetails?.hospital_name ?? null,
+        room_name: editParams?.room_name ?? '',
+        floor_name: editParams?.floor_name ?? '',
+        status: editParams?.status === '1' || editParams?.status === 'active'
       }
     } else {
       prefill = {
-        hospital_id: hospitalDetails?.hospital_name,
+        hospital_id: hospitalDetails?.hospital_name ?? null,
         room_name: '',
         floor_name: '',
         status: true
@@ -198,7 +214,8 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Room Icon' />
+          {/* <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Room Icon' /> */}
+          <Box component='img' src='/icons/activity_icon.png' sx={{ width: '30px', height: '30px' }} />
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {drawerTitle}
           </Typography>
@@ -246,10 +263,10 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
                     errors={errors}
                     label='Site Name'
                     options={sites}
-                    getOptionLabel={(option: any) => option?.label || ''}
-                    getOptionValue={(option: any) => option?.value || ''}
-                    onInputChange={(value: any) => onSiteSearch?.(value)}
-                    isOptionEqualToValue={(option: any, value: any) => option?.value === value?.value}
+                    getOptionLabel={(option: SelectOption) => option?.label || ''}
+                    getOptionValue={(option: SelectOption) => option?.value || ''}
+                    onInputChange={(value: string) => onSiteSearch?.(value)}
+                    isOptionEqualToValue={(option: SelectOption, value: SelectOption) => option?.value === value?.value}
                     {...({
                       onItemClear: () => onSiteSearch?.(''),
                       showLoader: true,
@@ -308,7 +325,7 @@ const AddHospitalRoom = (props: AddHospitalRoomProps) => {
           display: 'flex',
           justifyContent: 'center',
           gap: 2,
-          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark as string, 0.1)}`,
           bottom: 0,
           position: 'sticky',
           zIndex: 1

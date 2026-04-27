@@ -20,12 +20,16 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { addHospitalMaster, getHospitalMaster } from 'src/lib/api/hospital/hospitalMaster'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { GridPaginationModel, GridRenderCellParams, GridColDef, GridRowParams, GridSortModel } from '@mui/x-data-grid'
+import type { ApiError, GetSiteListsResponse, SelectOption } from 'src/types/hospital/api'
+import type { HospitalLists, SiteLists } from 'src/types/hospital/models'
+import { HospitalMasterFilters, GetHospitalListResponse, AddHospitalMasterPayload, AddHospitalMasterResponse } from 'src/types/hospital/api/Masters/hospitalDetailTypes'
 
 const HospitalDetails = () => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme()
   const appRouter = useRouter()
-  const searchParams: any = useSearchParams()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
 
   const statusOptions = useMemo(
@@ -38,20 +42,20 @@ const HospitalDetails = () => {
   )
 
   // Get query string parameters from App Router
-  const page = searchParams.get('page') || ''
-  const limit = searchParams.get('limit') || ''
-  const q = searchParams.get('q') || ''
-  const active = searchParams.get('active')
-  const sort_order = searchParams.get('sort_order') || ''
-  const sort_by = searchParams.get('sort_by') || ''
+  const page = searchParams?.get('page') || ''
+  const limit = searchParams?.get('limit') || ''
+  const q = searchParams?.get('q') || ''
+  const active = searchParams?.get('active')
+  const sort_order = searchParams?.get('sort_order') || ''
+  const sort_by = searchParams?.get('sort_by') || ''
 
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>(q || '')
   const [sitesLoading, setSitesLoading] = useState<boolean>(false)
-  const [sites, setSites] = useState<any[]>([])
+  const [sites, setSites] = useState<SelectOption[]>([])
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<HospitalMasterFilters>({
     page: page ? Number(page) : 1,
     limit: limit ? Number(limit) : 50,
     q: q || '',
@@ -62,12 +66,12 @@ const HospitalDetails = () => {
 
   //  URL update helper function
   const updateUrlParams = useCallback(
-    (updatedFilters: any) => {
+    (updatedFilters: HospitalMasterFilters) => {
       const params = new URLSearchParams()
 
       Object.entries(updatedFilters).forEach(([key, value]) => {
         if (value !== '' && value !== undefined && value !== null) {
-          params.set(key, (value as any).toString())
+          params.set(key, String(value))
         }
       })
 
@@ -84,18 +88,19 @@ const HospitalDetails = () => {
     try {
       setSitesLoading(true)
       const params = { q, limit: 10, page_no: 1 }
-      const res: any = await getZooWiseSiteLists(params)
+      const res = await getZooWiseSiteLists(params) as GetSiteListsResponse
       if (res?.success) {
-        const formatted = res?.data?.result?.map((item: any) => ({
-          value: item?.site_id,
-          label: item?.site_name
+        const formatted: SelectOption[] = (res?.data?.result ?? []).map((item: SiteLists) => ({
+          value: item?.site_id ?? '',
+          label: item?.site_name ?? ''
         }))
         setSites(formatted)
       } else {
         setSites([])
       }
-    } catch (error: any) {
-      console.error('Error fetchSites:', error?.message)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error fetchSites:', err?.message)
     } finally {
       setSitesLoading(false)
     }
@@ -109,7 +114,7 @@ const HospitalDetails = () => {
     data: hospitalData,
     isFetching: isLoadingHospitals,
     refetch: refetchHospitals
-  } = useQuery<any>({
+  } = useQuery<GetHospitalListResponse>({
     queryKey: ['hospital-list', filters],
     queryFn: () =>
       getHospitalMaster({
@@ -122,16 +127,13 @@ const HospitalDetails = () => {
           sort_by: filters.sort_by
         }
       }),
-    onError: (error: any) => {
-      console.error('Error fetching hospital list:', error?.message)
-    }
-  } as any)
+  } )
 
   const rows = useMemo(() => hospitalData?.data?.hospitals || [], [hospitalData?.data?.hospitals])
   const total = useMemo(() => hospitalData?.data?.total || 0, [hospitalData?.data?.total])
 
   const handlePaginationChange = useCallback(
-    (model: any) => {
+    (model: GridPaginationModel) => {
       const updated = {
         ...filters,
         page: model.page + 1,
@@ -145,11 +147,11 @@ const HospitalDetails = () => {
   )
 
   // Debounced search function using useRef to persist across renders
-  const debouncedSearchRef = useRef<any>(null)
+  const debouncedSearchRef = useRef<ReturnType<typeof debounce> | null>(null)
 
   const debouncedSearch = () => {
     if (!debouncedSearchRef.current) {
-      debouncedSearchRef.current = debounce((value: string, currentFilters: any, updateFn: any) => {
+      debouncedSearchRef.current = debounce((value: string, currentFilters: HospitalMasterFilters, updateFn: (filters: HospitalMasterFilters) => void) => {
         const updated = {
           ...currentFilters,
           q: value,
@@ -200,15 +202,15 @@ const HospitalDetails = () => {
     updateUrlParams(updated)
   }, [filters, updateUrlParams])
 
-  const handleSubmitData = async (payload: any) => {
+  const handleSubmitData = async (payload: AddHospitalMasterPayload) => {
     setSubmitLoader(true)
 
     try {
-      const response: any = await addHospitalMaster(payload)
+      const response = await addHospitalMaster(payload) as AddHospitalMasterResponse
 
       if (response?.success) {
         // Invalidate hospital list cache
-        queryClient.invalidateQueries(['hospital-list'] as any)
+        queryClient.invalidateQueries({ queryKey: ['hospital-list'] })
 
         setOpenDrawer(false)
         Toaster({ type: 'success', message: response?.message || t('hospital_module.hospital_created_successfully') })
@@ -219,8 +221,9 @@ const HospitalDetails = () => {
 
         return false
       }
-    } catch (error: any) {
-      console.error('Error adding hospital:', error?.message || error)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error adding hospital:', err?.message || error)
 
       return false
     } finally {
@@ -228,11 +231,11 @@ const HospitalDetails = () => {
     }
   }
 
-  const handleSortModel = (newModel: any) => {
+  const handleSortModel = (newModel: GridSortModel) => {
     if (newModel.length) {
-      const updated = {
+      const updated: HospitalMasterFilters = {
         ...filters,
-        sort_order: newModel[0].sort,
+        sort_order: newModel[0].sort ?? 'desc',
         sort_by: newModel[0].field,
         page: 1
       }
@@ -243,31 +246,31 @@ const HospitalDetails = () => {
 
   //  Add serial numbers to each row based on current pagination
   const indexedRows = useMemo(() => {
-    return rows.map((row: any, index: number) => ({
+    return rows.map((row: HospitalLists, index: number) => ({
       ...row,
       sl_no: (filters.page - 1) * filters.limit + index + 1
     }))
   }, [rows, filters.page, filters.limit])
 
-  const columns: any = useMemo(
-    () => [
-      {
-        minWidth: 50,
-        field: 'id',
-        headerName: t('hospital_module.sl_no'),
-        sortable: false,
-        renderCell: (params: any) => (
-          <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
-            {params?.row?.sl_no}
-          </StyledTypography>
-        )
-      },
-      {
-        minWidth: 250,
-        field: 'hospital_name',
-        headerName: t('hospital_module.hospital_name'),
-        sortable: false,
-      renderCell: (params: any) => (
+  const columns: GridColDef[] =  useMemo
+  (() => [
+    {
+      minWidth: 50,
+      field: 'id',
+      headerName: t('hospital_module.sl_no') ?? '',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => (
+        <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
+          {params?.row?.sl_no}
+        </StyledTypography>
+      )
+    },
+    {
+      minWidth: 250,
+      field: 'hospital_name',
+      headerName: t('hospital_module.hospital_name') ?? '',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={params?.row?.hospital_name ?? '-'}
@@ -282,31 +285,31 @@ const HospitalDetails = () => {
         />
       )
     },
-      {
-        minWidth: 120,
-        field: 'rooms',
-        headerName: t('hospital_module.rooms'),
-        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_rooms ?? '-'}</StyledTypography>
-      },
-      {
-        minWidth: 150,
-        field: 'occupants',
-        headerName: t('hospital_module.occupants'),
-        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_occupants ?? '-'}</StyledTypography>
-      },
-      {
-        minWidth: 140,
-        field: 'active',
-        headerName: t('hospital_module.status'),
-        sortable: false,
-        renderCell: (params: any) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.active} />
-      },
-      {
-        minWidth: 200,
-        field: 'site_name',
-        headerName: t('hospital_module.site_name'),
-        sortable: false,
-      renderCell: (params: any) => (
+    {
+      minWidth: 120,
+      field: 'rooms',
+      headerName: t('hospital_module.room') ?? '',
+      renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_rooms ?? '-'}</StyledTypography>
+    },
+    {
+      minWidth: 150,
+      field: 'occupants',
+      headerName: t('hospital_module.occupants') ?? '',
+      renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.total_occupants ?? '-'}</StyledTypography>
+    },
+    {
+      minWidth: 140,
+      field: 'active',
+      headerName: t('status') ?? '',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.active} />
+    },
+    {
+      minWidth: 200,
+      field: 'site_name',
+      headerName: t('hospital_module.site_name') ?? '',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => (
         <TextEllipsisWithModal
           enableDialog={false}
           text={params?.row?.site_name ?? '-'}
@@ -321,46 +324,46 @@ const HospitalDetails = () => {
         />
       )
     },
-      {
-        minWidth: 230,
-        field: 'created_by_name',
-        headerName: t('hospital_module.added_by'),
-        sortable: false,
-        renderCell: (params: any) => (
-          <Box sx={{ pl: 1.4 }}>
-            <UserAvatarDetails
-              user_name={params?.row?.created_by_name}
-              date={params.row.created_at}
-              dateType={'created'}
-              size='medium'
-              profile_image={params?.row?.profile_image}
-            />
-          </Box>
-        )
-      },
-      {
-        minWidth: 230,
-        field: 'updated_by_name',
-        headerName: t('hospital_module.updated_by'),
-        sortable: false,
-        renderCell: (params: any) => (
-          <Box sx={{ pl: 1.4 }}>
-            <UserAvatarDetails
-              user_name={params?.row?.updated_by_name}
-              date={params.row.updated_at}
-              dateType={'updated'}
-              size='medium'
-              profile_image={params?.row?.updated_user_profile_image}
-            />
-          </Box>
-        )
-      }
-    ],
+    {
+      minWidth: 230,
+      field: 'created_by_name',
+      headerName: t('hospital_module.added_by') ?? '',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => (
+        <Box sx={{ pl: 1.4 }}>
+          <UserAvatarDetails
+            user_name={params?.row?.created_by_name}
+            date={params.row.created_at}
+            dateType={'created'}
+            size='medium'
+            profile_image={params?.row?.profile_image}
+          />
+        </Box>
+      )
+    },
+    {
+      minWidth: 230,
+      field: 'updated_by_name',
+      headerName: t('hospital_module.updated_by') ?? '',
+      sortable: false,
+      renderCell: (params: GridRenderCellParams) => (
+        <Box sx={{ pl: 1.4 }}>
+          <UserAvatarDetails
+            user_name={params?.row?.updated_by_name}
+            date={params.row.updated_at}
+            dateType={'updated'}
+            size='medium'
+            profile_image={params?.row?.updated_user_profile_image}
+          />
+        </Box>
+      )
+    }
+  ],
     [t]
   )
 
   // getRowClassName function
-  const getRowClassName = (params: any) => {
+  const getRowClassName = (params: GridRowParams) => {
     const isActive = String(params?.row?.active) === '1'
     if (!isActive) {
       return 'inactive-row'
@@ -370,10 +373,10 @@ const HospitalDetails = () => {
   }
 
   //  Handle Status filter change
-  const handleStatusChange = (value: any) => {
-    const activeValue = value === 'all' ? undefined : value
+  const handleStatusChange = (value: string | number) => {
+    const activeValue = value === 'all' ? undefined : Number(value)
 
-    const updated = {
+    const updated: HospitalMasterFilters = {
       ...filters,
       page: 1,
       active: activeValue
@@ -383,7 +386,7 @@ const HospitalDetails = () => {
     updateUrlParams(updated)
   }
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams) => {
     appRouter.push(`/hospital/masters/hospital/${params?.row?.id}`)
   }
 
@@ -469,13 +472,13 @@ const HospitalDetails = () => {
             size='small'
             value={filters.active ?? 'all'}
             displayEmpty
-            onChange={(e: any) => handleStatusChange(e.target.value)}
+            onChange={e => handleStatusChange(e.target.value)}
             sx={{
               width: { xs: '80%', sm: 130 },
               borderRadius: '4px'
             }}
           >
-            {statusOptions.map((item: any, index: number) => (
+            {statusOptions.map((item, index) => (
               <MenuItem key={index} value={item.value}>
                 {item.label}
               </MenuItem>
@@ -495,9 +498,9 @@ const HospitalDetails = () => {
           handleSortModel={handleSortModel}
           externalTableStyle={{
             '& .inactive-row': {
-              backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
+              backgroundColor: alpha(theme.palette.customColors.TertiaryContainer as string, 0.1),
               '&:hover': {
-                backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.3)
+                backgroundColor: alpha(theme.palette.customColors.TertiaryContainer as string, 0.3)
               }
             }
           }}

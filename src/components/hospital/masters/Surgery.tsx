@@ -34,8 +34,12 @@ import {
   getSurgeryMaster,
   updateSurgeryMaster
 } from 'src/lib/api/hospital/surgeryMaster'
+import { GridPaginationModel, GridRenderCellParams, GridColDef } from '@mui/x-data-grid'
+import type { ApiError } from 'src/types/hospital/api'
+import { SurgeryResponse, SurgeryFilters, AddUpdateSurgeryPayload, SurgeryFilter } from 'src/types/hospital/api/Masters/surgery'
+import type { PurposeOfVisit, SurgeryModel } from 'src/types/hospital/models'
 
-const resolveBooleanStatus = (value: any) => {
+const resolveBooleanStatus = (value: string | number | boolean) => {
   if (typeof value === 'string') {
     const normalized = value.trim().toLowerCase()
 
@@ -47,25 +51,25 @@ const resolveBooleanStatus = (value: any) => {
 
 const Surgery = () => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
-  const router: any = useSafeRouter()
+  const theme = useTheme()
+  const router = useSafeRouter()
 
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedVisitType, setSelectedVisitType] = useState<string>('')
+  const [selectedVisitType, setSelectedVisitType] = useState<PurposeOfVisit>('')
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<SurgeryFilters>({
     page: 1,
     limit: 10,
     q: ''
   })
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
-  const [selectedSurgery, setSelectedSurgery] = useState<any>(null)
+  const [selectedSurgery, setSelectedSurgery] = useState<SurgeryModel | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
-  const [surgeryToDelete, setSurgeryToDelete] = useState<any>(null)
+  const [surgeryToDelete, setSurgeryToDelete] = useState<SurgeryModel | null>(null)
 
-  const safeParseToInt = (value: any, fallback: number) => {
+  const safeParseToInt = (value: string, fallback: number) => {
     const parsed = parseInt(value, 10)
 
     return Number.isNaN(parsed) ? fallback : parsed
@@ -74,7 +78,7 @@ const Surgery = () => {
   useEffect(() => {
     if (!router.isReady) return
 
-    const { page = '1', limit = '10', q = '', visit_type: visitTypeQuery = '' } = router.query
+    const { page = '1', limit = '10', q = '', visit_type: visitTypeQuery = '' } = router.query as SurgeryFilter
 
     const safePage = Array.isArray(page) ? page[0] : page
     const safeLimit = Array.isArray(limit) ? limit[0] : limit
@@ -92,12 +96,12 @@ const Surgery = () => {
   }, [router.isReady, router.query])
 
   const updateUrlParams = useCallback(
-    (updatedFilters: any, visitTypeValue: string = selectedVisitType) => {
+    (updatedFilters: SurgeryFilters, visitTypeValue: string = selectedVisitType) => {
       const params = new URLSearchParams()
 
       Object.entries(updatedFilters).forEach(([key, value]) => {
         if (value !== '' && value !== null && value !== undefined) {
-          params.set(key, (value as any).toString())
+          params.set(key, String(value))
         }
       })
 
@@ -112,7 +116,7 @@ const Surgery = () => {
   )
 
   const handlePaginationChange = useCallback(
-    (model: any) => {
+    (model: GridPaginationModel) => {
       const updated = {
         ...filters,
         page: model.page + 1,
@@ -161,18 +165,18 @@ const Surgery = () => {
     setSelectedSurgery(null)
   }, [])
 
-  const resolveSurgeryId = useCallback((row: any) => {
+  const resolveSurgeryId = useCallback((row: SurgeryModel | null) => {
     if (!row) return null
 
     return row?.id ?? row?.surgery_id ?? row?.master_surgery_id ?? row?.surgeryId ?? null
   }, [])
 
-  const handleEditSurgery = useCallback((row: any) => {
+  const handleEditSurgery = useCallback((row: SurgeryModel) => {
     setSelectedSurgery(row)
     setDrawerOpen(true)
   }, [])
 
-  const handleDeletePrompt = useCallback((row: any) => {
+  const handleDeletePrompt = useCallback((row: SurgeryModel) => {
     setSurgeryToDelete(row)
     setDeleteDialogOpen(true)
   }, [])
@@ -187,13 +191,13 @@ const Surgery = () => {
     data: surgeryResponse,
     isFetching,
     refetch
-  } = useQuery<any>({
+  } = useQuery<SurgeryResponse>({
     queryKey: ['hospital-surgery-master', filters, selectedVisitType],
     queryFn: () =>
       getSurgeryMaster({
         params: {
-          page_no: filters.page,
-          limit: filters.limit,
+          page_no: filters.page ?? '',
+          limit: filters.limit ?? '',
           q: filters.q,
           visit_type: selectedVisitType
         }
@@ -202,17 +206,19 @@ const Surgery = () => {
     staleTime: 60 * 1000
   } as any)
 
-  const dataPayload: any = surgeryResponse?.data ?? {}
+  
+  const dataPayload: SurgeryResponse  = surgeryResponse?.data ?? {}
 
   const rawRows = useMemo(() => {
     if (Array.isArray(dataPayload)) {
       return dataPayload
     }
+    const payload = dataPayload as Record<string, unknown>
 
     const possibleKeys = ['records', 'data', 'surgeries', 'surgery', 'items', 'list']
     for (const key of possibleKeys) {
-      if (Array.isArray(dataPayload?.[key])) {
-        return dataPayload[key]
+      if (Array.isArray(payload?.[key])) {
+        return payload[key]
       }
     }
 
@@ -220,7 +226,8 @@ const Surgery = () => {
   }, [dataPayload])
 
   const total = useMemo(() => {
-    if (typeof dataPayload?.total === 'number') return dataPayload.total
+    if (typeof dataPayload?.total === 'number')
+    return dataPayload.total
     if (typeof dataPayload?.count === 'number') return dataPayload.count
     if (typeof dataPayload?.total_records === 'number') return dataPayload.total_records
     if (typeof dataPayload?.totalCount === 'number') return dataPayload.totalCount
@@ -229,11 +236,11 @@ const Surgery = () => {
     return rawRows.length
   }, [dataPayload, rawRows.length])
 
-  const getSlNo = useCallback((index: number) => (filters.page - 1) * filters.limit + index + 1, [filters.limit, filters.page])
+  const getSlNo = useCallback((index: number) => ((filters.page ?? 1) - 1) *  (filters.limit ?? 10)  + index + 1, [filters.limit, filters.page])
 
   const indexedRows = useMemo(
     () =>
-      rawRows.map((row: any, index: number) => {
+      rawRows.map((row: SurgeryModel & Record<string, unknown>, index: number) => {
         const resolvedId =
           row?.id ??
           row?.surgery_id ??
@@ -254,7 +261,7 @@ const Surgery = () => {
   )
 
   const handleSubmitSurgery = useCallback(
-    async (values: any) => {
+    async (values: AddUpdateSurgeryPayload) => {
       setSubmitLoader(true)
       const payload = new FormData()
       const surgeryName = values?.surgery_name?.trim() || ''
@@ -268,7 +275,7 @@ const Surgery = () => {
       const surgeryId = resolveSurgeryId(selectedSurgery)
 
       try {
-        const response: any = surgeryId ? await updateSurgeryMaster(surgeryId, payload) : await addSurgeryMaster(payload)
+        const response = surgeryId ? await updateSurgeryMaster(surgeryId, (payload as AddUpdateSurgeryPayload)) : await addSurgeryMaster((payload as AddUpdateSurgeryPayload))
 
         if (response?.success) {
           Toaster({
@@ -280,9 +287,10 @@ const Surgery = () => {
         } else {
           Toaster({ type: 'error', message: response?.message || t('hospital_module.something_went_wrong') })
         }
-      } catch (error: any) {
-        console.error(error)
-        Toaster({ type: 'error', message: error?.message || t('hospital_module.an_unexpected_error_occurred') })
+      } catch (error: unknown) {
+        const err = error as ApiError
+        console.error(err)
+        Toaster({ type: 'error', message: err?.message || 'An unexpected error occurred' })
       } finally {
         setSubmitLoader(false)
       }
@@ -300,7 +308,7 @@ const Surgery = () => {
 
     setDeleteLoading(true)
     try {
-      const response: any = await deleteSurgeryMaster(surgeryId)
+      const response = await deleteSurgeryMaster(surgeryId)
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.surgery_deleted_successfully') })
         refetch()
@@ -309,23 +317,23 @@ const Surgery = () => {
         Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_delete_surgery') })
         setDeleteLoading(false)
       }
-    } catch (error: any) {
-      console.error(error)
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.an_unexpected_error_occurred') })
+    } catch (error: unknown) {
+      const err = error as ApiError
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.an_unexpected_error_occurred')  })
       setDeleteLoading(false)
     }
   }, [handleCloseDeleteDialog, refetch, resolveSurgeryId, surgeryToDelete])
 
-  const columns: any = useMemo(
+  const columns: GridColDef[] = useMemo(
     () => [
       {
         field: 'sl_no',
-        headerName: t('hospital_module.sl_no'),
+        headerName: t('hospital_module.sl_no') ?? '',
         minWidth: 80,
         width: 80,
         align: 'center',
         sortable: false,
-        renderCell: (params: any) => (
+        renderCell: (params: GridRenderCellParams) => (
           <Typography
             sx={{
               textAlign: 'center',
@@ -342,11 +350,11 @@ const Surgery = () => {
       },
       {
         field: 'display_name',
-        headerName: t('hospital_module.name_of_surgery'),
+        headerName: t('hospital_module.name_of_surgery') ?? '',
         minWidth: 220,
         flex: 1,
         sortable: false,
-        renderCell: (params: any) => (
+        renderCell: (params: GridRenderCellParams) => (
           <Typography
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -362,11 +370,11 @@ const Surgery = () => {
       },
       {
         field: 'display_description',
-        headerName: t('hospital_module.description'),
+        headerName: t('hospital_module.description') ?? '',
         minWidth: 320,
         flex: 2,
         sortable: false,
-        renderCell: (params: any) => (
+        renderCell: (params: GridRenderCellParams) => (
           <Tooltip
             title={params.row.display_description || '-'}
             placement='top-start'
@@ -407,10 +415,10 @@ const Surgery = () => {
       },
       {
         field: 'status_value',
-        headerName: t('hospital_module.status'),
+        headerName: t('hospital_module.status') ?? '',
         minWidth: 150,
         sortable: false,
-        renderCell: (params: any) => {
+        renderCell: (params: GridRenderCellParams) => {
           const isActive = resolveBooleanStatus(params.row.status_value)
 
           return (
@@ -439,7 +447,7 @@ const Surgery = () => {
         width: 80,
         align: 'right',
         headerAlign: 'right',
-        renderCell: (params: any) => (
+        renderCell: (params: GridRenderCellParams) => (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0 }}>
             <Tooltip title={(t('edit') as string)}>
               <IconButton size='small' onClick={() => handleEditSurgery(params.row)}>
@@ -526,7 +534,8 @@ const Surgery = () => {
           indexedRows={indexedRows}
           total={total}
           loading={isFetching}
-          paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+          paginationModel={{ page: (filters.page ?? 1) - 1,
+          pageSize: filters.limit ?? 10 }}
           setPaginationModel={handlePaginationChange}
           rowHeight={64}
           pageSizeOptions={[10, 25, 50]}

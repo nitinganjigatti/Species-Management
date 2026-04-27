@@ -13,6 +13,8 @@ import { AuthContext } from 'src/context/AuthContext'
 
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import type { SelectOption } from 'src/types/hospital/api'
+import { AddHospitalMasterPayload } from 'src/types/hospital/api/Masters/hospitalDetailTypes'
 
 const schema = yup.object().shape({
   hospital_name: yup
@@ -48,11 +50,11 @@ const defaultValues: FormValues = {
 interface AddHospitalProps {
   handleSidebarOpen?: boolean
   handleSidebarClose: () => void
-  handleSubmitData: (payload: any) => Promise<any>
+  handleSubmitData: (payload: AddHospitalMasterPayload) => Promise<boolean>
   submitLoader?: boolean
-  sites?: any[]
+  sites?: SelectOption[]
   sitesLoading?: boolean
-  onSiteSearch?: (value: any) => void
+  onSiteSearch?: (value: string) => void
 }
 
 const AddHospital = ({
@@ -65,7 +67,7 @@ const AddHospital = ({
   onSiteSearch
 }: AddHospitalProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme()
   const authData = useContext(AuthContext)
 
   const {
@@ -129,7 +131,7 @@ const AddHospital = ({
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Hospital Icon' />
+          <Box component='img' src='/icons/activity_icon.png' sx={{ width: 30, height: 30 }} alt='Hospital Icon' />
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             Add Hospital
           </Typography>
@@ -179,10 +181,10 @@ const AddHospital = ({
                   errors={errors}
                   label='Site Name'
                   options={sites}
-                  getOptionLabel={(option: any) => option?.label || ''}
-                  getOptionValue={(option: any) => option?.value || ''}
-                  onInputChange={(value: any) => onSiteSearch?.(value)}
-                  isOptionEqualToValue={(option: any, value: any) => option?.value === value?.value}
+                  getOptionLabel={(option: SelectOption) => option?.label || ''}
+                  getOptionValue={(option: SelectOption) => option?.value || ''}
+                  onInputChange={(value: string) => onSiteSearch?.(value)}
+                  isOptionEqualToValue={(option: SelectOption, value: SelectOption) => option?.value === value?.value}
                   {...({
                     onItemClear: () => onSiteSearch?.(''),
                     showLoader: true,
@@ -203,7 +205,7 @@ const AddHospital = ({
           display: 'flex',
           justifyContent: 'center',
           gap: 2,
-          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark as string , 0.1)}`,
           bottom: 0,
           position: 'sticky',
           zIndex: 1

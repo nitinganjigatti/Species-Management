@@ -12,30 +12,30 @@ import { axiosFormPost as _axiosFormPost, axiosGet as _axiosGet } from '../utili
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type {
-  ApiResponse,
-  BedListResponse,
-  RoomListResponse,
-  RoomsAndEnclosuresResponse
-} from 'src/types/hospital'
+import type { ApiResponse } from 'src/types/hospital'
 
-export async function getHospitalBeds(params: Record<string, unknown>): Promise<BedListResponse> {
+import { GetHospitalBedsParams, AddBedPayload, UpdateBedPayload, AddBedResponse, UpdateBedResponse, GetHospitalBedsResponse } from 'src/types/hospital/api/Masters/hospitalBedTypes';
+
+import { RoomListResponse, RoomEnclosureResponse, RoomListParams } from 'src/types/hospital/api/roomsAndEnclosure';
+import { UpdateRoomStatusPayload, UpdateRoomStatusResponse } from 'src/types/hospital/api/Masters/hospitalRoomTypes';
+
+export async function getHospitalBeds(params: GetHospitalBedsParams): Promise<GetHospitalBedsResponse> {
   const response = await axiosGet({ url: `${GET_ROOMS_AND_ENCLOSURES}`, params })
 
   return response?.data
 }
 
 export async function addHospitalBed(
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payload: AddBedPayload
+): Promise<AddBedResponse> {
   const response = await axiosFormPost({ url: `${CREATE_ROOMS_AND_ENCLOSURES}`, body: payload })
 
   return response?.data
 }
 
 export async function updateHospitalBed(
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payload: UpdateBedPayload
+): Promise<UpdateBedResponse> {
   const url = `${UPDATE_HOSPITAL_BED}`
   const response = await axiosFormPost({ url, body: payload })
 
@@ -43,8 +43,8 @@ export async function updateHospitalBed(
 }
 
 export async function updateRoomStatus(
-  payload: FormData | Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payload: UpdateRoomStatusPayload
+): Promise<UpdateRoomStatusResponse> {
   const url = `${ROOM_STATUS_UPDATE}`
   const response = await axiosFormPost({ url, body: payload })
 
@@ -53,7 +53,7 @@ export async function updateRoomStatus(
 
 export async function getRoomsAndEnclosures(
   params: Record<string, unknown>
-): Promise<RoomsAndEnclosuresResponse> {
+): Promise<RoomEnclosureResponse> {
   const response = await axiosGet({ url: `${GET_ROOMS_AND_ENCLOSURES}`, params })
 
   return response?.data

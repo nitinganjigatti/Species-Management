@@ -5,15 +5,30 @@
  * Keep optional fields liberally — backend payloads vary across endpoints.
  */
 
+import { HospitalTransferRow } from "../housing/hospitalTransfer"
+import { Dayjs } from "dayjs"
 // ==================== Generic Helpers ====================
 
 export type Id = string | number
-
+export type StatusAction = 'active' | 'inactive'
 export interface UserAvatarInfo {
   user_id?: Id
   first_name?: string
   last_name?: string
   profile_pic?: string
+  name?: string
+  default_icon?: string
+  id?: Id
+  role_name?: string
+}
+
+export type DateRangeValue = Dayjs | null
+
+export type FilterDate = {
+  startDate?: DateRangeValue
+  endDate?: DateRangeValue
+  s?: DateRangeValue
+  e?: DateRangeValue
 }
 
 // ==================== Hospital ====================
@@ -49,11 +64,8 @@ export interface HospitalRoom {
   is_active?: number | boolean
 }
 
-export interface HospitalBed {
+export interface HospitalBed extends HospitalRoom {
   bed_id?: Id
-  id?: Id
-  room_id?: Id
-  hospital_id?: Id
   bed_no?: string | number
   bed_name?: string
   status?: string
@@ -69,6 +81,193 @@ export interface HospitalAnalytics {
   total_mortality?: number
   occupancy_rate?: number
   [key: string]: unknown
+}
+export interface SurgeryModel {
+  id: Id
+  zoo_id: Id
+  surgery_id: Id
+  master_surgery_id: Id
+  surgeryId: Id
+  name?: string
+  surgery_name?: string
+  description?: string
+  status?: StatusAction
+  created_by?: string
+  created_at?: string
+  updated_by?: string | null
+  updated_at?: string | null
+}
+
+// ==================== Hospital Master ====================
+export interface HospitalLists {
+  id: Id
+  hospital_name?: string
+  total_rooms?: string
+  total_occupants?: string
+  active?: string
+  site_name?: string
+  created_by_name?: string
+  profile_image?: string | null
+  updated_by_name?: string
+  updated_user_profile_image?: string | null
+  created_at?: string
+  updated_at?: string
+}
+
+export interface SiteLists {
+  site_id?: string | number | null
+  site_name?: string
+}
+
+export interface HospitalDetail {
+  hospital_id: Id
+  site_id: string | number | null
+  description?: string
+  status?: string
+  is_active?: string
+  hospital_name?: string
+  site_name?: string
+  no_of_rooms?: string
+  no_of_occupied?: string
+  active_room_count?: string
+  active_bed_count?: string
+  created_by_name?: string
+  updated_by_name?: string
+  profile_pic?: string | null
+  updated_user_profile_pic?: string | null
+  created_at?: string
+  updated_at?: string
+  updated_by?: string | null
+  created_by?: string
+}
+
+export interface UpdateRoom {
+  id: Id
+  entity_code?: string
+  name?: string
+  description?: string
+  zoo_id: Id
+  site_id: string | number | null
+  is_active?: number
+  created_by?: Id
+  updated_by?: Id | null
+  deleted_by?: string | null
+  created_at?: string
+  updated_at?: string
+  deleted_at?: string | null
+  entity_type?: string
+}
+
+export interface RoomRecord {
+  id: string
+  hospital_id: string
+  room_name?: string
+  floor_name?: string
+  no_of_bed?: string
+  no_of_occupied?: string
+  status?: string | number
+  active_bed_count?: string
+  inactive_bed_count?: string
+  availability?: string
+  created_at?: string
+  updated_at?: string
+  created_by?: string
+  updated_by?: string | null
+  created_by_name?: string
+  updated_by_name?: string | null
+  profile_pic?: string
+}
+export interface BedRecord {
+  id: Id
+  hospital_id: string
+  animal_id: string
+  bed_name?: string
+  bed_code?: string
+  active?: string
+  is_occupied?: string
+  default_common_name?: string
+  scientific_name?: string
+  occupant_icon?: string | null
+  age?: string
+  sex?: string
+  site_name?: string
+  enclosure_name?: string
+  section_name?: string
+  animal_count?: string
+  admitted_at?: string
+  created_at?: string
+  created_by?: string
+  created_by_name?: string
+  latest_weight?: string
+  weight_unit?: string
+  local_identifier_name?: string
+  local_identifier_value?: string
+}
+
+export interface RoomDetail {
+  room_id: Id
+  hospital_id: string
+  hospital_name?: string
+  room_name?: string
+  floor_name?: string
+  active_bed_count?: string
+  inactive_bed_count?: string
+  no_of_bed?: string
+  no_of_occupied?: string
+  status?: string | number | boolean
+  created_by_name?: string
+  updated_by_name?: string | null
+  profile_pic?: string | null
+  updated_user_profile_pic?: string | null
+  updated_by?: string | null
+  created_by?: string
+  created_at?: string
+  updated_at?: string
+}
+
+// ==================== Incoming ====================
+
+export type PurposeOfVisit = | 'Checkup' | 'Emergency' | 'Outpatients' | 'Follow-up' | 'Planned' | ''
+
+export type VisitTypeOption = {
+  value: PurposeOfVisit
+  label: string
+}
+
+export type AnimalCategory = 'Single' | 'Group'
+export interface AnimalDetails { 
+  animal_id: Id
+  taxonomy_id: Id
+  enclosure_id: Id
+  local_id: string
+  site_id: Id
+  breed_id: Id
+  morph_id: Id
+  site_name?: string
+  breed_name?: string
+  morph_name?: string
+  local_identifier_value?: string
+  local_identifier_name?: string
+  local_id_type?: string
+  age_formatted?: string
+  scientific_name?: string
+  common_name?: string
+}
+
+export interface Incoming extends HospitalTransferRow {
+  user_id?: Id | undefined
+  user_name?: string
+  user_first_name?: string
+  user_last_name?: string
+  transfer_reference_code?: string
+  purpose?: PurposeOfVisit
+  reason_for_rejection?: string | null
+  rejected_user_id?: string | null
+  rejected_user_name?: string | null
+  rejected_user_last_name?: string | null
+  rejected_user_profile?: UserAvatarInfo | null
+  rejected_at?: string | null
+  default_icon?: string | null
 }
 
 // ==================== Patient ====================
@@ -106,6 +305,25 @@ export interface Patient {
   age?: string | number
   sex?: string
   weight?: string | number
+}
+
+export interface InpatientOverview {
+  hospital_id: Id
+  animal_id: Id
+  hospital_name?: string
+  hospital_code?: string
+  medical_record_code?: string
+  medical_record_id: Id
+  site_name?: string
+  case_id: Id
+  case_code?: string
+  treatment_type?: PatientStatus
+  visit_type?: PurposeOfVisit
+  admitted_at?: string
+  discharge_at?: string
+  case_created_at?: string
+  doctor_name?: string
+  days_admitted?: string
 }
 
 export interface IncomingPatient extends Patient {
@@ -251,6 +469,16 @@ export interface PatientMedia {
   uploaded_at?: string
   uploaded_by?: UserAvatarInfo
 }
+
+// ==================== Hospital Staffs ====================
+
+export interface HospitalStaff{
+  user_full_name?: string
+  user_id: Id
+  user_profile_pic?: UserAvatarInfo
+  role_name?: string
+}
+
 
 // ==================== Form Options ====================
 

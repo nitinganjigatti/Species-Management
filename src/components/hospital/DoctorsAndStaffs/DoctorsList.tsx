@@ -28,22 +28,38 @@ import useSafeRouter from 'src/hooks/useSafeRouter'
 import MUISwitchRaw from 'src/views/forms/form-fields/MUISwitch'
 const MUISwitch: any = MUISwitchRaw
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { ApiError } from 'src/types/hospital/api'
+import { AddRemoveChiefDoctorResponse, HospitalStaffListResponse } from 'src/types/hospital/api/doctorsAndStaffs'
+import { GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid'
+import { HospitalStaff } from 'src/types/hospital/models'
+export interface IndexedRows extends HospitalStaff {
+  id?: number | string
+  sl_no?: number | string
+  phone?: string
+
+}
+
+export type Rows = {
+  user_id: string | number
+  user_mobile_number?: string
+  user_country_code?: string
+}
 
 const DoctorsList = () => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme()
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
-  const { selectedHospital }: any = useHospital()
+  const { selectedHospital }= useHospital()
   const router: any = useSafeRouter()
   const [searchValue, setSearchValue] = useState<string>('')
   const [debouncedSearch, setDebouncedSearch] = useState<string>('')
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
-  const [rows, setRows] = useState<any[]>([])
+  const [rows, setRows] = useState<IndexedRows[]>([])
   const [total, setTotal] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
 
-  const [paginationModel, setPaginationModel] = useState<any>({
+  const [paginationModel, setPaginationModel] = useState<GridPaginationModel>({
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 50
   })
@@ -51,17 +67,17 @@ const DoctorsList = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchValue)
-      setPaginationModel((prev: any) => (prev.page === 0 ? prev : { ...prev, page: 0 }))
+      setPaginationModel((prev: GridPaginationModel) => (prev.page === 0 ? prev : { ...prev, page: 0 }))
     }, 500)
 
     return () => clearTimeout(handler)
   }, [searchValue, debouncedSearch])
 
-  const fetchHospitalStaff = useCallback(async () => {
+  const fetchHospitalStaff = async () => {
     setLoading(true)
 
     try {
-      const response: any = await getHospitalStaff({
+      const response: HospitalStaffListResponse = await getHospitalStaff({
         params: {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
@@ -78,23 +94,26 @@ const DoctorsList = () => {
         setRows([])
         setTotal(0)
       }
-    } catch (error: any) {
-      console.error('Error fetching hospital staff:', error?.message)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error fetching hospital staff:', err?.message)
       Toaster({
         type: 'error',
-        message: error?.response?.data?.message || error?.message || 'Failed to load hospital staff'
+        message: err?.response?.data?.message || err?.message || 'Failed to load hospital staff'
       })
     } finally {
       setLoading(false)
     }
-  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
+  }
 
   useEffect(() => {
+    if (selectedHospital?.id){
     fetchHospitalStaff()
-  }, [fetchHospitalStaff])
+  }
+  }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
 
-  const indexedRows = useMemo(() => {
-    return rows.map((row: any, index: number) => {
+  const indexedRows: IndexedRows[] = useMemo(() => {
+    return rows.map((row: Rows, index: number) => {
       const phone = row?.user_mobile_number ? `${row?.user_country_code || ''}${row?.user_mobile_number}` : ''
 
       return {
@@ -106,39 +125,41 @@ const DoctorsList = () => {
     })
   }, [rows, paginationModel.page, paginationModel.pageSize])
 
-  const addHospitalChiefDoctor = async (user_id: any) => {
+  const addHospitalChiefDoctor = async (user_id: number | string) => {
     try {
       const params = {
         action: 'add',
         hospital_id: selectedHospital?.id,
         hospital_chief_doctor: user_id
-      }
-      const response: any = await addChiefDoctor(params)
+      } as const
+      const response: AddRemoveChiefDoctorResponse = await addChiefDoctor(params)
       if (response?.message && response?.success === true) {
         Toaster({ type: 'success', message: response?.message })
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message })
+    } catch (error: unknown) {
+      const err = error as ApiError
+      Toaster({ type: 'error', message: err?.message })
     }
   }
 
-  const removeHospitalChiefDoctor = async (user_id: any) => {
+  const removeHospitalChiefDoctor = async (user_id: string | number) => {
     try {
       const params = {
         action: 'delete',
         hospital_id: selectedHospital?.id,
         hospital_chief_doctor: user_id
-      }
-      const response: any = await removeChiefDoctor(params)
+      } as const
+      const response: AddRemoveChiefDoctorResponse = await removeChiefDoctor(params)
       if (response?.message && response?.success === true) {
         Toaster({ type: 'success', message: response?.message })
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message })
+    } catch (error: unknown) {
+      const err = error as ApiError
+      Toaster({ type: 'error', message: err?.message })
     }
   }
 
-  const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, userId: any) => {
+  const handleSwitchChange = async (event: React.ChangeEvent<HTMLInputElement>, userId: string | number) => {
     const isChecked = event.target.checked
 
     try {
@@ -154,16 +175,16 @@ const DoctorsList = () => {
     }
   }
 
-  const columns: any = [
+  const columns: GridColDef[] = [
     {
       width: 80,
       minWidth: 20,
       field: 'sl_no',
       sortable: false,
-      headerName: t('hospital_module.sl_no'),
+      headerName: t('hospital_module.sl_no') ?? '',
       align: 'left',
       headerAlign: 'left',
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box>
           <StyledTypography paddingLeft={1}>{params.row.sl_no ? `${params.row.sl_no}.` : '-'}</StyledTypography>
         </Box>
@@ -173,10 +194,10 @@ const DoctorsList = () => {
       minWidth: 300,
       field: 'user_full_name',
       sortable: false,
-      headerName: t('hospital_module.doctors_name'),
+      headerName: t('hospital_module.doctors_name') ?? '',
       align: 'left',
       headerAlign: 'left',
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <UserAvatarDetails
           user_name={params.row.user_full_name}
           role={params.row.role_name}
@@ -189,10 +210,12 @@ const DoctorsList = () => {
       minWidth: 180,
       field: 'assigned_patients',
       sortable: false,
-      headerName: t('hospital_module.assigned_patients'),
+      headerName: t('hospital_module.assigned_patients') ?? '',
       align: 'left',
       headerAlign: 'left',
-      renderCell: (params: any) => <StyledTypography paddingLeft={1}>{params.row.assigned_patients ?? '-'}</StyledTypography>
+      renderCell: (params: GridRenderCellParams) => (
+        <StyledTypography paddingLeft={1}>{params.row.assigned_patients ?? '-'}</StyledTypography>
+      )
     },
     {
       minWidth: 180,
@@ -200,9 +223,9 @@ const DoctorsList = () => {
       sortable: false,
       align: 'left',
       headerAlign: 'left',
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         const phoneNumber = params.row.phone
-        let pressTimer: any
+        let pressTimer: ReturnType<typeof setTimeout>
 
         const handleLongPress = () => {
           if (phoneNumber) {
@@ -257,11 +280,11 @@ const DoctorsList = () => {
     {
       minWidth: 180,
       field: 'hospital_chief_doctor',
-      headerName: t('hospital_module.chief_doctor'),
+      headerName: t('hospital_module.chief_doctor') ?? '',
       align: 'left',
       headerAlign: 'left',
       flex: 1,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <MUISwitch
           checked={params.row.is_hospital_chief_doctor === '1'}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => handleSwitchChange(event, params.row.user_id)}

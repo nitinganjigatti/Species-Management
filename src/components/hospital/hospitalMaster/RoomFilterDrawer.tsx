@@ -5,16 +5,26 @@ import { Box, Radio, Typography, FormControlLabel, RadioGroup } from '@mui/mater
 import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
+import type { AppliedFilters, Availability } from 'src/types/hospital/api'
+import { StatusAction } from 'src/types/hospital/models'
 
-const DEFAULT_OPTIONS: any = { Availability: [], Status: [] }
+interface FilterOption {
+  label: string
+  value: Availability | StatusAction
+}
+
+type FilterMenuKey = 'Availability' | 'Status'
+
+
+const DEFAULT_OPTIONS: AppliedFilters = { Availability: [], Status: [] }
 
 interface RoomFilterDrawerProps {
   openFilterDrawer?: boolean
   onCloseFilterDrawer?: () => void
   onSubmitLoading?: boolean
-  onApplyFilters?: (selected: any) => void
+  onApplyFilters?: (selected: AppliedFilters) => void
   setFilterCount?: (count: number) => void
-  initialSelectedOptions?: any
+  initialSelectedOptions?: AppliedFilters
 }
 
 const RoomFilterDrawer = ({
@@ -26,13 +36,13 @@ const RoomFilterDrawer = ({
   initialSelectedOptions
 }: RoomFilterDrawerProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme()
 
-  const [selectedMenu, setSelectedMenu] = useState<string>('Availability')
-  const [selectedOptions, setSelectedOptions] = useState<any>(DEFAULT_OPTIONS)
+  const [selectedMenu, setSelectedMenu] = useState<FilterMenuKey>('Availability')
+  const [selectedOptions, setSelectedOptions] = useState<AppliedFilters>(DEFAULT_OPTIONS)
   const [localFilterCount, setLocalFilterCount] = useState<number>(0)
 
-  const MENU_DATA: any = useMemo(
+  const MENU_DATA: Record<FilterMenuKey, FilterOption[]>  = useMemo(
     () => ({
       Availability: [
         { label: t('hospital_module.available'), value: 'Available' },
@@ -46,7 +56,7 @@ const RoomFilterDrawer = ({
     [t]
   )
 
-  const isFilterEmpty = (filters: any) => {
+  const isFilterEmpty = (filters: AppliedFilters) => {
     if (!filters) return true
 
     for (const value of Object.values(filters)) {
@@ -58,7 +68,7 @@ const RoomFilterDrawer = ({
     return true
   }
 
-  const checkFiltersEqual = (a: any = {}, b: any = {}) => {
+  const checkFiltersEqual = (a: AppliedFilters = {}, b: AppliedFilters = {}) => {
     const keys = new Set([...Object.keys(a), ...Object.keys(b)])
 
     for (const key of keys) {
@@ -71,10 +81,10 @@ const RoomFilterDrawer = ({
     return true
   }
 
-  const handleRadioChange = useCallback((value: string, menu: string) => {
-    setSelectedOptions((prev: any) => {
-      const updated = { ...prev, [menu]: [value] }
-      const count = Object.values(updated).reduce((acc: number, arr: any) => acc + arr.length, 0)
+  const handleRadioChange = useCallback((value: string, menu: FilterMenuKey) => {
+    setSelectedOptions((prev: AppliedFilters) => {
+      const updated = { ...prev, [menu]: [value] } as AppliedFilters
+      const count = (Object.values(updated) as string[][]).reduce((acc: number, arr: string[]) => acc + arr.length, 0)
 
       setLocalFilterCount(count)
 
@@ -88,13 +98,13 @@ const RoomFilterDrawer = ({
   }, [])
 
   const applyFilters = () => {
-    if (isFilterEmpty(selectedOptions) && isFilterEmpty(initialSelectedOptions)) {
+    if (isFilterEmpty(selectedOptions) && isFilterEmpty(initialSelectedOptions ?? DEFAULT_OPTIONS)) {
       onCloseFilterDrawer && onCloseFilterDrawer()
 
       return
     }
 
-    if (checkFiltersEqual(selectedOptions, initialSelectedOptions)) {
+    if (checkFiltersEqual(selectedOptions, initialSelectedOptions ?? DEFAULT_OPTIONS)) {
       onCloseFilterDrawer && onCloseFilterDrawer()
 
       return
@@ -109,16 +119,16 @@ const RoomFilterDrawer = ({
     if (!openFilterDrawer) {
       const restored = initialSelectedOptions || DEFAULT_OPTIONS
       setSelectedOptions(restored)
-      setLocalFilterCount(Object.values(restored).reduce((acc: number, arr: any) => acc + arr.length, 0))
+      setLocalFilterCount((Object.values(restored) as string[][]).reduce((acc: number, arr: string[]) => acc + arr.length, 0))
       setSelectedMenu('Availability')
     }
   }, [openFilterDrawer, initialSelectedOptions])
 
-  const FilterContent = ({ menu }: { menu: string }) => {
+  const FilterContent = ({ menu }: { menu: FilterMenuKey }) => {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         <RadioGroup value={selectedOptions[menu]?.[0] || ''} onChange={e => handleRadioChange(e.target.value, menu)}>
-          {MENU_DATA[menu].map((item: any) => (
+          {MENU_DATA[menu as FilterMenuKey].map((item: FilterOption) => (
             <FormControlLabel
               key={item.value}
               value={item.value}

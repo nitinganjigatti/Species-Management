@@ -11,8 +11,18 @@ import { useForm } from 'react-hook-form'
 
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledRadioGroup from 'src/views/forms/form-fields/ControlledRadioGroup'
+import type { ApiError } from 'src/types/hospital/api'
+import type { BedRecord, RoomDetail } from 'src/types/hospital/models'
+import { AddRoomPayload } from 'src/types/hospital/api/Masters/hospitalRoomTypes'
+import { AddBedPayload, UpdateBedPayload } from 'src/types/hospital/api/Masters/hospitalBedTypes'
+interface BedFormValues {
+  hospital_id?: string | null
+  room_id?: string | null
+  bed_name?: string
+  status?: boolean
+}
 
-const defaultValues: any = {
+const defaultValues: BedFormValues = {
   hospital_id: null,
   room_id: null,
   bed_name: '',
@@ -22,14 +32,14 @@ const defaultValues: any = {
 interface AddHospitalBedProps {
   handleSidebarOpen?: boolean
   handleSidebarClose: () => void
-  handleSubmitData: (payload: any, type: string) => Promise<any>
+  handleSubmitData: (payload: AddRoomPayload | AddBedPayload | UpdateBedPayload, type: string) => Promise<boolean | void>
   submitLoader?: boolean
-  editParams?: any
-  roomDetails?: any
-  hospitalId?: any
-  roomId?: any
-  roomStatus?: any
-  isActive?: any
+  editParams?: BedRecord | null
+  roomDetails?: RoomDetail | null
+  hospitalId?: string
+  roomId?: string
+  roomStatus?: boolean
+  isActive?: boolean
 }
 
 const AddHospitalBed = (props: AddHospitalBedProps) => {
@@ -47,7 +57,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
   } = props
 
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme()
 
   const isRoomEditMode = Boolean(roomStatus)
   const isBedEditMode = Boolean(editParams?.id)
@@ -62,7 +72,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
 
   const showStatusField = (isRoomEditMode && isRoomEmpty) || (isBedEditMode && isBedEmpty) || isBedAddMode
 
-  const schema: any = useMemo(() => {
+  const schema = useMemo(() => {
     if (isRoomEditMode) {
       return yup.object().shape({
         hospital_id: yup.string().trim().required('Hospital Name is required'),
@@ -97,20 +107,20 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
     control,
     handleSubmit,
     formState: { errors, isValid }
-  } = useForm<any>({
+  } = useForm<BedFormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
-  const onSubmit = async (formData: any) => {
+  const onSubmit = async (formData: BedFormValues) => {
     try {
       if (isRoomEditMode) {
-        const payload = {
-          room_name: formData.room_id,
-          floor_name: roomDetails?.floor_name,
+        const payload: AddRoomPayload = {
+          room_name: formData.room_id ?? '',
+          floor_name: roomDetails?.floor_name ?? '',
           status: formData.status !== undefined ? (formData.status ? '1' : '0') : '1'
         }
         const success = await handleSubmitData(payload, 'room')
@@ -118,10 +128,10 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
           reset(defaultValues)
         }
       } else {
-        const payload = {
-          hospital_id: hospitalId,
-          room_id: roomId,
-          bed_name: formData.bed_name,
+        const payload: AddBedPayload = {
+          hospital_id: hospitalId ?? '',
+          room_id: roomId ?? '',
+          bed_name: formData.bed_name ?? '',
           status: formData.status !== undefined ? (formData.status ? '1' : '0') : '1',
           prefix: hospitalId
         }
@@ -130,33 +140,35 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
           reset(defaultValues)
         }
       }
-    } catch (error: any) {
-      console.error('Error submitting form:', error?.message)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error submitting form:', err?.message)
     }
   }
 
   useEffect(() => {
     if (!handleSidebarOpen) return
 
-    let prefill: any = { ...defaultValues }
+    let prefill: BedFormValues = { ...defaultValues }
 
     if (isRoomEditMode) {
       prefill = {
-        hospital_id: roomDetails?.hospital_name,
-        room_id: roomDetails?.room_name,
+        hospital_id: roomDetails?.hospital_name ?? null,
+        room_id: roomDetails?.room_name ?? null,
+        bed_name: '',
         status: Boolean(isActive)
       }
     } else if (isBedEditMode) {
       prefill = {
-        hospital_id: roomDetails?.hospital_name,
-        room_id: roomDetails?.room_name,
-        bed_name: editParams?.bed_name,
-        status: editParams.active === '1' || editParams.active === 1 || editParams.active === 'active'
+        hospital_id: roomDetails?.hospital_name ?? null,
+        room_id: roomDetails?.room_name ?? null,
+        bed_name: editParams?.bed_name ?? '',
+        status: editParams?.active === '1' || editParams?.active === 'active'
       }
     } else {
       prefill = {
-        hospital_id: roomDetails?.hospital_name,
-        room_id: roomDetails?.room_name,
+        hospital_id: roomDetails?.hospital_name ?? null,
+        room_id: roomDetails?.room_name ?? null,
         bed_name: '',
         status: true
       }
@@ -196,7 +208,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
         }}
       >
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center' }}>
-          <img src='/icons/activity_icon.png' style={{ width: '30px', height: '30px' }} alt='Bed Icon' />
+          <Box component='img' src='/icons/activity_icon.png' sx={{ width: 30, height: 30 }} alt='Bed Icon' />
           <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {drawerTitle}
           </Typography>
@@ -273,7 +285,7 @@ const AddHospitalBed = (props: AddHospitalBedProps) => {
           display: 'flex',
           justifyContent: 'center',
           gap: 2,
-          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark as string, 0.1)}`,
           bottom: 0,
           position: 'sticky',
           zIndex: 1

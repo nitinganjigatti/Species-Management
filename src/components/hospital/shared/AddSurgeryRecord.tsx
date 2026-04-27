@@ -1065,7 +1065,7 @@ const AddSurgeryRecord = () => {
 
       setIsSurgerySaving(true)
       try {
-        const response: any = await addSurgeryMaster(formData)
+        const response: any = await addSurgeryMaster((formData as any))
         if (response?.success) {
           const newId = response?.data?.surgery_id || response?.surgery_id || response?.data?.id
 

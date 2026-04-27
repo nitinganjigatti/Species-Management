@@ -4,19 +4,19 @@ import { axiosGet as _axiosGet, axiosPost as _axiosPost } from '../utility'
 const axiosGet = _axiosGet as (params: { url: string; params?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 const axiosPost = _axiosPost as (params: { url: string; body?: unknown; pharmacy?: unknown }) => Promise<{ data: any }>
 
-import type { ApiResponse, StaffListParams, StaffListResponse } from 'src/types/hospital'
+import { AddRemoveChiefDoctorPayload, AddRemoveChiefDoctorResponse, HospitalStaffListParams, HospitalStaffListResponse } from 'src/types/hospital/api';
 
 export const getHospitalStaff = async ({
   params
 }: {
-  params: StaffListParams
-}): Promise<StaffListResponse> => {
+  params: HospitalStaffListParams
+}): Promise<HospitalStaffListResponse> => {
   const response = await axiosGet({ url: `${GET_HOSPITAL_STAFF}`, params })
 
   return response?.data
 }
 
-export const addChiefDoctor = async (params: Record<string, unknown>): Promise<ApiResponse<unknown>> => {
+export const addChiefDoctor = async (params: AddRemoveChiefDoctorPayload): Promise<AddRemoveChiefDoctorResponse> => {
   try {
     const url = `${ADD_CHIEF_DOCTOR}`
     const response = await axiosPost({ url, body: params })
@@ -30,8 +30,8 @@ export const addChiefDoctor = async (params: Record<string, unknown>): Promise<A
 }
 
 export const removeChiefDoctor = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: AddRemoveChiefDoctorPayload
+): Promise<AddRemoveChiefDoctorResponse> => {
   try {
     const url = `${REMOVE_CHIEF_DOCTOR}`
     const response = await axiosPost({ url, body: params })

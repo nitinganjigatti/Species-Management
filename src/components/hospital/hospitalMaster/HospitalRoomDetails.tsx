@@ -42,58 +42,78 @@ import { getHospitalBedStats } from 'src/lib/api/hospital/hospitalAnalytics'
 import { useHospital } from 'src/context/HospitalContext'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { GridPaginationModel, GridRenderCellParams, GridColDef, GridRowParams, GridSortModel } from '@mui/x-data-grid'
+import type { ApiError, Availability, AppliedFilters, GetSiteListsResponse, SelectOption } from 'src/types/hospital/api'
+import { GetHospitalRoomsResponse, AddRoomPayload, UpdateRoomPayload,UpdateHospitalResponse, AddUpdateRoomResponse, GetTransformedHospitalRoomsResponse, UpdateHospitalPayload, HospitalRoomFilters } from 'src/types/hospital/api/Masters/hospitalRoomTypes'
+import type { SiteLists } from 'src/types/hospital/models'
+import { RoomRecord, StatusAction } from 'src/types/hospital/models'
+
+export type HandleSubmitPayload =
+  | AddRoomPayload
+  | UpdateRoomPayload
+  | UpdateHospitalPayload
+
+export interface UpdateHospitalFormValues {
+  name?: string
+  description?: string
+  entity_type?: string
+  is_active?: string | number
+  is_external?: number
+  site_id?: string | number | null
+}
+
 
 const HospitalRoomDetails = () => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme()
   const router = useRouter()
-  const routerParams: any = useParams()
-  const searchParams: any = useSearchParams()
+  const routerParams = useParams()
+  const searchParams = useSearchParams()
   const queryClient = useQueryClient()
 
   // Get id from dynamic route parameter, fall back to prop
-  const id = routerParams?.id
+  const id = routerParams?.id as string 
 
   // Get query string parameters
-  const page = searchParams.get('page') || ''
-  const limit = searchParams.get('limit') || ''
-  const q = searchParams.get('q') || ''
-  const availability = searchParams.get('availability')
-  const status = searchParams.get('status')
-  const sort_by = searchParams.get('sort_by') || ''
-  const sort_order = searchParams.get('sort_order') || ''
+  const page = searchParams?.get('page') || ''
+  const limit = searchParams?.get('limit') || ''
+  const q = searchParams?.get('q') || ''
+  const availability = searchParams?.get('availability')
+  const status = searchParams?.get('status')
+  const sort_by = searchParams?.get('sort_by') || ''
+  const sort_order = searchParams?.get('sort_order') || ''
 
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
 
   const [searchValue, setSearchValue] = useState<string>(q || '')
-  const [editParams, setEditParams] = useState<any>(null)
+  const [editParams, setEditParams] = useState<RoomRecord | null>(null)
   const [hospitalStatusEdit, setHospitalStatusEdit] = useState<boolean>(false)
   const [isHospitalActive, setIsHospitalActive] = useState<number>(0)
 
   const [filterCount, setFilterCount] = useState<number>(0)
-  const [appliedFilters, setAppliedFilters] = useState<any>({})
+  const [appliedFilters, setAppliedFilters] = useState<AppliedFilters>({})
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [isOccupiedRoomWarningOpen, setIsOccupiedRoomWarningOpen] = useState<boolean>(false)
 
   const [sitesLoading, setSitesLoading] = useState<boolean>(false)
-  const [sites, setSites] = useState<any[]>([])
+  const [sites, setSites] = useState<SelectOption[]>([])
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<HospitalRoomFilters>({
     page: Number(page) || 1,
     limit: Number(limit) || 50,
     q: q || '',
     availability: availability ? availability : '',
-    status: status ? status : '',
+    status: status ?? '',
     sort_by: sort_by || 'occupants',
     sort_order: sort_order || 'desc'
   })
 
-  const { updateHospitalStats, selectedHospital }: any = useHospital()
+  const { updateHospitalStats, selectedHospital } = useHospital()
 
   // URL update helper function
   const updateUrlParams = useCallback(
-    (updatedFilters: any) => {
+    (updatedFilters: HospitalRoomFilters) => {
       const params = new URLSearchParams()
 
       Object.entries(updatedFilters).forEach(([key, value]) => {
@@ -114,17 +134,17 @@ const HospitalRoomDetails = () => {
 
   // Sync router params on load and change
   useEffect(() => {
-    const syncedFilters: any = {}
+    const syncedFilters: AppliedFilters = {}
     if (availability) {
-      syncedFilters.Availability = availability.split(',').filter(Boolean)
+      syncedFilters.Availability = availability.split(',').filter(Boolean) as Availability[]
     }
     if (status) {
-      syncedFilters.Status = status.split(',').filter(Boolean)
+      syncedFilters.Status = status.split(',').filter(Boolean) as StatusAction[]
     }
     setAppliedFilters(syncedFilters)
 
     // Update filter count
-    const count = Object.values(syncedFilters).reduce((acc: number, arr: any) => acc + arr.length, 0)
+    const count = (Object.values(syncedFilters) as string[][]).reduce((acc: number, arr: string[]) => acc + arr.length, 0)
     setFilterCount(count)
   }, [availability, status])
 
@@ -133,18 +153,19 @@ const HospitalRoomDetails = () => {
     try {
       setSitesLoading(true)
       const params = { q, limit: 10, page_no: 1 }
-      const res: any = await getZooWiseSiteLists(params)
+      const res = await getZooWiseSiteLists(params) as GetSiteListsResponse
       if (res?.success) {
-        const formatted = res?.data?.result?.map((item: any) => ({
-          value: item?.site_id,
-          label: item?.site_name
+        const formatted: SelectOption[] = (res?.data?.result ?? []).map((item: SiteLists) => ({
+          value: item?.site_id ?? '',
+          label: item?.site_name ?? ''
         }))
         setSites(formatted)
       } else {
         setSites([])
       }
-    } catch (error: any) {
-      console.error('Error fetchSites:', error?.message)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error fetchSites:', err?.message)
     } finally {
       setSitesLoading(false)
     }
@@ -159,10 +180,10 @@ const HospitalRoomDetails = () => {
     data: roomData,
     isFetching: isLoadingRooms,
     refetch: refetchRooms
-  } = useQuery<any>({
+  } = useQuery<GetTransformedHospitalRoomsResponse>({
     queryKey: ['room-list', id, filters],
     queryFn: () => {
-      const queryParams: any = {
+      const queryParams = {
         hospital_id: id,
         page: filters.page,
         limit: filters.limit,
@@ -176,7 +197,7 @@ const HospitalRoomDetails = () => {
       return getHospitalRooms({ params: queryParams })
     },
     enabled: !!id,
-    select: (response: any) => {
+    select: (response: GetHospitalRoomsResponse) => {
       if (!response?.success) {
         return {
           success: false,
@@ -193,17 +214,14 @@ const HospitalRoomDetails = () => {
         hospital_detail: response?.data?.hospital_detail || null
       }
     },
-    onError: (error: any) => {
-      console.error('Error fetching hospital list:', error?.message)
-    }
   } as any)
 
   const roomDetails = useMemo(() => roomData?.records || [], [roomData?.records])
   const total = useMemo(() => roomData?.total || 0, [roomData?.total])
-  const hospitalDetails = useMemo(() => roomData?.hospital_detail || [], [roomData?.hospital_detail])
+  const hospitalDetails = useMemo(() => roomData?.hospital_detail ?? null, [roomData?.hospital_detail])
 
   // Pagination handler
-  const handlePaginationChange = (model: any) => {
+  const handlePaginationChange = (model: GridPaginationModel) => {
     const newPage = model?.page + 1
     const newLimit = model?.pageSize
 
@@ -218,11 +236,11 @@ const HospitalRoomDetails = () => {
   }
 
   // Debounced search function using useRef to persist across renders
-  const debouncedSearchRef = useRef<any>(null)
+  const debouncedSearchRef = useRef<ReturnType<typeof debounce> | null>(null)
 
   const debouncedSearch = () => {
     if (!debouncedSearchRef.current) {
-      debouncedSearchRef.current = debounce((value: string, currentFilters: any, updateFn: any) => {
+      debouncedSearchRef.current = debounce((value: string, currentFilters: HospitalRoomFilters, updateFn: (filters: HospitalRoomFilters) => void) => {
         const updated = {
           ...currentFilters,
           q: value,
@@ -276,7 +294,7 @@ const HospitalRoomDetails = () => {
     setOpenDrawer(true)
   }
 
-  const openEditRoomDrawer = (row: any) => {
+  const openEditRoomDrawer = (row: RoomRecord) => {
     setEditParams(row)
     setOpenDrawer(true)
   }
@@ -293,13 +311,13 @@ const HospitalRoomDetails = () => {
   }
 
   // Filter drawer handlers
-  const handleApplyFilter = (selectedOptions: any) => {
+  const handleApplyFilter = (selectedOptions: AppliedFilters) => {
     setAppliedFilters(selectedOptions)
 
     let finalStatus = selectedOptions?.Status?.join(',') || ''
 
     // Apply default active status only if Availability is selected and Status is empty
-    if (selectedOptions?.Availability?.length > 0 && !finalStatus) {
+    if ((selectedOptions.Availability?.length ?? 0) > 0 && !finalStatus) {
       finalStatus = 'active'
     }
 
@@ -316,21 +334,21 @@ const HospitalRoomDetails = () => {
   }
 
   // Hospital stats
-  const fetchAndUpdateHospitalStats = async (hospitalId: any) => {
+  const fetchAndUpdateHospitalStats = async (hospitalId: string | number) => {
     if (!hospitalId) return
 
     try {
-      const statsResponse: any = await (getHospitalBedStats as any)(hospitalId)
+      const statsResponse = await getHospitalBedStats(hospitalId, {})
       if (statsResponse?.success) {
-        updateHospitalStats(statsResponse.data)
+        updateHospitalStats(statsResponse?.data ?? null)
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error fetching hospital stats:', error)
     }
   }
 
   // Helper function to check if room matches current filters
-  const roomMatchesFilters = (room: any) => {
+  const roomMatchesFilters = (room: RoomRecord) => {
     // Check search query match
     if (filters.q) {
       const searchLower = filters.q.toLowerCase()
@@ -366,28 +384,32 @@ const HospitalRoomDetails = () => {
   }
 
   // Add / Update room and Hospital update
-  const handleSubmitData = async (payload: any, type?: string) => {
+  const handleSubmitData = async (payload: HandleSubmitPayload, type?: string) => {
     setSubmitLoader(true)
 
     try {
       if (type === 'hospital') {
-        const response: any = await updateHospitalMaster(id, payload)
+        const response: UpdateHospitalResponse = await updateHospitalMaster(id, (payload as UpdateHospitalPayload))
         if (response?.status) {
           // Optimistically update cache
           try {
-            queryClient.setQueryData(['room-list', id, filters], (old: any) => {
+            queryClient.setQueryData(['room-list', id, filters], (old: GetHospitalRoomsResponse) => {
               if (!old?.data) return old
 
               return {
                 ...old,
                 data: {
                   ...old.data,
-                  hospital_detail: { ...(old?.data?.hospital_detail || {}), is_active: payload?.is_active }
+                  hospital_detail: {
+                    ...(old?.data?.hospital_detail || {}),
+                    is_active: (payload as UpdateHospitalPayload).is_active
+                  }
                 }
               }
             })
-          } catch (error: any) {
-            console.error('Failed to update query cache', error?.message || error)
+          } catch (error: unknown) {
+            const err = error as ApiError
+            console.error('Failed to update query cache', err?.message || error)
           }
 
           Toaster({ type: 'success', message: response?.message || t('hospital_module.hospital_updated_successfully') })
@@ -397,10 +419,10 @@ const HospitalRoomDetails = () => {
         }
       } else {
         const updatePayload = { ...payload, room_id: editParams?.id }
-        const response: any = editParams?.id ? await updateHospitalRoom(updatePayload) : await addHospitalRoom(payload)
+        const response: AddUpdateRoomResponse = editParams?.id ? await updateHospitalRoom(updatePayload) : await addHospitalRoom(payload as AddRoomPayload)
 
         if (response?.success) {
-          const updatedOrNewRoom = response?.data || {}
+          const updatedOrNewRoom: RoomRecord = response?.data as RoomRecord || {}
 
           // Check if the updated/new room matches current filters
           const matchesFilters = roomMatchesFilters(updatedOrNewRoom)
@@ -408,14 +430,14 @@ const HospitalRoomDetails = () => {
           if (matchesFilters) {
             // Room matches filters - show immediately via optimistic update
             try {
-              queryClient.setQueryData(['room-list', id, filters], (old: any) => {
+              queryClient.setQueryData(['room-list', id, filters], (old: GetHospitalRoomsResponse) => {
                 if (!old?.data) return old
 
                 const existingRecords = old?.data?.records || []
 
                 if (editParams?.id) {
                   // Update existing room
-                  const updatedRecords = existingRecords?.map((room: any) =>
+                  const updatedRecords = existingRecords?.map((room: RoomRecord) =>
                     room?.id === editParams?.id ? { ...room, ...updatedOrNewRoom } : room
                   )
 
@@ -438,8 +460,9 @@ const HospitalRoomDetails = () => {
                   }
                 }
               })
-            } catch (error: any) {
-              console.error('Failed to update query cache', error?.message || error)
+            } catch (error: unknown) {
+              const err = error as ApiError
+              console.error('Failed to update query cache', err?.message || error)
             }
 
             Toaster({
@@ -452,7 +475,7 @@ const HospitalRoomDetails = () => {
               message: response?.message || `Room ${editParams?.id ? 'updated' : 'added'} successfully`
             })
           }
-          if (selectedHospital?.id === id) {
+          if (id && selectedHospital?.id === id) {
             fetchAndUpdateHospitalStats(id)
           }
           refetchRooms()
@@ -460,8 +483,9 @@ const HospitalRoomDetails = () => {
           Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_update_room') })
         }
       }
-    } catch (error: any) {
-      console.error('Error submitting data:', error?.message || error)
+    } catch (error: unknown) {
+      const err = error as ApiError
+      console.error('Error submitting data:', err?.message || error)
     } finally {
       setSubmitLoader(false)
       closeDrawer()
@@ -470,7 +494,7 @@ const HospitalRoomDetails = () => {
 
   // Edit room options
   const getMenuOptions = useCallback(
-    (row: any) => [
+    (row: RoomRecord) => [
       {
         label: (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, color: theme.palette.customColors.neutralPrimary }}>
@@ -484,11 +508,11 @@ const HospitalRoomDetails = () => {
     [openEditRoomDrawer, t]
   )
 
-  const handleSortModel = (newModel: any) => {
+  const handleSortModel = (newModel: GridSortModel) => {
     if (newModel.length) {
-      const updated = {
+      const updated: HospitalRoomFilters = {
         ...filters,
-        sort_order: newModel[0].sort,
+        sort_order: newModel[0].sort ?? 'desc',
         sort_by: newModel[0].field,
         page: 1
       }
@@ -498,20 +522,20 @@ const HospitalRoomDetails = () => {
   }
 
   // Add serial numbers to each row
-  const indexedRows = roomDetails?.map((row: any, index: number) => ({
+  const indexedRows = roomDetails?.map((row: RoomRecord, index: number) => ({
     ...row,
     id: row.id ?? `${row.room_name || 'room'}-${index}`,
-    sl_no: (filters.page - 1) * filters.limit + index + 1
+    sl_no: ((filters.page ?? 1) - 1) * (filters.limit ?? 1) + index + 1
   }))
 
-  const columns: any = useMemo(
+  const columns: GridColDef[] = useMemo(
     () => [
       {
         minWidth: 50,
         field: 'id',
-        headerName: t('hospital_module.sl_no'),
+        headerName: t('hospital_module.sl_no') ?? '',
         sortable: false,
-        renderCell: (params: any) => {
+        renderCell: (params: GridRenderCellParams) => {
           return (
             <StyledTypography fontSize={'0.75rem'} sx={{ pl: 3 }}>
               {params?.row?.sl_no}
@@ -522,9 +546,9 @@ const HospitalRoomDetails = () => {
       {
         minWidth: 240,
         field: 'room_name',
-        headerName: t('hospital_module.room_name'),
+        headerName: t('hospital_module.room_name') ?? '',
         sortable: false,
-        renderCell: (params: any) => (
+        renderCell: (params: GridRenderCellParams) => (
           <TextEllipsisWithModal
             enableDialog={false}
             text={params.row.room_name ?? '-'}
@@ -542,37 +566,37 @@ const HospitalRoomDetails = () => {
       {
         minWidth: 160,
         field: 'enclosures',
-        headerName: t('hospital_module.enclosures'),
-        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.active_bed_count ?? '-'}</StyledTypography>
+        headerName: t('hospital_module.enclosures') ?? '',
+        renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.active_bed_count ?? '-'}</StyledTypography>
       },
       {
         minWidth: 150,
         field: 'occupants',
-        headerName: t('hospital_module.occupants'),
-        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
+        headerName: t('hospital_module.occupants') ?? '',
+        renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.no_of_occupied ?? '-'}</StyledTypography>
       },
       {
         minWidth: 160,
         field: 'floor_name',
-        headerName: t('hospital_module.floor'),
+        headerName: t('hospital_module.floor') ?? '',
         sortable: false,
-        renderCell: (params: any) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.floor_name ?? '-'}</StyledTypography>
+        renderCell: (params: GridRenderCellParams) => <StyledTypography sx={{ pl: 1.4 }}>{params?.row?.floor_name ?? '-'}</StyledTypography>
       },
       {
         minWidth: 140,
         field: 'status',
-        headerName: t('hospital_module.status'),
+        headerName: t('hospital_module.status') ?? '',
         sortable: false,
-        renderCell: (params: any) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.status} />
+        renderCell: (params: GridRenderCellParams) => <StatusChip chipStyles={{ ml: 1.4 }} status={params?.row?.status} />
       },
       {
         minWidth: 120,
         field: 'actions',
-        headerName: t('action'),
+        headerName: t('action') ?? '',
         sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box
-          onClick={(e: any) => e.stopPropagation()}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
           sx={{
             width: '100%',
             height: '100%',
@@ -598,7 +622,7 @@ const HospitalRoomDetails = () => {
   )
 
   // getRowClassName function
-  const getRowClassName = (params: any) => {
+  const getRowClassName = (params: GridRowParams) => {
     const isActive = String(params?.row?.status) === '1'
     if (!isActive) {
       return 'inactive-row'
@@ -608,7 +632,7 @@ const HospitalRoomDetails = () => {
   }
 
   // Navigate to bed detail on Row click
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams) => {
     router.push(`/hospital/masters/hospital/${id}/${params?.row?.id}`)
   }
 
@@ -725,15 +749,15 @@ const HospitalRoomDetails = () => {
           total={total}
           onRowClick={handleRowClick}
           loading={isLoadingRooms}
-          paginationModel={{ page: filters?.page - 1, pageSize: filters?.limit }}
+          paginationModel={{ page: (filters?.page ?? 1) - 1, pageSize: (filters?.limit ?? 50) }}
           setPaginationModel={handlePaginationChange}
           getRowClassName={getRowClassName}
           handleSortModel={handleSortModel}
           externalTableStyle={{
             '& .inactive-row': {
-              backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.1),
+              backgroundColor: alpha(theme.palette.customColors.TertiaryContainer as string, 0.1),
               '&:hover': {
-                backgroundColor: alpha(theme.palette.customColors.TertiaryContainer, 0.3)
+                backgroundColor: alpha(theme.palette.customColors.TertiaryContainer as string, 0.3)
               }
             }
           }}
