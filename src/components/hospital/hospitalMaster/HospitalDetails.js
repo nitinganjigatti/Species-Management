@@ -397,8 +397,7 @@ const HospitalDetails = () => {
     <>
       <DynamicBreadcrumbs
         sx={{ mb: 6, color: theme.palette.customColors.neutralSecondary }}
-        pageItems={[{ title: 'Hospital' }, { title: 'Masters' }, { title: 'Hospital' }]}
-        
+        pageItems={[{ title: 'Hospital' }, { title: 'Masters' }, { title: 'Hospital List' }]}
       />
       <Card sx={{ p: 6 }}>
         <CardHeader

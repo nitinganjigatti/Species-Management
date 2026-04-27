@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { Box, Button, Typography, CircularProgress } from '@mui/material'
+import { Box, Button, Typography, CircularProgress, Skeleton } from '@mui/material'
 import { debounce } from 'lodash'
 import { Add as AddIcon } from '@mui/icons-material'
 import { useRouter } from 'next/router'
@@ -9,18 +9,18 @@ import { useTheme } from '@mui/material/styles'
 import { getSymptomsList } from 'src/lib/api/hospital/symptoms'
 import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 const STORAGE_KEY = 'medical_record_data'
 
 const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const router = useRouter()
-  const { data } = useDynamicStateContext()
+  const hospitalData = useSelector(state => state.hospital.data)
   const { id, isCurrentMedicalRecordOnly } = router.query
 
   const isDischared = overviewData?.status === 'discharge'
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState(isCurrentMedicalRecordOnly === 'true')
@@ -31,6 +31,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const [page, setPage] = useState(1)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [totalRecordsCount, setTotalRecordsCount] = useState(0)
+  const [isSwitchToggle, setIsSwitchToggle] = useState(false)
 
   const animalId = medicalRecordData?.animal_id
   const medicalRecordId = medicalRecordData?.medical_record_id
@@ -175,6 +176,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
   const handleSwitchChange = e => {
     setPage(1)
     setRecords([])
+    setIsSwitchToggle(true);
     setCurrentRecordOnly(e.target.checked)
 
     router.replace(
@@ -192,7 +194,16 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }) => {
 
   return (
     <Box>
-      {totalRecordsCount > 0 || searchQuery.trim().length > 0 ? (
+      {isSwitchToggle && currentRecordOnly && loading ? (
+        <>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 6, mt: 6 }}>
+            <Skeleton width={250} height={30} variant='rounded' />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', m: 0 }}>
+            <ClinicalAssessmentShimmer count={3} />
+          </Box>
+        </>
+      ) : totalRecordsCount > 0 || searchQuery.trim().length > 0 ? (
         <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Box
             sx={{

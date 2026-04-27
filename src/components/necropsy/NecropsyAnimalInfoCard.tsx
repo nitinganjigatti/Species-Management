@@ -2,9 +2,10 @@ import React, { useState, FC, memo, ReactNode } from 'react'
 import { Box, Card, Typography, Tooltip, alpha, Skeleton, IconButton, useTheme, Theme } from '@mui/material'
 import { ArrowBack as ArrowBackIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import Utility from 'src/utility'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 interface UserProfile {
@@ -142,6 +143,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
   downloadLoading
 }) => {
   const theme = useTheme<Theme>()
+  const { t } = useTranslation()
   const router = useRouter()
   const [copied, setCopied] = useState<boolean>(false)
   const [showMobileNumber, setShowMobileNumber] = useState<boolean>(false)
@@ -243,7 +245,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
 
   const infoFields = [
     {
-      label: 'Date and Time of Death',
+      label: t('necropsy_module.date_and_time_of_death'),
       value: mortalityData.discovered_date
         ? `${Utility.convertUtcToLocalReadableDate(mortalityData.discovered_date)} • ${Utility.convertUTCToLocaltime(
             mortalityData.discovered_date
@@ -253,7 +255,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
       iconBgColor: alpha((theme.palette as any).customColors?.Tertiary, 0.2)
     },
     {
-      label: 'Carcass Condition',
+      label: t('necropsy_module.carcass_condition'),
       value: mortalityData.caracass_condition || '-',
       icon: <Icon icon='mdi:clipboard-text-outline' fontSize={24} color={(theme.palette as any).customColors?.Tertiary} />,
       iconBgColor: alpha((theme.palette as any).customColors?.Notes, 0.5)
@@ -294,7 +296,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
                     color: (theme.palette as any).customColors?.OnPrimary
                   }}
                 >
-                  {displayRequestId || 'Necropsy Request'}
+                  {displayRequestId || t('necropsy_module.necropsy_request_label')}
                 </Typography>
                 {status?.toUpperCase() === 'DRAFT' && (
                   <Box
@@ -306,7 +308,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
                     }}
                   >
                     <Typography sx={{ fontSize: '12px', fontWeight: 600, color: (theme.palette as any).customColors?.Tertiary }}>
-                      Draft
+                      {t('necropsy_module.draft')}
                     </Typography>
                   </Box>
                 )}
@@ -320,7 +322,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
                       color: alpha((theme.palette as any).customColors?.OnPrimary || '#fff', 0.8)
                     }}
                   >
-                    {status?.toUpperCase() === 'DRAFT' ? 'Saved by ' : 'Updated by '}
+                    {status?.toUpperCase() === 'DRAFT' ? t('necropsy_module.saved_by') : t('necropsy_module.updated_by')}
                     {necropsyData?.user_profile?.name || necropsyData?.user_profile?.user_name}
                     {' • '}
                     {Utility.formatDisplayDate(necropsyData?.modified_at || necropsyData?.created_at)}
@@ -350,7 +352,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} onClick={onTimelineClick}>
                 <Icon icon={'pepicons-pop:rewind-time'} color={(theme.palette as any).customColors?.OnPrimary} />
                 <Typography sx={{ color: (theme.palette as any).customColors?.OnPrimary, fontSize: '16px', fontWeight: 500 }}>
-                  See timeline
+                  {t('necropsy_module.see_timeline')}
                 </Typography>
               </Box>
             )}
@@ -414,7 +416,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
               mb: 1
             }}
           >
-            Reported by
+            {t('necropsy_module.reported_by')}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <UserAvatarDetails
@@ -482,7 +484,7 @@ const NecropsyAnimalInfoCard: FC<NecropsyAnimalInfoCardProps> = ({
                   >
                     {mortalityData.user_mobile_number}
                   </Typography>
-                  <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                  <Tooltip title={copied ? t('necropsy_module.copied') : t('necropsy_module.copy_number')}>
                     <IconButton
                       size='small'
                       onClick={() => handleCopyNumber(mortalityData.user_mobile_number!)}

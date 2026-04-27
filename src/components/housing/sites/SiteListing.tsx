@@ -8,7 +8,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo } from 'src/utility/render'
 import SectionsDrawer from '../utils/SectionsDrawer'
@@ -21,6 +21,7 @@ import AddSiteDrawer from 'src/views/pages/housing/sites/AddSiteDrawer'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { DrawerType, DrawerData, SiteFilters, IndexedSiteRow, Site } from 'src/types/housing'
 import { GridCellParams, GridSortModel } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface SiteListingProps {
   drawerType: DrawerType
@@ -47,7 +48,8 @@ const Listing: React.FC<SiteListingProps> = ({
   totalAnimalsCount
 }) => {
   const theme = useTheme() as Theme & { palette: any }
-  const router = useRouter()
+  const router = useSafeRouter()
+  const { t } = useTranslation()
   const auth = useAuth()
   const { query } = router
 
@@ -63,10 +65,6 @@ const Listing: React.FC<SiteListingProps> = ({
     sortOrder: 'asc'
   })
   const [totalAnimalCount, setTotalAnimalCount] = useState<number>(0)
-
-  const [downloading, setDownloading] = useState<boolean>(false)
-
-  const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
@@ -116,7 +114,7 @@ const Listing: React.FC<SiteListingProps> = ({
         params.set(key, value.toString())
       }
     })
-    router.replace({ query: params.toString() }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query: Object.fromEntries(params) }, undefined, { shallow: true })
   }
 
   const handlePaginationModelChange = (model: PaginationModel): void => {
@@ -132,16 +130,23 @@ const Listing: React.FC<SiteListingProps> = ({
   const debouncedSearch = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: SiteFilters = {
-          ...filters,
-          search: value,
-          page: 1
-        }
-        setFilters(updated)
-        updateUrlParams(updated)
+        setFilters(prev => {
+          const updated: SiteFilters = {
+            ...prev,
+            search: value,
+            page: 1
+          }
+          updateUrlParams(updated)
+
+          return updated
+        })
       }, 500),
-    [filters]
+    []
   )
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
 
   const handleSearch = useCallback(
     (value: string): void => {
@@ -190,13 +195,14 @@ const Listing: React.FC<SiteListingProps> = ({
       params.field !== 'enclosures' &&
       params.field !== 'incharge'
     ) {
-      const detailUrl = {
-        pathname: `/housing/sites/${(params.row as IndexedSiteRow).site_id}`,
-        query: {
-          ...filters
-        } // preserve current filters
-      }
-      router.push(detailUrl)
+      const queryParams = new URLSearchParams()
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== '' && value !== null && value !== undefined) {
+          queryParams.set(key, String(value))
+        }
+      })
+      const search = queryParams.toString()
+      router.push(`/housing/sites/${(params.row as IndexedSiteRow).site_id}${search ? '?' + search : ''}`)
     }
   }
 
@@ -213,7 +219,7 @@ const Listing: React.FC<SiteListingProps> = ({
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -244,7 +250,7 @@ const Listing: React.FC<SiteListingProps> = ({
       width: 330,
       field: 'site_name',
       align: 'left' as const,
-      headerName: 'Site Name',
+      headerName: t('housing_module.site_name'),
       sortable: false,
       renderCell: (params: GridCellParams) => (
         <CellInfo
@@ -265,7 +271,7 @@ const Listing: React.FC<SiteListingProps> = ({
           {
             width: 170,
             field: 'species',
-            headerName: 'Species',
+            headerName: t('species'),
             align: 'left' as const,
             headerAlign: 'left' as const,
             sortable: false,
@@ -309,7 +315,7 @@ const Listing: React.FC<SiteListingProps> = ({
           {
             width: 150,
             field: 'animals',
-            headerName: 'Animals',
+            headerName: t('animals'),
             align: 'left' as const,
             headerAlign: 'left' as const,
             sortable: false,
@@ -354,7 +360,7 @@ const Listing: React.FC<SiteListingProps> = ({
           {
             width: 150,
             field: 'sections',
-            headerName: 'Sections',
+            headerName: t('sections'),
             align: 'left' as const,
             headerAlign: 'left' as const,
             sortable: false,
@@ -398,7 +404,7 @@ const Listing: React.FC<SiteListingProps> = ({
           {
             width: 150,
             field: 'enclosures',
-            headerName: 'Enclosures',
+            headerName: t('enclosures'),
             align: 'left' as const,
             headerAlign: 'left' as const,
             sortable: false,
@@ -434,7 +440,7 @@ const Listing: React.FC<SiteListingProps> = ({
     {
       width: 180,
       field: 'incharge',
-      headerName: 'In-Charge',
+      headerName: t('in_charge'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -449,14 +455,18 @@ const Listing: React.FC<SiteListingProps> = ({
             pl: 2
           }}
         >
-          <UserAvatarDetails profile_image={(params.row as IndexedSiteRow)?.incharge_image} user_name={(params.row as IndexedSiteRow)?.incharge_name} />
+          <UserAvatarDetails
+            profile_image={(params.row as IndexedSiteRow)?.incharge_image}
+            user_name={(params.row as IndexedSiteRow)?.incharge_name}
+          />
         </Box>
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -535,14 +545,14 @@ const Listing: React.FC<SiteListingProps> = ({
 
   return (
     <>
-      <ListingHeader title='All Sites' totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search...'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
@@ -566,6 +576,7 @@ const Listing: React.FC<SiteListingProps> = ({
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
             loading={isFetching}
+            getRowHeight={() => 60}
             searchValue=''
             maxHeight='80vh'
           />

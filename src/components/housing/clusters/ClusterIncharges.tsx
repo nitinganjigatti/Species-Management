@@ -1,8 +1,9 @@
 import { useTheme } from '@emotion/react'
 import { Box, debounce, Grid, Typography, Theme } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getAllSites } from 'src/lib/api/housing'
 import RenderUtility, { CellInfo } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
@@ -19,7 +20,8 @@ interface PaginationModel {
 }
 
 const ClusterIncharges: React.FC = () => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as Theme
 
@@ -144,16 +146,14 @@ const ClusterIncharges: React.FC = () => {
   }
 
   const handleRowClick = (params: GridRowParams): void => {
-    router.push({
-      pathname: `/housing/sites/${(params.row as IndexedSiteRow).site_id}`
-    })
+    router.push(`/housing/sites/${(params.row as IndexedSiteRow).site_id}`)
   }
 
   const columns = [
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       renderCell: (params: any) => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -163,7 +163,7 @@ const ClusterIncharges: React.FC = () => {
     {
       width: 250,
       field: 'site_name',
-      headerName: 'Site Name',
+      headerName: t('housing_module.site_name'),
       renderCell: (params: any) => (
         <CellInfo
           value={params.row.site_name}
@@ -181,7 +181,7 @@ const ClusterIncharges: React.FC = () => {
     {
       width: 200,
       field: 'species',
-      headerName: 'Species',
+      headerName: t('species'),
       renderCell: (params: any) => (
         <Typography sx={{ color: (theme.palette.primary as any).OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.species_count || 0}
@@ -191,7 +191,7 @@ const ClusterIncharges: React.FC = () => {
     {
       width: 150,
       field: 'animals',
-      headerName: 'Animals',
+      headerName: t('animals'),
       renderCell: (params: any) => (
         <Typography sx={{ color: (theme.palette.primary as any).OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.animal_count || 0}
@@ -201,7 +201,7 @@ const ClusterIncharges: React.FC = () => {
     {
       width: 150,
       field: 'enclosures',
-      headerName: 'Enclosures',
+      headerName: t('enclosures'),
       renderCell: (params: any) => (
         <Typography sx={{ color: (theme.palette.primary as any).OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.enclosure_count}
@@ -211,7 +211,7 @@ const ClusterIncharges: React.FC = () => {
     {
       width: 180,
       field: 'incharge',
-      headerName: 'In-Charge',
+      headerName: t('in_charge'),
       renderCell: (params: any) => (
         <UserAvatarDetails
           profile_image={params.row?.incharge_image}
@@ -220,9 +220,10 @@ const ClusterIncharges: React.FC = () => {
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       align: 'center' as const,
       renderCell: (params: any) => (
         <>
@@ -258,14 +259,14 @@ const ClusterIncharges: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title='All Sites' totalCount={total} />
+      <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
-            placeholder='Search…'
+            placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
           />
           <ExportButton loading={downloading} onClick={handleDownload} bgcolor={theme.palette.primary.main} />

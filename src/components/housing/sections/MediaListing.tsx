@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { Box, Grid, Typography, Tabs, Tab, CircularProgress, Button } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 
@@ -12,6 +12,7 @@ import { Media } from 'src/types/housing'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Icon from 'src/@core/components/icon'
 import AddMediaDrawer from '../sites/AddMediaDrawer'
+import { useTranslation } from 'react-i18next'
 
 type MediaTabType = 'image' | 'document' | 'video'
 
@@ -22,11 +23,12 @@ interface MediaPage {
 }
 
 const MediaListing: React.FC = () => {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<MediaTabType>('image')
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
   const [addMediaDrawerOpen, setAddMediaDrawerOpen] = useState<boolean>(false)
-  const { id } = useRouter().query
+  const { id } = useSafeRouter().query
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
@@ -123,9 +125,9 @@ const MediaListing: React.FC = () => {
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
         <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={activeTab} onChange={handleTabChange} sx={{ minHeight: 48 }}>
-            <Tab value='image' label={getTabLabel('image', 'Images')} />
-            <Tab value='document' label={getTabLabel('document', 'Documents')} />
-            <Tab value='video' label={getTabLabel('video', 'Videos')} />
+            <Tab value='image' label={getTabLabel('image', t('housing_module.images') as string)} />
+            <Tab value='document' label={getTabLabel('document', t('housing_module.documents') as string)} />
+            <Tab value='video' label={getTabLabel('video', t('housing_module.videos') as string)} />
           </Tabs>
         </Box>
         <Button
@@ -134,7 +136,7 @@ const MediaListing: React.FC = () => {
           onClick={() => setAddMediaDrawerOpen(true)}
           sx={{ height: 44 }}
         >
-          Add Media
+          {t('housing_module.add_media')}
         </Button>
       </Box>
       {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
@@ -190,7 +192,7 @@ const MediaListing: React.FC = () => {
 
         {!hasNextPage && media.length > 0 && (
           <Typography align='center' sx={{ mt: 6, color: 'text.disabled' }}>
-            No more media files to load.
+            {t('housing_module.no_more_media')}
           </Typography>
         )}
       </Box>

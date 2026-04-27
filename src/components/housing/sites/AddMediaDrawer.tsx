@@ -14,6 +14,7 @@ import { Close as CloseIcon } from '@mui/icons-material'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { addMedia, addAnimalMedia } from 'src/lib/api/housing'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 
 interface FileIconConfig {
@@ -75,6 +76,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Memoized file icons using theme colors
@@ -287,7 +289,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box component='img' src='/images/housing/gallery-add.svg' alt='Media' sx={{ width: 28, height: 28 }} />
-            <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>Add Media</Typography>
+            <Typography sx={{ fontSize: '1.25rem', fontWeight: 600 }}>{t('housing_module.add_media')}</Typography>
           </Box>
           <IconButton onClick={handleClose}>
             <CloseIcon />
@@ -306,7 +308,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
                 mb: 2
               }}
             >
-              Media Files
+              {t('housing_module.media_files')}
             </Typography>
 
             {/* Attachment Preview Grid - Above dropzone */}
@@ -424,7 +426,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
                     color: theme.palette.customColors?.OnSurfaceVariant60
                   }}
                 >
-                  Drop your files here
+                  {t('drop_files_here')}
                 </Typography>
               </Box>
             </Box>
@@ -438,7 +440,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
                   color: theme.palette.text.secondary
                 }}
               >
-                {attachments.length} file{attachments.length > 1 ? 's' : ''} selected
+                {attachments.length} {t('housing_module.files_selected')}
               </Typography>
             )}
           </Box>
@@ -467,9 +469,9 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
                   color={isRestricted ? theme.palette.primary.main : theme.palette.text.secondary}
                 />
                 <Box>
-                  <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>Mark as Restricted</Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '0.95rem' }}>{t('housing_module.mark_as_restricted')}</Typography>
                   <Typography variant='body2' color='text.secondary'>
-                    Restricted media will have limited visibility
+                    {t('housing_module.restricted_media_description')}
                   </Typography>
                 </Box>
               </Box>
@@ -495,7 +497,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
           }}
         >
           <Button variant='outlined' fullWidth onClick={handleClose} disabled={isPending}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             variant='contained'
@@ -503,7 +505,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
             onClick={handleSubmit}
             disabled={attachments.length === 0 || isPending}
           >
-            {isPending ? <CircularProgress size={24} color='inherit' /> : 'Add Media'}
+            {isPending ? <CircularProgress size={24} color='inherit' /> : t('housing_module.add_media')}
           </Button>
         </Box>
       </Box>

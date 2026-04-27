@@ -49,6 +49,7 @@ import AddBedsDrawer from './AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const treatmentType = [
   { label: 'OPD (outpatient)', value: 'opd' },
@@ -571,14 +572,8 @@ const PatientAdmitForm = ()=> {
   return (
     <>
       <Box>
-        <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Hospital</Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patients</Typography>
-          <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'text.primary' }}>
-            Incoming
-          </Typography>
-          <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Patient Admission Form</Typography>
-        </Breadcrumbs>
+        <DynamicBreadcrumbs
+          pageItems={[{title: 'Hospital'}, {title: 'Incoming', onClick: () => router.back()}, {title: 'Patient Admit Form'}]}/>
         <HospitalAnalytics disabled />
         {hasPermission ? (
           <Card sx={{ mb: 4, mt: 4 }}>

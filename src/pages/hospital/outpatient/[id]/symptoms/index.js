@@ -3,7 +3,10 @@ import enforceModuleAccess from 'src/components/ProtectedRoute'
 import AddSymptoms from 'src/components/hospital/inpatient/AddSymptoms'
 
 function AddSymptomsPage() {
-  return <AddSymptoms from='outPatient' />
+  return (
+  <>
+  <AddSymptoms category='Outpatients' />
+  </>)
 }
 
 export default enforceModuleAccess(AddSymptomsPage, 'add_hospital')

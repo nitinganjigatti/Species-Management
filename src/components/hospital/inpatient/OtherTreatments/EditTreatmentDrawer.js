@@ -9,6 +9,7 @@ import { Controller, useForm } from 'react-hook-form'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import Utility from 'src/utility'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const EditTreatmentDrawer = ({
   open,
@@ -175,7 +176,7 @@ const EditTreatmentDrawer = ({
                 >
                   Treatment Start Date
                 </Typography>
-                <Controller
+                {/* <Controller
                   name='startDate'
                   control={control}
                   defaultValue={safeStartDate}
@@ -204,7 +205,27 @@ const EditTreatmentDrawer = ({
                       }}
                     />
                   )}
-                />
+                /> */}
+                <ControlledDatePicker
+                  required
+                  control={control}
+                  name={'startDate'}
+                  minDate={admissionDate}
+                  maxDate={dischargedDate || dayjs()}
+                  onChangeOverride={value => onChange('startDate', value)}
+                  sx={{
+                    ...commonFieldStyles,
+                    '& .MuiOutlinedInput-root': {
+                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      height: '56px'
+                    },
+                    '& .MuiInputBase-input': {
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                  />
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -317,7 +338,8 @@ const EditTreatmentDrawer = ({
                             sx={{
                               color: theme.palette.customColors.OnSurfaceVariant,
                               fontWeight: 400,
-                              fontSize: '14px'
+                              fontSize: '14px',
+                              whiteSpace: 'pre-wrap'
                             }}
                           >
                             {activity.note}
@@ -421,7 +443,8 @@ const EditTreatmentDrawer = ({
                           sx={{
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontWeight: 400,
-                            fontSize: '14px'
+                            fontSize: '14px',
+                            whiteSpace: 'pre-wrap'
                           }}
                         >
                           {activity.note}

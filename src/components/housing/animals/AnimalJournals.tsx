@@ -19,8 +19,9 @@ import Utility from 'src/utility'
 import Timeline from '@mui/lab/Timeline'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { AnimalJournalLog, AnimalJournalEntry, User, JournalModule } from 'src/types/housing'
+import { useTranslation } from 'react-i18next'
 
 interface UserOption {
   user_id: string | number
@@ -65,9 +66,10 @@ interface ModuleFilterItem {
 
 const AnimalJournals: React.FC = () => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const authData = useContext(AuthContext)
+  const { t } = useTranslation()
 
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [users, setUsers] = useState<UserOption[]>([])
@@ -76,8 +78,8 @@ const AnimalJournals: React.FC = () => {
   const [animalJournalLogs, setAnimalJournalLogs] = useState<JournalLogGroup[]>([])
 
   // Module filter state (horizontal chips)
-  const [journalModules, setJournalModules] = useState<ModuleFilterItem[]>([{ id: null, name: 'All' }])
-  const [selectedModule, setSelectedModule] = useState<ModuleFilterItem>({ id: null, name: 'All' })
+  const [journalModules, setJournalModules] = useState<ModuleFilterItem[]>([{ id: null, name: t('all') }])
+  const [selectedModule, setSelectedModule] = useState<ModuleFilterItem>({ id: null, name: t('all') })
   const [modulesLoading, setModulesLoading] = useState<boolean>(false)
 
   // Pagination
@@ -85,7 +87,7 @@ const AnimalJournals: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number>(0)
 
   // filter options - only Users (Date Range is in main UI)
-  const categories: string[] = ['Users']
+  const categories: string[] = [t('animals_module.users')]
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
 
@@ -137,7 +139,7 @@ const AnimalJournals: React.FC = () => {
           name: item.module ? item.module.charAt(0).toUpperCase() + item.module.slice(1).toLowerCase() : item.module
         }))
         // Add "All" option at the beginning
-        setJournalModules([{ id: null, name: 'All', module: undefined }, ...modules])
+        setJournalModules([{ id: null, name: t('all'), module: undefined }, ...modules])
       }
     } catch (error) {
       console.error('Error fetching journal modules:', error)

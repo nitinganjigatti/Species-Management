@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import React, { useEffect, useState, useCallback, useMemo, memo, FC } from 'react'
 import { styled, alpha, Theme } from '@mui/material/styles'
-import { useRouter, NextRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -49,6 +49,7 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from '../Toaster'
 import moment from 'moment'
 import { IncomingNecropsyDrawerProps } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 // Extended theme interface for custom colors
 interface ExtendedTheme extends Theme {
@@ -203,7 +204,8 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
   hideAcceptButton = false
 }) => {
   const theme = useTheme<ExtendedTheme>()
-  const router: NextRouter = useRouter()
+  const router = useRouter()
+  const { t } = useTranslation()
 
   const [necropsyData, setNecropsyData] = useState<NecropsyData | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
@@ -284,11 +286,11 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
       const response = await createIncomingNecropsySummaryComment(payload)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Comment added successfully' })
+        Toaster({ type: 'success', message: response?.message || t('necropsy_module.comment_added_successfully') })
         setComment('')
         fetchNecropsyDetails()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to add comment' })
+        Toaster({ type: 'error', message: response?.message || t('necropsy_module.failed_to_add_comment') })
       }
     } catch (error) {
       console.error('Error adding comment:', error)
@@ -303,15 +305,15 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
     try {
       const response = await acceptNecropsyTransfer(transferId, { status: 'COMPLETED' })
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Necropsy accepted successfully' })
+        Toaster({ type: 'success', message: response?.message || t('necropsy_module.necropsy_accepted_successfully') })
         onAcceptSuccess?.()
         onClose()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to accept necropsy' })
+        Toaster({ type: 'error', message: response?.message || t('necropsy_module.failed_to_accept_necropsy') })
       }
     } catch (error) {
       console.error('Error accepting necropsy:', error)
-      Toaster({ type: 'error', message: 'Failed to accept necropsy' })
+      Toaster({ type: 'error', message: t('necropsy_module.failed_to_accept_necropsy') })
     } finally {
       setAcceptLoading(false)
     }
@@ -339,7 +341,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
 
   const handleAnimalClick = (animalId?: number): void => {
     if (animalId) {
-      router.push(`/housing/animals/${animalId}`)
+      router.push(`/animals/${animalId}`)
     }
   }
 
@@ -508,7 +510,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                     <Typography
                       sx={{ fontWeight: 500, fontSize: '20px', color: theme.palette.customColors?.OnPrimary }}
                     >
-                      Carcass Transfer
+                      {t('necropsy_module.carcass_transfer')}
                     </Typography>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -537,8 +539,8 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         setQRDialogData({
                           requestId: necropsyData?.transfer_details?.transfer_code,
                           qrCodeUrl: necropsyData?.transfer_details?.qr_code_full_path,
-                          title: 'Transfer Pass',
-                          subtitle: 'Transfer Request number'
+                          title: t('necropsy_module.transfer_pass'),
+                          subtitle: t('necropsy_module.transfer_request_number')
                         })
                       }}
                     >
@@ -572,7 +574,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                       color: alpha(theme.palette.customColors?.OnPrimary || '#fff', 0.8)
                     }}
                   >
-                    Initiated by
+                    {t('necropsy_module.initiated_by')}
                   </Typography>
                   <UserAvatarDetails
                     user_name={`${necropsyData?.transfer_details?.user_first_name} ${necropsyData?.transfer_details?.user_last_name}`}
@@ -651,7 +653,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         >
                           {necropsyData?.transfer_details?.user_mobile_number}
                         </Typography>
-                        <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                        <Tooltip title={copied ? t('necropsy_module.copied') : t('necropsy_module.copy_number')}>
                           <IconButton
                             size='small'
                             onClick={() => handleCopyNumber(necropsyData?.transfer_details?.user_mobile_number || '')}
@@ -739,7 +741,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                             color: theme.palette.customColors?.OnSurfaceVariant
                           }}
                         >
-                          Transfer
+                          {t('necropsy_module.transfer')}
                         </Typography>
                         <Typography
                           sx={{
@@ -749,8 +751,10 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                           }}
                         >
                           {loadedCount != null
-                            ? `${loadedCount} / ${animalCount} Carcasses`
-                            : `${animalCount} ${animalCount === 1 ? 'Carcass' : 'Carcasses'}`}
+                            ? t('necropsy_module.carcasses_count', { loaded: loadedCount, total: animalCount })
+                            : `${animalCount} ${
+                                animalCount === 1 ? t('necropsy_module.carcass') : t('necropsy_module.carcasses')
+                              }`}
                         </Typography>
                       </Box>
                     </Box>
@@ -763,7 +767,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         cursor: 'pointer'
                       }}
                     >
-                      View
+                      {t('necropsy_module.view')}
                     </Box>
                   </Box>
                 )
@@ -790,7 +794,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
                       }}
                     >
-                      Notes
+                      {t('necropsy_module.notes')}
                     </Typography>
                     <Typography
                       sx={{
@@ -822,7 +826,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                     <Typography
                       sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors?.OnSurfaceVariant }}
                     >
-                      Transfer Checklist
+                      {t('necropsy_module.transfer_checklist')}
                     </Typography>
                     <Typography
                       sx={{
@@ -832,7 +836,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                       }}
                     >
                       {necropsyData?.transfer_details?.checked_count}/
-                      {necropsyData?.transfer_details?.total_checklist_count} Filled
+                      {necropsyData?.transfer_details?.total_checklist_count} {t('necropsy_module.filled')}
                     </Typography>
                   </Box>
                 </Box>
@@ -846,7 +850,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                       cursor: 'pointer'
                     }}
                   >
-                    View
+                    {t('necropsy_module.view')}
                   </Box>
                 )}
               </Box>
@@ -857,7 +861,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                     <Typography
                       sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors?.OnSurfaceVariant }}
                     >
-                      Attachments
+                      {t('necropsy_module.attachments')}
                     </Typography>
                   </Box>
                   <Box
@@ -876,7 +880,8 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         <MediaCard
                           media={{
                             file: attachment?.file || attachment?.url || attachment?.file_url || '',
-                            file_original_name: attachment?.file_original_name || attachment?.name || 'File',
+                            file_original_name:
+                              attachment?.file_original_name || attachment?.name || t('necropsy_module.file'),
                             created_at: attachment?.created_at,
                             type: attachment?.type || attachment?.file_type
                           }}
@@ -897,13 +902,13 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                   <Typography
                     sx={{ fontWeight: 500, fontSize: '14px', color: theme.palette.customColors?.neutralPrimary }}
                   >
-                    Comments
+                    {t('necropsy_module.comments')}
                   </Typography>
                 </Box>
                 <TextField
                   fullWidth
                   size='small'
-                  placeholder='Add your comment'
+                  placeholder={t('necropsy_module.add_your_comment')}
                   value={comment}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setComment(e.target.value)}
                   sx={{
@@ -1130,7 +1135,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                     <Typography
                       sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors?.neutralSecondary }}
                     >
-                      Current Status <span> &bull; </span>
+                      {t('necropsy_module.current_status')} <span> &bull; </span>
                       {Utility.AgeConverter(Utility.convertUTCToLocal(checklistComments?.[0]?.commented_on || ''))}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
@@ -1140,7 +1145,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         {checklistComments?.[0]?.comments}
                       </Typography>
                       <Button onClick={() => setShowChecklistComment(prev => !prev)}>
-                        {showChecklistComment ? 'Hide' : 'See All'}
+                        {showChecklistComment ? t('necropsy_module.hide') : t('necropsy_module.see_all')}
                       </Button>
                     </Box>
                   </Box>
@@ -1152,7 +1157,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                   <Typography
                     sx={{ fontWeight: 600, color: theme.palette.customColors?.OnPrimary, alignSelf: 'center' }}
                   >
-                    Cancelled
+                    {t('necropsy_module.cancelled')}
                   </Typography>
                 </Box>
               ) : !hideAcceptButton && btnStatusData?.show_accept_button === 1 ? (
@@ -1164,7 +1169,11 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                   onClick={handleAcceptNecropsy}
                   sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.primary.main }}
                 >
-                  {btnStatusLoading || acceptLoading ? <CircularProgress size={24} /> : 'ACCEPT NECROPSY'}
+                  {btnStatusLoading || acceptLoading ? (
+                    <CircularProgress size={24} />
+                  ) : (
+                    t('necropsy_module.accept_necropsy')
+                  )}
                 </Button>
               ) : null}
             </Box>
@@ -1231,7 +1240,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                 color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              Transfer Carcass List
+              {t('necropsy_module.transfer_carcass_list')}
             </Typography>
             <IconButton onClick={() => setShowAnimalListDrawer(false)} size='small'>
               <Icon icon='mdi:close' />
@@ -1256,7 +1265,9 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
               </Box>
             ) : animalList.length === 0 ? (
               <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 8 }}>
-                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>No animals found</Typography>
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px' }}>
+                  {t('necropsy_module.no_animals_found')}
+                </Typography>
               </Box>
             ) : (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -1299,7 +1310,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                             color: theme.palette.error.main
                           }}
                         >
-                          Excluded
+                          {t('necropsy_module.excluded')}
                         </Typography>
                       </Box>
                     )}

@@ -4,6 +4,7 @@ import { useTheme, alpha, Theme } from '@mui/material/styles'
 import ShareIcon from '@mui/icons-material/Share'
 import DownloadIcon from '@mui/icons-material/Download'
 import CloseIcon from '@mui/icons-material/Close'
+import { useTranslation } from 'react-i18next'
 
 interface TransferData {
   requestId?: string
@@ -20,10 +21,11 @@ interface TransferPassQRCardProps {
 
 const TransferPassQRCard: FC<TransferPassQRCardProps> = ({ open, handleClose, transferData }) => {
   const theme = useTheme<Theme>()
+  const { t } = useTranslation()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const [imageLoaded, setImageLoaded] = useState<boolean>(false)
 
-  const { requestId, qrCodeUrl, title = 'Transfer Pass', subtitle = 'Transfer Request number' } = transferData || {}
+  const { requestId, qrCodeUrl, title, subtitle } = transferData || {}
 
   useEffect(() => {
     if (open) {
@@ -100,7 +102,7 @@ const TransferPassQRCard: FC<TransferPassQRCardProps> = ({ open, handleClose, tr
               mb: 2
             }}
           >
-            {title}
+            {title || t('necropsy_module.transfer_pass')}
           </Typography>
 
           <Typography
@@ -111,7 +113,7 @@ const TransferPassQRCard: FC<TransferPassQRCardProps> = ({ open, handleClose, tr
               mb: 1
             }}
           >
-            {subtitle}
+            {subtitle || t('necropsy_module.transfer_request_number')}
           </Typography>
 
           <Typography
@@ -140,7 +142,7 @@ const TransferPassQRCard: FC<TransferPassQRCardProps> = ({ open, handleClose, tr
             <Box
               component='img'
               src={qrCodeUrl}
-              alt='Transfer Pass QR Code'
+              alt={t('necropsy_module.transfer_pass_qr_code')}
               onLoad={() => setImageLoaded(true)}
               sx={{
                 width: '100%',
@@ -170,14 +172,20 @@ const TransferPassQRCard: FC<TransferPassQRCardProps> = ({ open, handleClose, tr
               sx={{
                 borderColor: theme.palette.text.primary,
                 color: theme.palette.text.primary,
-                backgroundColor: alpha((theme.palette as any).customColors?.OnPrimary || theme.palette.common.white, 0.5),
+                backgroundColor: alpha(
+                  (theme.palette as any).customColors?.OnPrimary || theme.palette.common.white,
+                  0.5
+                ),
                 '&:hover': {
-                  backgroundColor: alpha((theme.palette as any).customColors?.OnPrimary || theme.palette.common.white, 0.8),
+                  backgroundColor: alpha(
+                    (theme.palette as any).customColors?.OnPrimary || theme.palette.common.white,
+                    0.8
+                  ),
                   borderColor: theme.palette.text.primary
                 }
               }}
             >
-              Share
+              {t('necropsy_module.share')}
             </Button>
             <Button
               variant='contained'
@@ -192,7 +200,7 @@ const TransferPassQRCard: FC<TransferPassQRCardProps> = ({ open, handleClose, tr
                 }
               }}
             >
-              Download
+              {t('necropsy_module.download')}
             </Button>
           </Box>
         </Box>

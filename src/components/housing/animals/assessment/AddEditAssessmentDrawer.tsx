@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Button, CircularProgress, Drawer, IconButton, TextField, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Controller, useForm } from 'react-hook-form'
@@ -54,6 +55,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
   refetch
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
 
   // Determine mode
@@ -273,8 +275,8 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
             render={({ field }) => (
               <TextField
                 {...field}
-                label='Enter Text'
-                placeholder='Enter value'
+                label={t('animals_module.enter_text') as string}
+                placeholder={t('animals_module.enter_value') as string}
                 fullWidth
                 disabled={isViewMode}
                 error={!!errors.textValue}
@@ -300,8 +302,8 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label='Enter Value'
-                    placeholder='Enter value'
+                    label={t('animals_module.enter_value') as string}
+                    placeholder={t('animals_module.enter_value') as string}
                     fullWidth
                     disabled={isViewMode}
                     error={!!errors.numericValue}
@@ -324,7 +326,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 <ControlledSelect
                   name='unitId'
                   control={control}
-                  label='Select Unit'
+                  label={t('animals_module.select_unit') as string}
                   required
                   errors={errors}
                   options={unitOptions}
@@ -346,7 +348,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
           <ControlledSelect
             name='selectedScaleId'
             control={control}
-            label='Select Value'
+            label={t('animals_module.select_value') as string}
             required
             errors={errors}
             options={(assessment.default_values || []).map(v => ({
@@ -445,21 +447,21 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                     color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
                   }}
                 >
-                  Observation Date & Time
+                  {t('animals_module.observation_date_time')}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 3 }}>
                   <Box sx={{ flex: 1 }}>
                     <ControlledDatePicker
                       name='date'
                       control={control}
-                      label='Date'
+                      label={t('date') as string}
                       required
                       maxDate={dayjs()}
                       disabled={isViewMode}
                     />
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <ControlledTimePicker name='time' control={control} label='Time' required disabled={isViewMode} />
+                    <ControlledTimePicker name='time' control={control} label={t('time') as string} required disabled={isViewMode} />
                   </Box>
                 </Box>
               </Box>
@@ -482,7 +484,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                     color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
                   }}
                 >
-                  Enter Observation
+                  {t('animals_module.enter_observation')}
                 </Typography>
                 {renderResponseInput()}
               </Box>
@@ -502,7 +504,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      placeholder='Notes(Optional)'
+                      placeholder={t('animals_module.notes_optional') as string}
                       multiline
                       rows={2}
                       fullWidth
@@ -553,7 +555,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 fontWeight: 600
               }}
             >
-              CANCEL
+              {t('cancel')}
             </Button>
             <Button
               variant='contained'
@@ -571,7 +573,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 }
               }}
             >
-              {loading ? <CircularProgress size={24} color='inherit' /> : isAddMode ? 'ADD' : 'UPDATE'}
+              {loading ? <CircularProgress size={24} color='inherit' /> : isAddMode ? t('add') : t('update')}
             </Button>
           </Box>
         )}
@@ -599,7 +601,7 @@ const AddEditAssessmentDrawer: React.FC<AddEditAssessmentDrawerProps> = ({
                 fontWeight: 600
               }}
             >
-              CLOSE
+              {t('close')}
             </Button>
           </Box>
         )}

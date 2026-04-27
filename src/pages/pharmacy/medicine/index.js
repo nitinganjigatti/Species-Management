@@ -25,6 +25,8 @@ import { TabContext, TabList, TabPanel } from '@mui/lab'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import MUISelect from 'src/views/forms/form-fields/MUISelect'
+import { productCategoryOptions } from 'src/constants/PharmacyConstants'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MenuWithDots from 'src/components/MenuWithDots'
 import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
@@ -313,7 +315,7 @@ const ListOfMedicine = () => {
       sortable: false,
 
       renderCell: params => (
-        (<Box onClick={e => e.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box onClick={e => e.stopPropagation()} sx={{ display: 'flex', alignItems: 'center' }}>
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
               <>
@@ -333,7 +335,7 @@ const ListOfMedicine = () => {
                 </Tooltip>
               </>
             )}
-        </Box>)
+        </Box>
 
         //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
         //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
@@ -376,13 +378,15 @@ const ListOfMedicine = () => {
   const [excelLoader, setExcelLoader] = useState(false)
 
   const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, status }) => {
+    async ({ sort, q, column, status, category }) => {
       const activeStatus = status ?? statusFilter
+      const activeCategoryFilter = category ?? categoryFilter
       try {
         setLoading(true)
 
@@ -392,7 +396,8 @@ const ListOfMedicine = () => {
           column,
           page: paginationModel?.page + 1,
           limit: paginationModel?.pageSize,
-          ...(activeStatus !== 'all' && { active: activeStatus })
+          ...(activeStatus !== 'all' && { active: activeStatus }),
+          ...(activeCategoryFilter !== 'all' && { category: activeCategoryFilter })
         }
 
         await getMedicineList({ params: params }).then(res => {
@@ -419,7 +424,7 @@ const ListOfMedicine = () => {
         setLoading(false)
       }
     },
-    [paginationModel, statusFilter, dialogCheck]
+    [paginationModel, statusFilter, categoryFilter, dialogCheck]
   )
 
   const ExportExcel = async ({ status }) => {
@@ -433,6 +438,7 @@ const ListOfMedicine = () => {
         q: searchValue,
         column: sortColumn,
         ...(activeStatus !== 'all' && { active: activeStatus }),
+        ...(categoryFilter && { category: categoryFilter }),
         response_type: 'csv'
       }
 
@@ -472,7 +478,8 @@ const ListOfMedicine = () => {
       column: sortColumn,
       status: statusFilter,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      category: categoryFilter
     })
   }, [fetchTableData, statusFilter])
 
@@ -487,7 +494,8 @@ const ListOfMedicine = () => {
         column: newModel[0].field,
         status: statusFilter,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        category: categoryFilter
       })
     } else {
     }
@@ -611,12 +619,23 @@ const ListOfMedicine = () => {
                   </Grid>
                   <Grid
                     item
-                    size={{ xs: 12, sm: 4, md: 4 }}
+                    size={{ xs: 12, sm: 6, md: 6 }}
                     sx={{
                       display: 'flex',
-                      gap: '6px'
+                      gap: '6px',
+                      alignItems: 'center'
                     }}
                   >
+                    <MUISelect
+                      label='Category'
+                      value={categoryFilter}
+                      onChange={e => {
+                        const val = e.target.value
+                        setCategoryFilter(val)
+                      }}
+                      options={[{ id: 'all', label: 'All', value: 'all' }, ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))]}
+                      sx={{ minWidth: 150, maxWidth: 200 }}
+                    />
                     <MUISearch
                       onChange={e => handleSearch(e.target.value)}
                       onClear={() => handleSearch('')}

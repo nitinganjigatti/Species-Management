@@ -26,7 +26,8 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import * as yup from 'yup'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useTranslation } from 'react-i18next'
 
 interface EnclosureData {
   enclosure_id: number
@@ -57,8 +58,11 @@ interface AddEnclosureDrawerProps {
   zooId: string
   refetchEnclosure: boolean
   setRefechEnclosure: (refetch: boolean) => void
-  enclosureData?: EnclosureData | null  // If provided, drawer is in edit mode
+  enclosureData?: EnclosureData | null // If provided, drawer is in edit mode
   refetch?: () => void
+  parentEnclosureId?: number | string | null // Pre-selected parent for sub-enclosure mode
+  parentEnclosureName?: string | null // Parent's display name for sub-enclosure mode
+  isSubEnclosureMode?: boolean // When true, drawer is in "Add Sub Enclosure" mode
 }
 
 interface SelectOption {
@@ -80,7 +84,7 @@ interface FormValues {
   movableOrWalkable: string
   sunlight: string
   commissioned_date: Dayjs
-  images: (File | string)[]  // Can be File objects or URL strings for existing images
+  images: (File | string)[] // Can be File objects or URL strings for existing images
   batchEnclosureCount: string
   batchSequenceStart: string
   section: SelectOption | null
@@ -126,10 +130,14 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   refetchEnclosure,
   setRefechEnclosure,
   enclosureData,
-  refetch
+  refetch,
+  parentEnclosureId = null,
+  parentEnclosureName = null,
+  isSubEnclosureMode = false
 }) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const router = useSafeRouter()
+  const { t } = useTranslation()
 
   const authData = useContext(AuthContext) as any
   const user_id = authData?.userData?.user?.user_id
@@ -372,8 +380,8 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
       }
 
       // Set environment type
-      const envType = environmentTypes.find(e =>
-        e.label?.toLowerCase() === enclosureData.enclosure_environment?.toLowerCase()
+      const envType = environmentTypes.find(
+        e => e.label?.toLowerCase() === enclosureData.enclosure_environment?.toLowerCase()
       )
       if (envType) {
         setValue('environmentType', envType, { shouldValidate: true })
@@ -394,7 +402,10 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
 
       // Set images
       if (enclosureData.images && enclosureData.images.length > 0) {
-        setValue('images', enclosureData.images.map(img => img.file))
+        setValue(
+          'images',
+          enclosureData.images.map(img => img.file)
+        )
       }
     }
   }, [isEditMode, enclosureData, open, sectionList, environmentTypes, setValue])
@@ -402,9 +413,10 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   // Set enclosure type after environment types are filtered
   useEffect(() => {
     if (isEditMode && enclosureData && filteredEnclosureTypes.length > 0) {
-      const encType = filteredEnclosureTypes.find(e =>
-        e.value === String(enclosureData.enclosure_type_id) ||
-        e.label?.toLowerCase() === enclosureData.enclosure_type?.toLowerCase()
+      const encType = filteredEnclosureTypes.find(
+        e =>
+          e.value === String(enclosureData.enclosure_type_id) ||
+          e.label?.toLowerCase() === enclosureData.enclosure_type?.toLowerCase()
       )
       if (encType) {
         setValue('enclosureType', encType, { shouldValidate: true })
@@ -421,6 +433,31 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
       }
     }
   }, [isEditMode, enclosureData, parentEnclosureList, setValue])
+
+  // Pre-select parent enclosure in sub-enclosure mode
+  useEffect(() => {
+    if (isSubEnclosureMode && parentEnclosureId && open && !isEditMode) {
+      const parentIdStr = String(parentEnclosureId)
+      const fromList = parentEnclosureList.find(p => String(p.value) === parentIdStr)
+      const parentOption: SelectOption =
+        fromList || { value: parentIdStr, label: parentEnclosureName || '' }
+      const current = getValues('parentEnclosure') as SelectOption | null | string
+      const currentValue =
+        current && typeof current !== 'string' ? (current as SelectOption).value : undefined
+      if (String(currentValue ?? '') !== parentIdStr) {
+        setValue('parentEnclosure', parentOption, { shouldValidate: true })
+      }
+    }
+  }, [
+    isSubEnclosureMode,
+    parentEnclosureId,
+    parentEnclosureName,
+    parentEnclosureList,
+    open,
+    isEditMode,
+    setValue,
+    getValues
+  ])
 
   const handleEnvironmentTypeChange = (selectedEnvironmentType: string): void => {
     if (!allEnclosureData) return
@@ -466,7 +503,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
         const payload = {
           enclosure_id: enclosureData.enclosure_id,
           user_enclosure_name: data?.enclosureName,
-          section_id: currentSectionId ? Number(currentSectionId) : (enclosureData.section_id || 0),
+          section_id: currentSectionId ? Number(currentSectionId) : enclosureData.section_id || 0,
           enclosure_desc: data?.notes,
           enclosure_environment: data?.environmentType?.value || data?.environmentType?.label,
           enclosure_is_movable: data?.movable ? 1 : 0,
@@ -483,10 +520,10 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
           enclosure_image: newImages.length > 0 ? newImages : undefined
         }
 
-        const response = await editEnclosure(payload) as any
+        const response = (await editEnclosure(payload)) as any
 
         if (response?.success) {
-          Toaster({ type: 'success', message: 'Enclosure Updated Successfully' })
+          Toaster({ type: 'success', message: t('housing_module.enclosure_updated') })
           setAddEnclosureDrawerOpen(false)
           if (refetch) refetch()
           setRefechEnclosure(!refetchEnclosure)
@@ -513,16 +550,20 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
           batch_count: data?.batchEnclosureCount,
           commistioned_date: dayjs(data?.commissioned_date).format('YYYY-MM-DD'),
           user_enclosure_id: user_id,
-          enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value
+          enclosure_parent_id: (data?.parentEnclosure as SelectOption)?.value || null
         }
 
         if (sectionId || currentSectionId) {
-          const response = await addEnclosureToHousing(payload) as any
+          const response = (await addEnclosureToHousing(payload)) as any
           if (response?.success) {
             Toaster({ type: 'success', message: response?.message })
+            const newEnclosureId = response?.data?.enclosure_id
             resetAllFields()
             setAddEnclosureDrawerOpen(false)
             setRefechEnclosure(!refetchEnclosure)
+            if (isSubEnclosureMode && newEnclosureId) {
+              router.push(`/housing/enclosure/${newEnclosureId}`)
+            }
           } else {
             Toaster({ type: 'error', message: response?.message })
           }
@@ -530,7 +571,9 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
       }
     } catch (error) {
       console.error('Error submitting form:', error)
-      toast.error(isEditMode ? 'An error occurred while updating the enclosure' : 'An error occurred while creating the enclosure')
+      toast.error(
+        isEditMode ? 'An error occurred while updating the enclosure' : 'An error occurred while creating the enclosure'
+      )
     } finally {
       setLoading(false)
     }
@@ -541,10 +584,10 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
 
     setDeleteLoading(true)
     try {
-      const response = await deleteEnclosure({ enclosure_id: enclosureData.enclosure_id }) as any
+      const response = (await deleteEnclosure({ enclosure_id: enclosureData.enclosure_id })) as any
 
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Enclosure Deleted Successfully' })
+        Toaster({ type: 'success', message: t('housing_module.enclosure_deleted') })
         setShowDeleteDialog(false)
         setAddEnclosureDrawerOpen(false)
         // Navigate back to section details page
@@ -599,8 +642,14 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
         >
           <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Enclosure Icon' width='30px' />
-            <Typography variant='h6'>{isEditMode ? 'Edit Enclosure' : 'Add New Enclosure'}</Typography>
-            </Box>
+            <Typography variant='h6'>
+              {isEditMode
+                ? (t('housing_module.edit_enclosure') as string)
+                : isSubEnclosureMode
+                  ? (t('housing_module.add_sub_enclosure') as string)
+                  : (t('housing_module.add_new_enclosure') as string)}
+            </Typography>
+          </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {isEditMode && (
@@ -624,556 +673,570 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
             py: 4
           }}
         >
-          <form id="enclosure-form" onSubmit={handleSubmit(onSubmit)}>
-                {/* Single/Batch section - only show in add mode */}
-                {!isEditMode && (
+          <form id='enclosure-form' onSubmit={handleSubmit(onSubmit)}>
+            {/* Single/Batch section - only show in add mode */}
+            {!isEditMode && (
+              <Box>
+                <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
+                  Single/Batch?
+                </Typography>
+                <Box
+                  sx={{
+                    p: 4,
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 1,
+                    bgcolor: theme.palette.customColors?.OnPrimary,
+                    mb: 6,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 4
+                  }}
+                >
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 4 }}>
+                    <Box
+                      sx={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 4,
+                        py: 2,
+                        borderRadius: 0.5,
+                        border:
+                          selectedType === 'Single'
+                            ? `2px solid ${theme.palette.primary.main}`
+                            : `1px solid ${theme.palette.divider}`,
+                        bgcolor:
+                          selectedType === 'Single'
+                            ? theme.palette.action.selected
+                            : theme.palette.customColors?.OnPrimary,
+                        cursor: 'pointer',
+                        transition: 'border-color 0.2s, background-color 0.2s'
+                      }}
+                      onClick={() => handleSelectedTypeChange('Single')}
+                    >
+                      <Typography
+                        sx={{ flex: 1, color: selectedType === 'Single' ? 'text.primary' : 'text.secondary' }}
+                      >
+                        Single
+                      </Typography>
+                      <input
+                        type='radio'
+                        name='singleBatch'
+                        checked={selectedType === 'Single'}
+                        onChange={() => handleSelectedTypeChange('Single')}
+                        style={{ display: 'none' }}
+                      />
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          border: `2px solid ${
+                            selectedType === 'Single' ? theme.palette.primary.main : theme.palette.divider
+                          }`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          ml: 2
+                        }}
+                      >
+                        {selectedType === 'Single' && (
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              bgcolor: theme.palette.primary.main
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+
+                    {/* Batch Option */}
+                    <Box
+                      sx={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 4,
+                        py: 2,
+                        borderRadius: 0.5,
+                        border:
+                          selectedType === 'Batch'
+                            ? `2px solid ${theme.palette.primary.main}`
+                            : `1px solid ${theme.palette.divider}`,
+                        bgcolor:
+                          selectedType === 'Batch'
+                            ? theme.palette.action.selected
+                            : theme.palette.customColors?.OnPrimary,
+                        cursor: 'pointer',
+                        transition: 'border-color 0.2s, background-color 0.2s'
+                      }}
+                      onClick={() => handleSelectedTypeChange('Batch')}
+                    >
+                      <Typography sx={{ flex: 1, color: selectedType === 'Batch' ? 'text.primary' : 'text.secondary' }}>
+                        Batch
+                      </Typography>
+                      <input
+                        type='radio'
+                        name='singleBatch'
+                        checked={selectedType === 'Batch'}
+                        onChange={() => handleSelectedTypeChange('Batch')}
+                        style={{ display: 'none' }}
+                      />
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '50%',
+                          border: `2px solid ${
+                            selectedType === 'Batch' ? theme.palette.primary.main : theme.palette.divider
+                          }`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          ml: 2
+                        }}
+                      >
+                        {selectedType === 'Batch' && (
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              bgcolor: theme.palette.primary.main
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
+                  {selectedType === 'Batch' && (
+                    <Box
+                      sx={{
+                        mt: 2
+                      }}
+                    >
+                      <Typography variant='subtitle1' sx={{ mb: 2 }}>
+                        Batch Options
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 3 }}>
+                        <ControlledTextField
+                          name='batchEnclosureCount'
+                          control={control}
+                          label={t('housing_module.enclosure_count') as string}
+                          required={false}
+                          inputProps={{ placeholder: 'Enclosure Count' }}
+                          errors={errors}
+                          sx={{ flex: 1 }}
+                        />
+                        <ControlledTextField
+                          name='batchSequenceStart'
+                          control={control}
+                          label={t('housing_module.sequence_start') as string}
+                          required={false}
+                          inputProps={{ placeholder: 'Sequence' }}
+                          errors={errors}
+                          sx={{ flex: 1 }}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            )}
+            <Box>
+              <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
+                Basic Information
+              </Typography>
+              <Box
+                sx={{
+                  p: 4,
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 1,
+                  bgcolor: theme.palette.customColors?.OnPrimary,
+                  mb: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6
+                }}
+              >
+                <ControlledTextField
+                  name={'enclosureName'}
+                  control={control}
+                  label={t('housing_module.enclosure_name_prefix') as string}
+                  required={true}
+                  inputProps={{ placeholder: 'Enclosure Name/Prefix' }}
+                  errors={errors}
+                  sx={{ mt: 2 }}
+                />
+                <ControlledAutocomplete
+                  name={'environmentType'}
+                  control={control}
+                  label={t('housing_module.environment_type') as string}
+                  required={true}
+                  errors={errors}
+                  options={environmentTypes}
+                  getOptionLabel={(option: unknown) => (option as SelectOption).label}
+                  isOptionEqualToValue={(option: unknown, value: unknown) =>
+                    (option as SelectOption)?.value === (value as SelectOption)?.value
+                  }
+                />
+                <ControlledAutocomplete
+                  name={'enclosureType'}
+                  control={control}
+                  errors={errors}
+                  label={'Enclosure Type*'}
+                  required={true}
+                  options={filteredEnclosureTypes}
+                  getOptionLabel={(option: unknown) => (option as SelectOption)?.label}
+                  isOptionEqualToValue={(option: unknown, value: unknown) =>
+                    (option as SelectOption)?.value === (value as SelectOption)?.value
+                  }
+                />
+                <ControlledAutocomplete
+                  name={'section'}
+                  control={control}
+                  errors={errors}
+                  label={'Choose Section*'}
+                  required={true}
+                  disabled={isSubEnclosureMode}
+                  options={sectionList}
+                  getOptionLabel={(option: unknown) => (option as SelectOption)?.label || ''}
+                  isOptionEqualToValue={(option: unknown, value: unknown) =>
+                    (option as SelectOption).value === (value as SelectOption)?.value
+                  }
+                  value={getValues('section')}
+                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <ControlledAutocomplete
+                    name={'parentEnclosure'}
+                    control={control}
+                    errors={errors}
+                    label={isSubEnclosureMode ? 'Parent Enclosure*' : 'Parent Enclosure'}
+                    required={isSubEnclosureMode}
+                    disabled={isSubEnclosureMode}
+                    options={parentEnclosureList}
+                    getOptionLabel={(option: unknown) => (option as SelectOption)?.label || ''}
+                    isOptionEqualToValue={(option: unknown, value: unknown) =>
+                      (option as SelectOption)?.value === (value as SelectOption)?.value
+                    }
+                  />
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Icon icon={'mdi-information-outline'} fontSize={20} />
+                    <Typography variant='subtitle2'>{t('housing_module.assign_child_enclosure')}</Typography>
+                  </Box>
+                </Box>
                 <Box>
-                  <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
-                    Single/Batch?
+                  {images.length > 0 && (
+                    <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                      {images.map((img, index) => {
+                        const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
+
+                        return (
+                          <Box
+                            key={index}
+                            sx={{
+                              position: 'relative',
+                              width: 100,
+                              height: 100,
+                              borderRadius: 1,
+                              bgcolor: theme.palette.customColors?.displaybgPrimary,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <img
+                              src={previewUrl}
+                              alt={`Cluster ${index}`}
+                              style={{
+                                width: 80,
+                                height: 80,
+                                objectFit: 'cover',
+                                borderRadius: '50%',
+                                display: 'block'
+                              }}
+                            />
+                            <IconButton
+                              size='small'
+                              onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                                e.stopPropagation()
+                                handleRemoveImage(index)
+                              }}
+                              sx={{
+                                position: 'absolute',
+                                top: 6,
+                                right: 6,
+                                background: theme.palette.customColors?.secondaryBg,
+                                color: theme.palette.customColors?.OnPrimary,
+                                width: 24,
+                                height: 24,
+                                zIndex: 1,
+                                '&:hover': {
+                                  background: theme.palette.customColors?.OnSurfaceVariant
+                                }
+                              }}
+                            >
+                              <Icon icon='mdi:close' fontSize={18} />
+                            </IconButton>
+                          </Box>
+                        )
+                      })}
+                    </Box>
+                  )}
+                  <Controller
+                    name='images'
+                    control={control}
+                    render={({ fieldState: { error } }) => (
+                      <Box>
+                        <Box
+                          sx={{
+                            border: `2px dashed ${
+                              error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant
+                            }`,
+                            borderRadius: 1.2,
+                            p: 2,
+                            textAlign: 'center',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 2,
+                            '&:hover': {
+                              bgcolor: theme.palette.grey[100],
+                              borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
+                            }
+                          }}
+                          onClick={() => fileInputRef.current?.click()}
+                          onDrop={(e: React.DragEvent<HTMLDivElement>) => {
+                            e.preventDefault()
+                            handleFilesChange(e.dataTransfer.files)
+                          }}
+                          onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              opacity: 0.6,
+                              gap: 2
+                            }}
+                          >
+                            <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
+                            <Typography variant='body2' color='textSecondary' sx={{ fontWeight: 400 }}>
+                              Drop your images here
+                            </Typography>
+                          </Box>
+
+                          <input
+                            type='file'
+                            accept='image/*'
+                            multiple
+                            ref={fileInputRef}
+                            style={{ display: 'none' }}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilesChange(e.target.files)}
+                          />
+                        </Box>
+                        {error && (
+                          <Typography variant='caption' color='error' sx={{ mt: 1, display: 'block' }}>
+                            {error.message}
+                          </Typography>
+                        )}
+                      </Box>
+                    )}
+                  />
+                </Box>
+              </Box>
+            </Box>
+            <Box>
+              <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
+                Additional Information
+              </Typography>
+              <Box
+                sx={{
+                  p: 4,
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 1,
+                  bgcolor: theme.palette.customColors?.OnPrimary,
+                  mb: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6
+                }}
+              >
+                <Box>
+                  <Typography variant='subtitle1' sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}>
+                    Enclosure is Movable / Walkable?
                   </Typography>
+
                   <Box
                     sx={{
-                      p: 4,
-                      border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: 1,
                       bgcolor: theme.palette.customColors?.OnPrimary,
-                      mb: 6,
                       display: 'flex',
-                      flexDirection: 'column',
+                      flexDirection: 'row',
                       gap: 4
                     }}
                   >
-                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'row', gap: 4 }}>
-                      <Box
-                        sx={{
-                          flex: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          px: 4,
-                          py: 2,
-                          borderRadius: 0.5,
-                          border:
-                            selectedType === 'Single'
-                              ? `2px solid ${theme.palette.primary.main}`
-                              : `1px solid ${theme.palette.divider}`,
-                          bgcolor:
-                            selectedType === 'Single' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
-                          cursor: 'pointer',
-                          transition: 'border-color 0.2s, background-color 0.2s'
-                        }}
-                        onClick={() => handleSelectedTypeChange('Single')}
-                      >
-                        <Typography
-                          sx={{ flex: 1, color: selectedType === 'Single' ? 'text.primary' : 'text.secondary' }}
-                        >
-                          Single
-                        </Typography>
-                        <input
-                          type='radio'
-                          name='singleBatch'
-                          checked={selectedType === 'Single'}
-                          onChange={() => handleSelectedTypeChange('Single')}
-                          style={{ display: 'none' }}
-                        />
-                        <Box
-                          sx={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: '50%',
-                            border: `2px solid ${
-                              selectedType === 'Single' ? theme.palette.primary.main : theme.palette.divider
-                            }`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            ml: 2
-                          }}
-                        >
-                          {selectedType === 'Single' && (
-                            <Box
-                              sx={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                bgcolor: theme.palette.primary.main
-                              }}
-                            />
-                          )}
-                        </Box>
-                      </Box>
-
-                      {/* Batch Option */}
-                      <Box
-                        sx={{
-                          flex: 1,
-                          display: 'flex',
-                          alignItems: 'center',
-                          px: 4,
-                          py: 2,
-                          borderRadius: 0.5,
-                          border:
-                            selectedType === 'Batch'
-                              ? `2px solid ${theme.palette.primary.main}`
-                              : `1px solid ${theme.palette.divider}`,
-                          bgcolor:
-                            selectedType === 'Batch' ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
-                          cursor: 'pointer',
-                          transition: 'border-color 0.2s, background-color 0.2s'
-                        }}
-                        onClick={() => handleSelectedTypeChange('Batch')}
-                      >
-                        <Typography
-                          sx={{ flex: 1, color: selectedType === 'Batch' ? 'text.primary' : 'text.secondary' }}
-                        >
-                          Batch
-                        </Typography>
-                        <input
-                          type='radio'
-                          name='singleBatch'
-                          checked={selectedType === 'Batch'}
-                          onChange={() => handleSelectedTypeChange('Batch')}
-                          style={{ display: 'none' }}
-                        />
-                        <Box
-                          sx={{
-                            width: 20,
-                            height: 20,
-                            borderRadius: '50%',
-                            border: `2px solid ${
-                              selectedType === 'Batch' ? theme.palette.primary.main : theme.palette.divider
-                            }`,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            ml: 2
-                          }}
-                        >
-                          {selectedType === 'Batch' && (
-                            <Box
-                              sx={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                bgcolor: theme.palette.primary.main
-                              }}
-                            />
-                          )}
-                        </Box>
-                      </Box>
-                    </Box>
-                    {selectedType === 'Batch' && (
-                      <Box
-                        sx={{
-                          mt: 2
-                        }}
-                      >
-                        <Typography variant='subtitle1' sx={{ mb: 2 }}>
-                          Batch Options
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 3 }}>
-                          <ControlledTextField
-                            name='batchEnclosureCount'
-                            control={control}
-                            label='Enclosure Count'
-                            required={false}
-                            inputProps={{ placeholder: 'Enclosure Count' }}
-                            errors={errors}
-                            sx={{ flex: 1 }}
-                          />
-                          <ControlledTextField
-                            name='batchSequenceStart'
-                            control={control}
-                            label='Sequence Start'
-                            required={false}
-                            inputProps={{ placeholder: 'Sequence' }}
-                            errors={errors}
-                            sx={{ flex: 1 }}
-                          />
-                        </Box>
-                      </Box>
-                    )}
-                  </Box>
-                </Box>
-                )}
-                <Box>
-                  <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
-                    Basic Information
-                  </Typography>
-                  <Box
-                    sx={{
-                      p: 4,
-                      border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: 1,
-                      bgcolor: theme.palette.customColors?.OnPrimary,
-                      mb: 6,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6
-                    }}
-                  >
-                    <ControlledTextField
-                      name={'enclosureName'}
-                      control={control}
-                      label={'Enclosure Name/Prefix*'}
-                      required={true}
-                      inputProps={{ placeholder: 'Enclosure Name/Prefix' }}
-                      errors={errors}
-                      sx={{ mt: 2 }}
-                    />
-                    <ControlledAutocomplete
-                      name={'environmentType'}
-                      control={control}
-                      label={'Environment Type*'}
-                      required={true}
-                      errors={errors}
-                      options={environmentTypes}
-                      getOptionLabel={(option: unknown) => (option as SelectOption).label}
-                      isOptionEqualToValue={(option: unknown, value: unknown) => (option as SelectOption)?.value === (value as SelectOption)?.value}
-                    />
-                    <ControlledAutocomplete
-                      name={'enclosureType'}
-                      control={control}
-                      errors={errors}
-                      label={'Enclosure Type*'}
-                      required={true}
-                      options={filteredEnclosureTypes}
-                      getOptionLabel={(option: unknown) => (option as SelectOption)?.label}
-                      isOptionEqualToValue={(option: unknown, value: unknown) => (option as SelectOption)?.value === (value as SelectOption)?.value}
-                    />
-                    <ControlledAutocomplete
-                      name={'section'}
-                      control={control}
-                      errors={errors}
-                      label={'Choose Section*'}
-                      required={true}
-                      options={sectionList}
-                      getOptionLabel={(option: unknown) => (option as SelectOption)?.label || ''}
-                      isOptionEqualToValue={(option: unknown, value: unknown) => (option as SelectOption).value === (value as SelectOption)?.value}
-                      value={getValues('section')}
-                    />
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                      <ControlledAutocomplete
-                        name={'parentEnclosure'}
-                        control={control}
-                        errors={errors}
-                        label={'Parent Enclosure'}
-                        required={false}
-                        options={parentEnclosureList}
-                        getOptionLabel={(option: unknown) => (option as SelectOption)?.label || ''}
-                        isOptionEqualToValue={(option: unknown, value: unknown) => (option as SelectOption)?.value === (value as SelectOption)?.value}
-                      />
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Icon icon={'mdi-information-outline'} fontSize={20} />
-                        <Typography variant='subtitle2'>Assign your enclosure as child under this</Typography>
-                      </Box>
-                    </Box>
-                    <Box>
-                      {images.length > 0 && (
-                        <Box sx={{ mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                          {images.map((img, index) => {
-                            const previewUrl = typeof img === 'string' ? img : URL.createObjectURL(img)
-
-                            return (
-                              <Box
-                                key={index}
-                                sx={{
-                                  position: 'relative',
-                                  width: 100,
-                                  height: 100,
-                                  borderRadius: 1,
-                                  bgcolor: theme.palette.customColors?.displaybgPrimary,
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center'
-                                }}
-                              >
-                                <img
-                                  src={previewUrl}
-                                  alt={`Cluster ${index}`}
-                                  style={{
-                                    width: 80,
-                                    height: 80,
-                                    objectFit: 'cover',
-                                    borderRadius: '50%',
-                                    display: 'block'
-                                  }}
-                                />
-                                <IconButton
-                                  size='small'
-                                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                                    e.stopPropagation()
-                                    handleRemoveImage(index)
-                                  }}
-                                  sx={{
-                                    position: 'absolute',
-                                    top: 6,
-                                    right: 6,
-                                    background: theme.palette.customColors?.secondaryBg,
-                                    color: theme.palette.customColors?.OnPrimary,
-                                    width: 24,
-                                    height: 24,
-                                    zIndex: 1,
-                                    '&:hover': {
-                                      background: theme.palette.customColors?.OnSurfaceVariant
-                                    }
-                                  }}
-                                >
-                                  <Icon icon='mdi:close' fontSize={18} />
-                                </IconButton>
-                              </Box>
-                            )
-                          })}
-                        </Box>
-                      )}
-                      <Controller
-                        name='images'
-                        control={control}
-                        render={({ fieldState: { error } }) => (
-                          <Box>
-                            <Box
-                              sx={{
-                                border: `2px dashed ${error ? theme.palette.error.main : theme.palette.customColors?.OutlineVariant}`,
-                                borderRadius: 1.2,
-                                p: 2,
-                                textAlign: 'center',
-                                cursor: 'pointer',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                gap: 2,
-                                '&:hover': {
-                                  bgcolor: theme.palette.grey[100],
-                                  borderColor: error ? theme.palette.error.main : theme.palette.grey[400]
-                                }
-                              }}
-                              onClick={() => fileInputRef.current?.click()}
-                              onDrop={(e: React.DragEvent<HTMLDivElement>) => {
-                                e.preventDefault()
-                                handleFilesChange(e.dataTransfer.files)
-                              }}
-                              onDragOver={(e: React.DragEvent<HTMLDivElement>) => e.preventDefault()}
-                            >
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  opacity: 0.6,
-                                  gap: 2
-                                }}
-                              >
-                                <img src='/images/housing/gallery-add.svg' alt='Add Image Icon' width='30px' />
-                                <Typography variant='body2' color='textSecondary' sx={{ fontWeight: 400 }}>
-                                  Drop your images here
-                                </Typography>
-                              </Box>
-
-                              <input
-                                type='file'
-                                accept='image/*'
-                                multiple
-                                ref={fileInputRef}
-                                style={{ display: 'none' }}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilesChange(e.target.files)}
-                              />
-                            </Box>
-                            {error && (
-                              <Typography variant='caption' color='error' sx={{ mt: 1, display: 'block' }}>
-                                {error.message}
-                              </Typography>
-                            )}
-                          </Box>
-                        )}
-                      />
-                    </Box>
-                  </Box>
-                </Box>
-                <Box>
-                  <Typography variant='h6' sx={{ mb: 4, color: 'text.secondary' }}>
-                    Additional Information
-                  </Typography>
-                  <Box
-                    sx={{
-                      p: 4,
-                      border: `1px solid ${theme.palette.divider}`,
-                      borderRadius: 1,
-                      bgcolor: theme.palette.customColors?.OnPrimary,
-                      mb: 6,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 6
-                    }}
-                  >
-                    <Box>
-                      <Typography variant='subtitle1' sx={{ mb: 2, color: 'text.secondary', fontWeight: 600 }}>
-                        Enclosure is Movable / Walkable?
-                      </Typography>
-
-                      <Box
-                        sx={{
-                          bgcolor: theme.palette.customColors?.OnPrimary,
-                          display: 'flex',
-                          flexDirection: 'row',
-                          gap: 4
-                        }}
-                      >
-                        {/* Movable Checkbox */}
-                        <Box
-                          sx={{
-                            flex: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            px: 4,
-                            py: 4,
-                            borderRadius: 0.5,
-                            border: movable
-                              ? `2px solid ${theme.palette.primary.main}`
-                              : `1px solid ${theme.palette.divider}`,
-                            bgcolor: movable ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
-                            cursor: 'pointer',
-                            transition: 'border-color 0.2s, background-color 0.2s'
-                          }}
-                          onClick={() => {
-                            setMovable(prev => !prev)
-                            setValue('movable', !movable, { shouldValidate: true })
-                          }}
-                        >
-                          <Typography sx={{ flex: 1, color: movable ? 'text.primary' : 'text.secondary' }}>
-                            Movable
-                          </Typography>
-                          <input type='checkbox' checked={movable} onChange={() => {}} style={{ display: 'none' }} />
-                          <Box
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: '4px',
-                              border: `2px solid ${movable ? theme.palette.primary.main : theme.palette.divider}`,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              ml: 2
-                            }}
-                          >
-                            {movable && (
-                              <Box
-                                sx={{
-                                  width: 12,
-                                  height: 12,
-                                  borderRadius: '2px',
-                                  bgcolor: theme.palette.primary.main
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </Box>
-
-                        {/* Walkable Checkbox */}
-                        <Box
-                          sx={{
-                            flex: 1,
-                            display: 'flex',
-                            alignItems: 'center',
-                            px: 4,
-                            py: 4,
-                            borderRadius: 0.5,
-                            border: walkable
-                              ? `2px solid ${theme.palette.primary.main}`
-                              : `1px solid ${theme.palette.divider}`,
-                            bgcolor: walkable ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
-                            cursor: 'pointer',
-                            transition: 'border-color 0.2s, background-color 0.2s'
-                          }}
-                          onClick={() => {
-                            setWalkable(prev => !prev)
-                            setValue('walkable', !walkable, { shouldValidate: true })
-                          }}
-                        >
-                          <Typography sx={{ flex: 1, color: walkable ? 'text.primary' : 'text.secondary' }}>
-                            Walkable
-                          </Typography>
-                          <input type='checkbox' checked={walkable} onChange={() => {}} style={{ display: 'none' }} />
-                          <Box
-                            sx={{
-                              width: 20,
-                              height: 20,
-                              borderRadius: '4px',
-                              border: `2px solid ${walkable ? theme.palette.primary.main : theme.palette.divider}`,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              ml: 2
-                            }}
-                          >
-                            {walkable && (
-                              <Box
-                                sx={{
-                                  width: 12,
-                                  height: 12,
-                                  borderRadius: '2px',
-                                  bgcolor: theme.palette.primary.main
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </Box>
-                      </Box>
-                    </Box>
-
-                    <ControlledSelect
-                      name={'sunlight'}
-                      control={control}
-                      label={'Sunlight'}
-                      required={false}
-                      errors={errors}
-                      options={sunlightOptions}
-                      getOptionLabel={(option: unknown) => (option as SelectOption).label}
-                      getOptionValue={(option: SelectOption) => option.value}
-                    />
-                    <ControlledDatePicker
-                      control={control}
-                      label='Commissioned Date'
-                      name={'commissioned_date'}
-                      required
-                    />
+                    {/* Movable Checkbox */}
                     <Box
                       sx={{
-                        backgroundColor: theme.palette.warning.light,
-                        borderRadius: 1,
-                        p: 3,
-                        mt: 4,
-                        mb: 2
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 4,
+                        py: 4,
+                        borderRadius: 0.5,
+                        border: movable
+                          ? `2px solid ${theme.palette.primary.main}`
+                          : `1px solid ${theme.palette.divider}`,
+                        bgcolor: movable ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
+                        cursor: 'pointer',
+                        transition: 'border-color 0.2s, background-color 0.2s'
+                      }}
+                      onClick={() => {
+                        setMovable(prev => !prev)
+                        setValue('movable', !movable, { shouldValidate: true })
                       }}
                     >
-                      <Typography variant='subtitle2' sx={{ color: 'text.secondary', mb: 1 }}>
-                        Notes
+                      <Typography sx={{ flex: 1, color: movable ? 'text.primary' : 'text.secondary' }}>
+                        Movable
                       </Typography>
-                      <Controller
-                        name='notes'
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            placeholder='Type your notes here'
-                            variant='standard'
-                            fullWidth
-                            multiline
-                            InputProps={{
-                              disableUnderline: true,
-                              sx: { fontSize: 16, fontWeight: 500, color: 'text.primary', background: 'transparent' }
-                            }}
+                      <input type='checkbox' checked={movable} onChange={() => {}} style={{ display: 'none' }} />
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '4px',
+                          border: `2px solid ${movable ? theme.palette.primary.main : theme.palette.divider}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          ml: 2
+                        }}
+                      >
+                        {movable && (
+                          <Box
                             sx={{
-                              background: 'transparent',
-                              fontSize: 20,
-                              fontWeight: 500,
-                              color: 'text.primary'
+                              width: 12,
+                              height: 12,
+                              borderRadius: '2px',
+                              bgcolor: theme.palette.primary.main
                             }}
                           />
                         )}
-                      />
+                      </Box>
+                    </Box>
+
+                    {/* Walkable Checkbox */}
+                    <Box
+                      sx={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        px: 4,
+                        py: 4,
+                        borderRadius: 0.5,
+                        border: walkable
+                          ? `2px solid ${theme.palette.primary.main}`
+                          : `1px solid ${theme.palette.divider}`,
+                        bgcolor: walkable ? theme.palette.action.selected : theme.palette.customColors?.OnPrimary,
+                        cursor: 'pointer',
+                        transition: 'border-color 0.2s, background-color 0.2s'
+                      }}
+                      onClick={() => {
+                        setWalkable(prev => !prev)
+                        setValue('walkable', !walkable, { shouldValidate: true })
+                      }}
+                    >
+                      <Typography sx={{ flex: 1, color: walkable ? 'text.primary' : 'text.secondary' }}>
+                        Walkable
+                      </Typography>
+                      <input type='checkbox' checked={walkable} onChange={() => {}} style={{ display: 'none' }} />
+                      <Box
+                        sx={{
+                          width: 20,
+                          height: 20,
+                          borderRadius: '4px',
+                          border: `2px solid ${walkable ? theme.palette.primary.main : theme.palette.divider}`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          ml: 2
+                        }}
+                      >
+                        {walkable && (
+                          <Box
+                            sx={{
+                              width: 12,
+                              height: 12,
+                              borderRadius: '2px',
+                              bgcolor: theme.palette.primary.main
+                            }}
+                          />
+                        )}
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
+
+                <ControlledSelect
+                  name={'sunlight'}
+                  control={control}
+                  label={'Sunlight'}
+                  required={false}
+                  errors={errors}
+                  options={sunlightOptions}
+                  getOptionLabel={(option: unknown) => (option as SelectOption).label}
+                  getOptionValue={(option: SelectOption) => option.value}
+                />
+                <ControlledDatePicker
+                  control={control}
+                  label={t('housing_module.commissioned_date') as string}
+                  name={'commissioned_date'}
+                  required
+                />
+                <Box
+                  sx={{
+                    backgroundColor: theme.palette.warning.light,
+                    borderRadius: 1,
+                    p: 3,
+                    mt: 4,
+                    mb: 2
+                  }}
+                >
+                  <Typography variant='subtitle2' sx={{ color: 'text.secondary', mb: 1 }}>
+                    Notes
+                  </Typography>
+                  <Controller
+                    name='notes'
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        placeholder={t('housing_module.type_notes_placeholder') as string}
+                        variant='standard'
+                        fullWidth
+                        multiline
+                        InputProps={{
+                          disableUnderline: true,
+                          sx: { fontSize: 16, fontWeight: 500, color: 'text.primary', background: 'transparent' }
+                        }}
+                        sx={{
+                          background: 'transparent',
+                          fontSize: 20,
+                          fontWeight: 500,
+                          color: 'text.primary'
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+              </Box>
+            </Box>
           </form>
         </Box>
 
@@ -1210,7 +1273,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
         <ConfirmationDialog
           dialogBoxStatus={showDeleteDialog}
           onClose={() => setShowDeleteDialog(false)}
-          title='Delete Enclosure'
+          title={t('housing_module.delete_enclosure')}
           description='Are you sure you want to delete this enclosure? This action cannot be undone.'
           image='/images/warning-icon.svg'
           imgStyle={{ background: theme.palette.customColors?.TertiaryLight, p: 4 }}

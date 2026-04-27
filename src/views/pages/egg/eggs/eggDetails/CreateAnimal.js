@@ -42,10 +42,11 @@ import moment from 'moment'
 import dayjs from 'dayjs'
 import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
 import AnimalParentCard from '../../../../utility/animalParentCard'
+import { useTranslation } from 'react-i18next'
 
 const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [loader, setLoader] = useState(false)
 
   const [eggDetails, setEggDetails] = useState({})
@@ -461,7 +462,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                 searchSpecies(e.target.value)
                               }}
                               {...params}
-                              label='Species / Taxonomy *'
+                              label={`${t('egg_module.species_taxonomy')} *`}
                               placeholder='Select Species / Taxonomy'
                               error={Boolean(errors.species)}
                               sx={{
@@ -479,7 +480,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='accessionType'>Accession Type *</InputLabel>
+                    <InputLabel id='accessionType'>{`${t('egg_module.accession_type')} *`}</InputLabel>
                     <Controller
                       name='accessionType'
                       control={control}
@@ -488,7 +489,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='accessionType'
                           value={value}
-                          label='Accession Type *'
+                          label={`${t('egg_module.accession_type')} *`}
                           onChange={onChange}
                           labelId='accessionType'
                           error={Boolean(errors?.accessionType)}
@@ -507,7 +508,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                   </FormControl>
                   {Number(watch('accessionType')) === 2 && (
                     <FormControl fullWidth sx={{ mb: 4 }}>
-                      <InputLabel id='institution'>Institution*</InputLabel>
+                      <InputLabel id='institution'>{t('egg_module.institution')}</InputLabel>
                       <Controller
                         name='institution'
                         control={control}
@@ -516,7 +517,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           <Select
                             name='institution'
                             value={value}
-                            label={`Institution*`}
+                            label={`${t('egg_module.institution')} *`}
                             onChange={onChange}
                             labelId='institution'
                             error={Boolean(errors?.institution)}
@@ -535,7 +536,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     </FormControl>
                   )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='animalOwnershipTerms'>Ownership Term</InputLabel>
+                    <InputLabel id='animalOwnershipTerms'>{t('egg_module.ownership_term')}</InputLabel>
                     <Controller
                       name='animalOwnershipTerms'
                       control={control}
@@ -544,7 +545,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='animalOwnershipTerms'
                           value={value}
-                          label='Ownership Terms'
+                          label={t('egg_module.ownership_term')}
                           onChange={onChange}
                           labelId='animalOwnershipTerms'
                           error={Boolean(errors?.animalOwnershipTerms)}
@@ -574,7 +575,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                             sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                             value={value}
                             onChange={onChange}
-                            label={'Accession Date *'}
+                            label={`${t('accession_date')} *`}
                             maxDate={dayjs()}
                             //   error={Boolean(errors.accessionDate)}
                           />
@@ -599,7 +600,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           render={({ field: { value, onChange } }) => (
                             <TextField
                               value={value}
-                              label='Select Enclosure *'
+                              label={`${t('select_enclosure')} *`}
                               name='enclosure_id'
                               error={Boolean(errors.enclosure_id)}
                               onChange={onChange}
@@ -646,7 +647,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     </div>
                   )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='enclosure'>Sex Type *</InputLabel>
+                    <InputLabel id='enclosure'>{t('egg_module.sex_type')} *</InputLabel>
                     <Controller
                       name='sextype'
                       control={control}
@@ -655,7 +656,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='sextype'
                           value={value}
-                          label='Sex Type *'
+                          label={`${t('egg_module.sex_type')} *`}
                           onChange={onChange}
                           labelId='sextype'
                           error={Boolean(errors?.sextype)}
@@ -678,7 +679,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='collectionType'>Collection Type *</InputLabel>
+                    <InputLabel id='collectionType'>{t('egg_module.collection_type')} *</InputLabel>
                     <Controller
                       name='collectionType'
                       control={control}
@@ -687,7 +688,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='collectionType'
                           value={value}
-                          label='Collection Type *'
+                          label={`${t('egg_module.collection_type')} *`}
                           onChange={onChange}
                           labelId='collectionType'
                           error={Boolean(errors?.collectionType)}
@@ -705,7 +706,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='mastersOrganization'>Select Organization</InputLabel>
+                    <InputLabel id='mastersOrganization'>{t('egg_module.select_org')}</InputLabel>
                     <Controller
                       name='mastersOrganization'
                       control={control}
@@ -714,7 +715,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='mastersOrganization'
                           value={value}
-                          label='Select Organization'
+                          label={t('egg_module.select_org')}
                           onChange={onChange}
                           labelId='mastersOrganization'
                           error={Boolean(errors?.mastersOrganization)}
@@ -744,7 +745,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                             sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                             value={value}
                             onChange={onChange}
-                            label={'Birth Date *'}
+                            label={`${t('egg_module.birth_date')} *`}
                             maxDate={dayjs()}
                           />
                         </LocalizationProvider>
@@ -765,7 +766,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           <TextField
                             error={Boolean(errors?.comment)}
                             value={value}
-                            label='Enter Age'
+                            label={t('egg_module.enter_age')}
                             name='age'
                             type='number'
                             onChange={onChange}
@@ -781,7 +782,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       )}
                     </FormControl>
                     <FormControl fullWidth>
-                      <InputLabel id='type'>Type</InputLabel>
+                      <InputLabel id='type'>{t('type')}</InputLabel>
                       <Controller
                         name='type'
                         control={control}
@@ -792,7 +793,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                             value={value}
                             label='Type'
                             onChange={onChange}
-                            labelId='type'
+                            labelId={t('type')}
                             error={Boolean(errors?.type)}
                           >
                             {[
@@ -813,7 +814,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     </FormControl>
                   </Box>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='localIdentifierType'>Local Identifier Type</InputLabel>
+                    <InputLabel id='localIdentifierType'>{t('egg_module.local_identifier_type')}</InputLabel>
                     <Controller
                       name='localIdentifierType'
                       control={control}
@@ -822,7 +823,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='local IdentifierType'
                           value={value}
-                          label='Local Identifier Type'
+                          label={t('egg_module.local_identifier_type')}
                           onChange={onChange}
                           labelId='localIdentifierType'
                           error={Boolean(errors?.localIdentifierType)}
@@ -866,7 +867,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     </FormControl>
                   )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='parentMother'>Parent Mother</InputLabel>
+                    <InputLabel id='parentMother'>{t('egg_module.parent_mother')}</InputLabel>
                     <Controller
                       name='parentMother'
                       control={control}
@@ -875,7 +876,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentMother'
                           value={value}
-                          label='Parent Mother'
+                          label={t('egg_module.parent_mother')}
                           onChange={onChange}
                           labelId='parentMother'
                           error={Boolean(errors?.parentMother)}
@@ -896,7 +897,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='parentFather'>Parent Father</InputLabel>
+                    <InputLabel id='parentFather'>{t('egg_module.parent_father')}</InputLabel>
                     <Controller
                       name='parentFather'
                       control={control}
@@ -905,7 +906,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentFather'
                           value={value}
-                          label='Parent Father'
+                          label={t('egg_module.parent_father')}
                           onChange={onChange}
                           labelId='parentFather'
                           error={Boolean(errors?.parentFather)}
@@ -926,7 +927,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='sexingType'>Sexing Type</InputLabel>
+                    <InputLabel id='sexingType'>{t('egg_module.sexing_type')}</InputLabel>
                     <Controller
                       name='sexingType'
                       control={control}
@@ -935,7 +936,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='sexingType'
                           value={value}
-                          label='Sexing Type'
+                          label={t('egg_module.sexing_type')}
                           onChange={onChange}
                           labelId='sexingType'
                           error={Boolean(errors?.sexingType)}
@@ -953,7 +954,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='lifeStage'>Life Stage</InputLabel>
+                    <InputLabel id='lifeStage'>{t('egg_module.life_stage')}</InputLabel>
                     <Controller
                       name='lifeStage'
                       control={control}
@@ -962,7 +963,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='lifeStage'
                           value={value}
-                          label='Life Stage'
+                          label={t('egg_module.life_stage')}
                           onChange={onChange}
                           labelId='lifeStage'
                           error={Boolean(errors?.lifeStage)}
@@ -980,7 +981,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   <FormControl fullWidth>
-                    <InputLabel id='contraceptionType'>Contraception Type</InputLabel>
+                    <InputLabel id='contraceptionType'>{t('egg_module.contraception_type')}</InputLabel>
                     <Controller
                       name='contraceptionType'
                       control={control}
@@ -989,7 +990,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='contraceptionType'
                           value={value}
-                          label='Contraception Type'
+                          label={t('egg_module.contraception_type')}
                           onChange={onChange}
                           labelId='contraceptionType'
                           error={Boolean(errors?.contraceptionType)}
@@ -1027,10 +1028,10 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
               }}
             >
               <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCancel}>
-                CANCEL
+                {t('cancel')}
               </LoadingButton>
               <LoadingButton disabled={loader} fullWidth variant='contained' loader={loader} type='submit' size='large'>
-                SUBMIT
+                {t('submit')}
               </LoadingButton>
             </Box>
           </form>
@@ -1088,7 +1089,7 @@ const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure
             lineHeight: '19.36px'
           }}
         >
-          Encl: {user_enclosure_name ? user_enclosure_name : '-'}
+          {t('encl')}: {user_enclosure_name ? user_enclosure_name : '-'}
         </Typography>
 
         <Typography
@@ -1099,7 +1100,7 @@ const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure
             lineHeight: '16.94px'
           }}
         >
-          Sec: {section_name ? section_name : '-'}
+          {t('sec')}: {section_name ? section_name : '-'}
         </Typography>
         <Typography
           sx={{
@@ -1109,7 +1110,7 @@ const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure
             lineHeight: '16.94px'
           }}
         >
-          Site: {site_name ? site_name : '-'}
+          {t('site')}: {site_name ? site_name : '-'}
         </Typography>
       </Box>
       <Box sx={{}}>

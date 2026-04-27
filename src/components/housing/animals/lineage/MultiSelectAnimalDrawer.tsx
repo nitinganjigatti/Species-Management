@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Radio, Checkbox, Badge } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useTheme } from '@mui/material/styles'
@@ -65,9 +66,9 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
   onClose,
   onSelect,
   initialSelectedAnimals = [],
-  title = 'Select Animals',
-  btnText = 'SELECT',
-  searchPlaceholder = 'Search animal by AID or identifier',
+  title: titleProp,
+  btnText: btnTextProp,
+  searchPlaceholder: searchPlaceholderProp,
   selectionMode = 'multi',
   extraParams = {},
   zIndex = 1300,
@@ -77,6 +78,12 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
   filterChips
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
+
+  const title = titleProp || t('animals_module.select_animals')
+  const btnText = btnTextProp || t('select')
+  const searchPlaceholder = searchPlaceholderProp || (t('animals_module.search_animal_by_aid') as string)
+
   const queryClient = useQueryClient()
 
   const [search, setSearch] = useState('')
@@ -480,7 +487,7 @@ const MultiSelectAnimalDrawer: React.FC<MultiSelectAnimalDrawerProps> = ({
 
               {!hasNextPage && list.length > 0 && (
                 <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                  No more animals to load
+                  {t('animals_module.no_more_animals')}
                 </Typography>
               )}
             </>

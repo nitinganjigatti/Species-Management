@@ -21,6 +21,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { AuthContext } from 'src/context/AuthContext'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { createAnimalIncident } from 'src/lib/api/housing'
+import { useTranslation } from 'react-i18next'
 
 interface FoundByUser {
   user_id: string
@@ -70,6 +71,7 @@ const schema = yup.object().shape({
 
 const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setReportFoundForm, animalId }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const authData = useContext(AuthContext)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -245,7 +247,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
             whiteSpace: 'nowrap'
           }}
         >
-          Report Found Animal
+          {t('animals_module.report_found_animal')}
         </Typography>
       </Box>
       <IconButton
@@ -312,7 +314,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Found date and time
+                  {t('animals_module.found_date_and_time')}
                 </Typography>
 
                 <Box
@@ -338,7 +340,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                               ...basicStyle
                             }}
                             {...field} // use the actual field from react-hook-form
-                            label='Date'
+                            label={t('date') as string}
                             maxDate={dayjs()}
                             format='DD/MM/YYYY'
                           />
@@ -357,7 +359,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                           <TimePicker
                             {...field}
-                            label='Time'
+                            label={t('time') as string}
                             format='hh:mm A'
                             sx={{
                               ...basicStyle
@@ -389,7 +391,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Location
+                  {t('location')}
                 </Typography>
                 <Box
                   sx={{
@@ -410,8 +412,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                       <TextField
                         {...field}
                         sx={{ ...basicStyle }}
-                        label='Location found *'
-                        placeholder='Enter Location'
+                        label={t('animals_module.location_found') as string}
+                        placeholder={t('animals_module.enter_location') as string}
                         error={Boolean(errors.location)}
                         helperText={errors.location?.message}
                       />
@@ -429,7 +431,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Found by
+                  {t('animals_module.found_by')}
                 </Typography>
 
                 <Box
@@ -461,8 +463,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Found by *'
-                              placeholder='Search & Select'
+                              label={t('animals_module.found_by') as string}
+                              placeholder={t('search_and_select') as string}
                               error={Boolean(errors.foundBy)}
                               helperText={errors?.foundBy?.message}
                               sx={{
@@ -492,7 +494,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Notes
+                  {t('notes')}
                 </Typography>
 
                 <Box
@@ -516,8 +518,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                           {...field}
                           multiline
                           rows={3}
-                          label='Notes'
-                          placeholder='Write notes here'
+                          label={t('notes') as string}
+                          placeholder={t('animals_module.write_notes_placeholder') as string}
                           error={Boolean(errors.notes)}
                           helperText={errors.notes?.message}
                           sx={{
@@ -584,7 +586,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                                 color: theme.palette.customColors.OnSurfaceVariant60
                               }}
                             >
-                              Add attachments if any
+                              {t('animals_module.add_attachments')}
                             </Typography>
                           </Box>
                         </>
@@ -651,7 +653,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Conditon of animal upon return
+                  {t('animals_module.condition_upon_return')}
                 </Typography>
 
                 <Box
@@ -673,8 +675,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                       <TextField
                         {...field}
                         sx={{ ...basicStyle }}
-                        label='Physical condition'
-                        placeholder='Physical condition'
+                        label={t('animals_module.physical_condition') as string}
+                        placeholder={t('animals_module.physical_condition') as string}
                         error={Boolean(errors.physicalCondition)}
                         helperText={errors.physicalCondition?.message}
                       />
@@ -689,8 +691,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                       <TextField
                         {...field}
                         sx={{ ...basicStyle }}
-                        label='Behavioural observation'
-                        placeholder='Behavioural observation'
+                        label={t('animals_module.behavioural_observation') as string}
+                        placeholder={t('animals_module.behavioural_observation') as string}
                         error={Boolean(errors.behaviourObservation)}
                         helperText={errors.behaviourObservation?.message}
                       />
@@ -705,8 +707,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                       <TextField
                         {...field}
                         sx={{ ...basicStyle }}
-                        label='Health assessment'
-                        placeholder='Health assessment'
+                        label={t('animals_module.health_assessment') as string}
+                        placeholder={t('animals_module.health_assessment') as string}
                         error={Boolean(errors.healthAssessment)}
                         helperText={errors.healthAssessment?.message}
                       />
@@ -721,8 +723,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                       <TextField
                         {...field}
                         sx={{ ...basicStyle }}
-                        label='Injury details'
-                        placeholder='Injury details'
+                        label={t('animals_module.injury_details') as string}
+                        placeholder={t('animals_module.injury_details') as string}
                         error={Boolean(errors.injuryDetails)}
                         helperText={errors.injuryDetails?.message}
                       />
@@ -736,8 +738,8 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
                       <TextField
                         {...field}
                         sx={{ ...basicStyle }}
-                        label='Immediate actions taken'
-                        placeholder='Immediate actions taken'
+                        label={t('animals_module.immediate_actions_taken') as string}
+                        placeholder={t('animals_module.immediate_actions_taken') as string}
                         error={Boolean(errors.immediatectionsTaken)}
                         helperText={errors.immediatectionsTaken?.message}
                       />
@@ -779,7 +781,7 @@ const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setR
             disabled={uploadingAttachment}
             loading={uploadingAttachment}
           >
-            Submit
+            {t('submit')}
           </LoadingButton>
         </Box>
       </form>

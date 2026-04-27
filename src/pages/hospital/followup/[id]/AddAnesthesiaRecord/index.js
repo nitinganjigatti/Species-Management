@@ -47,6 +47,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 dayjs.extend(customParseFormat)
 
@@ -2060,15 +2061,16 @@ export default function AddAnesthesiaRecord() {
   return (
     <FormProvider {...methods}>
       <Box display='flex' flexDirection='column' gap={3} sx={{ p: 3 }}>
-        <Breadcrumbs aria-label='breadcrumb'>
-          <Typography color={theme.palette.text.secondary}>Hospital</Typography>
-          <Typography color={theme.palette.text.secondary}>Patients</Typography>
-          <Typography color={theme.palette.text.secondary}>Follow Up</Typography>
-          <Typography color={theme.palette.text.secondary} sx={{ cursor: 'pointer' }} onClick={handleCancel}>
-            Details
-          </Typography>
-          <Typography color={theme.palette.text.primary}>Add Anesthesia</Typography>
-        </Breadcrumbs>
+         <DynamicBreadcrumbs
+          sx = {{mb: 2}}
+          pageItems={[
+            { title: 'Hospital' },
+            { title: 'Patients' },
+            { title: 'Follow Up' },
+            { title: 'Details', onClick: handleCancel },
+            { title: 'Add Anesthesia' }
+          ]}
+        />
 
         <Box
           position='relative'

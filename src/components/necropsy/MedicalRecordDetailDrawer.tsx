@@ -1,6 +1,7 @@
 import React, { useState, useEffect, FC, memo } from 'react'
 import { Drawer, Box, Typography, IconButton, Chip, Skeleton, Divider, Avatar, Tooltip } from '@mui/material'
 import { alpha, useTheme, Theme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import {
   Close as CloseIcon,
@@ -225,6 +226,7 @@ const SectionHeader: FC<SectionHeaderProps> = ({ icon: IconComponent, title, the
 )
 
 const ComplaintCard: FC<ComplaintCardProps> = ({ item, theme, isClosed }) => {
+  const { t } = useTranslation()
   const severity = item?.additional_info?.severity || item?.severity
   const duration = item?.additional_info?.duration || item?.duration
   const notes = item?.notes || item?.additional_info?.notes
@@ -271,23 +273,23 @@ const ComplaintCard: FC<ComplaintCardProps> = ({ item, theme, isClosed }) => {
         <Box sx={{ mt: 2, p: 1.5, bgcolor: theme.palette.grey[100], borderRadius: 1 }}>
           {severity && (
             <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mb: 0.5 }}>
-              Severity : <strong style={{ color: theme.palette.text.primary }}>{severity}</strong>
+              {t('necropsy_module.severity_label')} <strong style={{ color: theme.palette.text.primary }}>{severity}</strong>
             </Typography>
           )}
           {duration && (
             <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mb: notes ? 1.5 : 0.5 }}>
-              Duration : <strong style={{ color: theme.palette.text.primary }}>{duration}</strong>
+              {t('necropsy_module.duration_label')} <strong style={{ color: theme.palette.text.primary }}>{duration}</strong>
             </Typography>
           )}
           {notes && (
             <>
-              <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>Notes</Typography>
+              <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>{t('notes')}</Typography>
               <Typography sx={{ fontSize: '14px', color: theme.palette.text.primary, mb: 1.5 }}>{notes}</Typography>
             </>
           )}
           {item.updated_at && (
             <Typography sx={{ fontSize: '12px', color: theme.palette.text.secondary }}>
-              Last Updated: {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull;{' '}
+              {t('necropsy_module.last_updated')} {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull;{' '}
               {Utility.convertUTCToLocaltime(item.updated_at)}
             </Typography>
           )}
@@ -298,6 +300,7 @@ const ComplaintCard: FC<ComplaintCardProps> = ({ item, theme, isClosed }) => {
 }
 
 const DiagnosisCard: FC<DiagnosisCardProps> = ({ item, theme, isClosed }) => {
+  const { t } = useTranslation()
   const isTentative =
     item?.additional_info?.clinical_assessment === 'tentative' || item?.clinical_assessment === 'tentative'
   const status = isClosed ? 'Closed' : item?.additional_info?.status || item?.status || 'Active'
@@ -326,7 +329,7 @@ const DiagnosisCard: FC<DiagnosisCardProps> = ({ item, theme, isClosed }) => {
 
       {isTentative && !isClosed && (
         <Chip
-          label='Tentative'
+          label={t('necropsy_module.tentative')}
           size='small'
           sx={{
             fontSize: '12px',
@@ -342,14 +345,14 @@ const DiagnosisCard: FC<DiagnosisCardProps> = ({ item, theme, isClosed }) => {
 
       <Box sx={{ p: 1.5, bgcolor: theme.palette.grey[100], borderRadius: 1 }}>
         <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mb: 0.5 }}>
-          Status :{' '}
+          {t('necropsy_module.status_colon')}{' '}
           <strong style={{ color: theme.palette.text.primary }}>
             {status.charAt(0).toUpperCase() + status.slice(1)}
           </strong>
         </Typography>
         {item.updated_at && (
           <Typography sx={{ fontSize: '12px', color: theme.palette.text.secondary }}>
-            Last Updated: {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull;{' '}
+            {t('necropsy_module.last_updated')} {Utility.convertUtcToLocalReadableDate(item.updated_at)} &bull;{' '}
             {Utility.convertUTCToLocaltime(item.updated_at)}
           </Typography>
         )}
@@ -358,7 +361,10 @@ const DiagnosisCard: FC<DiagnosisCardProps> = ({ item, theme, isClosed }) => {
   )
 }
 
-const PrescriptionCard: FC<PrescriptionCardProps> = ({ item, theme, isStopped }) => (
+const PrescriptionCard: FC<PrescriptionCardProps> = ({ item, theme, isStopped }) => {
+  const { t } = useTranslation()
+
+  return (
   <Box
     sx={{
       mb: 2,
@@ -382,17 +388,17 @@ const PrescriptionCard: FC<PrescriptionCardProps> = ({ item, theme, isStopped })
     </Typography>
     {item.dosage && (
       <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-        Dosage: {item.dosage} {item.dosage_unit}
+        {t('necropsy_module.dosage_colon')} {item.dosage} {item.dosage_unit}
       </Typography>
     )}
     {item.frequency && (
       <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-        Frequency: {item.frequency}
+        {t('necropsy_module.frequency_colon')} {item.frequency}
       </Typography>
     )}
     {item.duration && (
       <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-        Duration: {item.duration} {item.duration_unit || item.duration_type}
+        {t('necropsy_module.duration_colon')} {item.duration} {item.duration_unit || item.duration_type}
       </Typography>
     )}
     {(item.start_date || item.end_date) && (
@@ -416,10 +422,12 @@ const PrescriptionCard: FC<PrescriptionCardProps> = ({ item, theme, isStopped })
       </Box>
     )}
   </Box>
-)
+  )
+}
 
 const LabCard: FC<LabCardProps> = ({ item, theme, onClick }) => {
-  const labCode = item?.lab_code || item?.request_code || item?.code || 'Lab Test'
+  const { t } = useTranslation()
+  const labCode = item?.lab_code || item?.request_code || item?.code || t('necropsy_module.lab_request')
   const requestDate = item?.requested_on || item?.created_at || item?.date
 
   return (
@@ -469,11 +477,11 @@ const LabCard: FC<LabCardProps> = ({ item, theme, onClick }) => {
             whiteSpace: 'nowrap'
           }}
         >
-          Lab Test - {labCode}
+          {t('necropsy_module.lab_test_code', { code: labCode })}
         </Typography>
         {requestDate && (
           <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mt: 0.25 }}>
-            Requested on: {Utility.convertUtcToLocalReadableDate(requestDate)}
+            {t('necropsy_module.requested_on_colon')} {Utility.convertUtcToLocalReadableDate(requestDate)}
           </Typography>
         )}
       </Box>
@@ -486,6 +494,7 @@ const LabCard: FC<LabCardProps> = ({ item, theme, onClick }) => {
 
 const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, onClose, medicalRecordId }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(true)
   const [data, setData] = useState<MedicalRecordData | null>(null)
   const [activeTab, setActiveTab] = useState<string>('case_type')
@@ -599,7 +608,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'case_type':
         return (
           <Box>
-            <SectionHeader icon={CaseTypeIcon} title='Case Type' theme={theme} />
+            <SectionHeader icon={CaseTypeIcon} title={t('necropsy_module.case_type')} theme={theme} />
             <Box sx={{ ml: 4 }}>
               <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.success.main }}>
                 {data?.case_type?.label}
@@ -611,12 +620,12 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'complaints':
         return (
           <Box>
-            <SectionHeader icon={CxIcon} title='Symptoms' theme={theme} />
+            <SectionHeader icon={CxIcon} title={t('necropsy_module.symptoms')} theme={theme} />
             <Box sx={{ ml: 4 }}>
               {activeComplaints.length > 0 && (
                 <>
                   <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
-                    {activeComplaints.length} Active
+                    {t('necropsy_module.active_count', { count: activeComplaints.length })}
                   </Typography>
                   {activeComplaints.map((item, idx) => (
                     <ComplaintCard key={idx} item={item} theme={theme} />
@@ -628,7 +637,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
                   <Typography
                     sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}
                   >
-                    {closedComplaints.length} Closed
+                    {t('necropsy_module.closed_count', { count: closedComplaints.length })}
                   </Typography>
                   {closedComplaints.map((item, idx) => (
                     <ComplaintCard key={idx} item={item} theme={theme} isClosed />
@@ -642,12 +651,12 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'diagnosis':
         return (
           <Box>
-            <SectionHeader icon={DxIcon} title='Clinical Assessment' theme={theme} />
+            <SectionHeader icon={DxIcon} title={t('necropsy_module.clinical_assessment')} theme={theme} />
             <Box sx={{ ml: 4 }}>
               {activeDiagnosis.length > 0 && (
                 <>
                   <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
-                    {activeDiagnosis.length} Active
+                    {t('necropsy_module.active_count', { count: activeDiagnosis.length })}
                   </Typography>
                   {activeDiagnosis.map((item, idx) => (
                     <DiagnosisCard key={idx} item={item} theme={theme} />
@@ -659,7 +668,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
                   <Typography
                     sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}
                   >
-                    {closedDiagnosis.length} Closed
+                    {t('necropsy_module.closed_count', { count: closedDiagnosis.length })}
                   </Typography>
                   {closedDiagnosis.map((item, idx) => (
                     <DiagnosisCard key={idx} item={item} theme={theme} isClosed />
@@ -673,12 +682,12 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'prescription':
         return (
           <Box>
-            <SectionHeader icon={RxIcon} title='Prescription' theme={theme} />
+            <SectionHeader icon={RxIcon} title={t('necropsy_module.prescription')} theme={theme} />
             <Box sx={{ ml: 4 }}>
               {activePrescription.length > 0 && (
                 <>
                   <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.primary, mb: 2 }}>
-                    {activePrescription.length} Active
+                    {t('necropsy_module.active_count', { count: activePrescription.length })}
                   </Typography>
                   {activePrescription.map((item, idx) => (
                     <PrescriptionCard key={idx} item={item} theme={theme} />
@@ -690,7 +699,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
                   <Typography
                     sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mb: 2, mt: 3 }}
                   >
-                    {closedPrescription.length} Stopped
+                    {t('necropsy_module.stopped_count', { count: closedPrescription.length })}
                   </Typography>
                   {closedPrescription.map((item, idx) => (
                     <PrescriptionCard key={idx} item={item} theme={theme} isStopped />
@@ -704,7 +713,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'advice':
         return (
           <Box>
-            <SectionHeader icon={AdviceIcon} title='Advice' theme={theme} />
+            <SectionHeader icon={AdviceIcon} title={t('necropsy_module.advice')} theme={theme} />
             <Box sx={{ ml: 4, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {data?.advices?.map((item, idx) => (
                 <Chip
@@ -728,7 +737,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'lab':
         return (
           <Box>
-            <SectionHeader icon={LabIcon} title='Lab Test Requests' theme={theme} />
+            <SectionHeader icon={LabIcon} title={t('necropsy_module.lab_test_requests')} theme={theme} />
             <Box sx={{ ml: 4 }}>
               {data?.lab?.map((item, idx) => (
                 <LabCard
@@ -765,10 +774,10 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
 
         return (
           <Box>
-            <SectionHeader icon={AttachmentIcon} title='Attachments' theme={theme} />
+            <SectionHeader icon={AttachmentIcon} title={t('necropsy_module.attachments')} theme={theme} />
             <Box sx={{ ml: 4 }}>
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary, mb: 2 }}>
-                {allFiles.length} file(s) attached
+                {t('necropsy_module.files_attached', { count: allFiles.length })}
               </Typography>
               <Box
                 sx={{
@@ -806,7 +815,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'notes':
         return (
           <Box>
-            <SectionHeader icon={NotesIcon} title='Notes' theme={theme} />
+            <SectionHeader icon={NotesIcon} title={t('notes')} theme={theme} />
             <Box sx={{ ml: 4 }}>
               {data?.notes?.notes?.map((note, idx) => (
                 <Box
@@ -836,7 +845,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
       case 'followup':
         return (
           <Box>
-            <SectionHeader icon={FollowUpIcon} title='Next Visit / Follow-up' theme={theme} />
+            <SectionHeader icon={FollowUpIcon} title={t('necropsy_module.follow_up')} theme={theme} />
             <Box
               sx={{
                 ml: 4,
@@ -885,7 +894,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
         }}
       >
         <Typography sx={{ fontSize: '16px', fontWeight: 600, color: theme.palette.text.primary }}>
-          Medical Record
+          {t('necropsy_module.medical_record')}
         </Typography>
         <IconButton onClick={onClose} size='small'>
           <CloseIcon />
@@ -897,7 +906,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
           renderShimmer()
         ) : !data ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color='text.secondary'>Failed to load medical record details</Typography>
+            <Typography color='text.secondary'>{t('necropsy_module.failed_to_load_medical_record')}</Typography>
           </Box>
         ) : (
           <Box>
@@ -906,7 +915,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <Avatar
                     src={data?.case_type?.default_icon || ''}
-                    alt={data?.case_type?.label || 'Case Type'}
+                    alt={data?.case_type?.label || t('necropsy_module.case_type')}
                     sx={{
                       width: 36,
                       height: 36,
@@ -953,10 +962,10 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
 
               {data?.user_details && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>By</Typography>
+                  <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>{t('necropsy_module.by')}</Typography>
                   <Chip
                     icon={<PersonIcon sx={{ fontSize: 16 }} />}
-                    label={data.user_details.user_full_name || 'N/A'}
+                    label={data.user_details.user_full_name || t('necropsy_module.na')}
                     size='small'
                     sx={{
                       bgcolor: theme.palette.customColors?.surfaceVariant || theme.palette.grey[100],
@@ -1013,7 +1022,7 @@ const MedicalRecordDetailDrawer: FC<MedicalRecordDetailDrawerProps> = ({ open, o
                           >
                             {data.user_details?.user_mobile_number}
                           </Typography>
-                          <Tooltip title={copied ? 'Copied!' : 'Copy number'}>
+                          <Tooltip title={copied ? t('necropsy_module.copied') : t('necropsy_module.copy_number')}>
                             <IconButton
                               size='small'
                               onClick={() => handleCopyNumber(data.user_details?.user_mobile_number || '')}

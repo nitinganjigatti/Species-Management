@@ -4,10 +4,11 @@ import { Box, Button, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
-
+import Utility from 'src/utility'
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const AddTreatmentDrawer = ({
   open,
@@ -62,6 +63,11 @@ const AddTreatmentDrawer = ({
     onSearchTreatment?.('')
   }
 
+  const resolvedStartDate = dayjs.isDayjs(formData.startDate)
+    ? formData.startDate
+    : dayjs(Utility.convertUTCToLocal(formData.startDate))
+  const safeStartDate = resolvedStartDate.isValid() ? resolvedStartDate : dayjs(formData.startDate || undefined)
+
   const {
     control,
     reset,
@@ -69,16 +75,20 @@ const AddTreatmentDrawer = ({
     formState: { errors }
   } = useForm({
     defaultValues: {
+      startDate: safeStartDate,
       treatmentName: formData.treatmentName || null,
       notes: formData.notes || ''
     }
   })
 
-  useEffect(() => {
-    reset({
-      treatmentName: formData.treatmentName || null,
-      notes: formData.notes || ''
-    })
+useEffect(() => {
+  if (!open) return
+
+  reset({
+    startDate: formData.startDate ? dayjs(formData.startDate) : dayjs(),
+    treatmentName: formData.treatmentName || null,
+    notes: formData.notes || ''
+  })
   }, [formData.treatmentName, formData.notes, reset, open])
 
   const commonFieldStyles = {
@@ -155,7 +165,7 @@ const AddTreatmentDrawer = ({
               >
                 Treatment Start Date
               </Typography>
-              <MUIDatePicker
+              {/* <MUIDatePicker
                 value={formData.startDate}
                 onChange={value => onChange('startDate', value)}
                 label=''
@@ -174,6 +184,26 @@ const AddTreatmentDrawer = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }
                 }}
+              /> */}
+              <ControlledDatePicker
+                  required
+                  control={control}
+                  name={'startDate'}
+                  minDate={admissionDate}
+                  maxDate={dischargedDate || dayjs()}
+                  onChangeOverride={value => onChange('startDate', value)}
+                  sx={{
+                    ...commonFieldStyles,
+                    '& .MuiOutlinedInput-root': {
+                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      height: '56px'
+                    },
+                    '& .MuiInputBase-input': {
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
               />
             </Box>
 

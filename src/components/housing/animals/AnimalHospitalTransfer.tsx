@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react'
 import { Box, Typography, useTheme } from '@mui/material'
 import styled from '@emotion/styled'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useAuth } from 'src/hooks/useAuth'
+import { useTranslation } from 'react-i18next'
 
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -48,10 +49,11 @@ interface TransferStatusInfo {
 }
 
 const AnimalHospitalTransfer = () => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const theme = useTheme()
   const authData: any = useAuth()
+  const { t } = useTranslation()
   const settings = authData?.userData?.settings
 
   const [filters, setFilters] = useState<TransferFilters>({ page_no: 1, limit: 10 })
@@ -82,14 +84,14 @@ const AnimalHospitalTransfer = () => {
     const transfer_type = item?.transfer_type
 
     const labels: Record<string, TransferStatusInfo> = {
-      pending: { label: 'Pending' },
-      cancelled: { label: 'Cancelled' },
-      rejected: { label: 'Rejected' },
-      completed: { label: 'Transfer Completed' },
-      awaitingApproval: { label: 'Awaiting Acceptance' },
-      loadingPending: { label: 'Loading Pending' },
-      checkoutPending: { label: 'Security Checkout Pending' },
-      checkingPending: { label: 'Security Checking Pending' }
+      pending: { label: t('animals_module.pending') },
+      cancelled: { label: t('animals_module.cancelled') },
+      rejected: { label: t('animals_module.rejected') },
+      completed: { label: t('animals_module.transfer_completed') },
+      awaitingApproval: { label: t('animals_module.awaiting_acceptance') },
+      loadingPending: { label: t('animals_module.loading_pending') },
+      checkoutPending: { label: t('animals_module.security_checkout_pending') },
+      checkingPending: { label: t('animals_module.security_checking_pending') }
     } as const
 
     // If transfer is explicitly canceled
@@ -143,7 +145,7 @@ const AnimalHospitalTransfer = () => {
   const columns: GridColDef[] = [
     {
       field: 'id',
-      headerName: 'Sl No',
+      headerName: t('s_no') as string,
       minWidth: 70,
       maxWidth: 80,
       sortable: false,
@@ -153,7 +155,7 @@ const AnimalHospitalTransfer = () => {
     },
     {
       field: 'transfer_code',
-      headerName: 'Transfer Code',
+      headerName: t('animals_module.transfer_code') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -162,7 +164,7 @@ const AnimalHospitalTransfer = () => {
     },
     {
       field: 'total_animals',
-      headerName: 'Total Animals',
+      headerName: t('animals_module.total_animals') as string,
       minWidth: 150,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -171,7 +173,7 @@ const AnimalHospitalTransfer = () => {
     },
     {
       field: 'source',
-      headerName: 'Source',
+      headerName: t('animals_module.source') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -180,7 +182,7 @@ const AnimalHospitalTransfer = () => {
     },
     {
       field: 'destination',
-      headerName: 'Destination',
+      headerName: t('animals_module.destination') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -189,7 +191,7 @@ const AnimalHospitalTransfer = () => {
     },
     {
       field: 'transfer_status',
-      headerName: 'Transfer Status',
+      headerName: t('animals_module.transfer_status') as string,
       minWidth: 250,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => {
@@ -212,7 +214,7 @@ const AnimalHospitalTransfer = () => {
     },
     {
       field: 'reason',
-      headerName: 'Reason For Transfer',
+      headerName: t('animals_module.reason_for_transfer') as string,
       minWidth: 200,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (
@@ -231,7 +233,8 @@ const AnimalHospitalTransfer = () => {
     },
     {
       field: 'requested_by',
-      headerName: 'Requested By',
+      headerName: t('animals_module.requested_by') as string,
+      flex: 1,
       minWidth: 250,
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedHospitalTransferRow>) => (

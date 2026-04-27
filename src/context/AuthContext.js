@@ -6,8 +6,8 @@ import { callRefreshToken } from 'src/lib/api/auth'
 import { usePharmacyContext } from './PharmacyContext'
 import { usePariveshContext } from './PariveshContext'
 
-// ** Next Import
-import { useRouter } from 'next/router'
+// ** Next Import - Use safe router for both Page Router and App Router compatibility
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** Axios
 import axios from 'axios'
@@ -17,6 +17,7 @@ import authConfig from 'src/configs/auth'
 import { useQueryClient } from '@tanstack/react-query'
 import { useHospital } from './HospitalContext'
 import { useLanguage } from './LanguageContext'
+import { getDeviceInfo, setLastLoggedUser, saveDeviceId } from 'src/utility/deviceInfo'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
@@ -51,7 +52,7 @@ const AuthProvider = ({ children }) => {
   const queryClient = useQueryClient()
 
   // ** Hooks
-  const router = useRouter()
+  const router = useSafeRouter()
   useEffect(() => {
     const initAuth = async () => {
       //   const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
@@ -190,8 +191,13 @@ const AuthProvider = ({ children }) => {
     queryClient.getQueryCache().clear()
     queryClient.getMutationCache().clear()
 
-    // 3. Clear localStorage and sessionStorage
+    // 3. Clear localStorage and sessionStorage (preserve device data)
+    let deviceId
+    try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+    const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
     localStorage.clear()
+    if (deviceId) write('antz_device_id', deviceId)
+    if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
     sessionStorage.clear()
 
     // 4. Clear all state
@@ -211,30 +217,27 @@ const AuthProvider = ({ children }) => {
     await resetLanguage()
   }
 
-  const handleLogin = (params, errorCallback) => {
+  const handleLogin = async (params, errorCallback) => {
     // dispatch(fetchData(params))
     setLoginLoading(true)
 
     const url = `${base_url}v1/auth/login`
 
-    //   axios
-    //     .post(authConfig.loginEndpoint, params)
-    //     .then(async response => {
-    //       params.rememberMe
-    //         ? window.localStorage.setItem(authConfig.storageTokenKeyName, response.data.accessToken)
-    //         : null
-    //       const returnUrl = router.query.returnUrl
-    //       setUser({ ...response.data.userData })
-    //       params.rememberMe ? window.localStorage.setItem('userData', JSON.stringify(response.data.userData)) : null
-    //       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
-    //       router.replace(redirectURL)
-    //     })
-    //     .catch(err => {
-    //       if (errorCallback) errorCallback(err)
-    //     })
-    // }
+    // Get device details for login tracking
+    let deviceDetails = {}
+    try {
+      deviceDetails = await getDeviceInfo(params?.email)
+    } catch (err) {
+      console.error('Failed to get device info:', err)
+    }
+
+    const loginParams = {
+      ...params
+      // device_details: deviceDetails
+    }
+    console.log('device details for login:', deviceDetails)
     axios
-      .post(url, params)
+      .post(url, loginParams)
       .then(async response => {
         setLoginLoading(false)
 
@@ -265,6 +268,9 @@ const AuthProvider = ({ children }) => {
           write('userData', userData)
           setUserData({ ...resData })
           setUser({ ...userData })
+
+          // Save device ID (plain text hash) and last logged user (encrypted) ONLY after successful login
+          await Promise.all([saveDeviceId(), setLastLoggedUser(resData?.user?.user_id, resData?.user?.user_email)])
 
           // ******** Pharmcy
           const options = resData?.modules?.pharmacy_data?.pharmacy
@@ -329,7 +335,14 @@ const AuthProvider = ({ children }) => {
       queryClient.getMutationCache().clear()
 
       // 3. Clear localStorage and sessionStorage
+      // Preserve device_id (plain text hash) and last_logged_user (encrypted)
+      // Cookie fallback survives localStorage.clear() automatically
+      let deviceId
+      try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+      const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
       localStorage.clear()
+      if (deviceId) write('antz_device_id', deviceId)
+      if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
       sessionStorage.clear()
 
       // 4. Clear all state
@@ -352,8 +365,13 @@ const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error('Logout error:', error)
 
-      // Fallback: Force clear everything even if something fails
+      // Fallback: Force clear everything even if something fails (preserve device data)
+      let deviceId
+      try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+      const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
       localStorage.clear()
+      if (deviceId) write('antz_device_id', deviceId)
+      if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
       sessionStorage.clear()
       setUser(null)
       setUserData(null)

@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -107,6 +108,7 @@ interface EditTemplateDrawerProps {
 
 const EditTemplateDrawer: FC<EditTemplateDrawerProps> = ({ open, setOpen, template, onSave, onDelete }) => {
   const theme = useTheme()
+  const { t } = useTranslation('common')
 
   const [templateName, setTemplateName] = useState<string>('')
   const [templateData, setTemplateData] = useState<ProcessedOrgan[]>([])
@@ -264,7 +266,7 @@ return { ...part, description: value }
 
   const handleSave = async (): Promise<void> => {
     if (!templateName.trim()) {
-      Toaster({ type: 'error', message: 'Please enter a template name' })
+      Toaster({ type: 'error', message: t('necropsy_module.please_enter_template_name') })
 
       return
     }
@@ -296,15 +298,15 @@ return { ...part, description: value }
       const res = await updateNecropsyTemplate(templateId, payload)
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Template updated successfully' })
+        Toaster({ type: 'success', message: res?.message || t('necropsy_module.template_updated_successfully') })
         if (onSave) onSave()
         handleDrawerClose()
       } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to update template' })
+        Toaster({ type: 'error', message: res?.message || t('necropsy_module.failed_to_update_template') })
       }
     } catch (error) {
       console.error('Error updating template:', error)
-      Toaster({ type: 'error', message: 'Something went wrong while updating template' })
+      Toaster({ type: 'error', message: t('necropsy_module.error_updating_template') })
     } finally {
       setSaveLoading(false)
     }
@@ -317,15 +319,15 @@ return { ...part, description: value }
       const res = await deleteNecropsyTemplate(templateId)
 
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Template deleted successfully' })
+        Toaster({ type: 'success', message: res?.message || t('necropsy_module.template_deleted_successfully') })
         if (onDelete) onDelete()
         handleDrawerClose()
       } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to delete template' })
+        Toaster({ type: 'error', message: res?.message || t('necropsy_module.failed_to_delete_template') })
       }
     } catch (error) {
       console.error('Error deleting template:', error)
-      Toaster({ type: 'error', message: 'Something went wrong while deleting template' })
+      Toaster({ type: 'error', message: t('necropsy_module.error_deleting_template') })
     } finally {
       setDeleteLoading(false)
       setShowDeleteConfirm(false)
@@ -372,7 +374,7 @@ return { ...part, description: value }
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Edit Template
+                {t('necropsy_module.edit_template')}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -433,7 +435,7 @@ return { ...part, description: value }
                 <Box sx={{ px: 6, pt: 6, pb: 3 }}>
                   <TextField
                     fullWidth
-                    label='Template Name'
+                    label={t('necropsy_module.template_name')}
                     value={templateName}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTemplateName(e.target.value)}
                     sx={{
@@ -459,7 +461,7 @@ return { ...part, description: value }
                     }}
                     startIcon={<Icon icon='mdi:plus' fontSize={26} />}
                   >
-                    Add Organ
+                    {t('necropsy_module.add_organ')}
                   </Button>
                 </Box>
 
@@ -468,7 +470,7 @@ return { ...part, description: value }
                     <Typography
                       sx={{ fontSize: '18px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                     >
-                      Organs ({totalParts} parts in {templateData.length} categories)
+                      {t('necropsy_module.organs_summary', { parts: totalParts, categories: templateData.length })}
                     </Typography>
                     <Box
                       sx={{
@@ -510,7 +512,7 @@ return { ...part, description: value }
                                   color: theme.palette.customColors.OnSurfaceVariant
                                 }}
                               >
-                                {organ.label || `Category ${organ.id}`}
+                                {organ.label || `${t('necropsy_module.category')} ${organ.id}`}
                               </Typography>
                               <IconButton onClick={() => handleRemoveOrgan(organ.id)} size='small'>
                                 <Icon icon='zondicons:close-outline' color={theme.palette.customColors.Error} />
@@ -519,14 +521,14 @@ return { ...part, description: value }
                             {organ.parts?.length > 0 && (
                               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
                                 {organ.parts.map((part, idx) => {
-                                  const partName = part.organ_name || part.label || `Part ${idx + 1}`
+                                  const partName = part.organ_name || part.label || t('necropsy_module.part_label', { index: idx + 1 })
 
                                   return (
                                     <TextField
                                       key={part.id || idx}
                                       fullWidth
                                       size='small'
-                                      label={`Enter ${partName} Description`}
+                                      label={t('necropsy_module.enter_description', { partName })}
                                       multiline
                                       rows={1}
                                       value={part.description || ''}
@@ -584,7 +586,7 @@ return { ...part, description: value }
                     }}
                   >
                     <Typography color='text.secondary'>
-                      No organs in this template. Add organs or delete the template.
+                      {t('necropsy_module.no_organs_in_template')}
                     </Typography>
                   </Box>
                 )}
@@ -613,7 +615,7 @@ return { ...part, description: value }
                 height: '56px'
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button
               variant='contained'
@@ -622,7 +624,7 @@ return { ...part, description: value }
               disabled={saveLoading || !templateName.trim()}
               sx={{ height: '56px' }}
             >
-              {saveLoading ? <CircularProgress size={24} color='inherit' /> : 'Save'}
+              {saveLoading ? <CircularProgress size={24} color='inherit' /> : t('save')}
             </Button>
           </Box>
         </Box>
@@ -638,18 +640,18 @@ return { ...part, description: value }
       )}
 
       <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-        <DialogTitle>Delete Template</DialogTitle>
+        <DialogTitle>{t('necropsy_module.delete_template')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete this template? This action cannot be undone.
+            {t('necropsy_module.delete_template_confirmation')}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setShowDeleteConfirm(false)} disabled={deleteLoading}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleDelete} color='error' variant='contained' disabled={deleteLoading}>
-            {deleteLoading ? <CircularProgress size={20} color='inherit' /> : 'Delete'}
+            {deleteLoading ? <CircularProgress size={20} color='inherit' /> : t('delete')}
           </Button>
         </DialogActions>
       </Dialog>

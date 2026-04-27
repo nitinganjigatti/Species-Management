@@ -6,6 +6,7 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import AddIcon from '@mui/icons-material/Add'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
 
 const HeaderCard = ({
   title,
@@ -21,6 +22,7 @@ const HeaderCard = ({
   editTooltip = 'Edit'
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   return (
     <Box
@@ -75,7 +77,7 @@ const HeaderCard = ({
               <Typography
                 sx={{ color: theme.palette.customColors.PrimaryContainer, fontSize: '0.875rem', whiteSpace: 'nowrap' }}
               >
-                Add new
+                {t('add_new')}
               </Typography>
               <IconButton
                 sx={{

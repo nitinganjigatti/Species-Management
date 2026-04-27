@@ -18,6 +18,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import StickyNote2Icon from '@mui/icons-material/StickyNote2'
 import SegmentIcon from '@mui/icons-material/Segment'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { useInView } from 'react-intersection-observer'
 import moment from 'moment'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -27,6 +28,7 @@ import { getMeasurementUnits } from 'src/lib/api/necropsy'
 
 const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight' }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const [loading, setLoading] = useState(false)
   const [assessmentTypes, setAssessmentTypes] = useState([])
@@ -423,7 +425,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 <Typography
                   sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Assessment
+                  {t('animals_module.assessment')}
                 </Typography>
               </Box>
               <IconButton onClick={onClose}>
@@ -505,7 +507,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 }}
               >
                 <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
-                  Total assessment types
+                  {t('animals_module.total_assessment_types')}
                 </Typography>
                 <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
                   {assessmentTypes.length}
@@ -571,20 +573,20 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                       }
                     }}
                   >
-                    <Tab label='Records' />
-                    <Tab label='Trend Graph' />
+                    <Tab label={t('animals_module.records')} />
+                    <Tab label={t('animals_module.trend_graph')} />
                   </Tabs>
                 </Box>
 
                 {/* Unit Selector for Weight */}
                 {(weightSubTab === 0 || weightSubTab === 1) && measurementUnits.length > 0 && (
                   <FormControl fullWidth sx={{ mb: 3 }}>
-                    <InputLabel id='unit-select-label'>Unit of Measurement</InputLabel>
+                    <InputLabel id='unit-select-label'>{t('animals_module.unit_of_measurement')}</InputLabel>
                     <Select
                       labelId='unit-select-label'
                       id='unit-select'
                       value={selectedWeightUnit || ''}
-                      label='Unit of Measurement'
+                      label={t('animals_module.unit_of_measurement')}
                       onChange={e => setSelectedWeightUnit(parseInt(e.target.value))}
                     >
                       {measurementUnits
@@ -608,7 +610,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 </Box>
               ) : assessmentData.length === 0 ? (
                 <Typography sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
-                  No data found
+                  {t('no_data_found')}
                 </Typography>
               ) : (
                 <>

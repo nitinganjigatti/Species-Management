@@ -166,108 +166,140 @@ const IndividualDispense = () => {
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3,  }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Grid
             container
             sx={{
               justifyContent: 'space-between',
-              alignItems: 'center',
-              
+              alignItems: 'center'
             }}
           >
-            <Grid item size={{ xs: 12, md: 6.4 }} sx = {{mb: {xs: 2.8, sm: 2.8, lg: 0}}}>
-                <PageCardLayout
-                  title= 'Dispense Detail'
-                  showIcon = {true}
-                  onIconClick={() => {
-                    Router.back()
+            <Grid item size={{ xs: 12, md: 6.4 }} sx={{ mb: { xs: 2.8, sm: 2.8, lg: 0 } }}>
+              <PageCardLayout
+                title='Dispense Detail'
+                showIcon={true}
+                onIconClick={() => {
+                  Router.back()
+                }}
+                titleStyles={{
+                  fontSize: '20px'
+                }}
+              >
+                <Grid
+                  item
+                  size={{ xs: 'auto', sm: 'auto' }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-evenly',
+                    gap: { xs: 3, sm: 'auto' }
                   }}
-                  titleStyles={{
-                    fontSize: '20px'
-                    }}>
-                  <Grid item size = {{xs: 'auto', sm: 'auto'}} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', gap: {xs: 3, sm: 'auto'} }}>
-                    {/* <Box> */}
-                      <Avatar
-                        sx={{
-                          '& > img': {
-                            objectFit: 'contain'
-                          },
-                          width: 100,
-                          height: 100,
-                          my: 2
-                        }}
-                        variant='rounded'
-                        alt={dispenseData?.created_profile_pic}
-                        src={dispenseData?.created_profile_pic}
-                      />
-                    {/* </Box> */}
+                >
+                  {/* <Box> */}
+                  <Avatar
+                    sx={{
+                      '& > img': {
+                        objectFit: 'contain'
+                      },
+                      width: 100,
+                      height: 100,
+                      my: 2
+                    }}
+                    variant='rounded'
+                    alt={dispenseData?.created_profile_pic}
+                    src={dispenseData?.created_profile_pic}
+                  />
+                  {/* </Box> */}
 
-                    <Box sx={{ my: 2 }}>
-                      <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
-                        {dispenseData?.created_user_first_name} {dispenseData?.created_user_last_name}
+                  <Box sx={{ my: 2 }}>
+                    <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                      {dispenseData?.created_user_first_name} {dispenseData?.created_user_last_name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
+                      <Typography sx={{}}>
+                        {dispenseData?.created_user_country_code} {dispenseData?.created_user_mobile_number}
                       </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
-                        <Typography sx={{}}>
-                          {dispenseData?.created_user_country_code} {dispenseData?.created_user_mobile_number}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex' }}>
-                        <Typography sx={{ fontWeight: 600 }}>Dispense Id : </Typography>
-                        <Typography>&nbsp;{dispenseData?.dispense_id}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', my: 0 }}>
-                        <Typography sx={{ fontWeight: 600 }}>Created At : </Typography>
-                        <Typography>
-                          &nbsp;
-                          {Utility.formatDisplayDate(Utility.convertUTCToLocal(dispenseData?.created_at))} -{' '}
-                          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(dispenseData?.created_at))}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex' }}>
-                        <Typography sx={{ fontWeight: 600 }}>From Store : </Typography>
-                        <Typography>&nbsp;{dispenseData?.from_store}</Typography>
-                      </Box>
                     </Box>
-                  </Grid>
-                  </PageCardLayout>
+                    <Box sx={{ display: 'flex' }}>
+                      <Typography sx={{ fontWeight: 600 }}>Dispense Id : </Typography>
+                      <Typography>&nbsp;{dispenseData?.dispense_id}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', my: 0 }}>
+                      <Typography sx={{ fontWeight: 600 }}>Created At : </Typography>
+                      <Typography>
+                        &nbsp;
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(dispenseData?.created_at))} -{' '}
+                        {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(dispenseData?.created_at))}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex' }}>
+                      <Typography sx={{ fontWeight: 600 }}>From Store : </Typography>
+                      <Typography>&nbsp;{dispenseData?.from_store}</Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </PageCardLayout>
             </Grid>
             <Grid item size={{ xs: 12, md: 5.4 }}>
               <PageCardLayout
-                title = "Dispense To"
-                showIcon = {true}
-                icon = 'ep:user'
-                titleStyles = {{
-                  fontSize: "20px"
-                }}>
-                  <Grid item size = {{xs: 'auto', sm: 10.5}} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly', gap: {xs: 3, sm: 'auto'}}}>
-                    {/* <Box> */}
-                      <Avatar
-                        sx={{
-                          '& > img': {
-                            objectFit: 'contain'
-                          },
-                          width: 100,
-                          height: 100,
-                          my: 6
-                        }}
-                        variant='rounded'
-                        alt={dispenseData?.profile_pic}
-                        src={dispenseData?.profile_pic}
-                      />
-                    {/* </Box> */}
-                    <Box>
+                title='Dispense To'
+                showIcon={true}
+                icon='ep:user'
+                titleStyles={{
+                  fontSize: '20px'
+                }}
+              >
+                <Grid
+                  item
+                  size={{ xs: 'auto', sm: 10.5 }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-evenly',
+                    gap: { xs: 3, sm: 'auto' }
+                  }}
+                >
+                  {/* <Box> */}
+                  <Avatar
+                    sx={{
+                      '& > img': {
+                        objectFit: 'contain'
+                      },
+                      width: 100,
+                      height: 100,
+                      my: 6
+                    }}
+                    variant='rounded'
+                    alt={dispenseData?.profile_pic}
+                    src={dispenseData?.profile_pic}
+                  />
+                  {/* </Box> */}
+                  <Box>
+                    {(dispenseData?.dispense_user_name || dispenseData?.ep_number) && (
                       <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
-                        {dispenseData?.user_first_name} {dispenseData?.user_last_name}
+                        Dispensed To: {dispenseData?.dispense_user_name}
+                        <br />
+                        <Box sx={{ display: 'flex' }}>
+                          <Typography sx={{ fontWeight: 600 }}>EP No: </Typography>
+                          <Typography>{dispenseData?.ep_number}</Typography>
+                        </Box>
                       </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
-                        <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
-                          {dispenseData?.user_country_code} {dispenseData?.user_mobile_number}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
+                    )}
+                    <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                      {dispenseData?.user_first_name} {dispenseData?.user_last_name}
+                    </Typography>
+                    {dispenseData?.user_country_code ||
+                      (dispenseData?.user_mobile_number && (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
+                          <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
+                            {dispenseData?.user_country_code} {dispenseData?.user_mobile_number}
+                          </Typography>
+                        </Box>
+                      ))}
+                  </Box>
+                </Grid>
               </PageCardLayout>
             </Grid>
           </Grid>

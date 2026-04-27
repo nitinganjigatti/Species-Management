@@ -1,5 +1,4 @@
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
@@ -8,6 +7,7 @@ import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@mui/material/styles'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   const theme = useTheme()
@@ -357,34 +357,12 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                     /> */}
 
                     <CardHeader title='Item by Quantity' sx={{ pl: 0 }} />
-                    <DataGrid
-                      sx={{
-                        '.MuiDataGrid-cell:focus': {
-                          outline: 'none'
-                        },
-                        '& .MuiDataGrid-row:hover': {
-                          cursor: 'pointer'
-                        },
-                        '& .MuiDataGrid-columnHeader': {
-                          whiteSpace: 'nowrap', // Prevents text wrapping in header
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        },
-                        '& .MuiDataGrid-cell': {
-                          whiteSpace: 'nowrap', // Prevents text wrapping in cell
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }
-                      }}
-                      columnVisibilityModel={{
-                        sl_no: false
-                      }}
-                      autoHeight
-                      hideFooterSelectedRowCount
-                      disableColumnSelector={true}
-                      hideFooter={true}
-                      rows={rowsQuantity}
+                    <CommonTable
+                      indexedRows={rowsQuantity}
                       columns={columns}
+                      columnVisibilityModel={{ sl_no: false }}
+                      hideFooter={true}
+                      disablePagination={true}
                     />
                   </Card>
                 </CardContent>

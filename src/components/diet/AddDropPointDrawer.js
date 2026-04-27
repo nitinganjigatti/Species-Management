@@ -1,4 +1,4 @@
-import { Box, Button, Card, Drawer, IconButton, Typography, Divider, Chip } from '@mui/material'
+import { Box, Button, Drawer, IconButton, Typography, Chip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
@@ -145,35 +145,45 @@ const AddDropPointDrawer = ({
       variant='temporary'
       onClose={handleClose}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: '100%', sm: 500 } } }}
+      sx={{
+        '& .MuiDrawer-paper': {
+          width: { xs: '100%', sm: 562 },
+          display: 'flex',
+          flexDirection: 'column'
+        }
+      }}
     >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          p: 3,
+          p: theme => theme.spacing(3, 4),
           borderBottom: `1px solid ${theme.palette.divider}`
         }}
       >
-        <Typography variant='h6' sx={{ fontWeight: 600, fontFamily: 'Inter' }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '24px',
+            fontWeight: 500
+          }}
+        >
           {t('diet_module.add_drop_point')}
         </Typography>
-        <IconButton onClick={handleClose}>
-          <Icon icon='mdi:close' fontSize={20} />
+        <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.primary.light }}>
+          <Icon icon='mdi:close' fontSize={25} />
         </IconButton>
       </Box>
 
-      <Box sx={{ p: 3, flex: 1, overflowY: 'auto' }}>
+      <Box sx={{ p: 4, flex: 1, overflowY: 'auto' }}>
         {/* Site Preview */}
-        <Card
+        <Box
           sx={{
-            p: 2,
+            p: 3,
             mb: 3,
-            backgroundColor: theme.palette.customColors.lightBg,
-            boxShadow: 'none',
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: '4px'
+            backgroundColor: theme.palette.customColors.Surface,
+            borderRadius: '8px'
           }}
         >
           <Typography
@@ -201,17 +211,15 @@ const AddDropPointDrawer = ({
           >
             {siteName || 'N/A'}
           </Typography>
-        </Card>
+        </Box>
 
         {/* Meal Groups Preview */}
-        <Card
+        <Box
           sx={{
-            p: 2,
-            mb: 3,
-            backgroundColor: theme.palette.customColors.lightBg,
-            boxShadow: 'none',
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: '4px'
+            p: 3,
+            mb: 4,
+            backgroundColor: theme.palette.customColors.Surface,
+            borderRadius: '8px'
           }}
         >
           <Typography
@@ -222,51 +230,45 @@ const AddDropPointDrawer = ({
               fontFamily: 'Inter',
               color: theme.palette.customColors.OnSurfaceVariant,
               textTransform: 'uppercase',
-              mb: 1,
+              mb: 2,
               display: 'block'
             }}
           >
             {t('diet_module.selected_meal_groups')} ({selectedMealGroups.length})
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             {selectedMealGroupDetails.map(group => (
               <Chip
                 key={group.id}
                 label={group.group_name}
                 onDelete={onRemoveMealGroup ? () => onRemoveMealGroup(group.id) : undefined}
-                sx={{
-                  backgroundColor: theme.palette.primary.main,
-                  color: '#fff',
-                  fontFamily: 'Inter',
-                  fontSize: '14px',
-                  '& .MuiChip-deleteIcon': {
-                    color: '#fff',
-                    '&:hover': {
-                      color: 'rgba(255, 255, 255, 0.8)'
-                    }
-                  }
-                }}
               />
             ))}
           </Box>
-        </Card>
-
-        <Divider sx={{ my: 3 }} />
+        </Box>
 
         {/* Drop Point Name Input */}
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography
+            sx={{
+              fontFamily: 'Inter',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            {t('diet_module.drop_point_name')}
+            <span style={{ color: theme.palette.error.main, marginLeft: 4 }}>*</span>
+          </Typography>
           <ControlledAutocomplete
             name='drop_point_name'
-            label='Drop Point Name *'
+            label=''
             control={control}
             errors={errors}
-            options={dropPointList.map(item => {
-              console.log('Mapping drop point item:', item)
-              return {
-                label: item.drop_point_name || item.name,
-                value: item.id || item.drop_point_id
-              }
-            })}
+            options={dropPointList.map(item => ({
+              label: item.drop_point_name || item.name,
+              value: item.id || item.drop_point_id
+            }))}
             loading={dropPointLoading}
             required={{
               value: true,
@@ -274,28 +276,21 @@ const AddDropPointDrawer = ({
             }}
             showIcons={true}
             onChangeOverride={value => {
-              console.log('ControlledAutocomplete onChange:', value)
-              // User selected from dropdown
               if (value && value.value) {
                 setInputValue('')
               }
             }}
             onInputChange={(value, reason) => {
-              console.log('Input change - Value:', value, 'Reason:', reason)
-              // Track the typed value
               if (reason === 'input') {
                 setInputValue(value)
               }
             }}
             onBlur={() => {
-              console.log('Blur event - Input Value:', inputValue)
-              // On blur, if there's typed text and no selection, set it as custom value
               if (inputValue && inputValue.trim()) {
                 const customValue = {
                   label: inputValue.trim(),
                   value: inputValue.trim()
                 }
-                console.log('Setting custom value on blur:', customValue)
                 setValue('drop_point_name', customValue, { shouldValidate: true })
               }
             }}
@@ -312,7 +307,8 @@ const AddDropPointDrawer = ({
             }}
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: '4px'
+                borderRadius: '8px',
+                backgroundColor: theme.palette.background.paper
               }
             }}
           />
@@ -322,17 +318,22 @@ const AddDropPointDrawer = ({
       {/* Footer Actions */}
       <Box
         sx={{
-          p: 3,
+          p: 5,
           borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
           display: 'flex',
-          gap: 2,
-          justifyContent: 'flex-end'
+          gap: 4,
+          flexShrink: 0
         }}
       >
         <Button
-          onClick={handleClose}
+          fullWidth
           variant='outlined'
+          color='primary'
+          onClick={handleClose}
           sx={{
+            p: 3,
+            fontWeight: 600,
             borderRadius: '4px',
             color: theme.palette.customColors.OnSurfaceVariant,
             borderColor: theme.palette.customColors.Outline,
@@ -345,12 +346,16 @@ const AddDropPointDrawer = ({
           {t('cancel')}
         </Button>
         <LoadingButton
+          fullWidth
           loading={loading}
-          onClick={handleFormSubmit(handleSubmit)}
           variant='contained'
+          color='primary'
+          onClick={handleFormSubmit(handleSubmit)}
           sx={{
-            backgroundColor: theme.palette.primary.main,
+            p: 3,
+            fontWeight: 600,
             borderRadius: '4px',
+            backgroundColor: theme.palette.primary.main,
             '&:hover': {
               backgroundColor: theme.palette.primary.dark
             }

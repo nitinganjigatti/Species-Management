@@ -4,9 +4,8 @@ import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { useEffect, useState } from 'react'
 import Chip from '@mui/material/Chip'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CardContent from '@mui/material/CardContent'
-import { useTheme } from '@mui/material/styles'
 
 // ** Custom Components Imports
 import OptionsMenu from 'src/@core/components/option-menu'
@@ -19,7 +18,6 @@ import { bgcolor, maxWidth, width } from '@mui/system'
 import { WidthFull } from '@mui/icons-material'
 
 const StoreWiseNewRequests = () => {
-  const theme = useTheme()
   const [requestList, setRequestList] = useState([])
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -176,42 +174,11 @@ const StoreWiseNewRequests = () => {
       <Tooltip>
         <CardContent>
           {requestList?.length > 0 ? (
-            <DataGrid
-              autoWidth
-              autoHeight
-              rows={requestList === undefined ? [] : requestList}
+            <CommonTable
+              indexedRows={requestList}
               columns={columns}
-              disableColumnMenu
-              paginationModel={false}
-              pagination={false}
               hideFooter
-              sx={{
-                '& .MuiDataGrid-cell': {
-                  display: 'flex',
-                  alignItems: 'center'
-                },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: theme.palette.customColors.customTableHeaderBg
-                },
-                '& .MuiDataGrid-columnHeader': {
-                  backgroundColor: theme.palette.customColors.customTableHeaderBg
-                },
-                '& .MuiDataGrid-filler': {
-                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
-                },
-                '& .MuiDataGrid-scrollbarFiller': {
-                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
-                },
-                '& .MuiDataGrid-filler--pinnedColumns': {
-                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
-                },
-                '& .MuiDataGrid-scrollbarFiller--header': {
-                  backgroundColor: `${theme.palette.customColors.customTableHeaderBg} !important`
-                },
-                '& .MuiDataGrid-row:last-of-type': {
-                  borderBottom: '1px solid rgba(224, 224, 224, 1)'
-                }
-              }}
+              disablePagination
             />
           ) : null}
         </CardContent>

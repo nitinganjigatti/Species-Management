@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -132,6 +133,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
   internalFatherCount = 0
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const [parentSource, setParentSource] = useState<'internal' | 'external'>(editMode ? 'external' : 'internal')
 
   // Disable logic for radio buttons (matching mobile implementation)
@@ -810,7 +812,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                         parentSource === 'external' ? theme.palette.customColors?.OnPrimary : theme.palette.text.primary
                     }}
                   >
-                    External
+                    {t('animals_module.external')}
                   </Typography>
                   <Box
                     sx={{
@@ -963,7 +965,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                   mb: 3
                 }}
               >
-                {parentType === 'sire' ? 'Add Sire' : 'Add Dam'}
+                {parentType === 'sire' ? t('animals_module.add_sire') : t('animals_module.add_dam')}
               </Typography>
 
               {/* No animals selected - Show Select Animal Button */}
@@ -985,7 +987,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                   }}
                 >
                   <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.primary.main }}>
-                    Select Animal
+                    {t('animals_module.select_animal')}
                   </Typography>
                   <AddIcon sx={{ color: theme.palette.primary.main }} />
                 </Box>
@@ -1005,7 +1007,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     }}
                   >
                     <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.text.primary }}>
-                      Selected - {selectedAnimals.length}
+                      {t('selected')} - {selectedAnimals.length}
                     </Typography>
                     <IconButton
                       onClick={() => setAnimalDrawerOpen(true)}
@@ -1096,8 +1098,8 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     renderInput={params => (
                       <TextField
                         {...params}
-                        label='Species *'
-                        placeholder='Search species (min 3 characters)'
+                        label={`${t('species')} *`}
+                        placeholder={t('animals_module.search_species_min') as string}
                         error={!!errors.taxonomy_id}
                         helperText={errors.taxonomy_id?.message}
                         InputProps={{
@@ -1121,10 +1123,10 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.identifier_type_id}>
-                    <InputLabel>Identity Type *</InputLabel>
+                    <InputLabel>{`${t('animals_module.identity_type')} *`}</InputLabel>
                     <Select
                       {...field}
-                      label='Identity Type *'
+                      label={`${t('animals_module.identity_type')} *`}
                       disabled={isConfigsLoading}
                       startAdornment={isConfigsLoading ? <CircularProgress size={20} sx={{ mr: 1 }} /> : null}
                     >
@@ -1150,7 +1152,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label='ID Number *'
+                    label={`${t('animals_module.id_number')} *`}
                     placeholder='Enter ID number'
                     fullWidth
                     error={!!errors.local_identifier}
@@ -1177,7 +1179,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                     renderInput={params => (
                       <TextField
                         {...params}
-                        label='Institute/Organization *'
+                        label={`${t('animals_module.institute_organization')} *`}
                         placeholder='Select institute'
                         error={!!errors.institute_id}
                         helperText={errors.institute_id?.message}
@@ -1202,10 +1204,10 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                 control={control}
                 render={({ field }) => (
                   <FormControl fullWidth error={!!errors.is_alive}>
-                    <InputLabel>Status *</InputLabel>
-                    <Select {...field} label='Status *'>
-                      <MenuItem value='1'>Alive</MenuItem>
-                      <MenuItem value='0'>Dead</MenuItem>
+                    <InputLabel>{`${t('status')} *`}</InputLabel>
+                    <Select {...field} label={`${t('status')} *`}>
+                      <MenuItem value='1'>{t('animals_module.alive')}</MenuItem>
+                      <MenuItem value='0'>{t('animals_module.dead')}</MenuItem>
                     </Select>
                   </FormControl>
                 )}
@@ -1230,7 +1232,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                       renderInput={params => (
                         <TextField
                           {...params}
-                          label='Breed'
+                          label={t('animals_module.breed')}
                           placeholder='Select breed'
                           InputProps={{
                             ...params.InputProps,
@@ -1267,7 +1269,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
                       renderInput={params => (
                         <TextField
                           {...params}
-                          label='Morph/Variant'
+                          label={t('animals_module.morph_variant')}
                           placeholder='Select morph'
                           InputProps={{
                             ...params.InputProps,
@@ -1313,7 +1315,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
             }}
             onClick={onClose}
           >
-            CANCEL
+            {t('cancel')}
           </Button>
           {parentSource === 'internal' && !editMode ? (
             <Button
@@ -1327,9 +1329,9 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
               {loading ? (
                 <CircularProgress size={24} color='inherit' />
               ) : selectedAnimals.length > 1 ? (
-                `ADD ${selectedAnimals.length} PARENTS`
+                `${t('animals_module.add_parents')} (${selectedAnimals.length})`
               ) : (
-                'ADD PARENT'
+                t('animals_module.add_parent')
               )}
             </Button>
           ) : (
@@ -1341,7 +1343,7 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
               disabled={loading}
               sx={{ p: 3, fontWeight: 600, backgroundColor: theme.palette.customColors?.OnPrimaryContainer }}
             >
-              {loading ? <CircularProgress size={24} color='inherit' /> : editMode ? 'UPDATE PARENT' : 'ADD PARENT'}
+              {loading ? <CircularProgress size={24} color='inherit' /> : editMode ? t('animals_module.update_parent') : t('animals_module.add_parent')}
             </Button>
           )}
         </Box>
@@ -1353,9 +1355,9 @@ const AddParentDrawer: React.FC<AddParentDrawerProps> = ({
         onClose={() => setAnimalDrawerOpen(false)}
         onSelect={handleAnimalSelection}
         initialSelectedAnimals={selectedAnimals}
-        title={`Select ${parentType === 'sire' ? 'Sire (Father)' : 'Dam (Mother)'}`}
-        btnText='SELECT'
-        searchPlaceholder={`Search ${parentType === 'sire' ? 'male' : 'female'} animals`}
+        title={(parentType === 'sire' ? t('animals_module.select_sire') : t('animals_module.select_dam')) as string}
+        btnText={t('select') as string}
+        searchPlaceholder={(parentType === 'sire' ? t('animals_module.search_male_animals') : t('animals_module.search_female_animals')) as string}
         extraParams={buildExtraParams()}
         zIndex={1300}
         // Filter props

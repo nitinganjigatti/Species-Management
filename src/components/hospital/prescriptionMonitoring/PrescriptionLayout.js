@@ -6,7 +6,7 @@ import MedicinePrescriptionCard from 'src/views/pages/hospital/prescription-moni
 import { useRouter } from 'next/router'
 import { useHospital } from 'src/context/HospitalContext'
 import Toaster from 'src/components/Toaster'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import {
   administerAllMedicines,
   administerDose,
@@ -34,8 +34,8 @@ const STORAGE_KEY = 'medical_record_data'
 
 function PrescriptionLayout({ drawerType, overviewData, category }) {
   const router = useRouter()
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const today = new Date().toISOString().split('T')[0] // gives 'YYYY-MM-DD'
   // Get ID from router (with fallback during initial render before router is ready)

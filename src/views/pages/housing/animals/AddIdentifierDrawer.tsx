@@ -24,6 +24,7 @@ import { addAnimalIdentifier, deleteAnimalIdentifier, editAnimalIdentifier } fro
 
 import { QueryClient } from '@tanstack/react-query'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 interface IdentifierData {
   id?: string
@@ -63,6 +64,7 @@ const schema = yup.object().shape({
 const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen, identifierData, animalId, localIdentifierTypeData, setIdentifierData, refetch }) => {
   const theme = useTheme() as any
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { t } = useTranslation()
 
   const [loading, setLoading] = useState<boolean>(false)
   const [openDeleteDialog, setOpenDeleteDialog] = useState<boolean>(false)
@@ -246,7 +248,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Cluster Icon' width='30px' />
-            <Typography variant='h6'>{identifierData !== null ? 'Edit' : 'Add'} Local Identifier</Typography>
+            <Typography variant='h6'>{identifierData !== null ? t('animals_module.edit_local_identifier') : t('animals_module.add_local_identifier')}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -293,7 +295,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
                   render={({ field }) => (
                     <FormControlLabel
                       control={<Checkbox {...field} checked={field.value} />}
-                      label='Make Primary'
+                      label={t('animals_module.make_primary')}
                     />
                   )}
                 />
@@ -461,7 +463,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
               }}
               onClick={() => setOpenDeleteDialog(true)}
             >
-              DELETE
+              {t('delete')}
             </Button>
           )}
           <Button
@@ -474,7 +476,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
             }}
             onClick={handleSubmit(onSubmit)}
           >
-            {loading ? <CircularProgress size={24} color='inherit' /> : 'SUBMIT'}
+            {loading ? <CircularProgress size={24} color='inherit' /> : t('submit')}
           </Button>
         </Box>
       </Drawer>
@@ -482,7 +484,7 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
         <ConfirmationDialog
           dialogBoxStatus={openDeleteDialog}
           onClose={onDeleteDialogClose}
-          title={'Are your sure you want to delete this local identifier?'}
+          title={t('animals_module.confirm_delete_identifier')}
           cancelText={'NO'}
           confirmBtnStyle={{ background: theme.palette.customColors.Error, py: 2 }}
           image={'/images/warning-icon.svg'}

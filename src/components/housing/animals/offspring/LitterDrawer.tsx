@@ -2,13 +2,14 @@ import React, { useEffect, useState, useMemo } from 'react'
 import { Box, Divider, Drawer, IconButton, Typography, useTheme, CircularProgress } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Search from 'src/views/utility/Search'
 import debounce from 'lodash/debounce'
+import { useTranslation } from 'react-i18next'
 import Utility from 'src/utility'
 import { StyledTypographyProps, AnimalItem, LitterItem } from 'src/types/housing/animalsOffspring'
 
@@ -20,7 +21,8 @@ interface LitterDrawerProps {
 
 const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
 
   const [searchInput, setSearchInput] = useState('')
   const [searchLitter, setSearchLitter] = useState('')
@@ -71,7 +73,7 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
   }
 
   const handleAnimalClick = (animalId: string) => {
-    router.push(`/housing/animals/${animalId}`)
+    router.push(`/animals/${animalId}`)
   }
 
   useEffect(() => {
@@ -122,7 +124,7 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
               <Typography
                 sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Litter Details
+                {t('animals_module.litter_details')}
               </Typography>
 
               <IconButton size='small' onClick={onClose} sx={{ color: theme.palette.text.primary }}>
@@ -151,7 +153,7 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
                     borderRadius: '8px 8px 0 0'
                   }}
                 >
-                  <StyledTypography fontWeight={500}>Litter {litterDetails?.litter_id}</StyledTypography>
+                  <StyledTypography fontWeight={500}>{t('animals_module.litter')} {litterDetails?.litter_id}</StyledTypography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <img src='/images/line_start_circle.svg' alt='line-start-circle' />
@@ -214,13 +216,13 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
 
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mx: 4, my: 3 }}>
                     <StyledTypography>
-                      Total: <span style={{ fontWeight: 600 }}>{litterDetails?.total_animal_count}</span>
+                      {t('animals_module.total')}: <span style={{ fontWeight: 600 }}>{litterDetails?.total_animal_count}</span>
                     </StyledTypography>
                     <StyledTypography>
-                      Dead: <span style={{ fontWeight: 600 }}>{litterDetails?.death_count}</span>
+                      {t('animals_module.dead')}: <span style={{ fontWeight: 600 }}>{litterDetails?.death_count}</span>
                     </StyledTypography>
                     <StyledTypography>
-                      Alive: <span style={{ fontWeight: 600 }}>{litterDetails?.alive_count}</span>
+                      {t('animals_module.alive')}: <span style={{ fontWeight: 600 }}>{litterDetails?.alive_count}</span>
                     </StyledTypography>
                   </Box>
                 </Box>
@@ -231,7 +233,7 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
             <Box sx={{ backgroundColor: theme.palette.background.paper, borderRadius: 1 }}>
               <Search
                 width={'100%'}
-                placeholder='Search '
+                placeholder={t('search') as string}
                 value={searchInput}
                 onChange={handleSearchLitter}
                 onClear={handleSearchLitterClear}

@@ -7,6 +7,7 @@ import { alpha } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
 import { getFetusStats, getFetusList } from 'src/lib/api/housing'
 import Utility from 'src/utility'
+import { useTranslation } from 'react-i18next'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import FetalDeathDrawer from './FetalDeathDrawer'
 
@@ -18,6 +19,7 @@ type PillTabsProps = {
 
 const FetalDeath: React.FC<TabProps> = props => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const availableTabs: string[] = ['Still Birth', 'Abortion']
   const [activeTab, setActiveTab] = React.useState<string>(availableTabs[0])
@@ -52,6 +54,11 @@ const FetalDeath: React.FC<TabProps> = props => {
   const PillTabs: React.FC<PillTabsProps> = ({ tabs, activeTab, onTabClick }) => {
     const theme = useTheme() as any
 
+    const tabLabelMap: Record<string, string> = {
+      'Still Birth': t('animals_module.still_birth'),
+      Abortion: t('animals_module.abortion')
+    }
+
     const tabStatsMap: Record<string, number> = {
       'Still Birth': Number(fetusStatsData?.stillbirth_count ?? 0),
       Abortion: Number(fetusStatsData?.abortion_count ?? 0)
@@ -83,7 +90,7 @@ const FetalDeath: React.FC<TabProps> = props => {
                   fontWeight: 500
                 }}
               >
-                {tab} - {tabStatsMap[tab]}
+                {tabLabelMap[tab]} - {tabStatsMap[tab]}
               </Typography>
             </Box>
           ))}
@@ -137,7 +144,7 @@ const FetalDeath: React.FC<TabProps> = props => {
                     }}
                   >
                     <Typography>
-                      Reported by <span style={{ fontWeight: 600 }}>{item.report_by}</span>
+                      {t('animals_module.reported_by')} <span style={{ fontWeight: 600 }}>{item.report_by}</span>
                     </Typography>
                     <Typography>
                       {' '}

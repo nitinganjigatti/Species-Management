@@ -7,6 +7,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { useForm } from 'react-hook-form'
+import NoDataFound from 'src/views/utility/NoDataFound'
 const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId}) => {
   const theme = useTheme()
   const { setValue } = useForm()
@@ -178,7 +179,8 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId}) => {
             </>
           ) : (
             <>
-              {doctors?.map(doctor => (
+              {doctors.length > 0 ? (
+                doctors?.map(doctor => (
                 <Box
                   key={doctor?.id}
                   sx={{
@@ -199,7 +201,12 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId}) => {
                     <Icon icon='mdi:check-circle' color={theme.palette.primary.main} style={{ fontSize: 20 }} />
                   )}
                 </Box>
-              ))}
+              ))
+              ) : (
+                <>
+                  <NoDataFound width={200} height={200} />
+                </>
+              )}
             </>
           )}
         </Box>
@@ -223,7 +230,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId}) => {
             color='primary'
             onClick={onSave}
             sx={{ p: 3, fontWeight: 600 }}
-            disabled={selected=== null}
+            disabled={selected === null}
           >
             ADD
           </Button>

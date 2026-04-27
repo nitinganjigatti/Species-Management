@@ -51,7 +51,8 @@ const AnimalParentCard = ({
         <Box
           sx={{
             width: '100%',
-            backgroundColor: isChecked ? '#F2FFF8' : backgroundColor || theme.palette.primary.contrastText,
+            backgroundColor:
+              radio?.checked || checkbox?.checked ? '#F2FFF8' : backgroundColor || theme.palette.primary.contrastText,
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
@@ -59,7 +60,7 @@ const AnimalParentCard = ({
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: '10px',
-            border: isChecked ? `1px solid #37BD69` : 'none',
+            border: radio?.checked || checkbox?.checked ? `1px solid #37BD69` : 'none',
             cursor: interactive ? 'pointer' : 'default',
             '&:hover': interactive
               ? {
@@ -106,6 +107,13 @@ const AnimalParentCard = ({
             <Box>
               <Radio
                 checked={radio?.checked}
+                onChange={event => {
+                  event.stopPropagation()
+                  radio?.onChange?.()
+                }}
+                onClick={event => {
+                  event.stopPropagation()
+                }}
                 sx={{
                   width: 24,
                   height: 24,
@@ -120,19 +128,22 @@ const AnimalParentCard = ({
           )}
 
           {/* Checkbox for multi selection */}
+
           {checkbox && (
             <Box>
               <Checkbox
                 checked={checkbox?.checked}
+                onChange={event => {
+                  event.stopPropagation()
+                  checkbox?.onChange?.()
+                }}
+                onClick={event => {
+                  event.stopPropagation()
+                }}
                 sx={{
                   width: 24,
                   height: 24,
                   p: 0,
-                  pointerEvents: 'none',
-                  color: theme.palette.customColors?.OutlineVariant,
-                  '&.Mui-checked': {
-                    color: '#37BD69'
-                  },
                   '& .MuiSvgIcon-root': {
                     fontSize: 24
                   }

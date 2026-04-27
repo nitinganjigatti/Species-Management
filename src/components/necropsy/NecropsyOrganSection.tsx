@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, memo, FC } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -84,6 +85,7 @@ interface NecropsyOrganSectionProps {
 // ==================== Component ====================
 
 const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onChange, disabled = false }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [openAddOrganDrawer, setOpenAddOrganDrawer] = useState<boolean>(false)
   const [saveTemplate, setSaveTemplate] = useState<boolean>(false)
@@ -213,7 +215,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
 
   const handleSaveTemplate = async (): Promise<void> => {
     if (!templateName.trim()) {
-      Toaster({ type: 'error', message: 'Please enter a template name' })
+      Toaster({ type: 'error', message: t('necropsy_module.please_enter_template_name') })
 
       return
     }
@@ -237,16 +239,16 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
 
       const res = await createNecropsyTemplate(payload)
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Template saved successfully' })
+        Toaster({ type: 'success', message: res?.message || t('necropsy_module.template_saved_successfully') })
         setTemplateName('')
         setSaveTemplate(false)
         fetchTemplates()
       } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to save template' })
+        Toaster({ type: 'error', message: res?.message || t('necropsy_module.failed_to_save_template') })
       }
     } catch (error) {
       console.error('Error saving template:', error)
-      Toaster({ type: 'error', message: 'Something went wrong while saving template' })
+      Toaster({ type: 'error', message: t('necropsy_module.something_went_wrong_saving_template') })
     } finally {
       setSaveLoading(false)
     }
@@ -260,7 +262,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-          Organ-wise Description of Lessions
+          {t('necropsy_module.organ_wise_description_of_lessions')}
         </Typography>
         <Box
           onClick={() => setOpenAddOrganDrawer(true)}
@@ -277,7 +279,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
         >
           <Icon icon='lucide:square-plus' fontSize={18} color={theme.palette.customColors?.OnPrimary} />
           <Typography sx={{ color: theme.palette.customColors?.OnPrimary, fontSize: '16px', fontWeight: 600 }}>
-            Select Organ
+            {t('necropsy_module.select_organ')}
           </Typography>
         </Box>
       </Box>
@@ -310,11 +312,11 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Typography variant='subtitle1' sx={{ fontWeight: 600 }}>
-                    {organ.label || `Organ ${organIndex + 1}`}
+                    {organ.label || t('necropsy_module.organ_label', { index: organIndex + 1 })}
                   </Typography>
 
                   <Typography variant='caption' color='text.secondary'>
-                    ({organ.parts?.length || 0} parts)
+                    {t('necropsy_module.parts_count', { count: organ.parts?.length || 0 })}
                   </Typography>
                 </Box>
 
@@ -331,7 +333,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 {organ.parts?.map((part, partIndex) => {
-                  const partName = part.organ_name || part.label || `Part ${partIndex + 1}`
+                  const partName = part.organ_name || part.label || t('necropsy_module.part_label', { index: partIndex + 1 })
 
                   return (
                     <Box
@@ -345,7 +347,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                       <TextField
                         fullWidth
                         size='small'
-                        label={`Enter ${partName} Description`}
+                        label={t('necropsy_module.enter_description', { partName })}
                         multiline
                         rows={1}
                         value={part.value || ''}
@@ -391,7 +393,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
               {saveTemplate ? (
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2 }}>
                   <TextField
-                    placeholder='Enter Template Name'
+                    placeholder={t('necropsy_module.enter_template_name')}
                     value={templateName}
                     size='small'
                     sx={{
@@ -415,7 +417,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                     onClick={handleSaveTemplate}
                     disabled={templateName.trim() === '' || saveLoading}
                   >
-                    {saveLoading ? <CircularProgress size={20} color='inherit' /> : 'SAVE'}
+                    {saveLoading ? <CircularProgress size={20} color='inherit' /> : t('save')}
                   </Button>
                   <Button
                     size='small'
@@ -430,7 +432,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                       setSaveTemplate(false)
                     }}
                   >
-                    Cancel
+                    {t('cancel')}
                   </Button>
                 </Box>
               ) : (
@@ -452,7 +454,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                         color: theme.palette.customColors.OnSurface
                       }}
                     >
-                      Save as template
+                      {t('necropsy_module.save_as_template')}
                     </Typography>
                   </Box>
                   <Typography
@@ -464,7 +466,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                     }}
                     onClick={handleClearAll}
                   >
-                    Clear all
+                    {t('clear_all')}
                   </Typography>
                 </Box>
               )}
@@ -477,7 +479,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                 <Typography
                   sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select from templates
+                  {t('necropsy_module.select_from_templates')}
                 </Typography>
                 <Box
                   sx={{
@@ -495,7 +497,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                       color: theme.palette.primary.main
                     }}
                   >
-                    See all
+                    {t('necropsy_module.see_all')}
                   </Typography>
                   <Icon icon='mdi:chevron-right' fontSize={18} color={theme.palette.primary.main} />
                 </Box>
@@ -591,7 +593,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
         >
           <img src='/images/necropsy/organ_sheet.svg' alt='organ_sheet' />
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Select new organs or add from templates
+            {t('necropsy_module.select_new_organs_or_add_from_templates')}
           </Typography>
 
           {/* Select from Templates Section - Inside empty state box */}
@@ -601,7 +603,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                 <Typography
                   sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Select from templates
+                  {t('necropsy_module.select_from_templates')}
                 </Typography>
                 <Box
                   sx={{
@@ -619,7 +621,7 @@ const NecropsyOrganSection: FC<NecropsyOrganSectionProps> = ({ organs = [], onCh
                       color: theme.palette.primary.main
                     }}
                   >
-                    See all
+                    {t('necropsy_module.see_all')}
                   </Typography>
                   <Icon icon='mdi:chevron-right' fontSize={18} color={theme.palette.primary.main} />
                 </Box>

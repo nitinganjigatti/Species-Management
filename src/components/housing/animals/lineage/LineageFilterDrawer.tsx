@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Radio, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
@@ -27,10 +28,10 @@ interface LineageFilterDrawerProps {
 }
 
 const STATUS_OPTIONS = [
-  { label: 'Alive', value: 'alive' },
-  { label: 'Dead', value: 'dead' },
-  { label: 'Missing', value: 'missing' },
-  { label: 'Transferred', value: 'transferred' }
+  { labelKey: 'animals_module.alive', value: 'alive' },
+  { labelKey: 'animals_module.dead', value: 'dead' },
+  { labelKey: 'animals_module.missing', value: 'missing' },
+  { labelKey: 'animals_module.transferred', value: 'transferred' }
 ]
 
 const LEFT_MENU = ['Entity', 'Status']
@@ -43,6 +44,7 @@ const LineageFilterDrawer: React.FC<LineageFilterDrawerProps> = ({
   setFilterCount
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const [selectedMenu, setSelectedMenu] = useState('Entity')
   const [localSelections, setLocalSelections] = useState<LocalSelections>(initialFilters.localSelections)
@@ -140,7 +142,7 @@ const LineageFilterDrawer: React.FC<LineageFilterDrawerProps> = ({
                   onChange={() => handleStatusChange(option.value)}
                   sx={{ p: 0 }}
                 />
-                <Typography sx={{ fontSize: '16px', color: theme.palette.text.primary }}>{option.label}</Typography>
+                <Typography sx={{ fontSize: '16px', color: theme.palette.text.primary }}>{t(option.labelKey)}</Typography>
               </Box>
             ))}
           </Box>

@@ -221,10 +221,11 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                             sx={{
                               color: theme.palette.customColors.OnSurfaceVariant,
                               fontWeight: 400,
-                              fontSize: '14px'
+                              fontSize: '14px',
+                              whiteSpace: 'pre-wrap'
                             }}
                           >
-                            {activity?.note.charAt(0).toUpperCase() + activity?.note.slice(1)}
+                            {activity?.note}
                           </Typography>
                         </>
                       )}
@@ -237,10 +238,11 @@ const ActivityList = ({ activities, onEdit, activityLoader, isFromAssessment = f
                             fontWeight: 400,
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontSize: '14px',
-                            mb: 1
+                            mb: 1,
+                            whiteSpace: 'pre-wrap'
                           }}
                         >
-                          {activity?.note.charAt(0).toUpperCase() + activity?.note.slice(1)}
+                          {activity?.note}
                         </Typography>
                       )}
 

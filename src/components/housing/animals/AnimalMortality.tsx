@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import AnimalMortalityEditDrawer from 'src/views/pages/housing/animals/AnimalMortalityEditDrawer'
 import RenderUtility from 'src/utility/render'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import {
   getAnimalMortalityReport,
   getCarcassCondition,
@@ -15,6 +15,7 @@ import {
 import Utility from 'src/utility'
 import AnimalRevokeDrawer from 'src/views/pages/housing/animals/AnimalRevokeDrawer'
 import { AnimalOverview, Mortality, SelectOption } from 'src/types/housing'
+import { useTranslation } from 'react-i18next'
 
 interface AnimalMortalityProps {
   animalDetails: AnimalOverview | null
@@ -27,8 +28,9 @@ interface MortalityDataItem {
 
 const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
+  const { t } = useTranslation()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [openEditMortalityDrawer, setOpenMortalityDrawer] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
@@ -131,11 +133,11 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
 
   const mortalityData: MortalityDataItem[] = [
     {
-      label: 'Suspected Cause of Death',
+      label: t('animals_module.suspected_cause_of_death'),
       value: mortality?.manner_of_death
     },
     {
-      label: 'Discovered Time and Date',
+      label: t('animals_module.discovered_time_and_date'),
       value: (
         <>
           {Utility?.formatDisplayDate(mortality?.discovered_date)}
@@ -145,20 +147,20 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
       )
     },
     {
-      label: 'Carcass Condition',
+      label: t('animals_module.carcass_condition'),
       value: mortality?.carcass_condition
     },
     {
-      label: 'Carcass Disposition',
+      label: t('animals_module.carcass_disposition'),
       value: mortality?.carcass_disposition
     },
     {
-      label: 'Notes',
+      label: t('notes'),
       value: mortality?.notes
     },
     {
-      label: 'Necropsy Requested',
-      value: `${mortality?.submitted_for_necropsy === '1' ? 'Yes' : 'No'}`
+      label: t('animals_module.necropsy_requested'),
+      value: `${mortality?.submitted_for_necropsy === '1' ? t('yes') : t('no')}`
     }
   ]
 
@@ -178,7 +180,7 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
       <Box sx={{ my: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Mortality Report
+            {t('animals_module.mortality_report')}
           </Typography>
           {animalDetails?.is_necropsy ||
           animalDetails?.is_deleted === '1' ||
@@ -219,7 +221,7 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
                   onClick={handleMortalityEdit}
                   sx={{ fontWeight: 500, p: 3, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Edit
+                  {t('edit')}
                 </MenuItem>
                 <MenuItem
                   onClick={() => {
@@ -234,7 +236,7 @@ const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
                     display: 'none'
                   }}
                 >
-                  Revoke
+                  {t('animals_module.revoke')}
                 </MenuItem>
               </Menu>
             </>

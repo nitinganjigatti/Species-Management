@@ -1,6 +1,7 @@
 import React, { useState, useEffect, FC, memo } from 'react'
 import { Box, Typography, Chip, Skeleton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import {
   MedicalServices as DxIcon,
   Pets as CxIcon,
@@ -62,6 +63,7 @@ interface MedicalRecordsListProps {
 
 const MedicalRecordsList: FC<MedicalRecordsListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [data, setData] = useState<MedicalRecordItem[]>([])
   const [pageNo, setPageNo] = useState<number>(1)
   const [loading, setLoading] = useState<boolean>(true)
@@ -155,7 +157,7 @@ const MedicalRecordsList: FC<MedicalRecordsListProps> = ({ animalId, mortalityId
     return (
       <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
         <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary, fontWeight: 400 }}>
-          No Medical Records Found
+          {t('necropsy_module.no_medical_records_found')}
         </Typography>
       </Box>
     )
@@ -165,7 +167,7 @@ const MedicalRecordsList: FC<MedicalRecordsListProps> = ({ animalId, mortalityId
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {data.map((record, index) => {
         const closed = isClosed(record)
-        const caseType = record.case_type || record.type || 'N/A'
+        const caseType = record.case_type || record.type || t('necropsy_module.na')
         const dateStr = record.created_at ? Utility.convertUtcToLocalReadableDate(record.created_at) : ''
         const diagnoses: DiagnosisItem[] = Array.isArray(record.diagnosis) ? record.diagnosis : []
         const complaints: ComplaintItem[] = Array.isArray(record.complaint) ? record.complaint : []
@@ -292,7 +294,7 @@ const MedicalRecordsList: FC<MedicalRecordsListProps> = ({ animalId, mortalityId
                         mb: 1
                       }}
                     >
-                      Diagnosis
+                      {t('necropsy_module.diagnosis')}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       {diagnoses.map((item, idx) => {
@@ -341,7 +343,7 @@ const MedicalRecordsList: FC<MedicalRecordsListProps> = ({ animalId, mortalityId
                         mb: 1
                       }}
                     >
-                      Complaints
+                      {t('necropsy_module.complaints')}
                     </Typography>
                     <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       {complaints.map((item, idx) => {
@@ -399,7 +401,7 @@ const MedicalRecordsList: FC<MedicalRecordsListProps> = ({ animalId, mortalityId
                 '&:hover': { textDecoration: 'underline' }
               }}
             >
-              Load More
+              {t('necropsy_module.load_more')}
             </Typography>
           )}
         </Box>
@@ -407,7 +409,7 @@ const MedicalRecordsList: FC<MedicalRecordsListProps> = ({ animalId, mortalityId
 
       {!hasMore && data.length > 10 && (
         <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-          No more records to load
+          {t('necropsy_module.no_more_records_to_load')}
         </Typography>
       )}
 

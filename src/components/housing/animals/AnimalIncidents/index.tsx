@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import {
   Button,
@@ -36,6 +36,7 @@ import { getAnimalIncidentDetails, getAnimalIncidentList } from 'src/lib/api/hou
 import IncidentDetailsCard from './IncidentDetailsCard'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useTranslation } from 'react-i18next'
 
 interface IncidentDetail {
   id?: number
@@ -86,7 +87,8 @@ interface IncidentCardListProps {
 
 const AnimalIncidents: React.FC = () => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id: animalId } = router.query
 
   const [activtyLogSideBar, setActivtyLogSideBar] = useState<boolean>(false)
@@ -222,7 +224,7 @@ const AnimalIncidents: React.FC = () => {
                   {incident.incident_code}
                 </Typography>
               </Tooltip>
-              <Tooltip title={`Animal ${incident.current_incident_type === 'found' ? 'Found' : 'Missing'}`}>
+              <Tooltip title={incident.current_incident_type === 'found' ? t('animals_module.animal_found') : t('animals_module.animal_missing')}>
                 <Typography
                   sx={{
                     color:
@@ -236,13 +238,13 @@ const AnimalIncidents: React.FC = () => {
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  Animal {incident.current_incident_type === 'found' ? 'Found' : 'Missing'}
+                  {incident.current_incident_type === 'found' ? t('animals_module.animal_found') : t('animals_module.animal_missing')}
                 </Typography>
               </Tooltip>
             </Box>
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Tooltip title={'Site'}>
+            <Tooltip title={t('housing_module.site')}>
               <Typography
                 sx={{
                   color: theme.palette.customColors.neutralSecondary,
@@ -253,7 +255,7 @@ const AnimalIncidents: React.FC = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                Site
+                {t('housing_module.site')}
               </Typography>
             </Tooltip>
             <Tooltip title={incident.site_name}>
@@ -272,7 +274,7 @@ const AnimalIncidents: React.FC = () => {
             </Tooltip>
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Tooltip title={'Section'}>
+            <Tooltip title={t('section')}>
               <Typography
                 sx={{
                   color: theme.palette.customColors.neutralSecondary,
@@ -283,7 +285,7 @@ const AnimalIncidents: React.FC = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                Section
+                {t('section')}
               </Typography>
             </Tooltip>
             <Tooltip title={incident.section_name}>
@@ -302,7 +304,7 @@ const AnimalIncidents: React.FC = () => {
             </Tooltip>
           </Grid>
           <Grid size={{ xs: 10, sm: 5, md: 2 }} sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <Tooltip title={'Enclosure'}>
+            <Tooltip title={t('housing_module.enclosure')}>
               <Typography
                 sx={{
                   color: theme.palette.customColors.neutralSecondary,
@@ -313,7 +315,7 @@ const AnimalIncidents: React.FC = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                Enclosure
+                {t('housing_module.enclosure')}
               </Typography>
             </Tooltip>
             <Tooltip title={''}>
@@ -353,7 +355,7 @@ const AnimalIncidents: React.FC = () => {
                   }, 200)
                 }}
               >
-                View Details
+                {t('animals_module.view_details')}
               </MenuItem>
 
               <MenuItem
@@ -369,7 +371,7 @@ const AnimalIncidents: React.FC = () => {
                   handleMenuClose()
                 }}
               >
-                Edit Incident
+                {t('animals_module.edit_incident')}
               </MenuItem>
               {selectedIncident?.current_incident_type !== 'missing' && (
                 <MenuItem
@@ -381,7 +383,7 @@ const AnimalIncidents: React.FC = () => {
                     handleMenuClose()
                   }}
                 >
-                  Misreport Found
+                  {t('animals_module.misreport_found')}
                 </MenuItem>
               )}
 
@@ -393,7 +395,7 @@ const AnimalIncidents: React.FC = () => {
                   handleMenuClose()
                 }}
               >
-                Misreport Missing
+                {t('animals_module.misreport_missing')}
               </MenuItem>
 
               {selectedIncident?.current_incident_type !== 'found' && (
@@ -403,7 +405,7 @@ const AnimalIncidents: React.FC = () => {
                     handleMenuClose()
                   }}
                 >
-                  Report Found
+                  {t('animals_module.report_found')}
                 </MenuItem>
               )}
             </Menu>
@@ -482,7 +484,7 @@ const AnimalIncidents: React.FC = () => {
                 <Icon icon={'ion:time-outline'} />
               </Box>
               <Box>
-                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Incident Details</Typography>
+                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>{t('animals_module.incident_details')}</Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>
@@ -552,7 +554,7 @@ const AnimalIncidents: React.FC = () => {
                       color: theme.palette.customColors.neutralSecondary
                     }}
                   >
-                    Missing since
+                    {t('animals_module.missing_since')}
                   </Typography>
                   <Typography
                     sx={{
@@ -591,7 +593,7 @@ const AnimalIncidents: React.FC = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Incident Timeline
+                {t('animals_module.incident_timeline')}
               </Typography>
 
               {incidentDetailsData?.incident_details?.length && incidentDetailsData.incident_details.length > 0 ? (
@@ -635,7 +637,7 @@ const AnimalIncidents: React.FC = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {animalListCount > 0 && `${animalListCount > 1 ? 'Incidents' : 'Incident'} (${animalListCount})`}
+                {animalListCount > 0 && `${animalListCount > 1 ? t('animals_module.incidents') : t('animals_module.incident')} (${animalListCount})`}
               </Typography>
             )}
             <Button
@@ -648,7 +650,7 @@ const AnimalIncidents: React.FC = () => {
               sx={{ height: '40px' }}
             >
               <Icon icon='mdi:plus' />
-              Report incident
+              {t('animals_module.report_incident')}
             </Button>
           </Box>
 

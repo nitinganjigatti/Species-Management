@@ -12,10 +12,11 @@ import Toaster from 'src/components/Toaster'
 import Species from 'src/views/pages/egg/eggDashboard/species'
 import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
 import { getAllStats } from 'src/lib/api/egg/dashboard'
+import { useTranslation } from 'react-i18next'
 
 const Dashboard = () => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
   const [openDiscard, setOpenDiscard] = useState(false)
@@ -55,7 +56,7 @@ const Dashboard = () => {
             color: theme.palette.customColors.LightTypographyBody1
           }}
         >
-          Egg
+          {t('egg_module.egg')}
         </Typography>
 
         <Typography
@@ -68,7 +69,7 @@ const Dashboard = () => {
             color: theme.palette.customColors.customTextColorGray2
           }}
         >
-          Dashboard
+          {t('egg_module.dashboard')}
         </Typography>
       </Breadcrumbs>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -82,7 +83,7 @@ const Dashboard = () => {
                 lineHeight: '29.05px'
               }}
             >
-              Eggs Stats
+              {t('egg_module.eggs_stats')}
             </Typography>
           </Grid>
           {/* <Grid item sm={5} md={3} xl={2}>

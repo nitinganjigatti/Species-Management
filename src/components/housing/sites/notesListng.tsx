@@ -1,6 +1,7 @@
 import { useTheme } from '@emotion/react'
+import { useTranslation } from 'react-i18next'
 import { Avatar, Box, debounce, Grid, Typography, Theme } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -18,8 +19,9 @@ interface PaginationModel {
 }
 
 const NotesListng: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
-  const router = useRouter()
+  const router = useSafeRouter()
   const [searchValue, setSearchValue] = useState<string>('')
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false)
   const { id } = router.query
@@ -80,7 +82,7 @@ const NotesListng: React.FC = () => {
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       renderCell: (params: GridCellParams) => (
@@ -94,7 +96,7 @@ const NotesListng: React.FC = () => {
       field: 'observation_name',
       align: 'center' as const,
       headerAlign: 'left' as const,
-      headerName: 'Observation Name',
+      headerName: t('housing_module.observation_name'),
       renderCell: (params: GridCellParams) => {
         return (
           <Box display='flex' alignItems='center' width='100%' gap={2}>
@@ -120,7 +122,7 @@ const NotesListng: React.FC = () => {
     {
       width: 200,
       field: 'priority',
-      headerName: 'Priority',
+      headerName: t('priority'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       renderCell: (params: GridCellParams) => (
@@ -132,7 +134,7 @@ const NotesListng: React.FC = () => {
     {
       width: 200,
       field: 'created_by_phone',
-      headerName: 'Phone No',
+      headerName: t('phone'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       renderCell: (params: GridCellParams) => (
@@ -144,7 +146,7 @@ const NotesListng: React.FC = () => {
     {
       width: 200,
       field: 'created_by',
-      headerName: 'Created By',
+      headerName: t('created_by'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       renderCell: (params: GridCellParams) => (
@@ -155,9 +157,10 @@ const NotesListng: React.FC = () => {
     },
 
     {
-      width: 200,
+      flex: 1,
+      minWidth: 200,
       field: 'actions',
-      headerName: 'Actions',
+      headerName: t('actions'),
       align: 'center' as const,
       headerAlign: 'center' as const,
       renderCell: () => (
@@ -181,13 +184,13 @@ const NotesListng: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title='Notes' totalCount={total} />
+      <ListingHeader title={t('notes')} totalCount={total} />
       <Box>
         <Search
           value={searchValue}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
           onClear={() => handleSearch('')}
-          placeholder='Search...'
+          placeholder={t('search') as string}
           sx={{ mt: 2 }}
         />
         <Grid>

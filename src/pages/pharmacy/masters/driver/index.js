@@ -70,7 +70,8 @@ const Driver = () => {
       )
     },
     {
-      minWidth: 250,
+      flex: 1,
+      minWidth: 200,
       field: 'driver_name',
       headerName: 'Driver Name',
       renderCell: params => (

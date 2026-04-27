@@ -25,11 +25,12 @@ import moment from 'moment'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import DashboardFilter from './dashboardFilter'
+import { useTranslation } from 'react-i18next'
 import { getDashboardDiscardList } from 'src/lib/api/egg/dashboard'
 
 const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   // States
   const [tabStatus, setTabStatus] = useState('site')
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -278,7 +279,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         >
           <Box>
             <Typography sx={{ fontSize: 16, fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Discarded eggs {listCount && <span>({listCount})</span>}
+              {t('egg_module.discarded_eggs')} {listCount && <span>({listCount})</span>}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', gap: '12px' }}>
@@ -575,10 +576,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 <Typography
                   sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: theme.palette.primary.light }}
                 >
-                  Security checked
+                  {t('egg_module.security_checked')}
                 </Typography>
               ) : (
-                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>Security check pending</Typography>
+                <Typography sx={{ fontSize: '13px', textAlign: 'center' }}>
+                  {t('egg_module.security_check_pending')}
+                </Typography>
               )}
             </Box>
             <Divider sx={{ my: 4 }} />
@@ -592,7 +595,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     color: theme.palette.customColors.OnSecondaryContainer
                   }}
                 >
-                  Discarded On
+                  {t('egg_module_discarded_on')}
                 </Typography>
                 <Typography
                   sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
@@ -612,7 +615,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     color: theme.palette.customColors.OnSecondaryContainer
                   }}
                 >
-                  Batch
+                  {t('egg_module.batch')}
                 </Typography>
                 <Typography
                   sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
@@ -680,7 +683,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     color: theme.palette.customColors.OnSecondaryContainer
                   }}
                 >
-                  Reason
+                  {t('reason')}
                 </Typography>
                 <Typography
                   sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
@@ -724,7 +727,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
               <img src='/icons/egg_dashboard/discard.png' alt='icon' width='32' height='32' />
 
-              <Typography variant='h6'>Discard Details</Typography>
+              <Typography variant='h6'>{t('egg_module.discard_details')}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -784,7 +787,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         boxSizing: 'border-box'
                       }}
                     >
-                      No records
+                      {t('no_records')}
                     </Typography>
                   )}
 
@@ -830,7 +833,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                         boxSizing: 'border-box'
                       }}
                     >
-                      No records
+                      {t('no_records')}
                     </Typography>
                   )}
 

@@ -17,7 +17,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import moment from 'moment'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -53,14 +53,14 @@ export default function ScheduleMedicine({
 
   const now = new Date()
   const router = useRouter()
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const animal_admitted_date = medicalRecordData?.animal_admitted_date
   const { medicine_edit_id, fromPage, date } = router.query
 
   const editIdStr = medicine_edit_id?.toString()
-  const enclosureMedicines = data?.enclosure_medicines || []
+  const enclosureMedicines = hospitalData?.enclosure_medicines || []
 
   // Find the selected medicine to edit
   const editingMedicineData = editIdStr ? enclosureMedicines.find(m => m?.id?.toString() === editIdStr) : null

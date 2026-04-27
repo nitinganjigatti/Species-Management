@@ -15,6 +15,7 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
 import { getEggStatusMasterData, updateEggStatus } from 'src/lib/api/housing'
 import dayjs from 'dayjs'
+import { useTranslation } from 'react-i18next'
 
 interface EggStatusDrawerProps {
   open: boolean
@@ -86,6 +87,7 @@ const defaultValues = {
 
 const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawerProps) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const [submitLoader, setSubmitLoader] = useState(false)
 
   // Fetch egg master data
@@ -220,7 +222,7 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
         }}
       >
         <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-          Change Egg Status
+          {t('animals_module.change_egg_status')}
         </Typography>
 
         <IconButton size='small' onClick={handleClose} sx={{ color: theme.palette.text.primary }}>
@@ -244,7 +246,7 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
                   control={control}
                   name={'status'}
                   errors={errors}
-                  label={'Select Status'}
+                  label={t('animals_module.select_status') as string}
                   options={statusOptions}
                   getOptionLabel={(option: any) => option.label}
                   getOptionValue={(option: any) => option.value}
@@ -257,7 +259,7 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
                   <ControlledSelect
                     control={control}
                     name='state'
-                    label='Select State*'
+                    label={t('animals_module.select_state') as string}
                     required
                     fullWidth
                     options={filteredStateOptions}
@@ -273,7 +275,7 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
                   <ControlledDatePicker
                     control={control}
                     name='hatchDate'
-                    label='Hatch Date'
+                    label={t('animals_module.hatch_date') as string}
                     errors={errors}
                     minDate={eggDetails?.collection_date ? dayjs(eggDetails.collection_date) : undefined}
                     maxDate={dayjs()}
@@ -283,14 +285,20 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
               )}
 
               <Grid size={{ xs: 12 }}>
-                <ControlledTextArea control={control} name='notes' errors={errors} placeholder='Enter Notes' rows={4} />
+                <ControlledTextArea
+                  control={control}
+                  name='notes'
+                  errors={errors}
+                  placeholder={t('enter_notes') as string}
+                  rows={4}
+                />
               </Grid>
 
               <Grid size={{ xs: 12 }}>
                 <ControlledMultiFileUpload
                   control={control}
                   name='images'
-                  label='Upload Images'
+                  label={t('upload_images') as string}
                   required={false}
                   acceptedFileTypes='images'
                   preview
@@ -323,7 +331,7 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
           sx={{ flex: 1, py: 4 }}
           disabled={submitLoader}
         >
-          Cancel
+          {t('cancel')}
         </LoadingButton>
         <LoadingButton
           variant='contained'
@@ -332,7 +340,7 @@ const EggStatusDrawer = ({ open, onClose, eggDetails, refetch }: EggStatusDrawer
           sx={{ flex: 1, py: 4 }}
           disabled={!isValid || submitLoader}
         >
-          Submit
+          {t('submit')}
         </LoadingButton>
       </Box>
     </Drawer>

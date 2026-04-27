@@ -16,6 +16,7 @@ import Icon from 'src/@core/components/icon'
 import { getFilledChecklistList, getTransferChecklist } from 'src/lib/api/necropsy'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { TransferChecklistDrawerProps } from 'src/types/necropsy'
+import { useTranslation } from 'react-i18next'
 
 // Internal interfaces for checklist data structures
 interface ChecklistItem {
@@ -61,6 +62,7 @@ interface ExtendedTheme extends Theme {
 
 const TransferChecklistDrawer: FC<TransferChecklistDrawerProps> = ({ open, onClose, transferId }) => {
   const theme = useTheme<ExtendedTheme>()
+  const { t } = useTranslation()
   const [checklistData, setChecklistData] = useState<ChecklistCategory[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [expandedPanels, setExpandedPanels] = useState<number[]>([])
@@ -72,8 +74,8 @@ const TransferChecklistDrawer: FC<TransferChecklistDrawerProps> = ({ open, onClo
         return dataArray[i]
       }
     }
-    
-return null
+
+    return null
   }
 
   const fetchChecklistData = useCallback(async () => {
@@ -100,8 +102,8 @@ return null
 
       if (!Array.isArray(templateData) || templateData.length === 0) {
         setChecklistData([])
-        
-return
+
+        return
       }
       templateData.forEach(category => {
         if (category.sub_category) {
@@ -137,12 +139,12 @@ return
             active: subCategory?.items?.some(item => {
               if (item.type === 'checkbox') return item.value === true
               if (item.type === 'textbox' || item.type === 'multi_line_textbox') return Boolean(item.value)
-              
-return false
+
+              return false
             })
           }))
-          
-return {
+
+          return {
             ...category,
             active: processedSubCategories.some(sub => sub.active),
             sub_category: processedSubCategories
@@ -153,13 +155,13 @@ return {
             active: category.items.some(item => {
               if (item.type === 'checkbox') return item.value === true
               if (item.type === 'textbox' || item.type === 'multi_line_textbox') return Boolean(item.value)
-              
-return false
+
+              return false
             })
           }
         }
-        
-return { ...category, active: false }
+
+        return { ...category, active: false }
       })
 
       const activeCategories = processedData.filter(cat => cat.active)
@@ -185,12 +187,12 @@ return { ...category, active: false }
 
   const getVisibleItems = (items?: ChecklistItem[]): ChecklistItem[] => {
     if (!items) return []
-    
-return items.filter(item => {
+
+    return items.filter(item => {
       if (item.type === 'checkbox') return item.value === true
       if (item.type === 'textbox' || item.type === 'multi_line_textbox') return Boolean(item.value)
-      
-return false
+
+      return false
     })
   }
 
@@ -216,7 +218,7 @@ return false
               flex: 1
             }}
           >
-            {item?.label || 'Checkbox Item'}
+            {item?.label || t('necropsy_module.checkbox_item')}
           </Typography>
         </Box>
       )
@@ -244,7 +246,7 @@ return false
                 color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
               }}
             >
-              {item?.label || 'Text Field'} -{' '}
+              {item?.label || t('necropsy_module.text_field')} -{' '}
             </Typography>
             <Typography
               component='span'
@@ -288,7 +290,7 @@ return false
               color: theme.palette.customColors?.neutralPrimary || theme.palette.text.primary
             }}
           >
-            {subCategory?.label || 'Sub Category'}
+            {subCategory?.label || t('necropsy_module.sub_category')}
           </Typography>
         </Box>
         {visibleItems.map((item, itemIndex) => renderChecklistItem(item, itemIndex))}
@@ -347,7 +349,7 @@ return false
                 color: theme.palette.customColors?.OnPrimary || theme.palette.common.white
               }}
             >
-              {category?.label || 'Category'}
+              {category?.label || t('necropsy_module.category')}
             </Typography>
           </Box>
         </AccordionSummary>
@@ -442,7 +444,7 @@ return false
               color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
             }}
           >
-            Transfer Checklist
+            {t('necropsy_module.transfer_checklist')}
           </Typography>
           <IconButton
             onClick={onClose}
@@ -471,7 +473,7 @@ return false
                 color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              {filledCount} Items Filled
+              {t('necropsy_module.items_filled', { count: filledCount })}
             </Typography>
           </Box>
         )}

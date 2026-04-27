@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import Search from 'src/views/utility/Search'
 import {
   AssessmentCategoryChips,
@@ -46,6 +47,7 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
   enclosureDetails
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const auth = useAuth() as any
   const userData = auth?.userData
 
@@ -177,7 +179,7 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
     if (isAnimalOnHold) {
       Toaster({
         type: 'warning',
-        message: 'This animal is currently on hold. Please check back later.'
+        message: t('animals_module.animal_on_hold')
       })
 
       return
@@ -264,7 +266,7 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
           value={searchQuery}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
-          placeholder='Search assessments...'
+          placeholder={t('animals_module.search_assessments') as string}
           width={250}
         />
 
@@ -283,7 +285,7 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
               minHeight: '40px'
             }}
           >
-            Add Assessment
+            {t('animals_module.add_assessment')}
           </Button>
         )}
       </Box>
@@ -309,7 +311,7 @@ const AnimalAssessment: React.FC<AnimalAssessmentProps> = ({
           >
             <Icon icon='mdi:clipboard-text-off-outline' fontSize={48} />
             <Typography variant='body1' sx={{ mt: 2 }}>
-              {searchQuery ? 'No assessments found matching your search' : 'No assessments available'}
+              {searchQuery ? t('animals_module.no_assessments_found') : t('animals_module.no_assessments_available')}
             </Typography>
           </Box>
         ) : (

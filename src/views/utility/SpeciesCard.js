@@ -37,7 +37,7 @@ function SpeciesCard({ species, edit }) {
               },
 
               // borderRadius:species?.default_icon && species.default_icon.includes('.svg') ? '50%' : species?.default_icon ? '50%' : 'unset'
-              borderRadius: imgSrc.includes('.svg') ? '50%' : 'unset'
+              borderRadius: imgSrc?.includes('.svg') ? '50%' : 'unset'
             }}
             // src={imgSrc}
             src={species?.default_icon || '/images/housing/species-icon-colored.svg'}

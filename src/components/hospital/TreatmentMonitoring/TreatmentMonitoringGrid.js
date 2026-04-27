@@ -30,7 +30,7 @@ import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 
 dayjs.extend(utc)
@@ -175,8 +175,8 @@ const useRealtimeTooltip = (scrollContainerRef, timeSlots, isToday, theme) => {
 
 const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatient }) => {
   const theme = useTheme()
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
   const router = useRouter()

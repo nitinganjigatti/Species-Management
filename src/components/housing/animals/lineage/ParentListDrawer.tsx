@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Drawer, Typography, IconButton, CircularProgress, Button, Checkbox } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useTheme, alpha } from '@mui/material/styles'
@@ -38,6 +39,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
   onRemove
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
@@ -214,7 +216,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
                 color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
               }}
             >
-              {editMode ? `Remove ${parentType}` : parentType}
+              {editMode ? `${t('animals_module.remove_parent')} ${parentType}` : parentType}
             </Typography>
             <Typography
               sx={{
@@ -225,9 +227,9 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
             >
               {editMode
                 ? selectedForRemoval.length > 0
-                  ? `${selectedForRemoval.length} selected`
-                  : 'Select parents to remove'
-                : `Probable ${totalCount}`}
+                  ? `${selectedForRemoval.length} ${t('selected')}`
+                  : t('animals_module.select_parents_to_remove')
+                : `${t('animals_module.probable')} ${totalCount}`}
             </Typography>
           </Box>
           <IconButton onClick={onClose}>
@@ -316,7 +318,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
                               textTransform: 'uppercase'
                             }}
                           >
-                            External
+                            {t('animals_module.external')}
                           </Typography>
                         )}
                         {animal.is_alive !== undefined && (animal.is_alive === 0 || animal.is_alive === '0') && (
@@ -328,7 +330,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
                               textTransform: 'uppercase'
                             }}
                           >
-                            Dead
+                            {t('animals_module.dead')}
                           </Typography>
                         )}
                       </Box>
@@ -339,7 +341,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
                         <Typography
                           sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.text.secondary, mt: 1 }}
                         >
-                          Institute: {(animal as ExternalAnimal).organization_name}
+                          {t('animals_module.institute')}: {(animal as ExternalAnimal).organization_name}
                         </Typography>
                       )}
                     </Box>
@@ -369,7 +371,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
 
               {!hasNextPage && list.length > 0 && !isExternal && (
                 <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                  No more parents to load
+                  {t('animals_module.no_more_parents')}
                 </Typography>
               )}
             </>
@@ -398,7 +400,7 @@ const ParentListDrawer: React.FC<ParentListDrawerProps> = ({
             onClick={handleRemoveClick}
             sx={{ p: 3, fontWeight: 600 }}
           >
-            Remove {selectedForRemoval.length > 1 ? `(${selectedForRemoval.length})` : ''}
+            {t('animals_module.remove_parent')} {selectedForRemoval.length > 1 ? `(${selectedForRemoval.length})` : ''}
           </Button>
         </Box>
       )}

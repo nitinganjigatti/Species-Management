@@ -1184,6 +1184,7 @@ const AddPatientForm = ({ defaultTreatmentType }) => {
           onClose={() => {
             setAnimalDrawer(false)
           }}
+          from='Add Patient Form'
           btnText='ADD'
           showAnimalFilter={false}
           handleAnimalClick={handleAnimalSelection}

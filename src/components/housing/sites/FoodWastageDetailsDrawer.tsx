@@ -5,6 +5,7 @@ import { Close as CloseIcon } from '@mui/icons-material'
 import Icon from 'src/@core/components/icon'
 import { getFoodWastageDetails, FoodWastageDetailItem, GetFoodWastageDetailsParams } from 'src/lib/api/housing'
 import { format, parse } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
 interface FoodWastageDetailsDrawerProps {
   open: boolean
@@ -23,6 +24,7 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
   totalWastage,
   unit
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme
   const [loading, setLoading] = useState<boolean>(false)
   const [detailsList, setDetailsList] = useState<FoodWastageDetailItem[]>([])
@@ -152,7 +154,7 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
                 color: theme.palette.text.primary
               }}
             >
-              Food Wastage
+              {t('housing_module.food_wastage')}
             </Typography>
             <Typography
               sx={{
@@ -207,7 +209,7 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
               mt: 1
             }}
           >
-            Total Wastage
+            {t('housing_module.total_wastage')}
           </Typography>
         </Box>
 
@@ -229,7 +231,7 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
           ) : detailsList.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Icon icon='mdi:clipboard-text-off-outline' fontSize={48} color={theme.palette.text.disabled} />
-              <Typography sx={{ mt: 2, color: theme.palette.text.secondary }}>No entries found</Typography>
+              <Typography sx={{ mt: 2, color: theme.palette.text.secondary }}>{t('no_entries_found')}</Typography>
             </Box>
           ) : (
             <>
@@ -330,7 +332,7 @@ const FoodWastageDetailsDrawer: React.FC<FoodWastageDetailsDrawerProps> = ({
                       }}
                       onClick={handleLoadMore}
                     >
-                      Load More
+                      {t('load_more')}
                     </Typography>
                   )}
                 </Box>

@@ -59,10 +59,10 @@ const HospitalOutPatient = () => {
     setFilters({
       page: parseInt(page),
       limit: parseInt(limit),
-      q
+      q: q
     })
 
-    setSearchValue(q)
+    // setSearchValue(q)
   }, [router.query])
 
   const prepareFilterParams = key => {
@@ -417,7 +417,6 @@ const HospitalOutPatient = () => {
       <Box>
          <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Outpatient' }]}
         />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>

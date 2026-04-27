@@ -84,35 +84,34 @@ const AssessmentReportFilterDrawer = ({
     setOpenFilterDrawer(false)
   }
 
-  // const calculateFilterCount = () => {
-  //   let count = 0
-
-  //   Object.entries(tempSelectedItems).forEach(([key, value]) => {
-  //     if (Array.isArray(value)) {
-  //       count += value.length // For Site, Section, Enclosure, gender
-  //     } else if (typeof value === 'string' && value.trim() !== '') {
-  //       count += 1 // For accession_start and accession_end (non-empty strings)
-  //       // it will increase count by 2 in selection of 1 because on onchange is handling 2 keys
-  //     }
-  //   })
-
-  //   setFilterCount(count)
-  // }
   const calculateFilterCount = () => {
-    const hasLocationFilter = ['Site', 'Section', 'Enclosure'].some(
-      key => Array.isArray(tempSelectedItems[key]) && tempSelectedItems[key].length > 0
-    )
+    let count = 0
 
-    const hasAccessionFilter =
-      (typeof tempSelectedItems.accession_start === 'string' && tempSelectedItems.accession_start.trim() !== '') ||
-      (typeof tempSelectedItems.accession_end === 'string' && tempSelectedItems.accession_end.trim() !== '')
-
-    const hasGenderFilter = Array.isArray(tempSelectedItems.gender) && tempSelectedItems.gender.length > 0
-
-    const count = [hasLocationFilter, hasAccessionFilter, hasGenderFilter].filter(Boolean).length
+    Object.entries(tempSelectedItems).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        count += value.length // For Site, Section, Enclosure, gender
+      } else if (key === 'accession_start' && value !== null) {
+        count += 1 // For accession_start and accession_end (non-empty strings)
+      }
+    })
 
     setFilterCount(count)
   }
+  // const calculateFilterCount = () => {
+  //   const hasLocationFilter = ['Site', 'Section', 'Enclosure'].some(
+  //     key => Array.isArray(tempSelectedItems[key]) && tempSelectedItems[key].length > 0
+  //   )
+
+  //   const hasAccessionFilter =
+  //     (typeof tempSelectedItems.accession_start === 'string' && tempSelectedItems.accession_start.trim() !== '') ||
+  //     (typeof tempSelectedItems.accession_end === 'string' && tempSelectedItems.accession_end.trim() !== '')
+
+  //   const hasGenderFilter = Array.isArray(tempSelectedItems.gender) && tempSelectedItems.gender.length > 0
+
+  //   const count = [hasLocationFilter, hasAccessionFilter, hasGenderFilter].filter(Boolean).length
+
+  //   setFilterCount(count)
+  // }
 
   const handleRemove = siteId => {
     setTempSelectedItems(prev => ({

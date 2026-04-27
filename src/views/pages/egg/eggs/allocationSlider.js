@@ -31,10 +31,11 @@ import { AddAllocation, GetAssesmentTypes } from 'src/lib/api/egg/allocation'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
+import { useTranslation } from 'react-i18next'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues, getDetails }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [loader, setLoader] = useState(false)
   const [incubatorList, setIncubatorList] = useState([])
   const [nurseryList, setNurseryList] = useState([])
@@ -57,8 +58,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             .number()
             .typeError('Value must be a number')
             .required('Weight is required')
-            .positive('Value must be positive') 
-            .min(1, 'Value must be greater than or equal to 1') 
+            .positive('Value must be positive')
+            .min(1, 'Value must be greater than or equal to 1')
         })
       )
       .required('At least one measurement is required')
@@ -274,7 +275,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
             <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
-            <Typography variant='h6'>Send For Incubation</Typography>
+            <Typography variant='h6'>{t('egg_module.send_for_incubation')}</Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -346,7 +347,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                               searchNursery(e.target.value)
                             }}
                             {...params}
-                            label='Select Nursery *'
+                            label={`${t('egg_module.select_nursery')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.nursery_name)}
                           />
@@ -391,7 +392,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                               searchRoom(allocationValues?.nursery_id, e.target.value)
                             }}
                             {...params}
-                            label='Select Room *'
+                            label={`${t('egg_module.select_room')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.room)}
                           />
@@ -436,7 +437,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                               searchIncubator(roomId, e.target.value)
                             }}
                             {...params}
-                            label='Select Incubator *'
+                            label={`${t('egg_module.select_incubator')} *`}
                             placeholder='Search & Select'
                             error={Boolean(errors.incubator)}
                           />
@@ -451,7 +452,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
               </CardContent>
 
               <Typography variant='h6' sx={{ mt: 5 }}>
-                Egg Measurements
+                {t('egg_module.egg_measurements')}
               </Typography>
             </Box>
 
@@ -596,7 +597,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   disabled={!formState.isValid || loader}
                   sx={{ height: '50px' }}
                 >
-                  Submit
+                  {t('submit')}
                 </LoadingButton>
               </Box>
             </Card>

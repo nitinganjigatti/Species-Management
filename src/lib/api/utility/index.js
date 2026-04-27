@@ -9,6 +9,8 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   const userDetails = await readAsync('userDetails')
   const selectedPharmacy = await readAsync('selectedStore')
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const clientPlatform = 'web'
+  const clientVersion = process.env.NEXT_PUBLIC_APP_VERSION
 
   // const header = { 'Content-Type': 'multipart/form-data' }
 
@@ -26,6 +28,8 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   }
 
   header['CurrentTimeZone'] = currentTimeZone
+  header['X-Client-Platform'] = clientPlatform
+  header['X-Client-Version'] = clientVersion
 
   return header
 }

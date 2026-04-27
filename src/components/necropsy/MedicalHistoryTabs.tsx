@@ -1,6 +1,7 @@
 import React, { useState, useEffect, FC, ReactNode } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import MedicalRecordsList from './MedicalRecordsList'
 import DiagnosisList from './DiagnosisList'
 import PrescriptionList from './PrescriptionList'
@@ -28,6 +29,13 @@ type TabType = 'Medical Records' | 'Diagnosis' | 'Prescription' | 'Lab Requests'
 
 // ==================== Constants ====================
 
+const TAB_KEYS: Record<TabType, string> = {
+  'Medical Records': 'necropsy_module.medical_records',
+  'Diagnosis': 'necropsy_module.diagnosis',
+  'Prescription': 'necropsy_module.prescription',
+  'Lab Requests': 'necropsy_module.lab_requests'
+}
+
 const TABS: TabType[] = ['Medical Records', 'Diagnosis', 'Prescription', 'Lab Requests']
 
 // ==================== Component ====================
@@ -39,6 +47,7 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
   mortalityCreatedAt
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabType>('Medical Records')
   const [medicalStats, setMedicalStats] = useState<MedicalStats | null>(null)
   const [statsLoading, setStatsLoading] = useState<boolean>(true)
@@ -110,14 +119,14 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
               color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
             }}
           >
-            Medical History
+            {t('necropsy_module.medical_history')}
           </Typography>
         )}
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
           <Typography
             sx={{ fontSize: '0.875rem', color: theme.palette.customColors?.neutralSecondary, fontWeight: 400 }}
           >
-            No medical history available
+            {t('necropsy_module.no_medical_history_available')}
           </Typography>
         </Box>
       </Box>
@@ -134,7 +143,7 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
             color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
           }}
         >
-          Medical History
+          {t('necropsy_module.medical_history')}
         </Typography>
       )}
 
@@ -178,7 +187,7 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
                     fontWeight: 500
                   }}
                 >
-                  {tab}
+                  {t(TAB_KEYS[tab])}
                 </Typography>
               </Box>
             ))}

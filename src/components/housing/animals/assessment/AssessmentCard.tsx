@@ -1,4 +1,5 @@
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Card, IconButton, Typography, Button } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -23,6 +24,7 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
   onHeaderClick
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
 
   const hasValues = assessment.assessment_values && assessment.assessment_values.length > 0
 
@@ -159,11 +161,11 @@ const AssessmentCard: React.FC<AssessmentCardProps> = ({
               }
             }}
           >
-            Add
+            {t('add')}
           </Button>
         ) : (
           <Typography variant='body2' color='text.secondary'>
-            No data available
+            {t('no_data_available')}
           </Typography>
         )}
       </Box>

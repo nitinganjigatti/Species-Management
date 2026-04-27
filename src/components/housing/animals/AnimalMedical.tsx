@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import {
   Block as BlockIcon,
   Vaccines as VaccineIcon,
@@ -42,6 +42,7 @@ import { getMedicalCommonData } from 'src/lib/api/necropsy/medicalHistory'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 // ==================== Types ====================
 
@@ -66,16 +67,16 @@ type MainTabType =
   | 'Adverse Rx'
 
 // Sub-tab configuration matching mobile implementation with icons
-const MEDICAL_SUB_TABS: { id: MainTabType; label: string; icon: string }[] = [
-  { id: 'Medical Records', label: 'Basic', icon: 'mdi:heart-pulse' },
-  { id: 'Diagnosis', label: 'Diagnosis', icon: 'mdi:stethoscope' },
-  { id: 'Complaints', label: 'Complaints', icon: 'mdi:emoticon-sad-outline' },
-  { id: 'Prescription', label: 'Prescriptions', icon: 'mdi:prescription' },
-  { id: 'Vaccination', label: 'Vaccination', icon: 'mdi:needle' },
-  { id: 'Deworming', label: 'Deworming', icon: 'mdi:pill' },
-  { id: 'Clinical Notes', label: 'Clinical Notes', icon: 'mdi:note-text' },
-  { id: 'Adverse Rx', label: 'Adverse Rx', icon: 'mdi:alert' },
-  { id: 'Lab Requests', label: 'Lab Requests', icon: 'mdi:flask' }
+const MEDICAL_SUB_TABS: { id: MainTabType; labelKey: string; icon: string }[] = [
+  { id: 'Medical Records', labelKey: 'animals_module.basic', icon: 'mdi:heart-pulse' },
+  { id: 'Diagnosis', labelKey: 'animals_module.diagnosis', icon: 'mdi:stethoscope' },
+  { id: 'Complaints', labelKey: 'animals_module.complaints', icon: 'mdi:emoticon-sad-outline' },
+  { id: 'Prescription', labelKey: 'animals_module.prescriptions', icon: 'mdi:prescription' },
+  { id: 'Vaccination', labelKey: 'animals_module.vaccination', icon: 'mdi:needle' },
+  { id: 'Deworming', labelKey: 'animals_module.deworming', icon: 'mdi:pill' },
+  { id: 'Clinical Notes', labelKey: 'animals_module.clinical_notes', icon: 'mdi:note-text' },
+  { id: 'Adverse Rx', labelKey: 'animals_module.adverse_rx', icon: 'mdi:alert' },
+  { id: 'Lab Requests', labelKey: 'animals_module.lab_requests', icon: 'mdi:flask' }
 ]
 
 // ==================== Shimmer Component ====================
@@ -208,6 +209,7 @@ interface ClinicalNotesListProps {
 }
 
 const ClinicalNotesList: FC<ClinicalNotesListProps> = ({ animalId }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -255,7 +257,7 @@ const ClinicalNotesList: FC<ClinicalNotesListProps> = ({ animalId }) => {
   }
 
   if (loading) return <CardShimmer />
-  if (data.length === 0) return <EmptyState message='No Clinical Notes Recorded' />
+  if (data.length === 0) return <EmptyState message={t('animals_module.no_clinical_notes_recorded')} />
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -299,7 +301,7 @@ const ClinicalNotesList: FC<ClinicalNotesListProps> = ({ animalId }) => {
                           lineHeight: 1.6
                         }}
                       >
-                        {note.clinical_notes || note.notes || note.note || 'No notes available'}
+                        {note.clinical_notes || note.notes || note.note || t('animals_module.no_notes_available')}
                       </Typography>
                       {note.created_at && (
                         <Typography
@@ -336,7 +338,7 @@ const ClinicalNotesList: FC<ClinicalNotesListProps> = ({ animalId }) => {
                 '&:hover': { textDecoration: 'underline' }
               }}
             >
-              Load More
+              {t('animals_module.load_more')}
             </Typography>
           )}
         </Box>
@@ -360,6 +362,7 @@ interface VaccinationCounts {
 }
 
 const VaccinationList: FC<VaccinationListProps> = ({ animalId, type, canAdd = true }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [activeSubTab, setActiveSubTab] = useState<'Pending' | 'Upcoming' | 'Completed'>('Pending')
   const [data, setData] = useState<any[]>([])
@@ -772,7 +775,7 @@ const VaccinationList: FC<VaccinationListProps> = ({ animalId, type, canAdd = tr
                     '&:hover': { textDecoration: 'underline' }
                   }}
                 >
-                  Load More
+                  {t('animals_module.load_more')}
                 </Typography>
               )}
             </Box>
@@ -791,6 +794,7 @@ interface AdverseRxListProps {
 }
 
 const AdverseRxList: FC<AdverseRxListProps> = ({ animalId, canDelete = true }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState<boolean>(true)
@@ -920,7 +924,7 @@ const AdverseRxList: FC<AdverseRxListProps> = ({ animalId, canDelete = true }) =
                   '&:hover': { textDecoration: 'underline' }
                 }}
               >
-                Load More
+                {t('animals_module.load_more')}
               </Typography>
             )}
           </Box>
@@ -952,8 +956,9 @@ const AdverseRxList: FC<AdverseRxListProps> = ({ animalId, canDelete = true }) =
 // ==================== Main Component ====================
 
 const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
 
   const [activeTab, setActiveTab] = useState<MainTabType>('Medical Records')
@@ -1028,7 +1033,7 @@ const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails }) => {
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Icon icon={tab.icon} fontSize={18} />
-                    <span>{tab.label}</span>
+                    <span>{t(tab.labelKey)}</span>
                   </Box>
                 }
               />

@@ -63,7 +63,8 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 250,
+      flex: 1,
+      minWidth: 200,
       field: 'store_name',
       headerName: 'Store Name',
       renderCell: params => (

@@ -148,6 +148,16 @@ export type {
   GetSiteDetailsResponse,
   AddSitePayload,
   AddSiteResponse,
+  EditSitePayload,
+  EditSiteResponse,
+  DeleteSiteParams,
+  DeleteSiteResponse,
+  AddSiteTeamPayload,
+  AddSiteTeamResponse,
+  EditSiteTeamPayload,
+  EditSiteTeamResponse,
+  UpdatePerformActionPayload,
+  UpdatePerformActionResponse,
 
   // Section
   GetSectionsParams,
@@ -156,6 +166,13 @@ export type {
   GetSectionAnalyticsResponse,
   AddSectionPayload,
   AddSectionResponse,
+  EditSectionPayload,
+  EditSectionResponse,
+  DeleteSectionParams,
+  DeleteSectionResponse,
+  GetAnimalTreatmentListParams,
+  GetAnimalTreatmentListResponse,
+  GetSectionAnimalTreatmentListParams,
 
   // Enclosure
   GetEnclosuresParams,
@@ -174,19 +191,25 @@ export type {
   GetParentEnclosureListResponse,
   AddEnclosurePayload,
   AddEnclosureResponse,
+  EnclosureBasicInfo,
+  GetEnclosureBasicInfoParams,
+  GetEnclosureBasicInfoResponse,
+  EditEnclosurePayload,
+  EditEnclosureResponse,
+  DeleteEnclosureParams,
+  DeleteEnclosureResponse,
 
   // Animal
   GetAnimalsParams,
   GetAnimalsResponse,
   GetAnimalDetailsOverviewParams,
-  AnimalDetailsOverviewData,
   GetAnimalDetailsOverviewResponse,
   GetAnimalHistoryParams,
   GetAnimalHistoryResponse,
   GetAnimalMediaParams,
   GetAnimalMediaResponse,
-
-  // Animal Identifier
+  AddAnimalMediaPayload,
+  AddAnimalMediaResponse,
   GetAnimalIdentifierParams,
   GetAnimalIdentifierResponse,
   AddAnimalIdentifierPayload,
@@ -195,8 +218,6 @@ export type {
   EditAnimalIdentifierResponse,
   DeleteAnimalIdentifierParams,
   DeleteAnimalIdentifierResponse,
-
-  // Animal Incident
   GetAnimalIncidentListParams,
   GetAnimalIncidentListResponse,
   GetAnimalIncidentDetailsParams,
@@ -205,8 +226,6 @@ export type {
   CreateAnimalIncidentResponse,
   UpdateAnimalIncidentPayload,
   UpdateAnimalIncidentResponse,
-
-  // Animal Mortality
   GetAnimalMortalityParams,
   GetAnimalMortalityResponse,
   EditAnimalMortalityPayload,
@@ -216,17 +235,25 @@ export type {
   GetMannerOfDeathResponse,
   GetCarcassConditionResponse,
   GetCarcassDispositionResponse,
-
-  // Animal Diet
   GetAnimalDietListParams,
   GetAnimalDietListResponse,
-
-  // Animal Journal
   GetAnimalJournalLogsParams,
   GetAnimalJournalLogsResponse,
   GetAnimalJournalModulesParams,
   GetAnimalJournalModulesResponse,
   JournalModule,
+  TaxonomyLevel,
+  TaxonomyHierarchyData,
+  GetTaxonomyHierarchyParams,
+  GetTaxonomyHierarchyResponse,
+  GetVaccinationListParams,
+  VaccinationRecord,
+  GetVaccinationListResponse,
+  GetMedicineSideEffectParams,
+  MedicineSideEffect,
+  GetMedicineSideEffectResponse,
+  DeleteMedicineSideEffectParams,
+  DeleteMedicineSideEffectResponse,
 
   // Species
   GetSpeciesParams,
@@ -236,14 +263,11 @@ export type {
   GetMortalityListParams,
   GetMortalityListResponse,
 
-  // Treatment
-  GetAnimalTreatmentListParams,
-  GetAnimalTreatmentListResponse,
-  GetSectionAnimalTreatmentListParams,
-
   // Media
   GetMediaParams,
   GetMediaResponse,
+  AddMediaPayload,
+  AddMediaResponse,
 
   // Cluster
   GetClusterListParams,
@@ -254,6 +278,15 @@ export type {
   GetSiteListClusterWiseResponse,
   AddClusterPayload,
   AddClusterResponse,
+  EditClusterPayload,
+  EditClusterResponse,
+  DeleteClusterParams,
+  DeleteClusterResponse,
+  GetAvailableSitesForClusterParams,
+  AvailableSiteItem,
+  GetAvailableSitesForClusterResponse,
+  AssignSitesToClusterPayload,
+  AssignSitesToClusterResponse,
 
   // Notes / Observation
   GetNotesParams,
@@ -267,6 +300,7 @@ export type {
   CreateObservationResponse,
   DeleteObservationParams,
   DeleteObservationResponse,
+  EditObservationResponse,
   AddNoteReactionPayload,
   AddNoteReactionResponse,
   RemoveNoteReactionPayload,
@@ -277,11 +311,55 @@ export type {
   // User
   GetUsersListParams,
   GetUsersListResponse,
-
-  // Users with Access (get-userswith-access)
   UserWithAccessItem,
   GetUsersWithAccessParams,
   GetUsersWithAccessResponse,
+  GetUserListPostParams,
+  UserListItem,
+  GetUserListPostResponse,
+  GetInchargeListParams,
+  InchargeUser,
+  GetInchargeListResponse,
+  AddInchargePayload,
+  AddInchargeResponse,
+  UserRole,
+  GetUsersRoleListResponse,
+  GetEntityPermissionParams,
+  GetEntityPermissionResponse,
+
+  // Transfer
+  AnimalTransferItem,
+  GetAnimalTransferListParams,
+  GetAnimalTransferListResponse,
+  TransferSummaryData,
+  GetTransferSummaryResponse,
+  GetAnimalTransferSummaryParams,
+  GetAnimalTransferButtonStatusParams,
+  TransferButtonStatus,
+  GetTransferButtonStatusResponse,
+  GetTransferButtonStatusParams,
+  AnimalTransferLogItem,
+  GetAnimalTransferLogsResponse,
+  AddAnimalTransferCommentPayload,
+  AddAnimalTransferCommentResponse,
+  UpdateAnimalTransferStatusPayload,
+  UpdateAnimalTransferStatusResponse,
+  UpdateTransferStatusPayload,
+  UpdateTransferStatusResponse,
+  AddTransferCommentPayload,
+  AddTransferCommentResponse,
+  TransferActivityItem,
+  GetTransferActivityResponse,
+  TransferMemberUser,
+  TransferMembersData,
+  GetTransferMembersResponse,
+  ApproveTransferResponse,
+  RejectTransferPayload,
+  RejectTransferResponse,
+  AnimalDetailItem,
+  SpeciesWithAnimalsItem,
+  AnimalBySpeciesItem,
+  GetAnimalListBySpeciesResponse,
 
   // Lineage / Family Tree
   GetLineageParentParams,
@@ -290,8 +368,6 @@ export type {
   GetLineagePairResponse,
   GetLineageSiblingParams,
   GetLineageSiblingResponse,
-
-  // Lineage CRUD API
   AddLineageParentResponse,
   EditExternalParentResponse,
   DeleteLineageParentResponse,
@@ -299,7 +375,15 @@ export type {
   EditLineagePairResponse,
   DeleteLineagePairResponse,
   GetLineageAnimalListParams,
-  GetLineageAnimalListResponse
+  GetLineageAnimalListResponse,
+
+  // Food Wastage
+  FoodWastageData,
+  GetFoodWastageParams,
+  GetFoodWastageResponse,
+  FoodWastageDetailItem,
+  GetFoodWastageDetailsParams,
+  GetFoodWastageDetailsResponse
 } from './api'
 
 // ==================== State Types ====================

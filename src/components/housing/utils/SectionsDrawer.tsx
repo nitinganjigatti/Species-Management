@@ -3,7 +3,7 @@ import { Typography, Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import { CellInfo } from 'src/utility/render'
@@ -12,6 +12,7 @@ import { getAllSections } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import SectionCard from 'src/views/pages/housing/section/SectionCard'
 import { Section } from 'src/types/housing'
+import { useTranslation } from 'react-i18next'
 
 interface SectionsDrawerData {
   queryKey: string
@@ -35,8 +36,9 @@ interface PageResult {
 
 const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
@@ -99,7 +101,7 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
   const list = useMemo(() => queryData?.pages?.flatMap((page: PageResult) => page?.result) || [], [queryData])
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
-  const sectionsLabel = Number(total) > (0 || 1) ? 'Sections' : 'Section'
+  const sectionsLabel = Number(total) > (0 || 1) ? t('sections') : t('section')
   const sectionsHeading = total ? `${sectionsLabel} (${total})` : sectionsLabel
 
   // cooldownRef to prevent multiple rapid calls
@@ -139,9 +141,7 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
     (sectionId: number | string) => {
       if (!sectionId) return
 
-      router.push({
-        pathname: `/housing/sections/${sectionId}`
-      })
+      router.push(`/housing/sections/${sectionId}`)
 
       if (onClose) {
         onClose()
@@ -154,7 +154,7 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Sections'
+      title={t('sections')}
       icon='/images/housing/section-icon-colored.png'
       iconColor={theme.palette.primary.main}
     >
@@ -195,7 +195,7 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
             borderRadius: '8px',
             backgroundColor: theme.palette.customColors?.OnPrimary
           }}
-          placeholder='Search for a section'
+          placeholder={t('housing_module.search_section') as string}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -242,13 +242,13 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
 
         {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No sections found
+            {t('housing_module.no_sections_found')}
           </Typography>
         )}
 
         {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more sections to load
+            {t('housing_module.no_more_sections')}
           </Typography>
         )}
       </Box>

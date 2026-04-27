@@ -19,6 +19,7 @@ import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
+import Utility from 'src/utility'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -52,8 +53,8 @@ const AddSymptomDrawer = ({
     // Set default date based on discharge status
     if (isDischarged && dischargedDate) {
       // Convert UTC discharge date to local time
-      const localDischargeDateTime = dayjs.utc(dischargedDate).local()
-      const localAdmittedDateTime = dayjs.utc(admittedDate).local()
+      const localDischargeDateTime = dayjs(Utility.convertUTCToLocal(dischargedDate))
+      const localAdmittedDateTime = dayjs(Utility.convertUTCToLocal(admittedDate))
       setRecordedDateTime(localDischargeDateTime)
       // setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
       // setMaxDate(localDischargeDateTime.endOf('day'))
@@ -61,7 +62,7 @@ const AddSymptomDrawer = ({
       setMaxDate(localDischargeDateTime)
     } else {
       setRecordedDateTime(dayjs())
-      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
+      setMinDate(admittedDate ? dayjs.utc(admittedDate).local() : null)
       setMaxDate(dayjs()) // Set max date to current time for non-discharged animals
     }
   }, [open, isDischarged, admittedDate, dischargedDate])

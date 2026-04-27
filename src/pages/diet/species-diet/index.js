@@ -566,7 +566,7 @@ const SpeciesDietList = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 4, pt: 2 }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', px: '20px', pt: 2 }}>
               <Tabs value={activeTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
                 <Tab label={t('diet_module.species_diet')} value={TAB_VALUES.SPECIES} />
                 <Tab label={t('diet_module.animal_diet')} value={TAB_VALUES.ANIMAL} />
@@ -585,7 +585,7 @@ const SpeciesDietList = () => {
               <Grid item size={{ xs: 12, sm: 3.5 }}>
                 <Typography
                   sx={{
-                    marginLeft: 4,
+                    marginLeft: `20px`,
                     color: theme.palette.customColors.OnSurfaceVariant,
                     fontWeight: '500',
                     fontSize: '24px',
@@ -635,7 +635,12 @@ const SpeciesDietList = () => {
                   <Grid
                     item
                     size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}
-                    sx={{ display: 'flex', justifyContent: 'flex-end', marginLeft: { xs: 4, md: 0 }, marginRight: 4 }}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      marginLeft: { xs: 4, md: 0 },
+                      marginRight: '20px'
+                    }}
                   >
                     <Box
                       sx={{
@@ -784,7 +789,14 @@ const SpeciesDietList = () => {
                         alignItems: 'flex-start'
                       }
                     }
-                  : {})
+                  : {}),
+                '.MuiDataGrid-virtualScroller': {
+                  overflowX: 'auto'
+                },
+                '.MuiDataGrid-main': {
+                  marginLeft: '20px',
+                  marginRight: '20px'
+                }
               }}
             />
             </Box>

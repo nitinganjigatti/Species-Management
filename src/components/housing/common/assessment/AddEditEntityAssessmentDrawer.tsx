@@ -5,6 +5,7 @@ import { Controller, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import dayjs, { Dayjs } from 'dayjs'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
@@ -54,6 +55,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
   refetch
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
 
   // Determine mode - entities always allow edit by creator
@@ -75,8 +77,14 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
   // Build validation schema based on response type
   const getValidationSchema = () => {
     const baseSchema = {
-      date: yup.mixed().required('Date is required').nullable(),
-      time: yup.mixed().required('Time is required').nullable(),
+      date: yup
+        .mixed()
+        .required(t('date_required') as string)
+        .nullable(),
+      time: yup
+        .mixed()
+        .required(t('time_required') as string)
+        .nullable(),
       notes: yup.string()
     }
 
@@ -84,26 +92,29 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
       case 'text':
         return yup.object().shape({
           ...baseSchema,
-          textValue: yup.string().required('Value is required').max(200, 'Maximum 200 characters')
+          textValue: yup
+            .string()
+            .required(t('value_required') as string)
+            .max(200, t('max_200_chars') as string)
         })
       case 'numeric_value':
         if (assessment?.measurement_type) {
           return yup.object().shape({
             ...baseSchema,
-            numericValue: yup.string().required('Value is required'),
-            unitId: yup.string().required('Unit is required')
+            numericValue: yup.string().required(t('value_required') as string),
+            unitId: yup.string().required(t('unit_required') as string)
           })
         }
 
         return yup.object().shape({
           ...baseSchema,
-          numericValue: yup.string().required('Value is required')
+          numericValue: yup.string().required(t('value_required') as string)
         })
       case 'numeric_scale':
       case 'list':
         return yup.object().shape({
           ...baseSchema,
-          selectedScaleId: yup.string().required('Please select an option')
+          selectedScaleId: yup.string().required(t('please_select_option') as string)
         })
       default:
         return yup.object().shape(baseSchema)
@@ -276,8 +287,8 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
             render={({ field }) => (
               <TextField
                 {...field}
-                label='Enter Text'
-                placeholder='Enter value'
+                label={t('enter_text')}
+                placeholder={t('enter_value') as string}
                 fullWidth
                 disabled={isViewMode}
                 error={!!errors.textValue}
@@ -303,8 +314,8 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                 render={({ field }) => (
                   <TextField
                     {...field}
-                    label='Enter Value'
-                    placeholder='Enter value'
+                    label={t('enter_value')}
+                    placeholder={t('enter_value') as string}
                     fullWidth
                     disabled={isViewMode}
                     error={!!errors.numericValue}
@@ -327,7 +338,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                 <ControlledSelect
                   name='unitId'
                   control={control}
-                  label='Select Unit'
+                  label={t('select_unit') as string}
                   required
                   errors={errors}
                   options={unitOptions}
@@ -349,7 +360,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
           <ControlledSelect
             name='selectedScaleId'
             control={control}
-            label='Select Value'
+            label={t('select_value') as string}
             required
             errors={errors}
             options={(assessment.default_values || []).map(v => ({
@@ -448,21 +459,27 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                     color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
                   }}
                 >
-                  Observation Date & Time
+                  {t('observation_date_time')}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 3 }}>
                   <Box sx={{ flex: 1 }}>
                     <ControlledDatePicker
                       name='date'
                       control={control}
-                      label='Date'
+                      label={t('date') as string}
                       required
                       maxDate={dayjs()}
                       disabled={isViewMode}
                     />
                   </Box>
                   <Box sx={{ flex: 1 }}>
-                    <ControlledTimePicker name='time' control={control} label='Time' required disabled={isViewMode} />
+                    <ControlledTimePicker
+                      name='time'
+                      control={control}
+                      label={t('time') as string}
+                      required
+                      disabled={isViewMode}
+                    />
                   </Box>
                 </Box>
               </Box>
@@ -485,7 +502,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                     color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.secondary
                   }}
                 >
-                  Enter Observation
+                  {t('enter_observation')}
                 </Typography>
                 {renderResponseInput()}
               </Box>
@@ -505,7 +522,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      placeholder='Notes(Optional)'
+                      placeholder={t('notes_optional') as string}
                       multiline
                       rows={2}
                       fullWidth
@@ -556,7 +573,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                 fontWeight: 600
               }}
             >
-              CANCEL
+              {t('cancel')}
             </Button>
             <Button
               variant='contained'
@@ -574,7 +591,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                 }
               }}
             >
-              {loading ? <CircularProgress size={24} color='inherit' /> : isAddMode ? 'ADD' : 'UPDATE'}
+              {loading ? <CircularProgress size={24} color='inherit' /> : isAddMode ? t('add') : t('update')}
             </Button>
           </Box>
         )}
@@ -602,7 +619,7 @@ const AddEditEntityAssessmentDrawer: React.FC<AddEditEntityAssessmentDrawerProps
                 fontWeight: 600
               }}
             >
-              CLOSE
+              {t('close')}
             </Button>
           </Box>
         )}

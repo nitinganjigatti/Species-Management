@@ -1,7 +1,8 @@
 import React, { useState, useEffect, FC, useMemo, useCallback, useRef, useContext } from 'react'
 import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import { useRouter } from 'next/router'
+import { useTranslation } from 'react-i18next'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import {
@@ -244,6 +245,7 @@ const SectionHeader: FC<SectionHeaderProps> = ({
   showEdit = false
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const title = isExternal ? `External ${parentType}` : parentType
 
   return (
@@ -267,7 +269,7 @@ const SectionHeader: FC<SectionHeaderProps> = ({
         </Typography>
         {!isConfirmed && totalCount > 1 && (
           <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, color: theme.palette.primary.main }}>
-            Probable {totalCount}
+            {t('animals_module.probable')} {totalCount}
           </Typography>
         )}
       </Box>
@@ -526,7 +528,8 @@ interface ParentsTabProps {
 }
 
 const ParentsTab: FC<ParentsTabProps> = ({ animalId, taxonomyId, isEggAnimal, canAdd, canEdit, canDelete }) => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const [loading, setLoading] = useState<boolean>(true)
   const [parentData, setParentData] = useState<LineageParentData | null>(null)
 
@@ -573,7 +576,7 @@ const ParentsTab: FC<ParentsTabProps> = ({ animalId, taxonomyId, isEggAnimal, ca
       setSelectedExternalAnimal(animal as ExternalAnimal)
       setExternalDetailsOpen(true)
     } else if ('animal_id' in animal && animal.animal_id) {
-      router.push(`/housing/animals/${animal.animal_id}`)
+      router.push(`/animals/${animal.animal_id}`)
     }
   }
 
@@ -679,7 +682,7 @@ const ParentsTab: FC<ParentsTabProps> = ({ animalId, taxonomyId, isEggAnimal, ca
       setExternalDetailsOpen(true)
       setParentListDrawerOpen(false)
     } else if ('animal_id' in animal && animal.animal_id) {
-      router.push(`/housing/animals/${animal.animal_id}`)
+      router.push(`/animals/${animal.animal_id}`)
     }
   }
 
@@ -755,11 +758,11 @@ const ParentsTab: FC<ParentsTabProps> = ({ animalId, taxonomyId, isEggAnimal, ca
   return (
     <Box>
       {showAddSire && canShowAddButtons && (
-        <AddFamilyCard title='Add Sire (Father)' onClick={() => handleAddParent('sire')} />
+        <AddFamilyCard title={t('animals_module.add_sire')} onClick={() => handleAddParent('sire')} />
       )}
 
       {showAddDam && canShowAddButtons && (
-        <AddFamilyCard title='Add Dam (Mother)' onClick={() => handleAddParent('dam')} />
+        <AddFamilyCard title={t('animals_module.add_dam')} onClick={() => handleAddParent('dam')} />
       )}
 
       {sections.map(section => {
@@ -830,7 +833,7 @@ const ParentsTab: FC<ParentsTabProps> = ({ animalId, taxonomyId, isEggAnimal, ca
           setDeleteConfirmOpen(false)
           setParentToDelete(null)
         }}
-        title='Remove Parent'
+        title={t('animals_module.remove_parent')}
         description='Are you sure you want to remove this parent?'
         ConfirmationText='Remove'
         confirmAction={confirmDeleteParent}
@@ -1070,7 +1073,8 @@ interface PairsTabProps {
 }
 
 const PairsTab: FC<PairsTabProps> = ({ animalId, animalSex, taxonomyId, isEggAnimal, canAdd, canEdit, canDelete }) => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
 
   const PAGE_SIZE = 20
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
@@ -1155,7 +1159,7 @@ const PairsTab: FC<PairsTabProps> = ({ animalId, animalSex, taxonomyId, isEggAni
       setSelectedExternalAnimal((pair.pair_animal_details as ExternalAnimal) || externalAnimal)
       setExternalDetailsOpen(true)
     } else if (pairedAnimalId) {
-      router.push(`/housing/animals/${pairedAnimalId}`)
+      router.push(`/animals/${pairedAnimalId}`)
     }
   }
 
@@ -1221,7 +1225,7 @@ const PairsTab: FC<PairsTabProps> = ({ animalId, animalSex, taxonomyId, isEggAni
 
   return (
     <Box>
-      {canShowAddButton && <AddFamilyCard title='Add Pair' onClick={() => setAddPairDrawerOpen(true)} />}
+      {canShowAddButton && <AddFamilyCard title={t('animals_module.add_pair')} onClick={() => setAddPairDrawerOpen(true)} />}
 
       {pairs.length === 0 && !isFetching ? (
         <EmptyState message='No Pairs Recorded' />
@@ -1285,7 +1289,7 @@ const PairsTab: FC<PairsTabProps> = ({ animalId, animalSex, taxonomyId, isEggAni
           setDeleteConfirmOpen(false)
           setPairToDelete(null)
         }}
-        title='Remove Pair'
+        title={t('animals_module.remove_pair')}
         description='Are you sure you want to remove this pair?'
         ConfirmationText='Remove'
         confirmAction={() => confirmDeletePair(0)}
@@ -1297,7 +1301,7 @@ const PairsTab: FC<PairsTabProps> = ({ animalId, animalSex, taxonomyId, isEggAni
       <ConfirmationDialog
         dialogBoxStatus={conflictConfirmOpen}
         onClose={cancelConflictDelete}
-        title='Remove Pair'
+        title={t('animals_module.remove_pair')}
         description={conflictMessage}
         ConfirmationText='Yes, Remove'
         confirmAction={confirmConflictDelete}
@@ -1314,7 +1318,7 @@ interface SiblingsTabProps {
 }
 
 const SiblingsTab: FC<SiblingsTabProps> = ({ animalId }) => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const theme = useTheme()
 
   const PAGE_SIZE = 20
@@ -1374,7 +1378,7 @@ const SiblingsTab: FC<SiblingsTabProps> = ({ animalId }) => {
 
   const handleSiblingClick = (sibling: LineageSibling) => {
     if (sibling.animal_id) {
-      router.push(`/housing/animals/${sibling.animal_id}`)
+      router.push(`/animals/${sibling.animal_id}`)
     }
   }
 
@@ -1433,7 +1437,8 @@ const SiblingsTab: FC<SiblingsTabProps> = ({ animalId }) => {
 }
 
 const AnimalLineage: FC<AnimalLineageProps> = ({ animalDetails }) => {
-  const router = useRouter()
+  const { t } = useTranslation()
+  const router = useSafeRouter()
   const { id } = router.query
   const authData = useContext(AuthContext) as any
 
@@ -1452,6 +1457,12 @@ const AnimalLineage: FC<AnimalLineageProps> = ({ animalDetails }) => {
   const showPairsTab = animalType === 'single' && (animalSex === 'male' || animalSex === 'female')
 
   const availableTabs: LineageTabType[] = showPairsTab ? ['Parents', 'Pairs', 'Siblings'] : ['Parents', 'Siblings']
+
+  const tabLabelMap: Record<LineageTabType, string> = {
+    Parents: t('animals_module.parents'),
+    Pairs: t('animals_module.pairs'),
+    Siblings: t('animals_module.siblings')
+  }
 
   const [activeTab, setActiveTab] = useState<LineageTabType>('Parents')
 
@@ -1490,7 +1501,10 @@ const AnimalLineage: FC<AnimalLineageProps> = ({ animalDetails }) => {
   return (
     <Box sx={{ py: 3 }}>
       <Box sx={{ mb: 3 }}>
-        <PillTabs tabs={availableTabs} activeTab={activeTab} onTabClick={tab => setActiveTab(tab as LineageTabType)} />
+        <PillTabs tabs={availableTabs.map(tab => tabLabelMap[tab])} activeTab={tabLabelMap[activeTab]} onTabClick={label => {
+          const entry = Object.entries(tabLabelMap).find(([_, v]) => v === label)
+          if (entry) setActiveTab(entry[0] as LineageTabType)
+        }} />
       </Box>
       {renderTabContent()}
     </Box>

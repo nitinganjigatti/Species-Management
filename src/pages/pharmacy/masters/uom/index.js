@@ -112,7 +112,8 @@ const ListOfUOM = () => {
       )
     },
     {
-      minWidth: 350,
+      flex: 1,
+      minWidth: 250,
       field: 'unit_name',
       headerName: 'UOM NAME',
       textAlign: 'center',

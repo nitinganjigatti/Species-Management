@@ -20,6 +20,7 @@ import type { AnimalData, MedicalRow, FilterOptions, SortType, FilterDate, Pagin
 // import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import { toast } from 'react-hot-toast'
 
 const MedicalRecords = () => {
   const theme: any = useTheme()
@@ -490,11 +491,17 @@ const MedicalRecords = () => {
     }
     try {
       setDownloadingRowId(row?.id)
-      await downloadPDF({
-        apiCall: getMedicalRecordReport,
-        params,
-        fileName: `Medical_record_${row?.medical_record_code || row?.id}_${Date.now()}.pdf`
-      })
+      const result = await getMedicalRecordReport(params)
+      if (result?.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result?.message || 'Failed to download report')
+      }
+      // await downloadPDF({
+      //   apiCall: getMedicalRecordReport,
+      //   params,
+      //   fileName: `Medical_record_${row?.medical_record_code || row?.id}_${Date.now()}.pdf`
+      // })
     } catch (error) {
       console.error('Error downloading row report:', error)
     } finally {
@@ -523,11 +530,18 @@ const MedicalRecords = () => {
     const params = buildFilterParams()
     try {
       setIsDownloading(true)
-      await downloadPDF({
-        apiCall: getMedicalRecordReport,
-        params,
-        fileName: `Medical_records_${Date.now()}.pdf`
-      })
+      const result = await getMedicalRecordReport(params)
+      debugger
+      if (result?.success) {
+        toast.success(result.message)
+      } else {
+        toast.error(result?.message || 'Failed to download report')
+      }
+      // await downloadPDF({
+      //   apiCall: getMedicalRecordReport,
+      //   params,
+      //   fileName: `Medical_records_${Date.now()}.pdf`
+      // })
     } catch (error) {
       console.error('Error downloading report:', error)
     } finally {

@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -112,6 +113,7 @@ interface AddOrganDrawerProps {
 
 const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onApply, onTemplatesUpdated }) => {
   const theme = useTheme()
+  const { t } = useTranslation('common')
 
   const [selectedTemplate, setSelectedTemplate] = useState<string | number | null>(null)
   const [openSelectOrganDrawer, setOpenSelectOrganDrawer] = useState<boolean>(false)
@@ -367,7 +369,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
 
   const handleSaveTemplate = async (): Promise<void> => {
     if (!templateName.trim()) {
-      Toaster({ type: 'error', message: 'Please enter a template name' })
+      Toaster({ type: 'error', message: t('necropsy_module.please_enter_template_name') })
 
       return
     }
@@ -391,18 +393,18 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
 
       const res = await createNecropsyTemplate(payload)
       if (res?.success) {
-        Toaster({ type: 'success', message: res?.message || 'Template saved successfully' })
+        Toaster({ type: 'success', message: res?.message || t('necropsy_module.template_saved_successfully') })
         setTemplateName('')
         setSaveTemplate(false)
         fetchTemplates()
         // Notify parent to refresh its template list
         if (onTemplatesUpdated) onTemplatesUpdated()
       } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to save template' })
+        Toaster({ type: 'error', message: res?.message || t('necropsy_module.failed_to_save_template') })
       }
     } catch (error) {
       console.error('Error saving template:', error)
-      Toaster({ type: 'error', message: 'Something went wrong while saving template' })
+      Toaster({ type: 'error', message: t('necropsy_module.something_went_wrong_saving_template') })
     } finally {
       setSaveLoading(false)
     }
@@ -474,7 +476,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
               <Typography
                 sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
               >
-                Add Organs
+                {t('necropsy_module.add_organs')}
               </Typography>
             </Box>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
@@ -498,7 +500,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                 }}
                 startIcon={<Icon icon='mdi:plus' fontSize={30} />}
               >
-                Add Organ
+                {t('necropsy_module.add_organ')}
               </Button>
             </Box>
 
@@ -513,7 +515,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                 <Typography
                   sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  Selected ({totalParts})
+                  {t('necropsy_module.selected_organs_count', { count: totalParts })}
                 </Typography>
                 <Box
                   sx={{
@@ -553,8 +555,8 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                               <TextField
                                 fullWidth
                                 size='small'
-                                label={`Enter ${part.organ_name || part.label || `Part ${idx + 1}`} Description`}
-                                placeholder={`Enter ${part.organ_name || part.label || `Part ${idx + 1}`} description`}
+                                label={t('necropsy_module.enter_description', { partName: part.organ_name || part.label || `${t('necropsy_module.part_label', { index: idx + 1 })}` })}
+                                placeholder={t('necropsy_module.enter_description', { partName: part.organ_name || part.label || `${t('necropsy_module.part_label', { index: idx + 1 })}` })}
                                 multiline
                                 rows={2}
                                 value={part.value || ''}
@@ -600,7 +602,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                 {saveTemplate ? (
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
                     <TextField
-                      placeholder='Enter Template Name'
+                      placeholder={t('necropsy_module.enter_template_name')}
                       value={templateName}
                       sx={{
                         flex: 1,
@@ -627,7 +629,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                       onClick={handleSaveTemplate}
                       disabled={templateName.trim() === '' || saveLoading}
                     >
-                      {saveLoading ? <CircularProgress size={24} color='inherit' /> : 'SAVE'}
+                      {saveLoading ? <CircularProgress size={24} color='inherit' /> : t('save')}
                     </Button>
                     <Button
                       sx={{
@@ -642,7 +644,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                         setSaveTemplate(false)
                       }}
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                   </Box>
                 ) : (
@@ -669,7 +671,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                           color: hasOrgans ? theme.palette.customColors.OnSurface : theme.palette.text.disabled
                         }}
                       >
-                        Save as template
+                        {t('necropsy_module.save_as_template')}
                       </Typography>
                     </Box>
                     <Typography
@@ -682,7 +684,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                       }}
                       onClick={hasOrgans ? handleClearAll : undefined}
                     >
-                      Clear all
+                      {t('necropsy_module.clear_all')}
                     </Typography>
                   </Box>
                 )}
@@ -695,7 +697,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                   <Typography
                     sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
                   >
-                    Templates
+                    {t('necropsy_module.templates')}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Box
@@ -752,7 +754,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                           color: editMode ? theme.palette.common.white : theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        {editMode ? 'Done' : 'Edit'}
+                        {editMode ? t('necropsy_module.done') : t('edit')}
                       </Typography>
                     </Box>
                   </Box>
@@ -761,7 +763,7 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                   <TextField
                     fullWidth
                     size='small'
-                    placeholder='Search templates...'
+                    placeholder={t('necropsy_module.search_templates')}
                     value={templateSearchText}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTemplateSearchText(e.target.value)}
                     InputProps={{
@@ -872,10 +874,10 @@ const AddOrganDrawer: FC<AddOrganDrawerProps> = ({ open, setOpen, organs, onAppl
                 height: '56px'
               }}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button variant='contained' fullWidth onClick={handleApply} sx={{ height: '56px' }}>
-              Apply
+              {t('necropsy_module.apply')}
             </Button>
           </Box>
         </Box>

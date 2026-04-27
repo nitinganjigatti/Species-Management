@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, useTheme, Skeleton } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useQuery } from '@tanstack/react-query'
 
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -12,7 +12,7 @@ import { TabProps, AnimalItem } from 'src/types/housing/animalsOffspring'
 
 const Mortality: React.FC<TabProps> = props => {
   const theme = useTheme() as any
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const { data: mortalityData, isFetching: isMortalityFetching } = useQuery({
     queryKey: ['recent-litter', props.animalId],
@@ -30,7 +30,7 @@ const Mortality: React.FC<TabProps> = props => {
   const mortality: AnimalItem[] | null = mortalityData?.data || null
 
   const handleAnimalClick = (animalId: string) => {
-    router.push(`/housing/animals/${animalId}`)
+    router.push(`/animals/${animalId}`)
   }
 
   if (isMortalityFetching) return <LoadingSkeleton />

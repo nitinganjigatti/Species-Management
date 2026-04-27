@@ -1,24 +1,26 @@
 import React, { useState, FC, useMemo, useEffect } from 'react'
 import { Box, Tabs, Tab } from '@mui/material'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useQuery } from '@tanstack/react-query'
 
 import { getOffspringStats } from 'src/lib/api/housing'
 import { AnimalOffspringProps, OffspringStats } from 'src/types/housing/animalsOffspring'
 import { AllOffspring, Litter, Mortality, FetalDeath, Clutch, Egg } from './offspring'
+import { useTranslation } from 'react-i18next'
 
 const OFFSPRING_TABS = [
-  { value: 'all_offspring', label: 'All Offspring', key: 'all_offspring' },
-  { value: 'litter_count', label: 'Litter', key: 'litter_count' },
-  { value: 'mortality_count', label: 'Mortality', key: 'mortality_count' },
-  { value: 'fetal_death_count', label: 'Fetal Death', key: 'fetal_death_count' },
-  { value: 'clutch_count', label: 'Clutch', key: 'clutch_count' },
-  { value: 'egg_count', label: 'Egg', key: 'egg_count' }
+  { value: 'all_offspring', labelKey: 'animals_module.all_offspring', key: 'all_offspring' },
+  { value: 'litter_count', labelKey: 'animals_module.litter', key: 'litter_count' },
+  { value: 'mortality_count', labelKey: 'navigation.mortality', key: 'mortality_count' },
+  { value: 'fetal_death_count', labelKey: 'animals_module.fetal_death', key: 'fetal_death_count' },
+  { value: 'clutch_count', labelKey: 'animals_module.clutch', key: 'clutch_count' },
+  { value: 'egg_count', labelKey: 'animals_module.egg', key: 'egg_count' }
 ]
 
 const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
+  const { t } = useTranslation()
 
   const animalId = id as string
 
@@ -43,7 +45,8 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
   const stats: OffspringStats | null = statsData?.success ? statsData.data : null
 
   // Tab label with count
-  const getTabLabel = (key: string, label: string): string => {
+  const getTabLabel = (key: string, labelKey: string): string => {
+    const label = t(labelKey)
     if (isStatsLoading && !stats) return label
     const count = Number(stats?.[key] || 0)
     return count ? `${label} - ${count}` : label
@@ -137,7 +140,7 @@ const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
             <Tab
               key={tab.value}
               value={tab.value}
-              label={getTabLabel(tab.key, tab.label)}
+              label={getTabLabel(tab.key, tab.labelKey)}
             />
           ))}
         </Tabs>

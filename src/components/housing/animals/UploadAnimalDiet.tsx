@@ -21,6 +21,7 @@ import imageUploader from 'public/images/gallery_add_Icon.png'
 
 import UploadDocIcon from 'public/icons/Upload_doc_icon.png'
 
+import { useTranslation } from 'react-i18next'
 import { useForm, Controller, FieldValues } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -60,10 +61,11 @@ const defaultValues: FormValues = {
   attachment: ''
 }
 
-const schema = yup.object().shape({
-  dietitian_id: yup.string().trim().required('Dietitian name is required'),
-  attachment: yup.string().required('Attachment is required')
-})
+const getSchema = (t: (key: string) => string) =>
+  yup.object().shape({
+    dietitian_id: yup.string().trim().required(t('animals_module.dietitian_required')),
+    attachment: yup.string().required('Attachment is required')
+  })
 
 const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
   uploadAnimalDietDrawer,
@@ -74,6 +76,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
   animalData
 }) => {
   const theme = useTheme() as any
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const authData = useContext(AuthContext)
 
@@ -97,7 +100,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
     formState: { errors }
   } = useForm<FormValues>({
     defaultValues,
-    resolver: yupResolver(schema) as any,
+    resolver: yupResolver(getSchema(t)) as any,
     shouldUnregister: false,
     mode: 'onBlur',
     reValidateMode: 'onChange'
@@ -136,7 +139,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
 
     const allowedTypes = ['application/pdf']
     if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
+      Toaster({ type: 'error', message: t('animals_module.only_pdf_supported'), ignoreCase: true })
 
       return
     }
@@ -346,8 +349,8 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
                         renderInput={params => (
                           <TextField
                             {...params}
-                            label='Nutritionist *'
-                            placeholder='Search & Select'
+                            label={t('animals_module.nutritionist')}
+                            placeholder={t('search_and_select') as string}
                             error={Boolean(errors.dietitian_id)}
                           />
                         )}
@@ -366,13 +369,13 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
                     render={({ field: { value, onChange } }) => (
                       <TextField
                         type='text'
-                        label='Enter notes'
+                        label={t('enter_notes')}
                         value={value}
                         onChange={onChange}
                         focused={value !== ''}
                         multiline
                         rows={3}
-                        placeholder='Enter notes'
+                        placeholder={t('enter_notes') as string}
                         name='nursery_name'
                       />
                     )}
@@ -389,7 +392,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
                       mb: '10px'
                     }}
                   >
-                    Upload diet
+                    {t('animals_module.upload_diet')}
                   </Typography>
                   <FormControl fullWidth>
                     <Controller
@@ -490,7 +493,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
                                     color: theme.palette.customColors.OnSurfaceVariant60
                                   }}
                                 >
-                                  Drop your image here
+                                  {t('drop_image_here')}
                                 </Typography>
                               </Box>
                             )}
@@ -538,7 +541,7 @@ const UploadAnimalDiet: React.FC<UploadAnimalDietProps> = ({
             disabled={uploadingAttachment}
             loading={uploadingAttachment}
           >
-            Submit
+            {t('submit')}
           </LoadingButton>
         </Box>
       </form>

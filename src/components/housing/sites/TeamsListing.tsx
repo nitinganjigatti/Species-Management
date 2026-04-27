@@ -15,7 +15,8 @@ import {
   DialogActions,
   DialogContentText
 } from '@mui/material'
-import { useRouter } from 'next/router'
+import { useTranslation } from 'react-i18next'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
 import {
   getTransferAndSecurityTeamList,
@@ -70,8 +71,9 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
   addSitesAccess = false,
   settings
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const { id } = useRouter().query
+  const { id } = useSafeRouter().query
   const [activeTab, setActiveTab] = useState<TeamTabType>('transfer_user')
   const [loading, setLoading] = useState<boolean>(false)
   const [teamList, setTeamList] = useState<TeamMember[]>([])
@@ -232,7 +234,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
       minWidth: 20,
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -263,7 +265,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
       minWidth: 40,
       flex: 1,
       field: 'user_first_name',
-      headerName: 'User',
+      headerName: t('user'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -280,7 +282,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
       minWidth: 40,
       width: 200,
       field: 'role_name',
-      headerName: 'Role',
+      headerName: t('role'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -308,10 +310,10 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
       )
     },
     {
-      minWidth: 40,
-      width: 200,
+      flex: 1,
+      minWidth: 200,
       field: 'contact',
-      headerName: 'Contact',
+      headerName: t('contact'),
       align: 'left' as const,
       headerAlign: 'left' as const,
       sortable: false,
@@ -443,13 +445,15 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
           <Tabs value={activeTab} onChange={handleTabChange} sx={{ minHeight: 48 }}>
-            <Tab value='transfer_user' label='Transfer Team' />
-            {showSecurityTab && <Tab value='security' label='Security Team' />}
+            <Tab value='transfer_user' label={t('housing_module.transfer_team')} />
+            {showSecurityTab && <Tab value='security' label={t('housing_module.security_team')} />}
           </Tabs>
         </Box>
         <Box sx={{ mt: 4 }}>
           <ListingHeader
-            title={activeTab === 'transfer_user' ? 'Transfer Team' : 'Security Team'}
+            title={
+              activeTab === 'transfer_user' ? t('housing_module.transfer_team') : t('housing_module.security_team')
+            }
             totalCount={teamList.length}
           />
           <Box
@@ -467,7 +471,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
                   <Typography
                     sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.onPrimaryContainer }}
                   >
-                    Permission To Approve
+                    {t('housing_module.permission_to_approve')}
                   </Typography>
                 </Box>
               )}
@@ -534,8 +538,16 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
             role_name: member.role_name || '',
             user_mobile_number: member.mobile_number || ''
           }))}
-          title={activeTab === 'transfer_user' ? 'Add Transfer Members' : 'Add Security Members'}
-          confirmLabel={activeTab === 'transfer_user' ? 'Add Transfer Members' : 'Add Security Members'}
+          title={
+            activeTab === 'transfer_user'
+              ? (t('housing_module.add_transfer_members') as string)
+              : (t('housing_module.add_security_members') as string)
+          }
+          confirmLabel={
+            activeTab === 'transfer_user'
+              ? (t('housing_module.add_transfer_members') as string)
+              : (t('housing_module.add_security_members') as string)
+          }
           showFilter={true}
           onSubmit={handleAddTeamMember}
           onSelect={() => {
@@ -551,7 +563,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
         aria-labelledby='alert-dialog-title'
         aria-describedby='alert-dialog-description'
       >
-        <DialogTitle id='alert-dialog-title'>Remove Team Member</DialogTitle>
+        <DialogTitle id='alert-dialog-title'>{t('housing_module.remove_team_member')}</DialogTitle>
         <DialogContent>
           <DialogContentText id='alert-dialog-description'>
             Are you sure you want to remove{' '}
@@ -563,7 +575,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmDialog({ open: false, user: null, type: 'remove' })} color='inherit'>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             onClick={() => confirmDialog.user && handleRemoveTeamMember(confirmDialog.user)}
@@ -571,7 +583,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
             variant='contained'
             autoFocus
           >
-            Remove
+            {t('remove')}
           </Button>
         </DialogActions>
       </Dialog>

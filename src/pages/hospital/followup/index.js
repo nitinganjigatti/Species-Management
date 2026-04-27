@@ -462,10 +462,7 @@ const HospitalFollowUp = () => {
   return (
     <>
       <Box>
-         <DynamicBreadcrumbs
-            sx={{ mb: 5 }}
-            pageItems={[{ title: 'Hospital' }, { title: 'Patients' }, { title: 'Follow Up' }]}
-          />
+        <DynamicBreadcrumbs lastBreadcrumbLabel={'Follow Up'} sx={{ mb: 5 }} />
         <HospitalAnalytics />
         <Box sx={{ mt: 6 }}>
           <Card>

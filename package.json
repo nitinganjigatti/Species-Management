@@ -1,5 +1,5 @@
 {
-  "name": "materialize-nextjs-admin-template",
+  "name": "antz-systems",
   "version": "2.1.1",
   "private": true,
   "scripts": {
@@ -21,6 +21,7 @@
     "@emotion/react": "^11.14.0",
     "@emotion/server": "11.10.0",
     "@emotion/styled": "^11.14.0",
+    "@fingerprintjs/fingerprintjs": "^5.1.0",
     "@hookform/resolvers": "5.2.2",
     "@iconify/react": "4.1.0",
     "@mui/icons-material": "^7.3.8",
@@ -44,6 +45,7 @@
     "dayjs": "^1.11.10",
     "file-saver": "^2.0.5",
     "geolocation": "^0.2.0",
+    "html5-qrcode": "^2.3.8",
     "i18next": "22.4.11",
     "i18next-browser-languagedetector": "7.0.1",
     "i18next-http-backend": "2.2.0",
