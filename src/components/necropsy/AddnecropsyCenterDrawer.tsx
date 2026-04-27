@@ -283,7 +283,7 @@ const AddnecropsyCenterDrawer: FC<AddNecropsyCenterDrawerProps> = ({
           />
           <ControlledTextArea
             name='description'
-            label={t('description')}
+            // label={t('description')}
             placeholder={t('enter_description_optional')}
             control={control as Control<FormValues>}
             errors={errors as FieldErrors<FormValues>}
