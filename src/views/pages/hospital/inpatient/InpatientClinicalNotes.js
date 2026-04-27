@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Typography, Box, Button, IconButton, Skeleton, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
@@ -7,15 +7,13 @@ import Icon from 'src/@core/components/icon'
 import { useForm } from 'react-hook-form'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import RichTextEditor from 'src/components/RichTextEditor'
 import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import Utility, { createEmptyRichTextValue, getRichTextContent, getRichTextHtmlValue } from 'src/utility'
+import 'quill/dist/quill.snow.css'
 
 const STORAGE_KEY = 'medical_record_data'
-
-const defaultValues = {
-  note: ''
-}
 
 const InpatientClinicalNotes = props => {
   const {
@@ -32,6 +30,33 @@ const InpatientClinicalNotes = props => {
     patientData
   } = props
   const theme = useTheme()
+  const [clinicalNote, setClinicalNote] = useState(null)
+  const [expandedNotes, setExpandedNotes] = useState({})
+  const [truncatedNotes, setTruncatedNotes] = useState({})
+  const noteRefs = useRef({})
+
+  const toggleNoteExpand = noteId => {
+    setExpandedNotes(prev => ({
+      ...prev,
+      [noteId]: !prev[noteId]
+    }))
+  }
+
+  const checkIfTruncated = (noteId, htmlContent) => {
+    if (!htmlContent) return
+
+    // Create a temporary element to parse HTML and count elements
+    const tempContainer = document.createElement('div')
+    tempContainer.innerHTML = htmlContent
+
+    // Show "Read More" if there are more than 1 element in the note
+    const hasMultipleElements = tempContainer.children.length > 1
+
+    setTruncatedNotes(prev => ({
+      ...prev,
+      [noteId]: hasMultipleElements
+    }))
+  }
 
   const hospitalData = useSelector(state => state.hospital.data)
   const medicalRecordData = hospitalData[STORAGE_KEY] || {}
@@ -40,21 +65,31 @@ const InpatientClinicalNotes = props => {
   const discharge_at = medicalRecordData?.discharge_at
   const status = medicalRecordData?.status
 
-  const { control, handleSubmit, reset, watch } = useForm({ defaultValues })
+  const { handleSubmit } = useForm()
 
-  const noteText = watch('note')?.trim()
+  // Check if notes have multiple elements
+  useEffect(() => {
+    clinicalNotesData?.forEach(data => {
+      const htmlContent = getRichTextHtmlValue(data?.note)
+      if (htmlContent) {
+        checkIfTruncated(data?.note_id, htmlContent)
+      }
+    })
+  }, [clinicalNotesData])
 
-  const onSubmit = async formData => {
+  const noteText = getRichTextContent(clinicalNote)?.trim()
+
+  const onSubmit = async () => {
     const payload = {
       medical_record_id: medical_record_id,
-      note: formData?.note,
+      note: getRichTextContent(clinicalNote),
       hospital_case_id: hospital_case_id
     }
 
     const success = await onSubmitNote(payload)
 
     if (success) {
-      reset(defaultValues)
+      setClinicalNote(createEmptyRichTextValue())
     }
   }
 
@@ -103,13 +138,10 @@ const InpatientClinicalNotes = props => {
           <form noValidate autoComplete='off' onSubmit={!isSubmitting ? handleSubmit(onSubmit) : undefined}>
             <Grid container>
               <Grid size={{ xs: 12 }}>
-                <ControlledTextArea
-                  name='note'
-                  control={control}
+                <RichTextEditor
+                  value={clinicalNote}
+                  onChange={setClinicalNote}
                   placeholder='Add notes'
-                  fullWidth={true}
-                  minRows={3}
-                  inputBackgroundColor={theme.palette.customColors.OnPrimary}
                 />
               </Grid>
             </Grid>
@@ -120,7 +152,7 @@ const InpatientClinicalNotes = props => {
                   startIcon={<Icon icon='mdi:close' width={24} height={24} />}
                   variant='text'
                   sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 600, fontSize: '1rem' }}
-                  onClick={() => reset(defaultValues)}
+                  onClick={() => setClinicalNote(createEmptyRichTextValue())}
                   size='small'
                   loading={isSubmitting}
                   disabled={isSubmitting}
@@ -170,28 +202,85 @@ const InpatientClinicalNotes = props => {
                   dotColor={theme.palette.primary.main}
                   textColor={theme.palette.customColors.OnSurface}
                 />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-                  <Typography
-                    sx={{
-                      fontSize: '1rem',
-                      fontWeight: 400,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      textAlign: 'justify',
-                      whiteSpace: 'pre-wrap'
-                    }}
-                  >
-                    {data?.note?.replace(/\\n/g, '\n') || 'NA'}
-                  </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: truncatedNotes[data?.note_id] ? 2 : 3 }}>
+                  {!expandedNotes[data?.note_id] ? (
+                    // Collapsed State: First element content as plain text (1 line)
+                    <Box
+                      sx={{
+                        fontSize: '0.95rem',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        flex: 1,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {(() => {
+                        const htmlContent = getRichTextHtmlValue(data?.note)
+                        if (!htmlContent) return 'NA'
+                        const tempContainer = document.createElement('div')
+                        tempContainer.innerHTML = htmlContent
+                        const firstElement = tempContainer.firstElementChild
+                        const text = firstElement ? firstElement.textContent : 'NA'
+                        return truncatedNotes[data?.note_id] ? `${text}...` : text
+                      })()}
+                    </Box>
+                  ) : (
+                    // Expanded State: Formatted HTML
+                    <Box
+                      className='ql-editor'
+                      sx={{
+                        fontSize: '0.95rem',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        flex: 1,
+                        padding: 0,
+                        border: 'none',
+                        '& p': { margin: 0 },
+                        '& ol, & ul': { paddingLeft: '1.5em', margin: '0.5em 0' }
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: getRichTextHtmlValue(data?.note) || '<p>NA</p>'
+                      }}
+                    />
+                  )}
 
                   {(status == 'admitted' || status == 'discharge') && (
                     <IconButton
                       onClick={() => onDeleteNote(data?.note_id)}
-                      sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
+                      sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3, flexShrink: 0 }}
                     >
                       <CancelOutlinedIcon fontSize='medium' />
                     </IconButton>
                   )}
                 </Box>
+
+                {truncatedNotes[data?.note_id] && (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
+                    <Button
+                      variant='text'
+                      size='small'
+                      onClick={() => toggleNoteExpand(data?.note_id)}
+                      sx={{
+                        color: theme.palette.primary.main,
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        textTransform: 'capitalize',
+                        p: 0,
+                        minWidth: 'auto',
+                        '&:hover': {
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline'
+                        }
+                      }}
+                    >
+                      {expandedNotes[data?.note_id] ? 'Read Less' : 'Read More'}
+                    </Button>
+                  </Box>
+                )}
                 <UserAvatarDetails
                   user_name={data?.created_by_user_name}
                   date={data?.created_at}
