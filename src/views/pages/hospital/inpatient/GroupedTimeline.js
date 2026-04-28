@@ -48,7 +48,11 @@ const HIDDEN_DETAIL_KEYS = new Set([
   'created_for',
   'createdFor',
   'created_by',
-  'created_at'
+  'created_at',
+  'is_causing_adverse_side_effect',
+  'isCausingAdverseSideEffect',
+  'data',
+  'Data'
 ])
 
 const isEmptyDetailValue = value => {
@@ -212,17 +216,17 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
       >
         <Grid
           container
-          wrap='nowrap' // Prevents wrapping
-          sx={{ xs: '100%', minWidth: '540px' }} // Minimum width similar to iPad layout
+          wrap='wrap'
+          sx={{ xs: '100%', minWidth: { xs: '100%', sm: '540px' } }}
         >
-          <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', gap: 1 }}>
+          <Grid size={{ xs: 12, sm: 3 }} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', gap: 1 }}>
             <StyledTypography fontWeight={600}>{entry?.title}</StyledTypography>
             <StyledTypography fontWeight={400} fontSize={'0.75rem'}>
               {entry?.details?.medical_record_number}
             </StyledTypography>
           </Grid>
           <Grid
-            size={{ xs: 6 }}
+            size={{ xs: 12, sm: 6 }}
             sx={{
               display: 'flex',
               alignItems: 'center'
@@ -235,35 +239,32 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
                     key={item.key}
                     sx={{
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      minWidth: 0,
-                      flexWrap: { xs: 'wrap', sm: 'nowrap' }
+                      flexWrap: 'wrap',
+                      gap: { xs: 0.5, sm: 1 },
+                      width: '100%',
+                      alignItems: 'flex-start'
                     }}
                   >
                     <StyledTypography
                       fontSize={'1rem'}
                       fontWeight={600}
                       color={theme.palette.customColors.OnSurface}
-                      sx={{ flexShrink: { xs: 'none', lg: 0 } }}
+                      sx={{ flexShrink: 0 }}
                     >
                       {item.label}:
                     </StyledTypography>
-                    <Tooltip title={item.value} arrow>
-                      <StyledTypography
-                        fontSize={'1rem'}
-                        fontWeight={500}
-                        sx={{
-                          whiteSpace: { xs: 'normal', sm: 'nowrap' },
-                          overflow: { xs: 'visible', sm: 'hidden' },
-                          textOverflow: { xs: 'clip', sm: 'ellipsis' },
-                          minWidth: 0,
-                          flex: 1
-                        }}
-                      >
-                        {item.value}
-                      </StyledTypography>
-                    </Tooltip>
+                    <StyledTypography
+                      fontSize={'1rem'}
+                      fontWeight={500}
+                      sx={{
+                        whiteSpace: 'normal',
+                        wordBreak: 'break-word',
+                        minWidth: 0,
+                        flex: '1 1 auto'
+                      }}
+                    >
+                      {item.value}
+                    </StyledTypography>
                   </Box>
                 ))
               ) : (
@@ -274,12 +275,12 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
             </Box>
           </Grid>
           <Grid
-            size={{ xs: 3 }}
+            size={{ xs: 12, sm: 3 }}
             sx={{
               textAlign: 'right',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'flex-end'
+              justifyContent: { xs: 'flex-start', sm: 'flex-end' }
             }}
           >
             <StyledTypography fontSize={'0.875rem'} fontWeight={400}>
