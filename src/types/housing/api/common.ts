@@ -213,7 +213,10 @@ export interface AddInchargePayload {
   enclosure_id?: number
   cluster_id?: number
   animal_id?: number
-  user_ids: number[]
+  user_ids?: number[]
+  ref_id?: string | number
+  ref_type?: string
+  user_id?: string | string[]
 }
 
 export interface AddInchargeResponse {

@@ -205,18 +205,38 @@ return
       } else {
         // Build payload based on refType for housing entities
         const getPayload = () => {
-          const userIds = selectedIncharges.map(user => user.user_id)
+          const userIds = selectedIncharges.map(user => user.user_id).join(',')
           switch (refType) {
             case 'site':
-              return { site_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: Number(id),
+                ref_type: 'site',
+                user_id: userIds
+              }
             case 'section':
-              return { section_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'section',
+                user_id: userIds
+              }
             case 'enclosure':
-              return { enclosure_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'enclosure',
+                user_id: userIds
+              }
             case 'cluster':
-              return { cluster_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'cluster',
+                user_id: userIds
+              }
             default:
-              return { site_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'site',
+                user_id: userIds
+              }
           }
         }
         res = await addIncharge(getPayload())
@@ -386,7 +406,6 @@ return
         </Box>
       </Box>
 
-      {selectedIncharges.length > 0 && (
         <Box
           sx={{
             p: 4,
@@ -420,7 +439,7 @@ return
             {confirmLabel} {`(${selectedIncharges.length})`}
           </LoadingButton>
         </Box>
-      )}
+
       <InchargeRoleFilterDrawer
         open={openFilterDrawer}
         onClose={() => setOpenFilterDrawer(false)}

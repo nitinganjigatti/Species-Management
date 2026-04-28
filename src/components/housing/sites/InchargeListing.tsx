@@ -303,11 +303,7 @@ const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) =
           confirmLabel={t('housing_module.choose_manager', { entity: entityLabel }) as string}
           showFilter={true}
           refType={refType}
-          onSelect={(selectedUsers: Incharge[]) => {
-            if (selectedUsers && selectedUsers.length > 0) {
-              refetch()
-            }
-          }}
+          onSelect={() => refetch()}
         />
       )}
     </>
