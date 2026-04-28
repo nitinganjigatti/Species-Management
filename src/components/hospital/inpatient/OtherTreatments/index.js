@@ -137,27 +137,10 @@ const mapDetailRecordsToActivities = (records = []) => {
   const treatmentEntries = records.flatMap(extractTreatmentEntries)
   if (!treatmentEntries.length) return []
 
-  let lastKnownStartDate = null
-
   return treatmentEntries.map((entry, index) => {
     const note = entry.note || ''
     const timestamp = entry.update_at || entry.created_at || null
     const isInitial = String(entry.is_first) === '1'
-    const currentStartDate = entry.treatment_start_date_time || entry.start_time || entry.created_at || null
-    const hasStartDateChanged = isInitial
-      ? false
-      : Boolean(
-          currentStartDate &&
-            lastKnownStartDate &&
-            !dayjs(Utility.convertUTCToLocal(currentStartDate)).isSame(
-              dayjs(Utility.convertUTCToLocal(lastKnownStartDate)),
-              'day'
-            )
-        )
-
-    if (currentStartDate) {
-      lastKnownStartDate = currentStartDate
-    }
 
     return {
       id: entry.id || entry.treatment_master_id || `${entry.medical_record_id || 'activity'}-${index}`,
@@ -175,10 +158,9 @@ const mapDetailRecordsToActivities = (records = []) => {
       notes: note,
       description: note,
       note,
-      status: isInitial ? 'initial' : hasStartDateChanged ? 'date_change' : 'update',
+      status: isInitial ? 'initial' : 'update',
       isFirst: isInitial,
       isEditable: !isInitial,
-      // displayAsStatusCard: isInitial || hasStartDateChanged,
       medicalRecordCode: entry.medical_record_code || '',
       record: entry
     }
