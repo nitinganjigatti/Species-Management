@@ -454,10 +454,7 @@ export interface LabRequestsByAnimalParams {
 
 export interface LabRequestsByAnimalResponse extends ApiResponse<PaginatedData<LabRequest> | LabRequest[]> {}
 
-export interface AssessmentTypesResponse
-  extends ApiResponse<{
-    result: AssessmentType[]
-  }> {}
+export interface AssessmentTypesResponse extends ApiResponse<AssessmentType[]> {}
 
 export interface AssessmentDataParams {
   type_id?: number
