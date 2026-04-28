@@ -40,7 +40,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
   const [expandedNotes, setExpandedNotes] = useState({})
   const [loadingMore, setLoadingMore] = useState(false)
   const [weightSubTab, setWeightSubTab] = useState(0)
-  const [selectedWeightUnit, setSelectedWeightUnit] = useState(null)
+  const [selectedUnit, setSelectedUnit] = useState(null)
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
@@ -85,15 +85,15 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
 
   // Reset unit selection when assessment type changes
   useEffect(() => {
-    setSelectedWeightUnit(null)
+    setSelectedUnit(null)
   }, [selectedTypeIndex])
 
   // Set default unit to base unit when numeric data loads
   useEffect(() => {
-    if (isNumericType && assessmentData.length > 0 && !selectedWeightUnit) {
+    if (isNumericType && assessmentData.length > 0 && !selectedUnit) {
       const baseUnit = getBaseUnit(currentMeasurementType)
       if (baseUnit) {
-        setSelectedWeightUnit(baseUnit.id)
+        setSelectedUnit(baseUnit.id)
       }
     }
   }, [isNumericType, assessmentData, measurementUnits, currentMeasurementType])
@@ -187,7 +187,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     setSelectedTypeIndex(newValue)
     setExpandedNotes({})
     setWeightSubTab(0)
-    setSelectedWeightUnit(null) // Reset unit selection when switching assessment types
+    setSelectedUnit(null) // Reset unit selection when switching assessment types
   }
 
   const handleMenuOpen = event => {
@@ -201,7 +201,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
   const handleMenuItemClick = index => {
     setSelectedTypeIndex(index)
     setExpandedNotes({})
-    setSelectedWeightUnit(null) // Reset unit selection when switching assessment types
+    setSelectedUnit(null) // Reset unit selection when switching assessment types
     handleMenuClose()
   }
 
@@ -229,40 +229,78 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     return baseUnit || (units.length > 0 ? units[0] : null)
   }
 
-  const convertValueToGram = (value, fromUnitId) => {
-    // Convert any unit value to gram (base unit)
+  const convertValueToBase = (value, fromUnitId) => {
+    // Convert any unit value to base unit
     if (!fromUnitId) return parseFloat(value)
 
     const fromUnit = measurementUnits.find(u => u?.id == fromUnitId)
     if (!fromUnit) return parseFloat(value)
 
     const conversionFactor = parseFloat(fromUnit?.conversion_factor || 1)
-    const valueInGram = parseFloat(value) * conversionFactor
+    const valueInBase = parseFloat(value) * conversionFactor
 
-    // console.log(`Converting ${value} ${fromUnit?.uom_abbr} to gram: ${value} * ${conversionFactor} = ${valueInGram} g`)
-    return valueInGram
+    return valueInBase
   }
 
-  const convertFromGramTo = (valueInGram, toUnitId) => {
-    // Convert from gram (base unit) to any other unit
-    if (!toUnitId) return parseFloat(valueInGram)
+  const convertFromBaseTo = (valueInBase, toUnitId) => {
+    // Convert from base unit to any other unit
+    if (!toUnitId) return parseFloat(valueInBase)
 
     const toUnit = measurementUnits.find(u => u?.id == toUnitId)
-    if (!toUnit) return parseFloat(valueInGram)
+    if (!toUnit) return parseFloat(valueInBase)
 
     const conversionFactor = parseFloat(toUnit?.conversion_factor || 1)
-    const targetValue = parseFloat(valueInGram) / conversionFactor
+    const targetValue = parseFloat(valueInBase) / conversionFactor
 
-    // console.log(`Converting ${valueInGram} g to ${toUnit?.uom_abbr}: ${valueInGram} / ${conversionFactor} = ${targetValue}`)
     return targetValue
   }
 
+  const convertTemperature = (value, fromUnitId, toUnitId) => {
+    // Special handling for temperature conversions
+    const fromUnit = measurementUnits.find(u => u?.id == fromUnitId)
+    const toUnit = measurementUnits.find(u => u?.id == toUnitId)
+
+    if (!fromUnit || !toUnit) return parseFloat(value)
+
+    const fromStr = fromUnit?.string_id?.toLowerCase() || ''
+    const toStr = toUnit?.string_id?.toLowerCase() || ''
+
+    let valueInCelsius = parseFloat(value)
+
+    // Convert from source unit to Celsius
+    if (fromStr === 'fahrenheit') {
+      valueInCelsius = (valueInCelsius - 32) * (5 / 9)
+    } else if (fromStr === 'kelvin') {
+      valueInCelsius = valueInCelsius - 273.15
+    }
+
+    // Convert from Celsius to target unit
+    if (toStr === 'fahrenheit') {
+      return valueInCelsius * (9 / 5) + 32
+    } else if (toStr === 'kelvin') {
+      return valueInCelsius + 273.15
+    }
+
+    // Target is Celsius (or same as source)
+    return valueInCelsius
+  }
+
   const convertToUnit = (value, fromUnitId, toUnitId) => {
-    // Convert from any unit to any other unit through gram (base unit)
     if (fromUnitId === toUnitId) return parseFloat(value)
 
-    const valueInGram = convertValueToGram(value, fromUnitId)
-    return convertFromGramTo(valueInGram, toUnitId)
+    const fromUnit = measurementUnits.find(u => u?.id == fromUnitId)
+    const toUnit = measurementUnits.find(u => u?.id == toUnitId)
+
+    if (!fromUnit || !toUnit) return parseFloat(value)
+
+    // Use temperature-specific conversion for temperature units
+    if (fromUnit?.measurement_type?.toLowerCase() === 'temperature' && toUnit?.measurement_type?.toLowerCase() === 'temperature') {
+      return convertTemperature(value, fromUnitId, toUnitId)
+    }
+
+    // Use multiplicative conversion for weight, length, and other units
+    const valueInBase = convertValueToBase(value, fromUnitId)
+    return convertFromBaseTo(valueInBase, toUnitId)
   }
 
   const formatDateTime = dateTimeStr => {
@@ -283,10 +321,10 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     let displayValue = item?.assessment_value
     let displayUnit = getUnitAbbr(item?.assessment_unit_id)
 
-    if (isNumericType && selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
-      const convertedValue = convertToUnit(item?.assessment_value, item?.assessment_unit_id, selectedWeightUnit)
+    if (isNumericType && selectedUnit && item?.assessment_unit_id !== selectedUnit) {
+      const convertedValue = convertToUnit(item?.assessment_value, item?.assessment_unit_id, selectedUnit)
       displayValue = parseFloat(convertedValue).toFixed(2)
-      displayUnit = getUnitAbbr(selectedWeightUnit)
+      displayUnit = getUnitAbbr(selectedUnit)
     }
 
     return (
@@ -601,9 +639,9 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                     <Select
                       labelId='unit-select-label'
                       id='unit-select'
-                      value={selectedWeightUnit || ''}
+                      value={selectedUnit || ''}
                       label='Unit of Measurement'
-                      onChange={e => setSelectedWeightUnit(parseInt(e.target.value))}
+                      onChange={e => setSelectedUnit(parseInt(e.target.value))}
                     >
                       {measurementUnits
                         .filter(unit => unit?.measurement_type?.toLowerCase() === currentMeasurementType)
@@ -645,9 +683,9 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 No data found
               </Typography>
             ) : (
-              <Box key={`chart-${selectedWeightUnit}`}>
+              <Box key={`chart-${selectedUnit}`}>
                 <ReactApexcharts
-                  key={`apex-${selectedWeightUnit}`}
+                  key={`apex-${selectedUnit}`}
                   type='line'
                   height={280}
                   options={{
@@ -693,8 +731,8 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                     yaxis: {
                       title: {
                         text: `${selectedType?.assessment_name || 'Value'} (${
-                          selectedWeightUnit
-                            ? getUnitAbbr(selectedWeightUnit)
+                          selectedUnit
+                            ? getUnitAbbr(selectedUnit)
                             : getUnitAbbr(assessmentData[0]?.assessment_unit_id)
                         })`
                       }
@@ -709,11 +747,11 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                           let value = parseFloat(item.assessment_value).toFixed(2)
                           let unit = getUnitAbbr(item.assessment_unit_id)
 
-                          if (selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
+                          if (selectedUnit && item?.assessment_unit_id !== selectedUnit) {
                             value = parseFloat(
-                              convertToUnit(item?.assessment_value, item?.assessment_unit_id, selectedWeightUnit)
+                              convertToUnit(item?.assessment_value, item?.assessment_unit_id, selectedUnit)
                             ).toFixed(2)
-                            unit = getUnitAbbr(selectedWeightUnit)
+                            unit = getUnitAbbr(selectedUnit)
                           }
 
                           return `
@@ -732,8 +770,8 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                       name: selectedType?.assessment_name || 'Value',
                       data: [...assessmentData].reverse().map(item => {
                         const value = parseFloat(item?.assessment_value)
-                        if (selectedWeightUnit && item?.assessment_unit_id !== selectedWeightUnit) {
-                          return parseFloat(convertToUnit(value, item?.assessment_unit_id, selectedWeightUnit))
+                        if (selectedUnit && item?.assessment_unit_id !== selectedUnit) {
+                          return parseFloat(convertToUnit(value, item?.assessment_unit_id, selectedUnit))
                         }
                         return value
                       })
