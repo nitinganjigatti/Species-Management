@@ -60,16 +60,23 @@ const AnimalMedia: React.FC = () => {
         q: search
       })
 
-      console.log('Full API Response:', res)
-      console.log('res.data (should be array):', res?.data)
-      console.log('res.total_count:', res?.data?.total_count)
-
-      const mediaItems = res?.data?.result || []
+      // API returns { success, data: Media[], total_count: N } — `data` is the array directly,
+      // `total_count` is at the root. Defensive fallback to `data.result` for envelopes that wrap.
+      const rawData = (res as { data?: unknown })?.data
+      const mediaItems: Media[] = Array.isArray(rawData)
+        ? (rawData as Media[])
+        : Array.isArray((rawData as { result?: Media[] })?.result)
+          ? (rawData as { result: Media[] }).result
+          : []
+      const totalCount =
+        (res as { total_count?: number })?.total_count ??
+        (rawData as { total_count?: number })?.total_count ??
+        0
 
       return {
         result: mediaItems,
         nextPage: mediaItems.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
-        total: res?.data?.total_count || 0
+        total: totalCount
       }
     },
     getNextPageParam: (lastPage: MediaPageResult) => lastPage.nextPage,

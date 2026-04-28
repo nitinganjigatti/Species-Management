@@ -44,13 +44,21 @@ const AnimalDetailsCard: React.FC<AnimalDetailsCardProps> = ({ data }) => {
     { label: t('housing_module.institution') as string, value: data?.institutes_label }
   ]
 
+  const hasLocalIdentifierName = Boolean(data?.identifierName)
+  const hasLocalIdentifierValue = Boolean(data?.localIdentifier)
+
+  const localIdentifierItem: DetailItem = hasLocalIdentifierName && hasLocalIdentifierValue
+    ? { label: data?.identifierName as string, value: data?.localIdentifier }
+    : { label: t('housing_module.local_identifier') as string, value: data?.localIdentifier }
+
   const right: DetailItem[] = [
     { label: t('housing_module.collection_type') as string, value: data?.collectionType },
     { label: t('housing_module.organisation') as string, value: data?.organisation },
     { label: t('housing_module.ownership_term') as string, value: data?.ownershipTerm },
-    { label: t('housing_module.local_identifier') as string, value: data?.localIdentifier },
-    { label: t('housing_module.micro_chip') as string, value: data?.microChip },
-    { label: t('housing_module.identifier_name') as string, value: data?.identifierName }
+    localIdentifierItem,
+    ...(hasLocalIdentifierName && hasLocalIdentifierValue
+      ? []
+      : [{ label: t('housing_module.identifier_name') as string, value: data?.identifierName }])
   ]
 
   return (
