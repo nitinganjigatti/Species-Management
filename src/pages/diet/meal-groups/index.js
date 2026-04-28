@@ -1143,9 +1143,7 @@ const MealGroup = () => {
             sx={{
               fontSize: '16px',
               fontWeight: 400,
-              color: params.row.drop_point_name
-                ? theme.palette.customColors.OnSurfaceVariant
-                : theme.palette.customColors.customDropdownColor,
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontFamily: 'Inter',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -1159,7 +1157,7 @@ const MealGroup = () => {
     },
     {
       flex: 1,
-      minWidth: 320,
+      minWidth: 420,
       field: 'actions',
       sortable: false,
       headerAlign: 'right',
@@ -1206,9 +1204,10 @@ const MealGroup = () => {
                 borderRadius: '4px',
                 height: '36px',
                 fontSize: '12px',
-                minWidth: '140px'
+                whiteSpace: 'nowrap'
               }}
               variant='outlined'
+              size='small'
               onClick={e => handleRemoveDropPoint(e, params.row)}
             >
               {t('diet_module.remove_drop_point')}
@@ -1220,12 +1219,12 @@ const MealGroup = () => {
                 borderColor: theme.palette.primary.main,
                 color: theme.palette.primary.main,
                 borderRadius: '4px',
-
-                // minWidth: '120px',
                 height: '36px',
-                fontSize: '12px'
+                fontSize: '12px',
+                whiteSpace: 'nowrap'
               }}
               variant='outlined'
+              size='small'
               onClick={e => handleEnclosureEvent(e, params.row.id)}
             >
               {t('add')} {t('navigation.enclosure')}
