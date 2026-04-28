@@ -166,8 +166,10 @@ export interface IncomingNecropsyChecklistDetailsResponse
   }> {}
 
 export interface CreateIncomingNecropsyCommentPayload {
-  transfer_id: number
-  comment: string
+  entity_id: number
+  entity_type: string
+  content: string
+  action: string
 }
 
 export interface IncomingNecropsyBtnStatusResponse extends ApiResponse<IncomingNecropsyBtnStatus> {}

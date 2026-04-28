@@ -48,7 +48,7 @@ import TransferChecklistDrawer from 'src/components/necropsy/TransferChecklistDr
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Toaster from '../Toaster'
 import moment from 'moment'
-import { IncomingNecropsyDrawerProps } from 'src/types/necropsy'
+import { CreateIncomingNecropsyCommentPayload, IncomingNecropsyDrawerProps } from 'src/types/necropsy'
 import { useTranslation } from 'react-i18next'
 
 // Extended theme interface for custom colors
@@ -110,6 +110,9 @@ interface CommentDetail {
   id?: number
   comments?: string
   commented_on?: string
+  user_first_name?: string
+  user_last_name?: string
+  user_profile_pic?: string
 }
 
 interface NecropsyData {
@@ -277,12 +280,14 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
   }, [transferId])
 
   const handleAddComment = async (): Promise<void> => {
-    if (!comment.trim()) return
+    if (!comment.trim() || !transferId) return
     setCommentLoading(true)
     try {
-      const payload = {
-        transfer_id: transferId as number,
-        comment: comment
+      const payload: CreateIncomingNecropsyCommentPayload = {
+        entity_id: transferId,
+        entity_type: 'carcass_transfer',
+        content: comment,
+        action: 'comment'
       }
       const response = await createIncomingNecropsySummaryComment(payload)
 
@@ -951,8 +956,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         key={item?.id}
                         sx={{
                           display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
+                          flexDirection: 'column',
                           gap: 2,
                           backgroundColor: theme.palette.customColors?.mdAntzNeutral,
                           borderRadius: 0.4,
@@ -965,15 +969,13 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                         >
                           {item?.comments}
                         </Typography>
-                        <Typography
-                          sx={{
-                            fontSize: '10px',
-                            fontWeight: 500,
-                            color: theme.palette.customColors?.neutralSecondary
-                          }}
-                        >
-                          {Utility.convertUTCToLocaltime(item?.commented_on || '')}
-                        </Typography>
+                        <UserAvatarDetails
+                          user_name={`${item?.user_first_name} ${item?.user_last_name}`}
+                          profile_image={item?.user_profile_pic}
+                          date={item?.commented_on}
+                          show_time={true}
+                          size='medium'
+                        />
                       </Box>
                     ))
                   ) : (
@@ -1172,7 +1174,7 @@ const IncomingNecropsyDrawer: FC<IncomingNecropsyDrawerProps> = ({
                   {btnStatusLoading || acceptLoading ? (
                     <CircularProgress size={24} />
                   ) : (
-                    t('necropsy_module.accept_necropsy')
+                    t('necropsy_module.accept_for_necropsy')
                   )}
                 </Button>
               ) : null}
