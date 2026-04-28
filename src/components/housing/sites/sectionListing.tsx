@@ -72,7 +72,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
         site_id: Number(id),
         page_no: filters.page,
         limit: filters.pageSize,
-        q: filters.search,
+        search: filters.search,
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
       }),
