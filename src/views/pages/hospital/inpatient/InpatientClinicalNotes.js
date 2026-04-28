@@ -49,12 +49,12 @@ const InpatientClinicalNotes = props => {
     const tempContainer = document.createElement('div')
     tempContainer.innerHTML = htmlContent
 
-    // Show "Read More" if there are more than 1 element in the note
-    const hasMultipleElements = tempContainer.children.length > 1
+    // Show "Read More" if there are more than 3 elements in the note
+    const hasMoreThanThree = tempContainer.children.length > 3
 
     setTruncatedNotes(prev => ({
       ...prev,
-      [noteId]: hasMultipleElements
+      [noteId]: hasMoreThanThree
     }))
   }
 
@@ -204,30 +204,34 @@ const InpatientClinicalNotes = props => {
                 />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: truncatedNotes[data?.note_id] ? 2 : 3 }}>
                   {!expandedNotes[data?.note_id] ? (
-                    // Collapsed State: First element content as plain text (1 line)
+                    // Collapsed State: First 3 elements with formatted HTML
                     <Box
+                      className='ql-editor'
                       sx={{
                         fontSize: '0.95rem',
                         fontWeight: 400,
                         color: theme.palette.customColors.OnSurfaceVariant,
                         flex: 1,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 1,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        padding: 0,
+                        border: 'none',
+                        '& p': { margin: 0 },
+                        '& ol, & ul': { paddingLeft: '1.5em', margin: '0.5em 0' }
                       }}
-                    >
-                      {(() => {
-                        const htmlContent = getRichTextHtmlValue(data?.note)
-                        if (!htmlContent) return 'NA'
-                        const tempContainer = document.createElement('div')
-                        tempContainer.innerHTML = htmlContent
-                        const firstElement = tempContainer.firstElementChild
-                        const text = firstElement ? firstElement.textContent : 'NA'
-                        return truncatedNotes[data?.note_id] ? `${text}...` : text
-                      })()}
-                    </Box>
+                      dangerouslySetInnerHTML={{
+                        __html: (() => {
+                          const htmlContent = getRichTextHtmlValue(data?.note)
+                          if (!htmlContent) return '<p>NA</p>'
+                          const tempContainer = document.createElement('div')
+                          tempContainer.innerHTML = htmlContent
+
+                          // Get first 3 elements' HTML
+                          const firstThreeElements = Array.from(tempContainer.children).slice(0, 3)
+                          const firstThreeHtml = firstThreeElements.map(el => el.outerHTML).join('')
+
+                          return truncatedNotes[data?.note_id] ? `${firstThreeHtml}<p>...</p>` : firstThreeHtml || '<p>NA</p>'
+                        })()
+                      }}
+                    />
                   ) : (
                     // Expanded State: Formatted HTML
                     <Box
