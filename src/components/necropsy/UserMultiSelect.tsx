@@ -1,4 +1,4 @@
-import React, { useState, useCallback, FC, memo } from 'react'
+import React, { useEffect, useState, useCallback, FC, memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Box, Typography, Avatar, CircularProgress, useTheme, IconButton, Theme } from '@mui/material'
 import { Autocomplete, TextField, AutocompleteInputChangeReason } from '@mui/material'
@@ -19,6 +19,9 @@ interface UserMultiSelectProps {
   onChange: (users: SelectedUser[]) => void
   label?: string
   disabled?: boolean
+  necropsyCentreId?: number | string
+  permission?: string
+  pageSize?: number
 }
 
 interface UserListResponse {
@@ -44,7 +47,10 @@ const UserMultiSelect: FC<UserMultiSelectProps> = ({
   selectedUsers = [],
   onChange,
   label,
-  disabled = false
+  disabled = false,
+  necropsyCentreId,
+  permission,
+  pageSize = 15
 }) => {
   const { t } = useTranslation()
   const resolvedLabel = label || t('necropsy_module.search_and_select_users')
@@ -58,17 +64,21 @@ const UserMultiSelect: FC<UserMultiSelectProps> = ({
 
   const fetchUsers: DebouncedFunc<(query: string) => Promise<void>> = useCallback(
     debounce(async (query: string) => {
-      if (!query || query.length < 2) {
-        setOptions([])
-
-        return
-      }
-
       if (!zooId) return
 
       try {
         setLoading(true)
-        const res: UserListResponse = await getUserList({ zoo_id: zooId, q: query })
+        const payload: Record<string, unknown> = {
+          zoo_id: zooId,
+          page_no: 1,
+          length: pageSize,
+          q: query.trim(),
+          isActive: true
+        }
+        if (permission) payload.permission = permission
+        if (necropsyCentreId != null) payload.necropsy_centre_id = Number(necropsyCentreId)
+
+        const res: UserListResponse = await getUserList(payload)
 
         const users: SelectedUser[] =
           res?.data?.map(item => ({
@@ -87,8 +97,17 @@ const UserMultiSelect: FC<UserMultiSelectProps> = ({
         setLoading(false)
       }
     }, 500),
-    [selectedUsers, zooId]
+    [selectedUsers, zooId, necropsyCentreId, permission, pageSize]
   )
+
+  useEffect(() => {
+    fetchUsers('')
+
+    return () => {
+      fetchUsers.cancel()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zooId, necropsyCentreId, permission])
 
   const handleSelect = (_event: React.SyntheticEvent, value: SelectedUser[]): void => {
     if (value && value.length > selectedUsers.length) {
@@ -126,7 +145,7 @@ const UserMultiSelect: FC<UserMultiSelectProps> = ({
         getOptionLabel={(option: SelectedUser) => option.user_name || ''}
         isOptionEqualToValue={(option: SelectedUser, value: SelectedUser) => option.user_id === value.user_id}
         filterSelectedOptions
-        noOptionsText={inputValue.length < 2 ? t('necropsy_module.type_at_least_2_characters') : t('necropsy_module.no_users_found')}
+        noOptionsText={loading ? '' : t('necropsy_module.no_users_found')}
         renderTags={() => null}
         renderOption={(props, option: SelectedUser) => (
           <li {...props} key={option.user_id}>
