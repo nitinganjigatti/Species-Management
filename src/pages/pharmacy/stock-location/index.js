@@ -107,8 +107,7 @@ const StockLocation = () => {
           ...(selectedItems?.Racks?.length > 0 && { rack_id: selectedItems?.Racks.join(',') }),
           ...(selectedItems?.Shelves?.length > 0 && { shelf_id: selectedItems?.Shelves.join(',') })
         }
-        console.log('Fetch Params', params)
-        // debugger
+
         await getStockItem({ params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
