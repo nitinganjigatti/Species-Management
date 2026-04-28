@@ -58,7 +58,7 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
   }
   const medicalNavigationArray = []
 
-  if (userSettings?.medical_add_complaints || userSettings?.medical_add_diagnosis) {
+  if (medicalAccess || userSettings?.medical_add_complaints || userSettings?.medical_add_diagnosis) {
     medicalNavigationArray.push(Title)
   }
   if (medicalAccess) {
