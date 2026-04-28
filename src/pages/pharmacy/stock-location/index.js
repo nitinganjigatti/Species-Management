@@ -107,7 +107,8 @@ const StockLocation = () => {
           ...(selectedItems?.Racks?.length > 0 && { rack_id: selectedItems?.Racks.join(',') }),
           ...(selectedItems?.Shelves?.length > 0 && { shelf_id: selectedItems?.Shelves.join(',') })
         }
-
+        console.log('Fetch Params', params)
+        // debugger
         await getStockItem({ params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
@@ -335,28 +336,13 @@ const StockLocation = () => {
     []
   )
 
-  const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
+  const handleSortModel = useCallback(newModel => {
+    if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      await searchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
-
-      updateUrlParams({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
-    } else {
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
     }
-  }
+  }, [])
 
   const closeDialog = () => {
     setShow(false)
