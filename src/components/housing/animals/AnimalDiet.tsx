@@ -35,6 +35,7 @@ interface DietAttachment {
 
 interface AnimalDietProps {
   animalDetails: AnimalOverview & { taxonomyId?: string | number; taxonomy_id?: string | number }
+  animalId?: number | string
 }
 
 const GreenSwitch = styled(Switch)(({ theme }) => ({
@@ -74,14 +75,14 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
   }
 }))
 
-const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
+const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails, animalId: propAnimalId }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
   const router = useSafeRouter()
   const { id: animalid } = router.query
 
-  const [selectedTab, setSelectedTab] = useState<'active' | 'inactive'>('active') // or 'inactive'
-  const [animalId, setAnimalId] = useState<string | string[] | undefined | null>(animalid) // or 'inactive'
+  const [selectedTab, setSelectedTab] = useState<'active' | 'inactive'>('active')
+  const [animalId, setAnimalId] = useState<string | string[] | undefined | null>(propAnimalId != null ? String(propAnimalId) : animalid)
 
   const [dietListLoader, setDietListLoader] = useState<boolean>(false)
   const [activeDietData, setActiveDietData] = useState<DietAttachment[]>([])

@@ -53,6 +53,7 @@ interface AnimalMedicalProps {
     is_deleted?: string | number
     animal_status?: string
   }
+  animalId?: number | string
 }
 
 type MainTabType =
@@ -955,14 +956,14 @@ const AdverseRxList: FC<AdverseRxListProps> = ({ animalId, canDelete = true }) =
 
 // ==================== Main Component ====================
 
-const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails }) => {
+const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails, animalId: propAnimalId }) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const router = useSafeRouter()
   const { id } = router.query
 
   const [activeTab, setActiveTab] = useState<MainTabType>('Medical Records')
-  const animalId = Number(id)
+  const animalId = Number(propAnimalId) || Number(id)
 
   // Permission checks
   const isAliveValue = animalDetails?.is_alive ?? animalDetails?.isAlive

@@ -85,11 +85,16 @@ interface IncidentCardListProps {
   onReportFound: () => void
 }
 
-const AnimalIncidents: React.FC = () => {
+interface AnimalIncidentsProps {
+  animalId?: number | string
+}
+
+const AnimalIncidents: React.FC<AnimalIncidentsProps> = ({ animalId: propAnimalId }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
   const router = useSafeRouter()
-  const { id: animalId } = router.query
+  const { id } = router.query
+  const animalId = propAnimalId || id
 
   const [activtyLogSideBar, setActivtyLogSideBar] = useState<boolean>(false)
 

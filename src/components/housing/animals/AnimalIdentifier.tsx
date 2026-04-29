@@ -54,7 +54,11 @@ interface LocalIdentifierTypeOption {
   value: string
 }
 
-const AnimalIdentifier: React.FC = () => {
+interface AnimalIdentifierProps {
+  animalId?: number | string
+}
+
+const AnimalIdentifier: React.FC<AnimalIdentifierProps> = ({ animalId: propAnimalId }) => {
   const theme = useTheme() as any
   const router = useSafeRouter()
   const { id } = router.query
@@ -93,7 +97,7 @@ const AnimalIdentifier: React.FC = () => {
     getLocalIdentifierTypeData()
   }, [])
 
-  const animalId = Array.isArray(id) ? id[0] : id
+  const animalId = propAnimalId != null ? String(propAnimalId) : (Array.isArray(id) ? id[0] : id)
 
   const { data, isLoading, refetch }: UseQueryResult<IdentifierApiResponse, Error> = useQuery({
     queryKey: ['animal-identifier', animalId],

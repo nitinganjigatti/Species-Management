@@ -34,6 +34,7 @@ interface NotesListingProps {
   entityName?: string
   entityImage?: string
   animalData?: any
+  animalId?: number | string
 }
 
 interface CommentSubmitData {
@@ -67,13 +68,14 @@ const getPriorityBgColor = (priority: string | undefined, theme: any) => {
   }
 }
 
-const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData }) => {
+const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData, animalId: propAnimalId }) => {
   const router = useSafeRouter()
   const theme = useTheme() as any
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
   const { t } = useTranslation()
-  const { id } = router.query
+  const { id: routerId } = router.query
+  const id = propAnimalId != null ? String(propAnimalId) : routerId
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)

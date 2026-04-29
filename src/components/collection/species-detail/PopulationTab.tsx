@@ -226,7 +226,15 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       field: 'animal_id',
       headerName: 'ANIMAL ID',
       renderCell: (p: GridRenderCellParams) => (
-        <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} avatarSize={36} iconSize={18} />
+        <Box
+          sx={{ cursor: 'pointer', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={() => {
+            const animalId = p.row.raw_animal_id
+            if (animalId) router.push(`/collection/species/${speciesId}/animal/${animalId}`)
+          }}
+        >
+          <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} avatarSize={36} iconSize={18} />
+        </Box>
       )
     },
     {
@@ -602,12 +610,6 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
         searchValue=''
         getRowHeight={() => 'auto'}
         onRowClick={() => {}}
-        onCellClick={(params: any) => {
-          if (params.field === 'sl_no' || params.field === 'animal_id') {
-            const animalId = params?.row?.raw_animal_id
-            if (animalId) router.push(`/collection/species/${speciesId}/animal/${animalId}`)
-          }
-        }}
         externalTableStyle={stickyStyles}
       />
 
