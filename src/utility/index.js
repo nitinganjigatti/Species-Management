@@ -524,6 +524,59 @@ export const extractTextFromHtml = html => {
     .trim();
 }
 
+export const createEmptyRichTextValue = () => {
+  const delta = { ops: [{ insert: '\n' }] }
+
+  return {
+    delta,
+    html: '<></>',
+    text: '',
+    ops: delta.ops
+  }
+}
+
+export const getRichTextContent = note => {
+  if (!note) return ''
+  if (typeof note === 'string') return note
+  if (note?.html) return note.html
+  if (note?.text) return note.text
+  if (note?.delta?.ops) {
+    try {
+      const text = note.delta.ops
+        .map(op => (typeof op.insert === 'string' ? op.insert : ''))
+        .join('')
+        .trim()
+
+      return text
+    } catch {
+      return ''
+    }
+  }
+
+  return ''
+}
+
+export const getRichTextHtmlValue = note => {
+  if (!note) return ''
+  if (typeof note === 'string') return note
+  if (note?.html) return note.html
+  if (note?.text) return note.text
+  if (note?.delta?.ops) {
+    try {
+      const text = note.delta.ops
+        .map(op => (typeof op.insert === 'string' ? op.insert : ''))
+        .join('')
+        .trim()
+
+      return text
+    } catch {
+      return ''
+    }
+  }
+
+  return ''
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -559,7 +612,10 @@ const Utility = {
   scrollToFirstError,
   AgeConverter,
   extractTextFromHtml,
-  formatDateTimeDisplay
+  formatDateTimeDisplay,
+  createEmptyRichTextValue,
+  getRichTextContent,
+  getRichTextHtmlValue
 }
 
 export default Utility

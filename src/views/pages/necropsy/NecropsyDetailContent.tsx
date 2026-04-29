@@ -380,7 +380,13 @@ const NecropsyDetailContent: FC<NecropsyDetailContentProps> = ({ mortalityId, st
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ px: 4, pt: 2, pb: 6 }}>
-              <AssessmentTabs animalId={mortalityData.animal_id} hideTitle />
+              <AssessmentTabs
+                animalId={mortalityData.animal_id}
+                mortalityId={mortalityData.mortality_id}
+                mortalityCreatedAt={mortalityData.mortality_created_at}
+                purpose='necropsy'
+                hideTitle
+              />
             </AccordionDetails>
           </Accordion>
         </Box>

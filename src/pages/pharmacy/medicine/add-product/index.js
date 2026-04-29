@@ -157,6 +157,20 @@ const schema = yup.object().shape({
   category: yup.array().nullable()
 })
 
+const mapCategoryResponseToOptions = category => {
+  if (!category) return []
+
+  return category
+    ?.split(',')
+    ?.map(c => {
+      const trimmed = c?.trim()
+      const match = productCategoryOptions?.find(opt => opt?.value === trimmed || opt?.id === trimmed)
+
+      return match ? { label: match?.label, value: match?.value } : { label: trimmed, value: trimmed }
+    })
+    ?.filter(Boolean)
+}
+
 const AddMedicine = () => {
   // ** Hooks
   const {
@@ -457,9 +471,7 @@ const AddMedicine = () => {
           side_effects: response?.data?.side_effects || '',
           uses: response?.data?.uses || '',
           safety_advice: response?.data?.safety_advice || '',
-          category: response?.data?.category
-            ? response.data.category.split(',').map(c => ({ label: c.trim(), value: c.trim() }))
-            : []
+          category: mapCategoryResponseToOptions(response?.data?.category)
         })
       }
       setLoader(false)

@@ -136,7 +136,8 @@ const ListOfStates = () => {
       )
     },
     {
-      minWidth: 300,
+      flex: 1,
+      minWidth: 200,
       field: 'name',
       headerName: 'STATE NAME',
       renderCell: params => (

@@ -157,7 +157,8 @@ const NotesListng: React.FC = () => {
     },
 
     {
-      width: 200,
+      flex: 1,
+      minWidth: 200,
       field: 'actions',
       headerName: t('actions'),
       align: 'center' as const,

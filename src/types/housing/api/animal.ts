@@ -59,10 +59,9 @@ export interface GetAnimalMediaParams {
   q?: string
 }
 
-export interface GetAnimalMediaResponse extends ApiResponse<{
-  result: Media[]
+export interface GetAnimalMediaResponse extends ApiResponse<Media[]> {
   total_count?: number
-}> {}
+}
 
 // ==================== Animal Media Upload ====================
 

@@ -58,7 +58,7 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
   }
   const medicalNavigationArray = []
 
-  if (userSettings?.medical_add_complaints || userSettings?.medical_add_diagnosis) {
+  if (medicalAccess || userSettings?.medical_add_complaints || userSettings?.medical_add_diagnosis) {
     medicalNavigationArray.push(Title)
   }
   if (medicalAccess) {
@@ -76,7 +76,7 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
     mastersMedicalParent.children.push(DeliveryRoute)
     mastersMedicalParent.children.push(ClinPath)
     mastersMedicalParent.children.push(PurposeOfAnaesthesia)
-    mastersMedicalParent.children.push(UOM)
+    // mastersMedicalParent.children.push(UOM)
   }
 
   medicalNavigationArray.push(mastersMedicalParent)

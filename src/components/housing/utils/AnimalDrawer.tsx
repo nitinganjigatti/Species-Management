@@ -98,10 +98,11 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
       // v3 API returns { data: [...], total_count } at top level
       const resultData = (res?.data || []) as unknown as Animal[]
       const totalCount = res?.total_count || 0
+      const loaded = (pageParam as number) * PAGE_SIZE
 
       return {
         result: resultData,
-        nextPage: resultData?.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
+        nextPage: loaded < totalCount ? (pageParam as number) + 1 : undefined,
         total: totalCount
       }
     },

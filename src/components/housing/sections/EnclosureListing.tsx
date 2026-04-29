@@ -1,7 +1,7 @@
 import { useTheme, Theme } from '@emotion/react'
 import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
@@ -97,9 +97,11 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
         limit: filters.pageSize,
         q: filters.search,
         sort_by: filters.sortBy,
-        sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
+        sort_order: filters.sortOrder as 'asc' | 'desc' | undefined,
+        include_sub_enclosure: 1
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   useEffect(() => {
@@ -349,7 +351,8 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
             )
           },
           {
-            width: 250,
+            flex: 1,
+            minWidth: 250,
             field: 'site_name',
             headerName: t('housing_module.site'),
             sortable: false,
@@ -388,9 +391,9 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_enclosures')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.all_enclosures')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -428,6 +431,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
             loading={isLoading}
             searchValue={filters.search}
             maxHeight='80vh'

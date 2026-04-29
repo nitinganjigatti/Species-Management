@@ -112,7 +112,8 @@ const ListOfStores = () => {
       )
     },
     {
-      minWidth: 250,
+      flex: 1,
+      minWidth: 200,
       field: 'name',
       headerName: 'PHARMACY NAME',
       renderCell: params => (

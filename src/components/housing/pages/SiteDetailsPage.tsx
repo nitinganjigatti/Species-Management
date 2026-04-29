@@ -71,7 +71,12 @@ const allTabConfig: TabConfigItem[] = [
     component: SpeciesListing,
     requiresPermission: 'collection_animal_records'
   },
-  { labelKey: 'housing_module.animals_under_treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
+  {
+    labelKey: 'housing_module.animals_under_treatment',
+    value: 'animalTreatment',
+    component: AnimalTreatmentListing,
+    requiresPermission: 'medical_records'
+  },
   { labelKey: 'notes', value: 'notes', component: NotesListing },
   { labelKey: 'housing_module.assessment', value: 'assessment', component: EntityAssessment },
   {

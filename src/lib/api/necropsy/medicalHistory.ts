@@ -88,10 +88,19 @@ export async function getLabRequestsByAnimal(params: LabRequestsByAnimalParams):
   }
 }
 
-export async function getAssessmentTypes(animalId: number): Promise<AssessmentTypesResponse> {
+export interface AssessmentTypesParams {
+  purpose?: string
+  till_date?: string
+  mortality_id?: number | string
+}
+
+export async function getAssessmentTypes(
+  animalId: number,
+  params: AssessmentTypesParams = {}
+): Promise<AssessmentTypesResponse> {
   try {
     const url = `${GET_ASSESSMENT_ANIMAL_TYPES}/${animalId}`
-    const response = await axiosGet({ url, pharmacy: false, params: {} })
+    const response = await axiosGet({ url, pharmacy: false, params })
 
     return response?.data
   } catch (error) {

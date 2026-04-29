@@ -69,10 +69,13 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
         search
       })
 
+      const total = res?.data?.total_scies_count || 0
+      const loaded = (pageParam as number) * PAGE_SIZE
+
       return {
         result: res?.data?.listing || [],
-        nextPage: res?.data?.listing?.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
-        total: res?.data?.total_scies_count || 0
+        nextPage: loaded < total ? (pageParam as number) + 1 : undefined,
+        total
       }
     },
     initialPageParam: 1,

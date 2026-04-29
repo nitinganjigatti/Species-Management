@@ -310,8 +310,8 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
       )
     },
     {
-      minWidth: 40,
-      width: 200,
+      flex: 1,
+      minWidth: 200,
       field: 'contact',
       headerName: t('contact'),
       align: 'left' as const,

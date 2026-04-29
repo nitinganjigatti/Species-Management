@@ -369,6 +369,7 @@ const RequestList = () => {
   const columns = [
     {
       width: 80,
+      field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ display: 'flex' }}>

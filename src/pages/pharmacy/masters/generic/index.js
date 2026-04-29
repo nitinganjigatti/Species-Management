@@ -95,7 +95,8 @@ const GenericNamesList = () => {
       )
     },
     {
-      minWidth: 350,
+      flex: 1,
+      minWidth: 250,
       field: 'name',
       headerName: 'NAME',
       renderCell: params => (

@@ -168,8 +168,8 @@ const ExpiringMedicine = () => {
     //   )
     // },
     {
-      width: 350,
-      minWidth: 200,
+      flex: 1,
+      minWidth: 250,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (

@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { Box, useTheme, Typography, Skeleton } from '@mui/material'
-import { TabProps } from 'src/types/housing/animalsOffspring'
+import React, { useCallback, useEffect, useState } from 'react'
+import { Box, useTheme, Typography, Skeleton, CircularProgress } from '@mui/material'
+import { FetusDetail, TabProps } from 'src/types/housing/animalsOffspring'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { useQuery } from '@tanstack/react-query'
 import { alpha } from '@mui/material/styles'
@@ -10,6 +10,7 @@ import Utility from 'src/utility'
 import { useTranslation } from 'react-i18next'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import FetalDeathDrawer from './FetalDeathDrawer'
+import { useInView } from 'react-intersection-observer'
 
 type PillTabsProps = {
   tabs: string[]
@@ -25,6 +26,13 @@ const FetalDeath: React.FC<TabProps> = props => {
   const [activeTab, setActiveTab] = React.useState<string>(availableTabs[0])
   const [fetusDrawerOpen, setFetusDrawerOpen] = useState<boolean>(false)
   const [selectedFetus, setSelectedFetus] = useState<string | number>('')
+  const [fetus, setFetus] = useState<FetusDetail[]>([])
+  const [isFetusDataFetching, setIsFetusDataFetching] = useState(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
   const handleTabClick = (tab: string) => {
     setActiveTab(tab)
@@ -38,18 +46,74 @@ const FetalDeath: React.FC<TabProps> = props => {
 
   const fetusStatsData = fetusStats?.data || null
 
-  const { data: fetusData, isFetching: isFetusDataFetching } = useQuery({
-    queryKey: ['recent-litter', props.animalId, activeTab],
-    queryFn: () =>
-      getFetusList({
+  const fetchFetusList = async (pageNo: number = 1) => {
+    if (!props.animalId) return
+
+    if (pageNo === 1) {
+      setIsFetusDataFetching(true)
+      setHasMore(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
+    try {
+      const response = await getFetusList({
         parent_id: props.animalId,
         type: activeTab === 'Still Birth' ? 'stillbirth' : 'abortion',
-        page_no: 1,
+        page_no: pageNo,
         limit: 10
-      }),
-    enabled: !!props.animalId
-  })
-  const fetus = fetusData?.data?.fetus_details || null
+      })
+
+      if (response?.success) {
+        const result = response?.data?.fetus_details || []
+
+        if (pageNo === 1) {
+          setFetus(result)
+        } else {
+          setFetus(prev => [...prev, ...result])
+        }
+
+        if (result.length < 10) {
+          setHasMore(false)
+        }
+      } else {
+        if (pageNo === 1) {
+          setFetus([])
+        }
+        setHasMore(false)
+      }
+    } catch (error: any) {
+      console.error(error?.message)
+      if (pageNo === 1) {
+        setFetus([])
+      }
+      setHasMore(false)
+    } finally {
+      setIsFetusDataFetching(false)
+      setIsFetchingMore(false)
+    }
+  }
+
+  const handleLoadMore = useCallback(() => {
+    if (isFetusDataFetching || isFetchingMore || !hasMore) return
+
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchFetusList(nextPage)
+  }, [isFetusDataFetching, isFetchingMore, hasMore, page, props.animalId, activeTab])
+
+  useEffect(() => {
+    if (inView && !isFetusDataFetching && !isFetchingMore && hasMore && fetus.length) {
+      handleLoadMore()
+    }
+  }, [inView, isFetusDataFetching, isFetchingMore, hasMore, fetus.length, handleLoadMore])
+
+  useEffect(() => {
+    setPage(1)
+    setFetus([])
+    setHasMore(true)
+    fetchFetusList(1)
+  }, [props.animalId, activeTab])
 
   const PillTabs: React.FC<PillTabsProps> = ({ tabs, activeTab, onTabClick }) => {
     const theme = useTheme() as any
@@ -114,7 +178,7 @@ const FetalDeath: React.FC<TabProps> = props => {
           {fetus?.map((item, index) => {
             return (
               <Box
-                key={index}
+                key={item?.fetus_id || index}
                 sx={{
                   p: 4,
                   display: 'flex',
@@ -180,6 +244,19 @@ const FetalDeath: React.FC<TabProps> = props => {
               </Box>
             )
           })}
+          {(hasMore || isFetchingMore) && fetus.length > 0 && (
+            <Box
+              ref={loaderRef}
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 4
+              }}
+            >
+              {isFetchingMore && <CircularProgress size={24} />}
+            </Box>
+          )}
         </Box>
       )}
 

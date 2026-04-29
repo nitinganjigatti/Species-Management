@@ -17,6 +17,7 @@ export const GET_FAMILY_TREE_LITTER_LIST = 'v1/familytree/litter/list'
 export const GET_FAMILY_TREE_OFFSPRING_STATS = 'v1/familytree/stats'
 export const DELETE_FAMILY_TREE_OFFSPRINGS = 'v1/familytree/offspring/delete'
 export const ADD_FAMILY_TREE_OFFSPRING = 'v1/familytree/offspring/add'
+export const GET_RECENT_CLUTCH_LIST = 'egg/clutch/list'
 
 // Fetus
 export const GET_FETUS_STATS = 'fetus/stats'

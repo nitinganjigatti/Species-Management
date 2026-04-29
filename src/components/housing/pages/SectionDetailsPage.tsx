@@ -26,6 +26,7 @@ import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
+import Toaster from 'src/components/Toaster'
 
 interface TabConfigItem {
   labelKey: string
@@ -66,8 +67,18 @@ const allTabConfig: TabConfigItem[] = [
   { labelKey: 'media', value: 'media', component: MediaListing },
   { labelKey: 'housing_module.users', value: 'users', component: UsersListing },
   { labelKey: 'housing_module.incharges', value: 'incharges', component: InchargeListing },
-  { labelKey: 'navigation.mortality', value: 'mortality', component: MortalityListing, requiresPermission: 'access_mortality_module' },
-  { labelKey: 'housing_module.animals_under_treatment', value: 'animalTreatment', component: AnimalTreatmentListing },
+  {
+    labelKey: 'navigation.mortality',
+    value: 'mortality',
+    component: MortalityListing,
+    requiresPermission: 'access_mortality_module'
+  },
+  {
+    labelKey: 'housing_module.animals_under_treatment',
+    value: 'animalTreatment',
+    component: AnimalTreatmentListing,
+    requiresPermission: 'medical_records'
+  },
   { labelKey: 'housing_module.food_wastage', value: 'foodWastage', component: FoodWastageListing }
 ]
 
@@ -97,21 +108,6 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
   const rolesSettingsPermissions = (auth as any)?.userData?.roles?.settings || {}
   const permissions: Record<string, boolean> = { ...userSettingsPermissions, ...rolesSettingsPermissions }
 
-  const tabConfig = useMemo(() => {
-    return allTabConfig.filter(tab => {
-      if (tab.requiresPermission) {
-        if (permissions?.[tab.requiresPermission] !== true) {
-          return false
-        }
-      }
-
-      return true
-    })
-  }, [permissions])
-
-  const availableTabs = useMemo(() => tabConfig.map(t => t.value), [tabConfig])
-  const [selectedTab, setSelectedTab] = useTabSync(allTabConfig[0].value, availableTabs)
-
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['section-insights', id],
     queryFn: () =>
@@ -121,6 +117,25 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
       }),
     enabled: !!id && !!zooId
   })
+
+  const tabConfig = useMemo(() => {
+    return allTabConfig.filter(tab => {
+      if (tab.requiresPermission) {
+        if (permissions?.[tab.requiresPermission] !== true) {
+          return false
+        }
+      }
+
+      if (tab.value === 'foodWastage' && String((data?.data as any)?.is_system_generated) === '1') {
+        return false
+      }
+
+      return true
+    })
+  }, [permissions, data])
+
+  const availableTabs = useMemo(() => tabConfig.map(t => t.value), [tabConfig])
+  const [selectedTab, setSelectedTab] = useTabSync(allTabConfig[0].value, availableTabs)
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: string): void => {
     setSelectedTab(newValue)
@@ -180,6 +195,7 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
 
   const siteId = (data?.data as any)?.site_id
   const siteName = (data?.data as any)?.site_name
+  const editSectionAccess = Number((data?.data as any)?.is_system_generated) == 1
 
   const handleBreadcrumbClick = (): void => {
     if (siteId) {
@@ -250,10 +266,7 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography
-            onClick={handleBreadcrumbClick}
-            sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}
-          >
+          <Typography onClick={handleBreadcrumbClick} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
             {siteName || t('housing_module.site_details')}
           </Typography>
           <Typography color={theme.palette.text.primary}>{t('housing_module.section_details')}</Typography>
@@ -264,21 +277,30 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
           loading={isLoading}
           zooName={(data?.data as any)?.section_name}
           image={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
-          subtitle=''
+          subtitle={
+            siteName ? (
+              <Typography sx={{ color: theme.palette.common.white, fontSize: '0.875rem' }}>
+                Site - {siteName}
+              </Typography>
+            ) : (
+              ''
+            )
+          }
           userName={(data?.data as any)?.incharge_name}
           description=''
           userImage=''
           pageTitle={t('housing_module.section_details')}
           actions={{
             onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null,
-            onEdit: addSectionAccess ? () => setShowEditSectionDrawer(true) : null
+            onEdit: addSectionAccess ? () => setShowEditSectionDrawer(true) : null,
+            onEditRestricted: editSectionAccess ? () => Toaster({ type: 'warning', message: t('system_generated_section_note_restrictions') as string }) : null,
           }}
           addNewTooltip={t('housing_module.add_new_enclosure') as string}
           editTooltip={t('housing_module.edit_section') as string}
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_phone_number || ''
             if (phoneNumber) {
-              // window.location.href = `tel:${phoneNumber}`
+              window.location.href = `tel:${phoneNumber}`
             } else {
               return
             }
@@ -349,14 +371,18 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
           addSuccessCheck={addSuccessCheck}
           setAddSuccessCheck={setAddSuccessCheck}
           refetch={refetch}
-          sectionData={(data?.data as any) ? {
-            section_id: (data?.data as any)?.section_id,
-            section_name: (data?.data as any)?.section_name,
-            section_site_id: (data?.data as any)?.site_id,
-            section_latitude: (data?.data as any)?.section_latitude,
-            section_longitude: (data?.data as any)?.section_longitude,
-            images: (data?.data as any)?.images
-          } : null}
+          sectionData={
+            (data?.data as any)
+              ? {
+                  section_id: (data?.data as any)?.section_id,
+                  section_name: (data?.data as any)?.section_name,
+                  section_site_id: (data?.data as any)?.site_id,
+                  section_latitude: (data?.data as any)?.section_latitude,
+                  section_longitude: (data?.data as any)?.section_longitude,
+                  images: (data?.data as any)?.images
+                }
+              : null
+          }
         />
       )}
       {showAccessRestricted && (

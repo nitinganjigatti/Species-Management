@@ -125,6 +125,9 @@ export type {
   LitterItem,
   GetClutchListParams,
   GetClutchListResponse,
+  GetRecentClutchListParams,
+  GetRecentClutchListResponse,
+  RecentClutchItem,
   GetLitterListParams,
   GetLitterListResponse
 } from './models'

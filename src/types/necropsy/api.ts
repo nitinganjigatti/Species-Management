@@ -166,8 +166,10 @@ export interface IncomingNecropsyChecklistDetailsResponse
   }> {}
 
 export interface CreateIncomingNecropsyCommentPayload {
-  transfer_id: number
-  comment: string
+  entity_id: number
+  entity_type: string
+  content: string
+  action: string
 }
 
 export interface IncomingNecropsyBtnStatusResponse extends ApiResponse<IncomingNecropsyBtnStatus> {}
@@ -454,10 +456,7 @@ export interface LabRequestsByAnimalParams {
 
 export interface LabRequestsByAnimalResponse extends ApiResponse<PaginatedData<LabRequest> | LabRequest[]> {}
 
-export interface AssessmentTypesResponse
-  extends ApiResponse<{
-    result: AssessmentType[]
-  }> {}
+export interface AssessmentTypesResponse extends ApiResponse<AssessmentType[]> {}
 
 export interface AssessmentDataParams {
   type_id?: number

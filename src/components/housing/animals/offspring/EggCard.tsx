@@ -178,6 +178,8 @@ const EggCard: React.FC<EggCardProps> = ({
           <Box sx={{ width: 19, height: 24 }}>
             {egg_status === 'Hatched' ? (
               <img src={'/icons/Egg_hatched.png'} style={{ width: '100%' }} />
+            ) : egg_status === 'Discard' ? (
+              <img src={'/icons/egg_dashboard/discard_egg.png'} style={{ width: '23px' }} />
             ) : (
               <img src={eggIcon} style={{ width: '100%' }} />
             )}
@@ -185,7 +187,7 @@ const EggCard: React.FC<EggCardProps> = ({
         </Box>
 
         {/* CONDITION CHIP */}
-        {egg_status === 'Discard'
+        {egg_status === 'Discard' || egg_status === 'Hatched'
           ? null
           : eggCondition && (
               <Box

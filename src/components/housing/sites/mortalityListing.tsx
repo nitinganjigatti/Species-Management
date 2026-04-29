@@ -2,7 +2,7 @@ import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, Theme } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
@@ -70,7 +70,8 @@ const MortalityListing: React.FC = () => {
         site_id: Number(id),
         type: 'animals'
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const sectionList: MortalityRow[] = data?.data?.result || []
@@ -292,7 +293,8 @@ const MortalityListing: React.FC = () => {
       )
     },
     {
-      width: 300,
+      flex: 1,
+      minWidth: 300,
       field: 'reason',
       headerName: t('housing_module.reason') as string,
       align: 'left' as const,
@@ -319,9 +321,9 @@ const MortalityListing: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title={t('navigation.mortality')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('navigation.mortality')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -354,6 +356,7 @@ const MortalityListing: React.FC = () => {
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
             loading={isFetching}
+            getRowHeight={() => 60}
             searchValue={inputValue}
             maxHeight='80vh'
           />

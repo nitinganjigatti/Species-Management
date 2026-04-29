@@ -11,7 +11,7 @@
  * 7. On logout, clear cache and reset to default language
  */
 
-import { createContext, useState, useEffect, useContext, useCallback } from 'react'
+import { createContext, useState, useContext, useCallback } from 'react'
 import i18n from 'src/configs/i18n'
 import { getLanguageFiles } from 'src/lib/api/language'
 import {
@@ -113,11 +113,6 @@ export const LanguageProvider = ({ children }) => {
     setLocale('en-IN')
     setFormats(null)
   }, [])
-
-  // On mount: fetch API translations for current language
-  useEffect(() => {
-    fetchAndMergeTranslations(i18n.language || 'en-IN')
-  }, [fetchAndMergeTranslations])
 
   return (
     <LanguageContext.Provider value={{ formats, locale, loadLanguage, resetLanguage }}>

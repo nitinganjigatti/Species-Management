@@ -309,6 +309,7 @@ const DirectDispatchList = () => {
     //   )
     // },
     {
+      flex: 0.5,
       minWidth: 160,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
@@ -326,6 +327,7 @@ const DirectDispatchList = () => {
       )
     },
     {
+      flex: 1,
       minWidth: 200,
       field: 'to_store',
       headerName: getRequestedText(),
@@ -344,6 +346,7 @@ const DirectDispatchList = () => {
     },
 
     {
+      flex: 0.4,
       minWidth: 120,
       field: 'product_count',
       headerName: 'Total items',
@@ -363,52 +366,54 @@ const DirectDispatchList = () => {
         </Typography>
       )
     },
-    ,
+    ...(status !== 'pending'
+      ? [
+          {
+            minWidth: 160,
+            field: 'shipping_status',
+            headerName: 'Status',
+            renderCell: params => (
+              <Box sx={{ color: 'text.primary' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  {params.row.shipping_status === 'Fully Shipped' && (
+                    <Box sx={{ color: 'success.main', mr: 2 }}>
+                      <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
+                    </Box>
+                  )}
+                  {params.row.shipping_status === 'Partially Shipped' && (
+                    <>
+                      <Box sx={{ color: 'warning.main', mr: 2 }}>
+                        <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                      </Box>
+                      <Box sx={{ color: 'warning.main', mr: 2 }}>
+                        <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                      </Box>
+                    </>
+                  )}
+                  {params.row.dispute_status === 'Dispute Pending' && (
+                    <Box sx={{ color: 'error.main', mr: 2 }}>
+                      <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+                    </Box>
+                  )}
+                  {params.row.dispute_status === 'Dispute Resolved' && (
+                    <Box sx={{ color: 'success.main', mr: 2 }}>
+                      <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+                    </Box>
+                  )}
+                  {params.row.delivery_status === 'Delivered' && (
+                    <Box sx={{ color: 'success.main', mr: 2 }}>
+                      <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+                    </Box>
+                  )}
+                </div>
+                {params.row.status === 'Cancelled' ? params.row.status : null}
+              </Box>
+            )
+          }
+        ]
+      : []),
     {
-      ...(status !== 'pending' && {
-        minWidth: 160,
-        field: 'shipping_status',
-        headerName: 'Status',
-        renderCell: params => (
-          <Box sx={{ color: 'text.primary' }}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              {params.row.shipping_status === 'Fully Shipped' && (
-                <Box sx={{ color: 'success.main', mr: 2 }}>
-                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
-                </Box>
-              )}
-              {params.row.shipping_status === 'Partially Shipped' && (
-                <>
-                  <Box sx={{ color: 'warning.main', mr: 2 }}>
-                    <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
-                  </Box>
-                  <Box sx={{ color: 'warning.main', mr: 2 }}>
-                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
-                  </Box>
-                </>
-              )}
-              {params.row.dispute_status === 'Dispute Pending' && (
-                <Box sx={{ color: 'error.main', mr: 2 }}>
-                  <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
-                </Box>
-              )}
-              {params.row.dispute_status === 'Dispute Resolved' && (
-                <Box sx={{ color: 'success.main', mr: 2 }}>
-                  <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
-                </Box>
-              )}
-              {params.row.delivery_status === 'Delivered' && (
-                <Box sx={{ color: 'success.main', mr: 2 }}>
-                  <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
-                </Box>
-              )}
-            </div>
-            {params.row.status === 'Cancelled' ? params.row.status : null}
-          </Box>
-        )
-      })
-    },
-    {
+      flex: 0.6,
       minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',

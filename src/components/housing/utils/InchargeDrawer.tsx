@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { Box, Drawer, Typography, IconButton, CircularProgress, alpha } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
@@ -7,13 +7,12 @@ import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { debounce } from 'lodash'
 import { useInView } from 'react-intersection-observer'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { addIncharge } from 'src/lib/api/housing'
 import { assignAnimalIncharges } from 'src/lib/api/caretaker'
 import Toaster from 'src/components/Toaster'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import { FilterButton } from 'src/views/utility/render-snippets'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
@@ -36,6 +35,7 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   const { id } = router.query
   const theme: any = useTheme()
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
 
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchInput, setSearchInput] = useState<string>('')
@@ -49,7 +49,6 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   const authData: any = useAuth()
   const zooId = authData?.userData?.user?.zoos?.[0]?.zoo_id
 
-  // Intersection observer for infinite scroll
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
   // Debounce search to reduce API calls
@@ -81,9 +80,8 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
 
   const { type: apiType, idField } = getApiTypeAndIdField()
 
-  // Infinite query to fetch user list with search and filters
   const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ['user-list-incharge-drawer', searchQuery, id, selectedFilterOptions, refType],
+    queryKey: ['user-list-incharge-drawer', searchQuery, id, selectedFilterOptions.Role, refType],
     initialPageParam: 1,
     enabled: !!openDrawer,
     queryFn: async ({ pageParam = 1 }) => {
@@ -98,23 +96,24 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
         [idField]: id
       }
       const res = await getUserList(params)
-      const incharges = (res?.data as User[]) || []
+      const users = (res?.data as User[]) || []
 
       return {
-        users: incharges,
-        nextPage: incharges?.length === 10 ? (pageParam as number) + 1 : undefined,
+        users,
         total_count: (res?.total_count as number) || 0
       }
     },
-    getNextPageParam: (lastPage: any, allPages: any) => {
-      const fetchedCount = allPages.reduce((sum: number, page: any) => sum + (page.users?.length || 0), 0)
+    getNextPageParam: (lastPage, allPages) => {
+      const fetchedCount = allPages.reduce((sum, page) => sum + (page.users?.length || 0), 0)
       const totalCount = lastPage?.total_count || 0
 
       return fetchedCount < totalCount ? allPages.length + 1 : undefined
     }
   })
 
-  // Reset state when drawer opens
+  const list: User[] = useMemo(() => data?.pages?.flatMap(page => page.users) || [], [data])
+
+  // Reset selection state when drawer opens
   useEffect(() => {
     if (openDrawer) {
       setSearchInput('')
@@ -125,26 +124,21 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
     }
   }, [openDrawer, selectedUsers])
 
-  // Flatten infinite query pages into a single list
-  const list: User[] = useMemo(() => data?.pages?.flatMap(page => page.users) || [], [data])
-
-  const cooldownRef = useRef<boolean>(false)
-
-  // Load more data when scrolling to bottom
-  const loadMore = useCallback(() => {
-    if (cooldownRef.current) return
-
-    if (!isFetchingNextPage && hasNextPage) {
-      cooldownRef.current = true
-      fetchNextPage().finally(() => {
-        setTimeout(() => {
-          cooldownRef.current = false
-        }, 300)
-      })
+  // Cancel in-flight queries when the drawer closes
+  useEffect(() => {
+    if (!openDrawer) {
+      queryClient.cancelQueries({ queryKey: ['user-list-incharge-drawer'] })
     }
-  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
+  }, [openDrawer, queryClient])
 
-  // Trigger loadMore based on intersection observer
+  // Slight delay before fetching the next page lets the previous render settle,
+  // avoiding rapid-fire triggers on hard scroll.
+  const loadMore = useCallback(() => {
+    setTimeout(() => {
+      fetchNextPage()
+    }, 300)
+  }, [fetchNextPage])
+
   useEffect(() => {
     if (inView) {
       loadMore()
@@ -169,8 +163,8 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
     const isSelected = selectedIncharges.some((item: Incharge) => item.user_id === user.user_id)
     if (!isSelected && selectedIncharges.length >= 10) {
       Toaster({ type: 'error', message: t('housing_module.max_users_selected') })
-      
-return
+
+      return
     }
 
     setSelectedIncharges((prev: Incharge[]) => {
@@ -187,8 +181,8 @@ return
   const handleConfirm = async () => {
     if (selectedIncharges.length > 10) {
       Toaster({ type: 'error', message: t('housing_module.max_users_selected') })
-      
-return
+
+      return
     }
 
     setSubmitLoader(true)
@@ -205,18 +199,38 @@ return
       } else {
         // Build payload based on refType for housing entities
         const getPayload = () => {
-          const userIds = selectedIncharges.map(user => user.user_id)
+          const userIds = selectedIncharges.map(user => user.user_id).join(',')
           switch (refType) {
             case 'site':
-              return { site_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: Number(id),
+                ref_type: 'site',
+                user_id: userIds
+              }
             case 'section':
-              return { section_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'section',
+                user_id: userIds
+              }
             case 'enclosure':
-              return { enclosure_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'enclosure',
+                user_id: userIds
+              }
             case 'cluster':
-              return { cluster_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'cluster',
+                user_id: userIds
+              }
             default:
-              return { site_id: Number(id), user_ids: userIds }
+              return {
+                ref_id: String(id),
+                ref_type: 'site',
+                user_id: userIds
+              }
           }
         }
         res = await addIncharge(getPayload())
@@ -311,10 +325,7 @@ return
             display: 'flex',
             flexDirection: 'column',
             gap: 4,
-            minHeight: 0,
-            '&::-webkit-scrollbar': { display: 'none' },
-            scrollbarWidth: 'none',
-            '-ms-overflow-style': 'none'
+            minHeight: 0
           }}
         >
           {isFetching && list.length === 0 ? (
@@ -337,7 +348,6 @@ return
                       background: theme.palette.customColors.OnPrimary,
                       borderRadius: 1,
                       cursor: 'pointer',
-                      //   border: isSelected ? `2px solid ${theme.palette.primary.main}` : `2px solid transparent`,
                       transition: 'border-color 0.2s'
                     }}
                     onClick={() => handleToggleSelection(user)}
@@ -369,58 +379,57 @@ return
                 </Box>
               )}
 
-              {/* Load more spinner or end of list message */}
-              {hasNextPage ? (
-                <Box ref={loaderRef} display='flex' justifyContent='center' py={2}>
-                  <CircularProgress />
+              {/* Sentinel only renders after the first page has items — prevents premature triggers on hard scroll */}
+              {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
+                <Box ref={loaderRef} display='flex' justifyContent='center' p={4}>
+                  <CircularProgress size={24} />
                 </Box>
-              ) : (
-                list.length > 0 && (
-                  <Typography variant='body2' sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
-                    {t('no_more_data')}
-                  </Typography>
-                )
+              )}
+
+              {!hasNextPage && list.length > 0 && (
+                <Typography variant='body2' sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
+                  {t('no_more_data')}
+                </Typography>
               )}
             </>
           )}
         </Box>
       </Box>
 
-      {selectedIncharges.length > 0 && (
-        <Box
-          sx={{
-            p: 4,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.background.paper,
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 2,
-            boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
-            bottom: 0,
-            position: 'sticky',
-            zIndex: 1
-          }}
+      <Box
+        sx={{
+          p: 4,
+          borderTop: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          boxShadow: `0px -2px 6px ${alpha(theme.palette.customColors.deepDark, 0.1)}`,
+          bottom: 0,
+          position: 'sticky',
+          zIndex: 1
+        }}
+      >
+        <LoadingButton
+          variant='outlined'
+          onClick={closeDrawer}
+          loading={submitLoader}
+          sx={{ flex: 1, py: 4 }}
+          disabled={submitLoader}
         >
-          <LoadingButton
-            variant='outlined'
-            onClick={closeDrawer}
-            loading={submitLoader}
-            sx={{ flex: 1, py: 4 }}
-            disabled={submitLoader}
-          >
-            {t('cancel')}
-          </LoadingButton>
-          <LoadingButton
-            variant='contained'
-            onClick={handleConfirm}
-            loading={submitLoader}
-            sx={{ flex: 1, py: 4 }}
-            disabled={submitLoader}
-          >
-            {confirmLabel} {`(${selectedIncharges.length})`}
-          </LoadingButton>
-        </Box>
-      )}
+          {t('cancel')}
+        </LoadingButton>
+        <LoadingButton
+          variant='contained'
+          onClick={handleConfirm}
+          loading={submitLoader}
+          sx={{ flex: 1, py: 4 }}
+          disabled={submitLoader}
+        >
+          {confirmLabel} {`(${selectedIncharges.length})`}
+        </LoadingButton>
+      </Box>
+
       <InchargeRoleFilterDrawer
         open={openFilterDrawer}
         onClose={() => setOpenFilterDrawer(false)}

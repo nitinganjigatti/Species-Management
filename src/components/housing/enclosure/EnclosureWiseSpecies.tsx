@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
-import { Grid, Typography } from '@mui/material'
+import { Card, CardContent, FormControlLabel, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
@@ -11,6 +11,7 @@ import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import AnimalDrawer from '../utils/AnimalDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import type { DrawerData, DrawerType } from 'src/types/housing'
@@ -22,6 +23,7 @@ interface EnclosureWiseSpeciesProps {
   setDrawerType: (type: DrawerType) => void
   drawerData: DrawerData | null
   setDrawerData: (data: DrawerData | null) => void
+  entityDetails?: any
 }
 
 interface SpeciesFilters {
@@ -73,11 +75,27 @@ interface AnimalDrawerData {
   }
 }
 
-const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
+const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData,
+  entityDetails
+}) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
   const router: any = useSafeRouter()
   const { id } = router.query
+  console.log(entityDetails, 'entityDetails')
+
+  const hasSubEnclosures = Number(entityDetails?.total_sub_enclosure_count) > 0
+  const [includeSubEnclosures, setIncludeSubEnclosures] = useState<boolean>(false)
+
+  useEffect(() => {
+    if (!hasSubEnclosures) {
+      setIncludeSubEnclosures(false)
+    }
+  }, [hasSubEnclosures])
 
   const [inputValue, setInputValue] = useState<string>('')
 
@@ -95,11 +113,11 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['enclosure-wise-species', id, filters],
+    queryKey: ['enclosure-wise-species', id, filters, includeSubEnclosures],
     queryFn: () =>
       getEnclosureWiseSpecies(
         {
-          include_sub_enclosure: 1,
+          include_sub_enclosure: hasSubEnclosures && includeSubEnclosures ? 1 : 0,
           page_no: filters.page,
           limit: filters.pageSize,
           q: filters.search,
@@ -108,11 +126,14 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
         },
         Number(id)
       ),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const listing: SpeciesRow[] = (data?.data?.listing || []) as unknown as SpeciesRow[]
-  const total: number = data?.data?.total_count || data?.data?.total_scies_count || listing.length
+  // const total: number = data?.data?.total_count || data?.data?.total_scies_count || listing.length
+  const totalSpeciesCount: number = data?.data?.stats?.total_species_count || 0
+  const totalOccupantsCount: number = data?.data?.stats?.total_animal_count || 0
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
 
@@ -359,7 +380,8 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
             )
           },
           {
-            width: 160,
+            flex: 1,
+            minWidth: 160,
             field: 'indeterminate',
             headerName: t('housing_module.indeterminate') as string,
             headerAlign: 'left' as const,
@@ -415,18 +437,136 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-          <Search
-            value={inputValue}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-            placeholder={t('search') as string}
-            sx={{ justifyContent: 'flex-end' }}
-          />
-          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
-        </Box>
+      <Box sx={{ mt: 4 }}>
+        <Grid
+          container
+          spacing={4}
+          sx={{ display: 'flex', alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 4 }}
+        >
+          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+            <ListingHeader title={t('housing_module.all_species')} totalCount={totalSpeciesCount} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+            <Search
+              value={inputValue}
+              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
+              placeholder={t('search') as string}
+              sx={{
+                width: '100%',
+                justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+                '& .MuiFormControl-root, & .MuiTextField-root': {
+                  width: { xs: '100%', sm: 'auto' }
+                }
+              }}
+            />
+          </Grid>
+        </Grid>
+
+        <Card sx={{ mt: 4 }}>
+          <CardContent
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: { xs: 4, sm: 3 }
+            }}
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'flex-start', sm: 'center' },
+                gap: 4,
+                width: { xs: '100%', sm: 'auto' }
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: { xs: 'space-between', sm: 'flex-start' },
+                  gap: 4,
+                  backgroundColor: theme.palette.customColors.Background,
+                  px: 4,
+                  py: 2,
+                  borderRadius: 1,
+                  width: { xs: '100%', sm: 'auto' },
+                  minWidth: { sm: 120 }
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+                >
+                  Species
+                </Typography>
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+                >
+                  {totalSpeciesCount}
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: { xs: 'space-between', sm: 'flex-start' },
+                  gap: 4,
+                  backgroundColor: theme.palette.customColors.Background,
+                  px: 4,
+                  py: 2,
+                  borderRadius: 1,
+                  width: { xs: '100%', sm: 'auto' },
+                  minWidth: { sm: 120 }
+                }}
+              >
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+                >
+                  Animals
+                </Typography>
+                <Typography
+                  sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}
+                >
+                  {totalOccupantsCount}
+                </Typography>
+              </Box>
+            </Box>
+            {hasSubEnclosures ? (
+              <FormControlLabel
+                sx={{
+                  m: 0,
+                  mt: { xs: 1, sm: 0 },
+                  width: { xs: '100%', sm: 'auto' },
+                  justifyContent: { xs: 'space-between', sm: 'flex-start' },
+                  alignItems: 'center',
+                  '.MuiFormControlLabel-label': {
+                    mr: { xs: 0, sm: 4 },
+                    fontSize: { xs: '14px', sm: '16px' }
+                  }
+                }}
+                control={
+                  <MUISwitch
+                    variant='ios'
+                    checked={includeSubEnclosures}
+                    onChange={(_: React.ChangeEvent<HTMLInputElement>, checked: boolean) =>
+                      setIncludeSubEnclosures(checked)
+                    }
+                    switchColor={theme.palette.customColors?.OnPrimaryContainer}
+                    inputProps={{
+                      'aria-label': t('housing_module.include_sub_enclosure', {
+                        defaultValue: 'Include sub enclosure'
+                      }) as string
+                    }}
+                  />
+                }
+                labelPlacement='start'
+                label={t('housing_module.include_sub_enclosure', { defaultValue: 'Include sub enclosure' })}
+              />
+            ) : null}
+          </CardContent>
+        </Card>
         <Grid
           sx={{
             '& .MuiDataGrid-cell': {
@@ -443,10 +583,9 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
           }}
         >
           <CommonTable
-
             // onRowClick={handleRowClick}
             indexedRows={indexedRows}
-            total={total}
+            total={totalSpeciesCount}
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{
@@ -455,6 +594,7 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({ drawerType,
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
             loading={isLoading}
             searchValue={filters.search}
             maxHeight='80vh'

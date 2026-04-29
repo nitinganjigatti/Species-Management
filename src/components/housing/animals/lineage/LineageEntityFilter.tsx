@@ -6,6 +6,8 @@ import Icon from 'src/@core/components/icon'
 import SitesDrawer from 'src/components/hospital/inpatient/SitesDrawer'
 import SectionsDrawer from 'src/components/hospital/inpatient/SectionsDrawer'
 import EnclosuresDrawer from 'src/components/hospital/inpatient/EnclosuresDrawer'
+import { useAuth } from 'src/hooks/useAuth'
+import { getSectionsList, getEnclosureList } from 'src/lib/api/diet/dietList'
 
 interface SiteData {
   site_id: number
@@ -39,6 +41,8 @@ interface LineageEntityFilterProps {
 const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelections, setLocalSelections }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
+  const auth = useAuth()
+  const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
   const [openSiteListDrawer, setSiteListDrawer] = useState(false)
   const [openSectionsListDrawer, setOpenSectionsListDrawer] = useState(false)
@@ -312,6 +316,16 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
               list_all_sections: true
             }
           }}
+          //TODO: Add these parameters
+          // showCount={true}
+          // fetchFn={getSectionsList}
+          // fetchParams={{
+          //   zoo_id: zooId,
+          //   site_id: localSelections.Sites[0]?.site_id,
+          //   ignore_sys_gen: 1,
+          //   other: 'include_all',
+          //   module: 'Observation'
+          // }}
         />
       )}
 
@@ -331,6 +345,14 @@ const LineageEntityFilter: React.FC<LineageEntityFilterProps> = ({ localSelectio
               filter_user_enclosure: 0
             }
           }}
+          //TODO: Add these parameters
+          // showCount={true}
+          // fetchFn={getEnclosureList}
+          // fetchParams={{
+          //   section_id: localSelections.Sections[0]?.section_id,
+          //   other: 'include_all',
+          //   module: 'Observation'
+          // }}
         />
       )}
     </Box>

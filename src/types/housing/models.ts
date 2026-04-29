@@ -1115,6 +1115,24 @@ export interface GetClutchListResponse {
   }
 }
 
+export interface GetRecentClutchListParams {
+  mother_id: number | string
+}
+
+export interface RecentClutchItem {
+  id?: number | string
+  clutch_id?: number | string
+  clutch_no?: string
+  start_date?: string
+  created_at?: string
+}
+
+export interface GetRecentClutchListResponse {
+  success?: boolean
+  message?: string
+  data?: RecentClutchItem | RecentClutchItem[]
+}
+
 export interface GetLitterListParams {
   animal_id: number | string
   is_recent?: 0 | 1

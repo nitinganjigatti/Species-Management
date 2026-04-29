@@ -270,27 +270,29 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <ListingHeader title={t('notes')} totalCount={total} />
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, mt: 3, mb: 2 }}>
-          <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
-            {t('housing_module.add_note')}
-          </Button>
-          <Button
-            variant={hasActiveFilters ? 'contained' : 'outlined'}
-            startIcon={<FilterIcon />}
-            onClick={() => setFilterDrawerOpen(true)}
-            sx={{ minWidth: 100 }}
-          >
-            {t('filters')}
-            {hasActiveFilters && (
-              <Chip
-                size='small'
-                label={Object.values(filters).filter(v => v !== null).length}
-                sx={{ ml: 1, height: 20, minWidth: 20 }}
-                color='primary'
-              />
-            )}
-          </Button>
-        </Box>
+        {total > 0 && (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, mt: 3, mb: 2 }}>
+            <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
+              {t('housing_module.add_note')}
+            </Button>
+            <Button
+              variant={hasActiveFilters ? 'contained' : 'outlined'}
+              startIcon={<FilterIcon />}
+              onClick={() => setFilterDrawerOpen(true)}
+              sx={{ minWidth: 100 }}
+            >
+              {t('filters')}
+              {hasActiveFilters && (
+                <Chip
+                  size='small'
+                  label={Object.values(filters).filter(v => v !== null).length}
+                  sx={{ ml: 1, height: 20, minWidth: 20 }}
+                  color='primary'
+                />
+              )}
+            </Button>
+          </Box>
+        )}
       </Box>
 
       <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
