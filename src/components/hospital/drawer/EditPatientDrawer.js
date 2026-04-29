@@ -463,6 +463,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
                 <Autocomplete
                   multiple
                   options={attendingVeterinarians}
+                  disableCloseOnSelect={true}
                   value={field.value || []}
                   loading={staffLoading}
                   clearOnBlur
