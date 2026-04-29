@@ -52,6 +52,7 @@ const mapNecropsyRow = (item: NecropsySpeciesItem, slNo: number) => ({
   morph: item.morph_name ? `M - ${item.morph_name}` : 'M - -',
   cause_of_death: titleCase(item.cause),
   necropsy_id: item.necropsy_id || null,
+  mortality_id: item.mortality_id,
   necropsy_location: item.necropsy_location || '-',
   necropsy_date: formatDate(item.necropsy_date),
   reported_by: item.reported_by || '-',
@@ -190,11 +191,9 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
         handleSortModel={() => {}}
         searchValue=''
         getRowHeight={() => 'auto'}
-        onRowClick={() => {}}
-        onCellClick={(params: any) => {
-          if ((params.field === 'sl_no' || params.field === 'animal_id') && params.row.necropsy_id) {
-            router.push(`/collection/species/${speciesId}/necropsy/${params.row.necropsy_id}`)
-          }
+        onRowClick={(params: any) => {
+          const navId = params.row.necropsy_id || params.row.mortality_id
+          router.push(`/collection/species/${speciesId}/necropsy/${navId}`)
         }}
         externalTableStyle={stickyStyles}
       />
