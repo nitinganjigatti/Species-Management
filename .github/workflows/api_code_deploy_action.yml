@@ -74,10 +74,15 @@ jobs:
         run: |
           cat .env
           npm run build
+      - name: Sanitize Branch Name
+        id: sanitize
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: echo "branch=${REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
       - name: Upload Next.js Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nextjs-build-output-${{ github.ref_name }}
+          name: nextjs-build-output-${{ steps.sanitize.outputs.branch }}
           path: .next
           retention-days: 1
           include-hidden-files: true
