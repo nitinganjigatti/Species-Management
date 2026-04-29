@@ -48,6 +48,7 @@ const ExpiredMedicine = () => {
       const response = await getStoreList({ params: { column: 'type' } })
       if (response?.data?.list_items?.length > 0) {
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
+
         setStores(response?.data?.list_items)
         if (response?.data?.list_items.length > 0) {
         }
@@ -102,7 +103,7 @@ const ExpiredMedicine = () => {
     if (stores?.length === 0) {
       getStoresLists()
     }
-  }, [fetchTableData])
+  }, [fetchTableData, storeId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -325,10 +326,8 @@ const ExpiredMedicine = () => {
                         value={storeId}
                         label='Stores'
                         valueType='id'
-                        onChange={e => {
-                          let id = e
-
-                          setStoreId(id)
+                        onChange={newValue => {
+                          setStoreId(newValue)
                         }}
                         options={stores}
                       />
