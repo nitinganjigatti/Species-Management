@@ -80,7 +80,7 @@ jobs:
         id: sanitize
         env:
           REF_NAME: ${{ github.ref_name }}
-        run: echo "branch=${REF_NAME//\//-}" >> "$GITHUB_OUTPUT"
+        run: echo "branch=$(echo "$REF_NAME" | tr '/' '-')" >> "$GITHUB_OUTPUT"
       - name: Upload Next.js Build Artifact
         uses: actions/upload-artifact@v4
         with:
