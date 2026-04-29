@@ -6,7 +6,7 @@ import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { addClinicalNotes, deleteClinicalNotes, getClinicalNotes } from 'src/lib/api/hospital/clinicalNotesApi'
 import InpatientClinicalNotes from 'src/views/pages/hospital/inpatient/InpatientClinicalNotes'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -20,8 +20,8 @@ const ClinicalNotes = ({ patientData }) => {
   const { id } = router.query
 
   const queryClient = useQueryClient()
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const animal_id = medicalRecordData?.animal_id
 
   // Query parameters for fetching clinical notes

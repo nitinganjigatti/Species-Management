@@ -950,13 +950,20 @@ const ConditionSlider = ({
                                     fullWidth: true,
 
                                     // Keep only helper text in red; don't color label/outline
-                                    error: false,
+                                    error: Boolean(errors?.hatched_date),
                                     helperText: errors?.hatched_date?.message || '',
                                     FormHelperTextProps: {
                                       sx: { color: 'error.main' }
                                     },
                                     InputLabelProps: {
-                                      // sx: { color: 'inherit' }
+                                      sx: theme => {
+                                        return {
+                                          color: theme.palette.text?.secondary,
+                                          '&.Mui-error': { color: theme.palette.text?.secondary },
+                                          '&.Mui-focused': { color: theme.palette.primary.main },
+                                          '&.Mui-error.Mui-focused': { color: theme.palette.primary.main }
+                                        }
+                                      }
                                     }
                                   }
                                 }}
@@ -1074,7 +1081,7 @@ const ConditionSlider = ({
                                 position: 'relative',
                                 backgroundColor: theme.palette.customColors.tableHeaderBg,
                                 borderRadius: '10px',
-                                height: 121,
+                                height: 152,
                                 padding: '10.5px',
                                 boxSizing: 'border-box'
                               }}
@@ -1465,7 +1472,7 @@ const ConditionSlider = ({
                       )}
 
                       <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='enclosure'>Sex Type *</InputLabel>
+                        <InputLabel id='sextype'>Sex Type *</InputLabel>
                         <Controller
                           name='sextype'
                           control={control}
@@ -1478,7 +1485,7 @@ const ConditionSlider = ({
                               onChange={onChange}
                               labelId='sextype'
                               error={Boolean(errors?.sextype)}
-                              ref={getFieldRef('sexingType')}
+                              ref={getFieldRef('sextype')}
                             >
                               {[
                                 { id: 'male', name: 'Male' },
@@ -1566,19 +1573,33 @@ const ConditionSlider = ({
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
                               <DatePicker
                                 sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
-                                value={value}
+                                value={value || null}
                                 onChange={onChange}
                                 label={'Birth Date *'}
                                 maxDate={dayjs()}
                                 format='DD/MM/YYYY'
+                                slotProps={{
+                                  textField: {
+                                    fullWidth: true,
+                                    error: Boolean(errors?.birthDate),
+                                    helperText: errors?.birthDate?.message || '',
+                                    InputLabelProps: {
+                                      sx: theme => {
+                                        return {
+                                          color: theme.palette.text?.secondary,
+                                          '&.Mui-error': { color: theme.palette.text?.secondary },
+                                          '&.Mui-focused': { color: theme.palette.primary.main },
+                                          '&.Mui-error.Mui-focused': { color: theme.palette.primary.main }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }}
                                 ref={getFieldRef('birthDate')}
                               />
                             </LocalizationProvider>
                           )}
                         />
-                        {errors.birthDate && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.birthDate?.message}</FormHelperText>
-                        )}
                       </FormControl>
 
                       <Typography sx={{ textAlign: 'center', fontSize: 20, fontWeight: 500, my: 4 }}>Or</Typography>
@@ -1681,12 +1702,22 @@ const ConditionSlider = ({
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                error={Boolean(errors?.comment)}
+                                error={Boolean(errors?.localIdentifier)}
                                 value={value}
                                 label={`Local Identifier ${watch('localIdentifierType') !== '' ? '*' : ''}`}
                                 name='localIdentifier'
                                 onChange={onChange}
                                 placeholder=''
+                                InputLabelProps={{
+                                  sx: theme => {
+                                    return {
+                                      color: theme.palette.text?.secondary,
+                                      '&.Mui-error': { color: theme.palette.text?.secondary },
+                                      '&.Mui-focused': { color: theme.palette.primary.main },
+                                      '&.Mui-error.Mui-focused': { color: theme.palette.primary.main }
+                                    }
+                                  }
+                                }}
                                 ref={getFieldRef('localIdentifier')}
                               />
                             )}

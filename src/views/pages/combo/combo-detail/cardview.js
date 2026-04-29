@@ -19,9 +19,11 @@ import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDetailval, isActive, setIsActive }) => {
   const router = useRouter()
+  const { t } = useTranslation()
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
 
@@ -172,7 +174,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
           >
             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                Items used
+                {t('diet_module.items_used')}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>

@@ -1,28 +1,27 @@
 /* eslint-disable lines-around-comment */
+// ** React Imports
+import { forwardRef, useState, useEffect, useCallback, useRef, useMemo } from 'react'
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, InputAdornment, alpha } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
-import Autocomplete from '@mui/material/Autocomplete'
 import Router from 'next/router'
+import {
+  Grid,
+  Card,
+  Divider,
+  Typography,
+  Box,
+  CardContent,
+  Button,
+  InputAdornment,
+  alpha,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import { debounce, flatMap } from 'lodash'
@@ -31,12 +30,8 @@ import toast from 'react-hot-toast'
 import { useForm, Controller } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
-
-// ** React Imports
-import { forwardRef, useState, useEffect, useCallback, useRef, useMemo } from 'react'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-
 // import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
@@ -56,6 +51,8 @@ import SingleDatePicker from '../../SingleDatePicker'
 import Utility, { downloadPDF } from 'src/utility'
 import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import PurchaseItemForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 import moment from 'moment'
@@ -66,12 +63,13 @@ import { useDropzone } from 'react-dropzone'
 import Image from 'next/image'
 import UploadIcon from 'public/images/upload_invoice_icon.png'
 import TotalAmountIcon from 'public/images/amount_summary.png'
-import { borderRadius, getValue } from '@mui/system'
 import { getVariantFOrProduct, getVariants } from 'src/lib/api/pharmacy/variant'
 import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
 import { v4 as uuidv4 } from 'uuid'
 import { ExportButton } from 'src/views/utility/render-snippets'
-
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import PurchaseDetailsTable from './PurchaseDetailsTable'
+import { tr } from 'date-fns/locale'
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -80,6 +78,27 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
     marginBottom: theme.spacing(2)
   }
 }))
+
+const CalcRow = ({ label, value, showRupee = true, prefix, valueSx = {} }) => (
+  <CalcWrapper>
+    <Typography variant='body2'>{label}</Typography>
+    <Typography
+      variant='body2'
+      sx={{
+        color: 'text.primary',
+        letterSpacing: '.25px',
+        fontWeight: 600,
+        alignItems: 'center',
+        display: 'flex',
+        ...valueSx
+      }}
+    >
+      {prefix && `${prefix} `}
+      {showRupee && <Icon icon='mdi:rupee' width='15px' height='15px' />}
+      {value}
+    </Typography>
+  </CalcWrapper>
+)
 
 const editParamsInitialState = {
   po_no: '',
@@ -139,7 +158,28 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 })
 
 const defaultValues = {
-  po_date: Utility.formattedPresentDate()
+  po_no: '',
+  po_date: Utility.formattedPresentDate(),
+  store_id: '',
+  supplier_id: '',
+  description: '',
+  type_of_store: '',
+  purchase_details: [],
+  total_amount: 0,
+  discount_type: '',
+  discount_amount: 0,
+  discount_percentage: 0,
+  net_amount: 0,
+  tax_amount: 0,
+  purchase_order_no: '',
+  requested_by: '',
+  invoice_transcript: [],
+  freight_charges: '',
+  freight_gst: '',
+  freight_total_charges: '',
+  additional_charges: '',
+  round_off: '',
+  purchase_created_by: 'manually'
 }
 
 const AddPurchaseForm = () => {
@@ -172,6 +212,14 @@ const AddPurchaseForm = () => {
   const [currentPayload, setCurrentPayload] = useState(null)
 
   const [showFreight, setShowFreight] = useState(false)
+
+  const freightVisibilitySx = {
+    mt: showFreight ? '16px' : 0,
+    height: showFreight ? 'auto' : 0,
+    opacity: showFreight ? 1 : 0,
+    visibility: showFreight ? 'visible' : 'hidden',
+    transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
+  }
 
   const router = useRouter()
   const { id, action, navigatedFrom } = router.query
@@ -344,89 +392,7 @@ const AddPurchaseForm = () => {
     0
   )
 
-  // const calculate_cgst_tax = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_cgst ? row.purchase_cgst : 0),
-  //   0
-  // )
-
-  // const calculate_sgst_tax = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_sgst ? row.purchase_sgst : 0),
-  //   0
-  // )
-
-  // const calculate_lineItem_discount_percentage = editParams.purchase_details?.reduce(
-  //   (acc, row) => acc + parseFloat(row.purchase_discount ? row.purchase_discount : 0),
-  //   0
-  // )
-
-  // function calculateTaxAmount(gst_name, totalAmount) {
-  //   if (!gst_name || !totalAmount) {
-  //     return 0
-  //   }
-
-  //   const gstPercentage = parseFloat(gst_name)
-
-  //   const taxAmount = totalAmount * (gstPercentage / 100)
-
-  //   // return taxAmount.toFixed(2)
-  //   return taxAmount
-  // }
-
-  // const calculateFinalAmount = useCallback(
-  //   discountValue => {
-  //
-  //     let finalAmount = totalLineItemsPurchase
-  //     let netAmountWithGST = totalLineItemsPurchase + calculateTotalTaxAmount
-  //     let netAmount = 0
-  //     setEditParams({
-  //       ...editParams,
-  //       total_amount: totalLineItemsPurchase ? totalLineItemsPurchase : 0,
-  //       net_amount: netAmountWithGST ? netAmountWithGST : 0,
-  //       tax_amount: calculateTotalTaxAmount ? calculateTotalTaxAmount : 0
-  //     })
-  //     if (editParams.discount_type === 'P') {
-  //       netAmount = (netAmountWithGST * discountValue) / 100
-  //       const discountValueAmount = netAmount
-  //       const netValueAfterDiscount = netAmountWithGST - netAmount
-  //       setEditParams({
-  //         ...editParams,
-  //         discount_percentage: discountValue,
-  //         discount_amount: discountValueAmount,
-  //         net_amount: netValueAfterDiscount,
-  //         tax_amount: calculateTotalTaxAmount
-  //       })
-  //     } else if (editParams.discount_type === 'F') {
-  //       const netValueAfterDiscount = netAmountWithGST - discountValue
-  //       setEditParams({
-  //         ...editParams,
-  //         discount_amount: discountValue,
-  //         discount_percentage: 0,
-  //         net_amount: netValueAfterDiscount,
-  //         tax_amount: calculateTotalTaxAmount
-  //       })
-  //     }
-  //   },
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  //   [totalLineItemsPurchase, editParams]
-  // )
-  // useEffect(() => {
-  // calculateFinalAmount(editParams.discount_type === 'P' ? editParams.discount_percentage : editParams.discount_amount)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [totalLineItemsPurchase])
-
   const addItemsToTable = payload => {
-    // const newData = {
-    //   medicine_name: payload.medicine_name,
-    //   purchase_unit_id: payload.purchase_unit_id,
-    //   purchase_qty: payload.purchase_qty,
-    //   purchase_unit_price: payload.purchase_unit_price,
-    //   purchase_purchase_price: payload.purchase_purchase_price,
-    //   purchase_batch_no: payload.purchase_batch_no,
-    //   purchase_expiry_date: payload.purchase_expiry_date,
-    //   purchase_stock_item_id: payload.purchase_stock_item_id,
-    //   purchase_gst_type: payload.purchase_gst_type,
-    //   purchase_tax_amount: payload.purchase_tax_amount
-    // }
     const updatedPayload = { ...payload, uid: uuidv4() } // Add a unique ID to payload
 
     const updatedNestedRows = [...editParams.purchase_details, updatedPayload]
@@ -485,43 +451,7 @@ const AddPurchaseForm = () => {
     return itemErrors
   }
 
-  // const validateItems = values => {
-  //   const errors = {}
-
-  //   if (!values.po_no) {
-  //     errors.po_no = 'This field is required'
-  //   }
-  //   if (!values.store_id) {
-  //     errors.store_id = 'This field is required'
-  //   }
-  //   if (!values.supplier_id) {
-  //     errors.supplier_id = 'This field is required'
-  //   }
-  //   if (!values.po_date) {
-  //     errors.po_date = 'This field is required'
-  //   }
-
-  //   return errors
-  // }
-
   const submitItems = payload => {
-    // const HasErrors =
-    //   payload.medicine_name !== '' &&
-    //   payload.purchase_qty !== '' &&
-    //   !isNaN(parseInt(payload.purchase_qty)) &&
-    //   parseInt(payload.purchase_qty) > 0 &&
-    //   payload.purchase_unit_price !== '' &&
-    //   !isNaN(parseInt(payload.purchase_unit_price)) &&
-    //   parseInt(payload.purchase_unit_price) > 0 &&
-    //   payload.purchase_batch_no !== '' &&
-    //   payload.purchase_expiry_date !== ''
-    // if (HasErrors === false) {
-    //
-    //   setItemErrors(validate(payload))
-
-    //   return
-    // }
-
     if (!medicineItemId) {
       // const isMedicineAlreadyExists = editParams.purchase_details.some(
       //   item =>
@@ -567,31 +497,6 @@ const AddPurchaseForm = () => {
   }
 
   const updateFormItems = payload => {
-    // const HasErrors =
-    //   !nestedRowMedicine.medicine_name ||
-    //   !nestedRowMedicine.purchase_unit_id ||
-    //   !nestedRowMedicine.purchase_qty ||
-    //   !nestedRowMedicine.purchase_unit_price ||
-    //   !nestedRowMedicine.purchase_batch_no ||
-    //   !nestedRowMedicine.purchase_purchase_price ||
-    //   !nestedRowMedicine.purchase_expiry_date
-
-    // const HasErrors =
-    //   nestedRowMedicine.medicine_name !== '' &&
-    //   nestedRowMedicine.purchase_qty !== '' &&
-    //   !isNaN(parseInt(nestedRowMedicine.purchase_qty)) &&
-    //   parseInt(nestedRowMedicine.purchase_qty) > 0 &&
-    //   nestedRowMedicine.purchase_unit_price !== '' &&
-    //   !isNaN(parseInt(nestedRowMedicine.purchase_unit_price)) &&
-    //   parseInt(nestedRowMedicine.purchase_unit_price) > 0 &&
-    //   nestedRowMedicine.purchase_batch_no !== '' &&
-    //   nestedRowMedicine.purchase_expiry_date !== ''
-
-    // if (HasErrors === false) {
-    //   setItemErrors(validate(nestedRowMedicine))
-
-    //   return
-    // }
     if (nestedRowMedicine.control_substance === 'yes') {
       if (nestedRowMedicine.control_substance_file.length === 0) {
         setItemErrors(validate(nestedRowMedicine))
@@ -641,13 +546,13 @@ const AddPurchaseForm = () => {
     //   parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
     postData.net_amount = grandTotalAmount
     // added grand total amount
+
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
         // const response = await updatePurchase(id, postData)
         var payloadData = { ...postData }
-        payloadData.purchase_details = JSON.stringify(payloadData.purchase_details)
-
+        payloadData.purchase_details = JSON.stringify(payloadData?.purchase_details)
         const response = await updatePurchasePrice(id, payloadData)
 
         if (response?.success) {
@@ -742,25 +647,6 @@ const AddPurchaseForm = () => {
         type_of_store: selectedPharmacy.type
       })
     }
-    // const params = {
-    //   q: 'central',
-    //   column: 'type'
-    // }
-    // try {
-    //   const response = await getStoreList({ params })
-    //   if (response?.success && response?.data?.list_items?.length > 0) {
-    //     setStores(response?.data?.list_items)
-    //     if (response?.data?.list_items?.length === 1) {
-    //       setEditParams({
-    //         ...editParams,
-    //         store_id: response?.data?.list_items[0].id,
-    //         type_of_store: response?.data?.list_items[0].type
-    //       })
-    //     }
-    //   }
-    // } catch (error) {
-    //   console.log('store error', error)
-    // }
   }
 
   const getSuppliersLists = async () => {
@@ -814,13 +700,18 @@ const AddPurchaseForm = () => {
       if (response?.success && response?.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
-          purchase_expiry_date: response?.data?.expiry_date,
+          purchase_expiry_date:
+            response?.data?.expiry_date && response?.data?.expiry_date !== '0000-00-00'
+              ? Utility.formatDate(response.data.expiry_date)
+              : null,
           purchase_variant_id: response?.data?.variant_id,
           purchase_variant_ratio: response?.data?.multiplier,
           isVariantIdPresent: response?.data?.variant_id && response?.data?.multiplier ? true : false
         }))
 
-        setProductExpiryDate(response.data.expiry_date)
+        setProductExpiryDate(
+          response?.data?.expiry_date && response?.data?.expiry_date !== '0000-00-00' ? response.data.expiry_date : null
+        )
       } else {
         setNestedRowMedicine(prevState => ({
           ...prevState,
@@ -863,29 +754,24 @@ const AddPurchaseForm = () => {
   )
 
   const getProductVariantByproductId = async productId => {
-    const productVariant = await getVariantFOrProduct(productId)
+    try {
+      const productVariant = await getVariantFOrProduct(productId)
 
-    // if (editParams.purchase_created_by === 'invoice_upload') {
-    //   const data = {
-    //     value: 16,
-    //     label: 1,
-    //     description: '',
-    //     is_default: ''
-    //   }
-    //   setProductVariantOptions([data])
-    // } else {
-    if (productVariant?.success && productVariant?.data?.length > 0) {
-      const data = productVariant?.data?.map(el => {
-        return {
-          value: Number(el?.variant_id),
-          label: el?.unit_multiplier,
-          description: el?.description,
-          is_default: el?.is_default
-          // variantId: el?.variant_id
-        }
-      })
-      // console.log('data', data)
-      setProductVariantOptions(data)
+      if (productVariant?.success && productVariant?.data?.length > 0) {
+        const data = productVariant?.data?.map(el => {
+          return {
+            value: Number(el?.variant_id),
+            label: el?.unit_multiplier,
+            description: el?.description,
+            is_default: el?.is_default
+            // variantId: el?.variant_id
+          }
+        })
+        // console.log('data', data)
+        setProductVariantOptions(data)
+      }
+    } catch (error) {
+      console.log('error', error)
     }
     // }
   }
@@ -903,38 +789,13 @@ const AddPurchaseForm = () => {
             stock_type: el?.stock_type,
             package_details: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer,
-            purchase_expiry_date: el?.stock_type === 'non_medical' ? null : el?.purchase_expiry_date,
+            // purchase_expiry_date: el?.stock_type === 'non_medical' ? null : el?.purchase_expiry_date, // old code in new non-medical items also may have a expiry date
+            purchase_expiry_date:
+              el?.purchase_expiry_date && el?.purchase_expiry_date !== '0000-00-00' ? el?.purchase_expiry_date : null,
             purchase_variant_id: el?.purchase_variant_id,
             purchase_variant_ratio: el?.unit_multiplier,
             purchase_unit_qty: el?.purchase_total_qty ? el?.purchase_total_qty : el?.purchase_qty,
             isVariantIdPresent: el?.purchase_variant_id && el?.unit_multiplier ? true : false
-            // medicine_name: el?.stock_item_name,
-            // stock_type: el?.stock_type,
-            // purchase_batch_no: el?.purchase_batch_no,
-            // purchase_expiry_date: el?.purchase_expiry_date,
-            // purchase_unit_price: el?.purchase_unit_price,
-            // purchase_qty: el?.purchase_qty,
-            // purchase_free_quantity: el?.purchase_free_quantity,
-            // purchase_discount: el?.purchase_discount,
-            // purchase_gst: el?.purchase_gst,
-            // purchase_tax_amount: el?.purchase_tax_amount,
-            // purchase_gross_amount: el?.purchase_gross_amount,
-            // purchase_discount_amount: el?.purchase_discount_amount,
-            // purchase_taxable_amount: el?.purchase_taxable_amount,
-            // purchase_net_amount: el?.purchase_net_amount,
-            // purchase_unit_id: el?.purchase_unit_id
-
-            // medicine_name: el?.stock_item_name,
-            // purchase_unit_id: el?.unit_id,
-            // purchase_stock_item_id: el?.stock_item_id,
-            // // purchase_stock_item_id: el?.stock_item_id,
-            // purchase_qty: el?.purchase_qty,
-            // purchase_unit_price: el?.purchase_unit_price,
-            // purchase_purchase_price: el?.purchase_price,
-            // purchase_batch_no: el?.purchase_batch_no,
-            // purchase_expiry_date: el?.purchase_expiry_date,
-            // purchase_gst_type: el?.gst_type,
-            // purchase_tax_amount: el?.tax_amount
           }
         })
         // console.log('getVariantRatioById', getVariantRatioById('15'))
@@ -1032,8 +893,9 @@ const AddPurchaseForm = () => {
           ? getItems[0]?.purchase_stock_item_id
           : getItems[0]?.purchase_unit_id,
         purchase_batch_no: getItems[0]?.purchase_batch_no,
-        purchase_expiry_date:
-          getItems[0]?.stock_type === 'non_medical' ? null : moment(getItems[0]?.purchase_expiry_date),
+        // purchase_expiry_date:
+        //   getItems[0]?.stock_type === 'non_medical' ? null : moment(getItems[0]?.purchase_expiry_date),
+        purchase_expiry_date: getItems[0]?.purchase_expiry_date ? moment(getItems[0]?.purchase_expiry_date) : null,
         purchase_unit_price: getItems[0]?.purchase_unit_price,
         purchase_qty: getItems[0]?.purchase_qty,
         purchase_free_quantity: getItems[0]?.purchase_free_quantity,
@@ -1091,8 +953,13 @@ const AddPurchaseForm = () => {
           ? getItems[0]?.purchase_stock_item_id
           : getItems[0]?.purchase_unit_id,
         purchase_batch_no: getItems[0]?.purchase_batch_no,
+        // purchase_expiry_date:
+        //   getItems[0]?.stock_type === 'non_medical' ? null : moment(getItems[0]?.purchase_expiry_date),
         purchase_expiry_date:
-          getItems[0]?.stock_type === 'non_medical' ? null : moment(getItems[0]?.purchase_expiry_date),
+          getItems[0]?.purchase_expiry_date && getItems[0]?.purchase_expiry_date !== '0000-00-00'
+            ? moment(getItems[0]?.purchase_expiry_date)
+            : null,
+
         purchase_unit_price: getItems[0]?.purchase_unit_price,
         purchase_qty: getItems[0]?.purchase_qty,
         purchase_free_quantity: getItems[0]?.purchase_free_quantity,
@@ -1130,52 +997,6 @@ const AddPurchaseForm = () => {
   }, [id, action])
 
   // ****** edit section //////
-  // data posting section
-
-  // const postItemsData = async () => {
-  //   if (editParams.discount_type !== '') {
-  //     if (editParams.discount_amount === '' || editParams.discount_percentage === '') {
-  //       setValidateDiscount('Please enter discount value')
-
-  //       return
-  //     }
-  //   }
-  //   setSubmitLoader(true)
-
-  //   const postData = editParams
-  //   postData.total_amount = totalLineItemsPurchase + calculateTotalTaxAmount
-
-  //   if (id) {
-  //     postData.antz_pharmacy_purchase_id = id
-  //     const response = await updatePurchase(id, postData)
-
-  //     if (response?.success) {
-  //       toast.success(response.message)
-  //       setSubmitLoader(false)
-  //       getListOfItemsById(id)
-  //       Router.push('/pharmacy/purchase/')
-  //     } else {
-  //       setSubmitLoader(false)
-  //       toast.error(response.message)
-  //     }
-  //   } else {
-  //     const response = await addPurchase(postData)
-  //     if (response?.success) {
-  //       toast.success(response.message)
-  //       setEditParams(editParamsInitialState)
-  //       setSubmitLoader(false)
-  //       Router.push('/pharmacy/purchase/')
-  //     } else {
-  //       setSubmitLoader(false)
-  //       if (response.data?.po_no) {
-  //         toast.error('Purchase number already exist ')
-  //       }
-  //       if (response?.message) {
-  //         toast.error(response.message)
-  //       }
-  //     }
-  //   }
-  // }
 
   // validatePurchaseProducts
 
@@ -1235,9 +1056,6 @@ const AddPurchaseForm = () => {
 
   // total Freight Charges
 
-  // console.log('additionalCharges', additionalCharges)
-  // console.log('totalFreightCharges', totalFreightCharges)
-
   // Function to calculate total freight charges including GST
   const calculateFreightChargesWithGst = (freightCharges, gstPercent) => {
     const numericFreight = parseFloat(freightCharges) || 0
@@ -1245,15 +1063,6 @@ const AddPurchaseForm = () => {
 
     return numericFreight + (numericFreight * numericGst) / 100
   }
-
-  // Watch values and update total charges
-  // useEffect(() => {
-  //   debugger
-  //   const freightCharges = getValues('freight_charges')
-  //   const gstPercent = getValues('freight_gst')
-  //   const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
-  //   setTotalFreightCharges(total)
-  // }, [control])
 
   // round off value
 
@@ -1307,30 +1116,6 @@ const AddPurchaseForm = () => {
     fileInputRef?.current?.click()
   }
 
-  // const handleInputImageChange = event => {
-  //   const { files } = event.target
-  //   if (files && files.length !== 0) {
-  //     const newFileSrc = []
-  //     const newFileArr = []
-
-  //     for (let i = 0; i < files.length; i++) {
-  //       const currentFile = files[i]
-
-  //       // Generate object URL for the new file
-  //       newFileSrc.push(URL.createObjectURL(currentFile))
-  //       newFileArr.push(currentFile)
-  //     }
-
-  //     // Append the new files to the existing state
-  //     setFileSrc(prev => [...prev, ...newFileSrc])
-  //     setFileArr(prev => [...prev, ...newFileArr])
-
-  //     // Update file display and set form values
-  //     setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
-  //     setValue('invoice_transcript', prev => [...prev, ...newFileSrc]) // Append new files to the form value
-  //     clearErrors('invoice_transcript')
-  //   }
-  // }
   const handleInputImageChange = eventOrFiles => {
     // this function is modified to use in invoice upload form
     let files = []
@@ -1369,7 +1154,7 @@ const AddPurchaseForm = () => {
     }
   }
 
-  // delete api fun.
+  // delete api function.
 
   const deleteInvoiceById = async (id, deleteId) => {
     const params = { transcript_id: deleteId }
@@ -1442,18 +1227,6 @@ const AddPurchaseForm = () => {
     }
   }, [inputValue, grandTotalAmount])
 
-  // const handleInputChange = e => {
-  //   const value = e.target.value
-  //   setInputValue(value)
-
-  //   // Validate the input value against grandTotalAmount
-  //   if (parseFloat(value) !== grandTotalAmount) {
-  //     setIsError(true)
-  //   } else {
-  //     setIsError(false)
-  //   }
-  // }
-
   useEffect(() => {
     getStoresLists()
     getSuppliersLists()
@@ -1513,422 +1286,379 @@ const AddPurchaseForm = () => {
   }
 
   return (
-    <Card>
-      <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Grid item size={{ xs: 12, sm: 5 }}>
-          <CardHeader
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              width: '100%'
-            }}
-            avatar={
-              <Icon
-                style={{ cursor: 'pointer' }}
-                onClick={() => {
-                  if (navigatedFrom === 'stockReport') {
-                    Router.push('/pharmacy/stocks/stocksReport/')
-                  } else {
-                    Router.back()
-                  }
+    <PageCardLayout
+      showIcon={true}
+      onIconClick={() => {
+        if (navigatedFrom === 'stockReport') {
+          Router.push('/pharmacy/stocks/stocksReport/')
+        } else {
+          Router.back()
+        }
+      }}
+      title={id ? 'Edit Inventory ' : 'Add Inventory'}
+      titleStyles={{
+        fontSize: '20px'
+      }}
+      action={
+        <Grid container spacing={{ xs: 3, sm: 0 }}>
+          {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+            <Grid size={{ xs: 12, sm: 'auto' }}>
+              <AddButton
+                title='Process Invoice'
+                action={() => {
+                  resetFelids()
+                  setInvoiceUploadDialog(true)
                 }}
-                icon='ep:back'
+                styles={{
+                  margin: 0,
+                  width: '100%'
+                }}
               />
-            }
-            title={id ? 'Edit Inventory ' : 'Add Inventory'}
-          />
-        </Grid>
-        <Grid
-          item
-          size={{ xs: 12, sm: 6 }}
-          sx={{
-            display: 'flex',
-            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'row' },
-            justifyContent: { xs: 'space-between', md: 'flex-end', xl: 'flex-end', sm: 'flex-end' },
-            alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'start' },
-            columnGap: 2,
-            mx: { xs: 2, lg: 5, md: 5, xl: 5, sm: 5 },
-            mb: { xs: 2, lg: 0, md: 0, xl: 0, sm: 0 },
-            mr: 2,
-            rowGap: { xs: 3, lg: 0, md: 0, xl: 0, sm: 0 }
-          }}
-        >
-          {/* {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
-            <AddButton
-              title='Process Invoice'
-              action={() => {
-                resetFelids()
-                setInvoiceUploadDialog(true)
-              }}
-            />
-          )} */}
+            </Grid>
+          )}
+
           {authData?.userData?.roles?.settings?.add_pharmacy && (
             <>
-              <AddButton
-                title='Add Supplier'
-                action={() => {
-                  setSupplierDialog(true)
-                }}
-              />
-              {id && (
-                <ExportButton
-                  tooltip='Download  Invoice'
-                  loading={invoicePrintLoader}
-                  onClick={() => printInventory(id)}
+              <Grid size={{ xs: 12, sm: 'auto' }} sx={{ ml: { xs: 0, sm: 3 } }}>
+                <AddButton
+                  title='Add Supplier'
+                  action={() => {
+                    setSupplierDialog(true)
+                  }}
+                  styles={{
+                    margin: 0,
+                    width: '100%'
+                  }}
                 />
-              )}
+              </Grid>
+              <Grid>
+                {id && (
+                  <ExportButton
+                    tooltip='Download  Invoice'
+                    loading={invoicePrintLoader}
+                    onClick={() => printInventory(id)}
+                    sx={{ ml: 3 }}
+                  />
+                )}
+              </Grid>
             </>
           )}
         </Grid>
-      </Grid>
+      }
+    >
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-        <CardContent>
-          <Divider sx={{ mb: '16px', mt: -2 }} />
-          <Typography sx={{ fontSize: '16px', fontWeight: 500, mb: '16px' }}>Supplier Details</Typography>
-          <Grid container spacing={5}>
-            {/* <Grid item xs={12} sm={6}> */}
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
-                <Controller
-                  name='supplier_id'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      // name='supplier_id'
-                      // value={value}
-                      // onChange={(e, val) => {
-                      //   onChange(e.target.value)
-                      // }}
-                      label='Supplier*'
-                      // disabled={!!id}
-                      error={Boolean(errors.supplier_id)}
-                    >
-                      {suppliers?.map(item => (
-                        <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
-                          {item.company_name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='po_date'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { onChange, value } }) => (
-                    <SingleDatePicker
-                      name='Purchase Date*'
-                      fullWidth
-                      maxDate={new Date()}
-                      date={value ? parseFormattedDate(value) : null}
-                      width={'100%'}
-                      onChangeHandler={date => {
-                        let formatted = formatDate(date)
-                        onChange(formatted)
-                      }}
-                      customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
-                      isClearable={false}
-                    />
-                  )}
-                />
-                {errors.po_date && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {errors.po_date.message}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='po_no'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='po_no'
-                      disabled={id ? true : false}
-                      error={Boolean(errors.po_no)}
-                      label='Purchase Invoice Number*'
-                    />
-                  )}
-                />
-                {errors.po_no && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    {errors.po_no.message}
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            {/* <Grid item size={{xs: 12, sm: 6}}>
-              <FormControl fullWidth>
-                <InputLabel error={Boolean(errors.supplier_id)}>Byy*</InputLabel>
-                <Controller
-                  name='supplier_id'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      // name='supplier_id'
-                      // value={value}
-                      // onChange={(e, val) => {
-                      //   onChange(e.target.value)
-                      // }}
-                      label='Supplier*'
-                      // disabled={!!id}
-                      error={Boolean(errors.supplier_id)}
-                    >
-                      {suppliers?.map(item => (
-                        <MenuItem key={item.id} disabled={item.status === 'inactive'} value={item.id}>
-                          {item.company_name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
-              </FormControl>
-            </Grid> */}
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='purchase_order_no'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='purchase_order_no'
-                      // disabled={id ? true : false}
-                      error={Boolean(errors.purchase_order_no)}
-                      label='Purchase order number'
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='requested_by'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='requested_by'
-                      // disabled={id ? true : false}
-                      error={Boolean(errors.requested_by)}
-                      label='Requested by'
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-
-            {/* Upload Docs */}
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <Box sx={{ display: 'flex', gap: '12px' }}>
-                <Box sx={{ width: '100%' }}>
-                  <input
-                    type='file'
-                    accept='.png,.jpg,.jpeg,.pdf'
-                    onChange={e => handleInputImageChange(e)}
-                    style={{ display: 'none' }}
-                    name='invoice_transcript'
-                    ref={fileInputRef}
-                    multiple={true}
+        <Divider sx={{ mb: '16px', mt: -2 }} />
+        <Typography sx={{ fontSize: '16px', fontWeight: 500, mb: '16px' }}>Supplier Details</Typography>
+        <Grid container spacing={5}>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <ControlledSelect
+              control={control}
+              name='supplier_id'
+              errors={errors}
+              label='Supplier*'
+              options={suppliers}
+              getOptionLabel={option => option.company_name}
+              getOptionValue={option => option.id}
+            />
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='po_date'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, value } }) => (
+                  <SingleDatePicker
+                    name='Purchase Date*'
+                    fullWidth
+                    maxDate={new Date()}
+                    date={value ? parseFormattedDate(value) : null}
+                    width={'100%'}
+                    onChangeHandler={date => {
+                      console.log('date', date)
+                      let formatted = formatDate(date)
+                      console.log('formatted date', formatted)
+                      onChange(formatted)
+                    }}
+                    customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
+                    isClearable={false}
                   />
+                )}
+              />
+              {errors.po_date && (
+                <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                  {errors.po_date.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <ControlledTextField
+              name='po_no'
+              label='Purchase Invoice Number*'
+              control={control}
+              errors={errors}
+              disabled={id ? true : false}
+            />
+          </Grid>
 
-                  <Box
-                    {...getRootProps({ className: 'dropzone' })}
-                    onClick={handleAddImageClick}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      height: 56,
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <ControlledTextField
+              name='purchase_order_no'
+              label='Purchase order number'
+              control={control}
+              errors={errors}
+            />
+          </Grid>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <ControlledTextField name='requested_by' label='Requested by' control={control} errors={errors} />
+          </Grid>
 
-                      border: `1px dashed `,
-                      borderColor: theme?.palette?.primary?.dark,
-                      borderRadius: 1,
+          {/* Upload Docs */}
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <Box sx={{ display: 'flex', gap: '12px' }}>
+              <Box sx={{ width: '100%' }}>
+                <input
+                  type='file'
+                  accept='.png,.jpg,.jpeg,.pdf'
+                  onChange={e => handleInputImageChange(e)}
+                  style={{ display: 'none' }}
+                  name='invoice_transcript'
+                  ref={fileInputRef}
+                  multiple={true}
+                />
 
-                      padding: '10px'
-                    }}
-                  >
-                    <Image alt={'filename'} src={UploadIcon} width={24} height={24} />
+                <Box
+                  {...getRootProps({ className: 'dropzone' })}
+                  onClick={handleAddImageClick}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    height: 56,
+                    border: `1px dashed `,
+                    borderColor: theme?.palette?.primary?.dark,
+                    borderRadius: 1,
+                    padding: '10px'
+                  }}
+                >
+                  <Image alt={'filename'} src={UploadIcon} width={24} height={24} />
 
-                    <Typography sx={{ color: theme?.palette?.primary?.dark, fontSize: '16px', fontWeight: 500 }}>
-                      Upload invoice
-                    </Typography>
-                  </Box>
+                  <Typography sx={{ color: theme?.palette?.primary?.dark, fontSize: '16px', fontWeight: 500 }}>
+                    Upload invoice
+                  </Typography>
                 </Box>
-                {fileArr?.length > 0 ? (
-                  <Box
-                    onClick={() => setOpenDocsDrawer(true)}
-                    sx={{
-                      bgcolor: theme.palette.customColors.displaybgPrimary,
-                      p: 1,
-                      width: '65px',
-
-                      borderRadius: '8px',
-                      alignItems: 'center',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      position: 'relative'
-                    }}
-                  >
-                    {fileArr?.length == 1 ? (
-                      <>
-                        {/* <Box
-                          size='small'
-                          onClick={e => removeSelectedImage(e, 0)}
-                          sx={{
-                            position: 'absolute',
-                            top: -1,
-                            right: -1,
-                            zIndex: 1
-
-                            // borderColor: '#7A8684'
-                          }}
-                        >
-                          <Icon icon='solar:close-square-bold' width='20px' height='20px' color={'#7A8684'} />
-                        </Box> */}
-                        <Box sx={{ width: '38px', height: '38px', mt: 1 }}>
-                          <img
-                            src={defaultIcon?.document?.image_path ? defaultIcon?.document?.image_path : null}
-                            alt={'Docs ICon'}
-                            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                          />
-                        </Box>
-                      </>
-                    ) : (
-                      <Box
-                        sx={{
-                          px: fileArr?.length >= 10 ? 2 : 2.6,
-                          py: 1,
-                          borderRadius: '50%',
-                          bgcolor: theme.palette.customColors.OnPrimarycontainer10
-                        }}
-                      >
-                        <Typography sx={{ color: theme.palette.primary.main }}> {fileArr?.length}</Typography>
-                      </Box>
-                    )}
-                  </Box>
-                ) : null}
               </Box>
+              {fileArr?.length > 0 ? (
+                <Box
+                  onClick={() => setOpenDocsDrawer(true)}
+                  sx={{
+                    bgcolor: theme.palette.customColors.displaybgPrimary,
+                    p: 1,
+                    width: '65px',
 
-              {/* <Grid item md={12} sm={12} xs={12}>
-                  {fileSrc && fileSrc.length > 0 && (
-                    <Box sx={{ display: 'flex', mt: 2 }}>
-                      {fileSrc.map((src, index) => (
-                        <Box
-                          key={index}
-                          sx={{
-                            position: 'relative',
-                            backgroundColor: theme.palette.customColors.tableHeaderBg,
-                            borderRadius: '10px',
-                            height: 121,
-                            padding: '10.5px',
-                            boxSizing: 'border-box',
-                            marginRight: '10px' // Add margin for spacing between images
-                          }}
-                        >
-                          <img
-                            style={{
-                              aspectRatio: 2 / 2,
-                              height: '100%',
-                              borderRadius: '5%',
-                              objectFit: 'cover'
-                            }}
-                            alt={`Uploaded image ${index}`}
-                            src={typeof src === 'string' ? src : src}
-                          />
-                          <Box
-                            sx={{
-                              cursor: 'pointer',
-                              position: 'absolute',
-                              top: 0,
-                              right: 0,
-                              zIndex: 1,
-                              height: '24px',
-                              borderRadius: 0.4,
-                              backgroundColor: theme.palette.customColors.secondaryBg
-                            }}
-                          >
-                            <Icon
-                              icon='material-symbols-light:close'
-                              color='#fff'
-                              onClick={() => removeSelectedImage(index)} // Pass the index here
-                            />
-                          </Box>
-                        </Box>
-                      ))}
+                    borderRadius: '8px',
+                    alignItems: 'center',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    position: 'relative'
+                  }}
+                >
+                  {fileArr?.length == 1 ? (
+                    <>
+                      <Box sx={{ width: '38px', height: '38px', mt: 1 }}>
+                        <img
+                          src={defaultIcon?.document?.image_path ? defaultIcon?.document?.image_path : null}
+                          alt={'Docs ICon'}
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        />
+                      </Box>
+                    </>
+                  ) : (
+                    <Box
+                      sx={{
+                        px: fileArr?.length >= 10 ? 2 : 2.6,
+                        py: 1,
+                        borderRadius: '50%',
+                        bgcolor: theme.palette.customColors.OnPrimarycontainer10
+                      }}
+                    >
+                      <Typography sx={{ color: theme.palette.primary.main }}> {fileArr?.length}</Typography>
                     </Box>
                   )}
-                </Grid> */}
-            </Grid>
+                </Box>
+              ) : null}
+            </Box>
           </Grid>
-          {/* Freight Charge */}
+        </Grid>
+        {/* Freight Charge */}
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', mt: '16px' }}>
-            <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>Freight Charges</Typography>
-            {showFreight ? (
-              <Icon
-                icon='fluent:subtract-circle-48-regular'
-                width='20px'
-                height='20px'
-                // margineTop={-2}
-                color={theme.palette.customColors.addPrimary}
-                onClick={() => setShowFreight(false)}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px', mt: '16px' }}>
+          <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>Freight Charges</Typography>
+          {showFreight ? (
+            <Icon
+              icon='fluent:subtract-circle-48-regular'
+              width='20px'
+              height='20px'
+              // margineTop={-2}
+              color={theme.palette.customColors.addPrimary}
+              onClick={() => setShowFreight(false)}
+            />
+          ) : (
+            <Icon
+              icon='lets-icons:add-ring'
+              width='20px'
+              height='20px'
+              color={theme.palette.primary.main}
+              onClick={() => setShowFreight(true)}
+            />
+          )}
+        </Box>
+        <Grid container spacing={5}>
+          {/* Freight Charges Input */}
+
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }} sx={freightVisibilitySx}>
+            <ControlledTextField
+              name='freight_charges'
+              label='Freight Charges'
+              control={control}
+              errors={errors}
+              onChangeOverride={e => {
+                const freightCharges = e.target.value
+                const gstPercent = getValues('freight_gst')
+                const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
+                setTotalFreightCharges(total)
+              }}
+            />
+          </Grid>
+
+          {/* GST Input */}
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }} sx={freightVisibilitySx}>
+            <ControlledTextField
+              name='freight_gst'
+              label='GST %'
+              control={control}
+              errors={errors}
+              onChangeOverride={e => {
+                const gstPercent = e.target.value
+                const freightCharges = getValues('freight_charges')
+                const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
+                setTotalFreightCharges(total)
+              }}
+            />
+          </Grid>
+
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }} sx={freightVisibilitySx}>
+            <Box
+              sx={{
+                bgcolor: theme.palette.neutral05,
+                p: '16px',
+                bgcolor: theme.palette.customColors.neutral05,
+                borderRadius: '8px'
+              }}
+            >
+              <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
+                Total fright charge - {totalFreightCharges?.toFixed(2)}
+              </Typography>
+            </Box>
+          </Grid>
+
+          <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
+            <Divider />
+          </Grid>
+
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Controller
+                name='additional_charges'
+                control={control}
+                rules={{ required: true }}
+                defaultValue=''
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    type='text'
+                    name='additional_charges'
+                    // disabled={id ? true : false}
+                    // error={Boolean(errors.additional_charges)}
+                    label='Additional Charges'
+                    onChange={e => {
+                      const value = e.target.value
+
+                      // Check if the value is numeric
+                      if (/^\d*\.?\d*$/.test(value)) {
+                        field.onChange(e) // Update form state with react-hook-form
+                        setAdditionalCharges(value) // Update local state with numeric value
+                      }
+                    }}
+                  />
+                )}
               />
-            ) : (
-              <Icon
-                icon='lets-icons:add-ring'
-                width='20px'
-                height='20px'
-                color={theme.palette.primary.main}
-                onClick={() => setShowFreight(true)}
-              />
-            )}
-          </Box>
-          <Grid container spacing={5}>
-            {/* Freight Charges Input */}
+            </FormControl>
+          </Grid>
 
-            <Grid
-              item
-              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
-              sx={{
-                mt: showFreight ? '16px' : 0,
-                height: showFreight ? 'auto' : 0,
-                opacity: showFreight ? 1 : 0,
-                visibility: showFreight ? 'visible' : 'hidden',
-                transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
-              }}
-            >
-              <FormControl fullWidth>
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <FormControl fullWidth>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {/* Dropdown for "+" or "-" */}
+                <FormControl size='small' sx={{ width: '70px', height: '56px' }}>
+                  <Select
+                    labelId='roundup_select'
+                    value={roundup_select}
+                    sx={{
+                      width: '100%',
+                      height: '56px',
+                      borderTopRightRadius: 0,
+                      borderBottomRightRadius: 0,
+                      bgcolor: theme.palette.customColors.neutral05,
+                      color: theme.palette.customColors.OnPrimaryContainer, // Text value color
+                      '& .MuiSelect-icon': {
+                        color: theme.palette.customColors.OnPrimaryContainer // Dropdown icon color
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderRight: '0' // Default: no right border
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderRight: '1px solid', // Show right border on hover
+                        borderColor: theme.palette.primary.main // Color of the border
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderRight: '2px solid', // Show right border on focus
+                        borderColor: theme.palette.primary.main // Color of the border when focused
+                      }
+                    }}
+                    onChange={handleRoundupChange}
+                  >
+                    <MenuItem value='+'>
+                      <Typography
+                        sx={{
+                          fontSize: '24px',
+                          // fontWeight: 500,
+                          mt: -1,
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }}
+                      >
+                        +
+                      </Typography>
+                    </MenuItem>
+                    <MenuItem value='-'>
+                      <Typography
+                        sx={{
+                          fontSize: '24px',
+                          // fontWeight: 500,
+                          mt: -1,
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }}
+                      >
+                        -
+                      </Typography>
+                    </MenuItem>
+                  </Select>
+                </FormControl>
+
+                {/* TextField for Roundup Value */}
                 <Controller
-                  name='freight_charges'
+                  name='round_off'
                   control={control}
                   rules={{ required: true }}
                   defaultValue=''
@@ -1936,266 +1666,56 @@ const AddPurchaseForm = () => {
                     <TextField
                       {...field}
                       type='text'
-                      name='freight_charges'
-                      // disabled={id ? true : false}
-                      label='Freight Charges'
-                      onChange={e => {
-                        field.onChange(e) // Update form state
-                        const freightCharges = e.target.value
-                        const gstPercent = getValues('freight_gst')
-                        const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
-                        setTotalFreightCharges(total)
-                      }}
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-
-            {/* GST Input */}
-            <Grid
-              item
-              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
-              sx={{
-                mt: showFreight ? '16px' : 0,
-                height: showFreight ? 'auto' : 0,
-                opacity: showFreight ? 1 : 0,
-                visibility: showFreight ? 'visible' : 'hidden',
-                transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
-              }}
-            >
-              <FormControl fullWidth>
-                <Controller
-                  name='freight_gst'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='freight_gst'
-                      // disabled={id ? true : false}
-                      label='GST %'
-                      onChange={e => {
-                        field.onChange(e) // Update form state
-                        const gstPercent = e.target.value
-                        const freightCharges = getValues('freight_charges')
-                        const total = calculateFreightChargesWithGst(freightCharges, gstPercent)
-                        setTotalFreightCharges(total)
-                      }}
-                    />
-                  )}
-                />
-              </FormControl>
-            </Grid>
-
-            <Grid
-              item
-              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
-              sx={{
-                mt: showFreight ? '16px' : 0,
-                height: showFreight ? 'auto' : 0,
-                opacity: showFreight ? 1 : 0,
-                visibility: showFreight ? 'visible' : 'hidden',
-                transition: 'height 0.3s ease, opacity 0.3s ease, visibility 0.3s ease'
-              }}
-            >
-              <Box
-                sx={{
-                  bgcolor: theme.palette.neutral05,
-                  p: '16px',
-                  bgcolor: theme.palette.customColors.neutral05,
-                  borderRadius: '8px'
-                }}
-              >
-                <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
-                  Total fright charge - {totalFreightCharges?.toFixed(2)}
-                </Typography>
-              </Box>
-            </Grid>
-
-            <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
-              <Divider />
-            </Grid>
-
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='additional_charges'
-                  control={control}
-                  rules={{ required: true }}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='text'
-                      name='additional_charges'
-                      // disabled={id ? true : false}
-                      // error={Boolean(errors.additional_charges)}
-                      label='Additional Charges'
+                      name='round_off'
+                      label='Roundup Value'
+                      fullWidth
                       onChange={e => {
                         const value = e.target.value
 
                         // Check if the value is numeric
                         if (/^\d*\.?\d*$/.test(value)) {
                           field.onChange(e) // Update form state with react-hook-form
-                          setAdditionalCharges(value) // Update local state with numeric value
+                          setRoundUpValue(e.target.value) // Update local state with numeric value
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          sx: {
+                            borderTopLeftRadius: 0,
+                            borderBottomLeftRadius: 0
+                          }
                         }
                       }}
                     />
                   )}
                 />
-              </FormControl>
-            </Grid>
-
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  {/* Dropdown for "+" or "-" */}
-                  <FormControl size='small' sx={{ width: '70px', height: '56px' }}>
-                    <Select
-                      labelId='roundup_select'
-                      value={roundup_select}
-                      sx={{
-                        width: '100%',
-                        height: '56px',
-                        borderTopRightRadius: 0,
-                        borderBottomRightRadius: 0,
-                        bgcolor: theme.palette.customColors.neutral05,
-                        color: theme.palette.customColors.OnPrimaryContainer, // Text value color
-                        '& .MuiSelect-icon': {
-                          color: theme.palette.customColors.OnPrimaryContainer // Dropdown icon color
-                        },
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderRight: '0' // Default: no right border
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderRight: '1px solid', // Show right border on hover
-                          borderColor: theme.palette.primary.main // Color of the border
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderRight: '2px solid', // Show right border on focus
-                          borderColor: theme.palette.primary.main // Color of the border when focused
-                        }
-                      }}
-                      onChange={handleRoundupChange}
-                    >
-                      <MenuItem value='+'>
-                        <Typography
-                          sx={{
-                            fontSize: '24px',
-                            // fontWeight: 500,
-                            mt: -1,
-                            color: theme.palette.customColors.OnPrimaryContainer
-                          }}
-                        >
-                          +
-                        </Typography>
-                      </MenuItem>
-                      <MenuItem value='-'>
-                        <Typography
-                          sx={{
-                            fontSize: '24px',
-                            // fontWeight: 500,
-                            mt: -1,
-                            color: theme.palette.customColors.OnPrimaryContainer
-                          }}
-                        >
-                          -
-                        </Typography>
-                      </MenuItem>
-                    </Select>
-                  </FormControl>
-
-                  {/* TextField for Roundup Value */}
-                  <Controller
-                    name='round_off'
-                    control={control}
-                    rules={{ required: true }}
-                    defaultValue=''
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        type='text'
-                        name='round_off'
-                        label='Roundup Value'
-                        fullWidth
-                        onChange={e => {
-                          const value = e.target.value
-
-                          // Check if the value is numeric
-                          if (/^\d*\.?\d*$/.test(value)) {
-                            field.onChange(e) // Update form state with react-hook-form
-                            setRoundUpValue(e.target.value) // Update local state with numeric value
-                          }
-                        }}
-                        slotProps={{
-                          input: {
-                            sx: {
-                              borderTopLeftRadius: 0,
-                              borderBottomLeftRadius: 0
-                            }
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-              </FormControl>
-            </Grid>
-
-            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
-              <FormControl fullWidth>
-                <Controller
-                  name='description'
-                  control={control}
-                  defaultValue=''
-                  rules={{ required: true }}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label='Comment'
-                      // onChange={e => {
-                      //   setEditParams({
-                      //     ...editParams,
-                      //     description: e.target.value
-                      //   })
-                      //   setErrors({})
-                      // }}
-                    />
-                  )}
-                />
-                {errors.description && (
-                  <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                    This field is required
-                  </FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
+              </Box>
+            </FormControl>
           </Grid>
-        </CardContent>
-        <Divider sx={{ mx: '20px' }} />
-        <CardContent>
-          <Grid container>
-            <Grid
-              item
-              size={{ xs: 12, sm: 12 }}
-              sx={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                alignItems: 'center'
+
+          <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
+            <ControlledTextField name='description' label='Comment' control={control} errors={errors} />
+          </Grid>
+        </Grid>
+        <Divider
+          sx={{
+            my: '20px'
+          }}
+        />
+        <Grid container sx={{ display: 'flex', py: 5, justifyContent: 'flex-end' }}>
+          <Grid item size={{ xs: 12, sm: 'auto' }}>
+            <AddButton
+              title='Add Inventory Item'
+              action={() => {
+                handlePurchaseSubmit()
               }}
-            >
-              <AddButton
-                title='Add Inventory Item'
-                action={() => {
-                  handlePurchaseSubmit()
-                }}
-              />
-            </Grid>
+              styles={{
+                margin: 0,
+                width: '100%'
+              }}
+            />
           </Grid>
-        </CardContent>
+        </Grid>
 
         {editParams.purchase_created_by === 'invoice_upload' && (
           <Typography sx={{ color: 'error.main', mx: 6, mb: 2 }}>
@@ -2204,185 +1724,27 @@ const AddPurchaseForm = () => {
         )}
         <Box
           sx={{
-            mx: '20px',
+            // mx: '20px',
             borderRadius: '8px',
             border: '1px solid',
             borderColor: theme?.palette?.customColors?.lightBg
           }}
         >
-          <TableContainer sx={{ borderRadius: '8px' }}>
-            <Table
-              stickyHeader
-              sx={{
-                minWidth: 650,
-                overflowX: 'scroll',
-                '& .MuiTableHead-root': {
-                  '& th:first-of-type': {
-                    borderTopLeftRadius: '8px' // Top-left corner for the first column
-                  },
-                  '& th:last-of-type': {
-                    borderTopRightRadius: '8px' // Top-right corner for the last column
-                  }
-                },
-                '& .MuiTableCell-root': {
-                  borderBottom: 'none' // Remove cell borders for a clean look
-                }
-              }}
-              aria-label='simple table'
-            >
-              <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
-                <TableRow>
-                  <TableCell rowSpan={2} sx={{ minWidth: 20 }}>
-                    SL.No
-                  </TableCell>
-                  <TableCell rowSpan={2} sx={{ minWidth: 300 }}>
-                    Product Name
-                  </TableCell>
-                  <TableCell rowSpan={2} sx={{ textAlign: 'center' }}>
-                    Batch
-                  </TableCell>
-                  <TableCell rowSpan={2} sx={{ minWidth: 130, textAlign: 'center' }}>
-                    Expiry Date
-                  </TableCell>
-                  <TableCell rowSpan={2} align='right'>
-                    Quantity
-                  </TableCell>
-                  <TableCell rowSpan={2} align='right'>
-                    Rate
-                  </TableCell>
-                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130 }}>
-                    Discount in %
-                  </TableCell>
-                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130 }}>
-                    Net Amount
-                  </TableCell>
-                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130, whiteSpace: 'nowrap' }}>
-                    Gross Amount
-                  </TableCell>
-
-                  <TableCell colSpan={2} align='center'>
-                    CGST
-                  </TableCell>
-                  <TableCell colSpan={2} align='center'>
-                    SGST
-                  </TableCell>
-                  <TableCell colSpan={2} align='center'>
-                    IGST
-                  </TableCell>
-                  <TableCell rowSpan={2} align='right'>
-                    Action
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      borderTopLeftRadius: '0px !important'
-                    }}
-                    align='center'
-                  >
-                    Rate
-                  </TableCell>
-                  <TableCell align='center'>Amount</TableCell>
-                  <TableCell align='center'>Rate</TableCell>
-                  <TableCell align='center'>Amount</TableCell>
-                  <TableCell align='center'>Rate</TableCell>
-                  <TableCell
-                    sx={{
-                      borderTopRightRadius: '0px !important'
-                    }}
-                    align='center'
-                  >
-                    Amount
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {editParams?.purchase_details
-                  ? editParams?.purchase_details.map((el, index) => {
-                      return (
-                        <TableRow key={`${index}${el?.medicine_name}`} sx={{ overflowX: 'scroll' }}>
-                          <TableCell>
-                            <Typography variant='body2'>{index + 1}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography
-                              sx={{ color: (!el?.purchase_stock_item_id || !el?.medicine_name) && 'error.main' }}
-                            >
-                              {el?.medicine_name}
-                            </Typography>
-                            <Typography variant='body2'>{el?.package_details}</Typography>
-                            <Typography variant='body2'>{el?.manufacture}</Typography>
-                          </TableCell>
-                          <TableCell>{el?.purchase_batch_no}</TableCell>
-                          <TableCell>
-                            {el?.stock_type === 'non_medical'
-                              ? 'NA'
-                              : Utility.formatDisplayDate(el?.purchase_expiry_date)}
-                          </TableCell>
-                          <TableCell align='right'>{el?.purchase_qty}</TableCell>
-                          <TableCell align='right'>
-                            {Utility.formatAmountToReadableDigit(el?.purchase_unit_price)}
-                          </TableCell>
-                          <TableCell align='right'>{el?.purchase_discount}%</TableCell>
-                          <TableCell align='right'>
-                            {Utility.formatAmountToReadableDigit(el?.purchase_net_amount)}
-                          </TableCell>
-                          <TableCell align='right'>
-                            {Utility.formatAmountToReadableDigit(el?.purchase_gross_amount)}
-                          </TableCell>
-
-                          <TableCell align='center'>{el?.purchase_cgst}%</TableCell>
-                          <TableCell align='center'>
-                            {Utility.formatAmountToReadableDigit(el?.purchase_cgst_amount)}
-                          </TableCell>
-
-                          <TableCell align='center'>{el?.purchase_sgst}%</TableCell>
-                          <TableCell align='center'>
-                            {Utility.formatAmountToReadableDigit(el?.purchase_sgst_amount)}
-                          </TableCell>
-
-                          <TableCell align='center'>{el?.purchase_igst}%</TableCell>
-                          <TableCell align='center'>
-                            {Utility.formatAmountToReadableDigit(el?.purchase_igst_amount)}
-                          </TableCell>
-                          <TableCell align='center'>
-                            <Box sx={{ display: 'flex' }}>
-                              <IconButton
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                                aria-label='Edit'
-                                onClick={() => {
-                                  // setMedicineItemId(el.purchase_unit_id || el?.uid)
-                                  setMedicineItemId(el?.uid)
-                                  // editTableData(el?.purchase_unit_id, index, el?.purchase_batch_no, el?.medicine_name)
-                                  editTableData(el?.uid, index, el?.purchase_batch_no, el?.medicine_name)
-                                  showDialog()
-                                }}
-                              >
-                                <Icon icon='mdi:pencil-outline' />
-                              </IconButton>
-
-                              {id && el.id ? null : (
-                                <IconButton
-                                  onClick={() => {
-                                    // removeItemsFroTable(el.purchase_unit_id)
-                                    removeItemsFroTable(el?.uid)
-                                  }}
-                                  size='small'
-                                  sx={{ mr: 0.5 }}
-                                >
-                                  <Icon icon='mdi:delete-outline' />
-                                </IconButton>
-                              )}
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  : null}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <PurchaseDetailsTable
+            purchaseDetails={editParams?.purchase_details}
+            isEditMode={!!id}
+            onEdit={(el, index) => {
+              // setMedicineItemId(el.purchase_unit_id || el?.uid)
+              setMedicineItemId(el?.uid)
+              // editTableData(el?.purchase_unit_id, index, el?.purchase_batch_no, el?.medicine_name)
+              editTableData(el?.uid, index, el?.purchase_batch_no, el?.medicine_name)
+              showDialog()
+            }}
+            onDelete={uid => {
+              // removeItemsFroTable(el.purchase_unit_id)
+              removeItemsFroTable(uid)
+            }}
+          />
         </Box>
         <Grid item size={{ xs: 6 }}>
           {/* {totalQty ? ( */}
@@ -2398,118 +1760,6 @@ const AddPurchaseForm = () => {
                 mr: { sm: 12, xs: 0 }
               }}
             >
-              {/* <Card>
-                <CardContent sx={{ pt: 8 }}>
-                  <CalcWrapper>
-                    <Typography variant='body2'>Total Amount :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsAmount ? totalLineItemsAmount?.toFixed(2) : 0.0}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                  <CalcWrapper>
-                    <Typography variant='body2'>Discount :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsDiscount?.toFixed(2)}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                  <CalcWrapper>
-                    <Typography variant='body2'>CGST :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_cgst_tax_amount?.toFixed(2)}
-                    </Typography>
-                  </CalcWrapper>
-                  <CalcWrapper>
-                    <Typography variant='body2'>SGST :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_sgst_tax_amount?.toFixed(2)}
-                    </Typography>
-                  </CalcWrapper>
-                  <CalcWrapper>
-                    <Typography variant='body2'>IGST :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {calculate_igst_tax_amount?.toFixed(2)}
-                    </Typography>
-                  </CalcWrapper>
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-
-                  {/* <CalcWrapper>
-                  <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
-                    <Grid item size={{xs: 12, sm: 6}}>
-                      <FormControl fullWidth>
-                        <InputLabel>Discount</InputLabel>
-                        <Select
-                          label='Discount'
-                          value={editParams.discount_type}
-                          onChange={event => {
-                            setEditParams({ ...editParams, discount_type: event.target.value, discount_amount: '' })
-                            setErrors({})
-                          }}
-                        >
-                          <MenuItem value='P'>%</MenuItem>
-                          <MenuItem value='F'>₹</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item size={{xs: 12, sm: 6}}>
-                      <FormControl fullWidth>
-                        <TextField
-                          type='text'
-                          value={
-                            editParams.discount_type === 'P'
-                              ? editParams.discount_percentage
-                              : editParams.discount_amount
-                          }
-                          label='Discount'
-                          onChange={event => {
-                            const val = event.target.value
-
-                            calculateFinalAmount(val)
-                            setErrors({})
-                            setValidateDiscount('')
-                          }}
-                        />
-                      </FormControl>
-                      {validateDiscount && (
-                        <FormHelperText sx={{ color: 'error.main', mx: 2 }} id='validation-basic-first-name'>
-                          This is required
-                        </FormHelperText>
-                      )}
-                    </Grid>
-                  </Grid>
-                </CalcWrapper>
-                <Divider
-                  sx={{ mt: theme => `${theme.spacing(3)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-                />
-                  <CalcWrapper>
-                    <Typography variant='body2'>Grand Total :</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalLineItemsPurchase?.toFixed(2)}
-                    </Typography>
-                  </CalcWrapper>
-
-                  {/* <Divider
-                  sx={{ mt: theme => `${theme.spacing(5)} !important`, mb: theme => `${theme.spacing(3)} !important` }}
-                />
-                </CardContent>
-              </Card> */}
-
               <Card sx={{ padding: '20px', m: '20px' }}>
                 <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                   <Image src={TotalAmountIcon} alt='Icon' style={{ width: 18, height: 18 }} />
@@ -2537,147 +1787,45 @@ const AddPurchaseForm = () => {
                       gap: '1px'
                     }}
                   >
-                    <CalcWrapper>
-                      <Typography variant='body2'>Total Amount :</Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.primary',
-                          letterSpacing: '.25px',
-                          fontWeight: 600,
-                          alignItems: 'center',
-                          display: ' flex'
-                        }}
-                      >
-                        <Icon icon='mdi:rupee' width='15px' height='15px' />
-                        {totalLineItemsAmount ? totalLineItemsAmount?.toFixed(2) : 0.0}
-                      </Typography>
-                    </CalcWrapper>
+                    <CalcRow
+                      label='Total Amount :'
+                      value={totalLineItemsAmount ? totalLineItemsAmount?.toFixed(2) : 0.0}
+                    />
                     <Divider sx={{ mb: 1.5 }} />
 
-                    <CalcWrapper>
-                      <Typography variant='body2'>Total Fright Charges :</Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.primary',
-                          letterSpacing: '.25px',
-                          fontWeight: 600,
-                          alignItems: 'center',
-                          display: ' flex'
-                        }}
-                      >
-                        <Icon icon='mdi:rupee' width='15px' height='15px' />
-                        {totalFreightCharges ? totalFreightCharges?.toFixed(2) : 0.0}
-                      </Typography>
-                    </CalcWrapper>
-                    <CalcWrapper>
-                      <Typography variant='body2'>Additional Charges :</Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.primary',
-                          letterSpacing: '.25px',
-                          fontWeight: 600,
-                          alignItems: 'center',
-                          display: ' flex'
-                        }}
-                      >
-                        <Icon icon='mdi:rupee' width='15px' height='15px' />
-                        {additionalCharges ? Number(additionalCharges).toFixed(2) : 0.0}
-                      </Typography>
-                    </CalcWrapper>
+                    <CalcRow
+                      label='Total Fright Charges :'
+                      value={totalFreightCharges ? totalFreightCharges?.toFixed(2) : 0.0}
+                    />
+                    <CalcRow
+                      label='Additional Charges :'
+                      value={additionalCharges ? Number(additionalCharges).toFixed(2) : 0.0}
+                    />
                     <Divider sx={{ mb: 1.5 }} />
-                    <CalcWrapper>
-                      <Typography variant='body2'>CGST :</Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.primary',
-                          letterSpacing: '.25px',
-                          fontWeight: 600,
-                          alignItems: 'center',
-                          display: ' flex'
-                        }}
-                      >
-                        <Icon icon='mdi:rupee' width='15px' height='15px' />
-                        {calculate_cgst_tax_amount?.toFixed(2)}
-                      </Typography>
-                    </CalcWrapper>
-                    <CalcWrapper>
-                      <Typography variant='body2'>SGST :</Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.primary',
-                          letterSpacing: '.25px',
-                          fontWeight: 600,
-                          alignItems: 'center',
-                          display: ' flex'
-                        }}
-                      >
-                        <Icon icon='mdi:rupee' width='15px' height='15px' />
-                        {calculate_sgst_tax_amount?.toFixed(2)}
-                      </Typography>
-                    </CalcWrapper>
-                    <CalcWrapper>
-                      <Typography variant='body2'>IGST :</Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.primary',
-                          letterSpacing: '.25px',
-                          fontWeight: 600,
-                          alignItems: 'center',
-                          display: ' flex'
-                        }}
-                      >
-                        <Icon icon='mdi:rupee' width='15px' height='15px' />
-                        {calculate_igst_tax_amount?.toFixed(2)}
-                      </Typography>
-                    </CalcWrapper>
+                    <CalcRow label='CGST :' value={calculate_cgst_tax_amount?.toFixed(2)} />
+                    <CalcRow label='SGST :' value={calculate_sgst_tax_amount?.toFixed(2)} />
+                    <CalcRow label='IGST :' value={calculate_igst_tax_amount?.toFixed(2)} />
                     <Divider sx={{ mb: 1.5 }} />
 
-                    <CalcWrapper>
-                      <Typography variant='body2'>Discount :</Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: theme?.palette?.customColors?.customDropdownColor,
-                          letterSpacing: '.25px',
-                          fontWeight: 600
-                        }}
-                      >
-                        - {totalLineItemsDiscount?.toFixed(2)}
-                      </Typography>
-                    </CalcWrapper>
-                    <CalcWrapper>
-                      <Typography variant='body2'>Roundup Value :</Typography>
-
-                      {roundup_select === '+' ? (
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: theme?.palette?.primary?.main,
-                            letterSpacing: '.25px',
-                            fontWeight: 600
-                          }}
-                        >
-                          + {Number(roundUpValue)?.toFixed(2)}
-                        </Typography>
-                      ) : (
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: theme?.palette?.customColors?.customDropdownColor,
-                            letterSpacing: '.25px',
-                            fontWeight: 600
-                          }}
-                        >
-                          - {Number(roundUpValue)?.toFixed(2)}
-                        </Typography>
-                      )}
-                    </CalcWrapper>
+                    <CalcRow
+                      label='Discount :'
+                      value={totalLineItemsDiscount?.toFixed(2)}
+                      showRupee={false}
+                      prefix='-'
+                      valueSx={{ color: theme?.palette?.customColors?.customDropdownColor }}
+                    />
+                    <CalcRow
+                      label='Roundup Value :'
+                      value={Number(roundUpValue)?.toFixed(2)}
+                      showRupee={false}
+                      prefix={roundup_select === '+' ? '+' : '-'}
+                      valueSx={{
+                        color:
+                          roundup_select === '+'
+                            ? theme?.palette?.primary?.main
+                            : theme?.palette?.customColors?.customDropdownColor
+                      }}
+                    />
                   </Box>
                   <Box
                     sx={{
@@ -2715,43 +1863,6 @@ const AddPurchaseForm = () => {
                         {showAmount && grandTotalAmount?.toFixed(2)}
                       </Typography>
                       {/* {/* Input Box with Icon */}
-
-                      {/* <TextField
-                        variant='outlined'
-                        fullWidth
-                        size='small'
-                        placeholder='Enter value'
-                        value={inputValue}
-                        onChange={e => setInputValue(e.target.value)}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            bgcolor: 'white',
-                            borderRadius: '4px',
-                            '& fieldset': {
-                              borderColor: isError ? 'red' : 'grey.300'
-                            },
-                            '&:hover fieldset': {
-                              borderColor: isError ? 'red' : 'grey.500'
-                            },
-                            '&.Mui-focused fieldset': {
-                              borderColor: isError ? 'red' : 'primary.main'
-                            }
-                          }
-                        }}
-                        inputProps={{
-                          style: { textAlign: 'right' } // Aligns text and placeholder to the right
-                        }}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <IconButton edge='start'>
-                                <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
-                              </IconButton>
-                            </InputAdornment>
-                          )
-                        }}
-                        error={isError} // Highlights the field in red if there's an error
-                      /> */}
                     </CalcWrapper>
                     <CalcWrapper>
                       <Typography
@@ -2766,17 +1877,7 @@ const AddPurchaseForm = () => {
                       >
                         Invoice Total :
                       </Typography>
-                      {/* <Typography
-                        variant='body2'
-                        sx={{
-                          color: theme?.palette?.customColors?.OnSurfaceVariant,
-                          letterSpacing: '.25px',
-                          fontWeight: 600
-                        }}
-                      >
-                        // {/* {totalLineItemsPurchase?.toFixed(2)}
-                        {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
-                      </Typography> */}
+
                       {/* Input Box with Icon */}
 
                       <TextField
@@ -2847,7 +1948,12 @@ const AddPurchaseForm = () => {
         </Grid>
 
         <Grid item size={{ xs: 12 }}>
-          <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+          <Box
+            sx={{
+              float: 'right',
+              my: 4
+            }}
+          >
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
               disabled={
@@ -2962,7 +2068,7 @@ const AddPurchaseForm = () => {
           setInvoiceUploadDialog(true)
         }}
       />
-    </Card>
+    </PageCardLayout>
   )
 }
 

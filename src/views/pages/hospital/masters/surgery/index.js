@@ -10,6 +10,7 @@ import Icon from 'src/@core/components/icon'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
+import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
 
 const schema = yup.object().shape({
   surgery_name: yup.string().trim().required('Surgery name is required'),
@@ -149,20 +150,22 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
               borderRadius='8px'
               inputBackgroundColor={theme.palette.background.paper}
             />
-
-            <ControlledTextArea
-              control={control}
-              name='description'
-              placeholder='Enter description'
-              rows={1}
-              errors={errors}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: '8px',
-                  backgroundColor: theme.palette.background.paper
-                }
-              }}
-            />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Description</Typography>
+              <ControlledTextArea
+                control={control}
+                name='description'
+                placeholder='Enter description'
+                rows={3}
+                errors={errors}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: '8px',
+                    backgroundColor: theme.palette.background.paper
+                  }
+                }}
+              />
+            </Box>
 
             <Box
               sx={{
@@ -217,19 +220,11 @@ const AddEditSurgeryDrawer = ({ open, onClose, onSubmit, loading = false, initia
                 >
                   {statusValue ? 'Active' : 'Inactive'}
                 </Typography>
-
-                <Controller
+                <ControlledSwitch
                   name='status'
                   control={control}
-                  render={({ field }) => (
-                    <MUISwitch
-                      {...field}
-                      checked={Boolean(field.value)}
-                      onChange={event => field.onChange(event.target.checked)}
-                      switchColor={theme.palette.primary.main}
-                      size='medium'
-                    />
-                  )}
+                  switchColor={theme.palette.primary.main}
+                  size='medium'
                 />
               </Box>
             </Box>

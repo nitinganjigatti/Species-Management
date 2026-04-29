@@ -1,0 +1,264 @@
+================================================================================
+COMPREHENSIVE API DOCUMENTATION EXTRACTION - COMPLETE
+================================================================================
+
+PROJECT: Antz Web Dashboard
+MODULES: Necropsy & Medical Records
+DATE: March 17, 2024
+
+================================================================================
+DELIVERABLES CREATED
+================================================================================
+
+1. API_PARAMETERS_DOCUMENTATION.md (28 KB)
+   - Complete reference for all 41 API endpoints
+   - Full parameter specifications with types and requirements
+   - Response structures for each endpoint
+   - Usage examples and code snippets
+   - Common patterns and best practices
+
+2. API_QUICK_REFERENCE.md (6.3 KB)
+   - Quick lookup guide for developers
+   - Organized by functional area
+   - Condensed format for quick reference
+   - Common headers and patterns
+   - Status values and content types
+
+================================================================================
+ANALYSIS SUMMARY
+================================================================================
+
+NECROPSY MODULE
+===============
+Total Endpoints: 31
+GET Endpoints: 17
+POST Endpoints: 14
+
+Key Features Documented:
+- Necropsy list management (animal-wise & species-wise)
+- Necropsy creation, editing, deletion
+- Transfer operations and checklists
+- Template management
+- Timeline and reporting
+- Master data (manner of death, measurements, etc.)
+- Necropsy center administration
+
+MEDICAL RECORDS MODULE
+=====================
+Total Endpoints: 10
+GET Endpoints: 10
+
+Key Features Documented:
+- Medical records retrieval by animal
+- Medical statistics and reporting
+- Lab requests and test data
+- Clinical assessments and diagnosis
+- Medical journal logs
+- Assessment data management
+
+================================================================================
+API INFRASTRUCTURE DETAILS
+================================================================================
+
+HTTP Methods Used:
+- GET (with query parameters)
+- POST with application/json (for JSON payloads)
+- POST with multipart/form-data (for file uploads)
+- DELETE (with query parameters)
+
+Authentication:
+- Bearer token-based authentication
+- Zoo ID-based multi-tenancy
+- Timezone awareness for all requests
+- Pharmacy-specific store selection
+
+Base URL: 
+- ${process.env.NEXT_PUBLIC_API_BASE_URL}
+- ${process.env.NEXT_PUBLIC_ML_OPERATIONS_BASE_URL}
+
+================================================================================
+PARAMETER PATTERNS IDENTIFIED
+================================================================================
+
+Pagination:
+- page_no (1-indexed, not 0-indexed)
+- limit (default: 50)
+- Response includes total_count
+
+Date Handling:
+- Format: YYYY-MM-DD (ISO format)
+- Fields: from_date, to_date, til_date (endpoint dependent)
+- Conversion helper: formatDate(dateValue) => string
+
+Filtering:
+- Search: q (full-text search)
+- Status: specific enum values (INCOMING, PENDING, DRAFT, COMPLETED)
+- Multi-select: JSON stringified arrays
+- Type filters: 'animals' vs 'species'
+
+Form Data (Multipart):
+- Nested array indexing: organs[0][organ_id]
+- Multiple file append: attachments
+- Organ details with images
+
+Response Structures:
+- Pattern 1: {success: true, data: {result: [], total_count: number}}
+- Pattern 2: {success: true, data: {list: []}}
+- Pattern 3: {success: true, data: []}}
+- Error Pattern: {success: false, message: string}
+
+================================================================================
+KEY DISCOVERIES
+================================================================================
+
+1. FILTER CONSTRUCTION
+   - Multi-select filters are JSON stringified
+   - Example: JSON.stringify(['Male', 'Female'])
+   - Single values passed as strings directly
+
+2. DATE FIELDS INCONSISTENCY
+   - Animal-wise list uses: from_date, to_date
+   - Species-wise list uses: from_date, til_date
+   - Medical endpoints use: from_date, to_date
+   - Always use YYYY-MM-DD format
+
+3. PAGINATION MISMATCH
+   - API: 1-indexed pages (page_no starts at 1)
+   - MUI DataGrid: 0-indexed (starts at 0)
+   - Conversion required: apiPage = gridPage + 1
+
+4. FILE UPLOAD PATTERN
+   - Uses multipart/form-data
+   - Array items indexed: organs[0], organs[1], etc.
+   - Sub-properties: organs[0][organ_id], organs[0][findings]
+   - Multiple files: append each to FormData
+
+5. MASTERS DATA
+   - Static options retrieved on-demand
+   - Manner of Death, Carcass Disposition, Units
+   - Response structure: Array<{id, string_id, name, label, value}>
+
+6. CENTER MANAGEMENT
+   - Status parameter determines operation: 'add', 'update', 'active', 'inactive'
+   - Path: /v1/entity/types/{status}/{necropsyId}
+   - necropsyId only required for 'update' status
+
+================================================================================
+CODE LOCATIONS ANALYZED
+================================================================================
+
+API Implementation:
+- /src/lib/api/necropsy/index.ts (31 functions)
+- /src/lib/api/medical/records.ts (2 functions)
+- /src/lib/api/necropsy/medicalHistory.ts (10 functions)
+- /src/lib/api/utility/index.js (HTTP client utilities)
+
+Type Definitions:
+- /src/types/necropsy/api.ts (comprehensive types)
+- /src/types/medical/api.ts (medical types)
+
+Constants:
+- /src/constants/ApiConstant.js (1100+ lines)
+- /src/constants/medical-module/medicalApiConstants.ts
+
+Redux Integration:
+- /src/store/slices/necropsy/necropsySlice.ts
+
+Hooks:
+- /src/hooks/necropsy/useNecropsyList.ts
+- /src/hooks/necropsy/useNecropsyCenter.ts
+
+Components with API Usage:
+- /src/components/necropsy/NecropsyFilterDrawer.tsx
+- /src/components/necropsy/AddnecropsyCenterDrawer.tsx
+- /src/components/medical/medicalRecords/MedicalRecord.tsx
+
+================================================================================
+USAGE RECOMMENDATIONS
+================================================================================
+
+1. For Quick Lookups:
+   Use API_QUICK_REFERENCE.md - organized by functional area
+
+2. For Detailed Implementation:
+   Use API_PARAMETERS_DOCUMENTATION.md - with full examples
+
+3. Key Pattern to Remember:
+   - Always format dates as YYYY-MM-DD
+   - Page indexing: API uses 1, frontend uses 0 (add 1 to convert)
+   - Multi-select filters: Always stringify arrays
+   - File uploads: Use FormData with nested indexing
+
+4. When Adding New Endpoints:
+   - Follow existing parameter naming conventions
+   - Add to constants file
+   - Create TypeScript interfaces
+   - Document in both markdown files
+   - Update Redux slices if needed
+
+================================================================================
+FILES INCLUDED
+================================================================================
+
+1. API_PARAMETERS_DOCUMENTATION.md
+   Location: /Users/naseer/Documents/Naseer/Antz Projects/antz_web_dashboard/
+   Size: 28 KB
+   Content: 41 endpoint specifications with full details
+
+2. API_QUICK_REFERENCE.md
+   Location: /Users/naseer/Documents/Naseer/Antz Projects/antz_web_dashboard/
+   Size: 6.3 KB
+   Content: Quick lookup organized by feature
+
+================================================================================
+EXTRACTION METHODOLOGY
+================================================================================
+
+1. Located all API files:
+   - grep searches for API implementation
+   - Identified 41 distinct endpoints
+
+2. Analyzed type definitions:
+   - Extracted parameter interfaces
+   - Documented response types
+   - Identified required vs optional fields
+
+3. Traced usage patterns:
+   - Examined Redux slices
+   - Reviewed component implementations
+   - Identified common patterns
+
+4. Consolidated documentation:
+   - Organized by module and functionality
+   - Created examples from actual code
+   - Documented discovered patterns
+
+5. Created quick reference:
+   - Condensed format for developers
+   - Organized by feature area
+   - Included practical examples
+
+================================================================================
+NOTES FOR MAINTENANCE
+================================================================================
+
+1. When API changes:
+   - Update type definitions first
+   - Update API function signatures
+   - Update both markdown files
+   - Test endpoint with examples
+
+2. New endpoints should:
+   - Follow naming conventions
+   - Include proper TypeScript types
+   - Be documented in both files
+   - Include usage examples
+
+3. Breaking changes:
+   - Note in documentation
+   - Update migration guide
+   - Highlight in quick reference
+
+================================================================================
+END OF SUMMARY
+================================================================================

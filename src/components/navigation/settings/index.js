@@ -9,7 +9,21 @@ const composeSettingsNavigation = ({ userRole } = {}) => {
     icon: 'mdi:qrcode'
   }
 
-  const settingsNavigation = [settingsTitle, requestEnclosureQRCode]
+  const departments = {
+    title: 'Departments',
+    path: '/settings/departments',
+    icon: 'mdi:domain'
+  }
+
+  const settingsNavigation = [settingsTitle, requestEnclosureQRCode, departments]
+
+  if (userRole === 'Super Admin') {
+    settingsNavigation.push({
+      title: 'Zoo Settings',
+      path: '/zoo-configuration/settings',
+      icon: 'mdi:cog'
+    })
+  }
 
   if (userRole === 'Super Admin') {
     settingsNavigation.push({

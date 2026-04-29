@@ -8,6 +8,8 @@ import { Controller, useForm } from 'react-hook-form'
 
 import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import Utility from 'src/utility'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 
 const EditTreatmentDrawer = ({
   open,
@@ -25,21 +27,35 @@ const EditTreatmentDrawer = ({
   isSubmitting = false,
   formatTimestamp,
   formatShortDate,
-  admissionDate
+  admissionDate,
+  dischargedDate
 }) => {
   const theme = useTheme()
+
+  const resolvedStartDate = dayjs.isDayjs(formData.startDate)
+    ? formData.startDate
+    : dayjs(Utility.convertUTCToLocal(formData.startDate))
+  const safeStartDate = resolvedStartDate.isValid() ? resolvedStartDate : dayjs(formData.startDate || undefined)
 
   const { control, reset } = useForm({
     defaultValues: {
       editNotes: formData.notes || '',
-      startDate: formData.startDate ? dayjs(formData.startDate) : dayjs()
+      startDate: safeStartDate
     }
   })
 
   useEffect(() => {
+    const updatedResolvedStartDate = dayjs.isDayjs(formData.startDate)
+      ? formData.startDate
+      : dayjs(Utility.convertUTCToLocal(formData.startDate))
+
+    const updatedSafeStartDate = updatedResolvedStartDate.isValid()
+      ? updatedResolvedStartDate
+      : dayjs(formData.startDate || undefined)
+
     reset({
       editNotes: formData.notes || '',
-      startDate: formData.startDate ? dayjs(formData.startDate) : dayjs()
+      startDate: updatedSafeStartDate
     })
   }, [formData.notes, formData.startDate, reset, open])
 
@@ -65,7 +81,11 @@ const EditTreatmentDrawer = ({
 
   const activeActivity = activityList.find(a => a.id === formData.activeActivityId)
   const originalStartDate = activeActivity ? activeActivity.treatment_start_date_time : null
-  const dateHasChanged = originalStartDate ? !dayjs(originalStartDate).isSame(dayjs(formData.startDate), 'day') : false
+
+  const dateHasChanged = originalStartDate
+    ? !dayjs(Utility.convertUTCToLocal(originalStartDate)).isSame(dayjs(formData.startDate), 'day')
+    : false
+
   const trimmedNotes = (formData.notes || '').trim()
   const isUpdateDisabled = isSubmitting || (!trimmedNotes && !dateHasChanged)
   const isAddDisabled = isAdding || isSubmitting || !trimmedNotes
@@ -156,10 +176,10 @@ const EditTreatmentDrawer = ({
                 >
                   Treatment Start Date
                 </Typography>
-                <Controller
+                {/* <Controller
                   name='startDate'
                   control={control}
-                  defaultValue={formData.startDate ? dayjs(formData.startDate) : dayjs()}
+                  defaultValue={safeStartDate}
                   render={({ field }) => (
                     <MUIDatePicker
                       value={field.value}
@@ -170,7 +190,7 @@ const EditTreatmentDrawer = ({
                       label=''
                       format='DD MMM YYYY'
                       minDate={admissionDate}
-                      maxDate={dayjs()}
+                      maxDate={dischargedDate || dayjs()}
                       sx={{
                         ...commonFieldStyles,
                         '& .MuiOutlinedInput-root': {
@@ -185,26 +205,49 @@ const EditTreatmentDrawer = ({
                       }}
                     />
                   )}
-                />
+                /> */}
+                <ControlledDatePicker
+                  required
+                  control={control}
+                  name={'startDate'}
+                  minDate={admissionDate}
+                  maxDate={dischargedDate || dayjs()}
+                  onChangeOverride={value => onChange('startDate', value)}
+                  sx={{
+                    ...commonFieldStyles,
+                    '& .MuiOutlinedInput-root': {
+                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      height: '56px'
+                    },
+                    '& .MuiInputBase-input': {
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }
+                  }}
+                  />
               </Box>
 
-              <ControlledTextArea
-                name='editNotes'
-                control={control}
-                errors={{}}
-                disabled={isSubmitting || isAdding}
-                rows={4}
-                placeholder='Add notes'
-                onChangeOverride={event => onChange('notes', event?.target?.value || '')}
-                inputBackgroundColor={theme.palette.primary.contrastText}
-                sx={{
-                  ...commonFieldStyles,
-                  '& .MuiOutlinedInput-root': {
-                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
-                    minHeight: '120px'
-                  }
-                }}
-              />
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>Notes</Typography>
+                <ControlledTextArea
+                  name='editNotes'
+                  control={control}
+                  errors={{}}
+                  disabled={isSubmitting || isAdding}
+                  rows={4}
+                  placeholder='Add notes'
+                  onChangeOverride={event => onChange('notes', event?.target?.value || '')}
+                  inputBackgroundColor={theme.palette.primary.contrastText}
+                  sx={{
+                    ...commonFieldStyles,
+                    '& .MuiOutlinedInput-root': {
+                      ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      minHeight: '120px'
+                    }
+                  }}
+                />
+              </Box>
             </Box>
           </Box>
 
@@ -295,7 +338,8 @@ const EditTreatmentDrawer = ({
                             sx={{
                               color: theme.palette.customColors.OnSurfaceVariant,
                               fontWeight: 400,
-                              fontSize: '14px'
+                              fontSize: '14px',
+                              whiteSpace: 'pre-wrap'
                             }}
                           >
                             {activity.note}
@@ -399,7 +443,8 @@ const EditTreatmentDrawer = ({
                           sx={{
                             color: theme.palette.customColors.OnSurfaceVariant,
                             fontWeight: 400,
-                            fontSize: '14px'
+                            fontSize: '14px',
+                            whiteSpace: 'pre-wrap'
                           }}
                         >
                           {activity.note}

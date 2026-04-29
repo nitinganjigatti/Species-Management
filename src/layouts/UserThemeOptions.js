@@ -6,14 +6,14 @@
 import { borderBottom, borderBottomColor, borderColor } from '@mui/system'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 import { useState, useEffect, useCallback } from 'react'
 
 const UserThemeOptions = () => {
   // ** To use mode (light/dark/semi-dark), skin(default/bordered), direction(ltr/rtl), etc. for conditional styles, uncomment below line
   const { settings } = useSettings()
   const { selectedPharmacy } = usePharmacyContext()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   // ** To use mode (light/dark/semi-dark), skin(default/bordered), direction(ltr/rtl), etc. for conditional styles, uncomment below line
   const { mode, skin } = settings

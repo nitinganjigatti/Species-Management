@@ -4,6 +4,7 @@ import { Box, Typography, IconButton, Grid, Button } from '@mui/material'
 import { alpha, styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
+import { useSelector } from 'react-redux'
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import HorizontalDateNav from 'src/views/utility/HorizontalDateNav'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
@@ -15,6 +16,7 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import ActionButtonsWithSelection from '../ActionButtonsWithSelection'
 import AdministerOrSkipModal from 'src/views/pages/hospital/prescription-monitoring/AdministerOrSkipModal'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
 
 // Utility functions
 const getLabelForHour = hour => {
@@ -287,6 +289,9 @@ const PrescriptionMonitoringGrid = ({
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData['medical_record_data'] || {}
+  const animalId = medicalRecordData?.animal_id
 
   const scrollContainerRef = useRef(null)
   const hourRefs = useRef({})
@@ -297,6 +302,7 @@ const PrescriptionMonitoringGrid = ({
   const [isAdministerOrSkipPopupOpen, setIsAdministerOrSkipPopupOpen] = useState(false)
   const [isAdministerOrSkipPopupLoading, setIsAdministerOrSkipPopupLoading] = useState(false)
   const [isAdminstrationLoading, setIsAdminstrationLoading] = useState(false)
+  const [prescriptionSheetOpen, setPrescriptionSheetOpen] = useState(false)
   // const [selectedMedicine, setSelectedMedicine] = useState(null)
 
   useEffect(() => {
@@ -709,6 +715,21 @@ const PrescriptionMonitoringGrid = ({
         pathname: `/hospital/outpatient/${id}/schedule-prescription`,
         query: queryParams
       })
+    } else if (category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${id}/schedule-prescription`,
+        query: queryParams
+      })
+    } else if (category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${id}/schedule-prescription`,
+        query: queryParams
+      })
+    } else if (category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${id}/schedule-prescription`,
+        query: queryParams
+      })
     } else {
       router.push({
         pathname: `/hospital/inpatient/${id}/schedule-prescription`,
@@ -777,8 +798,9 @@ const PrescriptionMonitoringGrid = ({
 
   return (
     <>
-      <Grid container spacing={4} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
-        <Grid item size={isDischared || displayMetrics?.length === 0 ? { xs: 12 } : { xs: 8, sm: 9, lg: 9.5 }}>
+      <Grid container spacing={2} sx={{ alignItems: 'center', my: 4 }}>
+        {/* Date Nav - flex: 1 */}
+        <Grid item size={displayMetrics?.length === 0 ? { xs: 12 } : { xs: 8, sm: 9, lg: 9.5 }}>
           <HorizontalDateNav
             isLoading={isLoading}
             onDateSelect={handleDateChange}
@@ -786,7 +808,9 @@ const PrescriptionMonitoringGrid = ({
             dates={dates}
           />
         </Grid>
-        {!isDischared && displayMetrics?.length > 0 ? (
+
+        {/* Add Prescription Button */}
+        {displayMetrics?.length > 0 ? (
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
             <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
               ADD PRESCRIPTION
@@ -797,7 +821,7 @@ const PrescriptionMonitoringGrid = ({
           <Grid
             item
             size={{ xs: 12, sm: 12 }}
-            sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between' }}
+            sx={{ display: 'flex', alignItems: 'center', my: 4, justifyContent: 'space-between', gap: 2, flexWrap: 'wrap' }}
           >
             <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               <MUICheckbox
@@ -805,7 +829,8 @@ const PrescriptionMonitoringGrid = ({
                 labelStyle={isAllSelected && { color: 'green' }}
                 checked={isAllSelected}
                 indeterminate={isIndeterminate}
-                disabled={selectableMetrics?.length === 0 || isDischared}
+                // disabled={selectableMetrics?.length === 0 || isDischared}
+                disabled={selectableMetrics?.length === 0}
                 onChange={handleSelectAll}
               />
               {selectedMetrics.length > 0 && (
@@ -828,15 +853,26 @@ const PrescriptionMonitoringGrid = ({
                 </Box>
               )}
             </Box>
-            <MUISwitch
-              checked={isCurrentMedicalRecord}
-              onChange={handleSwitchChange}
-              label='Current medical records only'
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <MUISwitch
+                checked={isCurrentMedicalRecord}
+                onChange={handleSwitchChange}
+                label='Current medical records only'
+              />
+              <Button
+                onClick={() => setPrescriptionSheetOpen(true)}
+                sx={{ height: '40px', minWidth: '150px' }}
+                variant='outlined'
+                size='small'
+                startIcon={<Icon icon='mdi:prescription' />}
+              >
+                VIEW
+              </Button>
+            </Box>
           </Grid>
         )}
         {!isLoading && displayMetrics?.length <= 0 && (
-          <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex' }}>
+          <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <MUISwitch
               checked={isCurrentMedicalRecord}
               onChange={handleSwitchChange}
@@ -844,6 +880,15 @@ const PrescriptionMonitoringGrid = ({
               size='small'
               sx={{ ml: 2.6 }}
             />
+            <Button
+              onClick={() => setPrescriptionSheetOpen(true)}
+              sx={{ height: '40px', minWidth: '150px' }}
+              variant='outlined'
+              size='small'
+              startIcon={<Icon icon='mdi:prescription' />}
+            >
+              VIEW
+            </Button>
           </Grid>
         )}
 
@@ -870,8 +915,8 @@ const PrescriptionMonitoringGrid = ({
                         disabled={
                           (Array.isArray(metric.schedule) &&
                             metric.schedule.length > 0 &&
-                            metric.schedule.every(s => s.status === 'administered')) ||
-                          isDischared
+                            metric.schedule.every(s => s.status === 'administered')) 
+                            // || isDischared
                           // metric.controlled_substance == 1
                         }
                         theme={theme}
@@ -929,14 +974,16 @@ const PrescriptionMonitoringGrid = ({
                         const status = timeSlot?.value?.status?.toLowerCase()
                         const scheduledTime = timeSlot?.value?.scheduledTime || timeSlot?.time
                         const dosage = timeSlot?.value?.dosage
-
+                        const oneTimeFrequency = metric?.frequency === "one_time"
+                        
                         return (
                           <TimeSlot
                             config={timeSlotGridConfig(status)}
                             key={slotKey}
                             onClick={() => {
-                              if (isDischared) return
+                              // if (isDischared) return
                               if (metric?.status?.toLowerCase() === 'stopped' && status !== 'pending') return
+                              if(oneTimeFrequency && status != 'pending') return
 
                               const data = {
                                 scheduledTime: scheduledTime,
@@ -965,13 +1012,13 @@ const PrescriptionMonitoringGrid = ({
                               // handleTimeSlotClick(metric.id, timeSlot)
                             }}
                             reduceOpacity={
-                              isDischared ||
+                              // isDischared ||
                               (metric?.status === 'stopped' &&
                                 !status &&
                                 // isScheduledFuture(selectedDate, scheduledTime)) ||
                                 // this is for allow schedule for same day for fast time and future time and any fast time
 
-                                isScheduledAllowed(selectedDate, scheduledTime))
+                                isScheduledAllowed(selectedDate, scheduledTime)) || (oneTimeFrequency && !status)
                               // ||
                               // (status?.toLowerCase() === 'pending' &&
                               //   // isScheduledFuture(selectedDate, scheduledTime)
@@ -980,7 +1027,7 @@ const PrescriptionMonitoringGrid = ({
                               //   isScheduledAllowed(selectedDate, scheduledTime))
                             }
                             disabled={
-                              isDischared ||
+                              // isDischared ||
                               status === 'administered' ||
                               status === 'skipped' ||
                               status === 'stopped' ||
@@ -990,6 +1037,7 @@ const PrescriptionMonitoringGrid = ({
                                 // this is for allow schedule for same day for fast time and future time and any fast time
 
                                 isScheduledAllowed(selectedDate, scheduledTime))
+                                || (oneTimeFrequency && status != 'pending')
                               // ||
                               // (status?.toLowerCase() === 'pending' &&
                               //   // isScheduledFuture(selectedDate, scheduledTime)
@@ -1004,7 +1052,7 @@ const PrescriptionMonitoringGrid = ({
                               scheduledTime={scheduledTime}
                               administeredTime={timeSlot?.value?.administered_time}
                               dosage={dosage}
-                              disabled={metric?.status === 'stopped'}
+                              disabled={metric?.status === 'stopped' || (oneTimeFrequency && status != 'pending')}
                               config={timeSlotGridConfig(status)}
                               theme={theme}
                             />
@@ -1028,7 +1076,7 @@ const PrescriptionMonitoringGrid = ({
               <NoMedicalData
                 btnText={'ADD PRESCRIPTION'}
                 text={'All Added Prescriptions Will Appear here'}
-                isDischarged={isDischared}
+                // isDischarged={isDischared}
                 btnAction={handleRouterNavigation}
               />
             </Box>
@@ -1048,6 +1096,13 @@ const PrescriptionMonitoringGrid = ({
           isCancelLoading={isSkipLoading}
         />
       ) : null}
+
+      {/* Prescription Sidesheet */}
+      <PrescriptionSidesheet
+        open={prescriptionSheetOpen}
+        onClose={() => setPrescriptionSheetOpen(false)}
+        animalId={animalId}
+      />
     </>
   )
 }

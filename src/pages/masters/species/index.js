@@ -1,132 +1,114 @@
-import { Avatar, Badge, Button, Card, CardHeader, Grid, Typography, debounce } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
+import { Avatar, Button, Grid, Tooltip, Typography, debounce } from '@mui/material'
 import { useCallback, useContext, useEffect, useState } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { AuthContext } from 'src/context/AuthContext'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-import {
-  AddBannerImages,
-  GetBannerImages,
-  getSearchTaxonomyList,
-  getSpeciesList,
-  getVernacularSpeciesById
-} from 'src/lib/api/species'
-import AddSpeciesSlideBar from 'src/views/pages/species/SpeciesSlider'
-import toast from 'react-hot-toast'
+import { getSpeciesList } from 'src/lib/api/species'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Chip from '@mui/material/Chip'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import { useRouter } from 'next/router'
+import Utility from 'src/utility'
 
 const AddSpecies = () => {
   const authData = useContext(AuthContext)
   const [loader, setLoader] = useState(false)
+  const router = useRouter()
+  const { status: urlStatus } = router.query
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('complete_name')
-  const [status, setStatus] = useState('species')
+  const [status, setStatus] = useState(urlStatus === 'hybrid' ? 'hybrid' : 'species')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [openDrawer, setOpenDrawer] = useState(false)
-  const [open, setOpen] = useState(false)
-  const [breedList, setBreedList] = useState([])
-  const [editVernacularNames, setEditVernacularNames] = useState([])
-  const [editName, setEditName] = useState('')
-  const [commonName, setCommonName] = useState('')
-  const [speciesImage, setSpeciesImage] = useState('')
-  const [tsnId, setTsnId] = useState('')
-  const [editCommonId, setEditCommonId] = useState('')
-  const [taxonomy, setTaxonomy] = useState([])
-  const [bannerImages, setBannerImages] = useState([])
-
-  console.log('Status >>', status)
-
-  // const fetchTaxonomy = async searchValue => {
-  //   try {
-  //     const response = await getSearchTaxonomyList(searchValue)
-  //     setTaxonomy(response?.data || [])
-  //     setOpen(true)
-  //   } catch (error) {
-  //     console.error('Error fetching taxonomy list:', error)
-  //   }
-  // }
-
-  const addEventSidebarOpen = () => {
-    setOpenDrawer(true)
-    setEditName('')
-    setEditVernacularNames([])
-    setSpeciesImage('')
-    setCommonName('')
-    setBannerImages([])
-    setTaxonomy([])
-  }
-
-  const handleSidebarClose = () => {
-    setOpenDrawer(false)
-  }
+  const [exportLoading, setExportLoading] = useState(false)
 
   const handleChange = (event, newValue) => {
     setStatus(newValue)
+    router.push(
+      {
+        pathname: router.pathname,
+        query: { status: newValue }
+      },
+      undefined,
+      { shallow: true }
+    )
   }
+
+  useEffect(() => {
+    if (urlStatus === 'hybrid') {
+      setStatus('hybrid')
+    } else if (urlStatus === 'species' || !urlStatus) {
+      setStatus('species')
+    }
+  }, [urlStatus])
 
   const columns = [
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 80,
+      field: 'sl_no',
+      headerName: 'SL.NO',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {parseInt(params.row.sl_no) + '.'}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 160,
       field: 'default_icon',
       headerName: 'Species Image',
       renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Species Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.default_icon ? `${params.row.default_icon}` : '/images/tablet.png'}
-          />
-        </Badge>
+        <Avatar
+          variant='circular'
+          alt='Species Image'
+          sx={{ width: 40, height: 40 }}
+          src={params.row.default_icon ? `${params.row.default_icon}` : '/images/tablet.png'}
+        />
       )
     },
-
     {
       flex: status === 'hybrid' ? 0.4 : 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'default_common_name',
       headerName: 'Common Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.default_common_name}
-        </Typography>
+        <Tooltip title={params.row.default_common_name}>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            {params.row.default_common_name}
+          </Typography>
+        </Tooltip>
       )
     },
-
     {
       flex: status === 'hybrid' ? 0.4 : 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'complete_name',
       headerName: 'Scientific Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.complete_name}
-        </Typography>
+        <Tooltip title={params.row.complete_name}>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+          >
+            {params.row.complete_name}
+          </Typography>
+        </Tooltip>
       )
     }
   ]
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
 
   const fetchTableData = useCallback(
     async (sort, q, sortColumn, status) => {
@@ -141,194 +123,122 @@ const AddSpecies = () => {
           limit: paginationModel.pageSize,
           zoo_id: 11
         }
-        console.log(status, 'status1')
+
         if (status === 'hybrid') {
           params.is_hybrid = true
         } else {
           params.is_hybrid = false
         }
 
-        await getSpeciesList(params)
-          .then(res => {
-            console.log('Response >>>', res)
-            setTotal(parseInt(res?.data?.taxonomy_total))
-            setRows(loadServerRows(paginationModel.page, res?.data?.taxonomy_list))
-          })
-          .catch(error => {
-            console.error('Error fetching data:', error)
-          })
-          .finally(() => {
-            setLoading(false)
-          })
-      } catch (e) {
-        console.error('Error:', e)
+        const res = await getSpeciesList(params)
+
+        if (res?.success) {
+          setTotal(parseInt(res?.data?.taxonomy_total))
+          setRows(res?.data?.taxonomy_list || [])
+        } else {
+          setTotal(0)
+          setRows([])
+        }
+      } catch (error) {
+        setTotal(0)
+        setRows([])
+      } finally {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel.page, paginationModel.pageSize]
   )
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status) => {
+    debounce(async (sort, q, column) => {
       setSearchValue(q)
-      try {
-        await fetchTableData(sort, q, sortColumn, status)
-      } catch (error) {
-        console.error(error)
-      }
+      await fetchTableData(sort, q, column, status)
     }, 1000),
-    []
+    [fetchTableData, status]
   )
+
+  const handleExport = async () => {
+    const params = {
+      sort,
+      q: searchValue,
+      sortColumn,
+      zoo_id: 11,
+      response_type: 'csv'
+    }
+
+    if (status === 'hybrid') {
+      params.is_hybrid = true
+    } else {
+      params.is_hybrid = false
+    }
+
+    try {
+      setExportLoading(true)
+      const response = await getSpeciesList(params)
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+      }
+    } catch (error) {
+      console.error('Export error:', error)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn)
+  }
 
   const headerAction = (
     <>
       {authData?.userData?.permission?.user_settings?.add_taxonomy && (
-        <div>
-          {status === 'species' ? (
-            <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
-              Add Species
-            </Button>
-          ) : (
-            <Button size='big' variant='outlined' onClick={() => addEventSidebarOpen()}>
-              Add Hybrid
-            </Button>
-          )}
-        </div>
+        <Button size='large' variant='outlined' onClick={() => handleAddSpecies()}>
+          {status === 'species' ? 'Add Species' : 'Add Hybrid'}
+        </Button>
       )}
     </>
   )
 
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
-  }, [fetchTableData, status])
+  }, [fetchTableData, status, paginationModel.page, paginationModel.pageSize])
 
   const handleSortModel = async newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    } else {
+      await fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     }
   }
 
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, sortColumn, status)
-  }
-
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    id: row.tsn,
+    id: getSlNo(index),
     sl_no: getSlNo(index)
   }))
 
   const handleRowClick = async params => {
-    console.log('params >>', params)
-    setOpenDrawer(true)
-    const tsnId = params.row.id
-    setTsnId(params.row.id)
-    setEditName(params?.row?.complete_name)
-    setCommonName(params?.row?.default_common_name)
-    setEditCommonId(params?.row?.default_common_name_id)
-    setSpeciesImage(params?.row?.default_icon)
-
-    try {
-      const vernacularResponse = await getVernacularSpeciesById(tsnId)
-      if (vernacularResponse?.success) {
-        console.log('Vernacular Names:', vernacularResponse.data)
-        setEditVernacularNames(vernacularResponse.data)
-      } else {
-        toast.error('Unable to fetch Vernacular Names')
+    router.push({
+      pathname: 'species/addSpecies/',
+      query: {
+        id: params.row.tsn,
+        status: status,
+        name: params.row.default_common_name
       }
-
-      const addBannerResponse = await GetBannerImages(tsnId)
-
-      if (addBannerResponse?.success) {
-        console.log('Banner images added successfully:', addBannerResponse.data)
-
-        // Use a Set to filter out duplicate image URLs
-        const seenUrls = new Set()
-
-        const uniqueBannerImages = addBannerResponse.data.filter(item => {
-          if (!seenUrls.has(item.image_url)) {
-            seenUrls.add(item.image_url)
-            
-return true
-          }
-          
-return false
-        })
-
-        console.log('Unique Banner images:', uniqueBannerImages)
-        console.log('Status >>', status)
-
-        setBannerImages(uniqueBannerImages)
-      } else {
-        // Handle error response
-        console.log('Failed to add banner images:', addBannerResponse?.error)
-        toast.error('Failed to add banner images')
-      }
-    } catch (error) {
-      console.log('Error:', error)
-      toast.error('Error fetching data')
-    }
+    })
   }
 
-  console.log('Vernacular >>', editVernacularNames)
-
-  const handleHybridRowClick = async params => {
-    console.log('Params >>', params)
-    setOpenDrawer(true)
-    setTsnId(params.row.tsn)
-    setEditName(params.row?.complete_name)
-    setCommonName(params.row.default_common_name)
-    setSpeciesImage(params?.row?.default_icon)
-
-    try {
-      const addBannerResponse = await GetBannerImages(params.row.tsn)
-      if (addBannerResponse?.success) {
-        console.log('Banner images added successfully:', addBannerResponse.data)
-
-        // Use a Set to filter out duplicate image URLs
-        const seenUrls = new Set()
-
-        const uniqueBannerImages = addBannerResponse.data.filter(item => {
-          if (!seenUrls.has(item.image_url)) {
-            seenUrls.add(item.image_url)
-            
-return true
-          }
-          
-return false
-        })
-
-        console.log('Unique Banner images:', uniqueBannerImages)
-        console.log('Status >>', status)
-
-        setBannerImages(uniqueBannerImages)
-      } else {
-        // Handle error response
-        console.log('Failed to add banner images:', addBannerResponse?.error)
-        toast.error('Failed to add banner images')
+  const handleAddSpecies = async () => {
+    router.push({
+      pathname: 'species/addSpecies/',
+      query: {
+        status: status
       }
-    } catch (error) {
-      console.log('Error:', error)
-      toast.error('Error fetching data')
-    }
+    })
   }
-
-  console.log('TSN iD>>', tsnId)
-
-  const TabBadge = ({ label, totalCount }) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
-      {label}
-      {totalCount ? (
-        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
-      ) : null}
-    </div>
-  )
 
   return (
     <>
@@ -336,101 +246,49 @@ return false
         <FallbackSpinner />
       ) : (
         <>
-          <Grid>
+          <Grid sx={{ mb: 3 }}>
             <TabContext sx={{ cursor: 'pointer' }} value={status}>
               <TabList onChange={handleChange}>
-                <Tab value='species' label={<TabBadge label='Species' />} />
-                <Tab value='hybrid' label={<TabBadge label='Hybrid' />} />
+                <Tab value='species' label='Species' />
+                <Tab value='hybrid' label='Hybrid' />
               </TabList>
-              <TabPanel sx={{ cursor: 'pointer' }} value='1'></TabPanel>
-              <TabPanel sx={{ cursor: 'pointer' }} value='0'></TabPanel>
-              <TabPanel sx={{ cursor: 'pointer' }} value=''></TabPanel>
-              {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
             </TabContext>
           </Grid>
-          {status === 'species' ? (
-            <Card>
-              <CardHeader title='Species' action={headerAction} />
 
-              <DataGrid
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                onCellClick={handleRowClick}
-                loading={loading}
-                slotProps={{
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-              />
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader title='Hybrid' action={headerAction} />
+          <PageCardLayout title={status === 'species' ? 'Species' : 'Hybrid'} action={headerAction}>
+            <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  sx={{
+                    width: {
+                      xs: '100%',
+                      sm: '250px'
+                    }
+                  }}
+                  placeholder='Search...'
+                  onChange={e => handleSearch(e.target.value)}
+                  onClear={() => handleSearch('')}
+                  value={searchValue}
+                />
+              </Grid>
+              <Grid item>
+                <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+              </Grid>
+            </Grid>
 
-              <DataGrid
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                onCellClick={handleHybridRowClick}
-                loading={loading}
-                slotProps={{
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-              />
-            </Card>
-          )}
-
-          {openDrawer && (
-            <AddSpeciesSlideBar
-              drawerWidth={400}
-
-              // addEventSidebarOpen={openDrawer}
-              openDrawer={openDrawer}
-              status={status}
-
-              // setStatus={setStatus}
-              // open={open}
-              setOpenDrawer={setOpenDrawer}
-              handleSidebarClose={handleSidebarClose}
-              editVernacularNames={editVernacularNames}
-              fetchTableData={fetchTableData}
-
-              // fetchTaxonomy={fetchTaxonomy}
-              // taxonomy={taxonomy}
-              editName={editName}
-              tsnId={tsnId}
-              commonName={commonName}
-              editCommonId={editCommonId}
-              speciesImage={speciesImage}
-              rows={rows}
-              BannerImages={bannerImages}
-              setBannerImages={setBannerImages}
+            <CommonTable
+              autoHeight
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              onCellClick={handleRowClick}
+              loading={loading}
             />
-          )}
+          </PageCardLayout>
         </>
       )}
     </>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef} from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import {
   Box,
   TextField,
@@ -21,6 +21,7 @@ import { useTheme, alpha } from '@mui/material/styles'
 import { Router, useRouter } from 'next/router'
 import { useFormContext, Controller, useFieldArray } from 'react-hook-form'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledSelectWithTextField from 'src/views/forms/form-fields/ControlledSelectWithTextField'
 import dayjs from 'dayjs'
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers'
@@ -28,23 +29,34 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import utc from 'dayjs/plugin/utc'
 import Search from 'src/views/utility/Search'
 import { debounce, filter } from 'lodash'
-
+import ControlledDateTimePicker from 'src/views/forms/form-fields/ControlledDateTimePicker'
+import Utility from 'src/utility'
 dayjs.extend(utc)
 
 export default function BasicDetails({
   vetOptions = [],
   anesthetistOptions = [],
   purposeOptions = [],
+  anesthesiaId = '',
   addLoader = false,
   selectedHospital,
   loadMoreDoctors = () => {},
   loadingDoctors = false,
-  patientData = []
+  loadingVet = false,
+  loadingAnesthetist = false,
+  handleVetSearch = () => {},
+  handleAnesthetistSearch = () => {},
+  handleVetSelect = () => {},
+  handleAnesthetistSelect = () => {},
+  patientData = [],
+  drawerOpen = true
 }) {
   const {
     control,
     watch,
     setValue,
+    clearErrors,
+    trigger,
     formState: { errors }
   } = useFormContext()
   const router = useRouter()
@@ -52,13 +64,14 @@ export default function BasicDetails({
   const [newPurpose, setNewPurpose] = useState('')
   const [expanded, setExpanded] = useState(false)
   const [showToggle, setShowToggle] = useState(false)
-  const [fullHeight, setFullHeight] = useState(0 || '') //fullheight - current scroll height for view more placement
+  const [fullHeight, setFullHeight] = useState(0 || '')
   const [searchQuery, setSearchQuery] = useState('')
   const [searchValue, setSearchValue] = useState('')
   const [loading, setLoading] = useState(true)
   const [newPurposeError, setNewPurposeError] = useState('')
   const contentRef = useRef(null)
   const { id, anaesthesia_id } = router.query
+  const effectiveAnesthesiaId = anesthesiaId || anaesthesia_id
   const timeUnits = [
     { label: 'hr', value: 'hr' },
     { label: 'min', value: 'min' }
@@ -66,16 +79,44 @@ export default function BasicDetails({
   const data = watch()
   const anaesthesiaDateTimeValue = watch('basicDetails.anaesthesia_datetime')
 
+  const isDefaultDateSetRef = useRef(false)
+
+  // Clear search states when drawer closes and reset date ref when drawer opens
   useEffect(() => {
-    if (!anaesthesiaDateTimeValue) {
+    if (!drawerOpen) {
+      setSearchQuery('')
+      setSearchValue('')
+    } else {
+      // Reset the ref when drawer opens so date/time gets prefilled again
+      isDefaultDateSetRef.current = false
+    }
+  }, [drawerOpen])
+
+  useEffect(() => {
+    // For new records, await patientData to set proper fallback
+    if (!effectiveAnesthesiaId && patientData && !isDefaultDateSetRef.current) {
+      const defaultDateTime = patientData?.discharge_at
+        ? dayjs.utc(patientData.discharge_at).local().format('YYYY-MM-DD HH:mm:ss')
+        : dayjs().format('YYYY-MM-DD HH:mm:ss')
+      setValue('basicDetails.anaesthesia_datetime', defaultDateTime, {
+        shouldValidate: true
+      })
+      isDefaultDateSetRef.current = true
+    } else if (!anaesthesiaDateTimeValue && !isDefaultDateSetRef.current && !effectiveAnesthesiaId) {
+      // Temporary fallback while patientData loads
       setValue('basicDetails.anaesthesia_datetime', dayjs().format('YYYY-MM-DD HH:mm:ss'), {
         shouldValidate: true
       })
+    } else if (!anaesthesiaDateTimeValue && effectiveAnesthesiaId) {
+       setValue('basicDetails.anaesthesia_datetime', dayjs().format('YYYY-MM-DD HH:mm:ss'), {
+        shouldValidate: true
+      })
     }
-    if (!anaesthesia_id) {
-      setValue('basicDetails.location', selectedHospital?.name)
+
+    if (!effectiveAnesthesiaId && selectedHospital?.name && !watch('basicDetails.location')) {
+      setValue('basicDetails.location', selectedHospital.name)
     }
-  }, [anaesthesiaDateTimeValue, setValue])
+  }, [anaesthesiaDateTimeValue, setValue, patientData, effectiveAnesthesiaId, selectedHospital, drawerOpen])
 
   const commonTextFieldSx = {
     '& .MuiOutlinedInput-root': {
@@ -97,7 +138,6 @@ export default function BasicDetails({
     }
   }
 
-  // Reusable slotProps for both Autocomplete components
   const autocompleteSlotProps = useMemo(
     () => ({
       tags: options => ({
@@ -201,19 +241,19 @@ export default function BasicDetails({
 
   /*view more button appearance based on height */
   useEffect(() => {
-  if (loading) return          
-  if (filteredPurposeOptions.length === 0) return 
-  if (!contentRef.current) return
+    if (loading) return
+    if (filteredPurposeOptions.length === 0) return
+    if (!contentRef.current) return
 
-  const height = contentRef.current.scrollHeight
-  setFullHeight(height)
-  setShowToggle(height > 170)
-}, [filteredPurposeOptions])
+    const height = contentRef.current.scrollHeight
+    setFullHeight(height)
+    setShowToggle(height > 170)
+  }, [filteredPurposeOptions])
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false)
-  }, 1200)
+    }, 1200)
 
     return () => clearTimeout(timer)
   }, [filteredPurposeOptions, loading])
@@ -228,6 +268,37 @@ export default function BasicDetails({
     skeletonCount = 9
   }
 
+  const handleAddPurpose = () => {
+    const v = newPurpose.trim()
+    if (!v) return
+    const normalizedNew = normalizePurpose(v)
+    const selected = watch('basicDetails.selected') || []
+    const custom = watch('basicDetails.custom') || []
+
+    const matchedOption = purposeOptions.find(option => normalizePurpose(option?.name || '') === normalizedNew)
+    if (matchedOption) {
+      const idAsString = String(matchedOption.id)
+
+      if (selected.includes(idAsString)) {
+        setNewPurposeError('Purpose already exists and selected ')
+      } else {
+        setNewPurposeError('Purpose already exists, please select')
+      }
+
+      return
+    }
+    const existsInCustom = custom.some(item => normalizePurpose(item) === normalizedNew)
+    if (existsInCustom) {
+      setNewPurposeError('Purpose already exists')
+
+      return
+    }
+    setValue('basicDetails.custom', [...custom, v], { shouldValidate: true })
+    setNewPurpose('')
+    setValue('basicDetails.newPurpose', '')
+    setNewPurposeError('')
+  }
+
   return addLoader ? (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
       <CircularProgress />
@@ -236,25 +307,18 @@ export default function BasicDetails({
     <Box sx={{ width: '100%', p: 0 }}>
       <Grid container spacing={5} columns={12}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
+          <ControlledTextField
             name='basicDetails.location'
+            label='Location*'
             control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                fullWidth
-                label='Location*'
-                error={!!errors.basicDetails?.location}
-                helperText={errors.basicDetails?.location?.message}
-                sx={commonTextFieldSx}
-                slotProps={{ input: { 'data-field': 'location' } }}
-              />
-            )}
+            errors={errors}
+            sx={commonTextFieldSx}
+            onChangeOverride={() => clearErrors?.('basicDetails.location')}
           />
         </Grid>
 
         <Grid size={{ xs: 12, md: 4 }}>
-          <Controller
+          {/* <Controller
             name='basicDetails.anaesthesia_datetime'
             control={control}
             render={({ field }) => {
@@ -278,7 +342,7 @@ export default function BasicDetails({
                     onChange={handleDateChange}
                     format='DD MMM YYYY · hh:mm A'
                     minDateTime={dayjs.utc(patientData?.admitted_at).local()}
-                    maxDateTime={dayjs()}
+                    maxDateTime={patientData?.discharge_at ? dayjs.utc(patientData.discharge_at).local() : dayjs()}
                     slotProps={{
                       textField: {
                         fullWidth: true,
@@ -310,6 +374,17 @@ export default function BasicDetails({
                 </LocalizationProvider>
               )
             }}
+          /> */}
+          <ControlledDateTimePicker
+            name='basicDetails.anaesthesia_datetime'
+            control={control}
+            errors={errors}
+            label='Date & Time of Anesthesia*'
+            ampm
+            outputFormat='YYYY-MM-DD HH:mm:ss'
+            minDateTime={dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))}
+            maxDateTime={patientData?.discharge_at ? dayjs(Utility.convertUTCToLocal(patientData?.discharge_at)) : dayjs()}
+            helperText={errors.basicDetails?.anaesthesia_datetime?.message}
           />
         </Grid>
 
@@ -337,44 +412,54 @@ export default function BasicDetails({
           <Controller
             name='basicDetails.veterinarian_id'
             control={control}
-            render={({ field }) => (
-              <Autocomplete
-                multiple
-                openOnFocus
-                options={vetOptions}
-                getOptionLabel={option => option?.name || ''}
-                isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-                loading={loadingDoctors}
-                value={
-                  Array.isArray(field.value)
-                    ? field.value.map(id => vetOptions.find(opt => opt.id === id)).filter(Boolean)
-                    : []
-                }
-                onChange={(_, newValue) => {
-                  const selectedIds = newValue.map(item => item.id)
-                  field.onChange(selectedIds)
-                }}
-                slotProps={{
-                  tags: autocompleteSlotProps.tags(vetOptions),
-                  listbox: autocompleteSlotProps.listbox
-                }}
-                renderOption={(props, option) => (
-                  <li {...props} key={option.id}>
-                    {option.name}
-                  </li>
-                )}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    label='Veterinarian*'
-                    fullWidth
-                    error={!!errors?.basicDetails?.veterinarian_id}
-                    helperText={errors?.basicDetails?.veterinarian_id?.message}
-                    sx={commonTextFieldSx}
-                  />
-                )}
-              />
-            )}
+            render={({ field }) => {
+              return (
+                <Autocomplete
+                  multiple
+                  openOnFocus
+                  disableCloseOnSelect={true}
+                  options={vetOptions}
+                  getOptionLabel={option => option?.name || ''}
+                  isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
+                  loading={loadingVet}
+                  value={field.value || []}
+                  filterOptions={x => x}
+                  onInputChange={(event, newInputValue) => {
+                    handleVetSearch(newInputValue, field.value || [])
+                  }}
+                  onChange={(_, newValue) => {
+                    const previousValue = field.value || []
+                    if (newValue.length > previousValue.length) {
+                      const newItem = newValue.find(
+                        item => !previousValue.some(prev => String(prev.id) === String(item.id))
+                      )
+                      if (newItem) handleVetSelect(newItem)
+                    }
+                    field.onChange(newValue)
+                  }}
+                  slotProps={{
+                    tags: autocompleteSlotProps.tags(vetOptions),
+                    listbox: autocompleteSlotProps.listbox
+                  }}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.id}>
+                      {option.name}
+                    </li>
+                  )}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      label='Veterinarian*'
+                      placeholder={'Search & Select'}
+                      fullWidth
+                      error={!!errors?.basicDetails?.veterinarian_id}
+                      helperText={errors?.basicDetails?.veterinarian_id?.message}
+                      sx={commonTextFieldSx}
+                    />
+                  )}
+                />
+              )
+            }}
           />
         </Grid>
 
@@ -387,18 +472,25 @@ export default function BasicDetails({
               <Autocomplete
                 multiple
                 openOnFocus
+                disableCloseOnSelect={true}
                 options={anesthetistOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
-                loading={loadingDoctors}
-                value={
-                  Array.isArray(field.value)
-                    ? field.value.map(id => anesthetistOptions.find(opt => opt.id === id)).filter(Boolean)
-                    : []
-                }
+                loading={loadingAnesthetist}
+                value={field.value || []}
+                filterOptions={x => x}
+                onInputChange={(event, newInputValue) => {
+                  handleAnesthetistSearch(newInputValue, field.value || [])
+                }}
                 onChange={(_, newValue) => {
-                  const selectedIds = newValue.map(item => item.id)
-                  field.onChange(selectedIds)
+                  const previousValue = field.value || []
+                  if (newValue.length > previousValue.length) {
+                    const newItem = newValue.find(
+                      item => !previousValue.some(prev => String(prev.id) === String(item.id))
+                    )
+                    if (newItem) handleAnesthetistSelect(newItem)
+                  }
+                  field.onChange(newValue)
                 }}
                 slotProps={{
                   tags: autocompleteSlotProps.tags(anesthetistOptions),
@@ -414,6 +506,7 @@ export default function BasicDetails({
                     {...params}
                     label='Anesthetist*'
                     fullWidth
+                    placeholder={'Search & Select'}
                     error={!!errors?.basicDetails?.anesthetist_id}
                     helperText={errors?.basicDetails?.anesthetist_id?.message}
                     sx={commonTextFieldSx}
@@ -440,7 +533,6 @@ export default function BasicDetails({
           <Box>
             <Typography
               fontWeight={600}
-              // mb={3}
               sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
             >
               Purpose of Anesthesia*{' '}
@@ -474,7 +566,7 @@ export default function BasicDetails({
           defaultValue={[]}
           render={({ field }) => (
             <>
-              <Collapse in={!expanded || loading ||  showToggle} collapsedSize={showToggle ? 170 : 'auto'}>
+              <Collapse in={!expanded || loading || showToggle} collapsedSize={showToggle ? 170 : 'auto'}>
                 {loading ? (
                   <Grid
                     container
@@ -497,9 +589,8 @@ export default function BasicDetails({
                           animation='wave'
                           height={46}
                           sx={{
-                            width: { sm: 200, lg: 240 },
-                            borderRadius: '8px',
-                            
+                            width: { xs: 200, lg: 240 },
+                            borderRadius: '8px'
                           }}
                         />
                       </Grid>
@@ -509,7 +600,7 @@ export default function BasicDetails({
                   <Box
                     ref={contentRef}
                     sx={{
-                      maxHeight: !expanded? 170: searchValue? 200: fullHeight || 170,
+                      maxHeight: expanded ? fullHeight : 170,
                       transition: 'max-height 0.3s ease',
                       display: 'flex',
                       flexWrap: 'wrap',
@@ -562,9 +653,9 @@ export default function BasicDetails({
                           justifyContent: 'center',
                           width: '100%',
                           height: 200
-                       }}
+                        }}
                       >
-                        <NoDataFound height = {200} width = {200}/>
+                        <NoDataFound height={200} width={200} />
                       </Box>
                     ) : null}
                   </Box>
@@ -582,7 +673,7 @@ export default function BasicDetails({
                           display: 'flex',
                           alignItems: 'center',
                           mt: 3,
-                          color:theme.palette.primary.main 
+                          color: theme.palette.primary.main
                         }}
                       >
                         {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
@@ -674,8 +765,11 @@ export default function BasicDetails({
                     placeholder='Enter new purpose'
                     value={newPurpose}
                     onChange={e => {
-                      setNewPurpose(e.target.value)
+                      const val = e.target.value
+                      setNewPurpose(val)
+                      setValue('basicDetails.newPurpose', val)
                       if (newPurposeError) setNewPurposeError('')
+                      trigger('basicDetails.selected')
                     }}
                     sx={{ ...commonTextFieldSx, background: theme.palette.common.white }}
                   />
@@ -683,37 +777,7 @@ export default function BasicDetails({
                     variant='contained'
                     color='secondary'
                     disabled={!newPurpose.trim()}
-                    onClick={() => {
-                      const v = newPurpose.trim()
-                      if (!v) return
-                      const normalizedNew = normalizePurpose(v)
-                      const selected = watch('basicDetails.selected') || []
-                      const custom = watch('basicDetails.custom') || []
-
-                      const matchedOption = purposeOptions.find(
-                        option => normalizePurpose(option?.name || '') === normalizedNew
-                      )
-                      if (matchedOption) {
-                        const idAsString = String(matchedOption.id)
-
-                        if (selected.includes(idAsString)) {
-                          setNewPurposeError('Purpose already exists and selected ')
-                        } else {
-                          setNewPurposeError('Purpose already exists, please select')
-                        }
-
-                        return
-                      }
-                      const existsInCustom = custom.some(item => normalizePurpose(item) === normalizedNew)
-                      if (existsInCustom) {
-                        setNewPurposeError('Purpose already exists')
-
-                        return
-                      }
-                      setValue('basicDetails.custom', [...custom, v], { shouldValidate: true })
-                      setNewPurpose('')
-                      setNewPurposeError('')
-                    }}
+                    onClick={handleAddPurpose}
                     sx={{
                       minWidth: 120,
                       background: theme.palette.primary.main,

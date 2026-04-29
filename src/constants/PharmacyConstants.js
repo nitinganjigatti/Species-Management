@@ -11,9 +11,31 @@ const PHARMACY_TRANSACTION_CONSTANTS = {
 }
 
 export const STOCK_ADJUSTMENT_REASON_TYPES = {
-  MISSED: "1",
-  EXPIRED: "2",
-  DAMAGED: "3"
+  MISSED: '1',
+  EXPIRED: '2',
+  DAMAGED: '3'
 }
 
+export const dateRangeOptions = [
+  { label: 'All', value: 'all' },
+  { label: 'Last 3 Days', value: '3' },
+  { label: '3–7 Days', value: '7' },
+  { label: '7–15 Days', value: '15' },
+  { label: '15+ Days', value: '16' }
+]
+
+export const statusOptions = [
+  { id: 'all', value: 'all', label: 'All' },
+  { id: 'active', value: 'active', label: 'Active' },
+  { id: 'inactive', value: 'inactive', label: 'Inactive' }
+]
+
 export const getPharmacyTransactionConstants = key => PHARMACY_TRANSACTION_CONSTANTS[key] || key
+
+export const productCategoryOptions = [
+  { id: 'Vaccination', label: 'Vaccination', value: 'vaccination' },
+  { id: 'Deworming', label: 'Deworming', value: 'deworming' },
+  { id: 'Supplements', label: 'Supplements', value: 'supplements' },
+  { id: 'Equipments', label: 'Equipments', value: 'equipments' },
+  { id: 'IVS', label: 'IVS', value: 'ivs' }
+]

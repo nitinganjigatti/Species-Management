@@ -10,6 +10,7 @@ import RecipeCard from 'src/views/pages/diet/add_recipe_combo-List/recipeCard'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 const RecipeList = props => {
   const {
@@ -28,6 +29,7 @@ const RecipeList = props => {
     recipeName
   } = props
   const theme = useTheme()
+  const { t } = useTranslation()
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
@@ -175,7 +177,7 @@ const RecipeList = props => {
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
             <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Add Recipes
+              {t('diet_module.add_recipes')}
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -205,7 +207,7 @@ const RecipeList = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                placeholder='Search recipe'
+                placeholder={t('diet_module.search_recipe')}
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -247,7 +249,7 @@ const RecipeList = props => {
           marginTop: fromrow !== 'rowedit_recipe' ? 30 : 12,
 
           //height: fromrow !== 'rowedit_recipe' ? '70%' : '80%',
-          height: fromrow !== 'rowedit_recipe' ? 'calc(100vh - 220px)' : '80%',
+          height: fromrow !== 'rowedit_recipe' ? 'calc(100vh - 120px)' : '80%',
           overflowY: 'auto',
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4

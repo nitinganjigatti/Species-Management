@@ -13,13 +13,15 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import CloseIcon from '@mui/icons-material/Close'
 import { getPatientDetails } from 'src/lib/api/hospital/incomingPatient'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState, resetState } from 'src/store/slices/hospital/hospitalSlice'
 import { useHospital } from 'src/context/HospitalContext'
 import { getAnimalTotalHospitalVisits } from 'src/lib/api/hospital/inpatient'
 import { getHospitalListing } from 'src/lib/api/hospital/hospitalAnalytics'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { write } from 'src/lib/windows/utils'
 import { AuthContext } from 'src/context/AuthContext'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -67,9 +69,10 @@ const PatientDetails = ({ category }) => {
   const authData = useContext(AuthContext)
 
   const queryClient = useQueryClient()
+  const dispatch = useDispatch()
   const { selectedHospital, updateSelectedHospital, updateHospitalStatus } = useHospital()
-  const { data, updateState, resetState } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const medical_record_id = medicalRecordData?.medical_record_id
   const animal_id = medicalRecordData?.animal_id
 
@@ -112,19 +115,22 @@ const PatientDetails = ({ category }) => {
   // Initialize medical record data when patient details are loaded
   useEffect(() => {
     if (patientResponse?.data) {
-      updateState(STORAGE_KEY, {
-        ...medicalRecordData,
-        animal_id: patientResponse.data?.animal_detail?.animal_id,
-        medical_record_id: patientResponse.data?.medical_record_id,
-        animal_admitted_date: patientResponse.data?.admitted_at,
-        purpose_of_visit: patientResponse.data?.purpose_of_visit,
-        discharge_at: patientResponse.data?.discharge_at,
-        site_id: patientResponse?.data?.animal_detail?.site_id,
-        hospital_case_id: patientResponse?.data?.hospital_case_id,
-        status: patientResponse?.data?.status
-      })
+      dispatch(updateState({
+        key: STORAGE_KEY,
+        value: {
+          ...medicalRecordData,
+          animal_id: patientResponse.data?.animal_detail?.animal_id,
+          medical_record_id: patientResponse.data?.medical_record_id,
+          animal_admitted_date: patientResponse.data?.admitted_at,
+          purpose_of_visit: patientResponse.data?.purpose_of_visit,
+          discharge_at: patientResponse.data?.discharge_at,
+          site_id: patientResponse?.data?.animal_detail?.site_id,
+          hospital_case_id: patientResponse?.data?.hospital_case_id,
+          status: patientResponse?.data?.status
+        }
+      }))
     }
-  }, [patientResponse?.data])
+  }, [patientResponse?.data, dispatch])
 
   const patientData = patientResponse?.data
   const animalData = patientResponse?.data?.animal_detail || {}
@@ -299,11 +305,18 @@ const PatientDetails = ({ category }) => {
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
       if (urlTab === 'discharge' && newValue !== 'discharge') {
-        // Clear discharge-related  context data
-        resetState('transfer_medicines')
-        resetState('transfer_temp_medicines')
-        resetState('enclosure_medicines')
-        resetState('enclosure_temp_medicines')
+        // Clear discharge-related context data, but preserve enclosure_medicines if going to schedule-prescription
+        const isSchedulePrescription = newValue === 'schedule-prescription'
+
+        dispatch(resetState('transfer_medicines'))
+        dispatch(resetState('transfer_temp_medicines'))
+
+        // Only clear enclosure medicines if NOT going to schedule-prescription
+        if (!isSchedulePrescription) {
+          dispatch(resetState('enclosure_medicines'))
+          dispatch(resetState('enclosure_temp_medicines'))
+        }
+
         sessionStorage.removeItem('transfer_enclosure_form')
 
         const updated = { ...router.query }
@@ -374,11 +387,18 @@ const PatientDetails = ({ category }) => {
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
       if (urlTab === 'discharge' && newValue !== 'discharge') {
-        // Clear discharge-related  context data
-        resetState('transfer_medicines')
-        resetState('transfer_temp_medicines')
-        resetState('enclosure_medicines')
-        resetState('enclosure_temp_medicines')
+        // Clear discharge-related context data, but preserve enclosure_medicines if going to schedule-prescription
+        const isSchedulePrescription = newValue === 'schedule-prescription'
+
+        dispatch(resetState('transfer_medicines'))
+        dispatch(resetState('transfer_temp_medicines'))
+
+        // Only clear enclosure medicines if NOT going to schedule-prescription
+        if (!isSchedulePrescription) {
+          dispatch(resetState('enclosure_medicines'))
+          dispatch(resetState('enclosure_temp_medicines'))
+        }
+
         sessionStorage.removeItem('transfer_enclosure_form')
 
         const updated = { ...router.query }
@@ -418,12 +438,19 @@ const PatientDetails = ({ category }) => {
   )
 
   const handleBack = useCallback(() => {
-    if (category === 'Inpatient') {
-      router.push('/hospital/inpatient')
-    } else {
-      router.push('/hospital/outpatient')
-    }
-  }, [router, category])
+    router.back()
+    // if (typeof window !== 'undefined' && window.history.length > 1) {
+    //   console.log('window.history.length', window.history.length)
+    //   router.back()
+    // } else {
+    // // Fallback to category-based navigation if no history
+    //   if (category === 'Inpatient') {
+    //     router.replace('/hospital/inpatient')
+    //   } else {
+    //     router.replace('/hospital/outpatient')
+    //   }
+    // }
+  }, [router])
 
   // Memoize selected component to avoid recalculation
   const { SelectedComponent, selectedLabel } = useMemo(() => {
@@ -438,14 +465,7 @@ const PatientDetails = ({ category }) => {
   // Memoize breadcrumbs to prevent unnecessary re-renders
   const breadcrumbs = useMemo(
     () => (
-      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ color: 'inherit' }}>Hospital</Typography>
-        <Typography sx={{ color: 'inherit' }}>Patients</Typography>
-        <Typography sx={{ color: 'inherit', cursor: 'pointer' }} onClick={handleBack}>
-          {category}
-        </Typography>
-        <Typography sx={{ color: 'text.primary' }}>Details</Typography>
-      </Breadcrumbs>
+      <DynamicBreadcrumbs lastBreadcrumbLabel={'Details'}/>
     ),
     [handleBack, category]
   )
@@ -609,7 +629,7 @@ const PatientDetails = ({ category }) => {
               color: theme.palette.primary.main
             }}
           />
-          <Typography
+          {/* <Typography
             sx={{
               fontSize: '16px',
               fontWeight: 500,
@@ -628,7 +648,7 @@ const PatientDetails = ({ category }) => {
             }}
           >
             Please wait while we verify your access to view this patient's details.
-          </Typography>
+          </Typography> */}
         </Box>
       ) : null}
 

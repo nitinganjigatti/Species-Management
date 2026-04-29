@@ -1,4 +1,4 @@
-import { useTheme } from '@mui/material/styles'
+import { useTheme, styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
@@ -13,7 +13,8 @@ import {
   MenuItem,
   Select,
   TextField,
-  Typography
+  Typography,
+  Badge
 } from '@mui/material'
 import React, { useState, useEffect, useContext, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -24,7 +25,14 @@ import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
+import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/router'
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const EggFilterDrawer = ({
   openFilterDrawer,
@@ -40,7 +48,7 @@ const EggFilterDrawer = ({
   // console.log('selectedOptions :>> ', selectedOptions)
   const theme = useTheme()
   const router = useRouter()
-
+  const { t } = useTranslation()
   const {
     tab_Value = 'eggs_incubation',
     subTab_value,
@@ -107,6 +115,45 @@ const EggFilterDrawer = ({
   const [selectedDropdownID, setSelectedDropdownId] = useState('all')
 
   const [searchQuery, setSearchQuery] = useState('')
+  const getMenuBadgeCount = useCallback(
+    menuName => {
+      switch (menuName) {
+        case 'Stage':
+          return selectedOptions?.Stage?.length || 0
+        case 'Nursery':
+          return selectedOptions?.Nursery?.length || 0
+        case 'Site':
+          return selectedOptions?.Site?.length || 0
+        case 'Collected By':
+          return selectedOptions?.['Collected By']?.length || 0
+        case 'Discarded By':
+          return selectedOptions?.['Discarded By']?.length || 0
+        case 'Security Check':
+          return selectedOptions?.['Security Check']?.length || 0
+        case 'Collected Date':
+          return selectedOptions?.collected_date ? 1 : 0
+        case 'Discarded Date':
+          return selectedOptions?.discarded_Date ? 1 : 0
+        default:
+          return 0
+      }
+    },
+    [selectedOptions]
+  )
+
+  const getTotalBadgeCount = useCallback(() => {
+    let count = 0
+    count += selectedOptions?.Stage?.length || 0
+    count += selectedOptions?.Nursery?.length || 0
+    count += selectedOptions?.Site?.length || 0
+    count += selectedOptions?.['Collected By']?.length || 0
+    count += selectedOptions?.['Discarded By']?.length || 0
+    count += selectedOptions?.['Security Check']?.length || 0
+    count += selectedOptions?.collected_date ? 1 : 0
+    count += selectedOptions?.discarded_Date ? 1 : 0
+
+    return count
+  }, [selectedOptions])
 
   useEffect(() => {
     // Reset states when tab_Value changes
@@ -519,7 +566,10 @@ const EggFilterDrawer = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500, mr: 1 }}>
+            Filter {getTotalBadgeCount() > 0 && '-'}{' '}
+          </Typography>
+          <StyledBadge badgeContent={getTotalBadgeCount()} color='primary' sx={{ ml: 2, flexShrink: 0 }} />
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -539,42 +589,70 @@ const EggFilterDrawer = ({
         <Grid container sx={{ px: 5 }}>
           <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded'
-              ? discardMenu.map(menu => (
-                  <Box
-                    key={menu.id}
-                    sx={{
-                      width: '190px',
-                      bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
-                      cursor: 'pointer',
-                      p: 4,
-                      borderTopLeftRadius: '8px',
-                      borderBottomLeftRadius: '8px'
-                    }}
-                    onClick={() => handleMenuClick(menu)}
-                  >
-                    <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                      {menu.name}
-                    </Typography>
-                  </Box>
-                ))
-              : leftMenu.map(menu => (
-                  <Box
-                    key={menu.id}
-                    sx={{
-                      width: '190px',
-                      bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
-                      cursor: 'pointer',
-                      p: 4,
-                      borderTopLeftRadius: '8px',
-                      borderBottomLeftRadius: '8px'
-                    }}
-                    onClick={() => handleMenuClick(menu)}
-                  >
-                    <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                      {menu.name}
-                    </Typography>
-                  </Box>
-                ))}
+              ? discardMenu.map(menu => {
+                  const badgeCount = getMenuBadgeCount(menu.name)
+
+                  return (
+                    <Box
+                      key={menu.id}
+                      sx={{
+                        width: '190px',
+                        bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                        cursor: 'pointer',
+                        p: 4,
+                        borderTopLeftRadius: '8px',
+                        borderBottomLeftRadius: '8px'
+                      }}
+                      onClick={() => handleMenuClick(menu)}
+                    >
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.dark,
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                      >
+                        {menu.name}
+                        <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2, flexShrink: 0 }} />
+                      </Typography>
+                    </Box>
+                  )
+                })
+              : leftMenu.map(menu => {
+                  const badgeCount = getMenuBadgeCount(menu.name)
+
+                  return (
+                    <Box
+                      key={menu.id}
+                      sx={{
+                        width: '190px',
+                        bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                        cursor: 'pointer',
+                        p: 4,
+                        borderTopLeftRadius: '8px',
+                        borderBottomLeftRadius: '8px'
+                      }}
+                      onClick={() => handleMenuClick(menu)}
+                    >
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.dark,
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px'
+                        }}
+                      >
+                        {menu.name}
+                        <StyledBadge badgeContent={badgeCount} color='primary' sx={{ ml: 2, flexShrink: 0 }} />
+                      </Typography>
+                    </Box>
+                  )
+                })}
           </Grid>
           <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
@@ -637,7 +715,7 @@ const EggFilterDrawer = ({
                       inputProps={{ 'aria-label': 'controlled' }}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
-                      Select All
+                      {t('select_all')}
                     </Typography>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
@@ -646,10 +724,10 @@ const EggFilterDrawer = ({
 
               {(tab_Value === 'all' || tab_Value === 'eggs_incubation') && selectedMenu?.name === 'Stage' && (
                 <FormControl fullWidth>
-                  <InputLabel id='dropdown-label'>Select Status</InputLabel>
+                  <InputLabel id='dropdown-label'>{t('egg_module.select_status')}</InputLabel>
                   <Select
                     labelId='dropdown-label'
-                    label='Select Status'
+                    label={t('egg_module.select_status')}
                     value={selectedDropdownID ? selectedDropdownID : 'all'}
                     onChange={handleDropdownChange}
                   >
@@ -722,10 +800,10 @@ const EggFilterDrawer = ({
         }}
       >
         <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          Clear ALL
+          {t('clear_all')}
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
-          APPLY FILTER
+          {t('apply_filter')}
         </LoadingButton>
       </Box>
     </Drawer>

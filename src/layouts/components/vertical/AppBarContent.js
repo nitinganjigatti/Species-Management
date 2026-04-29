@@ -16,21 +16,22 @@ import SelectParivesh from 'src/components/SelectParivesh'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-// import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
+import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
 import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 const AppBarContent = props => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
 
   const pathname = usePathname()
-  const pathArray = pathname !== '' ? pathname?.replace(/^\//, '')?.split('/') : [] // removing first forward slash before splitting
+  const pathArray = pathname && pathname !== '' ? pathname.replace(/^\//, '').split('/') : [] // removing first forward slash before splitting
 
   const moduleName = pathArray.length > 0 ? pathArray[0] : ''
   const authData = useContext(AuthContext)
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const { selectedPharmacy } = usePharmacyContext()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

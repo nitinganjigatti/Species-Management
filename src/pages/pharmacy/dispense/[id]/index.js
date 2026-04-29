@@ -1,17 +1,15 @@
-import { Avatar, Card, CardContent, CardHeader, Grid, Typography } from '@mui/material'
+import { Avatar, Card, CardHeader, Grid, Typography, Box, Stack } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import React, { useEffect, useState } from 'react'
-import { Box, Stack } from '@mui/system'
 import { getDispenseById } from 'src/lib/api/pharmacy/dispenseProduct'
-import moment from 'moment'
-import { DataGrid } from '@mui/x-data-grid'
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const IndividualDispense = () => {
   const [dispenseData, setDispenseData] = useState({})
@@ -70,7 +68,7 @@ const IndividualDispense = () => {
     {
       minWidth: 180,
       field: 'unit_price',
-      headerName: 'Net Unit Price(₹)',
+      headerName: 'Unit Price(₹)',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price ? params.row.unit_price : 0)}
@@ -117,12 +115,12 @@ const IndividualDispense = () => {
     },
 
     {
-      flex: 0.25,
+      flex: 0.35,
       field: 'enclosure_id',
-      headerName: 'Enclosure Id',
+      headerName: 'Enclosure Name',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.enclosure_id}
+          {params.row.user_enclosure_name}
         </Typography>
       )
     },
@@ -172,108 +170,136 @@ const IndividualDispense = () => {
           <Grid
             container
             sx={{
-              gap: 3,
               justifyContent: 'space-between',
-              alignItems: 'stretch'
+              alignItems: 'center'
             }}
           >
-            <Grid item size={{ xs: 12, md: 6.4 }}>
-              <Card>
-                <CardHeader
-                  title='Dispense Detail'
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        Router.back()
-                      }}
-                      icon='ep:back'
-                    />
-                  }
-                />
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
-                    <Box>
-                      <Avatar
-                        sx={{
-                          '& > img': {
-                            objectFit: 'contain'
-                          },
-                          width: 100,
-                          height: 100,
-                          my: 2
-                        }}
-                        variant='rounded'
-                        alt={dispenseData?.created_profile_pic}
-                        src={dispenseData?.created_profile_pic}
-                      />
-                    </Box>
+            <Grid item size={{ xs: 12, md: 6.4 }} sx={{ mb: { xs: 2.8, sm: 2.8, lg: 0 } }}>
+              <PageCardLayout
+                title='Dispense Detail'
+                showIcon={true}
+                onIconClick={() => {
+                  Router.back()
+                }}
+                titleStyles={{
+                  fontSize: '20px'
+                }}
+              >
+                <Grid
+                  item
+                  size={{ xs: 'auto', sm: 'auto' }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-evenly',
+                    gap: { xs: 3, sm: 'auto' }
+                  }}
+                >
+                  {/* <Box> */}
+                  <Avatar
+                    sx={{
+                      '& > img': {
+                        objectFit: 'contain'
+                      },
+                      width: 100,
+                      height: 100,
+                      my: 2
+                    }}
+                    variant='rounded'
+                    alt={dispenseData?.created_profile_pic}
+                    src={dispenseData?.created_profile_pic}
+                  />
+                  {/* </Box> */}
 
-                    <Box sx={{ my: 2 }}>
-                      <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
-                        {dispenseData?.created_user_first_name} {dispenseData?.created_user_last_name}
+                  <Box sx={{ my: 2 }}>
+                    <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                      {dispenseData?.created_user_first_name} {dispenseData?.created_user_last_name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
+                      <Typography sx={{}}>
+                        {dispenseData?.created_user_country_code} {dispenseData?.created_user_mobile_number}
                       </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
-                        <Typography sx={{}}>
-                          {dispenseData?.created_user_country_code} {dispenseData?.created_user_mobile_number}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex' }}>
-                        <Typography sx={{ fontWeight: 600 }}>Dispense Id : </Typography>
-                        <Typography>&nbsp;{dispenseData?.dispense_id}</Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', my: 0 }}>
-                        <Typography sx={{ fontWeight: 600 }}>Created At : </Typography>
-                        <Typography>
-                          &nbsp;
-                          {Utility.formatDisplayDate(Utility.convertUTCToLocal(dispenseData?.created_at))} -{' '}
-                          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(dispenseData?.created_at))}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex' }}>
-                        <Typography sx={{ fontWeight: 600 }}>From Store : </Typography>
-                        <Typography>&nbsp;{dispenseData?.from_store}</Typography>
-                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex' }}>
+                      <Typography sx={{ fontWeight: 600 }}>Dispense Id : </Typography>
+                      <Typography>&nbsp;{dispenseData?.dispense_id}</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', my: 0 }}>
+                      <Typography sx={{ fontWeight: 600 }}>Created At : </Typography>
+                      <Typography>
+                        &nbsp;
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(dispenseData?.created_at))} -{' '}
+                        {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(dispenseData?.created_at))}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex' }}>
+                      <Typography sx={{ fontWeight: 600 }}>From Store : </Typography>
+                      <Typography>&nbsp;{dispenseData?.from_store}</Typography>
                     </Box>
                   </Box>
-                </CardContent>
-              </Card>
+                </Grid>
+              </PageCardLayout>
             </Grid>
             <Grid item size={{ xs: 12, md: 5.4 }}>
-              <Card>
-                <CardHeader title='Dispense To' avatar={<Icon style={{ cursor: 'pointer' }} icon='ep:user' />} />
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-evenly' }}>
-                    <Box>
-                      <Avatar
-                        sx={{
-                          '& > img': {
-                            objectFit: 'contain'
-                          },
-                          width: 100,
-                          height: 100,
-                          my: 6.4
-                        }}
-                        variant='rounded'
-                        alt={dispenseData?.profile_pic}
-                        src={dispenseData?.profile_pic}
-                      />
-                    </Box>
-                    <Box>
+              <PageCardLayout
+                title='Dispense To'
+                showIcon={true}
+                icon='ep:user'
+                titleStyles={{
+                  fontSize: '20px'
+                }}
+              >
+                <Grid
+                  item
+                  size={{ xs: 'auto', sm: 10.5 }}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-evenly',
+                    gap: { xs: 3, sm: 'auto' }
+                  }}
+                >
+                  {/* <Box> */}
+                  <Avatar
+                    sx={{
+                      '& > img': {
+                        objectFit: 'contain'
+                      },
+                      width: 100,
+                      height: 100,
+                      my: 6
+                    }}
+                    variant='rounded'
+                    alt={dispenseData?.profile_pic}
+                    src={dispenseData?.profile_pic}
+                  />
+                  {/* </Box> */}
+                  <Box>
+                    {(dispenseData?.dispense_user_name || dispenseData?.ep_number) && (
                       <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
-                        {dispenseData?.user_first_name} {dispenseData?.user_last_name}
+                        Dispensed To: {dispenseData?.dispense_user_name}
+                        <br />
+                        <Box sx={{ display: 'flex' }}>
+                          <Typography sx={{ fontWeight: 600 }}>EP No: </Typography>
+                          <Typography>{dispenseData?.ep_number}</Typography>
+                        </Box>
                       </Typography>
+                    )}
+                    <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
+                      {dispenseData?.user_first_name} {dispenseData?.user_last_name}
+                    </Typography>
+                    {(dispenseData?.user_country_code || dispenseData?.user_mobile_number) && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
                         <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
                           {dispenseData?.user_country_code} {dispenseData?.user_mobile_number}
                         </Typography>
                       </Box>
-                    </Box>
+                    )}
                   </Box>
-                </CardContent>
-              </Card>
+                </Grid>
+              </PageCardLayout>
             </Grid>
           </Grid>
           <Card>

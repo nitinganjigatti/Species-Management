@@ -995,6 +995,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                                       </Grid>
 
                                       <Grid size={{ xs: 12 }}>
+                                        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                                          Notes
+                                        </Typography>
                                         <ControlledTextArea
                                           name='notes'
                                           control={control}
@@ -1065,6 +1068,9 @@ const MedicinePrescriptionCardForMultipleTimeSlots = ({
                             <>
                               {/* Reason for Skip Section */}
                               <Grid size={{ xs: 12 }}>
+                                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 }}>
+                                  Reason for skipping
+                                </Typography>
                                 <ControlledTextArea
                                   name='skipReason'
                                   control={control}

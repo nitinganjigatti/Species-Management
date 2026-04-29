@@ -2,7 +2,7 @@
 import { useState, Fragment, useEffect, useContext } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -20,6 +20,9 @@ import Icon from 'src/@core/components/icon'
 // ** Context
 import { useAuth } from 'src/hooks/useAuth'
 import { AuthContext } from 'src/context/AuthContext'
+
+// ** i18n
+import { useTranslation } from 'react-i18next'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -39,8 +42,9 @@ const UserDropdown = props => {
   const [userData, setUserData] = useState([])
 
   // ** Hooks
-  const router = useRouter()
+  const router = useSafeRouter()
   const { logout } = useAuth()
+  const { t } = useTranslation('common')
 
   // ** Vars
   const { direction } = settings
@@ -190,11 +194,11 @@ const UserDropdown = props => {
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
         >
           <Icon icon='mdi:logout-variant' />
-          Logout
+          {t('logout')}
         </MenuItem>
         <MenuItem onClick={handleMedia} sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}>
           <Icon icon='ic:round-perm-media' />
-          Media
+          {t('media')}
         </MenuItem>
       </Menu>
     </Fragment>

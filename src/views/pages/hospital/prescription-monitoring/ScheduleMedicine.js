@@ -17,7 +17,7 @@ import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMul
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import moment from 'moment'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -37,7 +37,8 @@ export default function ScheduleMedicine({
   isOneTimeFrequency = false,
   stopDate,
   endsOn,
-  loadingSideEffects
+  loadingSideEffects,
+  patientData = null
 }) {
   const {
     caseTypes,
@@ -52,14 +53,14 @@ export default function ScheduleMedicine({
 
   const now = new Date()
   const router = useRouter()
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const animal_admitted_date = medicalRecordData?.animal_admitted_date
   const { medicine_edit_id, fromPage, date } = router.query
 
   const editIdStr = medicine_edit_id?.toString()
-  const enclosureMedicines = data?.enclosure_medicines || []
+  const enclosureMedicines = hospitalData?.enclosure_medicines || []
 
   // Find the selected medicine to edit
   const editingMedicineData = editIdStr ? enclosureMedicines.find(m => m?.id?.toString() === editIdStr) : null
@@ -149,11 +150,29 @@ export default function ScheduleMedicine({
         }
       ])
 
-      // Set default prescription start date to today
-      setValue('prescriptionStartDate', dayjs(date) || dayjs())
+      // Set default prescription start date
+      // If patient is discharged, use admitted date; otherwise use today
+      let defaultStartDate = dayjs(date) || dayjs()
+      if (patientData?.discharge_at && patientData?.admitted_at) {
+        // Convert UTC to local time
+        defaultStartDate = dayjs(Utility?.convertUTCToLocal(patientData.admitted_at) || patientData.admitted_at)
+      } else if (patientData?.discharge_at) {
+        // Fallback to discharge date if admitted date not available
+        // Convert UTC to local time
+        defaultStartDate = dayjs(Utility?.convertUTCToLocal(patientData.discharge_at) || patientData.discharge_at)
+      }
+      setValue('prescriptionStartDate', defaultStartDate)
 
-      // Set default prescription end date to today
-      if (isDirectAdministerRegular) setValue('prescriptionEndDate', dayjs())
+      // Set default prescription end date
+      // If patient is discharged, use discharge date; otherwise use today
+      if (isDirectAdministerRegular) {
+        let defaultEndDate = dayjs()
+        if (patientData?.discharge_at) {
+          // Convert UTC to local time
+          defaultEndDate = dayjs(Utility?.convertUTCToLocal(patientData.discharge_at) || patientData.discharge_at)
+        }
+        setValue('prescriptionEndDate', defaultEndDate)
+      }
 
       // Set default dosage duration to 1
       setValue('dosageDuration.value', '0')
@@ -172,7 +191,9 @@ export default function ScheduleMedicine({
     prescriptionFrequency,
     prescriptionDuration,
     intervalList,
-    setValue
+    setValue,
+    patientData?.discharge_at,
+    patientData?.admitted_at
   ])
 
   // Reset the flag when medicine is deselected
@@ -181,6 +202,17 @@ export default function ScheduleMedicine({
       hasSetDefaults.current = false
     }
   }, [isMedicineSelected])
+
+  // Set minDate and maxDate based on discharge status
+  // For discharged patients, restrict dates to discharge date
+  useEffect(() => {
+    if (patientData?.discharge_at) {
+      const dischargeDate = dayjs(patientData.discharge_at)
+
+      // For Direct Administer with regular intervals, set both start and end dates to discharge date
+      // (This is already handled in parent component, but we control the date picker limits here)
+    }
+  }, [patientData?.discharge_at])
 
   // Remove extra schedules when switching to "one_time" frequency
   useEffect(() => {
@@ -557,7 +589,13 @@ export default function ScheduleMedicine({
                   fullWidth={true}
                   sx={commonFieldStyles}
                   minDate={fromPage === 'prescriptionDetail' ? dayjs(stopDate) : dayjs(animal_admitted_date)}
-                  maxDate={selectedMedicineTo === 'Direct Administer' ? dayjs(now) : undefined}
+                  maxDate={
+                    patientData?.discharge_at
+                      ? dayjs(patientData.discharge_at)
+                      : selectedMedicineTo === 'Direct Administer'
+                      ? dayjs(now)
+                      : undefined
+                  }
                   size='large'
                   name='prescriptionStartDate'
                   label={
@@ -581,7 +619,7 @@ export default function ScheduleMedicine({
                   fullWidth={true}
                   sx={commonFieldStyles}
                   minDate={dayjs(animal_admitted_date)}
-                  maxDate={dayjs(now)}
+                  maxDate={patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs(now)}
                   size='large'
                   name='prescriptionEndDate'
                   label='Prescription End Date*'
@@ -651,6 +689,7 @@ export default function ScheduleMedicine({
             )}
 
             <Box sx={{ mb: 3 }}>
+              <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2 ,textAlign:'left'}}>Notes</Typography>
               <ControlledTextArea
                 fullWidth={true}
                 sx={{
@@ -726,7 +765,8 @@ export default function ScheduleMedicine({
                     />
                   </Grid>
                 </Grid>
-                <Box sx={{ mb: 3 }}>
+                <Box sx={{ mb: 3}}>
+                  <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 2,textAlign:'left' }}>Notes</Typography>
                   <ControlledTextArea
                     fullWidth={true}
                     sx={{

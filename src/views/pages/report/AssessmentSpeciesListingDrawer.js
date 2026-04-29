@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useContext, useLayoutEffect } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useContext, useLayoutEffect, useMemo } from 'react'
 import { Drawer, IconButton, TextField, Typography, CircularProgress, Box, Checkbox } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
@@ -12,7 +12,11 @@ function AssessmentSpeciesListingDrawer({
   selectedSpecies = [],
   setSelectedSpecies,
   openspeciesFilter,
-  setOpenspeciesFilter
+  setOpenspeciesFilter,
+  selectAllActive,
+  setSelectAllActive,
+  isSearchResult,
+  setIsSearchResult
 }) {
   const theme = useTheme()
   const drawerContentRef = useRef(null)
@@ -23,6 +27,7 @@ function AssessmentSpeciesListingDrawer({
   const zoo_id = authData.userData.user.zoos[0]?.zoo_id
 
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState(selectedSpecies || [])
+  const [selectAllMode, setSelectAllMode] = useState(false)
 
   const [searchValue, setSearchValue] = useState('')
   const [speciesList, setSpeciesList] = useState([])
@@ -32,26 +37,48 @@ function AssessmentSpeciesListingDrawer({
 
   const [footerH, setFooterH] = useState(0)
 
-  const measureHeights = () => {
+  // Use ref to track loading state for guard checks
+  const loadingRef = useRef(false)
+
+  const measureHeights = useCallback(() => {
     setFooterH(footerRef.current?.getBoundingClientRect().height ?? 0)
-  }
+  }, [])
 
   useLayoutEffect(() => {
     measureHeights()
-  }, [])
+  }, [measureHeights])
 
   useEffect(() => {
     window.addEventListener('resize', measureHeights)
 
     return () => window.removeEventListener('resize', measureHeights)
-  }, [])
+  }, [measureHeights])
 
   useEffect(() => {
     setTempSelectedSpecies(selectedSpecies || [])
-  }, [selectedSpecies, openspeciesFilter])
+    setSelectAllMode(selectAllActive || false) // Initialize with parent's select all state
+  }, [selectedSpecies, openspeciesFilter, selectAllActive])
 
-  const fetchSpecies = async (q = '', pageNum = 1, isNewSearch = false) => {
-    if (loading) return
+  // When selectAllMode is active and species list updates, auto-select all loaded species
+  // But ONLY if it's not a search result (for search results, we select specific IDs)
+  useEffect(() => {
+    if (selectAllMode && !isSearchResult && speciesList.length > 0) {
+      setTempSelectedSpecies(prev => {
+        const existingIds = new Set(prev.map(s => s.tsn_id))
+        const newSelections = speciesList.filter(specie => !existingIds.has(specie.tsn_id))
+        // Only update if there are new selections to add
+        if (newSelections.length > 0) {
+          return [...prev, ...newSelections]
+        }
+        return prev
+      })
+    }
+  }, [selectAllMode, isSearchResult, speciesList])
+
+  const fetchSpecies = useCallback(async (q = '', pageNum = 1, isNewSearch = false) => {
+    // Use ref to prevent concurrent requests
+    if (loadingRef.current) return
+    loadingRef.current = true
     setLoading(true)
 
     try {
@@ -74,23 +101,38 @@ function AssessmentSpeciesListingDrawer({
     } catch (err) {
       console.error('Failed to fetch taxonomy list:', err)
     } finally {
+      loadingRef.current = false
       setLoading(false)
     }
-  }
+  }, [zoo_id])
 
   useEffect(() => {
     fetchSpecies('', 1, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const debouncedSearch = useCallback(
-    debounce(value => {
-      setPage(1)
-      setSpeciesList([])
-      setHasMore(true)
-      fetchSpecies(value, 1, true)
-    }, 500),
-    []
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        setPage(1)
+        setSpeciesList([])
+        setHasMore(true)
+        setSelectAllMode(false) // Reset select all mode on new search
+        // Reset isSearchResult in parent when search changes
+        if (setIsSearchResult) {
+          setIsSearchResult(false)
+        }
+        fetchSpecies(value, 1, true)
+      }, 500),
+    [fetchSpecies, setIsSearchResult]
   )
+
+  // Cleanup debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [debouncedSearch])
 
   const handleCloseDrawer = () => {
     setOpenspeciesFilter(false)
@@ -102,17 +144,55 @@ function AssessmentSpeciesListingDrawer({
     debouncedSearch(value)
   }
 
-  const toggleSpeciesSelection = specie => {
-    setTempSelectedSpecies(prev => {
-      const exists = prev.some(selected => selected?.tsn_id === specie.tsn_id)
-      if (exists) {
-        return prev.filter(selected => selected?.tsn_id !== specie.tsn_id)
-      }
-      return [...prev, specie]
-    })
-  }
+  // Memoize selected species IDs for O(1) lookup performance
+  const selectedSpeciesIds = useMemo(
+    () => new Set(tempSelectedSpecies.map(s => s?.tsn_id)),
+    [tempSelectedSpecies]
+  )
 
-  const handleScroll = () => {
+  const areAllSelected = useMemo(
+    () => speciesList.length > 0 && speciesList.every(specie => selectedSpeciesIds.has(specie.tsn_id)),
+    [speciesList, selectedSpeciesIds]
+  )
+
+  const toggleSpeciesSelection = useCallback(
+    specie => {
+      setTempSelectedSpecies(prev => {
+        const exists = prev.some(selected => selected?.tsn_id === specie.tsn_id)
+        if (exists) {
+          // If deselecting, turn off select all mode
+          setSelectAllMode(false)
+          return prev.filter(selected => selected?.tsn_id !== specie.tsn_id)
+        }
+        return [...prev, specie]
+      })
+    },
+    []
+  )
+
+  const handleSelectAll = useCallback(() => {
+    const allSelected = speciesList.every(specie => selectedSpeciesIds.has(specie.tsn_id))
+
+    if (allSelected) {
+      // Deselect all species and turn off select all mode
+      setSelectAllMode(false)
+      // If this was a true "Select All" (not search result), clear everything
+      // Otherwise, only deselect the currently visible species
+      if (!isSearchResult) {
+        setTempSelectedSpecies([])
+      } else {
+        const visibleTsnIds = new Set(speciesList.map(s => s.tsn_id))
+        setTempSelectedSpecies(prev => prev.filter(selected => !visibleTsnIds.has(selected?.tsn_id)))
+      }
+    } else {
+      // Select all currently visible species and activate select all mode
+      setSelectAllMode(true)
+      const newSelections = speciesList.filter(specie => !selectedSpeciesIds.has(specie.tsn_id))
+      setTempSelectedSpecies(prev => [...prev, ...newSelections])
+    }
+  }, [speciesList, selectedSpeciesIds, isSearchResult])
+
+  const handleScroll = useCallback(() => {
     if (!drawerContentRef.current || loading || !hasMore) return
     const { scrollTop, scrollHeight, clientHeight } = drawerContentRef.current
     if (scrollHeight - scrollTop <= clientHeight + 100) {
@@ -120,7 +200,7 @@ function AssessmentSpeciesListingDrawer({
       setPage(nextPage)
       fetchSpecies(searchValue, nextPage)
     }
-  }
+  }, [loading, hasMore, page, searchValue, fetchSpecies])
 
   useEffect(() => {
     if (openspeciesFilter) {
@@ -191,10 +271,22 @@ function AssessmentSpeciesListingDrawer({
             }
           }}
         />
+      </Box>
+
+      {/* Species Header with Select All */}
+      <Box
+        sx={{
+          mt: 6,
+          mb: 4,
+          px: 4,
+          backgroundColor: 'background.default',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center'
+        }}
+      >
         <Typography
           sx={{
-            mt: 6,
-            mb: 4,
             fontSize: '16px',
             fontWeight: 600,
             color: theme.palette.customColors.OnSurfaceVariant
@@ -202,6 +294,40 @@ function AssessmentSpeciesListingDrawer({
         >
           Species
         </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            pr: theme => theme.spacing(3.255),
+            mr: -4
+          }}
+        >
+          <Box
+            onClick={handleSelectAll}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              cursor: 'pointer',
+              userSelect: 'none',
+              whiteSpace: 'nowrap',
+              '&:hover': {
+                opacity: 0.8
+              }
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: theme.palette.primary.main,
+                mr: 1
+              }}
+            >
+              Select All
+            </Typography>
+            <Checkbox checked={areAllSelected} color='primary' sx={{ p: 0 }} />
+          </Box>
+        </Box>
       </Box>
 
       {/* Content */}
@@ -220,10 +346,10 @@ function AssessmentSpeciesListingDrawer({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {speciesList.length > 0 &&
             speciesList.map((item, index) => {
-              const isSelected = tempSelectedSpecies?.some(species => species?.tsn_id === item.tsn_id)
+              const isSelected = selectedSpeciesIds.has(item.tsn_id)
               return (
                 <Box
-                  key={index}
+                  key={item.tsn_id || index}
                   onClick={() => toggleSpeciesSelection(item)}
                   sx={{
                     bgcolor: theme.palette.primary.contrastText,
@@ -306,6 +432,14 @@ function AssessmentSpeciesListingDrawer({
           size='large'
           onClick={() => {
             setSelectedSpecies(tempSelectedSpecies)
+            // Pass the select all mode state to parent component
+            if (setSelectAllActive) {
+              setSelectAllActive(selectAllMode)
+            }
+            // Pass whether this is a search result
+            if (setIsSearchResult) {
+              setIsSearchResult(searchValue.trim() !== '')
+            }
             setOpenspeciesFilter(false)
           }}
         >

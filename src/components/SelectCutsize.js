@@ -1,18 +1,31 @@
 import React from 'react'
 import { Box, FormControl, Select, MenuItem, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
-const SizeSelector = ({ size, cutsizelist, item, ingredient, handleChangeSize, showErrors }) => {
+const SizeSelector = ({ size, cutsizelist, item, ingredient, index, handleChangeSize, showErrors }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   return (
     <Box sx={{ pl: 5, width: 162 }}>
       <FormControl fullWidth>
         <Select
           size='small'
-          value={size[item.id]?.[ingredient.ingredient_id]?.id || ''}
-          onChange={event => handleChangeSize(event, item, ingredient)}
+          value={(() => {
+            const baseId = ingredient.ingredient_id || ingredient.id
+            const indexKey = `${baseId}-idx-${index}`
+            const itemSizeData = size[String(item.id)]
+            return itemSizeData?.[indexKey]?.id || itemSizeData?.[baseId]?.id || ''
+          })()}
+          onChange={event => handleChangeSize(event, item, ingredient, index)}
           displayEmpty
-          error={!size[item.id]?.[ingredient.ingredient_id]?.id && showErrors}
+          error={(() => {
+            const baseId = ingredient.ingredient_id || ingredient.id
+            const indexKey = `${baseId}-idx-${index}`
+            const itemSizeData = size[String(item.id)]
+            const hasVal = itemSizeData?.[indexKey]?.id || itemSizeData?.[baseId]?.id
+            return !hasVal && showErrors
+          })()}
           sx={{
             height: 51,
             borderRadius: '4px',
@@ -37,7 +50,7 @@ const SizeSelector = ({ size, cutsizelist, item, ingredient, handleChangeSize, s
             }
           }}
           renderValue={selected => {
-            const selectedUnit = cutsizelist?.find(unit => unit.id === selected)
+            const selectedUnit = cutsizelist?.find(unit => String(unit.id) === String(selected))
             return (
               <Tooltip title={selectedUnit?.cut_size || ''}>
                 <span
@@ -56,7 +69,7 @@ const SizeSelector = ({ size, cutsizelist, item, ingredient, handleChangeSize, s
           }}
         >
           <MenuItem value='' disabled>
-            Select
+            {t('select')}
           </MenuItem>
           {cutsizelist?.map(unit => (
             <MenuItem

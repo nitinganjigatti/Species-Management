@@ -11,7 +11,8 @@ import {
   ASSESSMENT_REPORT,
   GET_UPCOMING_VACCINATION_DEWORMING_RECORDS,
   GET_PENDING_VACCINATION_DEWORMING_RECORDS,
-  GET_COMPLETED_VACCINATION_DEWORMING_RECORDS
+  GET_COMPLETED_VACCINATION_DEWORMING_RECORDS,
+  ASSESSMENT_RESPONSE_TYPE
 } from 'src/constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
@@ -122,6 +123,12 @@ export async function getAssessmentCategoriesList(params) {
 
 export async function getAssessmentTypesList(params) {
   const response = await axiosGet({ url: `v1/assessment/type/list`, params })
+
+  return response.data
+}
+
+export async function getAssessmentResponseType(params) {
+  const response = await axiosGet({ url: `${ASSESSMENT_RESPONSE_TYPE}`, params })
 
   return response.data
 }

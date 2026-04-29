@@ -15,9 +15,11 @@ import { animalDietAttachmentStatus, getAnimalDetailUploadedDiet } from 'src/lib
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
 function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, setAnimalId, fetchTableData }) {
   const theme = useTheme()
+  const { t } = useTranslation()
   const fileInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
@@ -366,13 +368,23 @@ function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, 
                   sx={{ flex: 1 }}
                   value='1'
                   style={{ fontSize: 12 }}
-                  label={<TabBadge label={`Active Diets - ${animalDetails?.active_attachments?.length || 0}`} />}
+                  label={
+                    <TabBadge
+                      label={`${t('diet_module.active_diets')} - ${animalDetails?.active_attachments?.length || 0}`}
+                    />
+                  }
                 />
                 <Tab
                   sx={{ flex: 1 }}
                   value='0'
                   style={{ fontSize: 12 }}
-                  label={<TabBadge label={`Inactive Diets - ${animalDetails?.deactive_attachments?.length || 0}`} />}
+                  label={
+                    <TabBadge
+                      label={`${t('diet_module.in_active_diets')} - ${
+                        animalDetails?.deactive_attachments?.length || 0
+                      }`}
+                    />
+                  }
                 />
               </TabList>
               <TabPanel value='1'>
@@ -436,7 +448,7 @@ function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, 
             }}
             disabled={dietModuleAccess === 'VIEW'}
           >
-            UPLOAD NEW
+            {t('upload_new')}
           </LoadingButton>
 
           <UploadDiet

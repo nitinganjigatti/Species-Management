@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useContext } from 'react'
+import React, { useState, useEffect, useContext, useMemo, useCallback } from 'react'
 import { debounce } from 'lodash'
 import Toaster from 'src/components/Toaster'
 import { useRouter } from 'next/router'
@@ -10,23 +10,26 @@ import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import { getSectionList } from 'src/lib/api/egg/egg/createAnimal'
 import { AuthContext } from 'src/context/AuthContext'
 
-function TransferEnclosureDischarge(initialData) {
-  const router = useRouter()
-  const { id } = router.query
+function useTransferEnclosureDischarge() {
   const authData = useContext(AuthContext)
-  const zoo_id = authData?.userData?.user?.zoos[0]?.zoo_id
+  const zoo_id = authData?.userData?.user?.zoos[0]?.zoo_id || null
 
   const [sites, setSites] = useState([])
   const [sections, setSections] = useState([])
   const [enclosures, setEnclosures] = useState([])
 
-  const [fetchLoading, setFetchLoading] = useState(false)
-  const [sectionLoading, setSectionLoading] = useState(false)
-  const [enclosureLoading, setEnclosureLoading] = useState(false)
-  const [submitLoader, setSubmitLoader] = useState(false)
+  const [loading, setLoading] = useState({
+    sites: false,
+    sections: false,
+    enclosures: false,
+    submit: false
+  })
 
   const { selectedHospital, updateHospitalStats } = useHospital()
 
+  const setLoader = (key, value) => setLoading(prev => ({ ...prev, [key]: value }))
+
+  // Fetch and refresh hospital bed stats in context after successful discharge
   const fetchAndUpdateHospitalStats = async hospitalId => {
     if (!hospitalId) return
 
@@ -36,13 +39,13 @@ function TransferEnclosureDischarge(initialData) {
         updateHospitalStats(statsResponse.data)
       }
     } catch (error) {
-      console.error('Error fetching hospital stats:', error)
+      console.error('Error fetching hospital stats:', error?.message || error)
     }
   }
 
-  const fetchSites = async (q = '') => {
+  const fetchSites = useCallback(async (q = '') => {
     try {
-      setFetchLoading(true)
+      setLoader('sites', true)
       const params = { q, limit: 10, page_no: 1 }
       const res = await getZooWiseSiteLists(params)
       if (res?.success) {
@@ -55,50 +58,55 @@ function TransferEnclosureDischarge(initialData) {
         setSites([])
       }
     } catch (error) {
-      console.error('Error fetchSites:', error?.response?.data?.message || error?.message)
+      console.error('Error fetchSites:', error?.message)
     } finally {
-      setFetchLoading(false)
+      setLoader('sites', false)
     }
-  }
+  }, [])
 
-  const fetchSections = async (siteId, q = '') => {
-    if (!siteId) return
-    try {
-      setSectionLoading(true)
+  const fetchSections = useCallback(
+    async (siteId, q = '') => {
+      if (!siteId) return
 
-      const params = {
-        zoo_id: zoo_id.toString(),
-        page: 1,
-        offset: 10,
-        selected_site_id: siteId,
-        q,
-        filter_empty_enclosures: 1, // used for exclude section with empty enclosures
-        module_name: 'transfer',
-        exclude_user_section_permission: 1, // remove permission based filter
-        ignore_sys_gen: 1 // remove system generated
+      try {
+        setLoader('sections', true)
+
+        const params = {
+          zoo_id: zoo_id?.toString(),
+          page: 1,
+          offset: 10,
+          selected_site_id: siteId,
+          q,
+          filter_empty_enclosures: 1, // used for exclude section with empty enclosures
+          module_name: 'transfer',
+          exclude_user_section_permission: 1, // remove permission based filter
+          ignore_sys_gen: 1 // remove system generated
+        }
+
+        const res = await getSectionList(params)
+        if (res?.success) {
+          const formatted = res?.sections?.[0]?.map(item => ({
+            value: item?.section_id,
+            label: item?.section_name
+          }))
+          setSections(formatted)
+        } else {
+          setSections([])
+        }
+      } catch (error) {
+        console.error('Error fetchSections:', error?.message)
+      } finally {
+        setLoader('sections', false)
       }
+    },
+    [zoo_id]
+  )
 
-      const res = await getSectionList(params)
-      if (res?.success) {
-        const formatted = res?.sections?.[0]?.map(item => ({
-          value: item?.section_id,
-          label: item?.section_name
-        }))
-        setSections(formatted)
-      } else {
-        setSections([])
-      }
-    } catch (error) {
-      console.error('Error fetchSections:', error?.response?.data?.message || error?.message)
-    } finally {
-      setSectionLoading(false)
-    }
-  }
-
-  const fetchEnclosures = async (sectionId, q = '') => {
+  const fetchEnclosures = useCallback(async (sectionId, q = '') => {
     if (!sectionId) return
+
     try {
-      setEnclosureLoading(true)
+      setLoader('enclosures', true)
 
       const params = {
         section_id: sectionId,
@@ -119,46 +127,36 @@ function TransferEnclosureDischarge(initialData) {
         setEnclosures([])
       }
     } catch (error) {
-      console.error('Error fetchEnclosures:', error?.response?.data?.message || error?.message)
+      console.error('Error fetchEnclosures:', error?.message)
     } finally {
-      setEnclosureLoading(false)
+      setLoader('enclosures', false)
     }
-  }
+  }, [])
 
-  const debouncedFetchSites = useCallback(
-    debounce(q => fetchSites(q), 500),
-    []
+  // Debounce search
+  const debouncedFetchSites = useMemo(() => debounce(q => fetchSites(q), 500), [fetchSites])
+  const debouncedFetchSections = useMemo(() => debounce((siteId, q) => fetchSections(siteId, q), 500), [fetchSections])
+
+  const debouncedFetchEnclosures = useMemo(
+    () => debounce((sectionId, q) => fetchEnclosures(sectionId, q), 500),
+    [fetchEnclosures]
   )
 
-  const debouncedFetchSections = useCallback(
-    debounce((siteId, q) => fetchSections(siteId, q), 500),
-    []
-  )
-
-  const debouncedFetchEnclosures = useCallback(
-    debounce((sectionId, q) => fetchEnclosures(sectionId, q), 500),
-    []
-  )
-
+  // Cancel debounced calls on unmount to prevent memory leaks
   useEffect(() => {
-    setFetchLoading(true)
-    fetchSites('').finally(() => setFetchLoading(false))
-
-    if (initialData?.site_id) {
-      fetchSections(initialData.site_id)
-    }
-
-    if (initialData?.section_id) {
-      fetchEnclosures(initialData.section_id)
-    }
-
     return () => {
       debouncedFetchSites.cancel()
       debouncedFetchSections.cancel()
       debouncedFetchEnclosures.cancel()
     }
-  }, [initialData, debouncedFetchSites, debouncedFetchSections, debouncedFetchEnclosures])
+  }, [debouncedFetchSites, debouncedFetchSections, debouncedFetchEnclosures])
 
+  // Dropdown handler to trigger debounced search based on user input
+  const handleSiteSearch = text => debouncedFetchSites(text || '')
+  const handleSectionSearch = (siteId, text) => debouncedFetchSections(siteId, text || '')
+  const handleEnclosureSearch = (sectionId, text) => debouncedFetchEnclosures(sectionId, text || '')
+
+  // Clear functions to reset sections and enclosures options when site or section changes
   const clearSections = () => {
     setSections([])
   }
@@ -167,8 +165,9 @@ function TransferEnclosureDischarge(initialData) {
     setEnclosures([])
   }
 
+  // Handle transfer to enclosure form submission
   const handleSubmitData = async payload => {
-    setSubmitLoader(true)
+    setLoader('submit', true)
 
     try {
       const response = await addInpatientDischarge(payload)
@@ -191,31 +190,32 @@ function TransferEnclosureDischarge(initialData) {
 
       return false
     } catch (error) {
-      console.error('Transfer enclosure error:', error?.response?.data?.message || error?.message)
+      console.error('Transfer enclosure error:', error?.message)
 
       return false
     } finally {
-      setSubmitLoader(false)
+      setLoader('submit', false)
     }
   }
 
   return {
-    submitLoader,
-    handleSubmitData,
     sites,
-    fetchLoading,
-    handleSiteSearch: debouncedFetchSites,
     sections,
-    sectionLoading,
-    handleSectionSearch: debouncedFetchSections,
     enclosures,
-    enclosureLoading,
-    handleEnclosureSearch: debouncedFetchEnclosures,
+    siteLoading: loading.sites,
+    sectionLoading: loading.sections,
+    enclosureLoading: loading.enclosures,
+    submitLoader: loading.submit,
+    handleSiteSearch,
+    handleSectionSearch,
+    handleEnclosureSearch,
+    fetchSites,
     fetchSections,
     fetchEnclosures,
     clearSections,
-    clearEnclosures
+    clearEnclosures,
+    handleSubmitData
   }
 }
 
-export default TransferEnclosureDischarge
+export default useTransferEnclosureDischarge

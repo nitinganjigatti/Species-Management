@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -23,6 +23,13 @@ import Utility from 'src/utility'
 import Toaster from 'src/components/Toaster'
 import EditNotes from '../inpatient/EditNotes'
 import { useRouter } from 'next/router'
+import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
+
+dayjs.extend(utc)
+dayjs.extend(timezone)
 
 const AddEditSymptomDrawer = ({
   open,
@@ -54,13 +61,45 @@ const AddEditSymptomDrawer = ({
   isSubmitLoading,
   setActivityListData,
   isChanged,
-  isResolved
+  isResolved,
+  admittedDate,
+  dischargedDate,
+  isDischarged
 }) => {
   const theme = useTheme()
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
   const router = useRouter()
   const { id } = router.query
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
+  const [minDate, setMinDate] = useState(null)
+  const [maxDate, setMaxDate] = useState(null)
 
+  useEffect(() => {
+    if (!open) return
+
+    // Set default date and restrictions based on discharge status
+    if (isDischarged && dischargedDate) {
+      // Convert UTC dates to local time
+      setMinDate(dayjs.utc(admittedDate).local().startOf('day'))
+      setMaxDate(dayjs.utc(dischargedDate).local().endOf('day'))
+    } else {
+      setMinDate(admittedDate ? dayjs.utc(admittedDate).local().startOf('day') : null)
+      setMaxDate(dayjs()) // Set max date to current time for non-discharged animals
+    }
+
+    // Set initial value from selectedSymptom if available
+    if (selectedSymptom?.additional_info?.recorded_date_time) {
+      // Parse as local time (not UTC)
+      const localDateTime = dayjs.utc(selectedSymptom?.additional_info?.recorded_date_time).local()
+      setRecordedDateTime(localDateTime)
+    } else if (selectedSymptom?.created_at) {
+      // Parse as UTC and convert to local time
+      const localDateTime = dayjs.utc(selectedSymptom.created_at).local()
+      setRecordedDateTime(localDateTime)
+    } else {
+      setRecordedDateTime(dayjs())
+    }
+  }, [open, selectedSymptom, isDischarged, admittedDate, dischargedDate])
 
   const handleSave = () => {
     onSave({
@@ -68,7 +107,8 @@ const AddEditSymptomDrawer = ({
       severity,
       durationValue,
       durationUnit,
-      notes
+      notes,
+      recordedDateTime: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     })
   }
 
@@ -77,13 +117,15 @@ const AddEditSymptomDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.complaint_notes?.map(activity => ({
+    activityListData?.complaint_notes?.map((activity, index) => ({
       ...activity,
       isSystemGenerated: activity?.is_system_generated === 1,
       oldSeverity: activity?.notes_dump?.old_data?.severity || '',
       newSeverity: activity?.notes_dump?.new_data?.severity || '',
       createdBy: activity?.created_by_user_name || '',
-      formattedTime: `${Utility.formatDisplayDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
+      formattedTime: activityListData?.complaint_notes?.length === index + 1 ? `${Utility.convertUtcToLocalReadableDate(activityListData?.recorded_date_time)} • ${Utility.convertUTCToLocaltime(
+        activityListData?.recorded_date_time
+      )}` : `${Utility.convertUtcToLocalReadableDate(activity?.created_at)} • ${Utility.convertUTCToLocaltime(
         activity?.created_at
       )}`,
       note: activity.note || ''
@@ -201,10 +243,14 @@ const AddEditSymptomDrawer = ({
       >
         <Box
           sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1,
             px: 5,
             pt: 4,
             pb: 2,
-            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            backgroundColor: theme.palette.common.white
           }}
         >
           <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -216,13 +262,12 @@ const AddEditSymptomDrawer = ({
             </IconButton>
           </Box>
         </Box>
-          
+
         <Box
           sx={{
-            pb: 22,
-            borderBottom:
-              processedActivities?.length > 0 ? `1px solid ${theme.palette.customColors.OutlineVariant}` : 'none',
-            height: processedActivities?.length > 0 ? '-webkit-fill-available' : '80%'
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0
           }}
         >
           <Box
@@ -242,10 +287,33 @@ const AddEditSymptomDrawer = ({
             >
               {selectedSymptom?.created_by_user_name || selectedSymptom?.additional_info?.resolved_user_name}{' '}
               <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-              {Utility?.formatDisplayDate(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)}
+              {/* {Utility?.formatDisplayDate(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)} */}
+              {Utility?.formatDisplayDate(selectedSymptom?.created_at)}
               <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
-              {Utility.convertUTCToLocaltime(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)}
+              {Utility.convertUTCToLocaltime(selectedSymptom?.created_at)}
+              {/* {Utility.convertUTCToLocaltime(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)} */}
             </Typography>
+
+            {!selectedSymptom && (
+              <>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
+                >
+                  Date & Time
+                </Typography>
+                <Box sx={{ mb: 6 }}>
+                  <MUIDateTimePicker
+                    value={recordedDateTime}
+                    onChange={newValue => setRecordedDateTime(newValue)}
+                    label=''
+                    disabled={status === 'closed'}
+                    minDateTime={minDate}
+                    maxDateTime={maxDate}
+                    ampm={true}
+                  />
+                </Box>
+              </>
+            )}
 
             <Typography
               sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.deepDark, pb: 1, mt: 6 }}
@@ -327,7 +395,6 @@ const AddEditSymptomDrawer = ({
                   <MenuItem value='Extreme'>Extreme</MenuItem>
                 </Select>
               </Box>
-              {console.log(durationValue, 'durationValue')}
               <Box>
                 <Typography
                   sx={{
@@ -405,19 +472,29 @@ const AddEditSymptomDrawer = ({
             />
           </Box>
           {processedActivities?.length > 0 ? (
-            <>
+            <Box sx={{ pb: 20 }}>
               <Divider color={theme.palette.customColors.OutlineVariant} />
               <ActivityList
                 activities={processedActivities}
                 onEdit={handleEditActivity}
                 activityLoader={activityLoader}
               />
-            </>
+            </Box>
           ) : (
             ''
           )}
         </Box>
-        <Box sx={{ position: 'fixed', bottom: 0 }}>
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: theme.palette.common.white,
+            zIndex: 1,
+            flexShrink: 0
+          }}
+        >
           <SideSheetActionButtons
             addLabel='UPDATE'
             cancelLabel='CANCEL'

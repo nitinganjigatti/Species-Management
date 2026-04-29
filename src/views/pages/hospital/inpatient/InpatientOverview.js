@@ -17,10 +17,11 @@ import Utility, { downloadPDF } from 'src/utility'
 import { VisitType } from '../utility/hospitalSnippets'
 import { useHospital } from 'src/context/HospitalContext'
 import OverviewMediaListingDrawer from 'src/components/hospital/drawer/OverviewMediaListingDrawer'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import MenuWithDots from 'src/components/MenuWithDots'
 import Icon from 'src/@core/components/icon'
 import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
+import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -35,11 +36,12 @@ const InpatientOverview = ({
 }) => {
   const router = useRouter()
   const theme = useTheme()
-  const { data } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const [dischargeSummaryLoading, setDischargeSummaryLoading] = useState(false)
   const [openVisitSummaryFilterDrawer, setOpenVisitSummaryFilterDrawer] = useState(false)
+  const [prescriptionSheetOpen, setPrescriptionSheetOpen] = useState(false)
 
   const [selectedVisit, setSelectedVisit] = useState({
     case_id: null,
@@ -387,7 +389,7 @@ const InpatientOverview = ({
     <>
       <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box>
-          <HealthcareOverview data={overviewData} />
+          <HealthcareOverview data={overviewData} onPrescriptionClick={() => setPrescriptionSheetOpen(true)} />
         </Box>
         <Grid container spacing={6} sx={{ borderRadius: 2, padding: '0 0 16px 16px' }}>
           {/* Purpose of Visit */}
@@ -550,6 +552,11 @@ const InpatientOverview = ({
           caseId={selectedVisit?.case_id}
         />
       )}
+      <PrescriptionSidesheet
+        open={prescriptionSheetOpen}
+        onClose={() => setPrescriptionSheetOpen(false)}
+        animalId={animal_id}
+      />
     </>
   )
 }

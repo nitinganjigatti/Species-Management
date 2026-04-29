@@ -20,6 +20,7 @@ import Utility from 'src/utility'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import RenderUtility from 'src/utility/render'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { useTranslation } from 'react-i18next'
 
 const SpeciesAnimalsMapped = ({
   setIsOpenTabs,
@@ -64,7 +65,7 @@ const SpeciesAnimalsMapped = ({
   setCheckForSite
 }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const handleSearch = event => {
     setSearchQuery(event.target.value)
   }
@@ -183,10 +184,15 @@ const SpeciesAnimalsMapped = ({
     <Drawer
       anchor='right'
       open={isOpentab}
+      ModalProps={{
+        keepMounted: true
+      }}
       sx={{
         '& .MuiDrawer-paper': {
           width: ['100%', '562px'],
-          height: '100vh'
+          height: '100vh',
+          position: 'fixed',
+          overflow: 'hidden'
         },
         position: 'relative',
         display: 'flex',
@@ -449,7 +455,7 @@ const SpeciesAnimalsMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Species assigned
+                    {t('diet_module.no_species_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -474,7 +480,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        Species ({speciestotalcount || ''})
+                        {t('navigation.species')} ({speciestotalcount || ''})
                       </Typography>
                     )
                   ) : (
@@ -537,7 +543,9 @@ const SpeciesAnimalsMapped = ({
                         }}
                       >
                         <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                          {t('diet_module.no_species_found')}
+                        </Typography>
                       </Box>
                     )}
                     {!loading && isLoadingMore && (
@@ -748,7 +756,7 @@ const SpeciesAnimalsMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Animals assigned
+                    {t('diet_module.no_animals_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -761,7 +769,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        You have selected {tempSelectedSpecies?.length}species
+                        You have selected {tempSelectedSpecies?.length} species
                       </Typography>
                     ) : (
                       <Typography
@@ -773,7 +781,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        Animals ({speciestotalcount || ''})
+                        {t('navigation.animals')} ({speciestotalcount || ''})
                       </Typography>
                     )
                   ) : (
@@ -836,7 +844,9 @@ const SpeciesAnimalsMapped = ({
                         }}
                       >
                         <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Animals Found</Typography>
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                          {t('diet_module.no_animals_found')}
+                        </Typography>
                       </Box>
                     )}
                     {!loading && isLoadingMore && (
@@ -1048,7 +1058,7 @@ const SpeciesAnimalsMapped = ({
                       textAlign: 'center'
                     }}
                   >
-                    No Species assigned
+                    {t('diet_module.no_species_assigned')}
                   </Typography>
                 </Box>
               ) : (
@@ -1073,7 +1083,7 @@ const SpeciesAnimalsMapped = ({
                           pb: 1
                         }}
                       >
-                        Total Sites ({speciestotalcount || 0})
+                        Total {speciestotalcount == 1 ? 'Site' : 'Sites'} ({speciestotalcount || 0})
                       </Typography>
                     )
                   ) : (
@@ -1111,12 +1121,12 @@ const SpeciesAnimalsMapped = ({
                                   color: theme.palette.primary.dark
                                 }}
                               >
-                                Site Name : {site.site_name}
+                                {t('diet_module.site_name')} : {site.site_name}
                               </Typography>
 
                               <Chip
                                 label={`${
-                                  site.species?.length === 1 ? '1 Specie' : `${site.species?.length || 0} Species`
+                                  site.species?.length === 1 ? '1 Species' : `${site.species?.length || 0} Species`
                                 }`}
                                 size='small'
                                 sx={{
@@ -1153,7 +1163,8 @@ const SpeciesAnimalsMapped = ({
                                           date: species?.user_details?.created_at,
                                           text_color: theme.palette.customColors.OnSurfaceVariant,
                                           show_time: true,
-                                          size: 'small'
+                                          size: 'small',
+                                          crby_width: 200
                                         })
                                       : null
                                     : ''}
@@ -1193,7 +1204,9 @@ const SpeciesAnimalsMapped = ({
                         }}
                       >
                         <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
-                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+                        <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>
+                          {t('diet_module.no_species_found')}
+                        </Typography>
                       </Box>
                     )}
                     {!loading && isLoadingMore && (

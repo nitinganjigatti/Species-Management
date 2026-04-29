@@ -1,21 +1,8 @@
 import { useTheme } from '@emotion/react'
-import {
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  Grid,
-  IconButton,
-  InputAdornment,
-  TextField,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Badge, Button, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
 import Icon from 'src/@core/components/icon'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import { getStockItem } from 'src/lib/api/pharmacy/getStockItem'
@@ -32,11 +19,14 @@ import StockDetailDrawer from 'src/components/pharmacy/stockLocation/StockDetail
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import MenuWithDots from 'src/components/MenuWithDots'
 import AddReOrderDialog from 'src/components/pharmacy/stockLocation/AddReOrderDialog'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const StockLocation = () => {
   const theme = useTheme()
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+  const hasViewPermission = selectedPharmacy?.permission?.key === 'VIEW'
 
   const tabsForFilter = ['Racks']
 
@@ -220,8 +210,7 @@ const StockLocation = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.rack_count ? Utility.formatNumber(params.row.rack_count) : 0}
@@ -242,8 +231,7 @@ const StockLocation = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.shelf_count ? Utility.formatNumber(params.row.shelf_count) : 0}
@@ -263,8 +251,7 @@ const StockLocation = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.total_available_qty ? Utility.formatNumber(params.row.total_available_qty) : 0}
@@ -285,8 +272,7 @@ const StockLocation = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row?.min_qty ? Utility.formatNumber(params.row.min_qty) : 0}
@@ -303,18 +289,20 @@ const StockLocation = () => {
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-          <Tooltip title='Edit' placement='top'>
-            <IconButton
-              size='small'
-              onClick={() => {
-                setEditProduct(params?.row)
-                setShow(true)
-              }}
-              aria-label='Edit'
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          </Tooltip>
+          {!hasViewPermission && (
+            <Tooltip title='Edit' placement='top'>
+              <IconButton
+                size='small'
+                onClick={() => {
+                  setEditProduct(params?.row)
+                  setShow(true)
+                }}
+                aria-label='Edit'
+              >
+                <Icon icon='mdi:pencil-outline' />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title='More Options' placement='top'>
             <MenuWithDots options={getMenuOptions(params?.row)} />
           </Tooltip>
@@ -347,28 +335,13 @@ const StockLocation = () => {
     []
   )
 
-  const handleSortModel = async newModel => {
-    if (newModel.length > 0) {
+  const handleSortModel = useCallback(newModel => {
+    if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      await searchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
-
-      updateUrlParams({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
-    } else {
+      setPaginationModel(prevModel => ({ ...prevModel, page: 0 }))
     }
-  }
+  }, [])
 
   const closeDialog = () => {
     setShow(false)
@@ -382,11 +355,14 @@ const StockLocation = () => {
     showDialog()
   }
 
-  const headerAction = (
-    <>
-      <AddButtonContained title='New Configurations' action={handleAddProduct} fullWidth={'fullWidth'} />
-    </>
-  )
+  const headerAction = !hasViewPermission ? (
+    <AddButtonContained
+      title='New Configurations'
+      action={handleAddProduct}
+      styles={{ margin: 0 }}
+      fullWidth={'fullWidth'}
+    />
+  ) : null
 
   const handleFilterDrawer = () => {
     setOpenFilter(true)
@@ -425,110 +401,72 @@ const StockLocation = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader
+      <PageCardLayout action={headerAction} title={'Stock Location'}>
+        <Grid
+          container
+          spacing={2}
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: { xs: 3, sm: 0 },
-            '& .MuiCardHeader-action': {
-              width: { xs: '100% ', sm: 'auto' }
-            },
-            mx: { xs: -1, sm: 1 },
-            mt: 1
+            justifyContent: 'flex-end',
+            alignItems: 'center'
           }}
-          title={RenderUtility.pageTitle('Stock Location')}
-          action={headerAction}
-        />
-        <CardContent sx={{ paddingTop: '4px' }}>
-          <Box sx={{ mx: 1, mb: 2 }}>
-            <Grid
-              container
-              spacing={2}
-              sx={{
-                justifyContent: 'flex-end',
-                alignItems: 'center'
-              }}
-            >
-              <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    borderRadius: '8px'
-                  }}
-                  slotProps={{
-                    input: {
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }
-                  }}
-                />
-              </Grid>
-              <Grid item size={{ xs: 'auto' }}>
-                <Button
-                  variant='outlined'
-                  startIcon={<FilterListIcon />}
-                  endIcon={
-                    <Badge
-                      badgeContent={filterCount}
-                      color='primary'
-                      invisible={filterCount === 0}
-                      sx={{ ml: 2, mr: 2 }}
-                    />
-                  }
-                  sx={{
-                    border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    height: '40px',
-                    width: { xs: '100%', md: 'auto' },
-                    color: 'customColors.OnSurfaceVariant'
-                  }}
-                  onClick={handleFilterDrawer}
-                >
-                  Filter
-                </Button>
-              </Grid>
-            </Grid>
-          </Box>
-          <Grid>
-            <CommonTable
-              columns={columns}
-              indexedRows={indexedRows}
-              total={total}
-              onCellClick={handleStockRowClick}
-              loading={loading}
-              paginationModel={paginationModel}
-              setPaginationModel={setPaginationModel}
-              searchValue={searchValue}
-              handleSortModel={handleSortModel}
-              onPaginationModelChange={model => {
-                setPaginationModel(model)
-                router.replace({
-                  pathname: router.pathname,
-                  query: {
-                    ...router.query,
-                    page: model.page + 1,
-                    pageSize: model.pageSize,
-                    searchValue,
-                    sort,
-                    sortColumn
-                  }
-                })
-              }}
+        >
+          <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+            <MUISearch
+              placeholder='Search...'
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
             />
           </Grid>
-        </CardContent>
-      </Card>
+          <Grid item size={{ xs: 'auto' }}>
+            <Button
+              variant='outlined'
+              startIcon={<FilterListIcon />}
+              endIcon={
+                <Badge badgeContent={filterCount} color='primary' invisible={filterCount === 0} sx={{ ml: 2, mr: 2 }} />
+              }
+              sx={{
+                border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '8px',
+                height: '40px',
+                width: { xs: '100%', md: 'auto' },
+                color: 'customColors.OnSurfaceVariant'
+              }}
+              onClick={handleFilterDrawer}
+            >
+              Filter
+            </Button>
+          </Grid>
+        </Grid>
+
+        <Grid>
+          <CommonTable
+            columns={columns}
+            indexedRows={indexedRows}
+            total={total}
+            onCellClick={handleStockRowClick}
+            loading={loading}
+            paginationModel={paginationModel}
+            setPaginationModel={setPaginationModel}
+            searchValue={searchValue}
+            handleSortModel={handleSortModel}
+            onPaginationModelChange={model => {
+              setPaginationModel(model)
+              router.replace({
+                pathname: router.pathname,
+                query: {
+                  ...router.query,
+                  page: model.page + 1,
+                  pageSize: model.pageSize,
+                  searchValue,
+                  sort,
+                  sortColumn
+                }
+              })
+            }}
+          />
+        </Grid>
+      </PageCardLayout>
       {show && (
         <CommonDialogBox
           title={editProduct ? 'Edit Product Configuration' : 'Add Product Configuration'}

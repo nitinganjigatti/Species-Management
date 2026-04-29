@@ -314,12 +314,13 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
     <>
       <Grid
         item
-        xs={12}
-        md={6}
+        size = {{
+          xs: 12,
+          sm: 'auto'
+        }}
         sx={{
           display: 'flex',
           justifyContent: { xs: 'flex-end', sm: 'flex-end' },
-          mr: 1
         }}
       >
         <ExportButton onClick={handleExport} loading={exportLoading} disabled={total === 0} />

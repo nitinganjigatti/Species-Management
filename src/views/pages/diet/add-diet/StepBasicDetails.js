@@ -36,6 +36,7 @@ import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoi
 import AddIngredients from 'src/components/diet/AddIngredients'
 import RecipeList from 'src/components/diet/RecipeList'
 import ComboList from 'src/components/diet/ComboList'
+import { useTranslation } from 'react-i18next'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 
 const defaultValues = {
@@ -105,6 +106,7 @@ const StepBasicDetails = ({
 }) => {
   // ** States
   const theme = useTheme()
+  const { t } = useTranslation()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [uploadedImage, setUploadedImage] = useState(null)
   const [openIngredient, setOpenIngredient] = useState(false)
@@ -851,11 +853,12 @@ const StepBasicDetails = ({
               fontWeight: 500,
               textAlign: 'center',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              textTransform: 'uppercase'
             }}
             variant='h6'
           >
-            <Icon icon='material-symbols:add' style={{ marginRight: '8px' }} /> ADD NEW MEAL
+            <Icon icon='material-symbols:add' style={{ marginRight: '8px' }} /> {t('diet_module.add_new_meal')}
           </Typography>
         </Grid>
       </>
@@ -1085,7 +1088,7 @@ const StepBasicDetails = ({
         <form onSubmit={handleSubmit(onSubmit)}>
           <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
             <Box sx={{ mb: 8, px: 5, mt: 5, float: 'left' }}>
-              <Typography variant='h6'>Basic Information</Typography>
+              <Typography variant='h6'>{t('diet_module.basic_information')}</Typography>
             </Box>
             <ScrollToFieldError errors={errors} />
             <Grid container spacing={5} sx={{ px: 5 }}>
@@ -1098,7 +1101,7 @@ const StepBasicDetails = ({
                     render={({ field: { value, onChange } }) => (
                       <TextField
                         value={value}
-                        label='Diet name *'
+                        label={`${t('diet_module.diet_name')} *`}
                         name='diet_name'
                         error={Boolean(errors.diet_name)}
                         onChange={onChange}
@@ -1146,7 +1149,7 @@ const StepBasicDetails = ({
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Diet Type *'
+                              label={`${t('diet_module.diet_type')} *`}
                               placeholder='Search & Select'
                               error={Boolean(errors.diet_type_id)}
                               name='diet_type_id'
@@ -1190,7 +1193,7 @@ const StepBasicDetails = ({
                           renderInput={params => (
                             <TextField
                               {...params}
-                              label='Nutritionist *'
+                              label={`${t('diet_module.nutritionist')} *`}
                               placeholder='Search & Select'
                               error={Boolean(errors.dietitian_id)}
                               name='dietitian_id'
@@ -1222,12 +1225,27 @@ const StepBasicDetails = ({
                       multiline
                       fullWidth
                       value={value}
-                      label='Description (Optional)'
+                      label={`${t('description')} (${t('optional')})`}
                       name='desc'
                       error={Boolean(errors.desc)}
                       onChange={onChange}
+                      slotProps={{
+                        inputLabel: { shrink: true }
+                      }}
                       id='textarea-outlined'
                       rows={5}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          alignItems: 'flex-start',
+                          paddingTop: '12px'
+                        },
+                        '& textarea': {
+                          paddingTop: '8px'
+                        },
+                        '& .MuiOutlinedInput-notchedOutline legend': {
+                          maxWidth: '100%'
+                        }
+                      }}
                     />
                   )}
                 />
@@ -1237,7 +1255,10 @@ const StepBasicDetails = ({
 
           {fieldsIngredients.map((field, index) => (
             <Card sx={{ mt: 7 }} key={field.id}>
-              <CardHeader title={`Add Meal ${index + 1}`} sx={{ float: 'left', width: '50%', mb: 5 }} />
+              <CardHeader
+                title={`${t('diet_module.add_meal')} ${index + 1}`}
+                sx={{ float: 'left', width: '50%', mb: 5 }}
+              />
               {(fieldsIngredients.length - 1 === index && index > 0) ||
               (!index <= 0 && !fieldsIngredients.length - 1 <= 0) ? (
                 <Grid sx={{ float: 'right', width: '4%', marginRight: '24px', cursor: 'pointer' }}>
@@ -1258,7 +1279,7 @@ const StepBasicDetails = ({
                           <TextField
                             value={value}
                             type='text'
-                            label='Meal name'
+                            label={t('diet_module.meal_name')}
                             name={`meal_data[${index}].meal_name`}
                             error={
                               errors.meal_data && errors.meal_data[index] && errors.meal_data[index].meal_name?.message
@@ -1291,7 +1312,7 @@ const StepBasicDetails = ({
                         render={({ field: { value, onChange } }) => (
                           <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <TimePicker
-                              label='Select time - from'
+                              label={t('diet_module.select_time_from')}
                               onChange={onChange}
                               name={`meal_data[${index}].meal_from_time`}
                               defaultValue={value ? dayjs(value) : null}
@@ -1341,7 +1362,7 @@ const StepBasicDetails = ({
                         render={({ field: { value, onChange } }) => (
                           <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <TimePicker
-                              label='Select time - to'
+                              label={t('diet_module.select_time_to')}
                               name={`meal_data[${index}].meal_to_time`}
                               onChange={onChange}
                               defaultValue={value ? dayjs(value) : null}
@@ -1362,7 +1383,7 @@ const StepBasicDetails = ({
                 allRecipeSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Recipes</Typography>
+                      <Typography variant='h6'>{t('diet_module.recipes')}</Typography>
                     </Box>
 
                     <Grid
@@ -1548,7 +1569,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -1559,7 +1580,7 @@ const StepBasicDetails = ({
                 allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Mix</Typography>
+                      <Typography variant='h6'>{t('navigation.mix')}</Typography>
                     </Box>
 
                     <Grid
@@ -1740,7 +1761,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -1750,7 +1771,7 @@ const StepBasicDetails = ({
                 {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Items</Typography>
+                      <Typography variant='h6'>{t('diet_module.items')}</Typography>
                     </Box>
 
                     <Grid
@@ -1916,7 +1937,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -1929,7 +1950,7 @@ const StepBasicDetails = ({
                 allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
                     <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Items with choice</Typography>
+                      <Typography variant='h6'>{t('diet_module.items_with_choice')}</Typography>
                     </Box>
 
                     <Grid
@@ -2029,7 +2050,7 @@ const StepBasicDetails = ({
                                     ))}
                                   </Grid>
                                 </Grid>
-                                <Grid size={{ xs: 12, sm: 3.7, md: 3.6 }}>
+                                <Grid size={{ xs: 12, sm: 3.2, md: 3.6 }}>
                                   <Grid sx={{ pl: 7 }}>
                                     <Tooltip title={all?.remarks} arrow placement='bottom-start'>
                                       <Typography
@@ -2051,7 +2072,7 @@ const StepBasicDetails = ({
                                 </Grid>
 
                                 <Icon
-                                  className='pencil_diet'
+                                  className='pencil_diet_for_choice'
                                   style={{
                                     fontSize: '22px',
                                     cursor: 'pointer'
@@ -2070,7 +2091,7 @@ const StepBasicDetails = ({
                                   icon='bx:pencil'
                                 />
                                 <Icon
-                                  className='del_diet'
+                                  className='del_diet_for_choice'
                                   onClick={() => removeingClicking(index, all.mealid, all)}
                                   style={{ fontSize: '22px', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
@@ -2207,7 +2228,7 @@ const StepBasicDetails = ({
                                               fontWeight: 500
                                             }}
                                           >
-                                            Add
+                                            {t('add')}
                                           </span>
                                         </Box>
                                       </CardContent>
@@ -2220,7 +2241,7 @@ const StepBasicDetails = ({
                         })
                       ) : (
                         <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                          No Records to show
+                          {t('diet_module.no_records')}
                         </Typography>
                       )}
                     </Grid>
@@ -2239,12 +2260,13 @@ const StepBasicDetails = ({
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      textTransform: 'uppercase'
                     }}
                     onClick={() => addEventSidebarOpen(field, index, 'recipe')}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD RECIPE
+                    {t('diet_module.add_recipe')}
                   </Typography>
                   <Typography
                     sx={{
@@ -2256,12 +2278,13 @@ const StepBasicDetails = ({
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      textTransform: 'uppercase'
                     }}
                     onClick={() => addEventSidebarOpen(field, index, 'combo')}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD MIX
+                    {t('diet_module.add_mix')}
                   </Typography>
                   <Typography
                     className='item_cls'
@@ -2274,12 +2297,13 @@ const StepBasicDetails = ({
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      textTransform: 'uppercase'
                     }}
                     onClick={() => handleAddIngerdient(field, index)}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD ITEM
+                    {t('diet_module.add_item')}
                   </Typography>
 
                   <Typography
@@ -2292,20 +2316,23 @@ const StepBasicDetails = ({
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      textTransform: 'uppercase'
                     }}
                     className='ing_choice'
                     onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD ITEM WITH CHOICE
+                    {t('diet_module.add_item_with_choice')}
                   </Typography>
                 </Grid>
 
                 <Divider sx={{ mb: 4, pb: 1, mt: 6, width: '98%' }} />
 
                 <Grid>
-                  <Typography variant='h6'>Add Notes</Typography>
+                  <Typography variant='h6'>
+                    {t('add')} {t('notes')}
+                  </Typography>
                   <Grid size={{ xs: 12 }} sx={{ pt: 5 }}>
                     <Controller
                       name={`meal_data[${index}].notes`}
@@ -2316,7 +2343,7 @@ const StepBasicDetails = ({
                           multiline
                           fullWidth
                           value={value}
-                          label='Enter Notes '
+                          label={t('diet_module.enter_notes')}
                           name={`meal_data[${index}].notes`}
                           error={Boolean(errors.desc)}
                           onChange={onChange}
@@ -2342,10 +2369,10 @@ const StepBasicDetails = ({
                   sx={{ mr: 6 }}
                   onClick={cancelBack}
                 >
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                  Next
+                  {t('next')}
                 </Button>
               </Box>
             </Grid>

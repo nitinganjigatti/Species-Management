@@ -47,12 +47,14 @@ import Utility from 'src/utility'
 
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
-import { write, read } from 'src/lib/windows/utils'
+import { useTranslation } from 'react-i18next'
+
+const ALL_NURSERY_OPTION = { nursery_id: '', nursery_name: 'All' }
 
 const EggList = () => {
   const theme = useTheme()
   const router = useRouter()
-
+  const { t } = useTranslation()
   const {
     tab_Value = 'eggs_incubation',
     subTab_value = 'eggs_discarded',
@@ -114,8 +116,8 @@ const EggList = () => {
 
   // nursery filter dropdown
   const [nurseryLoading, setNurseryLoading] = useState(false)
-  const [nurseryList, setNurseryList] = useState([])
-  const [defaultNursery, setDefaultNursery] = useState(null)
+  const [nurseryList, setNurseryList] = useState([ALL_NURSERY_OPTION])
+  const [defaultNursery, setDefaultNursery] = useState(ALL_NURSERY_OPTION)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
 
   useEffect(() => {
@@ -182,7 +184,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -199,33 +201,37 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -235,7 +241,7 @@ const EggList = () => {
       width: 160,
       field: 'condition',
       sortable: false,
-      headerName: 'Condition',
+      headerName: t('egg_module.condition'),
       renderCell: params => (
         <Box sx={{ gap: 2 }}>
           <Typography
@@ -277,7 +283,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
           <Typography
@@ -301,7 +307,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'Nursery',
+      headerName: t('egg_module.nursery'),
       renderCell: params => (
         <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
           <Typography
@@ -326,7 +332,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -348,7 +354,7 @@ const EggList = () => {
       width: 270,
       sortable: false,
       field: 'collected_by',
-      headerName: 'COLLECTED BY',
+      headerName: t('collected_by'),
       renderCell: params => (
         <>
           {status === 'eggs_received' ? (
@@ -453,7 +459,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -470,33 +476,37 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -505,7 +515,7 @@ const EggList = () => {
       width: 160,
       field: 'state',
       sortable: false,
-      headerName: 'STATE',
+      headerName: t('egg_module.state'),
       renderCell: params => (
         <Box>
           <TextCard egg_status={params.row.egg_status} />
@@ -517,7 +527,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
           <Typography
@@ -541,7 +551,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'Nursery',
+      headerName: t('navigation.nursery'),
       renderCell: params => (
         <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
           <Typography
@@ -567,7 +577,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -589,7 +599,7 @@ const EggList = () => {
       width: 270,
       sortable: false,
       field: 'collected_by',
-      headerName: 'COLLECTED BY',
+      headerName: t('collected_by'),
       renderCell: params => (
         <>
           {status === 'eggs_received' ? (
@@ -694,7 +704,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -713,33 +723,37 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px',
-                mt: '1px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px',
+                  mt: '1px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -748,39 +762,47 @@ const EggList = () => {
       width: 140,
       sortable: false,
       field: 'animal_sex',
-      headerName: 'GENDER',
+      headerName: t('gender'),
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px',
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row?.animal_sex}
-        </Typography>
+        <Tooltip title={params.row?.animal_sex || ''}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px',
+              textTransform: 'capitalize'
+            }}
+          >
+            {params.row?.animal_sex}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       width: 200,
       sortable: false,
       field: 'identifier',
-      headerName: 'IDENTIFIER',
+      headerName: t('egg_module.identifier'),
       renderCell: params => (
         <Box>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 500,
-              lineHeight: '19.36px'
-            }}
+          <Tooltip
+            title={`${params.row.local_id_type} ${
+              params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'
+            }`}
           >
-            {params.row.local_id_type}{' '}
-            {params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'}
-          </Typography>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: 500,
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.local_id_type}{' '}
+              {params.row.local_identifier_value ? `- ${params.row.local_identifier_value}` : '-'}
+            </Typography>
+          </Tooltip>
         </Box>
       )
     },
@@ -788,20 +810,22 @@ const EggList = () => {
       width: 200,
       field: 'animal_id',
       sortable: false,
-      headerName: 'Animal Id',
+      headerName: t('egg_module.animal_id'),
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           {/* {console.log(params.row.animal_id)} */}
           {params.row.animal_id ? (
-            <Typography
-              style={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: '600'
-              }}
-            >
-              AAID : {params.row.animal_id ? params.row.animal_id : '-'}
-            </Typography>
+            <Tooltip title={`AAID: ${params.row?.animal_id || '-'}`}>
+              <Typography
+                style={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '16px',
+                  fontWeight: '600'
+                }}
+              >
+                AAID : {params.row.animal_id ? params.row.animal_id : '-'}
+              </Typography>
+            </Tooltip>
           ) : checkAddPermission() ? (
             <Typography
               style={{
@@ -815,7 +839,7 @@ const EggList = () => {
                 setOpenCreate(true)
               }}
             >
-              Create Animal ID
+              {t('egg_module.create_animal_id')}
             </Typography>
           ) : (
             <Typography
@@ -834,7 +858,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -856,7 +880,7 @@ const EggList = () => {
       width: 170,
       sortable: false,
       field: 'hatched_on',
-      headerName: 'Hatched On',
+      headerName: t('egg_module.hatched_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -898,7 +922,7 @@ const EggList = () => {
       width: 250,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <Stack direction='row' spacing={2} sx={{ display: 'flex', alignItems: 'center' }}>
           <SpeciesImageCard
@@ -917,33 +941,37 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -952,7 +980,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'stage_state',
-      headerName: 'STATE & STAGE',
+      headerName: t('egg_module.state_stage'),
       renderCell: params => (
         <Stack direction='column' spacing={1}>
           <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
@@ -982,7 +1010,7 @@ const EggList = () => {
       width: 110,
       sortable: false,
       field: 'days_in_incubation',
-      headerName: 'Days In Incubation',
+      headerName: t('egg_module.days_in_incubation'),
       align: 'left',
       renderHeader: () => (
         <Box>
@@ -994,7 +1022,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            DAYS IN
+            {t('egg_module.days_in')}
           </Typography>
           <Typography
             sx={{
@@ -1004,21 +1032,23 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            INCUBATION
+            {t('egg_module.incubation')}
           </Typography>
         </Box>
       ),
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 500,
-            lineHeight: '19.36px'
-          }}
-        >
-          {params.row.days_in_incubation ? params.row.days_in_incubation : '-'}
-        </Typography>
+        <Tooltip title={params.row.days_in_incubation ? params.row.days_in_incubation : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px'
+            }}
+          >
+            {params.row.days_in_incubation ? params.row.days_in_incubation : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -1037,7 +1067,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            INITIAL WEIGHT
+            {t('egg_module.initial_weight')}
           </Typography>
           <Typography
             sx={{
@@ -1082,7 +1112,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            CURRENT WEIGHT
+            {t('egg_module.current_weight')}
           </Typography>
           <Typography
             sx={{
@@ -1217,7 +1247,7 @@ const EggList = () => {
               fontWeight: 500
             }}
           >
-            CLUTCH
+            {t('egg_module.clutch')}
           </Typography>
         </Box>
       ),
@@ -1258,7 +1288,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'enclosure_name',
-      headerName: 'Enclosure',
+      headerName: t('enclosure'),
       renderCell: params => (
         <Tooltip title={params.row.enclosure_name ? params.row.enclosure_name : '-'}>
           <Typography
@@ -1281,7 +1311,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
           <Typography
@@ -1304,7 +1334,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'nursery_name',
-      headerName: 'Nursery NAME',
+      headerName: t('egg_module.nursery_name'),
       renderCell: params => (
         <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
           <Typography
@@ -1328,7 +1358,7 @@ const EggList = () => {
       width: 130,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1349,7 +1379,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'allocated_by',
-      headerName: 'Allocated by',
+      headerName: t('allocated_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1436,7 +1466,7 @@ const EggList = () => {
       width: 300,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -1453,33 +1483,37 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -1488,7 +1522,7 @@ const EggList = () => {
       width: 180,
       field: 'discard_request_id',
       sortable: false,
-      headerName: 'BATCH DETAILS',
+      headerName: t('egg_module.batch_details'),
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           <Tooltip title={params.row?.discard_request_id ? params.row?.discard_request_id : '-'}>
@@ -1543,7 +1577,7 @@ const EggList = () => {
       width: 160,
       field: 'reason',
       sortable: false,
-      headerName: 'Reason',
+      headerName: t('reason'),
       renderCell: params => (
         <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
           <Typography
@@ -1569,7 +1603,7 @@ const EggList = () => {
       width: 160,
       field: 'nursery_name',
       sortable: false,
-      headerName: 'NURSERY',
+      headerName: t('navigation.nursery'),
       renderCell: params => (
         <Tooltip title={params.row?.nursery_name ? params.row?.nursery_name : '-'}>
           <Typography
@@ -1595,7 +1629,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1614,7 +1648,7 @@ const EggList = () => {
       width: 140,
       sortable: false,
       field: 'sample_taken',
-      headerName: 'Sample Taken',
+      headerName: t('egg_module.sample_taken'),
       renderCell: params => (
         <>
           {params.row.necropsy_file_uploaded === '0' ? (
@@ -1647,7 +1681,7 @@ const EggList = () => {
       width: 170,
       sortable: false,
       field: 'necropsy_report',
-      headerName: 'NECROPSY REPORT',
+      headerName: t('egg_module.necropsy_report'),
       align: 'left',
       renderCell: params => (
         <>
@@ -1681,7 +1715,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'initiated_by',
-      headerName: 'Initiated By',
+      headerName: t('egg_module.initiated_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1766,7 +1800,7 @@ const EggList = () => {
       width: 300,
       sortable: false,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <SpeciesImageCard
           imgURl={params.row.default_icon}
@@ -1783,33 +1817,37 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'egg_identifier',
-      headerName: 'EGG IDENTIFIER',
+      headerName: t('egg_module.egg_identifier'),
       renderCell: params => (
         <Box>
           {params.row.egg_number && (
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 500,
-                lineHeight: '19.36px'
-              }}
-            >
-              UEID : {params.row.egg_number ? params.row.egg_number : '-'}
-            </Typography>
+            <Tooltip title={`UEID: ${params.row?.egg_number || '-'}`}>
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px'
+                }}
+              >
+                UEID : {params.row.egg_number ? params.row.egg_number : '-'}
+              </Typography>
+            </Tooltip>
           )}
 
           {params.row.egg_code && (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
+            <Tooltip title={`AEID: ${params.row?.egg_code || '-'}`}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
 
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '19.36px'
-              }}
-            >
-              AEID : {params.row.egg_code ? params.row.egg_code : '-'}
-            </Typography>
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
+                }}
+              >
+                AEID : {params.row.egg_code ? params.row.egg_code : '-'}
+              </Typography>
+            </Tooltip>
           )}
         </Box>
       )
@@ -1818,7 +1856,7 @@ const EggList = () => {
       width: 160, // Adjust based on desired cell width
       field: 'reason',
       sortable: false,
-      headerName: 'Reason',
+      headerName: t('reason'),
       renderCell: params => (
         <Box
           sx={{
@@ -1855,7 +1893,7 @@ const EggList = () => {
       width: 150,
       sortable: false,
       field: 'collected_on',
-      headerName: 'COLLECTED ON',
+      headerName: t('collected_on'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1876,7 +1914,7 @@ const EggList = () => {
       width: 160,
       sortable: false,
       field: 'site',
-      headerName: 'SITE NAME',
+      headerName: t('egg_module.site_name'),
       renderCell: params => (
         <Typography
           sx={{
@@ -1895,7 +1933,7 @@ const EggList = () => {
       width: 200,
       sortable: false,
       field: 'initiated_by',
-      headerName: 'Initiated By',
+      headerName: t('egg_module.initiated_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -2203,54 +2241,41 @@ const EggList = () => {
     [fetchTableData, selectedFiltersOptions, filterByNurseryId] // <== important for latest values
   )
 
-  const NurseryList = async q => {
+  const fetchNurseryOptions = useCallback(async (query = '') => {
     setNurseryLoading(true)
     try {
       const params = {
-        search: q,
+        search: query,
         page: 1,
         limit: 50
       }
-      await GetNurseryList({ params }).then(res => {
-        const apiList = res?.data?.result || []
+      const res = await GetNurseryList({ params })
+      const apiList = res?.data?.result || []
+      const sanitizedList = apiList.filter(option => option?.nursery_id !== '')
 
-        // Add the "All" option
-        const allOption = { nursery_id: '', nursery_name: 'All' }
-        const updatedList = [allOption, ...apiList]
-        setNurseryList(updatedList)
-      })
-    } catch (e) {
-      console.error(e)
+      setNurseryList([ALL_NURSERY_OPTION, ...sanitizedList])
+    } catch (error) {
+      console.error(error)
     } finally {
       setNurseryLoading(false)
     }
-  }
-
-  const readNursery = async () => {
-    const storedNursery = read('Nursery')
-    const parsedNursery = await JSON.parse(storedNursery)
-    if (parsedNursery) {
-      setDefaultNursery(parsedNursery)
-      setFilterByNurseryId(parsedNursery?.nursery_id)
-    } else {
-      setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
-      setFilterByNurseryId(parsedNursery?.nursery_id)
-    }
-  }
-
-  useEffect(() => {
-    readNursery()
-    NurseryList()
   }, [])
 
-  // 👇 debounce the function just once using useMemo
-  const debouncedSetFilterByNurseryId = useMemo(
+  const debouncedFetchNurseryOptions = useMemo(
     () =>
       debounce(value => {
-        NurseryList(value)
+        fetchNurseryOptions(value)
       }, 400),
-    []
+    [fetchNurseryOptions]
   )
+
+  useEffect(() => {
+    fetchNurseryOptions('')
+
+    return () => {
+      debouncedFetchNurseryOptions.clear()
+    }
+  }, [fetchNurseryOptions, debouncedFetchNurseryOptions])
 
   const headerAction = (
     <>
@@ -2265,30 +2290,31 @@ const EggList = () => {
           disablePortal
           id='nursery'
           onInputChange={(event, newInputValue, reason) => {
-            if (reason === 'reset') {
-              debouncedSetFilterByNurseryId(newInputValue)
+            if (reason === 'input') {
+              debouncedFetchNurseryOptions(newInputValue)
+            } else if (reason === 'clear') {
+              fetchNurseryOptions('')
             }
-            debouncedSetFilterByNurseryId(newInputValue)
           }}
           loading={nurseryLoading}
           options={nurseryList?.length > 0 ? nurseryList : []}
           getOptionLabel={option => option.nursery_name}
           isOptionEqualToValue={(option, value) => option.nursery_id === value.nursery_id}
           onChange={(e, val) => {
-            if (val === null || val.nursery_id === '') {
-              // setDefaultNursery({ nursery_id: '', nursery_name: 'All' })
+            if (!val || val.nursery_id === '') {
+              setDefaultNursery(ALL_NURSERY_OPTION)
               setFilterByNurseryId('')
-              write('Nursery', JSON.stringify({ nursery_id: '', nursery_name: 'All' }))
-            } else {
-              setDefaultNursery({ nursery_id: val.nursery_id, nursery_name: val.nursery_name })
-              setFilterByNurseryId(val.nursery_id)
-              write('Nursery', JSON.stringify({ nursery_id: val.nursery_id, nursery_name: val.nursery_name }))
+
+              return
             }
+
+            setDefaultNursery(val)
+            setFilterByNurseryId(val.nursery_id || '')
           }}
           renderInput={params => (
             <TextField
               {...params}
-              label='Select Nursery *'
+              label={`${t('egg_module.select_nursery')} *`}
               placeholder='Search & Select'
               InputProps={{
                 ...params.InputProps,
@@ -2459,7 +2485,7 @@ const EggList = () => {
         <Box>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit' sx={{ cursor: 'pointer' }}>
-              Egg
+              {t('egg_module.egg')}
             </Typography>
 
             <Typography
@@ -2468,11 +2494,11 @@ const EggList = () => {
                 cursor: 'pointer'
               }}
             >
-              Egg List
+              {t('egg_module.egg_list')}
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Egg List' action={headerAction} />
+            <CardHeader title={t('egg_module.egg_list')} action={headerAction} />
 
             {/* <CardContent> */}
             <TabContext value={status}>

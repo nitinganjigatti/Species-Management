@@ -2,9 +2,11 @@ import { useState } from 'react'
 import { Grid, Box, Typography, Chip, Divider, Avatar } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import ActivityLogs from 'src/components/diet/activityLogs'
+import { useTranslation } from 'react-i18next'
 import moment from 'moment'
 
 const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -30,7 +32,7 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
     <Grid>
       {IngredientsDetailsval.desc ? (
         <div>
-          <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>Description</Typography>
+          <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>{t('description')}</Typography>
           <Typography
             variant='body2'
             sx={{
@@ -89,7 +91,7 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
             onClick={() => setActivitySidebarOpen(true)}
             sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
           >
-            <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
+            <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>{t('activity_log')}</Typography>
             <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
           </Box>
         </Box>

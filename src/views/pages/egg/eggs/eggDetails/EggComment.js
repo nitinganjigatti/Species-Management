@@ -10,10 +10,11 @@ import Icon from 'src/@core/components/icon'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { addEggComment, deleteEggComments, getEggComments } from 'src/lib/api/egg/egg'
+import { useTranslation } from 'react-i18next'
 
 const EggComment = ({ eggDetails, eggId }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const CustomBox = styled(Box)({
     '::-webkit-scrollbar': {
       width: '5px',
@@ -205,7 +206,7 @@ const EggComment = ({ eggDetails, eggId }) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Add Comment
+            {t('egg_module.add_comment')}
           </Typography>
           <TextField
             sx={{
@@ -266,7 +267,7 @@ const EggComment = ({ eggDetails, eggId }) => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Previous Comments
+                {t('egg_module.previous_comments')}
               </Typography>
             </Box>
             <CustomBox
@@ -390,7 +391,7 @@ const EggComment = ({ eggDetails, eggId }) => {
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  No Comments
+                  {t('egg_module.no_comments')}
                 </Typography>
               )}
               {reachedEnd ? <LinearProgress /> : null}

@@ -2,12 +2,12 @@
 import { useState, useEffect } from 'react'
 
 // ** Next Import
-import { useRouter } from 'next/router'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 const WindowWrapper = ({ children }) => {
   // ** State
   const [windowReadyFlag, setWindowReadyFlag] = useState(false)
-  const router = useRouter()
+  const router = useSafeRouter()
   useEffect(
     () => {
       if (typeof window !== 'undefined') {

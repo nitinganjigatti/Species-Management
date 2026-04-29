@@ -1,0 +1,400 @@
+import { useTheme, Theme } from '@emotion/react'
+import { Box, Grid, Typography } from '@mui/material'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import React, { useEffect, useMemo, useState, ChangeEvent } from 'react'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
+import Search from 'src/views/utility/Search'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
+import { DateInfoDisplay, IdentifierInfoCard } from 'src/utility/render'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { getMortalityList } from 'src/lib/api/housing'
+import { debounce, DebouncedFunc } from 'lodash'
+import type { GridSortModel, GridCellParams, GridColDef, GridRowParams } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
+
+interface MortalityFilters {
+  page: number
+  pageSize: number
+  search: string
+  sortBy: string
+  sortOrder: string
+}
+
+interface MortalityRow {
+  animal_id?: number
+  common_name?: string
+  scientific_name?: string
+  default_icon?: string
+  local_identifier_name?: string
+  local_identifier_value?: string
+  discovered_date?: string
+  user_enclosure_name?: string
+  reason_name?: string
+  mortality_id?: number
+}
+
+interface IndexedMortalityRow extends MortalityRow {
+  id: number
+  sl_no: number
+}
+
+interface PaginationModel {
+  page: number
+  pageSize: number
+}
+
+const MortalityListing: React.FC = () => {
+  const { t } = useTranslation()
+  const theme = useTheme() as Theme & { palette: any }
+  const router: any = useSafeRouter()
+  const { id } = router.query
+
+  const [downloading, setDownloading] = useState<boolean>(false)
+  const [inputValue, setInputValue] = useState<string>('')
+
+  const [filters, setFilters] = useState<MortalityFilters>({
+    page: 1,
+    pageSize: 10,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
+  })
+
+  const { data, isFetching } = useQuery({
+    queryKey: ['mortality-list', id, filters],
+    queryFn: () =>
+      getMortalityList({
+        page_no: filters.page,
+        limit: filters.pageSize,
+        sort_by: filters.sortBy,
+        sort_order: filters.sortOrder as 'asc' | 'desc' | undefined,
+        q: filters.search,
+        section_id: Number(id),
+        type: 'animals'
+      }),
+    enabled: !!id,
+    placeholderData: keepPreviousData
+  })
+
+  const sectionList: MortalityRow[] = data?.data?.result || []
+  const total: number = data?.data?.total_count || 0
+
+  const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
+
+  const indexedRows: IndexedMortalityRow[] = sectionList.map((row, index) => ({
+    ...row,
+    id: +(row?.mortality_id || 0),
+    sl_no: getSlNo(index)
+  }))
+
+  const handlePaginationModelChange = (model: PaginationModel): void => {
+    const newPage = model.page + 1
+    const newPageSize = model.pageSize
+
+    if (newPage !== filters.page || newPageSize !== filters.pageSize) {
+      setFilters(prev => ({
+        ...prev,
+        page: newPage,
+        pageSize: newPageSize
+      }))
+    }
+  }
+
+  const handleSortModelChange = (sortModel: GridSortModel): void => {
+    if (sortModel.length > 0) {
+      const { field, sort } = sortModel[0]
+      setFilters(prev => ({
+        ...prev,
+        sortBy: field,
+        sortOrder: sort || 'asc',
+        page: 1
+      }))
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        sortBy: '',
+        sortOrder: 'asc'
+      }))
+    }
+  }
+
+  const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
+    () =>
+      debounce((value: string) => {
+        setFilters(prev => ({
+          ...prev,
+          search: value,
+          page: 1
+        }))
+      }, 500),
+    []
+  )
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
+
+  const handleSearch = (value: string): void => {
+    setInputValue(value)
+    debouncedSearch(value)
+  }
+
+  const handleDownload = (): void => {
+    console.log('Downloading...')
+  }
+
+  const handleRowClick = (params: GridRowParams): void => {
+    if (params.row.animal_id) {
+      router.push(`/animals/${params.row.animal_id}`)
+    }
+  }
+
+  const columns: GridColDef[] = [
+    {
+      width: 90,
+      field: 'id',
+      headerName: t('s_no') as string,
+      align: 'left',
+      headerAlign: 'left',
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 350,
+      field: 'common_name',
+      headerName: t('species') as string,
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <SpeciesCard
+          species={{
+            common_name: params.row.common_name,
+            scientific_name: params.row.scientific_name,
+            default_icon: params.row.default_icon
+          }}
+        />
+      )
+    },
+    {
+      width: 250,
+      field: 'identifier',
+      headerName: t('housing_module.identifier') as string,
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <IdentifierInfoCard
+            animalId={params.row.animal_id}
+            total={data?.data?.total_count || 0}
+            localIdentifierName={params.row.local_identifier_name}
+            localIdentifierValue={params.row.local_identifier_value}
+          />
+        </Box>
+      )
+    },
+    {
+      width: 250,
+      field: 'animal_name',
+      align: 'left',
+      headerAlign: 'left',
+      sortable: false,
+      headerName: t('housing_module.primary_identifier') as string,
+      renderCell: (params: GridCellParams) => {
+        const localIdentifierName = params.row.local_identifier_name
+        const localIdentifierValue = params.row.local_identifier_value
+
+        return (
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'left',
+              pl: 2
+            }}
+          >
+            {localIdentifierName ? (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  cursor: 'default',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {localIdentifierName} : {localIdentifierValue}
+              </Typography>
+            ) : (
+              <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+            )}
+          </Box>
+        )
+      }
+    },
+    {
+      field: 'died_on',
+      headerName: t('housing_module.died_on') as string,
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      width: 250,
+      renderCell: (params: GridCellParams) => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <DateInfoDisplay date={params.row.discovered_date} />
+        </Box>
+      )
+    },
+    {
+      field: 'reported_on',
+      headerName: t('housing_module.reported_on') as string,
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      width: 250,
+      renderCell: (params: GridCellParams) => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <DateInfoDisplay date={params.row.created_at || params.row.reported_date} />
+        </Box>
+      )
+    },
+    {
+      flex: 1,
+      minWidth: 300,
+      field: 'reason',
+      headerName: t('housing_module.reason') as string,
+      headerAlign: 'left',
+      align: 'left',
+      sortable: false,
+      renderCell: (params: GridCellParams) => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography
+            sx={{
+              fontSize: '16px',
+              cursor: 'default',
+              fontWeight: 400,
+              color: theme.palette.customColors.OnSurfaceVariant,
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              maxWidth: '100%'
+            }}
+          >
+            {params.row.reason_name}
+          </Typography>
+        </Box>
+      )
+    }
+  ]
+
+  return (
+    <>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('navigation.mortality')} totalCount={total} />
+          <Search
+            value={inputValue}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder={t('search') as string}
+            sx={{ justifyContent: 'flex-end' }}
+          />
+          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
+        </Box>
+
+        <Grid
+          sx={{
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '12px',
+              fontWeight: 600,
+              mr: 1
+            }
+          }}
+        >
+          <CommonTable
+            onRowClick={handleRowClick}
+            indexedRows={indexedRows}
+            total={data?.data?.total_count || 0}
+            columns={columns}
+            pageSizeOptions={[10]}
+            paginationModel={{
+              page: filters.page - 1,
+              pageSize: filters.pageSize
+            }}
+            setPaginationModel={handlePaginationModelChange}
+            handleSortModel={handleSortModelChange}
+            getRowHeight={() => 60}
+            loading={isFetching}
+            searchValue={inputValue}
+            maxHeight='80vh'
+          />
+        </Grid>
+      </Box>
+    </>
+  )
+}
+
+export default MortalityListing

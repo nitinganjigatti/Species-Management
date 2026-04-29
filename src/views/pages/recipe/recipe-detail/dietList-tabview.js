@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getDietListonRecipeDtl } from 'src/lib/api/diet/getIngredients'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
@@ -15,15 +14,17 @@ import { Avatar, Box } from '@mui/material'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
-import Button from '@mui/material/Button'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { useTranslation } from 'react-i18next'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
 const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   const [loader, setLoader] = useState(false)
+  const { t } = useTranslation()
   const router = useRouter()
   const { id } = router.query
   const [total, setTotal] = useState(0)
@@ -140,10 +141,11 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.08,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
@@ -154,7 +156,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
       flex: 0.5,
       minWidth: 40,
       field: 'diet_name',
-      headerName: 'DIET NAME',
+      headerName: t('diet_module.diet_name'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -180,7 +182,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
       flex: 0.3,
       minWidth: 40,
       field: 'diet_no',
-      headerName: 'DIET NO',
+      headerName: t('diet_module.diet_no'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -218,54 +220,30 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                   </Button>
                 </div>
               )  */}
-              <div
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginTop: '38px' }}
-              ></div>
+              <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
+                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                  <MUISearch
+                    value={searchValue}
+                    onChange={e => handleSearch(e.target.value)}
+                    onClear={() => handleSearch('')}
+                    placeholder='Search…'
+                  />
+                </Grid>
+              </Grid>
 
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
-
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
+              <CommonTable
+                indexedRows={indexedRows === undefined ? [] : indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
                 columnVisibilityModel={{
                   sl_no: false
                 }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-
-                //checkboxSelection={true}
-                disableColumnMenu={true}
-                onRowSelectionModelChange={handleSelectionChange}
-                selectionModel={selectedRows}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                onSortModelChange={handleSortModel}
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50, 100]}
-                paginationModel={paginationModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value),
-                    tableValue: 'recipe-List'
-                  }
-                }}
+                searchValue={searchValue}
+                handleSearchOverride={handleSearch}
               />
             </div>
           </>

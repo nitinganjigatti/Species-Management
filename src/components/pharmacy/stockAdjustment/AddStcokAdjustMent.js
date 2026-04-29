@@ -6,17 +6,12 @@ import TableRow from '@mui/material/TableRow'
 import TableHead from '@mui/material/TableHead'
 import TableBody from '@mui/material/TableBody'
 import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { CardHeader } from '@mui/material'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
-import Fab from '@mui/material/Fab'
-import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
-import { LoaderIcon } from 'react-hot-toast'
 import Utility from 'src/utility'
 
 import Router from 'next/router'
@@ -35,10 +30,7 @@ import { getAvailableMedicineByMedicineIdToReturn } from 'src/lib/api/pharmacy/g
 import { getReasonsList, addStocksAdjust } from 'src/lib/api/pharmacy/stockAdjustment'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
-
-import { useForm, Controller, get } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import {
   Grid,
   FormControl,
@@ -52,9 +44,8 @@ import {
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
@@ -539,106 +530,93 @@ const AddStockAdjustment = () => {
   }
 
   return (
-    <Card>
-      <Grid
-        container
-        size={{ xs: 12, sm: 12 }}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <CardHeader
-          avatar={
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                Router.push('/pharmacy/stocks-adjustments/')
-              }}
-              icon='ep:back'
-            />
-          }
-          title={id ? 'Stock Adjustment' : 'Add Stock Adjustment'}
-        />
-      </Grid>
-      <CardContent>
-        <form>
-          <Grid container spacing={5}>
-            <Grid item size={{ xs: 12, sm: 6 }}>
+    <PageCardLayout
+      showIcon={true}
+      onIconClick={() => {
+        Router.push('/pharmacy/stocks-adjustments/')
+      }}
+      title={id ? 'Stock Adjustment' : 'Add Stock Adjustment'}
+    >
+      <form>
+        <Grid container spacing={5}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
               <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
-                  <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                    Search product :
-                  </Typography>
-                </Grid>
-                <FormControl style={{ width: 'calc(100% - 40px)' }}>
-                  <Autocomplete
-                    id='autocomplete-controlled'
-                    options={optionsMedicineList}
-                    renderOption={(props, option) => {
-                      const { key, ...otherProps } = props
-
-                      return (
-                        <li key={key} {...otherProps}>
-                          <Box>
-                            <Typography>{option.name}</Typography>
-                            <Typography variant='body2'>{option.package}</Typography>
-                            <Typography variant='body2'>{option.manufacture}</Typography>
-                          </Box>
-                        </li>
-                      )
-                    }}
-                    // value={value}
-                    onChange={(event, newValue) => {
-                      if (newValue?.value && newValue?.stockType) {
-                        searchBatchData(newValue?.value, newValue?.stockType)
-                        setSelectedStockId(newValue?.value)
-                      }
-                      if (newValue === '' || newValue === null) {
-                        setOptionsBatchList([])
-                      }
-                    }}
-                    onKeyUp={e => {
-                      searchMedicineData(e.target.value)
-                    }}
-                    onBlur={() => {
-                      fetchMedicineData('')
-                    }}
-                    renderInput={params => (
-                      <TextField
-                        {...params}
-                        placeholder='Search & Select'
-                        label='Product Name*'
-                        slotProps={{
-                          input: {
-                            ...params.InputProps,
-                            endAdornment: (
-                              <InputAdornment position='end'>{params.InputProps.endAdornment}</InputAdornment>
-                            )
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                  {errorState && (
-                    <FormHelperText sx={{ color: 'error.main' }}>
-                      Stock unavailable for the selected product.
-                    </FormHelperText>
-                  )}
-                </FormControl>
-                {loader && (
-                  <span style={{ display: 'inline-block', marginLeft: '10px', marginTop: '12px' }}>
-                    <CircularProgress size={30} />
-                  </span>
-                )}
+                <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
+                  Search product :
+                </Typography>
               </Grid>
+              <FormControl style={{ width: 'calc(100% - 40px)' }}>
+                <Autocomplete
+                  id='autocomplete-controlled'
+                  options={optionsMedicineList}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return (
+                      <li key={key} {...otherProps}>
+                        <Box>
+                          <Typography>{option.name}</Typography>
+                          <Typography variant='body2'>{option.package}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
+                        </Box>
+                      </li>
+                    )
+                  }}
+                  // value={value}
+                  onChange={(event, newValue) => {
+                    if (newValue?.value && newValue?.stockType) {
+                      searchBatchData(newValue?.value, newValue?.stockType)
+                      setSelectedStockId(newValue?.value)
+                    }
+                    if (newValue === '' || newValue === null) {
+                      setOptionsBatchList([])
+                    }
+                  }}
+                  onKeyUp={e => {
+                    searchMedicineData(e.target.value)
+                  }}
+                  onBlur={() => {
+                    fetchMedicineData('')
+                  }}
+                  renderInput={params => (
+                    <TextField
+                      {...params}
+                      placeholder='Search & Select'
+                      label='Product Name*'
+                      slotProps={{
+                        input: {
+                          ...params.InputProps,
+                          endAdornment: <InputAdornment position='end'>{params.InputProps.endAdornment}</InputAdornment>
+                        }
+                      }}
+                    />
+                  )}
+                />
+                {errorState && (
+                  <FormHelperText sx={{ color: 'error.main' }}>
+                    Stock unavailable for the selected product.
+                  </FormHelperText>
+                )}
+              </FormControl>
+              {loader && (
+                <span style={{ display: 'inline-block', marginLeft: '10px', marginTop: '12px' }}>
+                  <CircularProgress size={30} />
+                </span>
+              )}
             </Grid>
           </Grid>
-        </form>
-      </CardContent>
+        </Grid>
+      </form>
+
       {optionsBatchList?.length > 0 ? (
-        <Card sx={{ m: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}>
+        <Card
+          sx={{
+            boxShadow: 'none',
+            border: '1px solid',
+            borderColor: 'customColors.customTableBorderBg'
+          }}
+        >
           <TableContainer>
             <Table>
               <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
@@ -713,7 +691,7 @@ const AddStockAdjustment = () => {
           show={openStockDialog}
         />
       </Grid>
-    </Card>
+    </PageCardLayout>
   )
 }
 

@@ -11,7 +11,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { useTheme } from '@emotion/react'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
@@ -300,7 +300,7 @@ const SubmittedBatches = ({ type }) => {
       alignItems: 'left',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        (<Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography
             noWrap
             variant='body2'
@@ -328,7 +328,7 @@ const SubmittedBatches = ({ type }) => {
               ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
               : '-'}
           </Typography>
-        </Box>
+        </Box>)
 
         // <Typography variant='body2' sx={{ color: '#E93353' }}>
         //   {params.row.status ? params.row.status : '-'}
@@ -406,53 +406,26 @@ const SubmittedBatches = ({ type }) => {
               ConfirmationText={'Delete'}
               confirmAction={onClose}
             />
-            <DataGrid
-              disableColumnMenu
-              disableColumnFilter
-              disableColumnSorting
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
+              pageSizeOptions={[7, 10, 25, 50]}
+              loading={loading}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              onCellClick={onCellClick}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              columns={columns}
-              total={total}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
             />
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return <>{pariveshAccess ? <Grid>{tableData()}</Grid> : <Error404></Error404>}</>
@@ -466,7 +439,7 @@ export default SubmittedBatches
 
 // import FallbackSpinner from 'src/@core/components/spinner/index'
 // import CardHeader from '@mui/material/CardHeader'
-// import { DataGrid } from '@mui/x-data-grid'
+// import CommonTable from 'src/views/table/data-grid/CommonTable'
 // import { debounce } from 'lodash'
 // import Tab from '@mui/material/Tab'
 // import TabPanel from '@mui/lab/TabPanel'

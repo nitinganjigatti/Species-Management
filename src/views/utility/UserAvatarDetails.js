@@ -7,13 +7,13 @@ function UserAvatarDetails({
   profile_image,
   user_name,
   date,
-  text_color,
-  description,
-  role,
-  crby_width,
+  text_color = '',
+  description = '',
+  role = '',
+  crby_width = '',
   size = 'large',
   show_time = false,
-  dateType
+  dateType = ''
 }) {
   const theme = useTheme()
 
@@ -67,8 +67,9 @@ function UserAvatarDetails({
                     variant='subtitle2'
                     sx={{
                       color: text_color ?? 'text.primary',
-                      maxWidth: '100%',
                       width: crby_width ? crby_width : 'auto',
+                      maxWidth: '100%',
+
                       // fontSize: fontSize,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
@@ -76,8 +77,6 @@ function UserAvatarDetails({
                       maxWidth: '100%',
                       ...(selectedAvatarSize?.user_name || {})
                     }}
-
-                    // component={'span'}
                   >
                     {user_name ? user_name : 'NA'}
                   </Typography>
@@ -105,7 +104,14 @@ function UserAvatarDetails({
             )}
 
             {role && (
-              <Box sx={{ display: 'flex', flex: 1, minWidth: 0, flexDirection: 'column' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flex: 1,
+                  minWidth: 0,
+                  flexDirection: 'column'
+                }}
+              >
                 <Tooltip title={role}>
                   <Typography
                     variant='caption'
@@ -115,17 +121,25 @@ function UserAvatarDetails({
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       maxWidth: '100%',
+
                       ...(selectedAvatarSize?.date || {})
                     }}
                   >
-                    <span>{role}</span>
+                    {role}
                   </Typography>
                 </Tooltip>
               </Box>
             )}
 
             {date && (
-              <Typography variant='caption' sx={{ lineHeight: 1.6667, ...(selectedAvatarSize?.date || {}) }}>
+              <Typography
+                variant='caption'
+                sx={{
+                  lineHeight: 1.6667,
+                  color: text_color ?? '',
+                  ...(selectedAvatarSize?.date || {})
+                }}
+              >
                 <span>
                   {dateType === 'created' ? (
                     <span style={{ color: theme.palette.customColors.neutralSecondary }}>

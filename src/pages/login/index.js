@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -31,6 +31,7 @@ import Icon from 'src/@core/components/icon'
 import * as yup from 'yup'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
+import toast from 'react-hot-toast'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
@@ -72,6 +73,13 @@ const defaultValues = {
 const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true)
   const [loginError, setLoginError] = useState('')
+
+  useEffect(() => {
+    if (sessionStorage.getItem('session_expired') === 'true') {
+      sessionStorage.removeItem('session_expired')
+      toast.error('Session expired. Please log in again.')
+    }
+  }, [])
 
   // ** Hooks
   const auth = useAuth()
@@ -116,7 +124,6 @@ const LoginPage = () => {
       }}
     >
       <CommonCard
-
         // bgImage='/images/frog_img.png'
         // logoVantara='/images/login/Vantara_Logo_registered.svg'
         // logoAntz

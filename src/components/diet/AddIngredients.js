@@ -28,6 +28,7 @@ import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { KeyboardArrowDown } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 
 const CustomPaper = props => {
   const { children, isLoading, ...other } = props
@@ -75,6 +76,7 @@ const AddIngredients = props => {
     handleFeedSearch
   } = props
   const theme = useTheme()
+  const { t } = useTranslation()
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -86,6 +88,7 @@ const AddIngredients = props => {
   const [visibility, setVisibility] = useState([])
 
   const [selectedDays, setSelectedDays] = useState([])
+  const [validationErrors, setValidationErrors] = useState([])
   const [loading, setLoading] = useState(false)
   const menuRef = useRef(null)
   const handelShowBottom = (event, item, index) => {
@@ -168,7 +171,6 @@ const AddIngredients = props => {
       setReachedEnd(false)
     }
   }
-
 
   const handleChangeTopFeed = async event => {
     setReachedEnd(true)
@@ -275,6 +277,12 @@ const AddIngredients = props => {
 
     if (newUom) {
       handelCardSelection(event, item, null, null, newUom, selectedDays)
+      setValidationErrors(prevErrors => {
+        if (prevErrors.includes(item.id)) {
+          return prevErrors.filter(id => id !== item.id)
+        }
+        return prevErrors
+      })
     }
   }
 
@@ -300,12 +308,16 @@ const AddIngredients = props => {
         if (selectedItem.cardId === cardId) {
           let updatedDays = [...selectedItem.days]
 
-          if (dayId === 0 && !updatedDays.some(day => day.dayId === 0)) {
-            // Select "All" if it's not already selected
-            updatedDays = Day.map(day => ({ dayId: day.id, dayName: day.name }))
-            // updatedDays.push({ dayId: 0, dayName: 'All' })
-          } else if (dayId !== 0) {
-            // Toggle individual day selection
+          if (dayId === 0) {
+            // Toggle All
+            const isAllCurrentlyActive = updatedDays.some(d => d.dayId === 0)
+            if (isAllCurrentlyActive) {
+              updatedDays = []
+            } else {
+              updatedDays = Day.map(day => ({ dayId: day.id, dayName: day.name }))
+            }
+          } else {
+            // Toggle specific day
             const existingIndex = updatedDays.findIndex(d => d.dayId === dayId)
             if (existingIndex === -1) {
               updatedDays.push({ dayId, dayName })
@@ -313,16 +325,17 @@ const AddIngredients = props => {
               updatedDays = updatedDays.filter(d => d.dayId !== dayId)
             }
 
-            // Check if "All" should be deselected
-            const allDayIndex = updatedDays.findIndex(d => d.dayId === 0)
-            if (allDayIndex !== -1 && dayId !== 0) {
+            // Check if "All" should be toggled
+            const allDaysButZero = Day.filter(d => d.id !== 0)
+            const activeStandardDays = updatedDays.filter(d => d.dayId !== 0)
+
+            if (activeStandardDays.length === allDaysButZero.length) {
+              if (!updatedDays.some(d => d.dayId === 0)) {
+                updatedDays.push({ dayId: 0, dayName: 'All' })
+              }
+            } else {
               updatedDays = updatedDays.filter(d => d.dayId !== 0)
             }
-          }
-
-          // Ensure at least one day remains selected if only one is currently selected
-          if (updatedDays.length === 0 && selectedItem.days.length === 1) {
-            updatedDays = selectedItem.days
           }
 
           return { cardId, days: updatedDays }
@@ -333,6 +346,13 @@ const AddIngredients = props => {
       .filter(item => item !== undefined)
 
     setSelectedDays(updatedSelectedDays)
+
+    // Remove validation error for this card if it now has at least one day selected
+    const updatedCard = updatedSelectedDays.find(c => c.cardId === cardId)
+    const activeDaysCount = updatedCard?.days.filter(d => d.dayId !== 0).length || 0
+    if (activeDaysCount > 0) {
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== cardId))
+    }
 
     if (updatedSelectedDays.length > 0) {
       handelCardSelection(event, item, null, null, null, updatedSelectedDays)
@@ -408,9 +428,35 @@ const AddIngredients = props => {
       toast.error('Please select a Cutsize', {
         duration: 1000
       })
-    } else if (selectedCard?.length > 0) {
+      // Identify cards missing cutsize
+      const missingCutsizeCards = selectedCard.filter(card => !size[card.ingredient_id])
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        missingCutsizeCards.forEach(c => newErrors.add(c.ingredient_id))
+        return Array.from(newErrors)
+      })
+      return
+    }
+
+    const invalidIngredients = selectedCard.filter(item => {
+      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.ingredient_id)
+      const activeDays = selectedDaysForItem?.days.filter(d => d.dayId !== 0) || []
+      return activeDays.length === 0
+    })
+
+    if (invalidIngredients.length > 0) {
+      toast.error('Please select at least one feeding day for each selected item.')
+      setValidationErrors(prev => {
+        const newErrors = new Set(prev)
+        invalidIngredients.forEach(i => newErrors.add(i.ingredient_id))
+        return Array.from(newErrors)
+      })
+      return
+    }
+
+    if (selectedCard?.length > 0) {
       handleSidebarClose()
-      
+
       setSelectedCard(selectedCard)
       setSearchValue('')
       onChange(selectedCard)
@@ -469,12 +515,22 @@ const AddIngredients = props => {
     // Update selectedDays state with the extracted values
     const updatedSelectedDays = []
     cardIds?.forEach((cardId, index) => {
-      updatedSelectedDays.push({
-        cardId: String(cardId),
-        days: days[index]?.map(dayId => ({
+      const allStandardDays = Day.filter(d => d.id !== 0)
+      const isAllSelected = allStandardDays.every(d => days[index]?.includes(d.id))
+
+      let initialDaysForCard =
+        days[index]?.map(dayId => ({
           dayId: dayId,
           dayName: Day.find(day => day.id === dayId)?.name
-        }))
+        })) || []
+
+      if (isAllSelected && !initialDaysForCard.some(d => d.dayId === 0)) {
+        initialDaysForCard.push({ dayId: 0, dayName: 'All' })
+      }
+
+      updatedSelectedDays.push({
+        cardId: String(cardId),
+        days: initialDaysForCard
       })
     })
     setSelectedDays(updatedSelectedDays)
@@ -575,10 +631,13 @@ const AddIngredients = props => {
 
         return newSize
       })
+
+      setValidationErrors(prevErrors => prevErrors.filter(id => id !== itemId))
     }
   }
 
-  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  // let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  let sortedIngredientList = [...ingredientList]
 
   if (fromrow !== '' && fromrow === 'rowedit_ingredient') {
     sortedIngredientList = sortedIngredientList.filter(
@@ -614,7 +673,7 @@ const AddIngredients = props => {
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
               <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                Add Items
+                {t('diet_module.add_items')}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -680,7 +739,7 @@ const AddIngredients = props => {
                     renderInput={params => (
                       <TextField
                         {...params}
-                        label='Feed'
+                        label={t('diet_module.feed')}
                         variant='outlined'
                         sx={{
                           '& .MuiOutlinedInput-root': {
@@ -708,27 +767,19 @@ const AddIngredients = props => {
                     )}
                     renderOption={(props, option) => (
                       <li {...props} key={option?.key}>
-                        <Box
-                          sx={{
-                            display: 'block',
-                            maxWidth: 200,
-                            overflowX: 'auto',
-                            whiteSpace: 'nowrap',
-                            scrollbarWidth: 'thin',
-                            '&::-webkit-scrollbar': {
-                              height: '6px'
-                            },
-                            '&::-webkit-scrollbar-thumb': {
-                              backgroundColor: theme.palette.grey[400],
-                              borderRadius: '3px'
-                            },
-                            '&::-webkit-scrollbar-thumb:hover': {
-                              backgroundColor: theme.palette.grey[600]
-                            }
-                          }}
-                        >
-                          {option?.feed_type_name}
-                        </Box>
+                        <Tooltip title={option?.feed_type_name || ''} arrow placement='right'>
+                          <Box
+                            sx={{
+                              maxWidth: 200,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {option?.feed_type_name}
+                          </Box>
+                        </Tooltip>
                       </li>
                     )}
                     popupIcon={
@@ -798,7 +849,8 @@ const AddIngredients = props => {
 
             height: fromrow !== 'rowedit_ingredient' ? 'calc(100vh - 245px)' : '85%',
             overflowY: 'auto',
-            bgcolor: theme.palette.customColors.bodyBg
+            bgcolor: theme.palette.customColors.bodyBg,
+            pb: '100px'
           }}
           onScroll={fromrow !== 'rowedit_ingredient' ? handleScroll : undefined}
         >
@@ -816,9 +868,11 @@ const AddIngredients = props => {
                   borderRadius: '8px',
                   my: 4,
                   width: '92%',
-                  ...(selectedCard.some(card => card.ingredient_id === item.id) && {
-                    border: `2px solid ${theme.palette.primary.main}`
-                  })
+                  border: validationErrors.includes(item.id)
+                    ? '2px solid red'
+                    : selectedCard.some(card => card.ingredient_id === item.id)
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : 'none'
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
               >
@@ -907,7 +961,7 @@ const AddIngredients = props => {
                         }}
                         noWrap
                       >
-                        Feed Type -&nbsp;
+                        {t('diet_module.feed_type')} -&nbsp;
                         <Tooltip title={item?.feed_type_label || ''}>
                           <span
                             style={{
@@ -927,7 +981,7 @@ const AddIngredients = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Preparation Type</Typography>
+                      <Typography>{`${t('diet_module.preparation_type')} *`}</Typography>
 
                       <Box sx={{ width: 200 }}>
                         <FormControl fullWidth>
@@ -1028,7 +1082,7 @@ const AddIngredients = props => {
                       <>
                         <Divider mt={-2} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                          <Typography>Enter cut size</Typography>
+                          <Typography>{`${t('diet_module.enter_cutsize')} *`}</Typography>
 
                           <Box sx={{ pl: 5, width: 150 }}>
                             <FormControl fullWidth>
@@ -1135,7 +1189,7 @@ const AddIngredients = props => {
 
                     <Divider />
                     <Box>
-                      <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
+                      <Typography sx={{ py: 3, px: 2 }}>{`${t('diet_module.feeding_days')} *`}</Typography>
 
                       <Stack
                         direction='row'
@@ -1203,7 +1257,7 @@ const AddIngredients = props => {
                           <TextField
                             sx={{ pt: 1 }}
                             id='demo-simple-select-label'
-                            placeholder='Add Remarks (optional)'
+                            placeholder={`${t('add')} ${t('remarks')} (${t('optional')})`}
                             variant='standard'
                             // InputProps={{ disableUnderline: true }}
                             autoComplete='off'
@@ -1246,21 +1300,24 @@ const AddIngredients = props => {
 
         <Box
           sx={{
-            height: '100px',
+            height: { xs: '80px', sm: '90px', md: '100px' },
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',
             bottom: 0,
+            right: 0,
             px: 4,
             bgcolor: 'white',
+            display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            display: 'flex'
+            paddingBottom: 'env(safe-area-inset-bottom)',
+            zIndex: 9999
           }}
         >
           {fromrow === 'rowedit_ingredient' ? (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD ITEM
+              {t('diet_module.add_item')}
             </Button>
           ) : (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
@@ -1270,9 +1327,11 @@ const AddIngredients = props => {
                       sortedIngredientList.some(item => String(item.id) === String(card.ingredient_id))
                     ).length
 
-                    return visibleCount > 0 ? `ADD ITEM - ${visibleCount} SELECTED` : 'ADD ITEM'
+                    return visibleCount > 0
+                      ? `${t('diet_module.add_item')} - ${visibleCount} ${t('selected')}`
+                      : t('diet_module.add_item')
                   })()
-                : `ADD ITEM - ${selectedCard?.length} SELECTED`}
+                : `${t('diet_module.add_item')} - ${selectedCard?.length} ${t('selected')}`}
             </Button>
           )}
         </Box>

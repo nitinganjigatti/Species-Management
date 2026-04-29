@@ -6,19 +6,7 @@ import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import {
-  Grid,
-  Typography,
-  CardHeader,
-  Card,
-  TextField,
-  InputAdornment,
-  IconButton,
-  Drawer,
-  Tab,
-  Box,
-  Button
-} from '@mui/material'
+import { Grid, Typography, TextField, InputAdornment, IconButton, Drawer, Tab, Box, Button } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -33,7 +21,9 @@ import Utility from 'src/utility'
 import RequestDetailsScreen from './RequestDetailsScreen'
 import RequestByProduct from 'src/pages/pharmacy/requests-by-product'
 import { ExportButton } from 'src/views/utility/render-snippets'
-
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import { all } from 'axios'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 const AllStoresRequestList = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -65,8 +55,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.neutralSecondary,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {parseInt(params.row.id) + '.'}
@@ -74,7 +63,8 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 250,
+      flex: 1,
+      minWidth: 200,
       field: 'store_name',
       headerName: 'Store Name',
       renderCell: params => (
@@ -82,8 +72,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.store_name}
@@ -102,8 +91,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.Tertiary,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.pending_items}
@@ -122,8 +110,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.Error,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params.row.emergency_items}
@@ -141,8 +128,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.available_product_count}
@@ -160,8 +146,7 @@ const AllStoresRequestList = () => {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
+            fontWeight: 500
           }}
         >
           {params?.row?.not_available_product_count}
@@ -197,6 +182,7 @@ const AllStoresRequestList = () => {
   const [totalUniqueItems, setTotalUniqueItems] = useState(0)
   const [noMoreData, setNoMoreData] = useState(false)
   const [drawerSearchValue, setDrawerSearchValue] = useState('')
+  const [exportStoresListLoader, setExportStoresListLoader] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -239,6 +225,29 @@ const AllStoresRequestList = () => {
     },
     [paginationModel]
   )
+
+  const handleExport = async () => {
+    try {
+      setExportStoresListLoader(true)
+
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        page: 1,
+        limit: total,
+        response_type: 'csv'
+      }
+      const response = await getRequestListsOfAllStores({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response.data)
+      }
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
+    } finally {
+      setExportStoresListLoader(false)
+    }
+  }
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
@@ -297,7 +306,6 @@ const AllStoresRequestList = () => {
     setActiveTab('Available')
     setDrawerSearchValue('')
 
-    
     setPage(1)
     setTotalUniqueItems(0)
     setHasMore(true)
@@ -395,7 +403,7 @@ const AllStoresRequestList = () => {
         limit: 10,
         q
       })
-    }, 500), 
+    }, 500),
     [resetStates, fetchUniquePendingData]
   )
 
@@ -451,7 +459,6 @@ const AllStoresRequestList = () => {
     })
   }, [resetStates, fetchUniquePendingData, activeTab])
 
-  
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0
@@ -477,7 +484,6 @@ const AllStoresRequestList = () => {
     }
   }
 
-  
   const renderHeader = title => (
     <Box
       sx={{
@@ -567,82 +573,69 @@ const AllStoresRequestList = () => {
   return (
     <>
       {selectedPharmacy?.type === 'central' ? (
-        <Card>
-          <CardHeader
-            title={
-              <>
-                {RenderUtility.pageTitle('Requests By Store')}
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.main,
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    fontFamily: 'Inter',
-                    mt: 1,
-                    ml: 1,
-                    borderBottom: `1px solid ${theme.palette.primary.main}`,
-                    display: 'inline-block',
-                    cursor: 'pointer'
-                  }}
-                  onClick={handleButtonClick}
-                >
-                  {`Unique Pending Items - ${uniquePendingItems ? uniquePendingItems : 0}`}
-                </Typography>
-              </>
-            }
-            action={
-              <TextField
-                variant='outlined'
-                size='small'
-                placeholder='Search...'
+        <PageCardLayout
+          title='Requests By Store'
+          headerStyles={{
+            paddingBottom: '0px'
+          }}
+          headerLayoutStyles={{
+            display: 'flex',
+            alignItems: 'flex-start'
+          }}
+          subtitle={`Unique Pending Items - ${uniquePendingItems ? uniquePendingItems : 0}`}
+          onClickOfSubtitle={handleButtonClick}
+          subtitleStyles={{
+            display: 'inline',
+            color: theme.palette.primary.main,
+            fontSize: '14px',
+            fontWeight: 400,
+            borderBottom: `1px solid ${theme.palette.primary.main}`
+          }}
+          action={
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 3, sm: 2 }
+              }}
+            >
+              <MUISearch
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
-                fullWidth
-                sx={{
-                  borderRadius: '8px',
-                  width: { xs: '100%', md: '290px' }
-                }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }
-                }}
+                placeholder='Search...'
+                onClear={() => handleSearch('')}
               />
-            }
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'flex-start',
-              alignItems: 'flex-start',
-              gap: { xs: 3, sm: 0 },
-              '& .MuiCardHeader-action': {
-                width: { xs: '100% ', sm: 'auto' }
-              },
-              mx: { xs: -1, sm: 1 },
-              mt: 1,
-              pb: 0
-            }}
+              <ExportButton
+                sx={{ height: '35px', display: 'flex', alignItems: 'center' }}
+                loading={exportStoresListLoader}
+                onClick={() => handleExport()}
+              />
+            </Box>
+          }
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+            gap: { xs: 3, sm: 0 },
+            '& .MuiCardHeader-action': {
+              width: { xs: '100% ', sm: 'auto' }
+            },
+            pb: 0
+          }}
+        >
+          <CommonTable
+            onRowClick={handleRowClick}
+            indexedRows={indexedRows || []}
+            total={total}
+            columns={columns || []}
+            paginationModel={paginationModel}
+            handleSortModel={handleSortModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            searchValue={searchValue}
+            maxHeight='60vh'
           />
-
-        
-          <Grid sx={{ mx: { xs: 3, md: 5 } }}>
-            <CommonTable
-              onRowClick={handleRowClick}
-              indexedRows={indexedRows || []}
-              total={total}
-              columns={columns || []}
-              paginationModel={paginationModel}
-              handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={searchValue}
-              maxHeight='60vh'
-            />
-          </Grid>
 
           <Drawer
             anchor='right'
@@ -652,7 +645,7 @@ const AllStoresRequestList = () => {
               paper: {
                 sx: {
                   width: {
-                    xs: '80%', 
+                    xs: '80%',
                     sm: '80%',
                     md: 560
                   },
@@ -664,7 +657,6 @@ const AllStoresRequestList = () => {
               }
             }}
           >
-          
             <Box
               sx={{
                 p: 3,
@@ -703,7 +695,6 @@ const AllStoresRequestList = () => {
               </Box>
             </Box>
 
-          
             <Box
               sx={{
                 position: 'sticky',
@@ -712,7 +703,6 @@ const AllStoresRequestList = () => {
                 backgroundColor: 'customColors.OnPrimary'
               }}
             >
-            
               <TabContext value={activeTab}>
                 <TabList
                   variant='scrollable'
@@ -724,6 +714,7 @@ const AllStoresRequestList = () => {
                     '& .MuiTabs-flexContainer': {
                       borderBottom: '1px solid',
                       borderColor: '#e0e0e0',
+                      // borderColor: 'customColors.grey',
 
                       // borderBottom: `1px solid ${theme.palette.customColors.neutralSecondary}`,
                       display: 'flex',
@@ -783,7 +774,6 @@ const AllStoresRequestList = () => {
               </Box>
             </Box>
 
-
             <Box
               ref={scrollContainerRef}
               sx={{
@@ -806,7 +796,7 @@ const AllStoresRequestList = () => {
               </TabContext>
             </Box>
           </Drawer>
-        </Card>
+        </PageCardLayout>
       ) : (
         <Error404></Error404>
       )}

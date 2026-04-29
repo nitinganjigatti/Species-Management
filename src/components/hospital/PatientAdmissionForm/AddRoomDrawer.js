@@ -212,7 +212,10 @@ const AddRoomDrawer = ({
                   sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    maxWidth: 200
+                    maxWidth: {
+                      xs: 220,
+                      sm: 400
+                    }
                   }}
                 >
                   <Tooltip title={selectedHospital?.name}>

@@ -1,25 +1,27 @@
 // ** MUI Imports
-import Grid from '@mui/material/Grid'
-import Card from '@mui/material/Card'
-import Table from '@mui/material/Table'
-import Divider from '@mui/material/Divider'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import Typography from '@mui/material/Typography'
-import Box from '@mui/material/Box'
-import CardContent from '@mui/material/CardContent'
-import { styled } from '@mui/material/styles'
-import TableContainer from '@mui/material/TableContainer'
-import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, CircularProgress, Drawer, Tooltip } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import FormHelperText from '@mui/material/FormHelperText'
-import TextField from '@mui/material/TextField'
-import FormControl from '@mui/material/FormControl'
-import InputLabel from '@mui/material/InputLabel'
-import Select from '@mui/material/Select'
-import MenuItem from '@mui/material/MenuItem'
+import {
+  Button,
+  Drawer,
+  Grid,
+  Card,
+  Table,
+  Divider,
+  TableRow,
+  TableHead,
+  TableBody,
+  Typography,
+  Box,
+  TableContainer,
+  TableCell,
+  IconButton,
+  FormHelperText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  styled
+} from '@mui/material'
 import { useTheme } from '@emotion/react'
 
 import Router from 'next/router'
@@ -49,6 +51,7 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -94,7 +97,6 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
 })
 
 const AddDiscardProducts = () => {
-
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [optionsBatchList, setOptionsBatchList] = useState([])
@@ -392,7 +394,28 @@ const AddDiscardProducts = () => {
   const searchMedicineData = useCallback(
     debounce(async searchText => {
       try {
-        await fetchMedicineData(searchText)
+        // await fetchMedicineData(searchText)
+        const params = {
+          sort: 'asc',
+          q: searchText
+          // limit: 20
+        }
+
+        const searchResults = await getMedicineList({ params: params })
+        if (searchResults?.data?.list_items?.length > 0) {
+          setOptionsMedicineList(
+            searchResults?.data?.list_items?.map(item => ({
+              value: item.id,
+              label: item.name,
+              status: item?.active === '0' ? 0 : 1,
+              control_substance: item.controlled_substance === '1' ? true : false,
+              stock_type: item.stock_type,
+              packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+              manufacture: item?.manufacturer_name,
+              unit_price: item?.unit_price
+            }))
+          )
+        }
       } catch (error) {
         console.error(error)
       }
@@ -404,7 +427,6 @@ const AddDiscardProducts = () => {
     try {
       const result = await getDiscardItemsListById(id)
       if (result.success === true && result?.data?.item_details?.length > 0) {
-
         const lineItems = result?.data?.item_details?.map(el => {
           return {
             stock_id: el?.product_id,
@@ -450,7 +472,6 @@ const AddDiscardProducts = () => {
       return el.uuid === itemId
     })
 
-    
     setNestedRowMedicine({
       ...nestedRowMedicine,
       medicine_name: getItems[0].medicine_name,
@@ -472,7 +493,6 @@ const AddDiscardProducts = () => {
       reason: getItems[0]?.reason,
       unit_price: getItems[0]?.unit_price
     })
-  
   }
 
   useEffect(() => {
@@ -480,10 +500,7 @@ const AddDiscardProducts = () => {
       //
       getListOfItemsById(id)
     }
-   
   }, [id, action])
-
-
 
   const postItemsData = async () => {
     setSubmitLoader(true)
@@ -529,7 +546,6 @@ const AddDiscardProducts = () => {
   const [commentDrawerOpen, setCommentDrawerOpen] = useState(false)
   const [selectedComment, setSelectedComment] = useState({})
 
-
   const handleOpenCommentDrawer = comment => {
     setSelectedComment(comment)
     setCommentDrawerOpen(true)
@@ -539,7 +555,6 @@ const AddDiscardProducts = () => {
     setCommentDrawerOpen(false)
     setSelectedComment('')
   }
-
 
   // const headerAction = (
   //   <ExcelExportButton
@@ -553,7 +568,6 @@ const AddDiscardProducts = () => {
   //   />
   // )
 
-
   const getAddDiscardData = async () => {
     try {
       setExcelLoader(true)
@@ -563,9 +577,7 @@ const AddDiscardProducts = () => {
         setExcelLoader(false)
         const supplierId = response?.data?.supplier_id || null
 
-        const discardDate = response?.data?.discarded_date
-          ? formatDate(response?.data?.discarded_date) 
-          : 'N/A'
+        const discardDate = response?.data?.discarded_date ? formatDate(response?.data?.discarded_date) : 'N/A'
 
         const supplierName = supplierList.find(supplier => supplier.id === supplierId)?.company_name || 'N/A'
 
@@ -575,8 +587,8 @@ const AddDiscardProducts = () => {
           ['Batch No']: el?.batch_no,
           ['Expiry Date']: el?.expiry_date,
           ['Quantity']: el?.quantity,
-          ['Supplier Name']: supplierName, 
-          ['Discard Date']: discardDate, 
+          ['Supplier Name']: supplierName,
+          ['Discard Date']: discardDate,
           ['Reason']: el?.reason,
           ['Stock Type']: el?.stock_type
         }))
@@ -607,44 +619,25 @@ const AddDiscardProducts = () => {
     <>
       {selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
-        <Card>
-          <Grid
-            container
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}
-          >
-            <CardHeader
-              sx={{
-                width: '100%', // Ensures full width
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                padding: '16px'
-              }}
-              avatar={<Icon style={{ cursor: 'pointer' }} onClick={() => Router.back()} icon='ep:back' />}
-              title={
-                <Box>
-                  {' '}
-                  Return To Supplier
-                </Box>
-              }
-              action={
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  {id && action && <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />}
-                  {/* <ExcelExportButton
+        <PageCardLayout
+          title='Return To Supplier'
+          titleStyles={{
+            fontSize: '20px'
+          }}
+          showIcon={true}
+          onIconClick={() => Router.back()}
+          action={
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              {id && action && <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />}
+              {/* <ExcelExportButton
                     action={() => getAddDiscardData()}
                     title='Download'
                     loader={excelLoader}
                     sx={{ minWidth: 120 }} // Consistent button size
                   /> */}
-                </Box>
-              }
-            />
-          </Grid>
-
+            </Box>
+          }
+        >
           <Grid container>
             <CommonDialogBox
               title={'Add Return Items'}
@@ -672,78 +665,73 @@ const AddDiscardProducts = () => {
             />
           </Grid>
 
-          <CardContent>
-            <form>
-              <Grid container spacing={5}>
-                <Grid item size={{ xs: 12, sm: 12 }}>
-                  <Typography
-                    variant='subtitle1'
-                    sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}
-                  >
-                    Supplier Name:
-                  </Typography>
-                </Grid>
-                <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', gap: 2 }}>
-                  <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
-                    <FormControl fullWidth>
-                      <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
-
-                      <Select
-                        error={Boolean(errors.supplier_id)}
-                        value={editParams.supplier_id}
-                        label='Supplier*'
-                        disabled={id ? true : false}
-                        onChange={e => {
-                          setEditParams({
-                            ...editParams,
-                            supplier_id: e.target.value
-                          })
-                          setErrors({})
-                        }}
-                      
-                      >
-                        {supplierList?.map((item, index) => (
-                          <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
-                            {item?.company_name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-
-                      {errors.supplier_id && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                  <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mb: 5 }}>
-                    <FormControl fullWidth>
-                      <SingleDatePicker
-                        fullWidth
-                        date={editParams.discarded_date ? parseFormattedDate(editParams.discarded_date) : null}
-                        width={'100%'}
-                        value={editParams.discarded_date ? parseFormattedDate(editParams.discarded_date) : null}
-                        name={'Date*'}
-                        disabled={id ? true : false}
-                        onChangeHandler={date => {
-                          setEditParams({ ...editParams, discarded_date: formatDate(date) })
-                          setErrors({})
-                        }}
-                        maxDate={new Date()}
-                        customInput={<CustomInput label='Date*' error={Boolean(errors.discarded_date)} />}
-                        isClearable={false}
-                      />
-                      {errors.discarded_date && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                </Grid>
+          <form>
+            <Grid container spacing={5}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
+                <Typography
+                  variant='subtitle1'
+                  sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}
+                >
+                  Supplier Name:
+                </Typography>
               </Grid>
-            </form>
-          </CardContent>
+              <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
+                <FormControl fullWidth>
+                  <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
+
+                  <Select
+                    error={Boolean(errors.supplier_id)}
+                    value={editParams.supplier_id}
+                    label='Supplier*'
+                    disabled={id ? true : false}
+                    onChange={e => {
+                      setEditParams({
+                        ...editParams,
+                        supplier_id: e.target.value
+                      })
+                      setErrors({})
+                    }}
+                  >
+                    {supplierList?.map((item, index) => (
+                      <MenuItem key={index} disabled={item?.status === 'inactive'} value={item?.id}>
+                        {item?.company_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  {errors.supplier_id && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+              <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mb: 5 }}>
+                <FormControl fullWidth>
+                  <SingleDatePicker
+                    fullWidth
+                    date={editParams.discarded_date ? parseFormattedDate(editParams.discarded_date) : null}
+                    width={'100%'}
+                    value={editParams.discarded_date ? parseFormattedDate(editParams.discarded_date) : null}
+                    name={'Date*'}
+                    disabled={id ? true : false}
+                    onChangeHandler={date => {
+                      setEditParams({ ...editParams, discarded_date: formatDate(date) })
+                      setErrors({})
+                    }}
+                    maxDate={new Date()}
+                    customInput={<CustomInput label='Date*' error={Boolean(errors.discarded_date)} />}
+                    isClearable={false}
+                  />
+                  {errors.discarded_date && (
+                    <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                      This field is required
+                    </FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+            </Grid>
+          </form>
           {/* <Grid
             container
             spacing={6}
@@ -764,17 +752,16 @@ const AddDiscardProducts = () => {
             />
           </Grid> */}
 
-          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6 }}>
-            <Box>
+          <Grid container spacing={3} alignItems='center' sx={{ py: 5 }}>
+            <Grid item size={{ xs: 12, sm: 'auto', md: 6.5, lg: 8 }}>
               <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
                 Return Products List
               </Typography>
 
               <Stack
-                direction='row'
-                spacing={6}
-                divider={<Divider orientation='vertical' flexItem />}
-                sx={{ textAlign: 'center' }}
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={{ xs: 0, sm: 6 }}
+                divider={<Divider orientation='vertical' flexItem sx={{ display: { xs: 'none', sm: 'block' } }} />}
               >
                 <Typography
                   variant='body2'
@@ -795,21 +782,23 @@ const AddDiscardProducts = () => {
                   </Typography>
                 </Typography> */}
               </Stack>
-            </Box>
+            </Grid>
 
             {id ? null : (
-              <AddButtonContained
-                title='Add Return Items'
-                action={() => {
-                  handleSubmit()
-                }}
-              />
+              <Box sx={{ display: 'flex', marginLeft: 'auto' }}>
+                <AddButtonContained
+                  title='Add Return Items'
+                  action={() => {
+                    handleSubmit()
+                  }}
+                />
+              </Box>
             )}
-          </Box>
+          </Grid>
 
           <Card
             sx={{
-              m: 6,
+              my: 5,
               border: '1px solid',
               borderColor: 'customColors.customTableBorderBg',
               boxShadow: 'none'
@@ -831,13 +820,12 @@ const AddDiscardProducts = () => {
                 <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
                   {editParams?.items
                     ? editParams?.items?.map((el, index) => {
-
                         return (
                           <TableRow
                             key={index}
                             sx={{
                               '&:last-child td, &:last-child th': {
-                                border: 0 
+                                border: 0
                               }
                             }}
                           >
@@ -850,7 +838,7 @@ const AddDiscardProducts = () => {
                                 {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
                                 {el.medicine_name}
                               </Typography>
-                         
+
                               <Typography
                                 variant='body2'
                                 sx={{ color: 'customColors.customHeadingTextColor', fontSize: '14px', fontWeight: 400 }}
@@ -957,7 +945,8 @@ const AddDiscardProducts = () => {
                                   alignItems: 'center',
                                   gap: 1,
                                   overflow: 'hidden'
-                                }}>
+                                }}
+                              >
                                 {el.comments && <Icon icon='pepicons-pop:file' width='0.7em' height='0.7em' />}
                                 <span
                                   style={{
@@ -1003,7 +992,7 @@ const AddDiscardProducts = () => {
                               </TableCell>
                             )}
                           </TableRow>
-                        );
+                        )
                       })
                     : null}
                 </TableBody>
@@ -1071,7 +1060,7 @@ const AddDiscardProducts = () => {
               )}
             </Box>
           </Grid>
-        </Card>
+        </PageCardLayout>
       ) : (
         <>
           <Error404></Error404>
@@ -1158,7 +1147,7 @@ const AddDiscardProducts = () => {
         </Box>
       </Drawer>
     </>
-  );
+  )
 }
 
 export default AddDiscardProducts

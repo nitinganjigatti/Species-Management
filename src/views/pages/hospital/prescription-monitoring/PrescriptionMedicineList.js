@@ -18,7 +18,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 
 import { keyframes } from '@emotion/react'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import { useRouter } from 'next/router'
 import RenderUtility from 'src/utility/render'
 
@@ -43,6 +43,7 @@ const commonFieldStyles = {
 export default function PrescriptionMedicineList({
   medicineList,
   temporarilySelectedMedicine,
+  handleClearMedicine,
   selectedMedicine,
   onSelect,
   searchQuery,
@@ -65,8 +66,8 @@ export default function PrescriptionMedicineList({
   const router = useRouter()
   const { fromPage, medicine_edit_id, tab } = router.query
   const editIdStr = medicine_edit_id?.toString()
-  const { data } = useDynamicStateContext()
-  const enclosureMedicines = data.enclosure_medicines || []
+  const hospitalData = useSelector(state => state.hospital.data)
+  const enclosureMedicines = hospitalData.enclosure_medicines || []
 
   // Check if mobile/tablet view
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -136,6 +137,7 @@ export default function PrescriptionMedicineList({
           }}
           onItemClear={() => {
             handleClearSearch()
+            handleClearMedicine()
             setValue('selectedMedicine', null)
             setValue('selectedMedicineId', '')
           }}

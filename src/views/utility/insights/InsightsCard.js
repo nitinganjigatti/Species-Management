@@ -1,7 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import HeaderCard from './InsightsHeaderCard'
 import InfoStatCard from './InfoStatCard'
-import { alpha, Box, Button, Card, Grid, IconButton, Typography } from '@mui/material'
+import { alpha, Box, Button, Card, Grid, IconButton, Typography, Modal, Paper } from '@mui/material'
 import UserInfoCard from './UserInfoCard'
 import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
@@ -9,7 +9,8 @@ import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import InsightsCardSkeleton from './InsightsCardSkeleton'
 import Icon from 'src/@core/components/icon'
-import { AddBoxOutlined } from '@mui/icons-material'
+import { AddBoxOutlined, Close, Download } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
 
 const InsightsCard = ({
   data,
@@ -27,9 +28,26 @@ const InsightsCard = ({
   userImage,
   image,
   haveInsightsViewAccess,
-  statsData = []
+  statsData = [],
+  qrCodeImage = '',
+  entityName = '',
+  entityId = '',
+  addNewTooltip = 'Add new',
+  editTooltip = 'Edit'
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+
+  const handleDownloadQR = () => {
+    if (!qrCodeImage) return
+    const link = document.createElement('a')
+    link.href = qrCodeImage
+    link.download = `${entityName || 'qr-code'}_${entityId || 'image'}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
 
   if (loading) return <InsightsCardSkeleton />
 
@@ -46,7 +64,7 @@ const InsightsCard = ({
   if (!data) {
     return (
       <Card sx={{ p: 3 }}>
-        <Typography variant='body1'>No data available.</Typography>
+        <Typography variant='body1'>{t('no_data_available')}</Typography>
       </Card>
     )
   }
@@ -87,6 +105,10 @@ const InsightsCard = ({
           isListingPage={isListingPage}
           subtitle={subtitle || ''}
           {...actions}
+          hasQrCode={!!qrCodeImage}
+          onQrClick={() => setQrModalOpen(true)}
+          addNewTooltip={addNewTooltip}
+          editTooltip={editTooltip}
         />
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -168,6 +190,91 @@ const InsightsCard = ({
           </Box>
         )}
       </Box>
+
+      {/* QR Code Modal */}
+      {qrCodeImage && (
+        <Modal
+          open={qrModalOpen}
+          onClose={() => setQrModalOpen(false)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <Paper
+            sx={{
+              position: 'relative',
+              p: 4,
+              borderRadius: 1,
+              maxWidth: 400,
+              width: '90%',
+              textAlign: 'center',
+              outline: 'none'
+            }}
+          >
+            <IconButton
+              onClick={() => setQrModalOpen(false)}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8
+              }}
+            >
+              <Close />
+            </IconButton>
+
+            {/* Entity Info */}
+            <Box sx={{ mb: 3 }}>
+              <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.text.primary }}>
+                {entityName || zooName || 'QR Code'}
+              </Typography>
+              {entityId && (
+                <Typography variant='body2' sx={{ color: theme.palette.text.secondary }}>
+                  ID: {entityId}
+                </Typography>
+              )}
+            </Box>
+
+            {/* QR Code Image */}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                mb: 3
+              }}
+            >
+              <Box
+                component='img'
+                src={qrCodeImage}
+                alt='QR Code'
+                sx={{
+                  width: 260,
+                  height: 260,
+                  objectFit: 'contain'
+                }}
+              />
+            </Box>
+
+            <Typography variant='body2' sx={{ color: theme.palette.text.secondary, mb: 3 }}>
+              {t('housing_module.scan_with_antz_app')}
+            </Typography>
+
+            {/* Download Button */}
+            <Button
+              variant='contained'
+              startIcon={<Download />}
+              onClick={handleDownloadQR}
+              sx={{
+                borderRadius: 2,
+                textTransform: 'none'
+              }}
+            >
+              {t('housing_module.download_qr_code')}
+            </Button>
+          </Paper>
+        </Modal>
+      )}
     </Box>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
-import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
+import { Box, Button, Divider, Grid, IconButton, Tooltip, Typography, useTheme, CircularProgress } from '@mui/material'
 import { alpha, styled } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 
@@ -10,7 +10,8 @@ import { useRouter } from 'next/router'
 import dayjs from 'dayjs'
 import moment from 'moment'
 import Utility from 'src/utility'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 
 import MUICheckbox from 'src/views/forms/form-fields/MUICheckbox'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
@@ -22,46 +23,48 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import TemplateSection from 'src/components/hospital/discharge/TemplateSection'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledCheckBox from 'src/views/forms/form-fields/ControlledCheckBox'
 
 const EnclosureDischargeForm = props => {
   const {
-    patientData,
-    watchDischargeType,
-    submitLoader,
-    handleSubmitData,
-    medicationsColumns,
-    clearData,
-    onDirtyChange,
-    medicationData,
-    refetchPatient,
-    medicalRecordId,
-    prescriptionsColumns,
-    prescriptionData,
-    isPrescriptionLoading,
     sites,
-    fetchLoading,
-    handleSiteSearch,
     sections,
-    sectionLoading,
-    handleSectionSearch,
     enclosures,
+    siteLoading,
+    sectionLoading,
     enclosureLoading,
+    submitLoader,
+    handleSiteSearch,
+    handleSectionSearch,
     handleEnclosureSearch,
     fetchSections,
     fetchEnclosures,
     clearSections,
-    clearEnclosures
+    clearEnclosures,
+    handleSubmitData,
+    patientData,
+    watchDischargeType,
+    refetchPatient,
+    medicationsColumns,
+    clearEnclosureData,
+    onDirtyChange,
+    medicationData,
+    medicalRecordId,
+    prescriptionsColumns,
+    prescriptionData,
+    isPrescriptionLoading
   } = props
 
   const STORAGE_KEY_FORM = 'transfer_enclosure_form'
 
-  const isRestoring = useRef(true)
+  const isRestoring = useRef(true) // Flag to prevent Autocomplete search API calls while restoring form values from sessionStorage
 
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
   const patientDetails = patientData?.animal_detail
-  const { data, updateState } = useDynamicStateContext()
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
 
   // Index medicines
   const indexedMedicines = useMemo(
@@ -78,19 +81,19 @@ const EnclosureDischargeForm = props => {
       .object()
       .nullable()
       .test('has-value', 'Site is required', value => {
-        return value && value.value && value.value !== ''
+        return value && value.value && value.value !== null && value.value !== '' // Ensures a valid value is selected from Autocomplete (not null/empty)
       }),
     section_name: yup
       .object()
       .nullable()
       .test('has-value', 'Section is required', value => {
-        return value && value.value && value.value !== ''
+        return value && value.value && value.value !== null && value.value !== ''
       }),
     user_enclosure_name: yup
       .object()
       .nullable()
       .test('has-value', 'Enclosure is required', value => {
-        return value && value.value && value.value !== ''
+        return value && value.value && value.value !== null && value.value !== ''
       }),
     discharge_date: yup
       .date()
@@ -104,14 +107,16 @@ const EnclosureDischargeForm = props => {
         const now = dayjs().startOf('day')
         const selectedDate = dayjs(value).startOf('day')
 
+        // Must not be before the admitted date
         if (selectedDate.isBefore(admittedAt)) {
           return this.createError({
-            message: `Date must be on or after (${dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)).format(
-              'DD MMM YYYY'
-            )})`
+            message: `Date cannot be before the admitted date (${dayjs(
+              Utility.convertUTCToLocal(patientData?.admitted_at)
+            ).format('DD MMM YYYY')})`
           })
         }
 
+        // Must not be a future date (after today)
         if (selectedDate.isAfter(now)) {
           return this.createError({ message: 'Discharge date cannot be in the future' })
         }
@@ -136,14 +141,18 @@ const EnclosureDischargeForm = props => {
           .set('minute', dayjs(value).minute())
           .set('second', 0)
 
+        // Must not be before the admitted time (on the same day)
         if (dayjs(discharge_date).format('YYYY-MM-DD') === admittedAt.format('YYYY-MM-DD')) {
           if (dischargeDateTime.isBefore(admittedAt)) {
             return this.createError({
-              message: `Time must be after admission time (${Utility.convertUTCToLocaltime(patientData?.admitted_at)})`
+              message: `Time cannot be before the admitted time (${Utility.convertUTCToLocaltime(
+                patientData?.admitted_at
+              )})`
             })
           }
         }
 
+        // Must not be in the future (on today)
         if (dayjs(discharge_date).format('YYYY-MM-DD') === now.format('YYYY-MM-DD')) {
           if (dischargeDateTime.isAfter(now)) {
             return this.createError({ message: 'Time cannot be in the future' })
@@ -155,10 +164,27 @@ const EnclosureDischargeForm = props => {
     follow_up_required: yup.boolean().optional(),
     follow_up_date: yup
       .date()
+      .typeError('Invalid date')
       .nullable()
       .when('follow_up_required', {
         is: true,
-        then: schema => schema.required('Follow up date required')
+        then: schema =>
+          schema
+            .required('Follow up date required')
+            .test('not-in-past', 'Follow up date cannot be in the past', function (value) {
+              if (!value) return true
+
+              const today = dayjs().startOf('day')
+              const selected = dayjs(value).startOf('day')
+
+              if (selected.isBefore(today)) {
+                return this.createError({
+                  message: 'Follow up date cannot be in the past'
+                })
+              }
+
+              return true
+            })
       }),
     reason: yup.string().optional(),
     care_diet_instruction: yup.string().trim().optional(),
@@ -170,15 +196,13 @@ const EnclosureDischargeForm = props => {
   const defaultValues = {
     returnToOriginal: true,
     discharge_type: 'TransferEnclosure',
-    site_name: patientDetails?.site_id
-      ? { label: patientDetails?.site_name, value: patientDetails?.site_id }
-      : { label: '', value: '' },
+    site_name: patientDetails?.site_id ? { label: patientDetails?.site_name, value: patientDetails?.site_id } : null,
     section_name: patientDetails?.section_id
       ? { label: patientDetails?.section_name, value: patientDetails?.section_id }
-      : { label: '', value: '' },
+      : null,
     user_enclosure_name: patientDetails?.user_enclosure_id
       ? { label: patientDetails?.user_enclosure_name, value: patientDetails?.user_enclosure_id }
-      : { label: '', value: '' },
+      : null,
     discharge_date: dayjs(),
     discharge_time: dayjs(),
     reason: '',
@@ -198,12 +222,13 @@ const EnclosureDischargeForm = props => {
     setValue,
     clearErrors,
     getValues,
-    formState: { errors, isDirty }
+    trigger,
+    formState: { errors, isDirty, isValid }
   } = useForm({
     defaultValues,
     resolver: yupResolver(transferEnclosureSchema),
     shouldUnregister: false,
-    mode: 'onBlur',
+    mode: 'onChange',
     reValidateMode: 'onChange'
   })
 
@@ -221,6 +246,10 @@ const EnclosureDischargeForm = props => {
 
     if (saved) {
       const parsed = JSON.parse(saved)
+
+      // Enable restore mode to block Autocomplete API calls triggered by reset()
+      isRestoring.current = true
+
       reset({
         ...defaultValues,
         ...parsed,
@@ -230,9 +259,15 @@ const EnclosureDischargeForm = props => {
         follow_up_date: parsed.follow_up_required && parsed.follow_up_date ? dayjs(parsed.follow_up_date) : null
       })
 
+      // Disable restore mode after reset completes to allow normal user search
+      setTimeout(() => {
+        isRestoring.current = false
+      }, 0)
+    } else {
+      // No restore needed, allow normal search immediately
       isRestoring.current = false
     }
-  }, [STORAGE_KEY_FORM])
+  }, [])
 
   // time limits for discharge time
   const selectedDischargeDate = watch('discharge_date')
@@ -298,12 +333,12 @@ const EnclosureDischargeForm = props => {
   const handleDeleteMedicine = useCallback(
     medId => {
       const updated = medicationData?.filter(med => med.id !== medId)
-      updateState('enclosure_medicines', updated)
+      dispatch(updateState({ key: 'enclosure_medicines', value: updated }))
     },
-    [medicationData, updateState]
+    [medicationData, dispatch]
   )
 
-  // Add actions column
+  // Add actions column to medications table
   const medicationColumnsWithActions = useMemo(
     () =>
       (medicationsColumns || []).map(col =>
@@ -359,15 +394,12 @@ const EnclosureDischargeForm = props => {
 
     const success = await handleSubmitData(payload)
     if (success) {
-      sessionStorage.removeItem(STORAGE_KEY_FORM)
-      reset(defaultValues)
-      clearData() // clear medicines + reset storage after submit
+      clearEnclosureData() // Clear context data and session storage
       refetchPatient()
     }
   }
 
-  const handleReturnToOriginalToggle = (checked, fieldOnChange) => {
-    fieldOnChange(checked)
+  const handleReturnToOriginalToggle = (e, checked) => {
 
     if (checked) {
       // Apply original values (system action → not dirty)
@@ -377,7 +409,7 @@ const EnclosureDischargeForm = props => {
           label: patientDetails?.site_name,
           value: patientDetails?.site_id
         },
-        { shouldValidate: true, shouldDirty: false }
+        { shouldValidate: true, shouldDirty: false } // immediately trigger validation and dirty state update
       )
 
       setValue(
@@ -400,6 +432,7 @@ const EnclosureDischargeForm = props => {
     }
   }
 
+  // Scroll to hash section if present in URL
   useEffect(() => {
     if (window.location.hash) {
       const target = document.querySelector(window.location.hash)
@@ -417,23 +450,18 @@ const EnclosureDischargeForm = props => {
       <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, mb: 6 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <Controller
-              name='returnToOriginal'
+            <ControlledCheckBox
+              name={'returnToOriginal'}
+              label={'Transfer back to animal’s original location'}
               control={control}
-              render={({ field }) => (
-                <MUICheckbox
-                  {...field}
-                  label='Transfer back to animal’s original location'
-                  labelStyle={{
-                    fontSize: '1rem',
-                    fontWeight: '400',
-                    color: theme.palette.customColors.OnSurfaceVariant
-                  }}
-                  checked={field.value}
-                  onChange={e => handleReturnToOriginalToggle(e.target.checked, field.onChange)}
-                />
-              )}
-            />
+              errors={errors}
+              labelStyle={{
+                fontSize: '1rem',
+                fontWeight: '400',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+              onChangeOverride={handleReturnToOriginalToggle}
+              />
 
             <StyledTypography>Select location to transfer</StyledTypography>
             <Grid container spacing={6}>
@@ -445,30 +473,38 @@ const EnclosureDischargeForm = props => {
                   label={'Site*'}
                   options={sites}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
-                  onInputChange={value => handleSiteSearch(value)}
+                  onInputChange={value => {
+                    if (isRestoring.current) return // Skip API call if form is restoring from session storage
+                    handleSiteSearch(value)
+                  }}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSiteSearch('')
-                    setValue('site_name', { label: '', value: '' })
-                    setValue('section_name', { label: '', value: '' })
-                    setValue('user_enclosure_name', { label: '', value: '' })
+                    setValue('section_name', null, { shouldValidate: true, shouldDirty: true })
+                    setValue('user_enclosure_name', null, { shouldValidate: true, shouldDirty: true })
                     clearSections()
                     clearEnclosures()
                   }}
-                  loading={fetchLoading}
+                  loading={siteLoading}
                   showLoader={true}
                   required
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('site_name', val || { label: '', value: '' })
-                    setValue('section_name', { label: '', value: '' })
-                    setValue('user_enclosure_name', { label: '', value: '' })
+                    setValue('section_name', null, {
+                      shouldValidate: true,
+                      shouldDirty: true
+                    }) // Reset dependents to null to prevent stale data
+                    setValue('user_enclosure_name', null, {
+                      shouldValidate: true,
+                      shouldDirty: true
+                    })
 
-                    // Clear sections and enclosures when site changes
+                    // Clear existing options list to avoid showing stale data
                     clearSections()
                     clearEnclosures()
+
+                    // Fetch new section list for selected site
                     if (val?.value) {
                       fetchSections(val?.value)
                     }
@@ -483,12 +519,14 @@ const EnclosureDischargeForm = props => {
                   label={'Section*'}
                   options={sections}
                   getOptionLabel={option => option?.label || ''}
-                  getOptionValue={option => option?.value || ''}
-                  onInputChange={value => handleSectionSearch(watch('site_name')?.value, value)}
+                  onInputChange={value => {
+                    if (isRestoring.current) return
+                    handleSectionSearch(watch('site_name')?.value, value)
+                  }}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => {
                     handleSectionSearch(watch('site_name')?.value, '')
-                    setValue('user_enclosure_name', { label: '', value: '' })
+                    setValue('user_enclosure_name', null, { shouldValidate: true, shouldDirty: true })
                     clearEnclosures()
                   }}
                   loading={sectionLoading}
@@ -497,10 +535,10 @@ const EnclosureDischargeForm = props => {
                   showIcons={false}
                   disabled={returnToOriginal}
                   onChangeOverride={val => {
-                    setValue('section_name', val || { label: '', value: '' })
-                    setValue('user_enclosure_name', { label: '', value: '' })
-
-                    // Clear enclosures when section changes
+                    setValue('user_enclosure_name', null, {
+                      shouldValidate: true,
+                      shouldDirty: true
+                    })
                     clearEnclosures()
                     if (val?.value) {
                       fetchEnclosures(val?.value)
@@ -516,8 +554,10 @@ const EnclosureDischargeForm = props => {
                   label={'Enclosure*'}
                   options={enclosures}
                   getOptionLabel={option => option?.label}
-                  getOptionValue={option => option?.value}
-                  onInputChange={value => handleEnclosureSearch(watch('section_name')?.value, value)}
+                  onInputChange={value => {
+                    if (isRestoring.current) return
+                    handleEnclosureSearch(watch('section_name')?.value, value)
+                  }}
                   isOptionEqualToValue={(option, value) => option?.value === value?.value}
                   onItemClear={() => handleEnclosureSearch(watch('section_name')?.value, '')}
                   loading={enclosureLoading}
@@ -525,9 +565,6 @@ const EnclosureDischargeForm = props => {
                   required
                   showIcons={false}
                   disabled={returnToOriginal}
-                  onChangeOverride={val => {
-                    setValue('user_enclosure_name', val || { label: '', value: '' })
-                  }}
                 />
               </Grid>
             </Grid>
@@ -543,6 +580,9 @@ const EnclosureDischargeForm = props => {
                     errors={errors}
                     minDate={dayjs(patientData?.admitted_at)}
                     maxDate={dayjs(new Date())}
+                    onChangeOverride={() => {
+                      trigger('discharge_time')
+                    }}
                   />
                 </Grid>
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
@@ -644,7 +684,11 @@ const EnclosureDischargeForm = props => {
           </Grid>
 
           {/* Prescription table*/}
-          {prescriptionData?.length > 0 && (
+          {isPrescriptionLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 4 }}>
+              <CircularProgress size={30} />
+            </Box>
+          ) : prescriptionData?.length > 0 ? (
             <>
               <Divider />
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -697,7 +741,7 @@ const EnclosureDischargeForm = props => {
                 />
               </Box>
             </>
-          )}
+          ) : null}
           <Divider />
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Box
@@ -739,6 +783,7 @@ const EnclosureDischargeForm = props => {
                   })
                 }}
                 variant='contained'
+                disabled={isPrescriptionLoading}
               >
                 Add New Prescription
               </Button>

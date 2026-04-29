@@ -2,41 +2,33 @@ import React, { useState, useEffect, useCallback } from 'react'
 
 import { getUnits, addUnits, updateUnits } from 'src/lib/api/pharmacy/getUnits'
 import TableWithFilter from 'src/components/TableWithFilter'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
 
-import Typography from '@mui/material/Typography'
+// import Typography from '@mui/material/Typography'
+import { Box, Grid, Typography, IconButton } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer, Grid, TextField } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
-
-// import UserSnackbar from 'src/components/utility/snackbar'
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 import { debounce } from 'lodash'
 import toast from 'react-hot-toast'
 
-import Router from 'next/router'
 import AddUOM from 'src/views/pages/pharmacy/medicine/uom/addUom'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
-import { AddButton } from 'src/components/Buttons'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { textAlign } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
+import RenderUtility, { pageTitle } from 'src/utility/render'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfUOM = () => {
   const theme = useTheme()
@@ -120,7 +112,8 @@ const ListOfUOM = () => {
       )
     },
     {
-      minWidth: 350,
+      flex: 1,
+      minWidth: 250,
       field: 'unit_name',
       headerName: 'UOM NAME',
       textAlign: 'center',
@@ -165,7 +158,6 @@ const ListOfUOM = () => {
       headerName: 'Action',
       renderCell: params => (
         <>
-         
           {pharmacyRole && (
             <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
               {parseInt(params.row.zoo_id) === 0 ? null : (
@@ -187,10 +179,16 @@ const ListOfUOM = () => {
 
   const headerAction = (
     <div>
-     
       {pharmacyRole && (
         <Grid item>
-          <AddButtonContained title='Add UOM ' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+          <AddButtonContained
+            title='Add UOM '
+            action={() => addEventSidebarOpen()}
+            fullWidth='fullWidth'
+            styles={{
+              margin: 0
+            }}
+          />
         </Grid>
       )}
     </div>
@@ -203,6 +201,7 @@ const ListOfUOM = () => {
   const [sortColumn, setSortColumn] = useState('unit_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -303,6 +302,28 @@ const ListOfUOM = () => {
     sl_no: getSlNo(index)
   }))
 
+  const handleExport = async () => {
+    try {
+      setExportLoading(true)
+
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        response_type: 'csv'
+      }
+      const response = await getUnits({ params })
+
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response?.data)
+      }
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   return (
     <>
       {pharmacyRole ? (
@@ -311,67 +332,29 @@ const ListOfUOM = () => {
             <FallbackSpinner />
           ) : (
             <>
-              <Card>
-                <CardHeader
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'flex-start', 
-                    alignItems: 'flex-start', 
-                    gap: { xs: 3, sm: 0 },
-                    '& .MuiCardHeader-action': {
-                      width: { xs: '100% ', sm: 'auto' }
-                    }
-                  }}
-                  title={RenderUtility.pageTitle('UOM (Unit of Measurement) List')}
-                  action={headerAction}
-                />
-
-                <Grid
-                  item
-                  sx={{
-                    mx: { xs: 4 },
-                    ml: { md: 4 }
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      height: '40px',
-                      width: {
-                        xs: '100%',
-                        sm: '250px'
-                      }
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
+              <PageCardLayout title='UOM (Unit of Measurement) List' action={headerAction}>
+                <Grid container>
+                  <Grid item container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                    <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                      <MUISearch
+                        sx={{
+                          width: {
+                            xs: '100%',
+                            sm: '250px'
                           }
-                        }
-                      }}
-                    />
-                  </Box>
+                        }}
+                        placeholder='Search...'
+                        value={searchValue}
+                        onChange={e => handleSearch(e.target.value)}
+                        onClear={() => handleSearch('')}
+                      />
+                    </Grid>
+                    <Grid>
+                      <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} />
+                    </Grid>
+                  </Grid>
                 </Grid>
-
-                <Grid
-                  sx={{
-                    mx: { xs: 4 }
-                  }}
-                >
+                <Grid>
                   <CommonTable
                     onRowClick={''}
                     indexedRows={indexedRows}
@@ -384,7 +367,8 @@ const ListOfUOM = () => {
                     searchValue={searchValue}
                   />
                 </Grid>
-              </Card>
+              </PageCardLayout>
+
               {/* <TableWithFilter
             TableTitle={
               uomList.length > 0 ? 'UOM (Unit of Measurement) List' : 'UOM (Unit of Measurement) List is empty add UOM'
@@ -399,6 +383,7 @@ const ListOfUOM = () => {
             columns={columns}
             rows={uomList}
           /> */}
+
               <AddUOM
                 drawerWidth={400}
                 addEventSidebarOpen={openDrawer}
@@ -408,7 +393,6 @@ const ListOfUOM = () => {
                 submitLoader={submitLoader}
                 editParams={editParams}
               />
-           
             </>
           )}
         </>

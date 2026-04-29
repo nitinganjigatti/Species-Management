@@ -1040,7 +1040,7 @@ const EditNewEntry = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default EditNewEntry

@@ -1,9 +1,11 @@
 # Zoo Settings Module
 
 ## Overview
+
 Zoo-level configuration page where admins can manage general preferences (timezone, currency) and configure report distribution recipients (To/CC) for scheduled email reports.
 
 ## Page Route
+
 `/zoo-configuration/settings`
 
 ## Architecture
@@ -29,14 +31,15 @@ src/lib/api/zoo-settings/
 
 ### Separation of Concerns
 
-| Layer | Folder | Responsibility |
-|-------|--------|---------------|
-| **Page** | `src/pages/` | Route entry, auth guard, imports component |
-| **Component** | `src/components/` | Business logic — API calls (React Query), state management, event handlers, toast notifications |
-| **View** | `src/views/pages/` | Pure templates — receives props, renders JSX, no API calls |
-| **API** | `src/lib/api/` | Axios request definitions using project utility (`axiosGet`, `axiosPost`) |
+| Layer         | Folder             | Responsibility                                                                                  |
+| ------------- | ------------------ | ----------------------------------------------------------------------------------------------- |
+| **Page**      | `src/pages/`       | Route entry, auth guard, imports component                                                      |
+| **Component** | `src/components/`  | Business logic — API calls (React Query), state management, event handlers, toast notifications |
+| **View**      | `src/views/pages/` | Pure templates — receives props, renders JSX, no API calls                                      |
+| **API**       | `src/lib/api/`     | Axios request definitions using project utility (`axiosGet`, `axiosPost`)                       |
 
 ### Why this pattern?
+
 - **Views are reusable and testable** — no side effects, just props in → JSX out
 - **Business logic is encapsulated** — API calls, state transforms, error handling live in one place
 - **Components with own API logic** (like `MultiUserDrawer`) belong in `components/`, not `views/`
@@ -45,11 +48,13 @@ src/lib/api/zoo-settings/
 ## API Endpoints
 
 ### GET `/v1/zoo/settings`
+
 Fetches current saved settings for the zoo on page load.
 
 **Headers:** `Authorization`, `ZooId`
 
 **Response:**
+
 ```json
 {
   "status": true,
@@ -63,8 +68,8 @@ Fetches current saved settings for the zoo on page load.
         ],
         "cc": []
       },
-      "medical":   { "to": [], "cc": [] },
-      "hospital":  { "to": [], "cc": [] },
+      "medical": { "to": [], "cc": [] },
+      "hospital": { "to": [], "cc": [] },
       "enclosure": { "to": [], "cc": [] }
     }
   }
@@ -72,29 +77,33 @@ Fetches current saved settings for the zoo on page load.
 ```
 
 ### GET `/v1/zoo/report-types`
+
 Fetches available report types to render cards dynamically.
 
 **Headers:** `Authorization`, `ZooId`
 
 **Response:**
+
 ```json
 {
   "status": true,
   "data": [
-    { "key": "daily",     "label": "Daily Report",           "color": "#37BD69" },
-    { "key": "medical",   "label": "Medical Summary",        "color": "#00AEA4" },
-    { "key": "hospital",  "label": "Hospital Report",        "color": "#FA6140" },
+    { "key": "daily", "label": "Daily Report", "color": "#37BD69" },
+    { "key": "medical", "label": "Medical Summary", "color": "#00AEA4" },
+    { "key": "hospital", "label": "Hospital Report", "color": "#FA6140" },
     { "key": "enclosure", "label": "Empty Enclosure Report", "color": "#FDB528" }
   ]
 }
 ```
 
 ### POST `/v1/zoo/settings`
+
 Saves settings. Uses `section` field to determine what to update.
 
 **Headers:** `Authorization`, `ZooId`, `Content-Type: application/json`
 
 #### General Settings Only
+
 ```json
 {
   "section": "general",
@@ -104,32 +113,37 @@ Saves settings. Uses `section` field to determine what to update.
 ```
 
 #### Report Recipients Only
+
 Backend expects user IDs (not full objects). Frontend maps `user_id` from local state before POST.
+
 ```json
 {
   "section": "report_recipients",
   "report_recipients": {
-    "daily":    { "to": [1, 5], "cc": [3] },
+    "daily": { "to": [1, 5], "cc": [3] },
     "hospital": { "to": [2, 8], "cc": [] }
   }
 }
 ```
 
 #### Both Sections
+
 `section` can be a string or array — backend handles both.
+
 ```json
 {
   "section": ["general", "report_recipients"],
   "timezone": "Asia/Kolkata",
   "currency": "INR",
   "report_recipients": {
-    "medical":   { "to": [10], "cc": [4, 7] },
+    "medical": { "to": [10], "cc": [4, 7] },
     "enclosure": { "to": [5], "cc": [] }
   }
 }
 ```
 
 **Response:**
+
 ```json
 { "status": true, "message": "Settings saved successfully" }
 ```
@@ -144,6 +158,7 @@ Backend expects user IDs (not full objects). Frontend maps `user_id` from local 
 6. **Save Reports** — maps user objects to IDs, then `POST { section: 'report_recipients', report_recipients: {...} }` on Report section Save click
 
 ## Notes
+
 - `user_id` from GET settings is a string (`"1"`), from user listing API may be numeric — comparisons use `String()` coercion
 - Report types are fully dynamic from API — adding/removing a report type on backend automatically reflects in UI
 - Each section has its own Save button — independent saves

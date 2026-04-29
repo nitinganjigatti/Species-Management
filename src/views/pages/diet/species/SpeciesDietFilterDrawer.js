@@ -16,6 +16,7 @@ import {
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import Icon from 'src/@core/components/icon'
 import { getClassList } from 'src/lib/api/diet/speciesDiet'
+import { useTranslation } from 'react-i18next'
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -34,6 +35,7 @@ const SpeciesDietFilterDrawer = ({
   setFilterCount
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const leftMenu = [{ id: 1, name: 'Class' }]
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [loading, setLoading] = useState(false)
@@ -322,7 +324,7 @@ const SpeciesDietFilterDrawer = ({
                     inputProps={{ 'aria-label': 'controlled' }}
                   />
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
-                    Select All
+                    {t('diet_module.select_all')}
                   </Typography>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
@@ -382,7 +384,7 @@ const SpeciesDietFilterDrawer = ({
             setSelectedFiltersOptions({})
           }}
         >
-          CANCEL ALL
+          {t('cancel_all')}
         </LoadingButton>
         <LoadingButton
           disabled={classListData.length == 0}
@@ -391,7 +393,7 @@ const SpeciesDietFilterDrawer = ({
           size='large'
           onClick={handleApplyFilter}
         >
-          APPLY FILTER
+          {t('apply_filter')}
         </LoadingButton>
       </Box>
     </Drawer>

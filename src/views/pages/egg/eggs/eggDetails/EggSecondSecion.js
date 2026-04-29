@@ -23,7 +23,6 @@ import {
   TableContainer
 } from '@mui/material'
 import { Box } from '@mui/system'
-import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
 import { styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -37,6 +36,7 @@ import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import { AddAssesment, EditAssesment, getWeightList } from 'src/lib/api/egg/egg'
 
@@ -44,6 +44,7 @@ import EggActivityLogs from './EggActivityLogs'
 import ProbableParent from './ProbableParent'
 import TransferEgg from './TransferEgg'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 
 const EggSecondSecion = ({
   activtyLogData,
@@ -57,7 +58,7 @@ const EggSecondSecion = ({
 }) => {
   const theme = useTheme()
   const currentDate = moment().format('YYYY-MM-DD')
-
+  const { t } = useTranslation()
   const CustomTableContainer = styled(TableContainer)({
     '::-webkit-scrollbar': {
       width: '4px',
@@ -145,7 +146,7 @@ const EggSecondSecion = ({
           sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
           startIcon={<Icon icon='mdi:add' fontSize={20} />}
         >
-          ADD NEW
+          {t('add_new')}
         </Button>
       )}
     </>
@@ -155,12 +156,8 @@ const EggSecondSecion = ({
 
   const sortedRowsForChart = useMemo(() => {
     return [...rows].sort((a, b) => {
-      const current = a?.created_at
-        ? moment(Utility.convertUTCToLocal(a.created_at)).valueOf()
-        : 0
-      const next = b?.created_at
-        ? moment(Utility.convertUTCToLocal(b.created_at)).valueOf()
-        : 0
+      const current = a?.created_at ? moment(Utility.convertUTCToLocal(a.created_at)).valueOf() : 0
+      const next = b?.created_at ? moment(Utility.convertUTCToLocal(b.created_at)).valueOf() : 0
 
       return current - next
     })
@@ -209,7 +206,7 @@ const EggSecondSecion = ({
     {
       width: 70,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('s_no'),
       sortable: false,
       renderCell: params => (
         <Typography
@@ -230,7 +227,7 @@ const EggSecondSecion = ({
       minWidth: 30,
       sortable: false,
       field: 'created_at',
-      headerName: 'DATE',
+      headerName: t('date'),
       renderCell: params => (
         <Typography
           noWrap
@@ -250,7 +247,7 @@ const EggSecondSecion = ({
       minWidth: 30,
       sortable: false,
       field: 'uom_abbr',
-      headerName: 'TIME ',
+      headerName: t('time'),
       renderCell: params => (
         <Typography
           noWrap
@@ -270,7 +267,7 @@ const EggSecondSecion = ({
       minWidth: 30,
       sortable: false,
       field: 'assessment_value',
-      headerName: 'ACTUAL',
+      headerName: t('actual'),
       renderCell: params => (
         <Tooltip
           title={`${
@@ -306,7 +303,7 @@ const EggSecondSecion = ({
       minWidth: 30,
       sortable: false,
       field: 'action',
-      headerName: 'ACTION',
+      headerName: t('action'),
       renderCell: params => (
         <Typography
           sx={{
@@ -511,34 +508,17 @@ const EggSecondSecion = ({
         </Box>
       </Box>
       <Box sx={{ px: 4, py: 2 }}>
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
+        <CommonTable
+          indexedRows={indexedRows === undefined ? [] : indexedRows}
+          total={total}
+          columns={columns}
+          paginationModel={paginationModel}
+          setPaginationModel={setPaginationModel}
+          loading={loading}
           columnVisibilityModel={{
             sl_no: false
           }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-
-          // onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
           slotProps={{
             baseButton: {
               variant: 'outlined'
@@ -602,7 +582,7 @@ const EggSecondSecion = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <TextField
-                            label='Weight in Grams'
+                            label={t('egg_module.weight_in_gm')}
                             value={value}
                             autoFocus
                             onChange={event => {
@@ -612,7 +592,7 @@ const EggSecondSecion = ({
                                 onChange(event)
                               }
                             }}
-                            placeholder={`${editWeight ? 'Edit' : 'Add'} Weight`}
+                            placeholder={`${editWeight ? t('edit') : t('add')} Weight`}
                             error={Boolean(errors.assessment_value)}
                             name='assessment_value'
                             slotProps={{
@@ -622,7 +602,9 @@ const EggSecondSecion = ({
                         )}
                       />
                       {errors.assessment_value && (
-                        <FormHelperText sx={{ color: 'error.main' }}>Assessment value is Required</FormHelperText>
+                        <FormHelperText sx={{ color: 'error.main' }}>
+                          {t('egg_module.assessment_value_req')}
+                        </FormHelperText>
                       )}
                     </FormControl>
                   </Box>
@@ -649,7 +631,7 @@ const EggSecondSecion = ({
                 disabled={errors.assessment_value || submitAssementloader}
                 sx={{ height: '50px' }}
               >
-                Submit
+                {t('submit')}
               </LoadingButton>
             </Box>
           </form>
@@ -745,7 +727,7 @@ const EggSecondSecion = ({
                           color: theme.palette.primary.main
                         }}
                       >
-                        Transfer
+                        {t('transfer')}
                       </Typography>
                       <Icon
                         color={theme.palette.customColors.addPrimary}
@@ -775,10 +757,10 @@ const EggSecondSecion = ({
                         mb: '10px'
                       }}
                     >
-                      Temperature
+                      {t('diet_module.temperature')}
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Coming Soon
+                      {t('diet_module.coming_soon')}
                     </Typography>
                     <Typography
                       sx={{
@@ -788,7 +770,7 @@ const EggSecondSecion = ({
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Coming Soon
+                      {t('diet_module.coming_soon')}
                     </Typography>
                   </Grid>
                   <Grid
@@ -809,10 +791,10 @@ const EggSecondSecion = ({
                         mb: '10px'
                       }}
                     >
-                      Humidity
+                      {t('diet_module.humidity')}
                     </Typography>
                     <Typography sx={{ fontWeight: 600, fontSize: '20px', lineHeight: '24.2px', mb: '14px' }}>
-                      Coming soon
+                      {t('diet_module.coming_soon')}
                     </Typography>
                     <Typography
                       sx={{
@@ -822,7 +804,7 @@ const EggSecondSecion = ({
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Coming soon
+                      {t('diet_module.coming_soon')}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -981,7 +963,7 @@ const EggSecondSecion = ({
                       mb: '12px'
                     }}
                   >
-                    Initial Measurement
+                    {t('egg_module.initial_measurement')}
                   </Typography>
                   <Divider />
                 </Box>
@@ -1024,7 +1006,7 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.neutralSecondary
                             }}
                           >
-                            Length
+                            {t('diet_module.length')}
                           </Typography>
                         </Box>
                       </Box>
@@ -1061,7 +1043,7 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.neutralSecondary
                             }}
                           >
-                            Width
+                            {t('diet_module.width')}
                           </Typography>
                         </Box>
                       </Box>
@@ -1090,7 +1072,7 @@ const EggSecondSecion = ({
                               color: theme.palette.customColors.neutralSecondary
                             }}
                           >
-                            Weight
+                            {t('diet_module.weight')}
                           </Typography>
                         </Box>
                       </Box>
@@ -1114,7 +1096,7 @@ const EggSecondSecion = ({
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  Egg Weight
+                  {t('egg_module.egg_weight')}
                 </Typography>
                 <Box sx={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                   <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -1135,7 +1117,7 @@ const EggSecondSecion = ({
                         color: theme.palette.customColors.neutralSecondary
                       }}
                     >
-                      Actual Value
+                      {t('egg_module.actual_value')}
                     </Typography>
                   </Box>
                   <Typography
@@ -1147,7 +1129,7 @@ const EggSecondSecion = ({
                       color: theme.palette.customColors.neutralSecondary
                     }}
                   >
-                    X - Days
+                    {t('egg_module.x_days')}
                   </Typography>
                   <Typography
                     sx={{
@@ -1158,7 +1140,7 @@ const EggSecondSecion = ({
                       color: theme.palette.customColors.neutralSecondary
                     }}
                   >
-                    Y - Weight
+                    {t('egg_module.y_weight')}
                   </Typography>
                 </Box>
               </Box>
@@ -1178,12 +1160,18 @@ const EggSecondSecion = ({
                 <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>DATE</TableCell>
-                      <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>TIME</TableCell>
                       <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>
-                        ACTUAL
+                        {t('date')}
                       </TableCell>
-                      <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>EDIT</TableCell>
+                      <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>
+                        {t('time')}
+                      </TableCell>
+                      <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>
+                        {t('actual')}
+                      </TableCell>
+                      <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>
+                        {t('edit')}
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>

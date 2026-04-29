@@ -20,8 +20,8 @@ import FeedOverview from 'src/views/pages/diet/feed/feedoverview'
 import { feedDelete, feedStatusChange, getFeedDetails, getIngredientsOnFeed } from 'src/lib/api/diet/getFeedDetails'
 import format from 'date-fns/format'
 import Router, { useRouter } from 'next/router'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
@@ -37,6 +37,7 @@ import ActivityLogs from 'src/components/diet/activityLogs'
 import Error404 from 'src/pages/404'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 
 // Styled TabList component
@@ -69,6 +70,7 @@ const FeedDetails = () => {
   const { id } = router.query
   const { query } = router
   const theme = useTheme()
+  const { t } = useTranslation()
   const [value, setValue] = useState('1')
   const [FeedDetailsValue, setFeedDetails] = useState([])
   const [loader, setLoader] = useState(true)
@@ -154,9 +156,10 @@ const FeedDetails = () => {
   const columns = [
     {
       flex: 0.1,
-      minWidth: 40,
+      minWidth: 60,
       field: 'id',
       headerName: 'SL',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id}
@@ -168,6 +171,7 @@ const FeedDetails = () => {
       minWidth: 40,
       field: 'ingredient_name',
       headerName: 'ITEMS',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Avatar variant='square' src={params?.row?.image || '/icons/icon_ingredient_fill.png'} />
@@ -180,6 +184,7 @@ const FeedDetails = () => {
       minWidth: 10,
       field: 'created_by_user',
       headerName: 'ADDED BY',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0 }}>
           <Avatar
@@ -426,19 +431,19 @@ const FeedDetails = () => {
                               <Tab
                                 style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                                 value='1'
-                                label='OVERVIEW'
+                                label={t('overview')}
                               />
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='2'
-                                label='USED ITEMS'
+                                label={t('diet_module.used_items')}
                               />
                             </TabList>
                             <TabPanel sx={{ paddingLeft: 0 }} value='1'>
                               {FeedDetailsValue.desc ? (
                                 <div>
                                   <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: '600' }}>
-                                    Description
+                                    {t('description')}
                                   </Typography>
                                   <Typography
                                     variant='body2'
@@ -518,7 +523,7 @@ const FeedDetails = () => {
                                     <Typography
                                       sx={{ color: theme.palette.customColors.deepDark, my: 3, fontSize: 14 }}
                                     >
-                                      Activity Log
+                                      {t('activity_log')}
                                     </Typography>
                                     <Icon
                                       icon='ph:clock'
@@ -555,7 +560,9 @@ const FeedDetails = () => {
                             </TabPanel>
                             <TabPanel sx={{ p: 0, pt: 2 }} value='2'>
                               <Box sx={{ display: 'flex', mb: 4, height: '32px', justifyContent: 'space-between' }}>
-                                <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>Items</Typography>
+                                <Typography sx={{ fontWeight: 600, fontSize: '16px' }}>
+                                  {t('diet_module.items')}
+                                </Typography>
                                 <Button
                                   onClick={() =>
                                     Router.push({
@@ -571,57 +578,33 @@ const FeedDetails = () => {
                                   variant='contained'
                                 >
                                   <Icon icon='mdi:add' fontSize={20} />
-                                  &nbsp; Add item
+                                  &nbsp; {t('diet_module.add_item')}
                                 </Button>
                               </Box>
-                              <DataGrid
-                                sx={{
-                                  '.MuiDataGrid-cell:focus': {
-                                    outline: 'none'
-                                  },
-                                  '& .MuiDataGrid-row:hover': {
-                                    cursor: 'pointer'
-                                  },
-                                  '& .css-1tg25fo': {
-                                    paddingRight: 0
-                                  }
-                                }}
+                              <Grid container sx={{ mb: 2, justifyContent: 'flex-start' }}>
+                                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                                  <MUISearch
+                                    value={searchValue}
+                                    onChange={e => handleSearch(e.target.value)}
+                                    onClear={() => handleSearch('')}
+                                    placeholder='Search…'
+                                  />
+                                </Grid>
+                              </Grid>
+                              <CommonTable
+                                indexedRows={indexedRows === undefined ? [] : indexedRows}
+                                total={total}
+                                columns={columns}
+                                paginationModel={paginationModel}
+                                handleSortModel={handleSortModel}
+                                setPaginationModel={setPaginationModel}
+                                loading={loading}
                                 columnVisibilityModel={{
                                   sl_no: false
                                 }}
-                                hideFooterSelectedRowCount
-                                disableColumnSelector={true}
-                                autoHeight
-                                pagination
-                                rows={indexedRows === undefined ? [] : indexedRows}
-                                rowCount={total}
-                                columns={columns}
-                                sortingMode='server'
-                                paginationMode='server'
                                 pageSizeOptions={[5, 10, 25, 50, 100]}
-                                paginationModel={paginationModel}
-                                onSortModelChange={handleSortModel}
-                                slots={{
-                                  toolbar: ServerSideToolbarWithFilter,
-                                  searchField: {
-                                    '& div .css-1tg25fo': {
-                                      backgroundColor: 'lightblue',
-                                      paddingRight: 9
-                                    }
-                                  }
-                                }}
-                                onPaginationModelChange={setPaginationModel}
-                                loading={loading}
-                                slotProps={{
-                                  baseButton: {
-                                    variant: 'outlined'
-                                  },
-                                  toolbar: {
-                                    value: searchValue,
-                                    clearSearch: () => handleSearch(''),
-                                    onChange: event => handleSearch(event.target.value)
-                                  }
-                                }}
+                                searchValue={searchValue}
+                                handleSearchOverride={handleSearch}
                               />
                             </TabPanel>
                           </TabContext>

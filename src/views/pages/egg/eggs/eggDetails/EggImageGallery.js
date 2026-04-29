@@ -4,10 +4,11 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
+import { useTranslation } from 'react-i18next'
 
 const EggImageGallery = ({ galleryList }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   return (
     <>
       {galleryList?.length ? (
@@ -21,7 +22,7 @@ const EggImageGallery = ({ galleryList }) => {
               mb: '12px'
             }}
           >
-            Image Gallery
+            {t('egg_module.image_gallery')}
           </Typography>
           <Grid container spacing={6} sx={{ justifyContent: 'start' }}>
             {galleryList?.map((item, index) => (

@@ -1,39 +1,32 @@
 import React, { useState, useEffect, useCallback } from 'react'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
-import { DataGrid } from '@mui/x-data-grid'
+
 import { debounce } from 'lodash'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, Tooltip, TextField } from '@mui/material'
+
+import { Typography, Grid, Tooltip, Box, Chip, Tab } from '@mui/material'
 
 // ** Icon Imports
-import { Box } from '@mui/material'
 
 import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-
-import Chip from '@mui/material/Chip'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
-import RenderUtility from 'src/utility/render'
-import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import { STOCK_ADJUSTMENT_REASON_TYPES } from 'src/constants/PharmacyConstants'
 import LabelAndDescriptionWithElipsisModal from 'src/views/utility/LabelAndDescriptionWithElipsisModal'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import MUISearch from 'src/views/forms/form-fields/MUISearch'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -214,7 +207,7 @@ const ListOfStockAdjusted = () => {
       headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ display: 'flex' }}>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>
             {parseInt(params.row.sl) + '.'}
           </Typography>
         </Box>
@@ -225,21 +218,38 @@ const ListOfStockAdjusted = () => {
       minWidth: 140,
       field: 'stock_name',
       headerName: 'Product',
-      renderCell: params => <Typography noWrap>{params.row.stock_name}</Typography>
+      renderCell: params => (
+        <Tooltip title={params.row.stock_name}>
+          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }} noWrap>
+            {params.row.stock_name}
+          </Typography>
+        </Tooltip>
+      )
     },
     {
       flex: 0.1,
       minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch No.',
-      renderCell: params => <Typography noWrap>{params.row.batch_no}</Typography>
+      renderCell: params => (
+        <Tooltip title={params.row.batch_no}>
+          {' '}
+          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }} noWrap>
+            {params.row.batch_no}
+          </Typography>
+        </Tooltip>
+      )
     },
     {
       flex: 0.1,
       minWidth: 100,
       field: 'adjustment_quantity',
       headerName: 'Qty',
-      renderCell: params => <Typography noWrap>{params.row.adjustment_quantity}</Typography>
+      renderCell: params => (
+        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }} noWrap>
+          {params.row.adjustment_quantity}
+        </Typography>
+      )
     },
 
     {
@@ -266,7 +276,7 @@ const ListOfStockAdjusted = () => {
       field: 'expiry_date',
       headerName: 'Expiry',
       renderCell: params => (
-        <Typography noWrap>
+        <Typography noWrap sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px' }}>
           {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
@@ -293,6 +303,7 @@ const ListOfStockAdjusted = () => {
       title='Add Stock Adjustment'
       action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
       fullWidth='fullWidth'
+      styles={{ margin: 0 }}
     />
   )
 
@@ -307,82 +318,25 @@ const ListOfStockAdjusted = () => {
 
   const tableData = () => {
     return (
-      <Card>
-        <CardHeader
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: { xs: 3, sm: 0 },
-            '& .MuiCardHeader-action': {
-              width: { xs: '100% ', sm: 'auto' }
-            },
-            mx: { xs: -1, sm: 1 },
-            mb: { xs: 2 },
-            mt: 1
-          }}
-          title={RenderUtility.pageTitle('Stock Adjustment List')}
-          action={headerAction}
-        />
-
-        {/* <Grid
-          container
-
-        >
-          <Grid item xs={12} sm='auto'>
-            {title}
-          </Grid>
-          <Grid item xs={12} sm='auto'>
-            {headerAction}
-          </Grid>
-        </Grid> */}
+      <PageCardLayout title={'Stock Adjustment List'} action={headerAction}>
         <Box
           sx={{
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
             alignItems: 'center',
-            mx: { xs: 3, md: 5 }
+            width: { xs: '100%', sm: '300px' }
           }}
         >
-          {/* Search Box */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              width: { xs: '100%', sm: '250px' }, // Full width on small screens
-              height: '40px'
-            }}
-          >
-            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-            <TextField
-              variant='outlined'
-              placeholder='Search...'
-              value={searchValue}
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
+          <MUISearch
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder='Search...'
+            value={searchValue}
+          />
         </Box>
 
-        <Grid
-          sx={{
-            mx: { xs: 3, md: 5 }
-          }}
-        >
+        <Grid>
           <CommonTable
             onRowClick={''}
             indexedRows={indexedRows}
@@ -395,48 +349,7 @@ const ListOfStockAdjusted = () => {
             searchValue={searchValue}
           />
         </Grid>
-        {/* <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
-
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl: false
-          }}
-          autoHeight
-          pagination
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          total
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbar }}
-          onPaginationModelChange={setPaginationModel}
-          loading={loading}
-          disableColumnMenu
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-        /> */}
-      </Card>
+      </PageCardLayout>
     )
   }
 

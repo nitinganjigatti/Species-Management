@@ -5,20 +5,17 @@ import { useEffect, useCallback, Fragment } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
-import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import FormControl from '@mui/material/FormControl'
-import FormHelperText from '@mui/material/FormHelperText'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { getDriverById } from 'src/lib/api/pharmacy/driver'
 
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 
 import Icon from 'src/@core/components/icon'
-
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
 const schema = yup.object().shape({
   driver_name: yup
@@ -138,69 +135,35 @@ const AddDriver = props => {
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='driver_name'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Driver Name*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Driver Name'
-                  error={Boolean(errors.name)}
-                  name='driver_name'
-                />
-              )}
-            />
-            {errors.driver_name && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.driver_name.message}</FormHelperText>
-            )}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='phone_number'
-              type='number'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Phone Number*'
-                  value={value}
-                  type='number'
-                  onChange={onChange}
-                  placeholder='Phone Number'
-                  error={Boolean(errors.name)}
-                  name='phone_number'
-                />
-              )}
-            />
-            {errors.phone_number && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.phone_number.message}</FormHelperText>
-            )}
-          </FormControl>
-          <FormControl fullWidth sx={{ mb: 6 }}>
-            <Controller
-              name='vehicle_number'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  label='Vehicle Number*'
-                  value={value}
-                  onChange={onChange}
-                  placeholder='Vehicle Number'
-                  error={Boolean(errors.name)}
-                  name='vehicle_number'
-                />
-              )}
-            />
-            {errors.vehicle_number && (
-              <FormHelperText sx={{ color: 'error.main' }}>{errors.vehicle_number.message}</FormHelperText>
-            )}
-          </FormControl>
+          <ControlledTextField
+            name='driver_name'
+            control={control}
+            error={Boolean(errors.name)}
+            placeholder='Driver Name'
+            label='Driver Name*'
+            fullWidth
+            sx={{ mb: 6 }}
+          />
+          <ControlledTextField
+            name='phone_number'
+            type='number'
+            control={control}
+            error={Boolean(errors.name)}
+            placeholder='Phone Number'
+            label='Phone Number*'
+            fullWidth
+            sx={{ mb: 6 }}
+          />
 
+          <ControlledTextField
+            label='Vehicle Number*'
+            control={control}
+            placeholder='Vehicle Number'
+            error={Boolean(errors.name)}
+            name='vehicle_number'
+            fullWidth
+            sx={{ mb: 6 }}
+          />
           {/* {editParams?.id !== null ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>

@@ -285,7 +285,7 @@ const SelectParameterDrawer = ({ open, setOpen, selectedAssessments, setSelected
               ) : (
                 <>
                   {list.map(assessment => {
-                    const isSelected = selectedAssessments.some(item => item.id === assessment.assessment_type_id)
+                    const isSelected = selectedAssessments.some(item => item.id === String(assessment.assessment_type_id))
 
                     return (
                       <Box

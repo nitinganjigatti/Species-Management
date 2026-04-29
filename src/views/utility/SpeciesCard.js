@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 function SpeciesCard({ species, edit }) {
   const theme = useTheme()
   const [loading, setLoading] = useState(true)
-  const [imgSrc, setImgSrc] = useState(species?.default_icon)
+  const [imgSrc, setImgSrc] = useState(species?.default_icon || '/branding/antz/Antz_logomark_h_color.svg')
 
   const handleImageLoad = () => {
     setLoading(false)
@@ -14,7 +14,9 @@ function SpeciesCard({ species, edit }) {
 
   const handleImageError = () => {
     setLoading(false)
-    setImgSrc('/images/housing/species-icon-colored.svg')
+
+    // setImgSrc('/images/housing/species-icon-colored.svg')
+    setImgSrc('/branding/antz/Antz_logomark_h_color.svg')
   }
 
   return (
@@ -27,19 +29,18 @@ function SpeciesCard({ species, edit }) {
             sx={{
               width: 40,
               height: 40,
-              padding: species?.default_icon === '/branding/antz/Antz_logomark_h_color.svg' && '4px',
+
+              // padding: species?.default_icon === '/branding/antz/Antz_logomark_h_color.svg' && '4px',
+              padding: imgSrc?.includes('Antz_logomark_h_color.svg') ? '4px' : '0px',
               '& img': {
                 objectFit: 'inherit'
               },
-              borderRadius:
-                species?.default_icon && species.default_icon.includes('.svg')
-                  ? '50%'
-                  : species?.default_icon
-                  ? '50%'
-                  : 'unset'
+
+              // borderRadius:species?.default_icon && species.default_icon.includes('.svg') ? '50%' : species?.default_icon ? '50%' : 'unset'
+              borderRadius: imgSrc?.includes('.svg') ? '50%' : 'unset'
             }}
-            // src={imgSrc}
-            src={species?.default_icon || '/images/housing/species-icon-colored.svg'}
+            src={imgSrc}
+            // src={species?.default_icon || '/images/housing/species-icon-colored.svg'}
             alt={species.scientific_name}
             slotProps={{
               img: {

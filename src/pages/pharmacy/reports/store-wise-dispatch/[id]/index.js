@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 // ** MUI Imports
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
@@ -41,9 +41,10 @@ const dropdownOptions = [
 const StoreWiseDispatchDetail = () => {
   const router = useRouter()
   const theme = useTheme()
-  const selectedStore = localStorage.getItem('selectedStore')
-  const storeObject = JSON.parse(selectedStore)
-  const storeId = storeObject?.id
+
+  // const selectedStore = localStorage.getItem('selectedStore')
+  // const storeObject = JSON.parse(selectedStore)
+  // const selectedPharmacy?.id = storeObject?.id
   const { id, store_name } = router.query
   const [loader, setLoader] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -147,7 +148,7 @@ const StoreWiseDispatchDetail = () => {
         from_date: fromDate,
         to_date: toDate,
         q: doctorsearch,
-        store_id: storeId
+        store_id: selectedPharmacy?.id
       }
 
       const response = await getDoctorReportList(payload)
@@ -226,7 +227,7 @@ const StoreWiseDispatchDetail = () => {
     setsearchbyDoctorname(value)
 
     if (medicineId && statusFilter) {
-      fetchDoctorlist(medicineId, downloadFromDate, downloadToDate, value) 
+      fetchDoctorlist(medicineId, downloadFromDate, downloadToDate, value)
     }
   }
 
@@ -276,8 +277,10 @@ const StoreWiseDispatchDetail = () => {
               {
                 field: 'stock_name',
                 headerName: `Pharmacy Name`,
+                align: 'left',
+                headerAlign: 'left',
                 renderHeader: () => (
-                  <Box>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
                     <Typography sx={{ fontSize: '0.75rem', color: theme.palette.secondary.dark, fontWeight: 600 }}>
                       Medicine names
                     </Typography>
@@ -292,7 +295,7 @@ const StoreWiseDispatchDetail = () => {
                   </Box>
                 ),
                 renderCell: params => (
-                  <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                     <Tooltip title={params.row.stock_name}>
                       <Typography
                         sx={{
@@ -370,7 +373,7 @@ const StoreWiseDispatchDetail = () => {
                 renderCell: params => {
                   const value = Number(params.value)
                   if (isNaN(value)) {
-                    return <span>{params.value}</span> 
+                    return <span>{params.value}</span>
                   }
                   const originalValue = Math.round(value)
 
@@ -387,7 +390,7 @@ const StoreWiseDispatchDetail = () => {
 
                   return (
                     <Tooltip title={`Dispatch value: ${formattedNumber}`}>
-                      <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
+                      <span style={{ color: theme.palette.primary.dark }}>{`${formattedThousands}`}</span>
                     </Tooltip>
                   )
                 },
@@ -402,7 +405,7 @@ const StoreWiseDispatchDetail = () => {
               control_substance: row.control_substance,
 
               ...Object.keys(row.data_values).reduce((acc, key) => {
-                const value = Number(row.data_values[key]) 
+                const value = Number(row.data_values[key])
                 acc[key] = isNaN(value) ? '₹' + row.data_values[key] : value.toFixed(2)
 
                 return acc
@@ -549,7 +552,7 @@ const StoreWiseDispatchDetail = () => {
         from_date: downloadFromDate,
         to_date: downloadToDate,
         q: searchbyDoctorname,
-        store_id: storeId
+        store_id: selectedPharmacy?.id
       }
 
       const response = await getDoctorReportList(payload)
@@ -570,8 +573,8 @@ const StoreWiseDispatchDetail = () => {
         utils.book_append_sheet(workbook, worksheet, 'DoctorList')
 
         const now = new Date()
-        const formattedDate = now.toISOString().slice(0, 10) 
-        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-') 
+        const formattedDate = now.toISOString().slice(0, 10)
+        const formattedTime = now.toTimeString().slice(0, 5).replace(':', '-')
         const fileName = `DoctorList_${formattedDate}_${formattedTime}.xlsx`
 
         writeFile(workbook, fileName)
@@ -622,7 +625,7 @@ const StoreWiseDispatchDetail = () => {
 
           if (column) {
             if (value == null || isNaN(value)) {
-              rowData[`${column.title} (${column.sub_title})`] = '0' 
+              rowData[`${column.title} (${column.sub_title})`] = '0'
             } else {
               const roundedValue = parseFloat(value)
 
@@ -643,7 +646,6 @@ const StoreWiseDispatchDetail = () => {
         Medicine: 'Total Dispatch Value '
       }
       listItem.columnData.forEach(column => {
-       
         const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
           maximumFractionDigits: 0
         })
@@ -654,11 +656,7 @@ const StoreWiseDispatchDetail = () => {
 
       const wsData = [headers, ...finalRows.map(row => Object.values(row))]
       const ws = utils.aoa_to_sheet(wsData)
-      ws['!cols'] = [
-        { wch: 20 }, 
-
-        ...listItem.columnData.map(() => ({ wch: 15 })) 
-      ]
+      ws['!cols'] = [{ wch: 20 }, ...listItem.columnData.map(() => ({ wch: 15 }))]
       const wb = utils.book_new()
       utils.book_append_sheet(wb, ws, 'Dispatch_Report')
 
@@ -712,7 +710,7 @@ const StoreWiseDispatchDetail = () => {
           }
         }}
       />
-    );
+    )
   })
 
   return (
@@ -743,9 +741,13 @@ const StoreWiseDispatchDetail = () => {
                       Store wise dispatch
                     </Typography>
 
-                    <Typography sx={{
-                      color: 'text.primary'
-                    }}>{store_name}</Typography>
+                    <Typography
+                      sx={{
+                        color: 'text.primary'
+                      }}
+                    >
+                      {store_name}
+                    </Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -758,7 +760,6 @@ const StoreWiseDispatchDetail = () => {
                     container
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 5, pt: 2 }}
                   >
-                  
                     <Grid item size={{ xs: 12, sm: 6, md: 6 }} sx={{ justifyContent: 'flex-start' }}>
                       <ServerSideToolbar
                         value={searchValue}
@@ -771,7 +772,6 @@ const StoreWiseDispatchDetail = () => {
                       />
                     </Grid>
 
-                   
                     <Grid item size={{ xs: 12, sm: 4, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <FormControl size='small' sx={{ mr: 2 }}>
                         <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
@@ -813,72 +813,31 @@ const StoreWiseDispatchDetail = () => {
                 >
                   <Typography sx={{ fontSize: '14px' }}>All Values are in Rupees(₹)</Typography>
                 </Box>
-                <DataGrid
-                  sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
-
+                <CommonTable
+                  indexedRows={rows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  loading={loading}
+                  searchValue={searchValue}
+                  handleSearch={handleSearch}
+                  columnVisibilityModel={{ id: false }}
+                  hideFooter={router.asPath.includes('dashboard')}
+                  externalTableStyle={{
                     '& .MuiDataGrid-columnHeaders': {
-                      backgroundColor: theme.palette.customColors.customTableHeaderBg
+                      minHeight: '100px !important',
+                      maxHeight: '100px !important'
                     },
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
+                    '& .MuiDataGrid-columnHeader': {
+                      height: '100px !important'
                     },
                     '.MuiDataGrid-main': {
-                      margin: '0px 20px 20px 20px',
-                      borderLeft: '1px solid #0000000D',
-                      borderRight: '1px solid #0000000D',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(233, 233, 236, 1)'
-                    },
-                    '& .MuiDataGrid-footerContainer': {
-                      borderTop: 'none'
-                    },
-
-                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                      borderBottom: 'none'
+                      margin: '0px 20px 20px 20px'
                     }
                   }}
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  className=''
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={rows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  columnHeaderHeight={100}
-                  disableColumnMenu
-                  hideFooter={router.asPath.includes('dashboard') ? true : false}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-
-                      onChange: event => {
-                        setSearchValue(event.target.value)
-
-                        return handleSearch(event.target.value)
-                      }
-                    }
-                  }}
-
-                  //onRowClick={handleEdit}
-                  // onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (
@@ -935,7 +894,7 @@ const StoreWiseDispatchDetail = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default StoreWiseDispatchDetail

@@ -29,10 +29,11 @@ import DiscardForm from 'src/components/egg/DiscardForm'
 
 import Utility from 'src/utility'
 import EditEggInfo from 'src/components/egg/EditEggInfo'
+import { useTranslation } from 'react-i18next'
 
 const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalleryImgList, handleBackButton }) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const {
     settings: { direction }
   } = useSettings()
@@ -43,7 +44,6 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
   const [openAllocate, setOpenAllocate] = useState(false)
   const [openDiscard, setOpenDiscard] = useState(false)
   const [allocationNurseryId, setAllocationNurseryId] = useState({})
-
 
   const [openEditDrawer, setOpenEditDrawer] = useState(false)
 
@@ -166,7 +166,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   lineHeight: '29.05px'
                 }}
               >
-                Egg Details
+                {t('egg_module.egg_details')}
               </Typography>
             </Box>
             {/* <Box>
@@ -378,7 +378,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.neutralSecondary
                         }}
                       >
-                        Updated on {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
+                        {t('updated_on')}{' '}
+                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.modified_at))}
                       </Typography>
                     </Box>
                   </Box>
@@ -388,7 +389,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     Number(eggDetails?.action_to_be_taken) === 7 ? null : (
                       <Box>
                         <Button onClick={() => setOpenDiscard(true)} variant='outlined' sx={{ height: '100%' }}>
-                          DISCARD
+                          {t('necropsy_module.discard')}
                         </Button>
                       </Box>
                     )}
@@ -397,7 +398,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     eggDetails?.egg_condition !== 'Broken' ? (
                       <Box>
                         <Button onClick={() => setOpenAllocate(true)} variant='contained'>
-                          ALLOCATE
+                          {t('allocate')}
                         </Button>
                       </Box>
                     ) : null}
@@ -489,7 +490,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           color: theme.palette.customColors.OnSurfaceVariant
                         }}
                       >
-                        Found date
+                        {t('egg_module.found_date')}
                       </Typography>
                     </Box>
                   </Grid>

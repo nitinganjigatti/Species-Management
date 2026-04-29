@@ -30,10 +30,12 @@ import { useTheme } from '@emotion/react'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { AddEggNecropsy } from 'src/lib/api/egg/egg'
 
 const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const fileInputRef = useRef(null)
   const [imgSrc, setImgSrc] = useState('')
 
@@ -209,7 +211,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'> Egg Necropsy</Typography>
+              <Typography variant='h6'>{t('egg_module.egg_necropsy')}</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={() => handleClose()} sx={{ color: 'text.primary' }}>
@@ -236,7 +238,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                   py: '16px'
                 }}
               >
-                <Typography>Have you taken sample?</Typography>
+                <Typography>{t('egg_module.smaple_taken')}</Typography>
                 <>
                   <FormControlLabel
                     control={
@@ -297,7 +299,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                       >
                         <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
-                        <Typography>Drop your image here</Typography>
+                        <Typography>{t('media_details.drop_image')}</Typography>
                       </Box>
                       {errors?.report_file && (
                         <FormHelperText sx={{ color: 'error.main' }}>{errors?.report_file?.message}</FormHelperText>
@@ -368,7 +370,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                           <Typography
                             sx={{ mt: -1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                           >
-                            File Name : {displayFile}
+                            {t('media_details.file_name')} : {displayFile}
                           </Typography>
                         </Box>
                       </Stack>
@@ -401,7 +403,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                 size='large'
                 loading={loading}
               >
-                submit
+                {t('submit')}
               </LoadingButton>
             </Box>
           </form>

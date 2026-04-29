@@ -4,9 +4,17 @@ import { MonitorHeart, Assignment, LocalPharmacy, Image, PictureAsPdf, Add } fro
 import { useTheme } from '@mui/material/styles'
 import { useRouter } from 'next/router'
 
-const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, navigateTo }) => {
+const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, navigateTo, onClick }) => {
   const theme = useTheme()
   const router = useRouter()
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick()
+    } else if (navigateTo) {
+      router.push(navigateTo)
+    }
+  }
 
   return (
     <Box
@@ -20,7 +28,7 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, nav
         backgroundColor,
         cursor: 'pointer'
       }}
-      onClick={() => router.push(navigateTo)}
+      onClick={handleClick}
     >
       <Box
         sx={{
@@ -77,7 +85,7 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, nav
   )
 }
 
-const HealthcareOverview = ({ data }) => {
+const HealthcareOverview = ({ data, onPrescriptionClick }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
@@ -110,7 +118,8 @@ const HealthcareOverview = ({ data }) => {
     {
       icon: '/icons/hospital/Prescription.svg',
       count: data?.active_prescriptions_count,
-      navigateTo: `/hospital/inpatient/${id}?tab=prescriptionMonitoring`,
+      onClick: onPrescriptionClick,
+      // navigateTo: `/hospital/inpatient/${id}?tab=prescriptionMonitoring`,
       label: 'Prescription',
       color: theme.palette.customColors.addPrimary,
       backgroundColor: theme.palette.customColors.bodyBg

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import {
   Box,
   Button,
@@ -15,16 +15,17 @@ import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import { useRouter } from 'next/router'
 
-import MortalityDischarge from './MortalityDischarge'
+import useMortalityDischarge from './MortalityDischarge'
 import TransferHospitalDischarge from './TransferHospitalDischarge'
-import TransferEnclosureDischarge from './TransferEnclosureDischarge'
+import useTransferEnclosureDischarge from './TransferEnclosureDischarge'
 import MortalityDischargeForm from 'src/views/pages/hospital/inpatient/discharge/MortalityDischargeForm'
 import TransferDischargeForm from 'src/views/pages/hospital/inpatient/discharge/TransferDischargeForm'
 import EnclosureDischargeForm from 'src/views/pages/hospital/inpatient/discharge/EnclosureDischargeForm'
 import TreatmentTypeRadioButtons from 'src/views/pages/hospital/utility/TreatmentTypeRadioButtons'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState, resetState } from 'src/store/slices/hospital/hospitalSlice'
 import {
   getPrescriptionsByRecord,
   getSecurityCheckForTransfer,
@@ -48,20 +49,19 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const router = useRouter()
   const { id } = router.query
 
-  const { data, updateState, resetState } = useDynamicStateContext()
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
-  const medical_record_id = medicalRecordData?.medical_record_id
-  const discharge_at = medicalRecordData?.discharge_at
-  const site_id = medicalRecordData?.site_id
   const purpose_of_visit = medicalRecordData?.purpose_of_visit
   const status = medicalRecordData?.status
+  const animal_id = medicalRecordData?.animal_id
 
   // Separate dynamic states for each medicine table discharge type
-  const transferMedicines = data.transfer_medicines || []
-  const transferTempMedicines = data.transfer_temp_medicines || []
-  const enclosureMedicines = data.enclosure_medicines || []
-  const enclosureTempMedicines = data.enclosure_temp_medicines || []
+  const transferMedicines = hospitalData.transfer_medicines || []
+  const transferTempMedicines = hospitalData.transfer_temp_medicines || []
+  const enclosureMedicines = hospitalData.enclosure_medicines || []
+  const enclosureTempMedicines = hospitalData.enclosure_temp_medicines || []
 
   const [prescription, setPrescription] = useState([])
   const [isPrescriptionLoading, setIsPrescriptionLoading] = useState(false)
@@ -79,50 +79,125 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   const [dischargeConfirmOpen, setDischargeConfirmOpen] = useState(false)
   const [pendingDischargeData, setPendingDischargeData] = useState(null)
 
+  const { control, watch, setValue } = useForm({
+    defaultValues: { discharge_type: router.query.discharge_tab || 'TransferEnclosure' }
+  })
+  const watchDischargeType = watch('discharge_type')
+
   const {
     causeOfDeath,
     carcassCondition,
     carcassDeposition,
     necropsyCenter,
+    mannerLoading,
+    conditionLoading,
+    dispositionLoading,
+    necropsyLoading,
+    submitLoader: mortalitySubmitLoader,
+    fetchManner,
+    fetchCondition,
+    fetchDisposition,
+    fetchNecropsyCenter,
     handleMannerSearch,
     handleConditionSearch,
     handleDispositionSearch,
     handleNecropsyCenterSearch,
-    fetchLoading: mortalityFetchLoading,
-    submitLoader: mortalitySubmitLoader,
     handleSubmitData: handleMortalitySubmitData
-  } = MortalityDischarge()
-
-  // const {
-  //   isLoadingHospital,
-  //   hospitalData,
-  //   handleHospitalSearch,
-  //   submitLoader: transferHospitalSubmitLoader,
-  //   handleSubmitData: handleTransferHospitalSubmitData
-  // } = TransferHospitalDischarge()
+  } = useMortalityDischarge()
 
   const {
-    submitLoader: transferEnclosureSubmitLoader,
-    handleSubmitData: handleTransferEnclosureSubmitData,
     sites,
-    fetchLoading,
-    handleSiteSearch,
     sections,
-    sectionLoading,
-    handleSectionSearch,
     enclosures,
+    siteLoading,
+    sectionLoading,
     enclosureLoading,
+    submitLoader: transferEnclosureSubmitLoader,
+    handleSiteSearch,
+    handleSectionSearch,
     handleEnclosureSearch,
+    fetchSites,
     fetchSections,
     fetchEnclosures,
     clearSections,
-    clearEnclosures
-  } = TransferEnclosureDischarge(patientData?.animal_detail)
+    clearEnclosures,
+    handleSubmitData: handleTransferEnclosureSubmitData
+  } = useTransferEnclosureDischarge()
 
-  const { control, watch, setValue } = useForm({
-    defaultValues: { discharge_type: 'TransferEnclosure' }
-  })
-  const watchDischargeType = watch('discharge_type')
+  // Initial data fetch for mortality form dropdowns
+  useEffect(() => {
+    if (!router.isReady || watchDischargeType !== 'Mortality' || status === 'discharge') return
+
+    const load = async () => {
+      try {
+        await Promise.all([fetchManner(''), fetchCondition(''), fetchDisposition(''), fetchNecropsyCenter('')])
+      } catch (error) {
+        console.error('Initial fetch failed:', error?.message)
+      }
+    }
+
+    load()
+  }, [router.isReady, watchDischargeType, status])
+
+  // Prefill from patientData initially, or restore from sessionStorage when navigating back from prescription
+  useEffect(() => {
+    if (!router.isReady || watchDischargeType !== 'TransferEnclosure' || status === 'discharge') return
+
+    const saved = sessionStorage.getItem('transfer_enclosure_form')
+
+    let siteId = null
+    let siteLabel = ''
+
+    let sectionId = null
+    let sectionLabel = ''
+
+    let enclosureId = null
+    let enclosureLabel = ''
+
+    if (saved) {
+      // Restore previous selections from sessionStorage when returning from prescription
+      const parsed = JSON.parse(saved)
+
+      siteId = parsed?.site_name?.value || null
+      siteLabel = parsed?.site_name?.label || ''
+
+      sectionId = parsed?.section_name?.value || null
+      sectionLabel = parsed?.section_name?.label || ''
+
+      enclosureId = parsed?.user_enclosure_name?.value || null
+      enclosureLabel = parsed?.user_enclosure_name?.label || ''
+    } else if (patientData?.animal_detail) {
+      // Fallback to animal's current location from backend to prefill default transfer location
+      siteId = patientData?.animal_detail?.site_id || null
+      siteLabel = patientData?.animal_detail?.site_name || ''
+
+      sectionId = patientData?.animal_detail?.section_id || null
+      sectionLabel = patientData?.animal_detail?.section_name || ''
+
+      enclosureId = patientData?.animal_detail?.user_enclosure_id || null
+      enclosureLabel = patientData?.animal_detail?.user_enclosure_name || ''
+    }
+
+    if (!siteId) {
+      fetchSites('')
+
+      return
+    }
+
+    fetchSites(siteLabel || '')
+    fetchSections(siteId, sectionLabel || '')
+
+    if (sectionId) {
+      fetchEnclosures(sectionId, enclosureLabel || '')
+    }
+  }, [
+    router.isReady,
+    watchDischargeType,
+    status,
+    patientData?.animal_detail?.site_id,
+    patientData?.animal_detail?.section_id,
+    patientData?.animal_detail?.user_enclosure_id
+  ])
 
   // useEffect(() => {
   //   if (!site_id) return
@@ -139,13 +214,17 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   // }, [site_id])
 
   // Fetch active prescriptions
-  const getPrescriptionList = async () => {
+  const getPrescriptionList = useCallback(async () => {
+    if (!id || !animal_id) return
+
     try {
       setIsPrescriptionLoading(true)
 
       const payload = {
         hospital_case_id: id,
-        medical_record_id: medical_record_id,
+
+        // medical_record_id: medical_record_id, // removed
+        animal_id: animal_id, // added this to get active prescription from the other medical records
         status: 'active',
         type: 'prescription'
       }
@@ -161,7 +240,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     } finally {
       setIsPrescriptionLoading(false)
     }
-  }
+  }, [id, animal_id])
 
   // Stop prescription
   const handleStopPrescription = async row => {
@@ -468,7 +547,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
       sortable: false,
       renderCell: params => (
         <StyledTypography sx={{ pl: 2 }} fontWeight={400}>
-          {params?.row?.duration}
+          {params?.row?.frequency_key === 'one_time' ? '1 day' : params?.row?.duration}
         </StyledTypography>
       )
     },
@@ -545,15 +624,16 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
   // }, [transferTempMedicines])
 
   useEffect(() => {
-    if (id && medical_record_id) {
-      getPrescriptionList()
-    }
-  }, [])
+    if (!router.isReady || watchDischargeType !== 'TransferEnclosure' || status === 'discharge') return
 
+    getPrescriptionList()
+  }, [router.isReady, watchDischargeType, status, getPrescriptionList])
+
+  // Merge temp to final for Transfer Enclosure
   useEffect(() => {
     if (!Array.isArray(enclosureTempMedicines) || enclosureTempMedicines?.length === 0) return
 
-    const existing = data?.enclosure_medicines || []
+    const existing = hospitalData?.enclosure_medicines || []
     const merged = [...existing]
     let hasChanges = false
 
@@ -572,19 +652,19 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     })
 
     if (hasChanges) {
-      updateState('enclosure_medicines', merged)
+      dispatch(updateState({ key: 'enclosure_medicines', value: merged }))
     }
   }, [enclosureTempMedicines])
 
   const clearTransferHospitalData = () => {
-    resetState('transfer_medicines')
-    resetState('transfer_temp_medicines')
+    dispatch(resetState('transfer_medicines'))
+    dispatch(resetState('transfer_temp_medicines'))
     setIsTransferHospitalDirty(false)
   }
 
   const clearEnclosureData = () => {
-    resetState('enclosure_medicines')
-    resetState('enclosure_temp_medicines')
+    dispatch(resetState('enclosure_medicines'))
+    dispatch(resetState('enclosure_temp_medicines'))
     sessionStorage.removeItem(STORAGE_KEY_FORM)
     setIsTransferEnclosureDirty(false)
   }
@@ -657,11 +737,6 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     setPendingDischargeData(null)
   }
 
-  const openDischargeConfirmation = confirmData => {
-    setPendingDischargeData(confirmData)
-    setDischargeConfirmOpen(true)
-  }
-
   // Tab confirmation handlers
   const handleConfirm = () => {
     if (selectedTab === 'TransferHospital') {
@@ -728,12 +803,14 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
   // Initialize from URL
   useEffect(() => {
+    if (!router.isReady) return
+
     const tabFromUrl = router.query.discharge_tab
     if (tabFromUrl && typeof tabFromUrl === 'string') {
       setSelectedTab(tabFromUrl)
       setValue('discharge_type', tabFromUrl)
     }
-  }, [router.query.discharge_tab, setValue])
+  }, [router.isReady, router.query.discharge_tab])
 
   // on refresh page clears the session storage data
   useEffect(() => {
@@ -747,19 +824,21 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     }
   }, [])
 
-  // useEffect(() => {
-  //   // Cleanup on unmount (Route change / Unmounting the tab)
-  //   return () => {
-  //     resetState('transfer_medicines')
-  //     resetState('transfer_temp_medicines')
-  //     resetState('enclosure_medicines')
-  //     resetState('enclosure_temp_medicines')
-  //     sessionStorage.removeItem(STORAGE_KEY_FORM)
-  //     setIsTransferHospitalDirty(false)
-  //     setIsTransferEnclosureDirty(false)
-  //     setIsMortalityDirty(false)
-  //   }
-  // }, [])
+  // Clear enclosure_medicines when navigating away from discharge, unless going to schedule-prescription
+  useEffect(() => {
+    const handleRouteChange = (newUrl) => {
+      // Only persist enclosure_medicines if going to schedule-prescription with tab data
+      if (!newUrl.includes('schedule-prescription')) {
+        clearEnclosureData()
+      }
+    }
+
+    router.events?.on('routeChangeStart', handleRouteChange)
+
+    return () => {
+      router.events?.off('routeChangeStart', handleRouteChange)
+    }
+  }, [router, dispatch])
 
   // patient data initial loading
   if (!patientData) {
@@ -850,20 +929,22 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
         {watchDischargeType === 'Mortality' && (
           <MortalityDischargeForm
-            patientData={patientData}
-            watchDischargeType={watchDischargeType}
             causeOfDeath={causeOfDeath}
             carcassCondition={carcassCondition}
             carcassDeposition={carcassDeposition}
             necropsyCenter={necropsyCenter}
-            fetchLoading={mortalityFetchLoading}
+            mannerLoading={mannerLoading}
+            conditionLoading={conditionLoading}
+            dispositionLoading={dispositionLoading}
+            necropsyLoading={necropsyLoading}
+            submitLoader={mortalitySubmitLoader}
             handleMannerSearch={handleMannerSearch}
             handleConditionSearch={handleConditionSearch}
             handleDispositionSearch={handleDispositionSearch}
             handleNecropsyCenterSearch={handleNecropsyCenterSearch}
-            submitLoader={mortalitySubmitLoader}
-            // handleSubmitData={handleMortalitySubmitData}
             handleSubmitData={handleMortalitySubmitWithConfirmation}
+            patientData={patientData}
+            watchDischargeType={watchDischargeType}
             onDirtyChange={setIsMortalityDirty}
             refetchPatient={refetchPatient}
           />
@@ -890,33 +971,32 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
 
         {watchDischargeType === 'TransferEnclosure' && (
           <EnclosureDischargeForm
-            patientData={patientData}
-            watchDischargeType={watchDischargeType}
-            submitLoader={transferEnclosureSubmitLoader}
-            // handleSubmitData={handleTransferEnclosureSubmitData}
-            handleSubmitData={handleEnclosureSubmitWithConfirmation}
-            medicationsColumns={medicationsColumns}
-            medicationData={enclosureMedicines}
-            clearData={clearEnclosureData}
-            onDirtyChange={setIsTransferEnclosureDirty}
-            refetchPatient={refetchPatient}
-            medicalRecordId={id}
-            prescriptionsColumns={prescriptionsColumns}
-            prescriptionData={prescriptionIndexedRows}
-            isPrescriptionLoading={isPrescriptionLoading}
             sites={sites}
-            fetchLoading={fetchLoading}
-            handleSiteSearch={handleSiteSearch}
             sections={sections}
-            sectionLoading={sectionLoading}
-            handleSectionSearch={handleSectionSearch}
             enclosures={enclosures}
+            siteLoading={siteLoading}
+            sectionLoading={sectionLoading}
             enclosureLoading={enclosureLoading}
+            submitLoader={transferEnclosureSubmitLoader}
+            handleSiteSearch={handleSiteSearch}
+            handleSectionSearch={handleSectionSearch}
             handleEnclosureSearch={handleEnclosureSearch}
             fetchSections={fetchSections}
             fetchEnclosures={fetchEnclosures}
             clearSections={clearSections}
             clearEnclosures={clearEnclosures}
+            handleSubmitData={handleEnclosureSubmitWithConfirmation}
+            patientData={patientData}
+            watchDischargeType={watchDischargeType}
+            refetchPatient={refetchPatient}
+            medicationsColumns={medicationsColumns}
+            medicationData={enclosureMedicines}
+            clearEnclosureData={clearEnclosureData}
+            onDirtyChange={setIsTransferEnclosureDirty}
+            medicalRecordId={id}
+            prescriptionsColumns={prescriptionsColumns}
+            prescriptionData={prescriptionIndexedRows}
+            isPrescriptionLoading={isPrescriptionLoading}
           />
         )}
         {confirmOpen && (
@@ -958,4 +1038,3 @@ const StyledTypography = styled(Typography)(({ theme, fontWeight, fontSize, colo
   fontWeight: fontWeight || 500,
   color: color || theme.palette.customColors.OnSurfaceVariant
 }))
- 

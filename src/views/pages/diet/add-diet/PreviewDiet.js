@@ -27,10 +27,12 @@ import {
 } from '@mui/material'
 import { Divider, Card } from '@mui/material'
 import AddDietType from './AddDietType'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import { t } from 'i18next'
 
 const defaultValues = {
   meal_type: [
@@ -58,6 +60,7 @@ const StepPreviewDiet = ({
   loader
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
@@ -316,7 +319,7 @@ const StepPreviewDiet = ({
         setdiettypechildvalues(parsedValue)
         setDietTypes(newarr)
       } else {
-        console.error('Cookie "dietTypeChildValues" not found')
+        return
       }
     }
   }, [activitySidebarOpen, id])
@@ -922,7 +925,7 @@ const StepPreviewDiet = ({
       <form onSubmit={handleSubmit(onSubmit)}>
         <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
           <Box sx={{ px: 5, mt: 2, pb: 3, float: 'left' }}>
-            <Typography variant='h6'>Preview</Typography>
+            <Typography variant='h6'>{t('preview')}</Typography>
           </Box>
 
           <Grid container spacing={5} sx={{ px: 5 }}>
@@ -979,24 +982,24 @@ const StepPreviewDiet = ({
             <Grid item size={{ xs: 10, sm: 7.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography>
-                  <span>Diet Name : </span>
+                  <span>{t('diet_module.diet_name')} : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_name}</span>
                 </Typography>
                 <Typography>
-                  <span>Diet Type : </span>
+                  <span>{t('diet_module.diet_type')} : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_type_name ? formData.diet_type_name : '-'}</span>
                 </Typography>
               </div>
               <div>
                 <Typography sx={{ mt: 2 }}>
-                  <span>Nutritionist : </span>
+                  <span>{t('diet_module.nutritionist')} : </span>
                   <span style={{ fontWeight: 600 }}>{formData.dietitian_name}</span>
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
                 <div>
                   <Typography variant='h6' sx={{ mb: 2 }}>
-                    Description
+                    {t('description')}
                   </Typography>
                   <Typography
                     variant='body2'
@@ -1042,7 +1045,7 @@ const StepPreviewDiet = ({
                 variant='h6'
                 sx={formData.diet_type_name === 'By Weight' ? { width: '50%', mt: 3, float: 'left' } : { mb: 3 }}
               >
-                Enter Values for Meals
+                {t('diet_module.value_for_meals')}
               </Typography>
               {formData.diet_type_name === 'By Weight' ? (
                 <Grid
@@ -1057,7 +1060,7 @@ const StepPreviewDiet = ({
                   }}
                 >
                   <Button onClick={() => setActivitySidebarOpen(true)} variant='contained'>
-                    Add Diet Type
+                    {t('diet_module.add_diet_type')}
                   </Button>
                 </Grid>
               ) : (
@@ -1119,7 +1122,7 @@ const StepPreviewDiet = ({
                                 fontWeight: 600
                               }}
                             >
-                              MEAL NAME & TIME
+                              {t('diet_module.meal_name_time')}
                             </Typography>
                           </Box>
                         </TableCell>
@@ -1151,14 +1154,13 @@ const StepPreviewDiet = ({
                                 pl: 5
                               }}
                             >
-                              MEAL DETAILS
+                              {t('diet_module.meal_details')}
                             </Typography>
                           </Box>
                         </TableCell>
                         {formData.diet_type_name === 'By Gender' ? (
                           <>
                             <TableCell
-
                               //colSpan={12}
                               sx={{
                                 border: 'none',
@@ -1171,33 +1173,25 @@ const StepPreviewDiet = ({
                             >
                               <Typography>GENERIC</Typography>
                             </TableCell>
-                            <TableCell
 
-                              // colSpan={12}
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '141px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>FEMALE </Typography>
-                            </TableCell>
-                            <TableCell
-                              colSpan={8}
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '141px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>MALE</Typography>
-                            </TableCell>
+                            {formData.child?.map((all, index) => {
+                              return (
+                                <TableCell
+                                  colSpan={5}
+                                  key={index}
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '140px',
+                                    borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                    textAlign: 'center'
+                                  }}
+                                >
+                                  <Typography>{all}</Typography>
+                                </TableCell>
+                              )
+                            })}
                           </>
                         ) : formData.diet_type_name === 'By Lifestage' ? (
                           <>
@@ -1215,68 +1209,25 @@ const StepPreviewDiet = ({
                               <Typography>GENERIC</Typography>
                             </TableCell>
 
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '140px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Juvenile </Typography>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '140px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Young</Typography>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '140px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Adult</Typography>
-                            </TableCell>
-                            <TableCell
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '157px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Undetermined</Typography>
-                            </TableCell>
-                            <TableCell
-
-                              // colSpan={12}
-                              sx={{
-                                border: 'none',
-                                backgroundColor: '#C1D3D099',
-                                height: '40px',
-                                width: '127px',
-                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                textAlign: 'center'
-                              }}
-                            >
-                              <Typography>Old</Typography>
-                            </TableCell>
+                            {formData.child?.map((all, index) => {
+                              return (
+                                <TableCell
+                                  colSpan={5}
+                                  key={index}
+                                  sx={{
+                                    border: 'none',
+                                    backgroundColor: '#C1D3D099',
+                                    height: '40px',
+                                    width: '140px',
+                                    borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                    textAlign: 'center',
+                                    p: all === 'Undetermined' ? '6px' : '16px'
+                                  }}
+                                >
+                                  <Typography>{all}</Typography>
+                                </TableCell>
+                              )
+                            })}
                           </>
                         ) : formData.diet_type_name === 'Generic' ? (
                           <>
@@ -1537,7 +1488,7 @@ const StepPreviewDiet = ({
                                                         display: 'block'
                                                       }}
                                                     >
-                                                      Recipe
+                                                      {t('navigation.recipe')}
                                                     </Typography>
                                                     <Typography
                                                       sx={{
@@ -1566,7 +1517,7 @@ const StepPreviewDiet = ({
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Items used
+                                                  {t('diet_module.items_used')}
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -1704,7 +1655,7 @@ const StepPreviewDiet = ({
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    Remarks
+                                                    {t('remarks')}
                                                   </Typography>
                                                   <Typography
                                                     sx={{
@@ -1843,8 +1794,8 @@ const StepPreviewDiet = ({
 
                                                           return meal.quantity + (uomName ? ' ' + uomName : '')
                                                         }
-                                                        
-return null
+
+                                                        return null
                                                       })
                                                       .filter(Boolean)
 
@@ -1858,7 +1809,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -1972,6 +1928,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -1993,6 +1950,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2014,6 +1972,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2035,6 +1994,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2167,7 +2127,7 @@ return null
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Items used
+                                                  {t('diet_module.items_used')}
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -2307,7 +2267,7 @@ return null
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    Remarks
+                                                    {t('remarks')}
                                                   </Typography>
                                                   <Typography
                                                     sx={{
@@ -2455,7 +2415,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -2569,6 +2534,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2590,6 +2556,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2611,6 +2578,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2632,6 +2600,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -2735,7 +2704,7 @@ return null
                                                       width: '100%'
                                                     }}
                                                   >
-                                                    Item
+                                                    {t('navigation.item')}
                                                   </Typography>
                                                 )}
                                                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -2864,7 +2833,7 @@ return null
                                                       fontSize: '14px'
                                                     }}
                                                   >
-                                                    Remarks
+                                                    {t('remarks')}
                                                   </Typography>
                                                   <Typography
                                                     sx={{
@@ -3012,7 +2981,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3126,6 +3100,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3147,6 +3122,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3168,6 +3144,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3189,6 +3166,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3299,7 +3277,7 @@ return null
                                                 mb: 0
                                               }}
                                             >
-                                              Items using
+                                              {t('diet_module.items_using')}
                                             </Typography>
                                             {item?.ingredientList?.length > 0 && (
                                               <Box
@@ -3333,6 +3311,9 @@ return null
                                                         }}
                                                       >
                                                         {item?.ingredient_name}
+                                                        <span style={{ lineHeight: '18px', fontWeight: 400 }}>
+                                                          {' |'}&nbsp;
+                                                        </span>
                                                       </Typography>
 
                                                       {item?.master_cut_size ? (
@@ -3344,8 +3325,8 @@ return null
                                                             color: theme.palette.secondary.dark
                                                           }}
                                                         >
-                                                          &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
-                                                          {item?.master_cut_size}
+                                                          {' '}
+                                                          {item?.preparation_type} | {item?.master_cut_size}
                                                         </Typography>
                                                       ) : (
                                                         <Typography
@@ -3356,7 +3337,7 @@ return null
                                                             color: theme.palette.secondary.dark
                                                           }}
                                                         >
-                                                          &nbsp;-&nbsp; {item?.preparation_type}
+                                                          {item?.preparation_type}
                                                         </Typography>
                                                       )}
                                                     </Box>
@@ -3384,7 +3365,7 @@ return null
                                                     fontSize: '14px'
                                                   }}
                                                 >
-                                                  Remarks
+                                                  {t('remarks')}
                                                 </Typography>
                                                 <Typography
                                                   sx={{
@@ -3532,7 +3513,12 @@ return null
                                                     meal.notes &&
                                                     meal.notes.trim() !== '' ? (
                                                       <Typography key={i} sx={{ textAlign: 'center' }}>
-                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                        <img
+                                                          src='/icons/Notes.svg'
+                                                          alt='Grocery Icon'
+                                                          width='35px'
+                                                          draggable={false}
+                                                        />
                                                       </Typography>
                                                     ) : null
                                                   )
@@ -3647,6 +3633,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3668,6 +3655,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3689,6 +3677,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3710,6 +3699,7 @@ return null
                                                                     src='/icons/Notes.svg'
                                                                     alt='Grocery Icon'
                                                                     width='35px'
+                                                                    draggable={false}
                                                                   />
                                                                 </Typography>
                                                               )
@@ -3746,7 +3736,9 @@ return null
                               <TableCell colSpan={12} sx={{ borderBottom: 'none', padding: '8px 16px' }}>
                                 {itemd.notes ? (
                                   <>
-                                    <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>Notes :</span>{' '}
+                                    <span style={{ fontWeight: 'bold', color: 'rgb(0 0 0 / 67%)' }}>
+                                      {t('notes')} :
+                                    </span>{' '}
                                     {itemd.notes}
                                   </>
                                 ) : (
@@ -3770,7 +3762,7 @@ return null
                         multiline
                         fullWidth
                         value={remarks}
-                        label='Remarks (Optional)'
+                        label={`${t('remarks')} (${t('optional')})`}
                         name='remarks'
                         onChange={e => {
                           onChange(e)
@@ -3795,7 +3787,7 @@ return null
                 startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
               >
-                Go back
+                {t('go_back')}
               </Button>
 
               <Button
@@ -3812,7 +3804,7 @@ return null
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  Submit
+                  {t('submit')}
                   {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
                 </span>
               </Button>

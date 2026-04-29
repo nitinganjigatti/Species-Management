@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react'
-import { Box, Button, Typography, CircularProgress } from '@mui/material'
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { Box, Button, Typography, CircularProgress, Skeleton } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import Search from 'src/views/utility/Search'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
@@ -20,17 +20,21 @@ import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
 
 const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const router = useRouter()
-  const { data } = useDynamicStateContext()
+  const hospitalData = useSelector(state => state.hospital.data)
   const { id, isCurrentMedicalRecordOnly } = router.query
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [currentTab, setCurrentTab] = useState('Active')
   const [searchQuery, setSearchQuery] = useState('')
   const [localSearch, setLocalSearch] = useState('')
@@ -51,6 +55,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const [noteRecord, setNoteRecord] = useState(null)
   const [isNotesOpen, setIsNotesOpen] = useState(false)
   const [activityLoader, setActivityLoader] = useState(false)
+  const [recordedDateTime, setRecordedDateTime] = useState(dayjs())
+  const [isSwitchToggle, setIsSwitchToggle] = useState(false)
 
   const [clinicalAsmnt, setClinicalAsmnt] = useState('')
   const [prognosisVal, setPrognosisValue] = useState('')
@@ -244,11 +250,63 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   const handleTabChange = newValue => {
     setCurrentTab(newValue)
     setPage(1)
-
-    //setRecords([])
+    setRecords([])
   }
 
   const filteredRecords = records
+
+  const assessmentChangeState = useMemo(() => {
+    if (!selectedAssessment) {
+      return {
+        isClinicalAsmntChanged: false,
+        isPrognosisChanged: false,
+        isChronicChanged: false,
+        isStatusChanged: false,
+        isNotesChanged: false,
+        // isRecordedDateTimeChanged: false,
+        hasChanges: false
+      }
+    }
+
+    const isDiagnosis = clinicalAsmnt?.toLowerCase() === 'diagnosis'
+    const initialRecordedDateTime =
+      selectedAssessment?.additional_info?.recorded_date_time || selectedAssessment?.created_at || null
+
+    const isClinicalAsmntChanged =
+      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+
+    const isPrognosisChanged = isDiagnosis
+      ? prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
+      : false
+
+    const isChronicChanged = isDiagnosis ? chronicVal !== selectedAssessment?.additional_info?.isChronic : false
+
+    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+
+    const isNotesChanged = (notes || '').trim() !== (selectedAssessment?.additional_info?.note || '').trim()
+
+    // const isRecordedDateTimeChanged = initialRecordedDateTime
+    //   ? !dayjs(recordedDateTime).isSame(dayjs.utc(initialRecordedDateTime).local(), 'second')
+    //   : false
+
+    const hasChanges =
+      isClinicalAsmntChanged ||
+      isPrognosisChanged ||
+      isChronicChanged ||
+      isStatusChanged ||
+      isNotesChanged
+      // || isRecordedDateTimeChanged
+
+    return {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      // isRecordedDateTimeChanged,
+      hasChanges
+    }
+  }, [selectedAssessment, clinicalAsmnt, prognosisVal, chronicVal, status, notes, recordedDateTime])
 
   // Get count based on current tab
   const getTabCount = currentTab => {
@@ -307,18 +365,16 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   }
 
   const updateAssessment = async () => {
-    // Check if any values have been modified
-    const isClinicalAsmntChanged =
-      clinicalAsmnt?.toLowerCase() !== selectedAssessment?.clinical_assessment?.toLowerCase()
+    const {
+      isClinicalAsmntChanged,
+      isPrognosisChanged,
+      isChronicChanged,
+      isStatusChanged,
+      isNotesChanged,
+      hasChanges
+    } = assessmentChangeState
 
-    const isPrognosisChanged =
-      clinicalAsmnt?.toLowerCase() === 'diagnosis'
-        ? prognosisVal?.toLowerCase() !== selectedAssessment?.additional_info?.prognosis?.toLowerCase()
-        : false
-
-    const isChronicChanged = chronicVal !== selectedAssessment?.additional_info?.isChronic
-
-    const isStatusChanged = status?.toLowerCase() !== selectedAssessment?.additional_info?.status?.toLowerCase()
+    if (!hasChanges) return
 
     // Set is_system_generated to true if any value has changed
     const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
@@ -330,7 +386,8 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       type: 'DIAGNOSIS',
       is_system_generated: isSystemGenerated,
       animal_id: animal_id || '',
-      hospital_case_id: id || ''
+      hospital_case_id: id || '',
+      recorded_date_time: recordedDateTime.format('YYYY-MM-DD HH:mm:ss')
     }
 
     // Only add clinical_assessment if changed
@@ -354,7 +411,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
     }
 
     // Only add note if changed
-    if (notes) {
+    if (isNotesChanged) {
       payload.note = notes || ''
     }
 
@@ -384,16 +441,32 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
       router.push({
         pathname: `/hospital/outpatient/${id}/add-clinical-assessment`
       })
-    } else {
+    } 
+    else if(category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${id}/add-clinical-assessment`
+      })
+    }
+    else if(category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${id}/add-clinical-assessment`
+      })
+    }
+    else if(category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${id}/add-clinical-assessment`
+      })
+    }
+    else {
       router.push({
         pathname: `/hospital/inpatient/${id}/add-clinical-assessment`
       })
     }
   }
-
   const handleRecordOnlyChange = e => {
     setRecords([])
     setPage(1)
+    setIsSwitchToggle(true);
     setCurrentRecordOnly(e.target.checked)
 
     // Update URL query parameter
@@ -410,7 +483,16 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
   return (
     <Box sx={{ mt: 6 }}>
       {/* Header with Tabs and Controls */}
-      {tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
+      {isSwitchToggle  && isLoading && currentRecordOnly  && !searchQuery.trim() ? (
+        <>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 6 }}>
+          <Skeleton width={250} height={30} variant='rounded' />
+        </Box>
+        <Box sx = {{display: 'flex', flexDirection: 'column', m: 0}}>
+          <ClinicalAssessmentShimmer count = {3}/>
+        </Box>
+        </>
+      ) : tabCounts?.All !== 0 || searchQuery.trim().length > 0 ? (
         <Box sx={{ mb: 4, display: 'flex', flexDirection: 'column', gap: 6 }}>
           <Box
             sx={{
@@ -487,11 +569,11 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
                   debouncedSearch('')
                 }}
               />
-              {!isDischared && (
+              {/* {!isDischared && ( */}
                 <Button variant='contained' startIcon={<AddIcon />} onClick={handleRouterNavigation}>
                   ADD NEW
                 </Button>
-              )}
+              {/* )} */}
             </Box>
           </Box>
           <Box>
@@ -552,7 +634,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
             <NoMedicalData
               btnText={'ADD NEW CLINICAL ASSESSMENT'}
               text={'All Added Clinical Assessments Will Appear here'}
-              isDischarged={isDischared}
+              // isDischarged={isDischared}
               btnAction={handleRouterNavigation}
             />
           </Box>
@@ -591,6 +673,12 @@ const ClinicalAssessment = ({ overviewData, patientData, category }) => {
           handleEditNoteClick={handleEditNoteClick}
           isNotesOpen={isNotesOpen}
           setIsNotesOpen={setIsNotesOpen}
+          recordedDateTime={recordedDateTime}
+          setRecordedDateTime={setRecordedDateTime}
+          isChanged={assessmentChangeState.hasChanges}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
 

@@ -1,11 +1,12 @@
-import { Box, Button, CircularProgress, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
+import { Box, Button, CircularProgress, Drawer, IconButton, Tooltip, Typography, useTheme, Autocomplete, TextField } from '@mui/material'
 import React, { useContext, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from '../PatientAdmissionForm/DoctorsDrawer'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { debounce } from 'lodash'
 import { useHospital } from 'src/context/HospitalContext'
 import { editAnimalAdmissionDetails } from 'src/lib/api/hospital/inpatient'
@@ -14,15 +15,23 @@ import AddRoomDrawer from '../PatientAdmissionForm/AddRoomDrawer'
 import AddBedsDrawer from '../PatientAdmissionForm/AddBedsDrawer'
 import { AuthContext } from 'src/context/AuthContext'
 import ControlledSwitch from 'src/views/forms/form-fields/ControlledSwitch'
+import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import ControlledTimePicker from 'src/views/forms/form-fields/ControlledTimePicker'
+import Utility from 'src/utility'
+import dayjs from 'dayjs'
 
 const defaultValues = {
   holdingEnclosure: null,
-  selectedDoctor: null
+  selectedDoctor: null,
+  attendingVeterinarians: [],
+  admissionDate: null,
+  admissionTime: null
 
   // patient_status: false
 }
 
 const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
+  console.log('Patient Data in EditPatientDrawer:', patientData)
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
@@ -41,6 +50,10 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
   const [previousRoomId, setPreviousRoomId] = useState(null)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [attendingVeterinarians, setAttendingVeterinarians] = useState([])
+  const [selectedAttendingVeterinarians, setSelectedAttendingVeterinarians] = useState([])
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [searchAttendingVet, setSearchAttendingVet] = useState('')
 
   const {
     control,
@@ -56,6 +69,22 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
     reValidateMode: 'onChange'
   })
 
+
+  // Calculate min and max date for validation
+  const getMinMaxDate = () => {
+    let minDate = null
+    let maxDate = dayjs() // Current date/time
+
+    if (patientData?.transfer_created_at) {
+      const localMinDateTime = Utility.convertUTCToLocal(patientData.transfer_created_at)
+      minDate = dayjs(localMinDateTime, 'YYYY-MM-DD HH:mm:ss')
+    }
+
+    return { minDate, maxDate }
+  }
+
+  const { minDate: minDateTime, maxDate: maxDateTime } = getMinMaxDate()
+
   useEffect(() => {
     if (patientData) {
       const doctorData = {
@@ -64,6 +93,27 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
         id: patientData?.attend_by,
         role_name: patientData?.attend_by_role
       }
+
+      // Convert UTC admission date to local and split into date and time
+      let admissionDateValue = null
+      let admissionTimeValue = null
+
+      if (patientData?.admitted_at) {
+        const localDateTime = Utility.convertUTCToLocal(patientData.admitted_at)
+        const dayjsObj = dayjs(localDateTime, 'YYYY-MM-DD HH:mm:ss')
+        admissionDateValue = dayjsObj
+        admissionTimeValue = dayjsObj
+      }
+
+      // Map co_attend_doctors to the format expected by Autocomplete
+      const mappedAttendingVets = (patientData?.co_attend_doctors || []).map(vet => ({
+        id: String(vet.id),
+        label: vet.name,
+        value: String(vet.id),
+        default_icon: vet.profile,
+        role_name: vet.role
+      }))
+
       reset({
         holdingEnclosure: {
           label: patientData?.bed_name,
@@ -73,9 +123,13 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           label: patientData?.room_name,
           value: patientData?.room_id
         },
-        selectedDoctor: doctorData
+        selectedDoctor: doctorData,
+        attendingVeterinarians: mappedAttendingVets || [],
+        admissionDate: admissionDateValue,
+        admissionTime: admissionTimeValue
       })
       setSelectedDoctor(doctorData)
+      setSelectedAttendingVeterinarians(mappedAttendingVets || [])
       setPreviousRoomId(patientData?.room_id)
       setIsInitialLoad(true)
     }
@@ -160,6 +214,51 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
 
   const debouncedEnclosureSearch = React.useMemo(() => debounce(val => setSearchEnclosure(val), 1000), [])
 
+  const searchAttendingVeterinarians = React.useMemo(
+    () =>
+      debounce(async (searchVal = '') => {
+        if (!selectedHospital?.id) return
+        setStaffLoading(true)
+        try {
+          const res = await getHospitalStaff({
+            params: {
+              hospital_id: selectedHospital?.id,
+              page_no: 1,
+              limit: 10,
+              q: searchVal
+            }
+          })
+          const mapped = (res?.data?.records || []).map(item => ({
+            id: String(item.user_id),
+            label: item.user_full_name,
+            value: String(item.user_id),
+            default_icon: item.user_profile_pic,
+            role_name: item.role_name
+          }))
+          setAttendingVeterinarians(mapped)
+        } catch (error) {
+          console.error('Error fetching veterinarians:', error)
+        } finally {
+          setStaffLoading(false)
+        }
+      }, 500),
+    [selectedHospital?.id]
+  )
+
+  const handleAttendingVetSearch = (event, value, reason) => {
+    if (reason === 'input') {
+      setSearchAttendingVet(value)
+      searchAttendingVeterinarians(value)
+    }
+  }
+
+  // Fetch veterinarians when drawer opens
+  useEffect(() => {
+    if (open && selectedHospital?.id) {
+      searchAttendingVeterinarians('')
+    }
+  }, [open, selectedHospital?.id, searchAttendingVeterinarians])
+
   const handleDoctorSelection = doctor => {
     setSelectedDoctor(doctor)
     setValue('selectedDoctor', doctor)
@@ -173,19 +272,60 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
   const onSubmit = async data => {
     setSubmitLoader(true)
     try {
+      // Validate date/time if both are provided
+      if (data?.admissionDate && data?.admissionTime) {
+        const selectedDate = dayjs(data.admissionDate)
+        const selectedTime = dayjs(data.admissionTime)
+        const selectedDateTime = selectedDate.hour(selectedTime.hour()).minute(selectedTime.minute())
+
+        // Check if selected datetime is before transfer_created_at
+        if (minDateTime && selectedDateTime.isBefore(minDateTime)) {
+          setSubmitLoader(false)
+          Toaster({
+            type: 'error',
+            message: `Admission date and time cannot be before ${minDateTime.format('YYYY-MM-DD HH:mm')}`
+          })
+          return
+        }
+
+        // Check if selected datetime is after current time
+        if (selectedDateTime.isAfter(maxDateTime)) {
+          setSubmitLoader(false)
+          Toaster({
+            type: 'error',
+            message: 'Admission date and time cannot be in the future'
+          })
+          return
+        }
+      }
+
       const payload = {
         action: 'edit',
         hospital_case_id: patientData?.hospital_case_id,
         room_id: data?.room?.value || '',
         holding_enclosure: data?.holdingEnclosure?.value || '',
-        attend_by: data?.selectedDoctor?.id || ''
+        attend_by: data?.selectedDoctor?.id || '',
+        co_attend_doctor: (data?.attendingVeterinarians || []).map(v =>  v.id)
       }
-      await editAnimalAdmissionDetails(payload).then(res => {
+
+      // Format and add date and time if provided
+      if (data?.admissionDate) {
+        payload.admit_date = dayjs(data.admissionDate).format('YYYY-MM-DD')
+      }
+
+      if (data?.admissionTime) {
+        payload.admit_time = dayjs(data.admissionTime).format('HH:mm')
+      }
+
+      await editAnimalAdmissionDetails(payload).then(async res => {
         if (res?.success === true) {
-          setSubmitLoader(false)
           Toaster({ type: 'success', message: res?.message })
+          // Refetch patient details to get updated data
+          if (refetch) {
+            await refetch()
+          }
+          setSubmitLoader(false)
           onClose()
-          refetch()
         } else {
           Toaster({ type: 'error', message: res?.message })
           setSubmitLoader(false)
@@ -313,6 +453,43 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Attending Veterinarian
+            </Typography>
+            <Controller
+              name='attendingVeterinarians'
+              control={control}
+              defaultValue={[]}
+              render={({ field }) => (
+                <Autocomplete
+                  multiple
+                  options={attendingVeterinarians}
+                  disableCloseOnSelect={true}
+                  value={field.value || []}
+                  loading={staffLoading}
+                  clearOnBlur
+                  filterSelectedOptions
+                  getOptionLabel={option => option?.label || ''}
+                  isOptionEqualToValue={(option, value) => option.id === value?.id || option.value === value?.value}
+                  noOptionsText='No available veterinarians...'
+                  onChange={(event, newValue) => {
+                    setSelectedAttendingVeterinarians(newValue)
+                    field.onChange(newValue)
+                  }}
+                  onInputChange={handleAttendingVetSearch}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px'
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                  )}
+                />
+              )}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
               Room
             </Typography>
             <ControlledAutocomplete
@@ -391,6 +568,34 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }) => {
                 No active/available enclosures available for this Room
               </Typography>
             )}
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Admission Date
+            </Typography>
+            <ControlledDatePicker
+              name='admissionDate'
+              label='Select Admission Date'
+              control={control}
+              errors={errors}
+              sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
+              fullWidth
+              minDate={minDateTime}
+              maxDate={maxDateTime}
+            />
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Admission Time
+            </Typography>
+            <ControlledTimePicker
+              name='admissionTime'
+              label='Select Admission Time'
+              control={control}
+              errors={errors}
+              sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
+              fullWidth
+            />
           </Box>
           {/* <Box
             sx={{

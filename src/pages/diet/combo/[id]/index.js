@@ -37,6 +37,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import ChangeRecipeName from 'src/components/diet/ChangeRecipename'
+import { useTranslation } from 'react-i18next'
 
 // Styled TabList component
 const TabList = styled(MuiTabList)(({ theme }) => ({
@@ -66,6 +67,7 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
 const RecipeDetail = () => {
   const router = useRouter()
   const { id, source } = router.query
+  const { t } = useTranslation()
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
@@ -190,14 +192,14 @@ const RecipeDetail = () => {
                 Recipe
               </Link> */}
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
-                Mix
+                {t('navigation.mix')}
               </Typography>
               <Typography
                 sx={{
                   color: 'text.primary'
                 }}
               >
-                Mix Details
+                {t('diet_module.mix_details')}
               </Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
@@ -322,14 +324,13 @@ const RecipeDetail = () => {
                             <Tab
                               style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }}
                               value='1'
-                              label='OVERVIEW'
+                              label={t('overview')}
                             />
                             <Tab
                               style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                               value='2'
-
                               //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
-                              label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
+                              label={`${t('diet_module.used_diet')} ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                             />
                           </TabList>
                           <TabPanel value='1'>
@@ -360,7 +361,7 @@ const RecipeDetail = () => {
             ) : (
               <Grid>
                 <Typography variant='h6' sx={{ background: '#fff', padding: 8, borderRadius: '6px' }}>
-                  Data Not Found
+                  {t('no_data')}
                 </Typography>
               </Grid>
             )}

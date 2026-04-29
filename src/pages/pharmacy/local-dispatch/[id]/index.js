@@ -11,34 +11,22 @@ import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
-import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
-import Card from '@mui/material/Card'
-import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Fade from '@mui/material/Fade'
+import { Box, CardHeader, Chip, Tab, Tooltip, IconButton, Grid, Typography, Fade } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Chip, Tab, Tooltip } from '@mui/material'
 import { useRouter } from 'next/router'
-
 import Router from 'next/router'
-
 import FulfillDialog from 'src/components/pharmacy/localDispatch/FulfillDialog'
 import ShipRequest from 'src/components/pharmacy/localDispatch/ShipRequestForm'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
-import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
-import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
 import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
@@ -46,6 +34,9 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import EmptyStateBox from 'src/components/EmptyStateBox'
 import RenderUtility from 'src/utility/render'
+import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
+import InfoDisplayGrid from 'src/views/utility/InfoDisplayGrid'
+import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -389,8 +380,9 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.6,
-      minWidth: 20,
+      // flex: 0.6,
+      flex: 0.5,
+      minWidth: 10,
       field: 'unit_price',
       headerName: 'unit price',
       type: 'number',
@@ -402,7 +394,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      minWidth: 100,
+      minWidth: 120,
       field: 'qty',
       headerName: 'total value',
       type: 'number',
@@ -904,84 +896,63 @@ const IndividualRequest = () => {
                 close={closeOrderFormDialog}
                 show={showOrderFormDialog}
               />
-
-              <Card sx={{ p: 2 }}>
-                <CardHeader
-                  title={`Direct Dispatch - ${requestItems?.request_number}`}
-                  avatar={
-                    <Icon
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        Router.back()
-                      }}
-                      icon='ep:back'
-                    />
+              <PageCardLayout
+                title={`Direct Dispatch - ${requestItems?.request_number}`}
+                showIcon={true}
+                onIconClick={() => {
+                  Router.back()
+                }}
+                titleStyles={{
+                  fontSize: '20px'
+                }}
+              >
+                <InfoDisplayGrid
+                  cardsData={[
+                    {
+                      label: 'Dispatched To',
+                      value: requestItems?.to_store
+                    },
+                    {
+                      label: 'Dispatched By',
+                      value: requestItems?.from_store
+                    },
+                    {
+                      label: 'Dispatched Date',
+                      value: requestItems?.request_date
+                    },
+                    {
+                      label: 'Request ID',
+                      value: requestItems?.request_number
+                    },
+                    {
+                      label: 'Requested Amount',
+                      value: Utility.formatAmountToReadableDigit(requestItems?.requested_amount)
+                    }
+                  ]}
+                  userCard={
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Dispatched By</Typography>
+                      <UserAvatarDetails
+                        profile_image={requestItems?.user_created_profile_pic}
+                        user_name={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                        date={Utility.formatDisplayDate(requestItems?.created_at)}
+                      />
+                    </Box>
                   }
+                  userCardSx={{ justifyContent: { xs: 'flex-start', sm: 'center' } }}
+                  GridSizes={{ xs: 12, sm: 3, md: 3 }}
+                  textContainer={{ gap: '10px' }}
+                  rowSpacing={5}
+                  displayVertically={true}
+                  commonLabelStyle={{ fontWeight: 'bold', color: 'theme.palette.customColors.secondaryBg' }}
+                  commonValueStyle={{ fontWeight: 400, color: 'theme.palette.customColors.secondaryBg' }}
                 />
-                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
-                      <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
-                      <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
-                      <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
-                      <p style={{ marginBottom: '0' }}>{requestItems?.request_number}</p>
-                    </Grid>
-                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
-
-                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-                        {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
-                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                          <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                            {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
-                          </Typography>
-                          <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.created_at)}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Grid>
-                    <>
-                      <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                        <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
-                        <p style={{ marginBottom: '0' }}>
-                          {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                        </p>
-                      </Grid>
-                      {shippedItems.length > 0 && (
-                        <>
-                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                            <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
-                            <p style={{ marginBottom: '0' }}>
-                              {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
-                            </p>
-                          </Grid>
-                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
-                            <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
-                            <p style={{ marginBottom: '0' }}>{requestItems?.shipped_qty}</p>
-                          </Grid>
-                        </>
-                      )}
-                    </>
-                  </Grid>
-                </Box>
                 <Box>
                   <TabContext value={value}>
-                    <Box sx={{ width: '100%' }}>
+                    <Box sx={{ width: '100%', marginTop: '20px' }}>
                       <TabList
                         onChange={handleChange}
                         sx={{
-                          p: 4,
                           '& .MuiTabs-flexContainer': {
                             borderBottom: '1px solid',
                             borderColor: 'customColors.neutral05'
@@ -991,7 +962,7 @@ const IndividualRequest = () => {
                         <Tab value='dispatch' label='Dispatch items' />
                         <Tab value='shipment' label='Shipment' />
                       </TabList>
-                      <TabPanel value='dispatch'>
+                      <TabPanel value='dispatch' sx={{ px: 0 }}>
                         <CardHeader
                           sx={{
                             p: 0,
@@ -1030,14 +1001,14 @@ const IndividualRequest = () => {
                           <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No shipped items' />
                         )}
                       </TabPanel>
-                      <TabPanel value='shipment'>
+                      <TabPanel value='shipment' sx={{ padding: 0 }}>
                         <Grid
                           sx={{
                             width: '100%',
                             px: '0 !important'
                           }}
                         >
-                          <TabContext value={shipmentTab}>
+                          <TabContext value={shipmentTab} sx={{}}>
                             <TabLists
                               onChange={(event, newValue) => {
                                 setShipmentTab(newValue)
@@ -1133,7 +1104,7 @@ const IndividualRequest = () => {
                     </Box>
                   </TabContext>
                 </Box>
-              </Card>
+              </PageCardLayout>
 
               <Dialog
                 fullWidth
@@ -1163,7 +1134,6 @@ const IndividualRequest = () => {
                   close={closeFulfillDialog}
                 />
               </Dialog>
-
 
               <Dialog
                 fullWidth

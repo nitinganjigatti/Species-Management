@@ -9,11 +9,14 @@ import SelectedSymptoms from 'src/components/hospital/Symptoms/SelectedSymptoms'
 import AddSymptomDrawer from 'src/components/hospital/drawer/AddSymptomDrawer'
 import AddComplaintDrawer from 'src/components/hospital/drawer/AddComplaintDrawer'
 import Toaster from 'src/components/Toaster'
-import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import { useDispatch, useSelector } from 'react-redux'
+import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
+import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -42,12 +45,13 @@ const useDebounce = (callback, delay) => {
   )
 }
 
-function AddSymptoms() {
+function AddSymptoms({ category }) {
   const theme = useTheme()
   const router = useRouter()
-  const { data, updateState } = useDynamicStateContext()
+  const dispatch = useDispatch()
+  const hospitalData = useSelector(state => state.hospital.data)
   const { id } = router.query
-  const medicalRecordData = data[STORAGE_KEY] || {}
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
   const [selectedSymptoms, setSelectedSymptoms] = useState([])
   const [temporarilySelected, setTemporarilySelected] = useState(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState(false)
@@ -63,6 +67,12 @@ function AddSymptoms() {
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
+  const [pickerSearchQuery, setPickerSearchQuery] = useState('')
+  const [pickerList, setPickerList] = useState([])
+  const [pickerPage, setPickerPage] = useState(1)
+  const [pickerHasMore, setPickerHasMore] = useState(true)
+  const [pickerLoading, setPickerLoading] = useState(false)
+  const [pickerSearching, setPickerSearching] = useState(false)
   const [searching, setSearching] = useState(false)
   const [resetPagination, setResetPagination] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
@@ -74,6 +84,8 @@ function AddSymptoms() {
   const [currentTabId, setCurrentTabId] = useState('')
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState(false)
   const [duplicateSymptoms, setDuplicateSymptoms] = useState([])
+  const [alreadySelectedIds, setAlreadySelectedIds] = useState([])
+  const [templateRefreshToken, setTemplateRefreshToken] = useState(0)
   const medicalRecordId = medicalRecordData?.medical_record_id
 
   const initialLoadRef = useRef(false)
@@ -81,6 +93,7 @@ function AddSymptoms() {
   const loadedItemsRef = useRef({})
 
   const isFetchingRef = useRef(false)
+  const isPickerFetchingRef = useRef(false)
 
   const handleSymptomSelect = symptom => {
     setTemporarilySelected({ id: symptom.id, name: symptom.name })
@@ -95,6 +108,11 @@ function AddSymptoms() {
     setSelectedSymptoms(prev => [...prev, { id: temporarilySelected.id, name: temporarilySelected.name, ...details }])
     setTemporarilySelected(null)
     setSymptomDrawerOpen(false)
+    // Reset form fields for next symptom
+    setDurationValue(0)
+    setNotes('')
+    setDurationUnit('Days')
+    setSeverity('Mild')
   }
 
   const cancelSymptomSelection = () => {
@@ -106,7 +124,9 @@ function AddSymptoms() {
     setSelectedSymptoms(prev => prev.filter(s => s.id !== symptomId))
   }
 
-  const availableSymptoms = symptomsList.filter(symptom => !selectedSymptoms.some(s => s.id === symptom.id))
+  const availableSymptoms = symptomsList.filter(
+    symptom => !selectedSymptoms.some(s => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+  )
 
   const fetchSymptoms = useCallback(
     async (query = '', pageNo = 1, append = false, categoryId = '') => {
@@ -127,7 +147,8 @@ function AddSymptoms() {
           q: query,
           category_id: categoryId || '',
           request_from: 'hospital_module',
-          medical_record_id: patientData?.medical_record_id || '',
+          // medical_record_id: patientData?.medical_record_id || '',
+          animal_id: patientData?.animal_detail?.animal_id || '',
           limit: 20
         }
 
@@ -168,6 +189,10 @@ function AddSymptoms() {
           if (newResults.length > 0) {
             setPage(currentPage)
           }
+
+          if (pageNo === 1 && response?.data?.selected_ids) {
+            setAlreadySelectedIds(response.data.selected_ids)
+          }
         }
       } catch (error) {
         setHasMore(false)
@@ -179,6 +204,67 @@ function AddSymptoms() {
       }
     },
     [patientData?.medical_record_id]
+  )
+
+  const fetchPickerSymptoms = useCallback(
+    async (query = '', pageNo = 1, append = false, categoryId = '') => {
+      if (isPickerFetchingRef.current) return
+
+      try {
+        isPickerFetchingRef.current = true
+
+        if (pageNo === 1) {
+          setPickerSearching(true)
+        } else {
+          setPickerLoading(true)
+        }
+
+        const params = {
+          page_no: pageNo,
+          type: 'complaints',
+          q: query,
+          category_id: categoryId || '',
+          request_from: 'hospital_module',
+          animal_id: patientData?.animal_detail?.animal_id || '',
+          limit: 20
+        }
+
+        const response = await getSymptomsListForAdding(params)
+
+        if (response.success) {
+          const newResults = response?.data?.result || []
+          const totalRecords = response?.data?.totalRecords || 0
+          const currentPage = response?.data?.currentPage || pageNo
+          const totalPages = response?.data?.totalPages || Math.ceil(totalRecords / 20)
+
+          setPickerList(prev => {
+            if (!append) return newResults
+
+            const combined = [...prev, ...newResults]
+
+            return combined.reduce((acc, current) => {
+              const exists = acc.find(item => item.id === current.id)
+              if (!exists) return acc.concat([current])
+
+              return acc
+            }, [])
+          })
+
+          setPickerHasMore(currentPage < totalPages && newResults.length > 0)
+
+          if (newResults.length > 0) {
+            setPickerPage(currentPage)
+          }
+        }
+      } catch (error) {
+        setPickerHasMore(false)
+      } finally {
+        setPickerLoading(false)
+        setPickerSearching(false)
+        isPickerFetchingRef.current = false
+      }
+    },
+    [patientData?.animal_detail?.animal_id]
   )
 
   const fetchDiagnosisTypes = useCallback(async () => {
@@ -206,6 +292,7 @@ function AddSymptoms() {
           loadedItemsRef.current[key] = 0
 
           fetchSymptoms('', 1, false, firstCategory?.id || '')
+          fetchPickerSymptoms('', 1, false, firstCategory?.id || '')
         }
       }
     } catch (error) {
@@ -213,7 +300,7 @@ function AddSymptoms() {
     } finally {
       setIsTabsLoading(false)
     }
-  }, [patientData?.medical_record_id, currentTabId, fetchSymptoms])
+  }, [patientData?.medical_record_id, currentTabId, fetchSymptoms, fetchPickerSymptoms])
 
   const debouncedSearch = useDebounce((query, categoryId) => {
     setResetPagination(true)
@@ -223,6 +310,12 @@ function AddSymptoms() {
     const key = `${categoryId || 'all'}_${query || 'noquery'}`
     loadedItemsRef.current[key] = 0
     fetchSymptoms(query, 1, false, categoryId || currentTabId)
+  }, 500)
+
+  const debouncedPickerSearch = useDebounce((query, categoryId) => {
+    setPickerPage(1)
+    setPickerSearchQuery(query)
+    fetchPickerSymptoms(query, 1, false, categoryId || currentTabId)
   }, 500)
 
   const handleSearchChange = e => {
@@ -253,6 +346,18 @@ function AddSymptoms() {
     }
   }
 
+  const handleTemplatePickerSearchChange = value => {
+    setPickerSearchQuery(value)
+    debouncedPickerSearch(value, currentTabId)
+  }
+
+  const handleTemplatePickerLoadMore = useCallback(() => {
+    if (pickerLoading || !pickerHasMore || isPickerFetchingRef.current) return
+
+    const nextPage = pickerPage + 1
+    fetchPickerSymptoms(pickerSearchQuery, nextPage, true, currentTabId)
+  }, [currentTabId, fetchPickerSymptoms, pickerHasMore, pickerLoading, pickerPage, pickerSearchQuery])
+
   useEffect(() => {
     const getPatientInfo = async () => {
       if (!id || initialLoadRef.current) return
@@ -261,12 +366,15 @@ function AddSymptoms() {
       try {
         const res = await getPatientDetails(id)
         if (res?.success === true) {
-          updateState(STORAGE_KEY, {
-            ...medicalRecordData,
-            animal_id: res.data?.animal_detail?.animal_id,
-            medical_record_id: res.data?.medical_record_id,
-            animal_admitted_date: res.data?.admitted_at
-          })
+          dispatch(updateState({
+            key: STORAGE_KEY,
+            value: {
+              ...medicalRecordData,
+              animal_id: res.data?.animal_detail?.animal_id,
+              medical_record_id: res.data?.medical_record_id,
+              animal_admitted_date: res.data?.admitted_at
+            }
+          }))
           setPatientData(res?.data)
         } else {
           setPatientData(null)
@@ -289,24 +397,28 @@ function AddSymptoms() {
   }, [patientData?.medical_record_id, fetchDiagnosisTypes])
 
   const handleTabChange = (tabValue, tabId) => {
+    if(tabValue === currentTab) return
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
     setSymptomsList([])
+    setPickerList([])
     setHasMore(true)
+    setPickerHasMore(true)
 
     const key = `${tabId || 'all'}_${searchQuery || 'noquery'}`
     loadedItemsRef.current[key] = 0
 
     fetchSymptoms(searchQuery, 1, false, tabId)
+    fetchPickerSymptoms(pickerSearchQuery, 1, false, tabId)
   }
 
-  const checkDuplicateSymptoms = async () => {
+  const checkDuplicateSymptoms = async symptomItems => {
     try {
       const payload = {
         type: 'complaint',
         animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
-        master_ids: JSON.stringify(selectedSymptoms.map(s => s.id))
+        master_ids: JSON.stringify((symptomItems || []).map(s => s.id))
       }
       const response = await checkAnimalStatusByType(payload)
 
@@ -324,7 +436,7 @@ function AddSymptoms() {
 
   const handleAddClick = async () => {
     setAddLoading(true)
-    const duplicatesData = await checkDuplicateSymptoms()
+    const submittableSymptoms = selectedSymptoms.filter(symptom => !alreadySelectedIds.includes(symptom?.id))
 
     try {
       if (selectedSymptoms.length === 0) {
@@ -333,23 +445,32 @@ function AddSymptoms() {
         return
       }
 
+      if (submittableSymptoms.length === 0) {
+        Toaster({ type: 'error', message: 'All selected symptoms are already prescribed' })
+
+        return
+      }
+
+      const duplicatesData = await checkDuplicateSymptoms(submittableSymptoms)
+
       if (duplicatesData?.length > 0) {
         setDuplicatesErrorModelOpen(true)
 
         return
       }
 
-      const complaints = selectedSymptoms.map(symptom => ({
+      const complaints = submittableSymptoms.map(symptom => ({
         id: symptom.id,
         name: symptom.name,
         additional_info: {
           severity: symptom.severity || 'Mild',
           notes: symptom.notes || '',
           active_at: '',
-          duration: String(symptom.durationValue || 0),
+          duration: symptom.durationValue == 0 ? '' : String(symptom.durationValue || ''),
           duration_unit: symptom.durationUnit || 'Days',
           status: 'active',
-          comment_list: []
+          comment_list: [],
+          recorded_date_time: symptom.recordedDateTime || new Date().toISOString()
         }
       }))
 
@@ -402,9 +523,36 @@ function AddSymptoms() {
       return patientData?.animal_detail?.animal_id
     }
   }
+  
+   const handleBreadCrumbNavigation = () => {
+    if (category === 'Inpatient'){
+      router.push('/hospital/inpatient')
+    }
+    else if (category === 'Outpatients'){
+      router.push('/hospital/outpatient')
+    }
+    else if (category === 'Discharged'){
+      router.push('/hospital/discharged')
+    }
+    else if (category === 'Mortality'){
+      router.push('/hospital/mortality')
+    }
+    else if (category === 'Follow Up'){
+      router.push('/hospital/followup')
+    }
+  }
+
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box>
+    <DynamicBreadcrumbs
+      pageItems={[
+        { title: 'Hospital' },
+        { title: category, onClick: handleBreadCrumbNavigation },
+        { title: 'Details', onClick: handleRouterNavigation },
+        { title: 'Add Symptoms' }
+      ]}
+    />
       <AnimalInfoCard
         image={patientData?.animal_detail?.default_icon}
         name={patientData?.animal_detail?.common_name}
@@ -420,6 +568,7 @@ function AddSymptoms() {
             value: handleAIDDisplay()
           },
           { label: 'Health Status', value: patientData?.health_status || 'stable', isStatusCard: true },
+
           // { label: 'Admitted days', value: patientData?.admitted_for_day },
           { label: 'Location', value: `${patientData?.bed_name}, ${patientData?.room_name}` },
           { label: 'Consulting Veterinarian', value: patientData?.attend_by_full_name }
@@ -456,10 +605,53 @@ function AddSymptoms() {
             symptomsCount={symptomsCount}
             hasMore={hasMore}
             handleAddNewClick={handleAddNewClick}
+            alreadySelectedIds={alreadySelectedIds}
           />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <SelectedSymptoms selected={selectedSymptoms} onRemove={removeSymptom} severity={severity} />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <SelectionTemplatePanel
+              templateType='complaints'
+              selectedItems={selectedSymptoms}
+              availableItems={pickerList.filter(
+                symptom => !selectedSymptoms.some(s => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+              )}
+              onApplyTemplate={setSelectedSymptoms}
+              templateLabel='symptom template'
+              mapTemplateItem={item => ({
+                id: item?.id,
+                name: item?.name,
+                severity: 'Mild',
+                durationValue: 0,
+                durationUnit: 'Days',
+                notes: '',
+                status: 'active'
+              })}
+              pickerSearchValue={pickerSearchQuery}
+              onPickerSearchChange={handleTemplatePickerSearchChange}
+              onPickerLoadMore={handleTemplatePickerLoadMore}
+              pickerLoading={pickerLoading || pickerSearching}
+              pickerHasMore={pickerHasMore}
+              refreshToken={templateRefreshToken}
+              onTemplatesChanged={() => setTemplateRefreshToken(prev => prev + 1)}
+            />
+            <SelectedSymptoms
+              selected={selectedSymptoms}
+              onRemove={removeSymptom}
+              severity={severity}
+              alreadySelectedIds={alreadySelectedIds}
+              footer={
+                <SaveMedicalTemplateSection
+                  templateType='complaints'
+                  selectedItems={selectedSymptoms}
+                  templateLabel='symptom template'
+                  itemLabel='symptoms'
+                  refreshToken={templateRefreshToken}
+                  onTemplateSaved={() => setTemplateRefreshToken(prev => prev + 1)}
+                />
+              }
+            />
+          </Box>
         </Grid>
       </Grid>
 
@@ -486,9 +678,9 @@ function AddSymptoms() {
       />
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
-        title={`Clinical assessment${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
-        description={`Duplicate assessments: ${duplicateSymptoms?.map(item => item?.diagnosis)?.join(', ')}`}
-        additionalDescription={`To proceed choose a different Clinical Assessment or remove the animal accessed`}
+        title={`Symptoms${duplicateSymptoms?.length > 1 ? 's' : ''} already exists`}
+        description={`Duplicate Symptoms: ${duplicateSymptoms?.map(item => item?.diagnosis)?.join(', ')}`}
+        additionalDescription={`To proceed choose a different Symptoms`}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}
         imgStyle={{ background: theme.palette.customColors.TertiaryLight, p: 4 }}
@@ -515,6 +707,9 @@ function AddSymptoms() {
           setStatus={setStatus}
           setNotes={setNotes}
           onSave={addSymptomDetails}
+          admittedDate={patientData?.admitted_at}
+          dischargedDate={patientData?.discharge_at}
+          isDischarged={patientData?.status === 'discharge'}
         />
       )}
       {complaintDrawerOpen && (

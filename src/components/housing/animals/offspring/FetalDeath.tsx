@@ -1,0 +1,316 @@
+import React, { useCallback, useEffect, useState } from 'react'
+import { Box, useTheme, Typography, Skeleton, CircularProgress } from '@mui/material'
+import { FetusDetail, TabProps } from 'src/types/housing/animalsOffspring'
+import AnimalCard from 'src/views/utility/AnimalCard'
+import { useQuery } from '@tanstack/react-query'
+import { alpha } from '@mui/material/styles'
+import { Icon } from '@iconify/react'
+import { getFetusStats, getFetusList } from 'src/lib/api/housing'
+import Utility from 'src/utility'
+import { useTranslation } from 'react-i18next'
+import NoDataFound from 'src/views/utility/NoDataFound'
+import FetalDeathDrawer from './FetalDeathDrawer'
+import { useInView } from 'react-intersection-observer'
+
+type PillTabsProps = {
+  tabs: string[]
+  activeTab: string
+  onTabClick: (tab: string) => void
+}
+
+const FetalDeath: React.FC<TabProps> = props => {
+  const theme = useTheme() as any
+  const { t } = useTranslation()
+
+  const availableTabs: string[] = ['Still Birth', 'Abortion']
+  const [activeTab, setActiveTab] = React.useState<string>(availableTabs[0])
+  const [fetusDrawerOpen, setFetusDrawerOpen] = useState<boolean>(false)
+  const [selectedFetus, setSelectedFetus] = useState<string | number>('')
+  const [fetus, setFetus] = useState<FetusDetail[]>([])
+  const [isFetusDataFetching, setIsFetusDataFetching] = useState(false)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
+
+  const handleTabClick = (tab: string) => {
+    setActiveTab(tab)
+  }
+
+  const { data: fetusStats, isFetching: isFetusStatsFetching } = useQuery({
+    queryKey: ['fetus-stats', props.animalId],
+    queryFn: () => getFetusStats({ parent_id: props.animalId }),
+    enabled: !!props.animalId
+  })
+
+  const fetusStatsData = fetusStats?.data || null
+
+  const fetchFetusList = async (pageNo: number = 1) => {
+    if (!props.animalId) return
+
+    if (pageNo === 1) {
+      setIsFetusDataFetching(true)
+      setHasMore(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
+    try {
+      const response = await getFetusList({
+        parent_id: props.animalId,
+        type: activeTab === 'Still Birth' ? 'stillbirth' : 'abortion',
+        page_no: pageNo,
+        limit: 10
+      })
+
+      if (response?.success) {
+        const result = response?.data?.fetus_details || []
+
+        if (pageNo === 1) {
+          setFetus(result)
+        } else {
+          setFetus(prev => [...prev, ...result])
+        }
+
+        if (result.length < 10) {
+          setHasMore(false)
+        }
+      } else {
+        if (pageNo === 1) {
+          setFetus([])
+        }
+        setHasMore(false)
+      }
+    } catch (error: any) {
+      console.error(error?.message)
+      if (pageNo === 1) {
+        setFetus([])
+      }
+      setHasMore(false)
+    } finally {
+      setIsFetusDataFetching(false)
+      setIsFetchingMore(false)
+    }
+  }
+
+  const handleLoadMore = useCallback(() => {
+    if (isFetusDataFetching || isFetchingMore || !hasMore) return
+
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchFetusList(nextPage)
+  }, [isFetusDataFetching, isFetchingMore, hasMore, page, props.animalId, activeTab])
+
+  useEffect(() => {
+    if (inView && !isFetusDataFetching && !isFetchingMore && hasMore && fetus.length) {
+      handleLoadMore()
+    }
+  }, [inView, isFetusDataFetching, isFetchingMore, hasMore, fetus.length, handleLoadMore])
+
+  useEffect(() => {
+    setPage(1)
+    setFetus([])
+    setHasMore(true)
+    fetchFetusList(1)
+  }, [props.animalId, activeTab])
+
+  const PillTabs: React.FC<PillTabsProps> = ({ tabs, activeTab, onTabClick }) => {
+    const theme = useTheme() as any
+
+    const tabLabelMap: Record<string, string> = {
+      'Still Birth': t('animals_module.still_birth'),
+      Abortion: t('animals_module.abortion')
+    }
+
+    const tabStatsMap: Record<string, number> = {
+      'Still Birth': Number(fetusStatsData?.stillbirth_count ?? 0),
+      Abortion: Number(fetusStatsData?.abortion_count ?? 0)
+    }
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 5 }}>
+        <Box sx={{ display: 'flex', gap: 4 }}>
+          {tabs.map(tab => (
+            <Box
+              key={tab}
+              onClick={() => onTabClick(tab)}
+              sx={{
+                px: 3,
+                py: 2,
+                borderRadius: '6px',
+                backgroundColor:
+                  activeTab === tab
+                    ? theme.palette.secondary.dark
+                    : theme.palette.customColors?.mdAntzNeutral || alpha(theme.palette.grey[500], 0.08),
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Typography
+                sx={{
+                  color: activeTab === tab ? theme.palette.primary.contrastText : theme.palette.text.primary,
+                  fontSize: '14px',
+                  fontWeight: 500
+                }}
+              >
+                {tabLabelMap[tab]} - {tabStatsMap[tab]}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <>
+      <PillTabs tabs={availableTabs} activeTab={activeTab} onTabClick={handleTabClick} />
+      {isFetusDataFetching ? (
+        <LoadingSkeleton />
+      ) : Number(props.stats?.fetal_death_count ?? 0) === 0 ||
+        fetus?.length === 0 ||
+        (activeTab === 'Still Birth' && fetusStatsData?.stillbirth_count == 0) ||
+        (activeTab === 'Abortion' && fetusStatsData?.abortion_count == 0) ? (
+        <NoDataFound width={250} height={250} />
+      ) : (
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+          {fetus?.map((item, index) => {
+            return (
+              <Box
+                key={item?.fetus_id || index}
+                sx={{
+                  p: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: 'inherit',
+                  '&:hover': {
+                    backgroundColor: alpha(theme.palette.action.hover, 0.04)
+                  },
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  mb: 2,
+                  cursor: 'pointer'
+                }}
+                onClick={() => {
+                  setSelectedFetus(item?.fetus_id)
+                  setFetusDrawerOpen(true)
+                }}
+              >
+                <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: { xs: 'flex-start', md: 'center' },
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: { md: 'space-between' }
+                    }}
+                  >
+                    <Typography>
+                      {t('animals_module.reported_by')} <span style={{ fontWeight: 600 }}>{item.report_by}</span>
+                    </Typography>
+                    <Typography>
+                      {' '}
+                      {Utility.convertUtcToLocalReadableDate(item?.discovered)}
+                      <span> &bull; </span>
+                      {Utility.convertUTCToLocaltime(item?.discovered)}
+                    </Typography>
+                  </Box>
+                  <AnimalCard
+                    data={{
+                      local_identifier_name: 'FID',
+                      local_identifier_value: item?.fetus_code,
+                      default_common_name: item?.default_common_name,
+                      complete_name: item?.animal_scientific_name,
+                      discovered: item?.discovered,
+                      mother_id: item?.mother_id,
+                      site_name: item?.site_name,
+                      default_icon: item?.default_icon,
+                      sex: item?.sex
+                    }}
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    ml: 4
+                  }}
+                >
+                  <Icon icon={'fe:arrow-right'} fontSize={24} />
+                </Box>
+              </Box>
+            )
+          })}
+          {(hasMore || isFetchingMore) && fetus.length > 0 && (
+            <Box
+              ref={loaderRef}
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                py: 4
+              }}
+            >
+              {isFetchingMore && <CircularProgress size={24} />}
+            </Box>
+          )}
+        </Box>
+      )}
+
+      {fetusDrawerOpen && (
+        <FetalDeathDrawer open={fetusDrawerOpen} onClose={() => setFetusDrawerOpen(false)} fetusId={selectedFetus} />
+      )}
+    </>
+  )
+}
+
+export default React.memo(FetalDeath)
+
+const LoadingSkeleton = () => {
+  const theme = useTheme() as any
+  return (
+    <Box
+      sx={{
+        borderRadius: '8px',
+        overflow: 'hidden',
+        mb: 4
+      }}
+    >
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        {[1, 2, 3].map((_, index) => (
+          <Box
+            key={index}
+            sx={{
+              p: 4,
+              border: `1px solid ${theme.palette.divider}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              borderRadius: 2,
+              mb: 2
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                <Skeleton width={140} height={20} />
+                <Skeleton width={140} height={16} />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Skeleton variant='rounded' width={56} height={56} />
+
+                <Box>
+                  <Skeleton width={140} height={20} />
+                  <Skeleton width={100} height={16} />
+                  <Skeleton width={80} height={16} />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  )
+}

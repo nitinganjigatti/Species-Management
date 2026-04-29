@@ -60,7 +60,7 @@ const getSchema = (resType, measurementType) =>
         : yup.mixed().notRequired()
   })
 
-const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData, interval }) => {
+const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementType, unitsData, interval, refetchPatient }) => {
   const theme = useTheme()
 
   const schema = useMemo(() => getSchema(resType, measurementType), [resType, measurementType])
@@ -133,6 +133,8 @@ const EditParamsHistory = ({ open, setOpen, data, refetch, resType, measurementT
         refetch()
         setOpen(false)
         setOpenDeleteDialog(false)
+        // Refetch patient details when weight entry is deleted to update animal card
+        if (data?.assessment_type_id === '1' && refetchPatient) refetchPatient()
       } else {
         Toaster({ type: 'error', message: res?.message })
       }

@@ -305,7 +305,7 @@ const TransferFields = ({
         </Grid>
       </Grid> */}
     </>
-  )
+  );
 }
 
 export default TransferFields

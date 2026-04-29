@@ -12,6 +12,7 @@ import { styled } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 import Utility from 'src/utility'
+import { useTranslation } from 'react-i18next'
 
 const Timeline = styled(MuiTimeline)({
   paddingLeft: 0,
@@ -38,6 +39,7 @@ const EggActivityLogs = ({
   // const [activtyLogData, setActivtyLogData] = useState([])
   // const [activtyLogCount, setActivtyLogCount] = useState(0)
   let [page_no, setPage_no] = useState(1)
+  const { t } = useTranslation()
   const [reachedEnd, setReachedEnd] = useState(false)
   const [showCommentIndex, setShowCommentIndex] = useState(null)
 
@@ -150,7 +152,7 @@ const EggActivityLogs = ({
               <Icon icon={'ion:time-outline'} />
             </Box>
             <Box>
-              <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>Activity Log</Typography>
+              <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>{t('activity_log')}</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>

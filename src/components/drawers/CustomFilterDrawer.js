@@ -2,6 +2,7 @@ import React from 'react'
 import { Drawer, Box, Typography, IconButton, List, ListItemText, Button, Badge, ListItemButton } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { alpha, useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 const CustomFilterDrawer = ({
   open,
@@ -10,13 +11,16 @@ const CustomFilterDrawer = ({
   onApply,
   onClearAll,
   filterLists = [],
+  filterLabels,
   selectedOptions,
   children,
   isSubmitting,
   selectedItem,
-  onSelectItem
+  onSelectItem,
+  zIndex
 }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const getMenuBadgeCount = menuName => {
     return selectedOptions[menuName]?.length || 0
@@ -27,6 +31,7 @@ const CustomFilterDrawer = ({
       anchor='right'
       open={open}
       onClose={onClose}
+      sx={{ ...(zIndex && { zIndex }) }}
       slotProps={{
         paper: {
           sx: {
@@ -51,7 +56,7 @@ const CustomFilterDrawer = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, ml: 3 }}>
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVarient }}>
-            {title}
+            {title === 'Filter' ? t('filter') : title}
           </Typography>
         </Box>
         <IconButton onClick={onClose}>
@@ -100,7 +105,7 @@ const CustomFilterDrawer = ({
                 <ListItemText
                   primary={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography sx={{ fontSize: '16px', color: theme.palette.primary.OnSurface }}>{item}</Typography>
+                      <Typography sx={{ fontSize: '16px', color: theme.palette.primary.OnSurface }}>{filterLabels?.[item] || item}</Typography>
                       <Badge badgeContent={getMenuBadgeCount(item)} color='primary' sx={{ ml: 2 }} />
                     </Box>
                   }
@@ -145,10 +150,10 @@ const CustomFilterDrawer = ({
         }}
       >
         <Button size='large' variant='outlined' fullWidth onClick={onClearAll}>
-          Clear All
+          {t('clear_all')}
         </Button>
         <Button size='large' variant='contained' fullWidth onClick={onApply} disabled={isSubmitting}>
-          Apply Filter
+          {t('apply_filter')}
         </Button>
       </Box>
     </Drawer>

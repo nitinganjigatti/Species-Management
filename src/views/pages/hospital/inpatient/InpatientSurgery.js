@@ -53,7 +53,7 @@ const htmlToPlainText = value => {
   return value
     .replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
+    .trim();
 }
 
 const getRichTextHtmlValue = value => {
@@ -143,7 +143,7 @@ const parseProcedurePerformed = value => {
   return text
     .split(/[\r\n]+|•/g)
     .map(item => item.replace(/^[•\-\s]+/, '').trim())
-    .filter(Boolean)
+    .filter(Boolean);
 }
 
 const getRecordIdentifier = record => {
@@ -202,29 +202,22 @@ const MediaScroller = ({ items = [] }) => {
           const key = item?.id ?? `${item?.file || item?.file_original_name || 'attachment'}-${index}`
 
           return (
-            <Box
+            <FilePreviewCard
               key={key}
-              sx={{
-                width: 240
-                // flexShrink: 0
+              width={'240px'}
+              fileUrl={item?.file}
+              fileName={item?.file_original_name}
+              fileType={item?.file_type}
+              user={{
+                created_at: item?.created_at,
+                modified_at: item?.modified_at,
+                user_profile: {
+                  user_full_name: item?.user_full_name,
+                  user_profile_pic: item?.user_profile_pic
+                }
               }}
-            >
-              <FilePreviewCard
-                fileUrl={item?.file}
-                fileName={item?.file_original_name}
-                fileType={item?.file_type}
-                user={{
-                  created_at: item?.created_at,
-                  modified_at: item?.modified_at,
-                  user_profile: {
-                    user_full_name: item?.user_full_name,
-                    user_profile_pic: item?.user_profile_pic
-                  }
-                }}
-                showTitle={true}
-              />
-              {/* <MediaCard media={item} isBorderedCard /> */}
-            </Box>
+              showTitle={true}
+            />
           )
         })}
       </Box>
@@ -232,7 +225,7 @@ const MediaScroller = ({ items = [] }) => {
   )
 }
 
-function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false }) {
+function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged = false, category }) {
   const theme = useTheme()
   const scrollbarThumbColor = theme.palette.customColors.neutralSecondary
   const router = useRouter()
@@ -303,23 +296,34 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
   }, [resolvedHospitalCaseId])
 
   const handleAddSurgeryRecord = () => {
-    const query = {}
+  const query = {}
 
-    if (resolvedHospitalCaseId) {
-      query.hospital_case_id = resolvedHospitalCaseId
-    }
-
-    if (medicalRecordId) {
-      query.medical_record_id = medicalRecordId
-    }
-
-    const href =
-      Object.keys(query).length > 0
-        ? { pathname: '/hospital/inpatient/AddSurgeryRecord', query }
-        : '/hospital/inpatient/AddSurgeryRecord'
-
-    router.push(href)
+  if (resolvedHospitalCaseId) {
+    query.hospital_case_id = resolvedHospitalCaseId
   }
+
+  if (medicalRecordId) {
+    query.medical_record_id = medicalRecordId
+  }
+
+  if (Object.keys(query).length > 0) {
+    if (category === 'Outpatients') {
+      router.push({ pathname: '/hospital/outpatient/AddSurgeryRecord', query })
+    } 
+    else if (category === 'Discharged') {
+      router.push({ pathname: '/hospital/discharged/AddSurgeryRecord', query })
+    } 
+    else if (category === 'Mortality') {
+      router.push({ pathname: '/hospital/mortality/AddSurgeryRecord', query })
+    } 
+    else if (category === 'Follow Up') {
+      router.push({ pathname: '/hospital/followup/AddSurgeryRecord', query })
+    } 
+    else {
+      router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
+    }
+  } 
+}
 
   const activeRecord = useMemo(() => {
     if (!surgeryRecords.length) return null
@@ -401,7 +405,40 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
       query.anaesthesia_id = activeDetail.anaesthesia_id
     }
 
-    router.push({ pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`, query })
+    if (medicalRecordId) {
+      query.medical_record_id = medicalRecordId
+    }
+
+    if (activeDetail?.anaesthesia_id) {
+      query.anaesthesia_id = activeDetail.anaesthesia_id
+    }
+
+    if (category === 'Discharged') {
+      router.push({
+        pathname: `/hospital/discharged/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else if (category === 'Outpatients') {
+      router.push({
+        pathname: `/hospital/outpatient/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else if (category === 'Mortality') {
+      router.push({
+        pathname: `/hospital/mortality/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else if (category === 'Follow Up') {
+      router.push({
+        pathname: `/hospital/followup/${resolvedHospitalCaseId}`,
+        query
+      })
+    } else {
+      router.push({
+        pathname: `/hospital/inpatient/${resolvedHospitalCaseId}`,
+        query
+      })
+    }
   }, [activeDetail?.anaesthesia_id, medicalRecordId, resolvedHospitalCaseId, router])
 
   const canViewAnesthesia = Boolean(resolvedHospitalCaseId)
@@ -419,12 +456,20 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
 
   const surgeryDetailItems = useMemo(() => {
     const detail = activeDetail || {}
+    const secondarySurgeons =
+      detail.secondary_surgeons?.length > 0
+        ? detail.secondary_surgeons.map(surgeon => surgeon.user_full_name).join(', ')
+        : '--'
 
     return [
       { label: 'Procedure Name', value: detail.surgery_name || '--' },
       { label: 'Surgical Approach', value: detail.surgical_approach || '--' },
       { label: 'Type Of Surgery', value: detail.type_of_surgery || '--' },
-      { label: 'Name Of Surgeon', value: detail.name_of_surgeon || '--' }
+      { label: 'Name Of Surgeon', value: detail.name_of_surgeon || '--' },
+      {
+        label: detail.secondary_surgeons?.length > 1 ? 'Attending Veterinarians' : 'Attending Veterinarian',
+        value: secondarySurgeons || '--'
+      }
     ]
   }, [activeDetail])
 
@@ -675,7 +720,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
           </Box>
 
           {loading ||
-            (!patientDischarged && !shouldShowEmptyState && (
+            (/* !patientDischarged && */ !shouldShowEmptyState && (
               <Button
                 onClick={handleAddSurgeryRecord}
                 variant='contained'
@@ -711,7 +756,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                   <NoMedicalData
                     btnText={'ADD NEW SURGERY RECORD'}
                     text={'All Added Surgery Records Will Appear here'}
-                    isDischarged={patientDischarged}
+                    // isDischarged={patientDischarged}
                     btnAction={handleAddSurgeryRecord}
                   />
                 </Box>
@@ -747,7 +792,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                 )}
               </Box>
               <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                {!patientDischarged && (
+                {/* !patientDischarged && (
                   <Box
                     component='img'
                     src='/icons/pencil_outlined.svg'
@@ -764,8 +809,37 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                       router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
                     }}
                   />
-                )}
-                {!patientDischarged && (
+                ) */}
+                <Box
+                  component='img'
+                  src='/icons/pencil_outlined.svg'
+                  alt='Edit'
+                  sx={{ width: 24, height: 24, cursor: 'pointer' }}
+                  onClick={() => {
+                    if (!activeSurgeryRecordId) return
+
+                    const query = {}
+                    if (resolvedHospitalCaseId) query.hospital_case_id = resolvedHospitalCaseId
+                    if (medicalRecordId) query.medical_record_id = medicalRecordId
+                    query.id = activeSurgeryRecordId
+                    if(category === 'Outpatients'){
+                      router.push({ pathname: '/hospital/outpatient/AddSurgeryRecord', query })
+                    }
+                    else if(category === 'Discharged'){
+                      router.push({ pathname: '/hospital/discharged/AddSurgeryRecord', query })
+                    }
+                    else if(category === 'Mortality'){
+                      router.push({ pathname: '/hospital/mortality/AddSurgeryRecord', query })
+                    }
+                     else if(category === 'Follow Up'){
+                      router.push({ pathname: '/hospital/followup/AddSurgeryRecord', query })
+                    }
+                    else {
+                    router.push({ pathname: '/hospital/inpatient/AddSurgeryRecord', query })
+                    }
+                  }}
+                />
+                {/* !patientDischarged && (
                   <Box
                     component='img'
                     src='/icons/delete_outlined.svg'
@@ -778,7 +852,19 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
                     }}
                     onClick={deleteDisabled ? undefined : handleDeleteClick}
                   />
-                )}
+                ) */}
+                <Box
+                  component='img'
+                  src='/icons/delete_outlined.svg'
+                  alt='Delete'
+                  sx={{
+                    width: 24,
+                    height: 24,
+                    cursor: deleteDisabled ? 'not-allowed' : 'pointer',
+                    opacity: deleteDisabled ? 0.4 : 1
+                  }}
+                  onClick={deleteDisabled ? undefined : handleDeleteClick}
+                />
               </Box>
             </Box>
 
@@ -1141,7 +1227,6 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
           </Box>
         )}
       </Box>
-
       <DeleteConfirmationDialog
         open={deleteDialogOpen}
         loading={deleteLoading}
@@ -1150,7 +1235,7 @@ function InpatientSurgery({ hospitalCaseId, medicalRecordId, patientDischarged =
         message='Are you sure you want to delete this surgery record?'
       />
     </>
-  )
+  );
 }
 
 export default InpatientSurgery

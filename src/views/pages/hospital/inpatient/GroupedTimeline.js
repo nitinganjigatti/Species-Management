@@ -1,5 +1,5 @@
 import React from 'react'
-import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography } from '@mui/material'
+import { Grid, Box, FormControl, MenuItem, Select, Skeleton, Typography, Tooltip } from '@mui/material'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem, { timelineItemClasses } from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -24,8 +24,154 @@ const medicalTypeOptions = [
   { label: 'Symptoms', value: 'symptoms' }
 ]
 
+const DETAIL_LABELS = {
+  case_type: 'Case Type',
+  complaints: 'Symptoms',
+  complaint: 'Symptoms',
+  diagnosis: 'Clinical Assessment',
+  prescription: 'Prescription',
+  advice: 'Advice',
+  advices: 'Advice',
+  notes: 'Notes',
+  note: 'Notes',
+  follow_up_date: 'Next Visit',
+  lab: 'Lab Tests',
+  lab_data: 'Lab Tests',
+  lab_test_requests: 'Lab Tests',
+  attachment: 'Attachments',
+  attachments: 'Attachments'
+}
+
+const HIDDEN_DETAIL_KEYS = new Set([
+  'medical_record_number',
+  'status',
+  'created_for',
+  'createdFor',
+  'created_by',
+  'created_at',
+  'is_causing_adverse_side_effect',
+  'isCausingAdverseSideEffect',
+  'data',
+  'Data'
+])
+
+const isEmptyDetailValue = value => {
+  if (value === null || value === undefined) return true
+  if (typeof value === 'string' && value.trim() === '') return true
+  if (Array.isArray(value)) return value.every(isEmptyDetailValue)
+  if (typeof value === 'object') return Object.keys(value).length === 0
+
+  return false
+}
+
+const formatDetailLabel = key => {
+  if (DETAIL_LABELS[key]) return DETAIL_LABELS[key]
+
+  return key
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .replace(/\b\w/g, char => char.toUpperCase())
+}
+
+const getObjectDisplayValue = value => {
+  if (!value || typeof value !== 'object') return null
+
+  const preferredKeys = [
+    'label',
+    'name',
+    'title',
+    'complaint',
+    'diagnosis',
+    'medicine_name',
+    'lab_code',
+    'request_code',
+    'note',
+    'value'
+  ]
+
+  for (const key of preferredKeys) {
+    const candidate = value?.[key]
+    if (!isEmptyDetailValue(candidate)) {
+      return formatDetailValue(candidate)
+    }
+  }
+
+  const nestedValues = Object.values(value)
+    .map(item => formatDetailValue(item))
+    .filter(Boolean)
+
+  return nestedValues.length ? nestedValues.join(', ') : null
+}
+
+const formatDetailValue = value => {
+  if (isEmptyDetailValue(value)) return null
+
+  if (typeof value === 'string') {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return Utility.convertUtcToLocalReadableDate(value)
+    }
+
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
+      return Utility.convertUTCToLocalDate(value)
+    }
+
+    return value.replace(/\\n/g, '\n').trim()
+  }
+
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+
+  if (Array.isArray(value)) {
+    const items = value.map(item => formatDetailValue(item)).filter(Boolean)
+
+    return items.length ? items.join(', ') : null
+  }
+
+  if (typeof value === 'object') {
+    return getObjectDisplayValue(value)
+  }
+
+  return String(value)
+}
+
+const getDisplayDetails = details => {
+  if (!details || typeof details !== 'object') return []
+
+  const preferredOrder = [
+    'case_type',
+    'complaints',
+    'complaint',
+    'diagnosis',
+    'prescription',
+    'advice',
+    'advices',
+    'lab',
+    'lab_data',
+    'lab_test_requests',
+    'attachments',
+    'attachment',
+    'notes',
+    'note',
+    'follow_up_date'
+  ]
+
+  const allKeys = Object.keys(details).filter(key => !HIDDEN_DETAIL_KEYS.has(key))
+  const orderedKeys = [...preferredOrder, ...allKeys.filter(key => !preferredOrder.includes(key))]
+
+  return orderedKeys
+    .filter((key, index) => allKeys.includes(key) && orderedKeys.indexOf(key) === index)
+    .map(key => ({
+      key,
+      label: formatDetailLabel(key),
+      value: formatDetailValue(details[key])
+    }))
+    .filter(item => item.value)
+}
+
 const TimelineEvent = ({ entry, isFirst, isLast }) => {
   const theme = useTheme()
+  const detailItems = getDisplayDetails(entry?.details)
 
   return (
     <TimelineItem sx={{ minHeight: '5rem' }}>
@@ -70,33 +216,71 @@ const TimelineEvent = ({ entry, isFirst, isLast }) => {
       >
         <Grid
           container
-          wrap='nowrap' // Prevents wrapping
-          sx={{ xs: '100%', minWidth: '540px' }} // Minimum width similar to iPad layout
+          wrap='wrap'
+          sx={{ xs: '100%', minWidth: { xs: '100%', sm: '540px' } }}
         >
-          <Grid size={{ xs: 3 }} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', gap: 1 }}>
+          <Grid size={{ xs: 12, sm: 3 }} sx={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', gap: 1 }}>
             <StyledTypography fontWeight={600}>{entry?.title}</StyledTypography>
             <StyledTypography fontWeight={400} fontSize={'0.75rem'}>
               {entry?.details?.medical_record_number}
             </StyledTypography>
           </Grid>
           <Grid
-            size={{ xs: 6 }}
+            size={{ xs: 12, sm: 6 }}
             sx={{
               display: 'flex',
               alignItems: 'center'
             }}
           >
-            <StyledTypography fontSize={'0.875rem'} fontWeight={500}>
-              {entry?.details?.complaints || '--'}
-            </StyledTypography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', py: 0.25, minWidth: 0 }}>
+              {detailItems.length > 0 ? (
+                detailItems.map(item => (
+                  <Box
+                    key={item.key}
+                    sx={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: { xs: 0.5, sm: 1 },
+                      width: '100%',
+                      alignItems: 'flex-start'
+                    }}
+                  >
+                    <StyledTypography
+                      fontSize={'1rem'}
+                      fontWeight={600}
+                      color={theme.palette.customColors.OnSurface}
+                      sx={{ flexShrink: 0 }}
+                    >
+                      {item.label}:
+                    </StyledTypography>
+                    <StyledTypography
+                      fontSize={'1rem'}
+                      fontWeight={500}
+                      sx={{
+                        whiteSpace: 'normal',
+                        wordBreak: 'break-word',
+                        minWidth: 0,
+                        flex: '1 1 auto'
+                      }}
+                    >
+                      {item.value}
+                    </StyledTypography>
+                  </Box>
+                ))
+              ) : (
+                <StyledTypography fontSize={'0.875rem'} fontWeight={500}>
+                  --
+                </StyledTypography>
+              )}
+            </Box>
           </Grid>
           <Grid
-            size={{ xs: 3 }}
+            size={{ xs: 12, sm: 3 }}
             sx={{
               textAlign: 'right',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'flex-end'
+              justifyContent: { xs: 'flex-start', sm: 'flex-end' }
             }}
           >
             <StyledTypography fontSize={'0.875rem'} fontWeight={400}>

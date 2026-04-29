@@ -207,7 +207,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }) => {
 
   const normalizeItemName = name => {
     if (!name) return ''
-    return name.toLowerCase().replace(/\s+/g, '').trim()
+    return name.toLowerCase().replace(/\s+/g, '').trim();
   }
 
   const toggleRowChecked = key => {

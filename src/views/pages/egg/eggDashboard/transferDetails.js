@@ -7,11 +7,11 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 import OptionsMenu from 'src/@core/components/option-menu'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 import { AuthContext } from 'src/context/AuthContext'
-import { DataGrid } from '@mui/x-data-grid'
 import { getSiteList, getTransferList } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
@@ -19,11 +19,12 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import Utility from 'src/utility'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
+import { useTranslation } from 'react-i18next'
 
 const TransferDetails = () => {
   const authData = useContext(AuthContext)
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [transferList, setTransferList] = useState([])
 
   const [loading, setLoading] = useState(false)
@@ -131,7 +132,6 @@ const TransferDetails = () => {
       field: 'uid',
       headerName: 'SL.NO',
       sortable: false,
-      disableColumnMenu: true,
       align: 'center',
       renderCell: params => (
         <Typography
@@ -150,10 +150,8 @@ const TransferDetails = () => {
       width: 240,
       field: 'egg_number',
       sortable: false,
-      disableColumnMenu: true,
-      headerName: 'EGG NUMBER',
+      headerName: t('egg_module.egg_number'),
       renderCell: params => (
-
         // <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
         //   <Typography
         //     style={{
@@ -200,7 +198,6 @@ const TransferDetails = () => {
           eggCondition={params.row.egg_condition}
           eggCode={params.row.egg_code}
           egg_status={params.row.egg_status}
-
           // defaultName={params.row.default_common_name}
           // completeName={params.row.complete_name}
           eggIcon={'/icons/Egg_icon.png'}
@@ -210,8 +207,7 @@ const TransferDetails = () => {
     {
       width: 200,
       field: 'assigned_status',
-      headerName: 'STATUS',
-      disableColumnMenu: true,
+      headerName: t('status'),
       sortable: false,
       renderCell: params => (
         <Tooltip title={params.row.assigned_status ? Utility?.toPascalSentenceCase(params.row.assigned_status) : '-'}>
@@ -254,9 +250,8 @@ const TransferDetails = () => {
     {
       width: 250,
       sortable: false,
-      disableColumnMenu: true,
       field: 'species',
-      headerName: 'SPECIES',
+      headerName: t('navigation.species'),
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -323,8 +318,7 @@ const TransferDetails = () => {
       width: 170,
       field: 'from_site_name',
       sortable: false,
-      disableColumnMenu: true,
-      headerName: 'TRANSFORMED FROM',
+      headerName: t('egg_module.transformed_from'),
       renderCell: params => (
         <Tooltip title={params.row.from_site_name ? params.row.from_site_name : '-'}>
           <Typography
@@ -348,9 +342,8 @@ const TransferDetails = () => {
     {
       width: 140,
       sortable: false,
-      disableColumnMenu: true,
       field: 'transfered_on',
-      headerName: 'DATE',
+      headerName: t('date'),
       renderCell: params => (
         <Typography
           sx={{
@@ -370,9 +363,8 @@ const TransferDetails = () => {
     {
       width: 140,
       sortable: false,
-      disableColumnMenu: true,
       field: 'to_site_name',
-      headerName: 'RECEIVING AT',
+      headerName: t('egg_module.receiving_at'),
       renderCell: params => (
         <Tooltip title={params.row.to_site_name ? params.row.to_site_name : '-'}>
           <Typography
@@ -396,9 +388,8 @@ const TransferDetails = () => {
     {
       width: 140,
       sortable: false,
-      disableColumnMenu: true,
       field: 'created_at',
-      headerName: 'DATE',
+      headerName: t('date'),
       renderCell: params => (
         <Typography
           sx={{
@@ -418,9 +409,8 @@ const TransferDetails = () => {
     {
       width: 160,
       sortable: false,
-      disableColumnMenu: true,
       field: 'nursery_name',
-      headerName: 'NURSERY',
+      headerName: t('navigation.nursery'),
       renderCell: params => (
         <Tooltip title={params.row?.nursery_name ? Utility?.toPascalSentenceCase(params.row.nursery_name) : '-'}>
           <Typography
@@ -545,7 +535,7 @@ const TransferDetails = () => {
           color: theme.palette.customColors.OnSurfaceVariant
         }}
       >
-        Transfer Details
+        {t('egg_module.transfer_details')}
       </Typography>
       <Grid container columns={15} spacing={6}>
         <Grid item size={{ xs: 3 }}>
@@ -594,7 +584,7 @@ const TransferDetails = () => {
           <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                sx={{
+                externalTableStyle={{
                   backgroundColor: '#fff',
                   borderRadius: '8px',
                   width: '100%',
@@ -636,7 +626,7 @@ const TransferDetails = () => {
             </Typography>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
-                sx={{
+                externalTableStyle={{
                   backgroundColor: '#fff',
                   borderRadius: '8px',
                   width: '100%',
@@ -672,7 +662,7 @@ const TransferDetails = () => {
               value={defaultFromSite}
               disablePortal
               id='fromSite'
-              sx={{
+              externalTableStyle={{
                 '& .css-jthw9v-MuiAutocomplete-root .MuiOutlinedInput-root': {
                   height: '40px',
                   borderRadius: '4px'
@@ -839,8 +829,8 @@ const TransferDetails = () => {
           </FormControl>
         </Grid> */}
       </Grid>
-      <DataGrid
-        sx={{
+      <CommonTable
+        externalTableStyle={{
           '.MuiDataGrid-cell:focus': {
             outline: 'none'
           },
@@ -870,22 +860,14 @@ const TransferDetails = () => {
         columnVisibilityModel={{
           sl_no: false
         }}
-        hideFooterSelectedRowCount
-        disableColumnSelector={true}
-        autoHeight
-        pagination
-        rows={indexedRows === undefined ? [] : indexedRows}
-        rowCount={total}
+        indexedRows={indexedRows === undefined ? [] : indexedRows}
+        total={total}
         rowHeight={72}
         columns={columns}
-        sortingMode='server'
-        paginationMode='server'
-        pageSizeOptions={[7, 10, 25, 50]}
         paginationModel={paginationModel}
-        onSortModelChange={handleSortModel}
-
+        handleSortModel={handleSortModel}
         // slots={{ toolbar: ServerSideToolbarWithFilter }}
-        onPaginationModelChange={setPaginationModel}
+        setPaginationModel={setPaginationModel}
         loading={loading}
 
         // slotProps={{

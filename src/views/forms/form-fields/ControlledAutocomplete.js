@@ -24,7 +24,7 @@ const ControlledAutocomplete = ({
   required = false,
   fullWidth = true,
   multiple = false,
-
+  noOptionsText = 'Type to search',
   onChangeOverride = () => {},
   onKeyUp = () => {},
   onItemClear = () => {},
@@ -78,7 +78,7 @@ const ControlledAutocomplete = ({
   }
 
   const handleOnBlur = (event, item) => {
-    if (!searchInputRef.current) return
+    if (!searchInputRef.current || (!item?.value && !searchInputRef.current)) return
     if (!item?.value && searchInputRef.current) {
       onInputChange('')
       searchInputRef.current = ''
@@ -141,6 +141,7 @@ const ControlledAutocomplete = ({
 
               if (reason === 'clear') {
                 onItemClear()
+                searchInputRef.current = ""
                 normalizedValue = null
               }
 
@@ -175,7 +176,7 @@ const ControlledAutocomplete = ({
             onKeyUp={onKeyUp}
             onBlur={e => handleOnBlur(e, field.value)}
             loading={loading}
-            noOptionsText='Type to search'
+            noOptionsText={noOptionsText}
             // renderOption={renderOption}
             renderOption={
               renderOption
