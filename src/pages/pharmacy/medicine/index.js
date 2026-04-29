@@ -83,10 +83,11 @@ const ListOfMedicine = () => {
     {
       minWidth: 20,
 
-      // flex: 0.15,
-      width: 80,
+      flex: 0.15,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
@@ -96,9 +97,9 @@ const ListOfMedicine = () => {
       )
     },
     {
-      // flex: 0.3,
-      width: 300,
-      minWidth: 20,
+      flex: 0.3,
+
+      minWidth: 300,
       field: 'name',
       align: 'left',
       headerName: 'PRODUCT NAME',
@@ -127,9 +128,9 @@ const ListOfMedicine = () => {
     //   )
     // },
     {
-      // flex: 0.4,
-      minWidth: 20,
-      width: 250,
+      flex: 0.4,
+
+      minWidth: 250,
       field: 'package',
       headerName: 'PRESENTATION',
       renderCell: params => (
@@ -156,9 +157,9 @@ const ListOfMedicine = () => {
       )
     },
     {
-      // flex: 0.4,
-      minWidth: 20,
-      width: 200,
+      flex: 0.4,
+
+      minWidth: 200,
       field: 'manufacturer_name',
       headerName: 'Manufacturer',
       renderCell: params => (
@@ -182,9 +183,9 @@ const ListOfMedicine = () => {
     },
 
     {
-      // flex: 0.3,
-      width: 200,
-      minWidth: 20,
+      flex: 0.3,
+
+      minWidth: 200,
       field: 'stock_type',
       headerName: 'Product Type',
       renderCell: params => (
@@ -232,11 +233,12 @@ const ListOfMedicine = () => {
     // },
 
     {
-      // flex: 0.2,
-      width: 150,
-      minWidth: 20,
+      flex: 0.2,
+      minWidth: 150,
+
       field: 'active',
       headerName: 'STATUS',
+      sortable: false,
       renderCell: params => (
         <Box
           sx={{
@@ -280,6 +282,7 @@ const ListOfMedicine = () => {
       minWidth: 200,
       field: 'created_by',
       headerName: 'Created by ',
+      sortable: false,
       renderCell: params => (
         <>
           <UserAvatarDetails
@@ -294,6 +297,7 @@ const ListOfMedicine = () => {
     {
       minWidth: 200,
       field: 'updated_by',
+      sortable: false,
       headerName: 'Updated by',
       renderCell: params => (
         <>
@@ -633,7 +637,10 @@ const ListOfMedicine = () => {
                         const val = e.target.value
                         setCategoryFilter(val)
                       }}
-                      options={[{ id: 'all', label: 'All', value: 'all' }, ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))]}
+                      options={[
+                        { id: 'all', label: 'All', value: 'all' },
+                        ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))
+                      ]}
                       sx={{ minWidth: 150, maxWidth: 200 }}
                     />
                     <MUISearch
