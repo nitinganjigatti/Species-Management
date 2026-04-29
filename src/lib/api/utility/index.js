@@ -3,7 +3,33 @@ import axios from 'axios'
 import { readAsync } from '../../../lib/windows/utils'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
+// const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 const ml_operations_base_url = `${process.env.NEXT_PUBLIC_ML_OPERATIONS_BASE_URL}`
+
+const apiClient = axios.create()
+
+let isLoggingOut = false
+
+apiClient.interceptors.response.use(
+  response => {
+    console.log('API Response:', response)
+    return response
+  },
+  error => {
+    const isLoginPage = window.location.pathname === '/login/' || window.location.pathname === '/login'
+
+    if (error.response?.status === 401) {
+      if (!isLoggingOut && !isLoginPage) {
+        isLoggingOut = true
+        window.dispatchEvent(new Event('session-expired'))
+      }
+    } else {
+      console.error('API Error:', error)
+    }
+
+    return Promise.reject(error)
+  }
+)
 
 export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   const userDetails = await readAsync('userDetails')
@@ -39,23 +65,23 @@ export const axiosGet = async ({ url, params, pharmacy }) => {
   const completeUrl = `${base_url}${url}`
   headers['Content-Type'] = 'application/json'
 
-  return axios.get(completeUrl, { headers: headers, params: params })
+  return apiClient.get(completeUrl, { headers: headers, params: params })
 }
 
 export const axiosPost = async ({ url, body, pharmacy }) => {
-  const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
+  const completeUrl = `${base_url}${url}`
   const headers = await GetAPIHeader({ pharmacy })
   headers['Content-Type'] = 'application/json'
 
-  return axios.post(completeUrl, body, { headers })
+  return apiClient.post(completeUrl, body, { headers })
 }
 
 export const axiosFormPost = async ({ url, body, pharmacy }) => {
-  const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
+  const completeUrl = `${base_url}${url}`
   const headers = await GetAPIHeader({ pharmacy })
   headers['Content-Type'] = 'multipart/form-data'
 
-  return axios.post(completeUrl, body, { headers })
+  return apiClient.post(completeUrl, body, { headers })
 }
 
 export const axiosDelete = async ({ url, params, pharmacy }) => {
@@ -63,7 +89,7 @@ export const axiosDelete = async ({ url, params, pharmacy }) => {
   const completeUrl = `${base_url}${url}`
   headers['Content-Type'] = 'application/json'
 
-  return axios.delete(completeUrl, { headers: headers, params: params })
+  return apiClient.delete(completeUrl, { headers: headers, params: params })
 }
 
 export const axiosGetExternal = async ({ url, params, pharmacy }) => {
@@ -71,17 +97,17 @@ export const axiosGetExternal = async ({ url, params, pharmacy }) => {
   const completeUrl = `https://mocki.io/v1/${url}`
   headers['Content-Type'] = 'application/json'
 
-  return axios.get(completeUrl, { headers: headers, params: params })
+  return apiClient.get(completeUrl, { headers: headers, params: params })
 }
 
 export const axiosAuthFormPost = async ({ url, body, pharmacy, authToken }) => {
-  const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
+  const completeUrl = `${base_url}${url}`
   const headers = await GetAPIHeader({ pharmacy })
 
   // headers['Content-Type'] = 'multipart/form-data'
   headers['Authorization'] = `${authToken}`
 
-  return axios.post(completeUrl, body, { headers })
+  return apiClient.post(completeUrl, body, { headers })
 }
 
 export const axiosMLPost = async ({ url, data }) => {
@@ -102,5 +128,5 @@ export const axiosMLPost = async ({ url, data }) => {
     'Content-Type': 'application/json'
   }
 
-  return axios.post(completeUrl, body, { headers })
+  return apiClient.post(completeUrl, body, { headers })
 }

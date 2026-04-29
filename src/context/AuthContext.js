@@ -14,12 +14,14 @@ import axios from 'axios'
 
 // ** Config
 import authConfig from 'src/configs/auth'
+import i18n from 'src/configs/i18n'
 import { useQueryClient } from '@tanstack/react-query'
 import { useHospital } from './HospitalContext'
 import { useLanguage } from './LanguageContext'
 import { getDeviceInfo, setLastLoggedUser, saveDeviceId } from 'src/utility/deviceInfo'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
+// const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
 // ** Defaults
 const defaultProvider = {
@@ -47,7 +49,7 @@ const AuthProvider = ({ children }) => {
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
   const { updateSelectedHospital, updateHospitalStats } = useHospital()
-  const { resetLanguage } = useLanguage()
+  const { loadLanguage, resetLanguage } = useLanguage()
 
   const queryClient = useQueryClient()
 
@@ -150,6 +152,9 @@ const AuthProvider = ({ children }) => {
 
               setUser({ ...userData })
               setUserData({ ...resData })
+
+              // Fetch API translations now that user is authenticated
+              loadLanguage(i18n.language || 'en-IN')
             } else {
               logOutUser()
               router.replace('/login')
@@ -172,6 +177,17 @@ const AuthProvider = ({ children }) => {
       }
     }
     initAuth()
+
+    const handleSessionExpired = () => {
+      localStorage.setItem('session_expired', 'true')
+      handleLogout()
+    }
+
+    window.addEventListener('session-expired', handleSessionExpired)
+
+    return () => {
+      window.removeEventListener('session-expired', handleSessionExpired)
+    }
   }, [])
 
   const logOutUser = async () => {
@@ -193,7 +209,11 @@ const AuthProvider = ({ children }) => {
 
     // 3. Clear localStorage and sessionStorage (preserve device data)
     let deviceId
-    try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+    try {
+      deviceId = read('antz_device_id')
+    } catch {
+      deviceId = localStorage.getItem('antz_device_id')
+    }
     const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
     localStorage.clear()
     if (deviceId) write('antz_device_id', deviceId)
@@ -269,6 +289,9 @@ const AuthProvider = ({ children }) => {
           setUserData({ ...resData })
           setUser({ ...userData })
 
+          // Fetch API translations now that user is authenticated
+          loadLanguage(i18n.language || 'en-IN')
+
           // Save device ID (plain text hash) and last logged user (encrypted) ONLY after successful login
           await Promise.all([saveDeviceId(), setLastLoggedUser(resData?.user?.user_id, resData?.user?.user_email)])
 
@@ -338,7 +361,11 @@ const AuthProvider = ({ children }) => {
       // Preserve device_id (plain text hash) and last_logged_user (encrypted)
       // Cookie fallback survives localStorage.clear() automatically
       let deviceId
-      try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+      try {
+        deviceId = read('antz_device_id')
+      } catch {
+        deviceId = localStorage.getItem('antz_device_id')
+      }
       const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
       localStorage.clear()
       if (deviceId) write('antz_device_id', deviceId)
@@ -367,7 +394,11 @@ const AuthProvider = ({ children }) => {
 
       // Fallback: Force clear everything even if something fails (preserve device data)
       let deviceId
-      try { deviceId = read('antz_device_id') } catch { deviceId = localStorage.getItem('antz_device_id') }
+      try {
+        deviceId = read('antz_device_id')
+      } catch {
+        deviceId = localStorage.getItem('antz_device_id')
+      }
       const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
       localStorage.clear()
       if (deviceId) write('antz_device_id', deviceId)
