@@ -11,6 +11,7 @@ import type { ApiResponse, PaginatedData, PaginationParams } from './common'
 export interface GetSectionsParams extends PaginationParams {
   site_id?: number
   is_active?: boolean
+  search?: string
 }
 
 export interface GetSectionsResponse extends ApiResponse<PaginatedData<Section>> {}

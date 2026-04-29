@@ -98,8 +98,10 @@ const DoctorsList = () => {
   }, [paginationModel.page, paginationModel.pageSize, debouncedSearch, selectedHospital?.id])
 
   useEffect(() => {
+    if (selectedHospital?.id) {
     fetchHospitalStaff()
-  }, [fetchHospitalStaff])
+    }
+  }, [fetchHospitalStaff, selectedHospital])
 
 
     const indexedRows = useMemo(() => {
@@ -124,9 +126,6 @@ const DoctorsList = () => {
         hospital_chief_doctor: user_id,
       }
       const response = await addChiefDoctor(params)
-      if (response?.message && response?.success === true) {
-        Toaster({ type: 'success', message: response?.message })
-      }
     } catch (error) {
       Toaster({ type: 'error', message: error?.message })
     }
@@ -140,9 +139,6 @@ const DoctorsList = () => {
         hospital_chief_doctor: user_id,
       }
       const response = await removeChiefDoctor(params)
-      if (response?.message && response?.success === true) {
-        Toaster({ type: 'success', message: response?.message })
-      }
     } catch (error) {
       Toaster({ type: 'error', message: error?.message })
     }

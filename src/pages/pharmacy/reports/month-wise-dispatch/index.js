@@ -8,7 +8,7 @@ import { useTheme } from '@mui/material/styles'
 // ** MUI Imports
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
@@ -376,7 +376,7 @@ const MonthWiseDispatch = () => {
 
                   return (
                     <Tooltip title={`Dispatch value: ${formattedNumber}`}>
-                      <span style={{ color: '#006D35' }}>{`${formattedThousands}`}</span>
+                      <span style={{ color: theme.palette.primary.dark }}>{`${formattedThousands}`}</span>
                     </Tooltip>
                   )
                 },
@@ -781,72 +781,31 @@ const MonthWiseDispatch = () => {
                   <Typography sx={{ fontSize: '14px' }}>All Values are in Rupees(₹)</Typography>
                 </Box>
 
-                <DataGrid
-                  sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
-
+                <CommonTable
+                  indexedRows={rows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  loading={loading}
+                  searchValue={searchValue}
+                  handleSearch={handleSearch}
+                  columnVisibilityModel={{ id: false }}
+                  hideFooter={router.asPath.includes('dashboard')}
+                  externalTableStyle={{
                     '& .MuiDataGrid-columnHeaders': {
-                      backgroundColor: theme.palette.customColors.customTableHeaderBg
+                      minHeight: '100px !important',
+                      maxHeight: '100px !important'
                     },
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
+                    '& .MuiDataGrid-columnHeader': {
+                      height: '100px !important'
                     },
                     '.MuiDataGrid-main': {
-                      margin: '0px 20px 20px 20px',
-                      borderLeft: '1px solid #0000000D',
-                      borderRight: '1px solid #0000000D',
-                      borderRadius: '8px',
-                      border: '1px solid rgba(233, 233, 236, 1)'
-                    },
-                    '& .MuiDataGrid-footerContainer': {
-                      borderTop: 'none'
-                    },
-
-                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
-                      borderBottom: 'none'
+                      margin: '0px 20px 20px 20px'
                     }
                   }}
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  className=''
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={rows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  columnHeaderHeight={100}
-                  disableColumnMenu
-                  hideFooter={router.asPath.includes('dashboard') ? true : false}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-
-                      onChange: event => {
-                        setSearchValue(event.target.value)
-
-                        return handleSearch(event.target.value)
-                      }
-                    }
-                  }}
-
-                  //onRowClick={handleEdit}
-                  // onCellClick={handlecheckcell}
                 />
               </Card>
               {openFilterDrawer && (

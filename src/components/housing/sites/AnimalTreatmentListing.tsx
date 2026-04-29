@@ -13,7 +13,7 @@ import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { GenderInfoCard, IdentifierInfoCard } from 'src/utility/render'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getAnimalTreatmentList } from 'src/lib/api/housing'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { GridCellParams, GridSortModel, GridRowParams } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
 
@@ -75,7 +75,8 @@ const AnimalTreatmentListing: React.FC = () => {
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const animalTreatmentList: TreatmentRow[] = data?.data?.result || []
@@ -341,7 +342,8 @@ const AnimalTreatmentListing: React.FC = () => {
     // },
 
     {
-      width: 250,
+      flex: 1,
+      minWidth: 250,
       field: 'user_enclosure_name',
       align: 'left' as const,
       headerAlign: 'left' as const,
@@ -364,9 +366,9 @@ const AnimalTreatmentListing: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -404,6 +406,7 @@ const AnimalTreatmentListing: React.FC = () => {
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
             loading={isFetching}
+            getRowHeight={() => 60}
             searchValue={inputValue}
             maxHeight='80vh'
           />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Box, Divider, Drawer, IconButton, Typography, useTheme, CircularProgress } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -12,6 +12,7 @@ import debounce from 'lodash/debounce'
 import { useTranslation } from 'react-i18next'
 import Utility from 'src/utility'
 import { StyledTypographyProps, AnimalItem, LitterItem } from 'src/types/housing/animalsOffspring'
+import { useInView } from 'react-intersection-observer'
 
 interface LitterDrawerProps {
   open: boolean
@@ -28,6 +29,11 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
   const [searchLitter, setSearchLitter] = useState('')
   const [isLitterFetching, setIsLitterFetching] = useState<boolean>(false)
   const [litterData, setLitterData] = useState<AnimalItem[] | null>(null)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [isFetchingMore, setIsFetchingMore] = useState(false)
+
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
   const debouncedSearchLitter = useMemo(() => debounce(setSearchLitter, 500), [])
 
@@ -37,27 +43,51 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
     }
   }, [debouncedSearchLitter])
 
-  const fetchLitterDetails = async () => {
-    setIsLitterFetching(true)
+  const fetchLitterDetails = async (pageNo: number = 1) => {
+    if (!litterDetails?.litter_id) return
+
+    if (pageNo === 1) {
+      setIsLitterFetching(true)
+      setHasMore(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
     try {
       const response = await getNewAnimalListWithFilters({
         ignore_permission: 1,
         include_dead_animal: 1,
         litter_id: litterDetails?.litter_id,
         q: searchLitter,
-        page_no: 1
+        page_no: pageNo
       })
       if (response?.success) {
-        const result = response.data
-        setLitterData(result)
+        const result = (response.data || []) as AnimalItem[]
+
+        if (pageNo === 1) {
+          setLitterData(result)
+        } else {
+          setLitterData(prev => [...(prev || []), ...result])
+        }
+
+        if (result.length < 10) {
+          setHasMore(false)
+        }
       } else {
-        setLitterData([])
+        if (pageNo === 1) {
+          setLitterData([])
+        }
+        setHasMore(false)
       }
     } catch (error: any) {
       console.error(error?.message)
-      setLitterData([])
+      if (pageNo === 1) {
+        setLitterData([])
+      }
+      setHasMore(false)
     } finally {
       setIsLitterFetching(false)
+      setIsFetchingMore(false)
     }
   }
 
@@ -76,8 +106,25 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
     router.push(`/animals/${animalId}`)
   }
 
+  const handleLoadMore = useCallback(() => {
+    if (isLitterFetching || isFetchingMore || !hasMore) return
+
+    const nextPage = page + 1
+    setPage(nextPage)
+    fetchLitterDetails(nextPage)
+  }, [isLitterFetching, isFetchingMore, hasMore, page, searchLitter, litterDetails?.litter_id])
+
   useEffect(() => {
-    fetchLitterDetails()
+    if (inView && !isLitterFetching && !isFetchingMore && hasMore && litterData?.length) {
+      handleLoadMore()
+    }
+  }, [inView, isLitterFetching, isFetchingMore, hasMore, litterData?.length, handleLoadMore])
+
+  useEffect(() => {
+    setPage(1)
+    setLitterData([])
+    setHasMore(true)
+    fetchLitterDetails(1)
   }, [litterDetails?.litter_id, searchLitter])
 
   return (
@@ -267,41 +314,56 @@ const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
             ) : litterData?.length === 0 ? (
               <NoDataFound width={250} height={250} />
             ) : (
-              litterData?.map((item: AnimalItem, index: number) => (
-                <Box
-                  key={index}
-                  sx={{
-                    p: 4,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: theme.palette.background.paper,
-                    '&:hover': {
-                      backgroundColor: alpha(theme.palette.action.hover, 0.04)
-                    },
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 2,
-                    mb: 2,
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => handleAnimalClick(String(item.animal_id))}
-                >
-                  <Box sx={{ flexGrow: 1 }}>
-                    <AnimalCard data={item} />
-                  </Box>
+              <>
+                {litterData?.map((item: AnimalItem, index: number) => (
                   <Box
+                    key={item?.animal_id || index}
+                    sx={{
+                      p: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: theme.palette.background.paper,
+                      '&:hover': {
+                        backgroundColor: alpha(theme.palette.action.hover, 0.04)
+                      },
+                      border: `1px solid ${theme.palette.divider}`,
+                      borderRadius: 2,
+                      mb: 2,
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleAnimalClick(String(item.animal_id))}
+                  >
+                    <Box sx={{ flexGrow: 1 }}>
+                      <AnimalCard data={item} />
+                    </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        ml: 4
+                      }}
+                    >
+                      <Icon icon={'fe:arrow-right'} fontSize={24} />
+                    </Box>
+                  </Box>
+                ))}
+                {(hasMore || isFetchingMore) && (
+                  <Box
+                    ref={loaderRef}
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      ml: 4
+                      py: 4
                     }}
                   >
-                    <Icon icon={'fe:arrow-right'} fontSize={24} />
+                    {isFetchingMore && <CircularProgress size={24} />}
                   </Box>
-                </Box>
-              ))
+                )}
+              </>
             )}
           </Box>
         </Box>

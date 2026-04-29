@@ -42,7 +42,7 @@ export interface DeleteOffspringResponse {
 export interface AddOffspringPayload {
   offspring_ids: string[] | string
   mother_id: string | number
-  ref_type: 'litter'
+  ref_type: 'litter' | 'clutch'
   create_new: boolean
   ref_id?: string | number
   father_id?: string | number
@@ -538,7 +538,7 @@ export interface AnimalOffspringProps {
 
 export interface TabProps {
   animalId: string
-  isMother: number
+  isMother: 0 | 1
   stats?: OffspringStats | null
   animalDetails?: any
 }

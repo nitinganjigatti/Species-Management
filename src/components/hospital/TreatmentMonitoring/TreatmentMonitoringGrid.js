@@ -281,11 +281,20 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
         const slot = slots.find(s => s.time === slotLabel)
         if (slot) {
           slot.isActive = true
+
+          let formattedTime = formatInterval(slotLabel)
+          if (detail.record_time_ist) {
+            const parsed = dayjs(detail.record_time_ist, ['YYYY-MM-DD HH:mm:ss', 'YYYY-MM-DD HH:mm', 'HH:mm:ss', 'HH:mm'], true)
+            if (parsed.isValid()) {
+              formattedTime = parsed.format('hh:mm A')
+            }
+          }
+
           slot.record = {
             value: detail.assessment_value,
             unit: detail.unit_name,
             total: Number(detail.total_records || 1),
-            recorded_time: dayjs(detail.record_time_ist, 'HH:mm').format('hh:mm A')
+            recorded_time: formattedTime
           }
         }
       })

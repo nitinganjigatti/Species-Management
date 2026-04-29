@@ -38,6 +38,9 @@ interface AssessmentTypeItem {
 interface AssessmentTabsProps {
   animalId: number
   hideTitle?: boolean
+  mortalityId?: number | string
+  mortalityCreatedAt?: string
+  purpose?: string
 }
 
 interface ValueWithUnit {
@@ -45,7 +48,13 @@ interface ValueWithUnit {
   unit: string
 }
 
-const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }) => {
+const AssessmentTabs: FC<AssessmentTabsProps> = ({
+  animalId,
+  hideTitle = false,
+  mortalityId,
+  mortalityCreatedAt,
+  purpose
+}) => {
   const theme = useTheme<Theme>()
   const { t } = useTranslation('common')
   const [types, setTypes] = useState<AssessmentTypeItem[]>([])
@@ -54,15 +63,25 @@ const AssessmentTabs: FC<AssessmentTabsProps> = ({ animalId, hideTitle = false }
 
   useEffect(() => {
     fetchTypes()
-  }, [animalId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [animalId, mortalityId, mortalityCreatedAt, purpose])
 
   const fetchTypes = async (): Promise<void> => {
     try {
       setLoading(true)
-      const res = await getAssessmentTypes(animalId)
+      const res = await getAssessmentTypes(animalId, {
+        ...(purpose ? { purpose } : {}),
+        ...(mortalityCreatedAt ? { till_date: mortalityCreatedAt } : {}),
+        ...(mortalityId != null ? { mortality_id: mortalityId } : {})
+      })
 
-      // Extract the result array from the API response
-      const assessmentTypes = (res?.data?.result || []) as AssessmentTypeItem[]
+      // API returns { success, data: AssessmentTypeItem[] } — `data` is the array directly
+      const rawData = res?.data as unknown
+      const assessmentTypes: AssessmentTypeItem[] = Array.isArray(rawData)
+        ? (rawData as AssessmentTypeItem[])
+        : Array.isArray((rawData as { result?: AssessmentTypeItem[] })?.result)
+          ? (rawData as { result: AssessmentTypeItem[] }).result
+          : []
 
       if (res?.success && assessmentTypes.length > 0) {
         const typesWithData = assessmentTypes.filter(

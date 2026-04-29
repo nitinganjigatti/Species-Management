@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, debounce, Grid, Typography, Theme } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -86,7 +86,8 @@ const ClusterSpecies: React.FC = () => {
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const speciesListing: SpeciesListItem[] = (data?.data?.listing || []) as SpeciesListItem[]
@@ -352,7 +353,8 @@ const ClusterSpecies: React.FC = () => {
             )
           },
           {
-            width: 160,
+            flex: 1,
+            minWidth: 160,
             field: 'indeterminate',
             align: 'left' as const,
             headerAlign: 'left' as const,

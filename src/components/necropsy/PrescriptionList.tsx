@@ -1,13 +1,12 @@
-import React, { useState, useEffect, FC, memo } from 'react'
+import React, { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Box, Chip, CircularProgress, Skeleton, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { Box, Typography, Chip, Skeleton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
-import { FiberManualRecord, Timeline as FrequencyIcon, CalendarToday as CalendarIcon } from '@mui/icons-material'
+import { CalendarToday as CalendarIcon, FiberManualRecord, Timeline as FrequencyIcon } from '@mui/icons-material'
+
 import Utility from 'src/utility'
 import { getMedicalCommonData } from 'src/lib/api/necropsy/medicalHistory'
 import { MedicalCommonDataParams } from 'src/types/necropsy/api'
-
-// ==================== Types ====================
 
 interface ScheduleDose {
   time?: string
@@ -52,88 +51,214 @@ interface PrescriptionListProps {
   animalId?: number | string
   mortalityId?: number | string | null
   mortalityCreatedAt?: string | null
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>
 }
 
-// ==================== Constants ====================
-
+const PAGE_SIZE = 10
 const SUB_TABS = ['Active', 'Stopped', 'All'] as const
 type SubTabType = (typeof SUB_TABS)[number]
 
 // ==================== Component ====================
 
-const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
-  const { t } = useTranslation()
+const getTypeParam = (tab: SubTabType): 'active' | 'closed' | 'all' => {
+  switch (tab) {
+    case 'Active':
+      return 'active'
+    case 'Stopped':
+      return 'closed'
+    case 'All':
+      return 'all'
+    default:
+      return 'active'
+  }
+}
+
+const mergePrescriptionSections = (
+  previousSections: PrescriptionSection[],
+  nextSections: PrescriptionSection[]
+): PrescriptionSection[] => {
+  const mergedMap = new Map<string, PrescriptionSection>()
+  const orderedKeys: string[] = []
+
+  ;[...previousSections, ...nextSections].forEach((section, index) => {
+    const sectionKey = section.medical_record_id || `unknown-${index}`
+    const existing = mergedMap.get(sectionKey)
+
+    if (!orderedKeys.includes(sectionKey)) {
+      orderedKeys.push(sectionKey)
+    }
+
+    if (!existing) {
+      mergedMap.set(sectionKey, {
+        ...section,
+        data: Array.isArray(section.data) ? [...section.data] : []
+      })
+
+      return
+    }
+
+    mergedMap.set(sectionKey, {
+      ...existing,
+      ...section,
+      data: [
+        ...(Array.isArray(existing.data) ? existing.data : []),
+        ...(Array.isArray(section.data) ? section.data : [])
+      ]
+    })
+  })
+
+  return orderedKeys.map(key => mergedMap.get(key) as PrescriptionSection)
+}
+
+const getPrescriptionCount = (sections: PrescriptionSection[]): number =>
+  sections.reduce((total, section) => total + (Array.isArray(section.data) ? section.data.length : 0), 0)
+
+const parseOptionalCount = (value: string | number | undefined): number | null => {
+  if (value === undefined || value === null || value === '') return null
+
+  const parsedValue = parseInt(String(value), 10)
+
+  return Number.isNaN(parsedValue) ? null : parsedValue
+}
+
+const isScrollableElement = (element: HTMLDivElement | null): boolean => {
+  if (!element) return false
+
+  const computedStyle = window.getComputedStyle(element)
+  const overflowY = computedStyle.overflowY
+  const allowsScroll = overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'overlay'
+
+  return allowsScroll && element.scrollHeight > element.clientHeight
+}
+
+const PrescriptionList: FC<PrescriptionListProps> = ({
+  animalId,
+  mortalityId,
+  mortalityCreatedAt,
+  scrollContainerRef
+}) => {
   const theme = useTheme()
+  const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null)
+  const requestIdRef = useRef(0)
+  const { t } = useTranslation()
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
   const [data, setData] = useState<PrescriptionSection[]>([])
   const [counts, setCounts] = useState<PrescriptionCounts>({ active: 0, closed: 0, all: 0 })
   const [pageNo, setPageNo] = useState<number>(1)
   const [loading, setLoading] = useState<boolean>(true)
-  const [hasMore, setHasMore] = useState<boolean>(false)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
+  const [hasMore, setHasMore] = useState<boolean>(false)
 
-  const getTypeParam = (tab: SubTabType): 'active' | 'closed' | 'all' => {
-    switch (tab) {
-      case 'Active':
-        return 'active'
-      case 'Stopped':
-        return 'closed'
-      case 'All':
-        return 'all'
-      default:
-        return 'active'
-    }
-  }
+  const fetchData = useCallback(
+    async (tab: SubTabType, page: number, append = false): Promise<void> => {
+      if (!animalId) {
+        setData([])
+        setCounts({ active: 0, closed: 0, all: 0 })
+        setHasMore(false)
+        setLoading(false)
+        setLoadingMore(false)
 
-  const fetchData = async (tab: SubTabType, page: number, append: boolean = false): Promise<void> => {
-    try {
-      if (page === 1) setLoading(true)
-      else setLoadingMore(true)
-
-      const params: MedicalCommonDataParams = {
-        medical_type: 'prescription',
-        type: getTypeParam(tab),
-        page_no: page,
-        limit: 10,
-        ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
-        ...(mortalityId && { mortality_id: mortalityId })
+        return
       }
 
-      const res = await getMedicalCommonData(Number(animalId), params)
+      const requestId = ++requestIdRef.current
 
-      if (res?.success) {
-        const records = (res.data?.result || []) as unknown as PrescriptionSection[]
-        if (append) {
-          setData(prev => [...prev, ...records])
-        } else {
-          setData(records)
+      try {
+        if (page === 1) setLoading(true)
+        else setLoadingMore(true)
+
+        const params: MedicalCommonDataParams = {
+          medical_type: 'prescription',
+          type: getTypeParam(tab),
+          page_no: page,
+          limit: PAGE_SIZE,
+          ...(mortalityCreatedAt && { till_date: mortalityCreatedAt }),
+          ...(mortalityId && { mortality_id: mortalityId })
         }
-        setCounts({
-          active: parseInt(String(res.data?.active || '0')),
-          closed: parseInt(String(res.data?.closed || '0')),
-          all: parseInt(String(res.data?.all || '0'))
-        })
-        setHasMore(records.length === 10)
+
+        const res = await getMedicalCommonData(Number(animalId), params)
+
+        if (requestId !== requestIdRef.current) return
+
+        if (res?.success) {
+          const records = (res.data?.result || []) as unknown as PrescriptionSection[]
+          const loadedCount = getPrescriptionCount(records)
+          const nextActiveCount = parseOptionalCount(res.data?.active)
+          const nextClosedCount = parseOptionalCount(res.data?.closed)
+          const nextAllCount = parseOptionalCount(res.data?.all)
+
+          setData(prevData => (append ? mergePrescriptionSections(prevData, records) : records))
+          setCounts(prevCounts => ({
+            active: nextActiveCount ?? prevCounts.active,
+            closed: nextClosedCount ?? prevCounts.closed,
+            all: nextAllCount ?? prevCounts.all
+          }))
+          setHasMore(records.length === PAGE_SIZE || loadedCount >= PAGE_SIZE)
+        } else if (!append) {
+          setData([])
+          setHasMore(false)
+        }
+      } catch (error) {
+        if (requestId !== requestIdRef.current) return
+
+        console.error('Error fetching prescription data:', error)
+        if (!append) {
+          setData([])
+        }
+        setHasMore(false)
+      } finally {
+        if (requestId === requestIdRef.current) {
+          setLoading(false)
+          setLoadingMore(false)
+        }
       }
-    } catch (error) {
-      console.error('Error fetching prescription data:', error)
-    } finally {
-      setLoading(false)
-      setLoadingMore(false)
-    }
-  }
+    },
+    [animalId, mortalityCreatedAt, mortalityId]
+  )
 
   useEffect(() => {
     setPageNo(1)
     setData([])
     fetchData(activeSubTab, 1)
-  }, [activeSubTab, animalId, mortalityId, mortalityCreatedAt])
+  }, [activeSubTab, animalId, fetchData, mortalityCreatedAt, mortalityId])
 
-  const handleLoadMore = (): void => {
-    const nextPage = pageNo + 1
-    setPageNo(nextPage)
-    fetchData(activeSubTab, nextPage, true)
-  }
+  const handleLoadMore = useCallback(() => {
+    if (loading || loadingMore || !hasMore) return
+
+    setPageNo(prevPage => {
+      const nextPage = prevPage + 1
+      fetchData(activeSubTab, nextPage, true)
+
+      return nextPage
+    })
+  }, [activeSubTab, fetchData, hasMore, loading, loadingMore])
+
+  useEffect(() => {
+    const triggerElement = loadMoreTriggerRef.current
+    const scrollRoot = scrollContainerRef?.current || null
+    if (!triggerElement || !hasMore || !isScrollableElement(scrollRoot)) return
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const firstEntry = entries[0]
+
+        if (firstEntry?.isIntersecting && !loading && !loadingMore) {
+          handleLoadMore()
+        }
+      },
+      {
+        root: scrollRoot,
+        threshold: 0.1,
+        rootMargin: '0px 0px 160px 0px'
+      }
+    )
+
+    observer.observe(triggerElement)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [handleLoadMore, hasMore, loading, loadingMore, scrollContainerRef])
 
   const getTabCount = (tab: SubTabType): number => {
     switch (tab) {
@@ -149,9 +274,9 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
   }
 
   const isStopped = (item: PrescriptionItem): boolean => {
-    const s = (item.status || '').toLowerCase()
+    const status = (item.status || '').toLowerCase()
 
-    return s === 'stopped' || s === 'closed' || s === 'close'
+    return status === 'stopped' || status === 'closed' || status === 'close'
   }
 
   const getDurationText = (item: PrescriptionItem): string | null => {
@@ -173,11 +298,18 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
     return null
   }
 
+  const cleanTimeFormat = (timeStr: string | null | undefined): string | null => {
+    if (!timeStr) return null
+
+    const timePart = timeStr.split('-')[0].trim()
+    return timePart.replace(/(\d+)\s*:\s*(\d+)\s*:\s*([AP]M)/i, '$1:$2 $3')
+  }
+
   const buildDosageChips = (item: PrescriptionItem): DosageChip[] => {
     if (Array.isArray(item.schedule_doses) && item.schedule_doses.length > 0) {
       return item.schedule_doses
         .map(dose => ({
-          time: dose.time ? dose.time : null,
+          time: cleanTimeFormat(dose.time),
           dosage:
             dose.quantity && dose.unit_name
               ? `${dose.quantity} ${dose.unit_name}`
@@ -185,14 +317,15 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
               ? `${dose.quantity}`
               : null
         }))
-        .filter(d => d.time || d.dosage)
+        .filter(dose => dose.time || dose.dosage)
     }
 
     const timeStr = item.created_at ? Utility.convertUTCToLocaltime(item.created_at) : null
+    const cleanedTime = cleanTimeFormat(timeStr)
     const dosageStr = item.dosage || null
 
-    if (timeStr || dosageStr) {
-      return [{ time: timeStr, dosage: dosageStr }]
+    if (cleanedTime || dosageStr) {
+      return [{ time: cleanedTime, dosage: dosageStr }]
     }
 
     return []
@@ -200,19 +333,17 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
 
   const renderShimmer = (): React.ReactElement => (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      {Array.from({ length: 2 }).map((_, gi) => (
-        <Box key={gi}>
+      {Array.from({ length: 2 }).map((_, groupIndex) => (
+        <Box key={`prescription-shimmer-group-${groupIndex}`}>
           <Skeleton variant='text' width={140} height={26} sx={{ mb: 2 }} />
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {Array.from({ length: 2 }).map((_, i) => (
+            {Array.from({ length: 2 }).map((_, itemIndex) => (
               <Box
-                key={i}
+                key={`prescription-shimmer-${groupIndex}-${itemIndex}`}
                 sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderLeft: `3px solid ${theme.palette.divider}`,
                   borderRadius: '12px',
                   p: 3,
-                  backgroundColor: alpha(theme.palette.divider, 0.04)
+                  backgroundColor: theme.palette.customColors.displaybgPrimary
                 }}
               >
                 <Skeleton variant='text' width='50%' height={24} sx={{ mb: 1.5 }} />
@@ -231,8 +362,8 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
     </Box>
   )
 
-  const hasData =
-    data.length > 0 && data.some(section => (Array.isArray(section.data) ? section.data.length > 0 : true))
+  const totalLoadedPrescriptions = useMemo(() => getPrescriptionCount(data), [data])
+  const hasData = totalLoadedPrescriptions > 0
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -276,7 +407,9 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
                     fontWeight: 500
                   }}
                 >
-                  {`${tab === 'Active' ? t('active') : tab === 'Stopped' ? t('necropsy_module.stopped') : t('all')} - ${getTabCount(tab)}`}
+                  {`${
+                    tab === 'Active' ? t('active') : tab === 'Stopped' ? t('necropsy_module.stopped') : t('all')
+                  } - ${getTabCount(tab)}`}
                 </Typography>
               </Box>
             ))}
@@ -315,7 +448,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
             if (prescriptions.length === 0) return null
 
             return (
-              <Box key={medRecordId + sectionIdx}>
+              <Box key={`${medRecordId}-${sectionIdx}`}>
                 <Typography
                   sx={{
                     fontSize: '1rem',
@@ -382,14 +515,10 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
                           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
                             {dosageChips.map((chip, chipIdx) => (
                               <Chip
-                                key={chipIdx}
+                                key={`${item.prescription_id || item.id || index}-chip-${chipIdx}`}
                                 label={
                                   <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                                    {chip.time && (
-                                      <Box component='span' sx={{ fontWeight: 400 }}>
-                                        {chip.time}
-                                      </Box>
-                                    )}
+                                    {chip.time && <Box component='span'>{chip.time}</Box>}
                                     {chip.time && chip.dosage && (
                                       <Box component='span' sx={{ mx: 0.5 }}>
                                         {' '}
@@ -489,7 +618,17 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
           })}
 
           {hasMore && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 1 }}>
+            <Box
+              ref={loadMoreTriggerRef}
+              sx={{
+                minHeight: 40,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                py: 1
+              }}
+            >
               {loadingMore ? (
                 <CircularProgress size={24} />
               ) : (
@@ -509,7 +648,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mo
             </Box>
           )}
 
-          {!hasMore && data.length > 10 && (
+          {!hasMore && pageNo > 1 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
               {t('necropsy_module.no_more_prescriptions_to_load')}
             </Typography>

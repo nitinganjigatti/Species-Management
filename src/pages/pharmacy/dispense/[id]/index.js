@@ -276,25 +276,27 @@ const IndividualDispense = () => {
                   />
                   {/* </Box> */}
                   <Box>
-                    {(dispenseData.dispense_user_name || dispenseData.ep_number) && (
+                    {(dispenseData?.dispense_user_name || dispenseData?.ep_number) && (
                       <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
                         Dispensed To: {dispenseData?.dispense_user_name}
                         <br />
-                        EP No: {dispenseData?.ep_number}
+                        <Box sx={{ display: 'flex' }}>
+                          <Typography sx={{ fontWeight: 600 }}>EP No: </Typography>
+                          <Typography>{dispenseData?.ep_number}</Typography>
+                        </Box>
                       </Typography>
                     )}
                     <Typography sx={{ fontSize: 24, fontWeight: 600 }}>
                       {dispenseData?.user_first_name} {dispenseData?.user_last_name}
                     </Typography>
-                    {dispenseData?.user_country_code ||
-                      (dispenseData?.user_mobile_number && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
-                          <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
-                            {dispenseData?.user_country_code} {dispenseData?.user_mobile_number}
-                          </Typography>
-                        </Box>
-                      ))}
+                    {(dispenseData?.user_country_code || dispenseData?.user_mobile_number) && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Icon style={{ cursor: 'pointer' }} icon='mdi:call' />
+                        <Typography sx={{ fontSize: 18, fontWeight: 600 }}>
+                          {dispenseData?.user_country_code} {dispenseData?.user_mobile_number}
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 </Grid>
               </PageCardLayout>

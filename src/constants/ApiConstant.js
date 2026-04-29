@@ -506,6 +506,22 @@ export const ADD_DROP_POINT = '/diet/add-drop-point-to-meal-group'
 
 export const GET_DROP_POINT_LIST = '/diet/get-drop-point-list'
 
+export const GET_SECTION = '/master/zoos/getsections'
+
+export const GET_SPECIES = '/diet/species'
+
+export const GET_TAXONOMY_LIST_BY_TYPES = 'v1/master/taxonomy/list'
+
+export const GET_DYNAMIC_SPECIES_FORMDATA = 'v1/species/generate-section'
+
+export const ADD_TAXONOMY_SPECIES = 'v1/master/create/taxonomy/species'
+
+// Housing
+
+export const HOUSING_SITE_ANALYTICS = 'zoo/home'
+
+export const GET_SITES = 'site-list'
+
 export const CREATE_DROP_POINT = '/diet/create-drop-point'
 
 export const EDIT_DROP_POINT = '/diet/edit-drop-point'
@@ -515,10 +531,6 @@ export const REMOVE_MEAL_GROUP_FROM_DROP_POINT = '/diet/remove-meal-group-from-d
 export const UPDATE_GROUP = '/diet/edit-meal-group'
 
 export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
-
-export const GET_SECTION = '/master/zoos/getsections'
-
-export const GET_SPECIES = '/diet/species'
 
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 

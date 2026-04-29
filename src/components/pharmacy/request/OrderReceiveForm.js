@@ -131,6 +131,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
               }}
               textContainer={{ gap: '10px' }}
               rowSpacing={6}
+              commonValueStyle={{ maxWidth: '100%' }}
             />
 
             {disputeItemDetails?.item_details?.length > 0 ? (

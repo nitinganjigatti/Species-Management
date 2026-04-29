@@ -99,11 +99,14 @@ const ComboCard = ({
       selectedValuesWithCheckId.forEach(combo => {
         if (combo.mealid === checkid) {
           const ingredientCutSizes = {}
-          combo?.combo_ingredients?.forEach(ingredient => {
-            if (ingredient.ingredient_id && ingredient.ingredient_cut_size_id) {
-              const prepId = ingredient.preparation_type_id || ''
-              const key = prepId ? `${ingredient.ingredient_id}-${prepId}` : ingredient.ingredient_id
-              ingredientCutSizes[key] = { id: ingredient.ingredient_cut_size_id }
+          combo?.combo_ingredients?.forEach((ingredient, idx) => {
+            const baseId = ingredient.ingredient_id || ingredient.id
+            const cutSizeId = ingredient.ingredient_cut_size_id || ingredient.cut_size_id
+            if (baseId && cutSizeId) {
+              const indexKey = `${baseId}-idx-${idx}`
+              ingredientCutSizes[indexKey] = { id: cutSizeId }
+              // Also keep baseId for backward compatibility if only one exists
+              ingredientCutSizes[baseId] = { id: cutSizeId }
             }
           })
           updatedSize[combo.recipe_id] = ingredientCutSizes
@@ -399,13 +402,17 @@ const ComboCard = ({
     }
 
     const cardsWithMissingCutSize = selectedCardCombo.filter(item =>
-      item.ingredients.some(ingredient => {
-        const key = ingredient.preparation_type_id
-          ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
-          : ingredient.ingredient_id
-        return !size[item.id]?.[key]?.id
+      item.ingredients.some((ingredient, idx) => {
+        const baseId = ingredient.ingredient_id || ingredient.id
+        const indexKey = `${baseId}-idx-${idx}`
+        const itemSizeData = size[String(item.id)]
+        const missing = !itemSizeData?.[indexKey]?.id && !itemSizeData?.[baseId]?.id
+        if (missing) console.log(`Missing CutSize for Card ${item.id}, Ingredient ${baseId}`)
+        return missing
       })
     )
+
+    console.log('Cards with missing cut size:', cardsWithMissingCutSize.length)
 
     if (cardsWithMissingCutSize.length > 0) {
       toast.error('Please select a cut size for all ingredients in the selected mix(s).', {
@@ -434,14 +441,16 @@ const ComboCard = ({
       const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
 
-      const comboIngredients = item.ingredients.map(ingredient => {
-        const key = ingredient.preparation_type_id
-          ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
-          : ingredient.ingredient_id
+      const comboIngredients = item.ingredients.map((ingredient, idx) => {
+        const baseId = ingredient.ingredient_id || ingredient.id
+        const indexKey = `${baseId}-idx-${idx}`
+        const itemSizeData = size[String(item.id)]
+        const cutSizeId = itemSizeData?.[indexKey]?.id || itemSizeData?.[baseId]?.id || null
+
         return {
-          ingredient_id: ingredient.ingredient_id,
+          ingredient_id: baseId,
           preparation_type_id: ingredient.preparation_type_id,
-          ingredient_cut_size_id: size[item.id]?.[key]?.id || null
+          ingredient_cut_size_id: cutSizeId
         }
       })
 
@@ -449,12 +458,11 @@ const ComboCard = ({
 
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
 
-      const updatedIngredients = item.ingredients.map(ingredient => {
-        const key = ingredient.preparation_type_id
-          ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
-          : ingredient.ingredient_id
-        const cutSizeId = size[item.id]?.[key]?.id || null
-        const cutSize = cutsizelist?.find(cs => cs.id === cutSizeId)?.cut_size || null
+      const updatedIngredients = item.ingredients.map((ingredient, idx) => {
+        const baseId = ingredient.ingredient_id || ingredient.id
+        const indexKey = `${baseId}-idx-${idx}`
+        const cutSizeId = size[item.id]?.[indexKey]?.id || size[item.id]?.[baseId]?.id || null
+        const cutSize = cutsizelist?.find(cs => String(cs.id) === String(cutSizeId))?.cut_size || null
 
         return {
           ...ingredient,
@@ -480,6 +488,7 @@ const ComboCard = ({
       }
     })
 
+    console.log('Final Filtered Items being sent to Parent:', filteredItems)
     setSelectedCardCombo(filteredItems)
 
     onChange(filteredItems)
@@ -525,22 +534,21 @@ const ComboCard = ({
     sortedRecipeList = sortedRecipeList.filter(item => item.id === comboid && item.recipe_name === comboName)
   }
 
-  const handleChangeSize = (event, item, ingredient) => {
+  const handleChangeSize = (event, item, ingredient, idx) => {
     event.stopPropagation()
     const { value } = event.target
 
     const newCutSize = cutsizelist.find(type => Number(type.id) === Number(value))
 
-    const ingredientKey = ingredient.preparation_type_id
-      ? `${ingredient.ingredient_id}-${ingredient.preparation_type_id}`
-      : ingredient.ingredient_id
+    const baseId = String(ingredient.ingredient_id || ingredient.id)
+    const indexKey = `${baseId}-idx-${idx}`
 
     setSize(prevState => ({
       ...prevState,
-      [item.id]: {
-        ...prevState[item.id],
-        [ingredientKey]: {
-          id: value,
+      [String(item.id)]: {
+        ...prevState[String(item.id)],
+        [indexKey]: {
+          id: String(value),
           name: newCutSize?.cut_size
         }
       }
@@ -549,12 +557,13 @@ const ComboCard = ({
     setValidationErrors(prevErrors => {
       if (prevErrors.includes(item.id)) {
         const updatedItemSizeInfo = {
-          ...(size[item.id] || {}),
-          [ingredientKey]: { id: value }
+          ...(size[String(item.id)] || {}),
+          [indexKey]: { id: value }
         }
-        const hasMissingCutSize = item.ingredients.some(ing => {
-          const key = ing.preparation_type_id ? `${ing.ingredient_id}-${ing.preparation_type_id}` : ing.ingredient_id
-          return !updatedItemSizeInfo[key]?.id
+        const hasMissingCutSize = item.ingredients.some((ing, i) => {
+          const bId = String(ing.ingredient_id || ing.id)
+          const key = `${bId}-idx-${i}`
+          return !updatedItemSizeInfo[key]?.id && !updatedItemSizeInfo[bId]?.id
         })
         if (!hasMissingCutSize) {
           return prevErrors.filter(id => id !== item.id)
@@ -697,17 +706,17 @@ const ComboCard = ({
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Items
+                        {t('diet_module.items')}
                       </Typography>
                       <Typography
                         sx={{
                           fontWeight: '500',
                           color: theme.palette.customColors.neutral_50,
                           fontSize: '16px',
-                          mr: 18
+                          mr: 20
                         }}
                       >
-                        {`${t('diet_module.cut_size')} *`}
+                        {t('diet_module.cut_size')}
                       </Typography>
                     </Box>
                     {item.ingredients.map((ingredient, index) => (
@@ -803,6 +812,7 @@ const ComboCard = ({
                           cutsizelist={cutsizelist}
                           item={item}
                           ingredient={ingredient}
+                          index={index}
                           handleChangeSize={handleChangeSize}
                           showErrors={showErrors}
                         />
@@ -815,7 +825,7 @@ const ComboCard = ({
                 {selectedCardCombo?.some(card => card?.id === item?.id) ? (
                   <>
                     <Divider />
-                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days*</Typography>
+                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
                     <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
                       {Day?.map(day => (
                         <Box

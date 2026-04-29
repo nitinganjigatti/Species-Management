@@ -824,6 +824,22 @@ const InpatientDischarge = ({ patientData, refetchPatient }) => {
     }
   }, [])
 
+  // Clear enclosure_medicines when navigating away from discharge, unless going to schedule-prescription
+  useEffect(() => {
+    const handleRouteChange = (newUrl) => {
+      // Only persist enclosure_medicines if going to schedule-prescription with tab data
+      if (!newUrl.includes('schedule-prescription')) {
+        clearEnclosureData()
+      }
+    }
+
+    router.events?.on('routeChangeStart', handleRouteChange)
+
+    return () => {
+      router.events?.off('routeChangeStart', handleRouteChange)
+    }
+  }, [router, dispatch])
+
   // patient data initial loading
   if (!patientData) {
     return (

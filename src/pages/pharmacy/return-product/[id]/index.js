@@ -48,6 +48,7 @@ import { useTheme } from '@emotion/react'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import InfoDisplayGrid from 'src/views/utility/InfoDisplayGrid'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import { flex } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -339,6 +340,7 @@ const IndividualReturnRequest = () => {
   const columns = [
     {
       width: 40,
+      flex: 0.1,
       field: 'sl_no',
       headerName: 'Sl.No',
       renderCell: (params, rowId) => (
@@ -348,6 +350,7 @@ const IndividualReturnRequest = () => {
       )
     },
     {
+      flex: 0.5,
       width: 200,
       field: 'stock_name',
       headerName: 'Product Name',
@@ -396,7 +399,7 @@ const IndividualReturnRequest = () => {
     // },
 
     {
-      width: 150,
+      flex: 0.2,
       minWidth: 150,
       field: 'batch_no',
       headerName: 'Batch No',
@@ -410,6 +413,7 @@ const IndividualReturnRequest = () => {
     },
 
     {
+      flex: 0.15,
       width: 120,
       field: 'expiry_date',
       headerName: 'Expiry Date',
@@ -423,7 +427,7 @@ const IndividualReturnRequest = () => {
       )
     },
     {
-      width: 200,
+      flex: 0.2,
       minWidth: 200,
       field: 'unit_price',
       headerName: 'Unit price(₹)',
@@ -436,7 +440,7 @@ const IndividualReturnRequest = () => {
       )
     },
     {
-      width: 150,
+      flex: 0.2,
       minWidth: 150,
       field: 'qty',
       headerName: 'total value(₹)',
@@ -449,7 +453,7 @@ const IndividualReturnRequest = () => {
       )
     },
     {
-      width: 150,
+      flex: 0.2,
       minWidth: 150,
       field: 'requested_qty',
       headerName: 'return QTY',
@@ -1077,7 +1081,7 @@ const IndividualReturnRequest = () => {
                         columns={columns}
                         rows={requestItems?.request_item_details}
                         backgroundColor={'customColors.customTableHeaderBg'}
-                      ></TableBasic>
+                      />
                     ) : (
                       <EmptyStateBox imageSrc='/images/out-of-stock.png' text='No Return items' />
                     )}

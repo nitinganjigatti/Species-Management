@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Box, CircularProgress, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -66,10 +66,6 @@ const Listing: React.FC<SiteListingProps> = ({
   })
   const [totalAnimalCount, setTotalAnimalCount] = useState<number>(0)
 
-  const [downloading, setDownloading] = useState<boolean>(false)
-
-  const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
-
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   // Populate filters from query string on mount
@@ -96,7 +92,8 @@ const Listing: React.FC<SiteListingProps> = ({
         q: filters.search,
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder
-      })
+      }),
+    placeholderData: keepPreviousData
   })
 
   const total: number = data?.data?.total_count || 0
@@ -467,7 +464,8 @@ const Listing: React.FC<SiteListingProps> = ({
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'actions',
       headerName: t('actions'),
       align: 'left' as const,
@@ -548,9 +546,9 @@ const Listing: React.FC<SiteListingProps> = ({
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+      <Box sx={{ mt: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
+          <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -579,6 +577,7 @@ const Listing: React.FC<SiteListingProps> = ({
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
             loading={isFetching}
+            getRowHeight={() => 60}
             searchValue=''
             maxHeight='80vh'
           />

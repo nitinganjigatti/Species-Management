@@ -3,7 +3,7 @@
 import { useTheme } from '@emotion/react'
 import { Breadcrumbs, Card, Grid, Typography, useMediaQuery } from '@mui/material'
 import { Box } from '@mui/system'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -163,7 +163,8 @@ const ClustersPage: React.FC = () => {
         q: filters.search,
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
-      })
+      }),
+    placeholderData: keepPreviousData
   })
 
   const {
@@ -493,7 +494,8 @@ const ClustersPage: React.FC = () => {
       )
     },
     {
-      width: 150,
+      flex: 1,
+      minWidth: 150,
       field: 'actions',
       headerName: t('actions'),
       align: 'left' as const,

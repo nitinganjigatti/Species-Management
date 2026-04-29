@@ -23,7 +23,8 @@ const ControlledDateTimePicker = ({
   defaultValue = null,
   sx = {},
   slotPropSx = {},
-  slotPropTextfieldSx = {}
+  slotPropTextfieldSx = {},
+  outputFormat = null
 }) => {
   const theme = useTheme()
   return (
@@ -39,9 +40,10 @@ const ControlledDateTimePicker = ({
               {...field}
               value={field.value ? dayjs(field.value) : null}
               onChange={newValue => {
-                const value = newValue ?? dayjs()
+                const dayjsValue = newValue ?? dayjs()
+                const value = outputFormat ? dayjsValue.format(outputFormat) : dayjsValue
                 field.onChange(value)
-                onChangeOverride?.(value)
+                onChangeOverride?.(dayjsValue)
               }}
               label={label}
               minDateTime={minDateTime}

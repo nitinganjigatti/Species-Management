@@ -113,7 +113,7 @@ export async function getParentEnclosureList(
   return response?.data
 }
 
-export async function addEnclosureToHousing(params: AddEnclosurePayload): Promise<AddEnclosureResponse> {
+export async function addEnclosureToHousing(params: AddEnclosurePayload | any): Promise<AddEnclosureResponse> {
   const response = await axiosFormPost({ url: `${ADD_ENCLOSURE_TO_HOUSING}`, body: params })
 
   return response?.data

@@ -669,8 +669,7 @@ const AddSurgeryRecord = () => {
       const params = {
         hospital_id: hospitalId,
         page_no: pageNo,
-        limit: 10,
-        is_hospital_chief_doctor: '1'
+        limit: 10
       }
 
       if (searchTerm.trim()) {
@@ -2118,6 +2117,7 @@ const AddSurgeryRecord = () => {
         onSuccess={handleAnesthesiaCreateSuccess}
         loadMoreDoctors={loadMoreDoctors}
         loadingDoctors={doctorsLoading}
+        defaultLocation={selectedHospital?.name}
       />
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}

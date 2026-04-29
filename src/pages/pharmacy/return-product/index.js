@@ -394,6 +394,7 @@ const ReturnRequestList = () => {
   const columns = [
     {
       width: 80,
+      field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography
@@ -428,6 +429,7 @@ const ReturnRequestList = () => {
       )
     },
     {
+      flex: 1,
       minWidth: 200,
       field: 'from_store',
       headerName: getRequestedText(),
@@ -482,7 +484,6 @@ const ReturnRequestList = () => {
         </Typography>
       )
     },
-    ,
     {
       minWidth: 140,
       field: 'product_count',
@@ -503,7 +504,6 @@ const ReturnRequestList = () => {
         </Typography>
       )
     },
-    ,
     {
       minWidth: 160,
       field: 'shipping_status',

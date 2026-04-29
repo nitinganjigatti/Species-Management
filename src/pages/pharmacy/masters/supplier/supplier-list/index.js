@@ -133,7 +133,8 @@ const Supplier = () => {
       )
     },
     {
-      minWidth: 250,
+      flex: 1,
+      minWidth: 200,
       field: 'company_name',
       headerName: 'SUPPLIER NAME',
       renderCell: params => (

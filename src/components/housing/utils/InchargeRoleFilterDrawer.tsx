@@ -96,6 +96,8 @@ const InchargeRoleFilterDrawer: React.FC<InchargeRoleFilterDrawerProps> = ({
     setSelectedOptions(normalized)
   }, [open, initialSelectedOptions])
 
+  const badgeOptions = { Role: selectedOptions.Role ? [selectedOptions.Role] : [] }
+  
   return (
     <CustomFilterDrawer
       open={open}
@@ -103,7 +105,7 @@ const InchargeRoleFilterDrawer: React.FC<InchargeRoleFilterDrawerProps> = ({
       onApply={applyFilters}
       onClearAll={handleClearAll}
       filterLists={LEFT_MENU}
-      selectedOptions={selectedOptions}
+      selectedOptions={badgeOptions}
       isSubmitting={onSubmitLoading}
       selectedItem={selectedMenu}
       onSelectItem={setSelectedMenu}

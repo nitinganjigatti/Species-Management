@@ -48,6 +48,7 @@ const ExpiredMedicine = () => {
       const response = await getStoreList({ params: { column: 'type' } })
       if (response?.data?.list_items?.length > 0) {
         response?.data?.list_items?.sort((a, b) => a.id - b.id)
+
         setStores(response?.data?.list_items)
         if (response?.data?.list_items.length > 0) {
         }
@@ -102,7 +103,7 @@ const ExpiredMedicine = () => {
     if (stores?.length === 0) {
       getStoresLists()
     }
-  }, [fetchTableData])
+  }, [fetchTableData, storeId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -151,8 +152,8 @@ const ExpiredMedicine = () => {
     //   )
     // },
     {
-      width: 350,
-      minWidth: 100,
+      flex: 1,
+      minWidth: 250,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -191,8 +192,8 @@ const ExpiredMedicine = () => {
         ]
       : []),
     {
-      width: 250,
-      minWidth: 100,
+      flex: 0.5,
+      minWidth: 150,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -222,8 +223,8 @@ const ExpiredMedicine = () => {
     // },
 
     {
-      width: 250,
-      minWidth: 100,
+      flex: 0.5,
+      minWidth: 150,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -241,8 +242,8 @@ const ExpiredMedicine = () => {
     },
 
     {
-      width: 250,
-      minWidth: 100,
+      flex: 0.4,
+      minWidth: 120,
       sortable: false,
       field: 'stock_qty',
       headerName: 'Qty',
@@ -325,10 +326,8 @@ const ExpiredMedicine = () => {
                         value={storeId}
                         label='Stores'
                         valueType='id'
-                        onChange={e => {
-                          let id = e
-
-                          setStoreId(id)
+                        onChange={newValue => {
+                          setStoreId(newValue)
                         }}
                         options={stores}
                       />

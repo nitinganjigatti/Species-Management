@@ -45,7 +45,7 @@ interface FormattedHistoryData {
 // Sub-tab configuration matching mobile implementation
 const SUB_TABS = [
   { id: 'enclosurehistory', labelKey: 'animals_module.enclosure_history', icon: 'mdi:history' },
-  { id: 'inmates', labelKey: 'animals_module.inmates', icon: 'mdi:store' }
+  { id: 'inmates', labelKey: 'animals_module.any_other', icon: 'mdi:store' }
 ]
 
 const AnimalHistory: React.FC = () => {
@@ -291,7 +291,7 @@ const AnimalHistory: React.FC = () => {
       <Grid container sx={{ mt: 4 }}>
         {/* Sub-tabs */}
         <Grid size={{ xs: 12 }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4,display:'inline-block' }}>
             <Tabs
               value={selectedSubTab}
               onChange={handleSubTabChange}

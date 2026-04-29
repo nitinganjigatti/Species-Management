@@ -381,6 +381,7 @@ export default function BasicDetails({
             errors={errors}
             label='Date & Time of Anesthesia*'
             ampm
+            outputFormat='YYYY-MM-DD HH:mm:ss'
             minDateTime={dayjs(Utility.convertUTCToLocal(patientData?.admitted_at))}
             maxDateTime={patientData?.discharge_at ? dayjs(Utility.convertUTCToLocal(patientData?.discharge_at)) : dayjs()}
             helperText={errors.basicDetails?.anaesthesia_datetime?.message}
@@ -416,6 +417,7 @@ export default function BasicDetails({
                 <Autocomplete
                   multiple
                   openOnFocus
+                  disableCloseOnSelect={true}
                   options={vetOptions}
                   getOptionLabel={option => option?.name || ''}
                   isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
@@ -448,6 +450,7 @@ export default function BasicDetails({
                     <TextField
                       {...params}
                       label='Veterinarian*'
+                      placeholder={'Search & Select'}
                       fullWidth
                       error={!!errors?.basicDetails?.veterinarian_id}
                       helperText={errors?.basicDetails?.veterinarian_id?.message}
@@ -469,6 +472,7 @@ export default function BasicDetails({
               <Autocomplete
                 multiple
                 openOnFocus
+                disableCloseOnSelect={true}
                 options={anesthetistOptions}
                 getOptionLabel={option => option?.name || ''}
                 isOptionEqualToValue={(option, value) => String(option.id) === String(value.id)}
@@ -502,6 +506,7 @@ export default function BasicDetails({
                     {...params}
                     label='Anesthetist*'
                     fullWidth
+                    placeholder={'Search & Select'}
                     error={!!errors?.basicDetails?.anesthetist_id}
                     helperText={errors?.basicDetails?.anesthetist_id?.message}
                     sx={commonTextFieldSx}
