@@ -11,6 +11,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import StatChip from 'src/views/utility/StatChip'
+import AnimalIdCard from 'src/views/utility/AnimalIdCard'
 import Icon from 'src/@core/components/icon'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import PopulationFilterDrawer, { PopulationFilterOptions } from 'src/components/collection/PopulationFilterDrawer'
@@ -225,23 +226,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       field: 'animal_id',
       headerName: 'ANIMAL ID',
       renderCell: (p: GridRenderCellParams) => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-          <Avatar
-            src={p.row.image}
-            alt={p.row.animal_name}
-            sx={{ width: 36, height: 36, bgcolor: theme.palette.customColors.Surface }}
-          >
-            <Icon icon='mdi:paw' fontSize={18} />
-          </Avatar>
-          <Box>
-            <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurface }}>
-              {p.row.animal_id}
-            </Typography>
-            <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-              {p.row.uid}
-            </Typography>
-          </Box>
-        </Box>
+        <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} avatarSize={36} iconSize={18} />
       )
     },
     {

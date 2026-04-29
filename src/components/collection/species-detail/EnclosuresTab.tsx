@@ -10,6 +10,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Icon from 'src/@core/components/icon'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import { getSpeciesWiseDetails, SpeciesWiseEnclosureItem, getAnimalListing } from 'src/lib/api/collection/species'
+import LocationNameCard from 'src/views/utility/LocationNameCard'
 
 interface EnclosuresTabProps {
   speciesId?: string
@@ -104,12 +105,7 @@ const EnclosuresTab: React.FC<EnclosuresTabProps> = ({ speciesId }) => {
   const columns = [
     { width: 50, sortable: false, field: 'sl_no', headerName: 'NO', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.sl_no}</Typography> },
     { minWidth: 200, flex: 1, sortable: false, field: 'enclosure_name', headerName: 'ENCLOSURE NAME', renderCell: (p: GridRenderCellParams) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Avatar src={p.row.image} sx={{ width: 32, height: 32, bgcolor: theme.palette.customColors.Surface }}>
-          <Icon icon='mdi:home-outline' fontSize={16} />
-        </Avatar>
-        <Typography variant='body2' sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.enclosure_name}</Typography>
-      </Box>
+      <LocationNameCard name={p.row.enclosure_name} image={p.row.image} icon='mdi:home-outline' />
     )},
     { width: 110, sortable: false, field: 'animals', headerName: 'ANIMALS', renderCell: (p: GridRenderCellParams) => clickableCell(p.row, String(p.row.animals).padStart(2, '0'), 'animals', 'enclosure-animals-drawer') },
     { width: 200, sortable: false, field: 'section', headerName: 'SECTION', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.section}</Typography> },

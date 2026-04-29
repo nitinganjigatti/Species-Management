@@ -11,6 +11,7 @@ import Icon from 'src/@core/components/icon'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 import { getSpeciesWiseDetails, SpeciesWiseSectionItem, getAnimalListing } from 'src/lib/api/collection/species'
+import LocationNameCard from 'src/views/utility/LocationNameCard'
 
 interface SectionsTabProps {
   speciesId?: string
@@ -105,12 +106,7 @@ const SectionsTab: React.FC<SectionsTabProps> = ({ speciesId }) => {
   const columns = [
     { width: 50, sortable: false, field: 'sl_no', headerName: 'NO', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.sl_no}</Typography> },
     { minWidth: 200, flex: 1, sortable: false, field: 'section_name', headerName: 'SECTION NAME', renderCell: (p: GridRenderCellParams) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Avatar src={p.row.image} sx={{ width: 32, height: 32, bgcolor: theme.palette.customColors.Surface }}>
-          <Icon icon='mdi:view-grid-outline' fontSize={16} />
-        </Avatar>
-        <Typography variant='body2' sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.section_name}</Typography>
-      </Box>
+      <LocationNameCard name={p.row.section_name} image={p.row.image} icon='mdi:view-grid-outline' />
     )},
     { width: 110, sortable: false, field: 'animals', headerName: 'ANIMALS', renderCell: (p: GridRenderCellParams) => clickableCell(p.row, p.row.animals?.toLocaleString(), 'animals', 'section-animals-drawer') },
     { width: 130, sortable: false, field: 'enclosures', headerName: 'ENCLOSURES', renderCell: (p: GridRenderCellParams) => clickableCell(p.row, p.row.enclosures, 'enclosures', 'section-enclosures-drawer') },

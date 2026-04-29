@@ -9,6 +9,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import StatChip from 'src/views/utility/StatChip'
+import AnimalIdCard from 'src/views/utility/AnimalIdCard'
 import Icon from 'src/@core/components/icon'
 import { getNecropsySpeciesList, NecropsySpeciesItem } from 'src/lib/api/collection/species'
 
@@ -104,13 +105,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
   const columns = [
     { width: 50, sortable: false, field: 'sl_no', headerName: 'NO', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.sl_no}</Typography> },
     { minWidth: 180, sortable: false, field: 'animal_id', headerName: 'ANIMAL ID', renderCell: (p: GridRenderCellParams) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <Avatar src={p.row.image} sx={{ width: 32, height: 32, bgcolor: theme.palette.customColors.Surface }}><Icon icon='mdi:paw' fontSize={16} /></Avatar>
-        <Box>
-          <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurface }}>{p.row.animal_id}</Typography>
-          <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>{p.row.uid}</Typography>
-        </Box>
-      </Box>
+      <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} />
     )},
     { width: 200, sortable: false, field: 'animal_name', headerName: 'ANIMAL NAME', renderCell: (p: GridRenderCellParams) => (
       <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
