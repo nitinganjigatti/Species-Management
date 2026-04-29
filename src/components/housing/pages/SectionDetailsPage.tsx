@@ -26,6 +26,7 @@ import AddSectionDrawer from 'src/views/pages/housing/section/AddSectionDrawer'
 import { EntityAssessment } from 'src/components/housing/common/assessment'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
+import Toaster from 'src/components/Toaster'
 
 interface TabConfigItem {
   labelKey: string
@@ -194,6 +195,7 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
 
   const siteId = (data?.data as any)?.site_id
   const siteName = (data?.data as any)?.site_name
+  const editSectionAccess = Number((data?.data as any)?.is_system_generated) == 1
 
   const handleBreadcrumbClick = (): void => {
     if (siteId) {
@@ -290,7 +292,8 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
           pageTitle={t('housing_module.section_details')}
           actions={{
             onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null,
-            onEdit: addSectionAccess ? () => setShowEditSectionDrawer(true) : null
+            onEdit: addSectionAccess ? () => setShowEditSectionDrawer(true) : null,
+            onEditRestricted: editSectionAccess ? () => Toaster({ type: 'warning', message: t('system_generated_section_note_restrictions') as string }) : null,
           }}
           addNewTooltip={t('housing_module.add_new_enclosure') as string}
           editTooltip={t('housing_module.edit_section') as string}

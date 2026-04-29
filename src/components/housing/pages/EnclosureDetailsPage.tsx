@@ -21,6 +21,7 @@ import { EntityAssessment } from 'src/components/housing/common/assessment'
 import AddEnclosureDrawer from 'src/views/pages/housing/enclosures/AddEnclosureDrawer'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import TabsWithMenu from 'src/views/pages/housing/utils/TabsWithMenu'
+import Toaster from 'src/components/Toaster'
 
 interface TabConfigItem {
   labelKey: string
@@ -175,6 +176,7 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
   const enclosureData = data?.data as any
   const sectionId = enclosureData?.section_id
   const enclosureInfo = (enclosureBasicInfo as any)?.data || {}
+  const editEnclosureAccess = Number(enclosureData?.is_system_generated) == 1
 
   const enclosureName = enclosureInfo?.user_enclosure_name || enclosureData?.user_enclosure_name
   const parentEnclosureName = enclosureInfo?.parent_enclosure_name || enclosureData?.parent_enclosure_name
@@ -289,7 +291,8 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
           haveInsightsViewAccess={insightsViewAccess}
           actions={{
             onAddNew: addEnclosureAccess ? () => setShowAddSubEnclosureDrawer(true) : null,
-            onEdit: addEnclosureAccess ? () => setShowEditEnclosureDrawer(true) : null
+            onEdit: addEnclosureAccess  ? () => setShowEditEnclosureDrawer(true) : null,
+            onEditRestricted: editEnclosureAccess ?  () => Toaster({ type: 'warning', message: t('system_generated_enclosure_note_restrictions') as string }) : null,
           }}
           addNewTooltip={t('housing_module.add_sub_enclosure') as string}
           editTooltip={t('housing_module.edit_enclosure') as string}

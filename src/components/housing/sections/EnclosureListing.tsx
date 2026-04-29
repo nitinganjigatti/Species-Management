@@ -97,7 +97,8 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
         limit: filters.pageSize,
         q: filters.search,
         sort_by: filters.sortBy,
-        sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
+        sort_order: filters.sortOrder as 'asc' | 'desc' | undefined,
+        include_sub_enclosure: 1
       }),
     enabled: !!id,
     placeholderData: keepPreviousData

@@ -1253,7 +1253,9 @@
     "transfer_request_number": "Transfer Request Number",
     "transfer_to": "Transfer To",
     "transfers": "Transfers",
-    "all_assessments": "All Assessments"
+    "all_assessments": "All Assessments",
+    "system_generated_section_note_restrictions": "This section is system generated,It will be not editable or deletable",
+    "system_generated_enclosure_note_restrictions": "This enclosure is system generated,It will be not editable or deletable"
   },
   "compliance_module": {
     "compliance": "Compliance",
