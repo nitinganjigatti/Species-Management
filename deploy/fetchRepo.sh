@@ -92,7 +92,8 @@ npm install --production --loglevel info
 echo "Downloading artifact"
 
 # Download the artifact using artifact name and workflow run ID (replace placeholders)
-ARTIFACT_NAME="nextjs-build-output-${BRANCH}"  # Must match workflow artifact name
+SANITIZED_BRANCH="${BRANCH//\//-}"
+ARTIFACT_NAME="nextjs-build-output-${SANITIZED_BRANCH}"  # Must match workflow artifact name
 
 echo $GITHUB_RUN_ID
 echo $ANTZ_DEPLOYMENT_TOKEN
