@@ -3,7 +3,7 @@ import { Box, Grid, Typography } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useMemo, useState, useEffect, ChangeEvent, MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -106,7 +106,8 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const listing: SpeciesRow[] = data?.data?.listing || []

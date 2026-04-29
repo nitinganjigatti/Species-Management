@@ -111,7 +111,6 @@ const LineageFilterDrawer: React.FC<LineageFilterDrawerProps> = ({
       selectedOptions={selectedOptions}
       selectedItem={selectedMenu}
       onSelectItem={handleMenuClick}
-      zIndex={1400}
     >
       {selectedMenu === 'Entity' && (
         <LineageEntityFilter localSelections={localSelections} setLocalSelections={setLocalSelections} />

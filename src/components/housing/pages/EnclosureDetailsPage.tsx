@@ -85,7 +85,7 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
       getEnclosureBasicInfo({
         enclosure_id: Number(id)
       }),
-    enabled: !!id && showEditEnclosureDrawer
+    enabled: !!id
   })
 
   const allTabConfig: TabConfigItem[] = [
@@ -156,6 +156,12 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
       value: (data?.data as any)?.total_occupants || 0,
       imagePath: '/images/housing/animals.svg',
       onClick: handleAnimalsInsightClick
+    },
+    {
+      label: t('enclosures'),
+      value: (data?.data as any)?.total_sub_enclosure_count || 0,
+      imagePath: '/images/housing/enclosures.svg',
+      onClick: () => setSelectedTab('enclosures')
     }
   ]
 
@@ -166,8 +172,24 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>{t('no_component_found')}</Box>)
 
-  const sectionId = (data?.data as any)?.section_id
-  const sectionName = (data?.data as any)?.section_name
+  const enclosureData = data?.data as any
+  const sectionId = enclosureData?.section_id
+  const enclosureInfo = (enclosureBasicInfo as any)?.data || {}
+
+  const enclosureName = enclosureInfo?.user_enclosure_name || enclosureData?.user_enclosure_name
+  const parentEnclosureName = enclosureInfo?.parent_enclosure_name || enclosureData?.parent_enclosure_name
+  const sectionName = enclosureInfo?.section_name || enclosureData?.section_name
+  const siteName = enclosureInfo?.site_name || enclosureData?.site_name
+
+  const hierarchyLines = (
+    parentEnclosureName
+      ? [
+          parentEnclosureName ? `Enclosure - ${parentEnclosureName}` : null,
+          sectionName ? `Section - ${sectionName}` : null,
+          siteName ? `Site - ${siteName}` : null
+        ]
+      : [sectionName ? `Section - ${sectionName}` : null, siteName ? `Site - ${siteName}` : null]
+  ).filter((line): line is string => Boolean(line))
 
   const handleBreadcrumbClick = () => {
     if (sectionId) {
@@ -241,14 +263,26 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
           <Typography color={theme.palette.text.primary}>{t('housing_module.enclosure_details')}</Typography>
         </Breadcrumbs>
         <InsightsCard
-          data={data?.data as any}
+          data={enclosureData as any}
           loading={isLoading}
           image={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
           statsData={statsData as any}
           error={error}
-          zooName={(data?.data as any)?.user_enclosure_name}
-          subtitle={(data?.data as any)?.enclosure_desc}
-          userName={(data?.data as any)?.incharge_name}
+          zooName={enclosureName}
+          subtitle={
+            hierarchyLines.length ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                {hierarchyLines.map((line, idx) => (
+                  <Typography key={`${idx}-${line}`} sx={{ color: theme.palette.common.white, fontSize: '0.875rem' }}>
+                    {line}
+                  </Typography>
+                ))}
+              </Box>
+            ) : (
+              ''
+            )
+          }
+          userName={enclosureData?.incharge_name}
           userImage=''
           description=''
           pageTitle={t('housing_module.enclosure_details')}
@@ -260,7 +294,7 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
           addNewTooltip={t('housing_module.add_sub_enclosure') as string}
           editTooltip={t('housing_module.edit_enclosure') as string}
           onCallClick={() => {
-            const phoneNumber = (data?.data as any)?.incharge_phone_no || ''
+            const phoneNumber = enclosureData?.incharge_phone_no || ''
             if (phoneNumber) {
               // window.location.href = `tel:${phoneNumber}`
             } else {
@@ -268,14 +302,14 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
             }
           }}
           onMessageClick={() => {
-            const phoneNumber = (data?.data as any)?.incharge_mobile_no || ''
+            const phoneNumber = enclosureData?.incharge_mobile_no || ''
             if (phoneNumber) {
               window.open(`sms:${phoneNumber}`)
             } else return
           }}
-          qrCodeImage={(data?.data as any)?.enclosure_qr_image || (data?.data as any)?.qr_code_image}
-          entityName={(data?.data as any)?.user_enclosure_name}
-          entityId={(data?.data as any)?.enclosure_id}
+          qrCodeImage={enclosureData?.enclosure_qr_image || enclosureData?.qr_code_image}
+          entityName={enclosureData?.user_enclosure_name}
+          entityId={enclosureData?.enclosure_id}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
           <TabsWithMenu tabs={tabConfig} selectedTab={selectedTab} onTabChange={handleTabChange} />

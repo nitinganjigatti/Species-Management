@@ -3,7 +3,7 @@ import { Box, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { getAllSections } from 'src/lib/api/housing'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -72,11 +72,12 @@ const SectionListing: React.FC<SectionListingProps> = ({
         site_id: Number(id),
         page_no: filters.page,
         limit: filters.pageSize,
-        q: filters.search,
+        search: filters.search,
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const sectionList: Section[] = data?.data?.result || []

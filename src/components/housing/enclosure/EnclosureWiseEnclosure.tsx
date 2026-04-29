@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent } from 'react'
@@ -75,7 +75,8 @@ const EnclosureWiseEnclosure: React.FC = () => {
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const listing: EnclosureRow[] = (data?.data as any)?.list_items || data?.data?.result || []

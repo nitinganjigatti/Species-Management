@@ -2,7 +2,7 @@ import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useMemo, useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -90,7 +90,8 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined
       }),
-    enabled: !!id
+    enabled: !!id,
+    placeholderData: keepPreviousData
   })
 
   const listing = (data?.data?.listing || []) as unknown as SpeciesRow[]

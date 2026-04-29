@@ -66,7 +66,12 @@ const allTabConfig: TabConfigItem[] = [
   { labelKey: 'media', value: 'media', component: MediaListing },
   { labelKey: 'housing_module.users', value: 'users', component: UsersListing },
   { labelKey: 'housing_module.incharges', value: 'incharges', component: InchargeListing },
-  { labelKey: 'navigation.mortality', value: 'mortality', component: MortalityListing, requiresPermission: 'access_mortality_module' },
+  {
+    labelKey: 'navigation.mortality',
+    value: 'mortality',
+    component: MortalityListing,
+    requiresPermission: 'access_mortality_module'
+  },
   {
     labelKey: 'housing_module.animals_under_treatment',
     value: 'animalTreatment',
@@ -259,10 +264,7 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography
-            onClick={handleBreadcrumbClick}
-            sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}
-          >
+          <Typography onClick={handleBreadcrumbClick} sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }}>
             {siteName || t('housing_module.site_details')}
           </Typography>
           <Typography color={theme.palette.text.primary}>{t('housing_module.section_details')}</Typography>
@@ -273,7 +275,15 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
           loading={isLoading}
           zooName={(data?.data as any)?.section_name}
           image={(data?.data as any)?.images?.find((img: any) => img?.display_type === 'banner')?.file}
-          subtitle=''
+          subtitle={
+            siteName ? (
+              <Typography sx={{ color: theme.palette.common.white, fontSize: '0.875rem' }}>
+                Site - {siteName}
+              </Typography>
+            ) : (
+              ''
+            )
+          }
           userName={(data?.data as any)?.incharge_name}
           description=''
           userImage=''
@@ -287,7 +297,7 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
           onCallClick={() => {
             const phoneNumber = (data?.data as any)?.incharge_phone_number || ''
             if (phoneNumber) {
-              // window.location.href = `tel:${phoneNumber}`
+              window.location.href = `tel:${phoneNumber}`
             } else {
               return
             }
@@ -358,14 +368,18 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
           addSuccessCheck={addSuccessCheck}
           setAddSuccessCheck={setAddSuccessCheck}
           refetch={refetch}
-          sectionData={(data?.data as any) ? {
-            section_id: (data?.data as any)?.section_id,
-            section_name: (data?.data as any)?.section_name,
-            section_site_id: (data?.data as any)?.site_id,
-            section_latitude: (data?.data as any)?.section_latitude,
-            section_longitude: (data?.data as any)?.section_longitude,
-            images: (data?.data as any)?.images
-          } : null}
+          sectionData={
+            (data?.data as any)
+              ? {
+                  section_id: (data?.data as any)?.section_id,
+                  section_name: (data?.data as any)?.section_name,
+                  section_site_id: (data?.data as any)?.site_id,
+                  section_latitude: (data?.data as any)?.section_latitude,
+                  section_longitude: (data?.data as any)?.section_longitude,
+                  images: (data?.data as any)?.images
+                }
+              : null
+          }
         />
       )}
       {showAccessRestricted && (

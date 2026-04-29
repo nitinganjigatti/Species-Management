@@ -16,57 +16,103 @@ const sizes = {
   large: { width: 50, height: 28, thumbSize: 24, translateX: 22 }
 }
 
-const StyledSwitch = styled(({ switchColor, size = 'medium', padding = 0, ...rest }) => <Switch {...rest} />)(
-  ({ theme, switchColor, size }) => {
-    const currentSize = sizes[size] || sizes.medium
-    const trackColor = switchColor || theme.palette.primary.main
+const StyledSwitch = styled(({ switchColor, size = 'medium', variant = 'default', padding = 0, ...rest }) => (
+  <Switch {...rest} />
+))(({ theme, switchColor, size, variant }) => {
+  const currentSize = sizes[size] || sizes.medium
+  const trackColor = switchColor || theme.palette.primary.main
 
+  if (variant === 'ios') {
     return {
-      width: currentSize.width,
-      height: currentSize.height,
+      width: 42,
+      height: 26,
       padding: 0,
       '& .MuiSwitch-switchBase': {
         padding: 0,
         margin: 2,
-        transitionDuration: '300ms',
+        transitionDuration: '200ms',
         '&.Mui-checked': {
-          transform: `translateX(${currentSize.translateX}px)`,
-          color: theme.palette.customColors?.OnPrimary,
+          transform: 'translateX(16px)',
+          color: theme.palette.common.white,
           '& + .MuiSwitch-track': {
-            backgroundColor: trackColor,
-            opacity: 1
-          },
-          '&.Mui-disabled + .MuiSwitch-track': {
-            opacity: 0.5
+            backgroundColor:
+              switchColor || theme.palette.customColors?.OnPrimaryContainer || theme.palette.primary.main,
+            opacity: 1,
+            border: 0
           }
-        },
-        '&.Mui-disabled + .MuiSwitch-track': {
-          opacity: 0.7
         }
       },
       '& .MuiSwitch-thumb': {
-        width: currentSize.thumbSize,
-        height: currentSize.thumbSize,
-        backgroundColor: theme.palette.customColors?.OnPrimary
+        boxSizing: 'border-box',
+        width: 22,
+        height: 22,
+        backgroundColor: theme.palette.common.white,
+        boxShadow: theme.shadows[2]
       },
       '& .MuiSwitch-track': {
-        borderRadius: 20,
-        backgroundColor: theme.palette.customColors?.OutlineVariant,
+        borderRadius: 13,
+        backgroundColor: theme.palette.customColors?.SurfaceVariant || theme.palette.grey[400],
         opacity: 1,
         transition: theme.transitions.create(['background-color'], {
-          duration: 500
+          duration: 200
         })
       }
     }
   }
-)
+
+  return {
+    width: currentSize.width,
+    height: currentSize.height,
+    padding: 0,
+    '& .MuiSwitch-switchBase': {
+      padding: 0,
+      margin: 2,
+      transitionDuration: '300ms',
+      '&.Mui-checked': {
+        transform: `translateX(${currentSize.translateX}px)`,
+        color: theme.palette.customColors?.OnPrimary,
+        '& + .MuiSwitch-track': {
+          backgroundColor: trackColor,
+          opacity: 1
+        },
+        '&.Mui-disabled + .MuiSwitch-track': {
+          opacity: 0.5
+        }
+      },
+      '&.Mui-disabled + .MuiSwitch-track': {
+        opacity: 0.7
+      }
+    },
+    '& .MuiSwitch-thumb': {
+      width: currentSize.thumbSize,
+      height: currentSize.thumbSize,
+      backgroundColor: theme.palette.customColors?.OnPrimary
+    },
+    '& .MuiSwitch-track': {
+      borderRadius: 20,
+      backgroundColor: theme.palette.customColors?.OutlineVariant,
+      opacity: 1,
+      transition: theme.transitions.create(['background-color'], {
+        duration: 500
+      })
+    }
+  }
+})
 
 function MUISwitch(props) {
-  const { switchColor, label, size = 'medium', labelStyle = {}, formControlStyle = {}, ...rest } = props
+  const {
+    switchColor,
+    label,
+    size = 'medium',
+    variant = 'default',
+    labelStyle = {},
+    formControlStyle = {},
+    ...rest
+  } = props
   if (label) {
     return (
       <FormControlLabel
-        control={<StyledSwitch switchColor={switchColor} size={size} {...rest} />}
+        control={<StyledSwitch switchColor={switchColor} size={size} variant={variant} {...rest} />}
         sx={{
           ...formControlStyle
         }}
@@ -88,7 +134,7 @@ function MUISwitch(props) {
     )
   }
 
-  return <StyledSwitch switchColor={switchColor} size={size} {...rest} />
+  return <StyledSwitch switchColor={switchColor} size={size} variant={variant} {...rest} />
 }
 
 export default React.memo(MUISwitch)

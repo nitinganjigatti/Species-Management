@@ -33,7 +33,8 @@ import {
   EGG_UPLOAD_IMAGES,
   EGG_STATUS_MASTER_DATA,
   EGG_STATUS_UPDATE,
-  EGG_GET_MEDIA_LIST
+  EGG_GET_MEDIA_LIST,
+  GET_RECENT_CLUTCH_LIST
 } from 'src/constants/housing/lineageConstants'
 
 import type {
@@ -64,6 +65,8 @@ import type {
   UserAccessCheckResponse,
   GetClutchListParams,
   GetClutchListResponse,
+  GetRecentClutchListParams,
+  GetRecentClutchListResponse,
   GetLitterListParams,
   GetLitterListResponse
 } from 'src/types/housing/models'
@@ -184,7 +187,7 @@ export async function getOffspringStats(params: OffspringStatsPayload): Promise<
 
 export async function deleteOffspring(params: DeleteOffspringPayload): Promise<DeleteOffspringResponse> {
   try {
-    const response = await axiosPost({ url: DELETE_FAMILY_TREE_OFFSPRINGS, body: params })
+    const response = await axiosFormPost({ url: DELETE_FAMILY_TREE_OFFSPRINGS, body: params })
 
     return response?.data
   } catch (error: any) {
@@ -202,6 +205,12 @@ export async function addOffspring(params: AddOffspringPayload): Promise<AddOffs
     console.error('Error adding offspring:', error?.message)
     throw error
   }
+}
+
+export async function getRecentClutchList(params: GetRecentClutchListParams): Promise<GetRecentClutchListResponse> {
+  const response = await axiosGet({ url: GET_RECENT_CLUTCH_LIST, params })
+
+  return response?.data
 }
 
 // ==================== Fetus API ====================

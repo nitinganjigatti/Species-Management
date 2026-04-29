@@ -265,7 +265,9 @@ const AddAnimalDrawer: React.FC<{
         </Box>
 
         {/* Site Selection Card */}
-        <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', width: '100%' }}>
+        <Card
+          sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none', width: '100%' }}
+        >
           <CardHeader
             title={t('select_site')}
             onClick={() => {
@@ -275,13 +277,19 @@ const AddAnimalDrawer: React.FC<{
             }}
             sx={{
               background:
-                localSelections.Sections.length > 0 || localSelections.Enclosures.length > 0 ? theme.palette.customColors.mdAntzNeutral : theme.palette.customColors.displaybgPrimary,
+                localSelections.Sections.length > 0 || localSelections.Enclosures.length > 0
+                  ? theme.palette.customColors.mdAntzNeutral
+                  : theme.palette.customColors.displaybgPrimary,
               p: 2,
               pl: 4,
               pr: 2,
               cursor:
                 localSelections.Sections.length > 0 || localSelections.Enclosures.length > 0 ? 'default' : 'pointer',
-              '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
+              '.MuiCardHeader-title': {
+                fontWeight: '500',
+                fontSize: '16px',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }
             }}
             action={
               <IconButton
@@ -331,11 +339,18 @@ const AddAnimalDrawer: React.FC<{
                 }
               }}
               sx={{
-                background: localSelections.Enclosures.length > 0 ? theme.palette.customColors.mdAntzNeutral : theme.palette.customColors.displaybgPrimary,
+                background:
+                  localSelections.Enclosures.length > 0
+                    ? theme.palette.customColors.mdAntzNeutral
+                    : theme.palette.customColors.displaybgPrimary,
                 p: 2,
                 pl: 4,
                 cursor: localSelections.Enclosures.length > 0 ? 'default' : 'pointer',
-                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
+                '.MuiCardHeader-title': {
+                  fontWeight: '500',
+                  fontSize: '16px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
               }}
               action={
                 <IconButton size='small' disabled={localSelections.Enclosures.length > 0}>
@@ -376,7 +391,11 @@ const AddAnimalDrawer: React.FC<{
                 p: 2,
                 pl: 4,
                 cursor: 'pointer',
-                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
+                '.MuiCardHeader-title': {
+                  fontWeight: '500',
+                  fontSize: '16px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
               }}
               action={
                 <IconButton size='small'>

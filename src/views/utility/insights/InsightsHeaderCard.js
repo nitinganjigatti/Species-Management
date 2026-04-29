@@ -40,9 +40,15 @@ const HeaderCard = ({
             {title}
           </Typography>
         )}
-        {subtitle && (
-          <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '0.875rem' }}>{subtitle}</Typography>
-        )}
+        {subtitle ? (
+          typeof subtitle === 'string' ? (
+            <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '0.875rem' }}>
+              {subtitle}
+            </Typography>
+          ) : (
+            <Box sx={{ mt: 0.5 }}>{subtitle}</Box>
+          )
+        ) : null}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
@@ -73,20 +79,41 @@ const HeaderCard = ({
         )}
         {onAddNew && (
           <Tooltip title={addNewTooltip} arrow>
-            <Stack direction='row' spacing={2} alignItems='center' sx={{ cursor: 'pointer' }} onClick={onAddNew}>
+            <Stack
+              direction='row'
+              spacing={1.5}
+              alignItems='center'
+              sx={{
+                cursor: 'pointer',
+                // px: 2,
+                // py: 1,
+                borderRadius: 1.5,
+                // backgroundColor: theme.palette.common.white,
+                color: theme.palette.customColors.OnPrimary
+                // boxShadow: theme.shadows[6]
+              }}
+              onClick={onAddNew}
+            >
               <Typography
-                sx={{ color: theme.palette.customColors.PrimaryContainer, fontSize: '0.875rem', whiteSpace: 'nowrap' }}
+                sx={{
+                  color: theme.palette.customColors.OnPrimary,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  whiteSpace: 'nowrap'
+                }}
               >
                 {t('add_new')}
               </Typography>
               <IconButton
                 sx={{
-                  border: '1px solid',
-                  borderColor: theme.palette.customColors.PrimaryContainer,
-                  color: theme.palette.customColors.PrimaryContainer,
+                  backgroundColor: theme.palette.common.white,
+                  color: theme.palette.customColors.OnPrimaryContainer,
                   transition: 'color 0.2s',
                   borderRadius: 0.5,
-                  padding: 0
+                  padding: 0,
+                  '&:hover': {
+                    backgroundColor: theme.palette.common.white
+                  }
                 }}
               >
                 <AddIcon sx={{ fontSize: '1rem' }} />

@@ -68,13 +68,16 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
         ...data?.params,
         page_no: pageParam as number,
         limit: PAGE_SIZE,
-        q: search
+        search: search
       })
+
+      const total = res?.data?.total_count || 0
+      const loaded = (pageParam as number) * PAGE_SIZE
 
       return {
         result: res?.data?.result || [],
-        nextPage: res?.data?.result?.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
-        total: res?.data?.total_count || 0
+        nextPage: loaded < total ? (pageParam as number) + 1 : undefined,
+        total
       }
     },
     initialPageParam: 1,
