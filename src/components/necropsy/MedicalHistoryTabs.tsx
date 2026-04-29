@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC, ReactNode } from 'react'
+import React, { useState, useEffect, FC, ReactNode, useRef } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
@@ -31,8 +31,8 @@ type TabType = 'Medical Records' | 'Diagnosis' | 'Prescription' | 'Lab Requests'
 
 const TAB_KEYS: Record<TabType, string> = {
   'Medical Records': 'necropsy_module.medical_records',
-  'Diagnosis': 'necropsy_module.diagnosis',
-  'Prescription': 'necropsy_module.prescription',
+  Diagnosis: 'necropsy_module.diagnosis',
+  Prescription: 'necropsy_module.prescription',
   'Lab Requests': 'necropsy_module.lab_requests'
 }
 
@@ -47,6 +47,7 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
   mortalityCreatedAt
 }) => {
   const theme = useTheme()
+  const prescriptionScrollContainerRef = useRef<HTMLDivElement | null>(null)
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabType>('Medical Records')
   const [medicalStats, setMedicalStats] = useState<MedicalStats | null>(null)
@@ -81,8 +82,7 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
     }
   }
 
-  const hasMedicalHistory =
-    (medicalStats?.medical_record_count ?? 0) > 0 || (medicalStats?.diagnosis_count ?? 0) > 0
+  const hasMedicalHistory = (medicalStats?.medical_record_count ?? 0) > 0 || (medicalStats?.diagnosis_count ?? 0) > 0
 
   const renderTabContent = (): ReactNode => {
     switch (activeTab) {
@@ -94,7 +94,14 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
         return <DiagnosisList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
       case 'Prescription':
         return (
-          <PrescriptionList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
+          <Box ref={prescriptionScrollContainerRef}>
+            <PrescriptionList
+              animalId={animalId}
+              mortalityId={mortalityId}
+              mortalityCreatedAt={mortalityCreatedAt}
+              scrollContainerRef={prescriptionScrollContainerRef}
+            />
+          </Box>
         )
       case 'Lab Requests':
         return <LabRequestsList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />

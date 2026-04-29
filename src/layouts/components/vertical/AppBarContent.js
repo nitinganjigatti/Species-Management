@@ -25,7 +25,7 @@ const AppBarContent = props => {
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
 
   const pathname = usePathname()
-  const pathArray = pathname !== '' ? pathname?.replace(/^\//, '')?.split('/') : [] // removing first forward slash before splitting
+  const pathArray = pathname && pathname !== '' ? pathname.replace(/^\//, '').split('/') : [] // removing first forward slash before splitting
 
   const moduleName = pathArray.length > 0 ? pathArray[0] : ''
   const authData = useContext(AuthContext)

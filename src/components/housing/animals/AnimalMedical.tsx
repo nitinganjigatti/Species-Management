@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC } from 'react'
+import React, { useState, useEffect, FC, useRef } from 'react'
 import {
   Box,
   Typography,
@@ -960,6 +960,7 @@ const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails }) => {
   const theme = useTheme()
   const router = useSafeRouter()
   const { id } = router.query
+  const prescriptionScrollContainerRef = useRef<HTMLDivElement | null>(null)
 
   const [activeTab, setActiveTab] = useState<MainTabType>('Medical Records')
   const animalId = Number(id)
@@ -986,7 +987,11 @@ const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails }) => {
       case 'Diagnosis':
         return <DiagnosisList animalId={animalId} />
       case 'Prescription':
-        return <PrescriptionList animalId={animalId} />
+        return (
+          <Box ref={prescriptionScrollContainerRef}>
+            <PrescriptionList animalId={animalId} scrollContainerRef={prescriptionScrollContainerRef} />
+          </Box>
+        )
       case 'Complaints':
         return <ComplaintsList animalId={animalId} mortalityId={null} mortalityCreatedAt={null} />
       case 'Clinical Notes':
