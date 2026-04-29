@@ -1845,6 +1845,8 @@ const NecropsyReportForm: FC<NecropsyReportFormProps> = ({ mortalityId, necropsy
                       selectedUsers={conductedByUsers}
                       onChange={setConductedByUsers}
                       label={t('necropsy_module.search_users_by_name')}
+                      necropsyCentreId={mortalityData?.necropsy_center_id as number | undefined}
+                      permission='enable_add_necropsy_report'
                     />
                     {mergedErrors.conducted_by && (
                       <FormHelperText sx={{ color: 'error.main', mt: -2 }}>

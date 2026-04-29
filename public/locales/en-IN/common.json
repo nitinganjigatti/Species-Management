@@ -1721,6 +1721,7 @@
     "failed_to_load_options": "Failed to {{action}} {{menu}} options",
     "current_status": "Current Status",
     "accept_necropsy": "ACCEPT NECROPSY",
+    "accept_for_necropsy": "Accept for Necropsy",
     "no_animals_found": "No animals found",
     "add_your_comment": "Add your comment",
     "notes": "Notes",

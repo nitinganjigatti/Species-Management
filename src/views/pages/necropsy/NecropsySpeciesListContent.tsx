@@ -299,6 +299,18 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
       headerName: t('necropsy_module.necropsy_priority'),
       renderCell: (params: GridRenderCellParams<IndexedAnimalRow>) => {
         const priority = params.row.priority?.toLowerCase()
+
+        if (!priority) {
+          return (
+            <Typography
+              variant='body2'
+              sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant, px: 2 }}
+            >
+              -
+            </Typography>
+          )
+        }
+
         const isHigh = priority === 'high'
 
         return (
@@ -316,7 +328,7 @@ const NecropsySpeciesListContent: FC<NecropsySpeciesListContentProps> = ({
             }}
           >
             {isHigh ? '!!! ' : '! '}
-            {priority ? priority.charAt(0).toUpperCase() + priority.slice(1) : ''}
+            {priority.charAt(0).toUpperCase() + priority.slice(1)}
           </Box>
         )
       }

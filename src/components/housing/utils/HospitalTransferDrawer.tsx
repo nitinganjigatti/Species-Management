@@ -123,7 +123,7 @@ const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, o
         content: comment,
         action: 'comment'
       }
-      const response = await createIncomingNecropsySummaryComment(payload as any)
+      const response = await createIncomingNecropsySummaryComment(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Comment added successfully' })
