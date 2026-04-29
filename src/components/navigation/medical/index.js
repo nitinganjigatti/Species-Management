@@ -76,7 +76,7 @@ const composeMedicalNavigation = ({ userSettings, medicalAccess }) => {
     mastersMedicalParent.children.push(DeliveryRoute)
     mastersMedicalParent.children.push(ClinPath)
     mastersMedicalParent.children.push(PurposeOfAnaesthesia)
-    mastersMedicalParent.children.push(UOM)
+    // mastersMedicalParent.children.push(UOM)
   }
 
   medicalNavigationArray.push(mastersMedicalParent)

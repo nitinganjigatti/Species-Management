@@ -66,16 +66,16 @@ const ComposeNavigation = () => {
   navigationArray.push(...dashboardNav)
 
   // Announcements module (App Router)
-  const announcementsNav = announcementsNavigation()
-  navigationArray.push(...announcementsNav)
+  // const announcementsNav = announcementsNavigation()
+  // navigationArray.push(...announcementsNav)
 
   // Notes module (App Router)
-  const notesNav = notesNavigation()
-  navigationArray.push(...notesNav)
+  // const notesNav = notesNavigation()
+  // navigationArray.push(...notesNav)
 
   // Animals module (App Router)
-  const animalsNav = animalsNavigation()
-  navigationArray.push(...animalsNav)
+  // const animalsNav = animalsNavigation()
+  // navigationArray.push(...animalsNav)
 
   if (reports_module) {
     const reportNav = reportNavigation({
@@ -145,8 +145,8 @@ const ComposeNavigation = () => {
   }
 
   // VMS module (temporarily showing all nav items for development)
-  const vmsNav = vmsNavigation({ vmsPassView: true, vmsScan: true, vmsReports: true, vmsGadgetsManage: true })
-  navigationArray.push(...vmsNav)
+  // const vmsNav = vmsNavigation({ vmsPassView: true, vmsScan: true, vmsReports: true, vmsGadgetsManage: true })
+  // navigationArray.push(...vmsNav)
 
   if (housingModule || housingModuleWeb) {
     const settingsNav = settingsNavigation({ userRole })
