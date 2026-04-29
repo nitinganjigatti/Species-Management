@@ -1,31 +1,11 @@
 import React, { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Box,
-  Button,
-  Checkbox,
-  CircularProgress,
-  Drawer,
-  IconButton,
-  Skeleton,
-  Typography,
-  useTheme
-} from '@mui/material'
+import { Box, Button, Checkbox, CircularProgress, Drawer, IconButton, Radio, Typography, useTheme } from '@mui/material'
 import { useSelector, useDispatch } from 'react-redux'
 import Icon from 'src/@core/components/icon'
-import Search from 'src/views/utility/Search'
-import NoDataFound from 'src/views/utility/NoDataFound'
 import { fetchObservationTypes } from 'src/store/slices/housing/notesSlice'
 import type { ObservationType, ObservationMasterItem } from 'src/types/housing'
 import type { RootState, AppDispatch } from 'src/store'
-
-interface SelectedTypeItem {
-  typeId: string
-  typeLabel?: string
-  parentId: string
-  parentLabel?: string
-  parentType: ObservationType
-}
 
 interface SelectedTypes {
   observationType?: ObservationType
@@ -62,9 +42,8 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
 
   const { observationTypes, observationTypesLoading } = useSelector((state: RootState) => state.notes)
 
-  const [search, setSearch] = useState('')
-  const [activeCategory, setActiveCategory] = useState('')
-  const [localSelected, setLocalSelected] = useState<SelectedTypeItem[]>([])
+  const [selectedParentId, setSelectedParentId] = useState<string>('')
+  const [selectedChildIds, setSelectedChildIds] = useState<string[]>([])
 
   useEffect(() => {
     if (open) {
@@ -73,23 +52,14 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
     }
   }, [open, dispatch])
 
-  // Auto-select first tab once observation types are loaded
-  useEffect(() => {
-    if (observationTypes && observationTypes.length > 0 && activeCategory === '') {
-      setActiveCategory(String(observationTypes[0].id))
-    }
-  }, [observationTypes])
-
   const initializeSelection = () => {
-    if (selectedTypes?.childTypes && selectedTypes.childTypes.length > 0 && selectedTypes.observationType) {
-      const selected: SelectedTypeItem[] = selectedTypes.childTypes.map(child => ({
-        typeId: String(child.id),
-        typeLabel: (child as any).type_name || child.name,
-        parentId: String(selectedTypes.observationType!.id),
-        parentLabel: (selectedTypes.observationType as any)!.type_name || selectedTypes.observationType!.name,
-        parentType: selectedTypes.observationType!
-      }))
-      setLocalSelected(selected)
+    if (selectedTypes?.observationType) {
+      setSelectedParentId(String(selectedTypes.observationType.id))
+      if (selectedTypes.childTypes && selectedTypes.childTypes.length > 0) {
+        setSelectedChildIds(selectedTypes.childTypes.map(c => String(c.id)))
+      } else {
+        setSelectedChildIds([])
+      }
     } else {
       setLocalSelected([])
     }
@@ -197,34 +167,26 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
 
   const handleDrawerClose = () => {
     onClose()
-    setSearch('')
-    setLocalSelected([])
-    setActiveCategory('')
+    setSelectedParentId('')
+    setSelectedChildIds([])
   }
 
   const handleAdd = () => {
-    if (localSelected.length === 0) {
+    if (!selectedParent) {
       handleDrawerClose()
-
       return
     }
 
-    const firstSelected = localSelected[0]
-    const parentType = firstSelected.parentType
-
-    const selectedChildTypes = localSelected
-      .filter(s => s.parentId === firstSelected.parentId)
-      .map(s => parentType?.child_observation?.find(c => String(c.id) === s.typeId))
+    const childTypes = selectedChildIds
+      .map(id => selectedParent.child_observation?.find(c => String(c.id) === id))
       .filter((item): item is ObservationMasterItem => Boolean(item))
 
     const result: SelectedTypes = {
-      observationType: parentType,
-      childTypes: selectedChildTypes
+      observationType: selectedParent,
+      childTypes
     }
 
-    if (onAddSelected) {
-      onAddSelected(result)
-    }
+    onAddSelected(result)
     handleDrawerClose()
   }
 
@@ -237,7 +199,6 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
         paper: {
           sx: {
             width: { xs: '100%', sm: 560 },
-            backgroundColor: theme.palette.customColors?.Background,
             display: 'flex',
             flexDirection: 'column',
             height: '100%'
@@ -259,7 +220,6 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            backgroundColor: theme.palette.customColors?.OnPrimary,
             px: 5,
             py: 4,
             borderBottom: `1px solid ${theme.palette.divider}`,
@@ -279,7 +239,7 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
-            <Icon icon='mdi:close' fontSize={30} />
+            <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
 
@@ -298,8 +258,8 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
         {/* Category Tabs */}
         <Box sx={{ px: 6, pb: 3, flexShrink: 0 }}>
           {observationTypesLoading ? (
-            <Box display='flex' justifyContent='center' alignItems='center' py={2}>
-              <CircularProgress size={28} />
+            <Box display='flex' justifyContent='center' alignItems='center' py={8}>
+              <CircularProgress size={32} />
             </Box>
           ) : (
             <Box
@@ -427,93 +387,71 @@ const SelectNoteTypeDrawer: React.FC<SelectNoteTypeDrawerProps> = ({ open, onClo
                     const typeLabel = type.type_name
                     const isSelected = isTypeSelected(type)
 
-                    return (
-                      <Box
-                        key={typeId || index}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          p: 4,
-                          border: isSelected
-                            ? `1px solid ${theme.palette.primary.main}`
-                            : `1px solid ${theme.palette.customColors?.SurfaceVariant}`,
-                          backgroundColor: isSelected
-                            ? theme.palette.customColors?.Surface
-                            : theme.palette.customColors?.OnPrimary,
-                          borderRadius: 1,
-                          cursor: 'pointer',
-                          transition: 'background 0.2s, border-color 0.2s'
-                        }}
-                        onClick={() => handleToggleType(type)}
-                      >
-                        <Box>
-                          <Typography
+                        return (
+                          <Box
+                            key={childId}
                             sx={{
-                              fontSize: '1rem',
-                              fontWeight: 600,
-                              color: theme.palette.customColors?.OnSurfaceVariant
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              px: 4,
+                              py: 1,
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: theme.palette.action.hover
+                              }
                             }}
+                            onClick={() => handleChildToggle(childId)}
                           >
-                            {t(type?.string_id || '', { defaultValue: typeLabel })}
-                          </Typography>
-                        </Box>
-                        <Checkbox checked={isSelected} />
-                      </Box>
-                    )
-                  })
-                )}
-              </>
-            )}
-          </Box>
+                            <Typography
+                              sx={{
+                                fontSize: '0.95rem',
+                                fontWeight: 400,
+                                color: theme.palette.customColors?.OnSurfaceVariant
+                              }}
+                            >
+                              {child.string_id
+                                ? t(child.string_id, { defaultValue: child.type_name || child.name || '' })
+                                : child.type_name || child.name || ''}
+                            </Typography>
+                            <Checkbox
+                              checked={isChildSelected}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleChildToggle(childId)
+                              }}
+                              sx={{
+                                color: theme.palette.customColors?.OutlineVariant,
+                                '&.Mui-checked': {
+                                  color: theme.palette.primary.main
+                                }
+                              }}
+                            />
+                          </Box>
+                        )
+                      })}
+                    </Box>
+                  )}
+                </Box>
+              )
+            })
+          )}
         </Box>
 
         {/* Footer */}
-        <Box
-          sx={{
-            p: 4,
-            borderTop: `1px solid ${theme.palette.divider}`,
-            backgroundColor: theme.palette.customColors?.OnPrimary,
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexShrink: 0,
-            boxShadow: '0px -1px 10px 0px rgba(0, 0, 0, 0.05)'
-          }}
-        >
-          <Typography
+        {canSubmit && (
+          <Box
             sx={{
-              fontSize: '1.25rem',
-              fontWeight: 500,
-              color: theme.palette.customColors?.OnSurface
+              p: 4,
+              borderTop: `1px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.background.paper
             }}
           >
-            {t('selected')} - {localSelected.length}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '50%' }}>
-            <Button
-              variant='outlined'
-              fullWidth
-              onClick={handleDrawerClose}
-              sx={{
-                borderColor: theme.palette.customColors?.OnPrimaryContainer,
-                color: theme.palette.customColors?.OnPrimaryContainer,
-                height: '56px'
-              }}
-            >
-              {t('cancel')}
-            </Button>
-            <Button
-              variant='contained'
-              fullWidth
-              onClick={handleAdd}
-              sx={{ height: '56px' }}
-              disabled={localSelected.length === 0}
-            >
-              {t('add')}
+            <Button variant='contained' fullWidth onClick={handleAdd} sx={{ py: 3, borderRadius: '8px' }}>
+              {t('done')}
             </Button>
           </Box>
-        </Box>
+        )}
       </Box>
     </Drawer>
   )

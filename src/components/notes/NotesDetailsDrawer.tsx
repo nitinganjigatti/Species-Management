@@ -29,6 +29,7 @@ import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 import { useForm } from 'react-hook-form'
 import Toaster from 'src/components/Toaster'
+import { useRouter } from 'next/navigation'
 
 import { addNotesReaction, removeNotesReaction, getNotesDetails, addNotesComment } from 'src/lib/api/notesModule'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -42,6 +43,7 @@ import { deleteObservation } from 'src/lib/api/housing'
 import { NoteDetailsDrawerProps, NotesDetailsData, PriorityIcons, NoteDetails, Attachment } from 'src/types/notes'
 import AddAttachmentsDrawer from './AddAttachmentsDrawer'
 import TaggedMembersDrawer from './TaggedMembersDrawer'
+import EntitiesDrawer from './EntitiesDrawer'
 
 const priorityIcons: PriorityIcons = {
   Low: '/images/priority/flag_priority_low.svg',
@@ -55,12 +57,12 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
   onClose,
   noteDetails,
   openWithComment,
-  // onUpdate,
   refetchNotesList
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
   const auth = useAuth()
+  const router = useRouter()
   const currentUserId = (auth as any)?.userData?.user?.user_id
 
   const [notesDetailsLoading, setNotesDetailsLoading] = useState(false)
@@ -136,18 +138,16 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
     }
 
     try {
+      let data;
       if (wasLiked) {
-        await removeNotesReaction(payload)
+        data = await removeNotesReaction(payload)
       } else {
-        await addNotesReaction(payload)
+        data = await addNotesReaction(payload)
       }
 
       if (refetchNotesList) refetchNotesList()
 
-      Toaster({
-        type: 'success',
-        message: wasLiked ? 'Like removed' : 'Liked successfully'
-      })
+      Toaster({type: 'success',message: data?.message})
     } catch (error: any) {
       // Revert optimistic update on failure
       setLikeState({
@@ -172,14 +172,14 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
         observation: comment.trim()
       }
 
-      await addNotesComment(payload)
+      const data = await addNotesComment(payload)
 
       setComment('')
       fetchObservationDetails()
 
       if (refetchNotesList) refetchNotesList()
 
-      Toaster({ type: 'success', message: 'Comment added successfully' })
+      Toaster({ type: 'success', message: data?.message })
       if (openWithComment) {
         handleClose()
       }
@@ -208,11 +208,10 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
       const response = await addNotesComment(formData)
 
       if (response?.success) {
-        Toaster({ type: 'success', message: response?.message || 'Attachments added successfully' })
+        Toaster({ type: 'success', message: response?.message})
         reset({ attachments: [] })
         fetchObservationDetails()
         if (refetchNotesList) refetchNotesList()
-        // if (onUpdate) onUpdate()
       }
     } catch (error: any) {
       console.error('Error adding attachments:', error?.message || error)
@@ -276,17 +275,15 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
     try {
       const response = await deleteObservation({ observation_id: noteDetails?.observation_id as number })
       if (response?.success) {
-        Toaster({ type: 'success', message: 'Note deleted successfully' })
+        Toaster({ type: 'success', message: response?.message})
         setDeleteDialogOpen(false)
         handleClose()
-        // if (onUpdate) onUpdate()
         if (refetchNotesList) refetchNotesList()
       } else {
-        Toaster({ type: 'error', message: response?.message || 'Failed to delete note' })
+        Toaster({ type: 'error', message: response?.message})
       }
     } catch (error: any) {
       console.error('Error deleting note:', error?.message || error)
-      Toaster({ type: 'error', message: 'Failed to delete note' })
     } finally {
       setDeleteLoading(false)
     }
@@ -302,6 +299,18 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
   const totalComments = notesDetailsData?.notes ? notesDetailsData?.notes?.length : 0
   const commentsList = notesDetailsData?.notes || []
   const hideFAB = showCommentInput || addAttachmentsDrawerOpen
+
+    const handleNavigation = (item: any) => {
+    if (item.ref_type === 'animal') {
+      router.push(`/housing/animals/${item.animalData.animal_id}`)
+    } else if (item.ref_type === 'site') {
+      router.push(`/housing/sites/${item.siteData.site_id}`)
+    } else if (item.ref_type === 'section') {
+      router.push(`/housing/sections/${item.sectionData.section_id}`)
+    } else if (item.ref_type === 'enclosure') {
+      router.push(`/housing/enclosure/${item.enclosureData.enclosure_id}`)
+    }
+  }
 
   // Sync likeState when notesDetailsData is first loaded
   useEffect(() => {
@@ -659,6 +668,7 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                       (item: any, index: number) => (
                         <Box
                           key={index}
+                          onClick={() => handleNavigation(item)}
                           sx={{
                             px: 3,
                             py: 2,
@@ -679,24 +689,11 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
                       )
                     )}
                     {notesDetailsData?.ref_data && notesDetailsData?.ref_data?.length > 3 && (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                        <Button
-                          size='small'
-                          onClick={() => setShowAllEntities(!showAllEntities)}
-                          startIcon={<Icon icon={showAllEntities ? 'mdi:chevron-up' : 'mdi:chevron-down'} />}
-                          sx={{
-                            textTransform: 'none',
-                            fontWeight: 500,
-                            color: theme.palette.primary.main,
-                            '&:hover': {
-                              backgroundColor: alpha(theme.palette.primary.main, 0.08)
-                            }
-                          }}
-                        >
-                          {showAllEntities
-                            ? t('view_less')
-                            : `${t('view_more')} (${(notesDetailsData?.ref_data?.length || 0) - 3})`}
-                        </Button>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 ,alignContent:'center',cursor:'pointer'}} onClick={() => setShowAllEntities(true)}>
+                          <Typography sx={{ fontSize: '16px',fontWeight: 500, color: theme.palette.primary.main}}>
+                            <span style={{ fontSize: '16px',color: theme.palette.primary.main }}>+</span>
+                            {`${(notesDetailsData?.ref_data?.length || 0) - 3} ${t('more')}`}
+                          </Typography>
                       </Box>
                     )}
                   </Box>
@@ -1080,7 +1077,6 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
           refetchNotesList={() => {
             fetchObservationDetails()
             if (refetchNotesList) refetchNotesList()
-            // if (onUpdate) onUpdate()
           }}
         />
       )}
@@ -1095,6 +1091,11 @@ const NotesDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({
         onMembersChange={handleNotifyMembersChange}
         noteTypeId={Number(notesDetailsData?.observation_type_id)}
         onMembersConfirmed={isAddingMembersFromTagged ? handleMembersConfirmedFromTagged : undefined}
+      />
+       <EntitiesDrawer
+        open={showAllEntities}
+        onClose={() => setShowAllEntities(false)}
+        entityData={notesDetailsData?.ref_data}
       />
     </Drawer>
   )

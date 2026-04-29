@@ -1,5 +1,15 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Icon, Avatar } from '@mui/material'
+import {
+  Typography,
+  Box,
+  CircularProgress,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Icon,
+  Avatar,
+  Chip
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
@@ -9,7 +19,30 @@ import Search from 'src/views/utility/Search'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
+/**
+ * @param {{
+ *   open: boolean,
+ *   onClose: () => void,
+ *   data: any,
+ *   onContinue: (result: any) => void,
+ *   localSelections?: any[],
+ *   disabledIds?: any[],
+ *   showCount?: boolean,
+ *   fetchFn?: (params: any) => Promise<any>,
+ *   fetchParams?: Record<string, any>
+ * }} props
+ */
+const EnclosuresDrawer = ({
+  open,
+  onClose,
+  data,
+  onContinue,
+  localSelections,
+  disabledIds = [],
+  showCount = false,
+  fetchFn,
+  fetchParams
+}) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -38,23 +71,39 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
     isFetchingNextPage,
     remove
   } = useInfiniteQuery({
-    queryKey: ['hospital-enclosures', data?.id, search, open],
+    queryKey: ['hospital-enclosures', data?.id, search, open, !!fetchFn],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getEnclosureListSectionWise({
-        ...data?.params,
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        q: search
-      })
+      let result = []
+      let total = 0
+
+      if (fetchFn) {
+        const res = await fetchFn({
+          ...(fetchParams || {}),
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search
+        })
+        result = res?.data?.result || res?.data?.list_items || []
+        total = res?.data?.total_count || 0
+      } else {
+        const res = await getEnclosureListSectionWise({
+          ...data?.params,
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search
+        })
+        result = res?.data?.list_items || []
+        total = res?.data?.total_count || 0
+      }
 
       return {
-        result: res?.data?.list_items || [],
-        nextPage: res?.data?.list_items?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total: res?.data?.total_count || 0
+        result,
+        nextPage: result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: Boolean(open && !!data?.id)
+    enabled: Boolean(open && (fetchFn || !!data?.id))
   })
 
   // Reset local state on open
@@ -90,8 +139,8 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
     //   })
     // }
     setTimeout(() => {
-    fetchNextPage()
-  }, 300)
+      fetchNextPage()
+    }, 300)
   }, [fetchNextPage])
 
   useEffect(() => {
@@ -131,20 +180,25 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
     })
   }
 
-  // Handle select all/deselect all
+  // Handle select all/deselect all (excludes disabled items)
+  const selectableList = useMemo(
+    () => list.filter(enclosure => !disabledIds.includes(enclosure.enclosure_id || enclosure.id)),
+    [list, disabledIds]
+  )
+
   const handleSelectAll = () => {
     if (isAllSelected) {
       setSelectedEnclosures([])
     } else {
-      setSelectedEnclosures([...list])
+      setSelectedEnclosures([...selectableList])
     }
     setIsAllSelected(!isAllSelected)
   }
 
   // Update select all state when selection changes
   useEffect(() => {
-    if (list.length > 0) {
-      const allSelected = list.every(enclosure =>
+    if (selectableList.length > 0) {
+      const allSelected = selectableList.every(enclosure =>
         selectedEnclosures.some(
           selectedEnclosure =>
             (selectedEnclosure.enclosure_id || selectedEnclosure.id) === (enclosure.enclosure_id || enclosure.id)
@@ -154,7 +208,7 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
     } else {
       setIsAllSelected(false)
     }
-  }, [selectedEnclosures, list])
+  }, [selectedEnclosures, selectableList])
 
   // Handle continue button click
   const handleContinue = () => {
@@ -220,6 +274,7 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
           const isSelected = selectedEnclosures.some(
             selectedEnclosure => (selectedEnclosure.enclosure_id || selectedEnclosure.id) === enclosureId
           )
+          const isDisabled = disabledIds.includes(enclosureId)
 
           return (
             <Box
@@ -231,50 +286,77 @@ const EnclosuresDrawer = ({ open, onClose, data, onContinue, localSelections }) 
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 0.8,
-                bgcolor: theme.palette.common.white,
+                bgcolor: isDisabled ? theme.palette.action.disabledBackground : theme.palette.common.white,
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                cursor: 'pointer',
+                cursor: isDisabled ? 'default' : 'pointer',
                 transition: 'all 0.2s ease',
-                ...(isSelected && {
-                  borderColor: theme.palette.success.main,
-                  bgcolor: '#f8fff8'
-                })
+                opacity: isDisabled ? 0.6 : 1,
+                ...(!isDisabled &&
+                  isSelected && {
+                    borderColor: theme.palette.success.main,
+                    bgcolor: '#f8fff8'
+                  })
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }} onClick={() => handleEnclosureSelect(enclosure)}> 
-                <Avatar
-                  src={enclosure?.images?.[0]?.file}
-                  alt={enclosure?.user_enclosure_name}
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 0.5
-                  }}
-                />
-                <Box>
-                  <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
-                    {enclosure.user_enclosure_name || enclosure.name}
-                  </Typography>
-                  {(enclosure.enclosure_type || enclosure.type) && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant='body2' color='textSecondary'>
-                        {enclosure.enclosure_type || enclosure.type}
+              {showCount ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar
+                    src={enclosure?.image}
+                    alt={enclosure?.user_enclosure_name}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 0.5
+                    }}
+                  />
+                  <Box>
+                    <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
+                      {enclosure.user_enclosure_name}
+                    </Typography>
+                    <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                      <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                        {`Animals ${enclosure?.enclosure_wise_animal_count ?? 0}`}
                       </Typography>
                     </Box>
-                  )}
-                  {(enclosure.capacity || enclosure.animal_capacity) && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                      <Icon icon='mdi:account-group-outline' fontSize={16} color='textSecondary' />
-                      <Typography variant='body2' color='textSecondary'>
-                        Capacity: {enclosure.capacity || enclosure.animal_capacity}
-                      </Typography>
-                    </Box>
-                  )}
+                  </Box>
                 </Box>
-              </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar
+                    src={enclosure?.images?.[0]?.file}
+                    alt={enclosure?.user_enclosure_name}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 0.5
+                    }}
+                  />
+                  <Box>
+                    <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
+                      {enclosure.user_enclosure_name || enclosure.name}
+                    </Typography>
+                    {(enclosure.enclosure_type || enclosure.type) && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant='body2' color='textSecondary'>
+                          {enclosure.enclosure_type || enclosure.type}
+                        </Typography>
+                      </Box>
+                    )}
+                    {(enclosure.capacity || enclosure.animal_capacity) && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                        <Icon icon='mdi:account-group-outline' fontSize={16} color='textSecondary' />
+                        <Typography variant='body2' color='textSecondary'>
+                          Capacity: {enclosure.capacity || enclosure.animal_capacity}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              )}
               <Checkbox
-                checked={isSelected}
+                checked={isDisabled || isSelected}
+                disabled={isDisabled}
                 onChange={() => handleEnclosureSelect(enclosure)}
                 sx={{
                   mt: 0.5,

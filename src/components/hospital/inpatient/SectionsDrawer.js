@@ -1,5 +1,15 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Avatar, Tooltip } from '@mui/material'
+import {
+  Typography,
+  Box,
+  CircularProgress,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Avatar,
+  Chip,
+  Tooltip
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
@@ -10,7 +20,30 @@ import Search from 'src/views/utility/Search'
 import { getAllSections } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 
-const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) => {
+/**
+ * @param {{
+ *   open: boolean,
+ *   onClose: () => void,
+ *   data: any,
+ *   onContinue: (result: any) => void,
+ *   localSelections?: any[],
+ *   disabledIds?: any[],
+ *   showCount?: boolean,
+ *   fetchFn?: (params: any) => Promise<any>,
+ *   fetchParams?: Record<string, any>
+ * }} props
+ */
+const SectionsDrawer = ({
+  open,
+  onClose,
+  data,
+  onContinue,
+  localSelections,
+  disabledIds = [],
+  showCount = false,
+  fetchFn,
+  fetchParams
+}) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -39,23 +72,39 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
     isFetchingNextPage,
     remove
   } = useInfiniteQuery({
-    queryKey: [data?.queryKey, data?.id, search, open],
+    queryKey: [data?.queryKey, data?.id, search, open, !!fetchFn],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getAllSections({
-        ...data?.params,
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        search
-      })
+      let result = []
+      let total = 0
+
+      if (fetchFn) {
+        const res = await fetchFn({
+          ...(fetchParams || {}),
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search
+        })
+        result = res?.data?.result || []
+        total = res?.data?.total_count || 0
+      } else {
+        const res = await getAllSections({
+          ...data?.params,
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          search
+        })
+        result = res?.data?.result || []
+        total = res?.data?.total_count || 0
+      }
 
       return {
-        result: res?.data?.result || [],
-        nextPage: res?.data?.result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total: res?.data?.total_count || 0
+        result,
+        nextPage: result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: Boolean(open && !!data?.id && data?.queryKey)
+    enabled: Boolean(open && data?.queryKey && (fetchFn || !!data?.id))
   })
 
   // Reset local state on open
@@ -91,8 +140,8 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
     //   })
     // }
     setTimeout(() => {
-    fetchNextPage()
-  }, 300)
+      fetchNextPage()
+    }, 300)
   }, [fetchNextPage])
 
   useEffect(() => {
@@ -125,27 +174,32 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
     })
   }
 
-  // Handle select all/deselect all
+  // Handle select all/deselect all (excludes disabled items)
+  const selectableList = useMemo(
+    () => list.filter(section => !disabledIds.includes(section.section_id)),
+    [list, disabledIds]
+  )
+
   const handleSelectAll = () => {
     if (isAllSelected) {
       setSelectedSections([])
     } else {
-      setSelectedSections([...list])
+      setSelectedSections([...selectableList])
     }
     setIsAllSelected(!isAllSelected)
   }
 
   // Update select all state when selection changes
   useEffect(() => {
-    if (list.length > 0) {
-      const allSelected = list.every(section =>
+    if (selectableList.length > 0) {
+      const allSelected = selectableList.every(section =>
         selectedSections.some(selectedSection => selectedSection.section_id === section.section_id)
       )
       setIsAllSelected(allSelected)
     } else {
       setIsAllSelected(false)
     }
-  }, [selectedSections, list])
+  }, [selectedSections, selectableList])
 
   // Handle continue button click
   const handleContinue = () => {
@@ -209,6 +263,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
         {list.map(section => {
           // Check if section is selected by comparing section_id
           const isSelected = selectedSections.some(selectedSection => selectedSection.section_id === section.section_id)
+          const isDisabled = disabledIds.includes(section.section_id)
 
           return (
             <Box
@@ -220,43 +275,73 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }) =>
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 0.8,
-                bgcolor: theme.palette.common.white,
+                bgcolor: isDisabled ? theme.palette.action.disabledBackground : theme.palette.common.white,
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                cursor: 'pointer',
+                cursor: isDisabled ? 'default' : 'pointer',
                 transition: 'all 0.2s ease',
-                   ...(isSelected && {
+                opacity: isDisabled ? 0.6 : 1,
+                ...(isSelected && {
                   borderColor: theme.palette.success.main,
                   backgroundColor: '#f8fff8'
                 })
               }}
             >
-              <Box sx={{ flex: 1 }}>
-                <Box
-                  sx={{
-                    width: 450,
-                    display: 'flex',
-                    gap: 4,
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                  onClick={() => handleSectionSelect(section)}
-
-                >
-                  <Tooltip title = {section?.section_name}/>
-                  <CellInfo
-                    value={section?.section_name}
-                    imgUrl={section?.images?.[0]?.file}
-                    defaultImage={'/images/housing/section-icon-colored.png'}
-                    defaultImageAlt={'section image'}
-                    inchagename={section?.incharge_name || ''}
-                  />
+              {showCount ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                  <Avatar
+                    src={
+                      section?.images?.[0]?.file || section?.default_icon || '/images/housing/section-icon-colored.png'
+                    }
+                    alt={section?.section_name}
+                    sx={{ width: 40, height: 40, borderRadius: 0.5 }}
+                  >
+                    {section?.section_name?.[0]}
+                  </Avatar>
+                  <Box>
+                    <Typography variant='subtitle1' sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                      {section?.section_name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                        <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                          {`Enclosures ${section?.enclosure_count ?? 0}`}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                        <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                          {`Animals ${section?.animal_count ?? 0}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </Box>
-              </Box>
+              ) : (
+                <Box sx={{ flex: 1 }}>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      display: 'flex',
+                      gap: 4,
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <CellInfo
+                      value={section?.section_name}
+                      imgUrl={section?.images?.[0]?.file || section?.default_icon}
+                      defaultImage={'/images/housing/section-icon-colored.png'}
+                      defaultImageAlt={'section image'}
+                      inchagename={section?.incharge_name || ''}
+                    />
+                  </Box>
+                </Box>
+              )}
               <Checkbox
-                checked={isSelected}
+                checked={isDisabled || isSelected}
+                disabled={isDisabled}
                 onChange={() => handleSectionSelect(section)}
-                onClick={(e) => e.stopPropagation()}
+                onClick={e => e.stopPropagation()}
                 sx={{
                   mt: 0.5,
                   color: '#37BD69',

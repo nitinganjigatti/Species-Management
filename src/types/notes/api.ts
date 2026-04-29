@@ -1,4 +1,4 @@
-import { NoteItem, NotesDetailsData } from 'src/types/notes'
+import { NoteItem, NotesDetailsData, NoteTypeItem } from 'src/types/notes'
 
 export interface GetNotesListParams {
   zoo_id: number | string
@@ -43,4 +43,26 @@ export interface GetNotesDetailsResponse {
   success: boolean
   data: NotesDetailsData
   message?: string
+}
+
+// Note types
+export interface GetNoteTypesListResponse {
+  success: boolean
+  data: NoteTypeItem[]
+  message: string | null
+}
+export interface AddNoteTypePayload {
+  type_name: string
+  parent_id?: string
+}
+
+export interface UpdateNoteTypePayload {
+  observation_type_id?: number | string
+  type_name: string
+  parent_type_id?: string
+}
+export interface AddNoteTypeResponse {
+  success: boolean
+  data: unknown[]
+  message: string
 }

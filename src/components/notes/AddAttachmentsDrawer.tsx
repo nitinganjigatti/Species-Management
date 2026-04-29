@@ -94,7 +94,7 @@ const AddAttachmentsDrawer: React.FC<AddAttachmentsDrawerProps> = ({
           backgroundColor: theme.palette.background.paper
         }}
       >
-        <Button fullWidth variant='outlined' onClick={() => reset({ attachments: [] })} disabled={attachmentsLoading}>
+        <Button fullWidth variant='outlined' onClick={() => reset({ attachments: [] })} disabled={!watch('attachments')?.length ||attachmentsLoading}>
           {t('clear')}
         </Button>
         <Button

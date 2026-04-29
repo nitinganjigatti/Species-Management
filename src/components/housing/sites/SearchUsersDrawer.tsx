@@ -12,6 +12,7 @@ import Icon from 'src/@core/components/icon'
 import UserSearchFilterDrawer, { UserSearchFilters } from './UserSearchFilterDrawer'
 import type { User } from 'src/types/housing'
 import type { RootState, AppDispatch } from 'src/store'
+import { useTranslation } from 'react-i18next'
 
 interface SearchUsersDrawerProps {
   open: boolean
@@ -20,7 +21,7 @@ interface SearchUsersDrawerProps {
   onUsersSelected: (users: User[]) => void
 }
 
-const DEFAULT_FILTERS: UserSearchFilters = { Site: '', Role: '' }
+const DEFAULT_FILTERS: UserSearchFilters = { Site: [], Role: [] }
 
 const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, selectedUsers, onUsersSelected }) => {
   const { t } = useTranslation()
@@ -41,16 +42,16 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
   const prevOpenRef = useRef(false)
 
   // Calculate filter count
-  const filterCount = (appliedFilters.Site ? 1 : 0) + (appliedFilters.Role ? 1 : 0)
+  const filterCount = (appliedFilters.Site?.length > 0 ? 1 : 0) + (appliedFilters.Role?.length > 0 ? 1 : 0)
 
-  // Fetch users with filters
+  // Fetch users with filters (sends comma-separated IDs)
   const fetchUsersWithFilters = (filters: UserSearchFilters) => {
     if (zooId) {
       dispatch(
         fetchUsers({
           zoo_id: zooId,
-          site_id: filters.Site ? String(filters.Site) : undefined,
-          role_id: filters.Role ? String(filters.Role) : undefined
+          site_id: filters.Site?.length > 0 ? filters.Site.join(',') : undefined,
+          role_id: filters.Role?.length > 0 ? filters.Role.join(',') : undefined
         })
       )
     }

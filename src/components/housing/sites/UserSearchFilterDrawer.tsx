@@ -1,11 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, Radio, Typography, FormControlLabel, RadioGroup, CircularProgress } from '@mui/material'
+import { Box, Checkbox, Typography, FormControlLabel, CircularProgress } from '@mui/material'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import Search from 'src/views/utility/Search'
 import { getUsersRoleList } from 'src/lib/api/housing'
 import { getZooWiseSiteLists } from 'src/lib/api/hospital/inpatient'
 import { useAuth } from 'src/hooks/useAuth'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { debounce } from 'lodash'
+import { useTranslation } from 'react-i18next'
 
 type FilterMenuType = 'Site' | 'Role'
 
@@ -17,8 +20,8 @@ interface FilterOption {
 }
 
 export interface UserSearchFilters {
-  Site: string | number
-  Role: string | number
+  Site: (string | number)[]
+  Role: (string | number)[]
 }
 
 interface UserSearchFilterDrawerProps {
@@ -28,7 +31,7 @@ interface UserSearchFilterDrawerProps {
   initialFilters?: UserSearchFilters
 }
 
-const DEFAULT_FILTERS: UserSearchFilters = { Site: '', Role: '' }
+const DEFAULT_FILTERS: UserSearchFilters = { Site: [], Role: [] }
 
 const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
   open,
@@ -120,30 +123,36 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
     if (open) {
       const restored = initialFilters || DEFAULT_FILTERS
       setSelectedOptions({
-        Site: restored.Site || '',
-        Role: restored.Role || ''
+        Site: restored.Site || [],
+        Role: restored.Role || []
       })
       setSelectedMenu('Site')
     }
   }, [open, initialFilters])
 
+  const debouncedFetchSites = useMemo(() => {
+    return debounce(q => fetchSites(q), 500)
+  }, [fetchSites])
+
   // Handle search within current menu
   const handleSearch = (query: string) => {
     setSearchQuery(query)
     if (selectedMenu === 'Site') {
-      fetchSites(query)
+      debouncedFetchSites(query)
     }
-    // For roles, we filter client-side since the API doesn't support search
   }
+  useEffect(() => {
+    return () => {
+      debouncedFetchSites.cancel()
+    }
+  }, [debouncedFetchSites])
 
   // Get filtered items based on search query
   const getFilteredItems = (): FilterOption[] => {
     const items = menuData[selectedMenu] || []
     if (!searchQuery || selectedMenu === 'Site') {
-      // Sites are already filtered via API
       return items
     }
-    // Client-side filtering for roles
 
     return items.filter(item => item.label.toLowerCase().includes(searchQuery.toLowerCase()))
   }
@@ -154,12 +163,17 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
     setSearchQuery('')
   }
 
-  // Handle option selection
-  const handleOptionChange = (value: string | number) => {
-    setSelectedOptions(prev => ({
-      ...prev,
-      [selectedMenu]: value
-    }))
+  // Handle option toggle (multi-select)
+  const handleOptionToggle = (value: string | number) => {
+    setSelectedOptions(prev => {
+      const current = prev[selectedMenu] || []
+      const stringValue = String(value)
+      const isSelected = current.some(v => String(v) === stringValue)
+
+      const updated = isSelected ? current.filter(v => String(v) !== stringValue) : [...current, value]
+
+      return { ...prev, [selectedMenu]: updated }
+    })
   }
 
   // Apply filters
@@ -173,14 +187,6 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
     setSelectedOptions(DEFAULT_FILTERS)
   }
 
-  // Get badge count for menu
-  const getSelectedOptionsForBadge = () => {
-    return {
-      Site: selectedOptions.Site ? [selectedOptions.Site] : [],
-      Role: selectedOptions.Role ? [selectedOptions.Role] : []
-    }
-  }
-
   const filteredItems = getFilteredItems()
 
   return (
@@ -191,12 +197,11 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
       onApply={handleApply}
       onClearAll={handleClearAll}
       filterLists={FILTER_MENUS}
-      selectedOptions={getSelectedOptionsForBadge()}
+      selectedOptions={selectedOptions}
       selectedItem={selectedMenu}
       onSelectItem={handleSelectMenu}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-        {/* Search within filter options */}
         <Box sx={{ mb: 3 }}>
           <Search
             value={searchQuery}
@@ -206,27 +211,33 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
           />
         </Box>
 
-        {/* Filter options list */}
         <Box sx={{ flex: 1, overflowY: 'auto' }}>
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
               <CircularProgress size={24} />
             </Box>
           ) : (
-            <RadioGroup
-              value={String(selectedOptions[selectedMenu] || '')}
-              onChange={e => handleOptionChange(e.target.value)}
-            >
-              {filteredItems.map(item => (
+            filteredItems.map(item => {
+              const isSelected = selectedOptions[selectedMenu]?.some(v => String(v) === String(item.value))
+
+              return (
                 <FormControlLabel
                   key={item.value}
-                  value={String(item.value)}
-                  control={<Radio />}
-                  label={<Typography fontSize='16px'>{item.label}</Typography>}
-                  sx={{ mb: 2 }}
+                  control={<Checkbox checked={!!isSelected} onChange={() => handleOptionToggle(item.value)} />}
+                  label={
+                    <TextEllipsisWithModal
+                      enableDialog={false}
+                      text={item.label}
+                      style={{
+                        fontSize: '1rem',
+                        maxWidth: '230px'
+                      }}
+                    />
+                  }
+                  sx={{ mb: 2, display: 'flex' }}
                 />
-              ))}
-            </RadioGroup>
+              )
+            })
           )}
 
           {!loading && filteredItems.length === 0 && (

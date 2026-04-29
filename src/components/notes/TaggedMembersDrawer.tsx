@@ -6,6 +6,7 @@ import { Close as CloseIcon, Person as PersonIcon, PersonAdd as PersonAddIcon } 
 import { useTheme } from '@mui/material/styles'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { AssignedUserDetails, TaggedMembersDrawerProps } from 'src/types/notes'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
   open,
@@ -59,7 +60,7 @@ const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <PersonIcon sx={{ fontSize: 24, color: theme.palette.text.secondary }} />
           <Typography sx={{ fontWeight: 600, fontSize: '1rem' }}>
-            {taggedMembers?.length}
+            {taggedMembers?.length}-
             {taggedMembers?.length > 1 ? t('notes_module.tagged_members') : t('notes_module.tagged_member')}
           </Typography>
         </Box>
@@ -109,6 +110,14 @@ const TaggedMembersDrawer: React.FC<TaggedMembersDrawerProps> = ({
             />
           </Box>
         ))}
+        {taggedMembers?.length === 0 && (
+          <>
+            <NoDataFound />
+            <Typography sx={{ color: theme.palette.text.secondary, textAlign: 'center', mt: 4 }}>
+              {t('notes_module.no_members_have_been_tagged')}
+            </Typography>
+          </>
+        )}
       </Box>
     </Drawer>
   )

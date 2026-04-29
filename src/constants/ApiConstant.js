@@ -1059,6 +1059,14 @@ export const GET_NOTES_DETAILS = 'v1/observation/details'
 
 export const ADD_NOTES_COMMENT = 'v1/observation/note/add'
 
+export const GET_NOTE_TYPES_LIST = 'master/observation/list'
+
+export const ADD_NOTE_TYPE = 'master/observation/add'
+
+export const UPDATE_NOTE_TYPE = 'master/observation/edit'
+
+export const DELETE_NOTE_TYPE = 'master/observation/delete'
+
 // Request Department
 export const REQUEST_DEPARTMENTS = 'v1/request/departments'
 export const REQUEST_DEPARTMENT = 'v1/request/department'

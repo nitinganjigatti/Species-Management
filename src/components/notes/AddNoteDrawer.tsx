@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, Typography, Drawer, IconButton, Grid, useTheme, Card, FormHelperText } from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Grid, useTheme, Card, FormHelperText, Button } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Person as PersonIcon, AttachFile, AddCircleOutline, Check } from '@mui/icons-material'
 import { LoadingButton } from '@mui/lab'
@@ -23,15 +23,6 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import LocationInfoCard from 'src/views/utility/LocationInfoCard'
 import { createObservation, editObservation } from 'src/lib/api/housing'
 import AddAnimalDrawer from './AddAnimalDrawer'
-
-const validationSchema = yup.object().shape({
-  observation_type_id: yup.string().required('Note type is required'),
-  observation_name: yup.string().optional(),
-  notify_members: yup.boolean().optional(),
-  selected_animals: yup.array().min(1, 'Select at least one entity').required('Entity is required'),
-  attachments: yup.array().optional(),
-  priority: yup.string().required('Priority is required').oneOf(['Low', 'Moderate', 'High', 'Critical'])
-})
 
 export interface AnimalData {
   animal_id: string | number
@@ -107,6 +98,21 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
       icon: 'boxicons:fire'
     }
   ]
+
+  const validationSchema = yup.object().shape({
+    observation_type_id: yup.string().required(t('notes_module.note_type_is_required')),
+    observation_name: yup.string().optional(),
+    notify_members: yup.boolean().optional(),
+    selected_animals: yup
+      .array()
+      .min(1, t('notes_module.select_at_least_one_entity'))
+      .required(t('notes_module.entity_is_required')),
+    attachments: yup.array().optional(),
+    priority: yup
+      .string()
+      .required(t('notes_module.priority_is_required'))
+      .oneOf(['Low', 'Moderate', 'High', 'Critical'])
+  })
 
   const {
     reset,
@@ -229,12 +235,13 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
       }
     })
 
-    // Combine observation type ID with child types
-    const observationTypeIds = observationType
-      ? [observationType.id, ...childTypes.map((c: any) => c.id)].filter(
-          id => id && id !== 'null' && id !== 'undefined'
-        )
-      : []
+    // If children are selected, use only children. Otherwise use parent.
+    const observationTypeIds =
+      childTypes.length > 0
+        ? childTypes.map((c: any) => c.id).filter(id => id && id !== 'null' && id !== 'undefined')
+        : observationType
+        ? [observationType.id].filter(id => id && id !== 'null' && id !== 'undefined')
+        : []
 
     // Get assigned user IDs
     const assignToIds = notifyMembers.map((m: any) => m.user_id).filter(id => id && id !== 'null' && id !== 'undefined')
@@ -311,7 +318,9 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
           observation_name: '',
           priority: 'Low',
           notify_members: false,
-          attachments: []
+          attachments: [],
+          observation_type_id: '',
+          selected_animals: []
         })
         refetchNotesList()
         setObservationType(null)
@@ -322,25 +331,12 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
         setDeletedAttachmentIds([])
         setOriginalAttachmentIds([])
 
-        reset({
-          observation_name: '',
-          priority: 'Low',
-          notify_members: false,
-          attachments: [],
-          observation_type_id: '',
-          selected_animals: []
-        })
-
         onClose()
       } else {
-        Toaster({
-          type: 'error',
-          message: res?.message || `Failed to ${editData?.observation_id ? 'update' : 'add'} note`
-        })
+        Toaster({ type: 'error', message: res?.message })
       }
-    } catch (e) {
-      console.error('Error submitting note:', e)
-      Toaster({ type: 'error', message: 'Error occurred while submitting' })
+    } catch (error: any) {
+      console.error('Error submitting note:', error?.message || error)
     } finally {
       setSubmitLoader(false)
     }
@@ -352,7 +348,9 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
       observation_name: '',
       priority: 'Low',
       notify_members: false,
-      attachments: []
+      attachments: [],
+      observation_type_id: '',
+      selected_animals: []
     })
     setObservationType(null)
     setChildTypes([])
@@ -361,14 +359,6 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
     setShowAllEntities(false)
     setDeletedAttachmentIds([])
     setOriginalAttachmentIds([])
-    reset({
-      observation_name: '',
-      priority: 'Low',
-      notify_members: false,
-      attachments: [],
-      observation_type_id: '',
-      selected_animals: []
-    })
   }
 
   // Reset form when drawer opens or editData changes
@@ -541,20 +531,33 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                   >
                     <Box
                       sx={{
-                        bgcolor: theme.palette.customColors?.Background,
+                        bgcolor: theme.palette.customColors?.displaybgPrimary,
                         px: 3,
                         py: 2,
                         borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
                       }}
                     >
-                      <Typography
+                      <Box
                         sx={{
-                          color: theme.palette.customColors?.OnSurfaceVariant,
-                          fontSize: '1rem'
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          cursor: 'pointer'
                         }}
+                        onClick={() => setOpenSelectNoteTypeDrawer(true)}
                       >
-                        {t('notes_module.note_type')}
-                      </Typography>
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors?.OnSurfaceVariant,
+                            fontSize: '1rem'
+                          }}
+                        >
+                          {t('notes_module.note_type')}
+                        </Typography>
+                        <IconButton size='small'>
+                          <Icon icon='mdi:chevron-right' />
+                        </IconButton>
+                      </Box>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                       <Box sx={{ px: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -633,9 +636,9 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                 <ControlledTextField
                   control={control}
                   errors={errors}
-                  label='Enter Notes'
+                  label={t('notes_module.enter_notes')}
                   name='observation_name'
-                  placeholder='Enter Notes'
+                  placeholder={t('notes_module.enter_notes')}
                   fullWidth
                   multiline
                   minRows={3}
@@ -760,8 +763,10 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                         borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between'
+                        justifyContent: 'space-between',
+                        cursor: 'pointer'
                       }}
+                      onClick={() => setAnimalDrawer(true)}
                     >
                       <Typography
                         sx={{
@@ -773,11 +778,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                         {selectedAnimals?.length} {t('notes_module.entities')}
                       </Typography>
                       {!editData?.observation_id && (
-                        <IconButton
-                          size='small'
-                          onClick={() => setAnimalDrawer(true)}
-                          sx={{ color: theme.palette.primary.main }}
-                        >
+                        <IconButton size='small' sx={{ color: theme.palette.customColors.Secondary }}>
                           <AddCircleOutline />
                         </IconButton>
                       )}
@@ -834,6 +835,27 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                           </Box>
                         </Box>
                       ))}
+                      {selectedAnimals?.length > 3 && (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+                          <Button
+                            size='small'
+                            onClick={() => setShowAllEntities(!showAllEntities)}
+                            startIcon={<Icon icon={showAllEntities ? 'mdi:chevron-up' : 'mdi:chevron-down'} />}
+                            sx={{
+                              textTransform: 'none',
+                              fontWeight: 500,
+                              color: theme.palette.primary.main,
+                              '&:hover': {
+                                backgroundColor: alpha(theme.palette.primary.main, 0.08)
+                              }
+                            }}
+                          >
+                            {showAllEntities
+                              ? t('view_less')
+                              : `${t('view_more')} (${(selectedAnimals?.length || 0) - 3})`}
+                          </Button>
+                        </Box>
+                      )}
                     </Box>
                   </Box>
                 ) : (
@@ -887,7 +909,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                 <ControlledMultiFileUpload
                   control={control}
                   name='attachments'
-                  label='Upload attachments'
+                  label={t('upload_attachments')}
                   acceptedFileTypes='*'
                   preview
                   previewPlacement='top'
@@ -935,7 +957,10 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
                               border: `1px solid ${
                                 isSelected ? option.bgColor : theme.palette.customColors.OnSurfaceVariant
                               }`,
-                              backgroundColor: isSelected ? option.bgColor : 'transparent'
+                              backgroundColor: isSelected ? option.bgColor : 'transparent',
+                              '&:hover': {
+                                backgroundColor: isSelected ? option.bgColor : 'transparent'
+                              }
                             }}
                           >
                             {option.iconType === 'text' ? (
@@ -1033,7 +1058,7 @@ const AddNoteDrawer = ({ open, onClose, refetchNotesList, editData }: AddNoteDra
         open={animalDrawer}
         onClose={() => setAnimalDrawer(false)}
         handleAnimalSelect={handleAnimalSelect}
-        selectedAnimals={undefined}
+        selectedAnimals={selectedAnimals}
       />
     </Drawer>
   )
