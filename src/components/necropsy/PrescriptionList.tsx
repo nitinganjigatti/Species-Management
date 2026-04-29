@@ -60,17 +60,6 @@ type SubTabType = (typeof SUB_TABS)[number]
 
 // ==================== Component ====================
 
-const PrescriptionList: FC<PrescriptionListProps> = ({ animalId, mortalityId, mortalityCreatedAt }) => {
-  const { t } = useTranslation()
-  const theme = useTheme()
-  const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
-  const [data, setData] = useState<PrescriptionSection[]>([])
-  const [counts, setCounts] = useState<PrescriptionCounts>({ active: 0, closed: 0, all: 0 })
-  const [pageNo, setPageNo] = useState<number>(1)
-  const [loading, setLoading] = useState<boolean>(true)
-  const [hasMore, setHasMore] = useState<boolean>(false)
-  const [loadingMore, setLoadingMore] = useState<boolean>(false)
-
 const getTypeParam = (tab: SubTabType): 'active' | 'closed' | 'all' => {
   switch (tab) {
     case 'Active':
@@ -111,7 +100,10 @@ const mergePrescriptionSections = (
     mergedMap.set(sectionKey, {
       ...existing,
       ...section,
-      data: [...(Array.isArray(existing.data) ? existing.data : []), ...(Array.isArray(section.data) ? section.data : [])]
+      data: [
+        ...(Array.isArray(existing.data) ? existing.data : []),
+        ...(Array.isArray(section.data) ? section.data : [])
+      ]
     })
   })
 
@@ -148,7 +140,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
   const theme = useTheme()
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null)
   const requestIdRef = useRef(0)
-
+  const { t } = useTranslation()
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
   const [data, setData] = useState<PrescriptionSection[]>([])
   const [counts, setCounts] = useState<PrescriptionCounts>({ active: 0, closed: 0, all: 0 })
@@ -322,8 +314,8 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
             dose.quantity && dose.unit_name
               ? `${dose.quantity} ${dose.unit_name}`
               : dose.quantity
-                ? `${dose.quantity}`
-                : null
+              ? `${dose.quantity}`
+              : null
         }))
         .filter(dose => dose.time || dose.dosage)
     }
@@ -415,7 +407,9 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
                     fontWeight: 500
                   }}
                 >
-                  {`${tab === 'Active' ? t('active') : tab === 'Stopped' ? t('necropsy_module.stopped') : t('all')} - ${getTabCount(tab)}`}
+                  {`${
+                    tab === 'Active' ? t('active') : tab === 'Stopped' ? t('necropsy_module.stopped') : t('all')
+                  } - ${getTabCount(tab)}`}
                 </Typography>
               </Box>
             ))}

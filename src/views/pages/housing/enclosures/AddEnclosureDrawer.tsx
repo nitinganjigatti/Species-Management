@@ -439,11 +439,9 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
     if (isSubEnclosureMode && parentEnclosureId && open && !isEditMode) {
       const parentIdStr = String(parentEnclosureId)
       const fromList = parentEnclosureList.find(p => String(p.value) === parentIdStr)
-      const parentOption: SelectOption =
-        fromList || { value: parentIdStr, label: parentEnclosureName || '' }
+      const parentOption: SelectOption = fromList || { value: parentIdStr, label: parentEnclosureName || '' }
       const current = getValues('parentEnclosure') as SelectOption | null | string
-      const currentValue =
-        current && typeof current !== 'string' ? (current as SelectOption).value : undefined
+      const currentValue = current && typeof current !== 'string' ? (current as SelectOption).value : undefined
       if (String(currentValue ?? '') !== parentIdStr) {
         setValue('parentEnclosure', parentOption, { shouldValidate: true })
       }
@@ -646,8 +644,8 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
               {isEditMode
                 ? (t('housing_module.edit_enclosure') as string)
                 : isSubEnclosureMode
-                  ? (t('housing_module.add_sub_enclosure') as string)
-                  : (t('housing_module.add_new_enclosure') as string)}
+                ? (t('housing_module.add_sub_enclosure') as string)
+                : (t('housing_module.add_new_enclosure') as string)}
             </Typography>
           </Box>
 
