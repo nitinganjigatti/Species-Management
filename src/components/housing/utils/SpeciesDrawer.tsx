@@ -25,6 +25,8 @@ interface SpeciesDrawerProps {
   open: boolean
   onClose: () => void
   data: SpeciesDrawerData | null
+  title?: string
+  icon?: string
 }
 
 interface PageResult {
@@ -33,7 +35,7 @@ interface PageResult {
   total: number
 }
 
-const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) => {
+const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data, title = 'Species', icon }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -96,7 +98,10 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
     }
   }, [open, data?.id, search, queryClient])
 
-  const list = useMemo(() => queryData?.pages?.flatMap((page: PageResult) => page?.result) || [], [queryData])
+  const list = useMemo(
+    () => queryData?.pages?.flatMap((page: PageResult) => page?.result || []).filter(Boolean) || [],
+    [queryData]
+  )
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
   const speciesLabel = Number(total) === (0 || 1) ? t('specie') : t('species')
@@ -139,9 +144,10 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title={t('species')}
-      icon='/images/housing/Enclosure icon.png'
-      iconColor={theme.palette.primary.main}
+      title={title}
+      icon={icon || '/images/housing/Enclosure icon.png'}
+      iconColor={icon ? theme.palette.customColors.OnSurfaceVariant : theme.palette.primary.main}
+      recolorStringIcon={Boolean(icon)}
     >
       <Box
         sx={{
@@ -158,12 +164,12 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
       >
         <CellInfo
           value={data?.name}
-          subtitle=""
+          subtitle=''
           imgUrl={data?.image}
-          avatarUrl=""
-          inchagename=""
-          defaultImage=""
-          defaultImageAlt=""
+          avatarUrl=''
+          inchagename=''
+          defaultImage=''
+          defaultImageAlt=''
           color={(theme.palette as any).customColors?.OnSurfaceVariant}
           subtitleColor={(theme.palette as any).customColors?.secondaryBg}
         />
@@ -188,9 +194,9 @@ const SpeciesDrawer: React.FC<SpeciesDrawerProps> = ({ open, onClose, data }) =>
         />
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
-        {list.map((species: Species) => (
+        {list.map((species: Species, index: number) => (
           <HousingSpeciesCard
-            key={species.tsn}
+            key={species.tsn ? `${species.tsn}-${index}` : `sp-${index}`}
             species={species}
             textColor={theme.palette.customColors.OnSurfaceVariant}
           />

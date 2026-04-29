@@ -142,6 +142,7 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
       if (!sectionId) return
 
       router.push(`/housing/sections/${sectionId}`)
+      router.push(`/housing/sections/${sectionId}`)
 
       if (onClose) {
         onClose()
@@ -173,12 +174,12 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
       >
         <CellInfo
           value={data?.name}
-          subtitle=""
+          subtitle=''
           imgUrl={data?.image}
-          avatarUrl=""
-          inchagename=""
-          defaultImage=""
-          defaultImageAlt=""
+          avatarUrl=''
+          inchagename=''
+          defaultImage=''
+          defaultImageAlt=''
           color={(theme.palette as any).customColors?.OnSurfaceVariant}
           subtitleColor={(theme.palette as any).customColors?.secondaryBg}
         />

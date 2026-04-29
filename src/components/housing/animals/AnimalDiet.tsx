@@ -349,14 +349,20 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                     {diet.dietitian_name && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {diet.dietitian_by_profile ? (
-                          <Avatar
-                            src={diet.dietitian_by_profile}
-                            sx={{ width: 20, height: 20 }}
-                          />
+                          <Avatar src={diet.dietitian_by_profile} sx={{ width: 20, height: 20 }} />
                         ) : (
-                          <Icon icon='mdi:account-circle' width={20} height={20} color={theme.palette.customColors?.neutralSecondary} />
+                          <Icon
+                            icon='mdi:account-circle'
+                            width={20}
+                            height={20}
+                            color={theme.palette.customColors?.neutralSecondary}
+                          />
                         )}
-                        <Tooltip title={`${diet.dietitian_name} • ${diet.dietitian_role_name || t('animals_module.dietitian')}`}>
+                        <Tooltip
+                          title={`${diet.dietitian_name} • ${
+                            diet.dietitian_role_name || t('animals_module.dietitian')
+                          }`}
+                        >
                           <Typography
                             sx={{
                               fontSize: 14,
@@ -385,7 +391,11 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                       color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
                     }}
                   >
-                    {diet.attached_by ? t('animals_module.added_by') : diet.detached_by ? t('animals_module.detached_by') : ''}
+                    {diet.attached_by
+                      ? t('animals_module.added_by')
+                      : diet.detached_by
+                      ? t('animals_module.detached_by')
+                      : ''}
                   </Typography>
                   <UserAvatarDetails
                     profile_image={diet.dietitian_by_profile || diet.attached_by_profile}

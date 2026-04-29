@@ -21,6 +21,7 @@ import notesNavigation from 'src/components/navigation/notes'
 import animalsNavigation from 'src/components/navigation/animals'
 import componentLibraryNavigation from 'src/components/navigation/component-library'
 import vmsNavigation from 'src/components/navigation/vms'
+import collectionNavigation from 'src/components/navigation/collection'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -152,6 +153,10 @@ const ComposeNavigation = () => {
     const settingsNav = settingsNavigation({ userRole })
     navigationArray.push(...settingsNav)
   }
+
+  // Collection module (App Router)
+  const collectionNav = collectionNavigation()
+  navigationArray.push(...collectionNav)
 
   // Component Library (Developer Tools)
   const componentLibraryNav = componentLibraryNavigation()

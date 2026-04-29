@@ -1,7 +1,7 @@
 import React from 'react'
 import { Breadcrumbs, Typography } from '@mui/material'
 import Link from 'next/link'
-import { useRouter } from 'next/router'
+import { usePathname } from 'next/navigation'
 
 const DynamicBreadcrumbs = ({
   pageItems,
@@ -11,12 +11,11 @@ const DynamicBreadcrumbs = ({
   hiddenSegments = [],
   nonClickableSegments = []
 }) => {
-  const router = useRouter()
+  const pathname = usePathname()
 
   // Helper to process URL segments
   const generateBreadcrumbs = () => {
-    const asPathWithoutQuery = router.asPath.split('?')[0]
-    const asPathNestedRoutes = asPathWithoutQuery.split('/').filter(v => v.length > 0)
+    const asPathNestedRoutes = (pathname || '').split('/').filter(v => v.length > 0)
 
     return asPathNestedRoutes
       .map((subpath, idx) => {

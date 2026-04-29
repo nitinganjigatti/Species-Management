@@ -1,9 +1,10 @@
 import React from 'react'
-import { Box, Tooltip, Typography } from '@mui/material'
+import { alpha, Box, Tooltip, Typography } from '@mui/material'
 import IconBox from './IconBox'
+import IconifyIcon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 
-const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
+const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick, dotColor, iconName, iconColor }) => {
   const theme = useTheme()
 
   const formatNumber = num => {
@@ -29,7 +30,36 @@ const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
       }}
       onClick={onClick}
     >
-      {imagePath && (
+      {/* Icon box with Iconify icon */}
+      {iconName && (
+        <Box
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            borderRadius: 1,
+            backgroundColor: alpha(iconColor || theme.palette.common.white, 0.15),
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}
+        >
+          <IconifyIcon icon={iconName} fontSize={28} color={iconColor || theme.palette.common.white} />
+        </Box>
+      )}
+      {/* Colored dot indicator */}
+      {!iconName && dotColor && (
+        <Box
+          sx={{
+            width: { xs: 8, sm: 10 },
+            height: { xs: 8, sm: 10 },
+            borderRadius: '50%',
+            backgroundColor: dotColor,
+            flexShrink: 0
+          }}
+        />
+      )}
+      {/* Image-based icon (existing) */}
+      {!iconName && !dotColor && imagePath && (
         <IconBox
           icon={Icon}
           imagePath={imagePath}

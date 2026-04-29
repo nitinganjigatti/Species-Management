@@ -25,9 +25,24 @@ interface SpeciesInnerCardProps {
   animalCount?: number
   imgUrl?: string
   sex?: SexData
+  enclosureName?: string
+  sectionName?: string
+  // When true, render every sex chip even if the value is 0 — matches the species listing table,
+  // which shows all four columns regardless. Default keeps the original truthy gate (hides zeros).
+  alwaysShowSexChips?: boolean
 }
 
-const SpeciesInnerCard: React.FC<SpeciesInnerCardProps> = ({ species, completeName, commonName, animalCount, imgUrl, sex }) => {
+const SpeciesInnerCard: React.FC<SpeciesInnerCardProps> = ({
+  species,
+  completeName,
+  commonName,
+  animalCount,
+  imgUrl,
+  sex,
+  enclosureName,
+  sectionName,
+  alwaysShowSexChips = false
+}) => {
   const theme = useTheme() as any
 
   return (
@@ -54,6 +69,26 @@ const SpeciesInnerCard: React.FC<SpeciesInnerCardProps> = ({ species, completeNa
             default_icon: imgUrl || species?.default_icon
           }}
         />
+        {(enclosureName || sectionName) && (
+          <Box sx={{ ml: 12, display: 'flex', flexDirection: 'column' }}>
+            {enclosureName && (
+              <Typography
+                variant='body2'
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                {enclosureName}
+              </Typography>
+            )}
+            {sectionName && (
+              <Typography
+                variant='body2'
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
+              >
+                {sectionName}
+              </Typography>
+            )}
+          </Box>
+        )}
       </Box>
       {/* Bottom Row: Chips on left, Count on right */}
       <Box
@@ -74,53 +109,67 @@ const SpeciesInnerCard: React.FC<SpeciesInnerCardProps> = ({ species, completeNa
             ml: 12
           }}
         >
-          {(sex?.male || species?.sex_data?.male) && (
-            <Chip
-              label={`M - ${sex?.male ?? species?.sex_data?.male}`}
-              size='small'
-              sx={{
-                bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
-                color: theme.palette.customColors.addPrimary,
-                borderRadius: 0.5
-              }}
-            />
-          )}
+          {(() => {
+            const maleVal = sex?.male ?? species?.sex_data?.male
+            const femaleVal = sex?.female ?? species?.sex_data?.female
+            const undeterminedVal = sex?.undetermined ?? species?.sex_data?.undetermined
+            const indeterminateVal = sex?.indeterminate ?? species?.sex_data?.indeterminate
+            const showAll = alwaysShowSexChips
+            const visible = (v: number | undefined) => (showAll ? v !== undefined && v !== null : !!v)
+            const safe = (v: number | undefined) => (v ?? 0)
 
-          {(sex?.female || species?.sex_data?.female) && (
-            <Chip
-              label={`F - ${sex?.female ?? species?.sex_data?.female}`}
-              size='small'
-              sx={{
-                bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
-                color: theme.palette.customColors.customDropdownColor,
-                borderRadius: 0.5
-              }}
-            />
-          )}
+            return (
+              <>
+                {visible(maleVal) && (
+                  <Chip
+                    label={`M - ${safe(maleVal)}`}
+                    size='small'
+                    sx={{
+                      bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
+                      color: theme.palette.customColors.addPrimary,
+                      borderRadius: 0.5
+                    }}
+                  />
+                )}
 
-          {(sex?.undetermined || species?.sex_data?.undetermined) && (
-            <Chip
-              label={`UD - ${sex?.undetermined ?? species?.sex_data?.undetermined}`}
-              size='small'
-              sx={{
-                bgcolor: theme.palette.customColors.SurfaceVariant,
-                color: theme.palette.customColors.Error,
-                borderRadius: 0.5
-              }}
-            />
-          )}
+                {visible(femaleVal) && (
+                  <Chip
+                    label={`F - ${safe(femaleVal)}`}
+                    size='small'
+                    sx={{
+                      bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
+                      color: theme.palette.customColors.customDropdownColor,
+                      borderRadius: 0.5
+                    }}
+                  />
+                )}
 
-          {(sex?.indeterminate || species?.sex_data?.indeterminate) && (
-            <Chip
-              label={`ID - ${sex?.indeterminate ?? species?.sex_data?.indeterminate}`}
-              size='small'
-              sx={{
-                bgcolor: theme.palette.customColors.displaybgSecondary,
-                color: theme.palette.customColors.OnPrimaryContainer,
-                borderRadius: 0.5
-              }}
-            />
-          )}
+                {visible(undeterminedVal) && (
+                  <Chip
+                    label={`UD - ${safe(undeterminedVal)}`}
+                    size='small'
+                    sx={{
+                      bgcolor: theme.palette.customColors.SurfaceVariant,
+                      color: theme.palette.customColors.Error,
+                      borderRadius: 0.5
+                    }}
+                  />
+                )}
+
+                {visible(indeterminateVal) && (
+                  <Chip
+                    label={`ID - ${safe(indeterminateVal)}`}
+                    size='small'
+                    sx={{
+                      bgcolor: theme.palette.customColors.displaybgSecondary,
+                      color: theme.palette.customColors.OnPrimaryContainer,
+                      borderRadius: 0.5
+                    }}
+                  />
+                )}
+              </>
+            )
+          })()}
         </Box>
 
         {/* Right: Animal Count */}

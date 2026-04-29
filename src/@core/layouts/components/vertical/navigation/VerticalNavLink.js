@@ -80,14 +80,31 @@ const VerticalNavLink = ({
   //     return false
   //   }
   // }
+  // trailingSlash:true in next.config causes App Router's usePathname() to
+  // return paths like '/collection/species/' while nav items declare
+  // '/collection/species'. Normalize both sides before comparing.
+  const stripTrailing = p => (p && p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p || '')
+
+  // True when the current route is the nav item's path OR nested under it.
+  // Descendant matching keeps the parent nav item highlighted on detail pages
+  // (e.g. '/collection/species/123' still lights up '/collection/species').
+  // handleURLQueries already does this when a query string is present; this
+  // makes the behavior consistent regardless of the query string.
+  const pathUnder = (current, nav) => {
+    const c = stripTrailing(current)
+    const n = stripTrailing(nav)
+    if (!n || n === '/') return c === n
+    return c === n || c.startsWith(n + '/')
+  }
+
   const isNavLinkActive = () => {
     // Check activeWhen array first if it exists
     if (item.activeWhen && Array.isArray(item.activeWhen)) {
-      return item.activeWhen.some(path => router.pathname === path || handleURLQueries(router, path))
+      return item.activeWhen.some(path => pathUnder(router.pathname, path) || handleURLQueries(router, path))
     }
 
     // Fall back to default behavior
-    return router.pathname === item.path || handleURLQueries(router, item.path)
+    return pathUnder(router.pathname, item.path) || handleURLQueries(router, item.path)
   }
 
   return (

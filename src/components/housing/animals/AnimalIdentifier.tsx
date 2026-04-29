@@ -513,9 +513,12 @@ const AnimalIdentifier: React.FC = () => {
             )}
           </MenuItem>
         ) : (
-          // Show edit and delete options for active identifiers
-          <>
+          // Show edit and delete options for active identifiers.
+          // Must be an array, not a Fragment — MUI Menu walks its children
+          // to find MenuItems and Fragments trip that traversal.
+          [
             <MenuItem
+              key='edit'
               onClick={() => {
                 setAddIdentifierDrawer(true)
                 if (selectedRow) {
@@ -538,8 +541,9 @@ const AnimalIdentifier: React.FC = () => {
               }}
             >
               {t('animals_module.edit_identifier')}
-            </MenuItem>
+            </MenuItem>,
             <MenuItem
+              key='delete'
               onClick={() => {
                 setOpenDeleteDialog(true)
                 setSelectedItemToDelete(selectedRow)
@@ -554,7 +558,7 @@ const AnimalIdentifier: React.FC = () => {
             >
               {t('animals_module.delete_identifier')}
             </MenuItem>
-          </>
+          ]
         )}
       </Menu>
     </Box>

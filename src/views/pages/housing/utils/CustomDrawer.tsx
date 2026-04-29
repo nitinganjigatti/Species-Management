@@ -9,12 +9,13 @@ interface CustomDrawerProps {
   title: string
   icon?: string | ReactElement
   iconColor?: string
+  recolorStringIcon?: boolean
   children: ReactNode
   backgroundColor?: string
   zIndex?: number
 }
 
-const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon, iconColor, children, backgroundColor, zIndex }) => {
+const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon, iconColor, recolorStringIcon, children, backgroundColor, zIndex }) => {
   const theme = useTheme()
 
   return (
@@ -56,7 +57,26 @@ const CustomDrawer: React.FC<CustomDrawerProps> = ({ open, onClose, title, icon,
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
               {icon &&
                 (typeof icon === 'string' ? (
-                  <Box component='img' src={icon} alt='Drawer Icon' sx={{ width: 32, height: 32 }} />
+                  recolorStringIcon && iconColor ? (
+                    <Box
+                      aria-label='Drawer Icon'
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        backgroundColor: iconColor,
+                        WebkitMaskImage: `url(${icon})`,
+                        maskImage: `url(${icon})`,
+                        WebkitMaskRepeat: 'no-repeat',
+                        maskRepeat: 'no-repeat',
+                        WebkitMaskPosition: 'center',
+                        maskPosition: 'center',
+                        WebkitMaskSize: 'contain',
+                        maskSize: 'contain'
+                      }}
+                    />
+                  ) : (
+                    <Box component='img' src={icon} alt='Drawer Icon' sx={{ width: 32, height: 32 }} />
+                  )
                 ) : (
                   React.cloneElement(icon, {
                     sx: { fontSize: 32, color: 'inherit', ...((icon.props as any)?.sx || {}) }
