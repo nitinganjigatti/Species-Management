@@ -13,6 +13,7 @@ const HeaderCard = ({
   subtitle,
   isListingPage,
   onEdit,
+  onEditRestricted,
   onDelete,
   onAddNew,
   onTimeClick,
@@ -129,7 +130,7 @@ const HeaderCard = ({
                 transition: 'color 0.2s'
               }}
               size='small'
-              onClick={onEdit}
+              onClick={onEditRestricted ? onEditRestricted : onEdit}
             >
               <ModeEditOutlineOutlinedIcon sx={{ color: theme.palette.common.white }} />
             </IconButton>
