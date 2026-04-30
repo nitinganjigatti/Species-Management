@@ -521,9 +521,7 @@ const AnimalIdentifier: React.FC = () => {
                 if (selectedRow) {
                   setIdentifierData({
                     id: String(selectedRow.id),
-                    type: selectedRow.local_identifier_type_id
-                      ? String(selectedRow.local_identifier_type_id)
-                      : undefined,
+                    type: selectedRow?.type ? String(selectedRow?.type) : undefined,
                     local_identifier_value: selectedRow.local_identifier_value,
                     is_primary: selectedRow.is_primary ? String(selectedRow.is_primary) : undefined
                   })

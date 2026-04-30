@@ -600,6 +600,7 @@ export interface AnimalIdentifier {
   created_at?: string
   modified_at?: string
   updated_at?: string
+  type?: string
 }
 
 export interface IndexedIdentifierRow extends AnimalIdentifier {
