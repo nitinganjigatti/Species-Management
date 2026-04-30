@@ -25,14 +25,6 @@ const composeSettingsNavigation = ({ userRole } = {}) => {
     })
   }
 
-  if (userRole === 'Super Admin') {
-    settingsNavigation.push({
-      title: 'Zoo Settings',
-      path: '/zoo-configuration/settings',
-      icon: 'mdi:cog'
-    })
-  }
-
   return settingsNavigation
 }
 
