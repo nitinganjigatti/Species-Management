@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState, useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Box, Checkbox, Typography, FormControlLabel, CircularProgress } from '@mui/material'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import Search from 'src/views/utility/Search'
@@ -72,9 +71,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
             }))
           : []
 
-      // Add "All Sites" at the beginning
-      const dataWithAll: FilterOption[] = [{ label: t('housing_module.all_sites'), value: '' }, ...siteList]
-      setMenuData(prev => ({ ...prev, Site: dataWithAll }))
+      setMenuData(prev => ({ ...prev, Site: siteList }))
     } catch (error: any) {
       console.error('Error fetching sites:', error?.message || error)
     } finally {
@@ -96,9 +93,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
           }))
         : []
 
-      // Add "All Roles" at the beginning
-      const dataWithAll: FilterOption[] = [{ label: t('housing_module.all_roles'), value: '' }, ...roleList]
-      setMenuData(prev => ({ ...prev, Role: dataWithAll }))
+      setMenuData(prev => ({ ...prev, Role: roleList }))
     } catch (error: any) {
       console.error('Error fetching roles:', error?.message || error)
     } finally {
@@ -242,7 +237,7 @@ const UserSearchFilterDrawer: React.FC<UserSearchFilterDrawerProps> = ({
 
           {!loading && filteredItems.length === 0 && (
             <Typography sx={{ color: 'text.secondary', textAlign: 'center', py: 4 }}>
-              {t('no_items_found', { item: selectedMenu.toLowerCase() })}
+              {t('no_data_found')}
             </Typography>
           )}
         </Box>

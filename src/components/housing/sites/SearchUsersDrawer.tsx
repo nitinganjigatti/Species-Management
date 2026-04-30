@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Box, Typography, Drawer, IconButton, Button, Checkbox, Skeleton, Badge, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useSelector, useDispatch } from 'react-redux'
@@ -182,12 +181,10 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
               backgroundColor: theme.palette.customColors?.OnPrimary,
               px: 5,
               py: 4,
-              borderBottom: `1px solid ${theme.palette.divider}`,
+              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               flexShrink: 0
             }}
           >
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-              <Icon icon='mdi:account-search-outline' fontSize={28} color={theme.palette.primary.main} />
               <Typography
                 sx={{
                   fontSize: '24px',
@@ -197,7 +194,6 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
               >
                 {t('housing_module.search_users')}
               </Typography>
-            </Box>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleDrawerClose}>
               <Icon icon='mdi:close' fontSize={30} />
             </IconButton>
@@ -221,10 +217,10 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
               <IconButton
                 onClick={() => setFilterDrawerOpen(true)}
                 sx={{
-                  border: `1px solid ${filterCount > 0 ? theme.palette.primary.main : theme.palette.divider}`,
+                  border: `1px solid ${filterCount > 0 ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant}`,
                   borderRadius: 1,
-                  width: 48,
-                  height: 48,
+                  width: 46,
+                  height: 46,
                   backgroundColor: filterCount > 0 ? theme.palette.primary.main : 'transparent',
                   '&:hover': {
                     backgroundColor: filterCount > 0 ? theme.palette.primary.dark : theme.palette.action.hover
@@ -233,7 +229,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
               >
                 <Badge badgeContent={filterCount} color='error' invisible={filterCount === 0}>
                   <Icon
-                    icon='mdi:filter-variant'
+                    icon='mage:filter'
                     fontSize={24}
                     color={filterCount > 0 ? theme.palette.common.white : theme.palette.text.secondary}
                   />
@@ -244,11 +240,11 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
             {/* Active Filter Chips */}
             {filterCount > 0 && (
               <Box sx={{ mt: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {appliedFilters.Site && (
+                {appliedFilters.Site?.length > 0 && (
                   <Chip
-                    label={t('housing_module.site_filter')}
+                    label={`${t('site')} (${appliedFilters.Site.length})`}
                     onDelete={() => {
-                      const newFilters = { ...appliedFilters, Site: '' }
+                      const newFilters = { ...appliedFilters, Site: [] }
                       setAppliedFilters(newFilters)
                       fetchUsersWithFilters(newFilters)
                     }}
@@ -257,11 +253,11 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
                     variant='outlined'
                   />
                 )}
-                {appliedFilters.Role && (
+                {appliedFilters.Role?.length > 0 && (
                   <Chip
-                    label={t('housing_module.role_filter')}
+                    label={`${t('role')} (${appliedFilters.Role.length})`}
                     onDelete={() => {
-                      const newFilters = { ...appliedFilters, Role: '' }
+                      const newFilters = { ...appliedFilters, Role: [] }
                       setAppliedFilters(newFilters)
                       fetchUsersWithFilters(newFilters)
                     }}
@@ -372,6 +368,7 @@ const SearchUsersDrawer: React.FC<SearchUsersDrawerProps> = ({ open, onClose, se
                             user_name={user.user_name || user.full_name || 'NA'}
                             role={user.role_name || 'NA'}
                             size='medium'
+                            text_color={theme.palette.customColors?.OnSurfaceVariant}
                           />
                           <Checkbox checked={isSelected} />
                         </Box>
