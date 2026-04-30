@@ -287,7 +287,7 @@ const DashboardFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
+          <Grid size={{ md: 4, sm: 4, xs: 4 }}>
             {leftMenu.map(menu => (
               <Box
                 key={menu.id}
@@ -308,7 +308,7 @@ const DashboardFilter = ({
               </Box>
             ))}
           </Grid>
-          <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
+          <Grid size={{ md: 8, sm: 8, xs: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',

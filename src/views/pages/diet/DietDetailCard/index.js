@@ -574,7 +574,7 @@ const DietDetailCard = ({
                   size='small'
                 />
 
-                <Typography
+                <Typography component='div'
                   sx={{
                     color: theme.palette.customColors.Outline,
                     fontSize: '14px',

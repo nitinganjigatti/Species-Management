@@ -267,7 +267,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
             <Typography variant='h6'>Calories</Typography>
           </Box>
           <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
-            <Grid item xs={12} sm={3}>
+            <Grid  xs={12} sm={3}>
               <FormControl fullWidth>
                 <Controller
                   name='nutrional_value'
@@ -295,7 +295,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3.2}>
+            <Grid  xs={12} sm={3.2}>
               <FormControl fullWidth>
 
                 {console.log(uomList, 'uomList')}
@@ -335,7 +335,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid  xs={12} sm={3}>
               <FormControl fullWidth>
                 <Controller
                   name='kcal'

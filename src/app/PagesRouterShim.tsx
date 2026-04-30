@@ -2,7 +2,7 @@
 
 import { ReactNode, useMemo } from 'react'
 import { RouterContext } from 'next/dist/shared/lib/router-context.shared-runtime'
-import { useRouter as useAppRouter, usePathname } from 'next/navigation'
+import { useRouter as useAppRouter, usePathname, useParams } from 'next/navigation'
 import { useSafeSearchParams } from 'src/context/SearchParamsContext'
 
 const buildUrl = (url: any): string => {
@@ -28,15 +28,21 @@ export default function PagesRouterShim({ children }: { children: ReactNode }) {
   const appRouter = useAppRouter()
   const pathname = usePathname() || ''
   const searchParams = useSafeSearchParams()
+  const pathParams = useParams() || {}
 
   const mockRouter = useMemo(() => {
     const query: Record<string, string> = {}
     if (searchParams) {
-      searchParams.forEach((v: string, k: string) => {
+      ;(searchParams as any).forEach((v: string, k: string) => {
         query[k] = v
       })
     }
-    const searchString = searchParams ? searchParams.toString() : ''
+    // Merge dynamic route params from the App Router (e.g. [id] -> "373")
+    for (const k of Object.keys(pathParams)) {
+      const v = (pathParams as Record<string, string | string[]>)[k]
+      query[k] = Array.isArray(v) ? v.join('/') : (v as string)
+    }
+    const searchString = searchParams ? (searchParams as any).toString() : ''
     const asPath = pathname + (searchString ? `?${searchString}` : '')
 
     const noop = () => {}
@@ -88,7 +94,7 @@ export default function PagesRouterShim({ children }: { children: ReactNode }) {
       isLocaleDomain: false,
       events: { on: noop, off: noop, emit: noop }
     }
-  }, [appRouter, pathname, searchParams])
+  }, [appRouter, pathname, searchParams, pathParams])
 
   return <RouterContext.Provider value={mockRouter as any}>{children}</RouterContext.Provider>
 }

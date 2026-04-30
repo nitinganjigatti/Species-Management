@@ -408,9 +408,8 @@ const AddEnclosureToGroup = ({
               </Box>
             ) : selectedItems && selectedItems?.length > 0 ? (
               selectedItems.map((item, index) => (
-                <Box sx={{ mt: 3 }}>
+                <Box key={item?.id ?? index} sx={{ mt: 3 }}>
                   <Card
-                    key={index}
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',

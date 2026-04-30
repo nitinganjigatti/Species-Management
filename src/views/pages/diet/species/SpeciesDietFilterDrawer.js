@@ -228,7 +228,7 @@ const SpeciesDietFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
+          <Grid size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu.map(menu => {
               const badgeCount = getMenuBadgeCount(menu.name)
 
@@ -246,7 +246,7 @@ const SpeciesDietFilterDrawer = ({
 
                   // onClick={() => handleMenuClick(menu)}
                 >
-                  <Typography
+                  <Typography component='div'
                     sx={{
                       color: theme.palette.primary.dark,
                       fontSize: '16px',
@@ -263,7 +263,7 @@ const SpeciesDietFilterDrawer = ({
               )
             })}
           </Grid>
-          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
+          <Grid size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               ref={scrollContainerRef}
               onScroll={handleScroll}

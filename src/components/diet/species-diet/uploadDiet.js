@@ -330,7 +330,7 @@ function UploadDiet({
                       control={control}
                       //   rules={{ required: !editNurseryId }}
                       render={({ field: { value, onChange } }) => (
-                        <Grid onClick={() => fileInputRef.current.click()} item size={{ md: 12, sm: 12, xs: 12 }}>
+                        <Grid onClick={() => fileInputRef.current.click()} size={{ md: 12, sm: 12, xs: 12 }}>
                           <input
                             type='file'
                             multiple

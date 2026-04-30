@@ -374,7 +374,7 @@ const DietReportPage = () => {
 
   return (
     <Grid container spacing={6}>
-      <Grid item size={{ xs: 12 }}>
+      <Grid size={{ xs: 12 }}>
         <Card>
           <CardHeader
             title={RenderUtility.pageTitle('Diet Reports')}
@@ -404,7 +404,7 @@ const DietReportPage = () => {
                 spacing={4}
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <Grid item size={{ xs: 8, sm: 5, md: 5 }}>
+                <Grid size={{ xs: 8, sm: 5, md: 5 }}>
                   <CustomOptionDateRangePickers
                     onChange={handleDateRangeChange}
                     filterDates={{ startDate: filterDates.from_date, endDate: filterDates.to_date }}
@@ -412,7 +412,7 @@ const DietReportPage = () => {
                   />
                 </Grid>
 
-                <Grid item size={{ xs: 4, sm: 4 }}>
+                <Grid size={{ xs: 4, sm: 4 }}>
                   <Grid
                     container
                     spacing={2}

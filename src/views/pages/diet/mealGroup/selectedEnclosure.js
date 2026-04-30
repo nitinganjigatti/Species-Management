@@ -112,10 +112,9 @@ const SelectedEnclosure = ({
                 </Box>
               ) : (
                 selectedEnclosures.map((item, index) => (
-                  <Box sx={{ m: 3 }}>
+                  <Box key={item.enclosure_id} sx={{ m: 3 }}>
                     {' '}
                     <Card
-                      key={index}
                       sx={{
                         p: 4,
                         width: '100%',

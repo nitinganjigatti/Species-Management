@@ -65,7 +65,9 @@ const MealGroup = () => {
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const theme = useTheme()
-  const firstSite = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
+  const allSites = authData?.userData?.user?.zoos?.[0]?.sites || []
+  const uniqueSites = Array.from(new Map(allSites.map(site => [site.site_id, site])).values())
+  const firstSite = uniqueSites?.[0] || null
 
   const updateUrlParams = params => {
     const query = { ...routerQuery, ...params }
@@ -133,7 +135,7 @@ const MealGroup = () => {
       if (siteIdFromQuery) {
         console.log('All Sites >', allSites[0])
 
-        const matchedSite = allSites[0].sites.find(site => site.site_id == siteIdFromQuery)
+        const matchedSite = uniqueSites.find(site => site.site_id == siteIdFromQuery)
         if (matchedSite) {
           setDefaultSite(matchedSite)
           setSelectedOption(matchedSite.site_id)
@@ -143,7 +145,7 @@ const MealGroup = () => {
       }
 
       // If no site_id in query or no match, fallback to first site
-      const first = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
+      const first = uniqueSites?.[0] || null
       if (first) {
         setDefaultSite(first)
         setSelectedOption(first.site_id)
@@ -443,7 +445,8 @@ const MealGroup = () => {
         limit: paginationModel.pageSize
       })
       if (response.success) {
-        setSectionList(response.data.result)
+        const uniqueSections = Array.from(new Map(response.data.result.map(item => [item.section_id, item])).values())
+        setSectionList(uniqueSections)
       } else {
         console.error('Failed to fetch site stats:', response?.message || 'Unknown error')
       }
@@ -459,7 +462,8 @@ const MealGroup = () => {
         limit: paginationModel.pageSize
       })
       if (response.success) {
-        setSpeciesList(response.data.result)
+        const uniqueSpecies = Array.from(new Map(response.data.result.map(item => [item.species_id, item])).values())
+        setSpeciesList(uniqueSpecies)
       } else {
         console.error('Failed to fetch site species:', response?.message || 'Unknown error')
       }
@@ -469,6 +473,7 @@ const MealGroup = () => {
   }
 
   const fetchMealGroupNames = async () => {
+    if (!selectedOption) return
     const groupparams = {
       site_id: selectedOption,
       page_no: paginationModel.page + 1
@@ -476,7 +481,8 @@ const MealGroup = () => {
     try {
       const response = await getMealGroupList(groupparams)
       if (response.success) {
-        setGroupList(response.data.result)
+        const uniqueGroups = Array.from(new Map(response.data.result.map(item => [item.id, item])).values())
+        setGroupList(uniqueGroups)
       } else {
         console.error('Failed to fetch group names', response?.message || 'Unknown error')
       }
@@ -1600,10 +1606,15 @@ const MealGroup = () => {
                 id='site_id'
                 // clearIcon={firstSite?.site_id ? true: false}
                 disableClearable={defaultSite?.site_id === firstSite?.site_id}
-                options={authData?.userData?.user?.zoos?.[0]?.sites || []}
+                options={uniqueSites}
                 getOptionLabel={option => option?.site_name || ''}
                 isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
                 onChange={(e, val) => handleSiteChange(val)}
+                renderOption={(props, option) => (
+                  <li {...props} key={option.site_id}>
+                    {option.site_name}
+                  </li>
+                )}
                 renderInput={params => (
                   <TextField
                     {...params}
@@ -1843,6 +1854,15 @@ const MealGroup = () => {
               }}
               size='small'
               isOptionEqualToValue={(option, value) => option.species_id === value.species_id}
+              renderOption={(props, option) => (
+                <li {...props} key={option.species_id}>
+                  {option.species_id === 'all'
+                    ? 'All Species'
+                    : option.common_name
+                    ? `${option.common_name} (${option.scientific_name})`
+                    : `${option.scientific_name}`}
+                </li>
+              )}
               renderInput={params => (
                 <TextField
                   {...params}

@@ -1057,7 +1057,7 @@ const AddIngredientswithChoice = props => {
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
                       <Typography>ING - {item?.id}</Typography>
-                      <Typography
+                      <Typography component='div'
                         sx={{
                           mr: 3,
                           maxWidth: 180,

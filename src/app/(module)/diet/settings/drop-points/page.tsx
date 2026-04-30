@@ -246,8 +246,7 @@ const DropPoints = () => {
       setSearchValue(value)
       searchTableData(value)
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [searchTableData, searchValue]
+    [searchTableData]
   )
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -270,7 +269,7 @@ const DropPoints = () => {
         <CardHeader title={t('navigation.drop_points')} action={headerAction} sx={{ px: 5 }} />
         <Grid sx={{ mx: 5 }}>
           <Grid container sx={{ mt: 2, justifyContent: 'flex-end' }}>
-            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <MUISearch
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}

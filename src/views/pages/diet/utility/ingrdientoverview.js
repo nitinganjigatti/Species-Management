@@ -34,9 +34,9 @@ const IngredientOverview = () => {
     <>
       <Grid container>
         <Card>
-          <StyledGrid item size={{ md: 11 }}>
+          <StyledGrid  size={{ md: 11 }}>
             <CardContent>
-              <Grid item sx={{ display: 'flex' }}>
+              <Grid sx={{ display: 'flex' }}>
                 <Grid
                   item
                   sx={{

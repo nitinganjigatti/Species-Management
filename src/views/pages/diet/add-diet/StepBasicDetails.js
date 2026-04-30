@@ -849,7 +849,7 @@ const StepBasicDetails = ({
             cursor: 'pointer'
           }}
         >
-          <Typography
+          <Typography component='div'
             sx={{
               mb: 1,
               color: theme.palette.primary.main,
@@ -1528,7 +1528,7 @@ const StepBasicDetails = ({
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 5 }}>
                                     <Tooltip title={all?.remarks} arrow placement='bottom-start'>
-                                      <Typography
+                                      <Typography component='div'
                                         className='w_280'
                                         sx={{
                                           display: 'inline-block',
@@ -1720,7 +1720,7 @@ const StepBasicDetails = ({
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 5 }}>
                                     <Tooltip title={all?.remarks} arrow placement='bottom-start'>
-                                      <Typography
+                                      <Typography component='div'
                                         className='w_280'
                                         sx={{
                                           display: 'inline-block',
@@ -1896,7 +1896,7 @@ const StepBasicDetails = ({
                                 <Grid size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 8 }}>
                                     <Tooltip title={all?.remarks} arrow placement='bottom-start'>
-                                      <Typography
+                                      <Typography component='div'
                                         className='w_280'
                                         sx={{
                                           display: 'inline-block',
@@ -2058,7 +2058,7 @@ const StepBasicDetails = ({
                                 <Grid size={{ xs: 12, sm: 3.2, md: 3.6 }}>
                                   <Grid sx={{ pl: 7 }}>
                                     <Tooltip title={all?.remarks} arrow placement='bottom-start'>
-                                      <Typography
+                                      <Typography component='div'
                                         className='w_280'
                                         sx={{
                                           display: 'inline-block',
@@ -2256,7 +2256,7 @@ const StepBasicDetails = ({
                 )}
 
                 <Grid sx={{ pb: 12 }}>
-                  <Typography
+                  <Typography component='div'
                     sx={{
                       mb: 1,
                       mt: 6,
@@ -2273,7 +2273,7 @@ const StepBasicDetails = ({
                     <Icon icon='material-symbols:add' />
                     {t('diet_module.add_recipe')}
                   </Typography>
-                  <Typography
+                  <Typography component='div'
                     sx={{
                       mb: 1,
                       mt: 6,
@@ -2291,7 +2291,7 @@ const StepBasicDetails = ({
                     <Icon icon='material-symbols:add' />
                     {t('diet_module.add_mix')}
                   </Typography>
-                  <Typography
+                  <Typography component='div'
                     className='item_cls'
                     sx={{
                       mb: 1,
@@ -2311,7 +2311,7 @@ const StepBasicDetails = ({
                     {t('diet_module.add_item')}
                   </Typography>
 
-                  <Typography
+                  <Typography component='div'
                     sx={{
                       mb: 1,
                       mt: 6,

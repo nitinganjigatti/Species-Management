@@ -170,7 +170,7 @@ function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, 
                     size='small'
                   />
                   {item?.dietitian_role_name && (
-                    <Typography
+                    <Typography component='div'
                       sx={{
                         color: theme.palette.customColors.Outline,
                         fontSize: '14px',

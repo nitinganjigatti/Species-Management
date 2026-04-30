@@ -429,7 +429,6 @@ const AddIngredient = () => {
           onChange={e => {
             setValue('active', Number(e.target.checked))
           }}
-          defaultChecked
         />
       }
       labelPlacement='start'

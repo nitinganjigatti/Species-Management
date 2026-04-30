@@ -326,7 +326,7 @@ const FeedDetails = () => {
             </CardContent>
           ) : (
             <Grid container spacing={6}>
-              <Grid item size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                   <Typography color='inherit'>Diet</Typography>
                   <Typography
@@ -422,7 +422,7 @@ const FeedDetails = () => {
                           FeedDetailsValue={FeedDetailsValue}
                           permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
                         />
-                        <Grid item size={{ xs: 12, md: 8 }}>
+                        <Grid size={{ xs: 12, md: 8 }}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab
@@ -497,7 +497,7 @@ const FeedDetails = () => {
                                   >
                                     {!FeedDetailsValue.created_by_user ? <Icon icon='mdi:user' /> : null}
                                   </Avatar>
-                                  <Typography sx={{ color: theme.palette.customColors.deepDark }}>
+                                  <Typography component='div' sx={{ color: theme.palette.customColors.deepDark }}>
                                     {FeedDetailsValue?.created_by_user
                                       ? FeedDetailsValue?.created_by_user?.user_name
                                       : '-'}{' '}
@@ -579,7 +579,7 @@ const FeedDetails = () => {
                                 </Button>
                               </Box>
                               <Grid container sx={{ mb: 2, justifyContent: 'flex-start' }}>
-                                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                                   <MUISearch
                                     value={searchValue}
                                     onChange={e => handleSearch(e.target.value)}

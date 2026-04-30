@@ -262,7 +262,7 @@ const SpeciesMappedtoDiet = ({
         </Box>
       </Box>
       {/* Search and filter start */}
-      <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
+      <Grid size={{ md: 8, sm: 8, xs: 8 }}>
         <Box
           sx={{
             bgcolor: theme.palette.background.paper,

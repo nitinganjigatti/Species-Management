@@ -57,12 +57,9 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
   if (FeedDetailsValue) {
     return (
       <>
-        <Grid item size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+        <Grid size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
           {/* <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
             <div
-              item
-              md={3}
-              xs={12}
               style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
             >
               <CardContent
@@ -104,7 +101,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
               >
                 <Box sx={{}}></Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Grid item>
+                  <Grid>
                     <FormControlLabel
                       control={
                         <Switch
@@ -145,9 +142,6 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
           </Card> */}
           <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
             <div
-              item
-              md={3}
-              xs={12}
               style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
             >
               <CardContent
@@ -181,7 +175,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
                 </div>
               </CardContent>
 
-              <Grid item>
+              <Grid>
                 {/* <Typography sx={{ mb: 1, color: '#000', fontWeight: 500 }}>
                   {'ING' + IngredientsDetailsval.id}
                 </Typography> */}

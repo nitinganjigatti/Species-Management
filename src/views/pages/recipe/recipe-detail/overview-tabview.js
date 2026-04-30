@@ -80,7 +80,7 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
           >
             {!IngredientsDetailsval.created_by_user ? <Icon icon='mdi:user' /> : null}
           </Avatar>
-          <Typography sx={{ color: '#000000' }}>
+          <Typography component='div' sx={{ color: '#000000' }}>
             {IngredientsDetailsval?.created_by_user ? IngredientsDetailsval?.created_by_user?.user_name : '-'} <br />
             <div style={{ color: '#44544A', fontSize: 12, margin: 0 }}>
               {'Created on' + ' ' + moment(IngredientsDetailsval?.created_at).format('DD/MM/YYYY')}

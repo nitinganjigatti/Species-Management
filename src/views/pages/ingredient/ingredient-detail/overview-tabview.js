@@ -76,7 +76,7 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
             <Typography sx={{ fontSize: 14 }}>No preparation types to show</Typography>
           ) : (
             IngredientsDetailsval.preparation_types?.map((value, index) => (
-              <Grid item key={index}>
+              <Grid  key={index}>
                 <Chip label={value.label} sx={{ m: 0.75, background: '#DDEBE9' }} />
               </Grid>
             ))
@@ -92,7 +92,7 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
           >
             {!IngredientsDetailsval.created_by_user ? <Icon icon='mdi:user' /> : null}
           </Avatar>
-          <Typography sx={{ color: '#000000' }}>
+          <Typography component='div' sx={{ color: '#000000' }}>
             {IngredientsDetailsval?.created_by_user ? IngredientsDetailsval?.created_by_user?.user_name : '-'} <br />
             <div style={{ color: '#44544A', fontSize: 12, margin: 0 }}>
               {'Created on' + ' ' + moment(IngredientsDetailsval?.created_at).format('DD/MM/YYYY')}

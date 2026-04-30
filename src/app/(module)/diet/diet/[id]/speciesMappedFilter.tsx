@@ -340,7 +340,7 @@ const SpeciesMappedtoDietFilter = ({
           }}
         >
           <Grid container sx={{ px: 5 }}>
-            <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
+            <Grid size={{ xs: 4, sm: 4, md: 4 }}>
               {tabsforfilter
                 .filter(tab => {
                   if (selectionType === 'species' && tab === 'Species') return false
@@ -383,7 +383,7 @@ const SpeciesMappedtoDietFilter = ({
                   )
                 })}
             </Grid>
-            <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
+            <Grid size={{ xs: 8, sm: 8, md: 8 }}>
               <Box
                 sx={{
                   bgcolor: theme.palette.customColors.OnPrimary,

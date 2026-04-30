@@ -583,7 +583,7 @@ const SpeciesDietList = () => {
                 rowGap: 4
               }}
             >
-              <Grid item size={{ xs: 12, sm: 3.5 }}>
+              <Grid size={{ xs: 12, sm: 3.5 }}>
                 <Typography
                   sx={{
                     marginLeft: 4,
@@ -596,9 +596,9 @@ const SpeciesDietList = () => {
                   {isAnimalTab ? 'Animal Diet' : 'Species Diet'}
                 </Typography>
               </Grid>
-              <Grid item size={{ xs: 12, sm: 8 }}>
+              <Grid size={{ xs: 12, sm: 8 }}>
                 <Grid container sx={{ justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
-                  <Grid item size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}>
+                  <Grid size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginRight: { xs: 4, md: 0 } }}>
                       <FormControl sx={{ minWidth: 250 }}>
                         <InputLabel id='controlled-select-label'>
@@ -657,7 +657,6 @@ const SpeciesDietList = () => {
                       </Box>
                       <Box>
                         <Tooltip title='Export'>
-                          <>
                             {activeLoading || activeExportLoading ? (
                               <Box
                                 sx={{
@@ -690,7 +689,6 @@ const SpeciesDietList = () => {
                                 <Icon icon='ic:round-download' fontSize={20} />
                               </Box>
                             )}
-                          </>
                         </Tooltip>
                       </Box>
 

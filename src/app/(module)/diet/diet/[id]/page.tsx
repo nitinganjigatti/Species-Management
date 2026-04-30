@@ -1072,7 +1072,7 @@ const DietDetail = () => {
                                           ) : dietDetails.diet_type_name === 'By Lifestage' ? (
                                             <>
                                               <TableCell
-                                                colSpan={5}
+                                                // colSpan={5}
                                                 sx={{
                                                   border: 'none',
                                                   backgroundColor: '#C1D3D099',
@@ -1188,12 +1188,12 @@ const DietDetail = () => {
                                             recipeList.length > 0
                                               ? 'recipe'
                                               : comboList.length > 0
-                                              ? 'combo'
-                                              : ingredientList.length > 0
-                                              ? 'ingredient'
-                                              : iwcList.length > 0
-                                              ? 'iwc'
-                                              : null
+                                                ? 'combo'
+                                                : ingredientList.length > 0
+                                                  ? 'ingredient'
+                                                  : iwcList.length > 0
+                                                    ? 'iwc'
+                                                    : null
 
                                           const mealNameCell = (
                                             <TableCell
@@ -1366,7 +1366,7 @@ const DietDetail = () => {
                                                                     >
                                                                       {item?.recipe_name && (
                                                                         <>
-                                                                          <Typography
+                                                                          <Typography component='div'
                                                                             sx={{
                                                                               color:
                                                                                 theme.palette.customColors
@@ -1378,7 +1378,7 @@ const DietDetail = () => {
                                                                           >
                                                                             {t('navigation.recipe')}
                                                                           </Typography>
-                                                                          <Typography
+                                                                          <Typography component='div'
                                                                             sx={{
                                                                               color:
                                                                                 theme.palette.customColors
@@ -1403,6 +1403,7 @@ const DietDetail = () => {
                                                                       {item.ingredient_name &&
                                                                         item?.ingredient_name?.length > 0 && (
                                                                           <Typography
+                                                                            component='div'
                                                                             sx={{
                                                                               color:
                                                                                 theme.palette.customColors.secondaryBg,
@@ -2055,7 +2056,7 @@ const DietDetail = () => {
                                                                     >
                                                                       {item?.recipe_name && (
                                                                         <>
-                                                                          <Typography
+                                                                          <Typography component='div'
                                                                             sx={{
                                                                               color:
                                                                                 theme.palette.customColors
@@ -2067,7 +2068,7 @@ const DietDetail = () => {
                                                                           >
                                                                             Mix
                                                                           </Typography>
-                                                                          <Typography
+                                                                          <Typography component='div'
                                                                             sx={{
                                                                               color:
                                                                                 theme.palette.customColors
@@ -2092,6 +2093,7 @@ const DietDetail = () => {
                                                                       {item.ingredient_name &&
                                                                         item?.ingredient_name?.length > 0 && (
                                                                           <Typography
+                                                                            component='div'
                                                                             sx={{
                                                                               color:
                                                                                 theme.palette.customColors.secondaryBg,
@@ -2749,7 +2751,7 @@ const DietDetail = () => {
                                                                       }}
                                                                     >
                                                                       {item?.ingredient_name && (
-                                                                        <Typography
+                                                                        <Typography component='div'
                                                                           sx={{
                                                                             color:
                                                                               theme.palette.customColors

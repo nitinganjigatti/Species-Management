@@ -31,7 +31,10 @@ const AddEditDropPoint = props => {
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
   const { t } = useTranslation()
   const authData = useContext(AuthContext)
-  const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
+  const allSites = authData?.userData?.user?.zoos?.[0]?.sites || []
+  const sites = React.useMemo(() => {
+    return Array.from(new Map(allSites.map(site => [site.site_id, site])).values())
+  }, [allSites])
 
   const {
     reset,
@@ -144,6 +147,11 @@ const AddEditDropPoint = props => {
                     onChange(newValue?.site_id || '')
                   }}
                   isOptionEqualToValue={(option, val) => String(option.site_id) === String(val.site_id)}
+                  renderOption={(props, option) => (
+                    <li {...props} key={option.site_id}>
+                      {option.site_name}
+                    </li>
+                  )}
                   renderInput={params => (
                     <TextField
                       {...params}

@@ -231,7 +231,7 @@ const SpeciesAnimalsMapped = ({
           </IconButton>
         </Box>
       </Box>
-      <Grid item size={{ md: 8, xs: 12 }}>
+      <Grid size={{ md: 8, xs: 12 }}>
         {!selectionType ? null : (
         <TabContext value={selectionType}>
           {dietDetails?.total_animals !== '0' &&
@@ -269,7 +269,7 @@ const SpeciesAnimalsMapped = ({
 
           <TabPanel value='species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
+              <Grid size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',
@@ -566,7 +566,7 @@ const SpeciesAnimalsMapped = ({
 
           <TabPanel value='animals' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default', mb: '5%' }}>
+              <Grid size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default', mb: '5%' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',
@@ -862,7 +862,7 @@ const SpeciesAnimalsMapped = ({
 
           <TabPanel value='site_species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
+              <Grid size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',

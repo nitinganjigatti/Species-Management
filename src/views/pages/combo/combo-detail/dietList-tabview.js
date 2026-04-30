@@ -220,7 +220,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                 </div>
               )  */}
               <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
-                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <Grid  size={{ xs: 12, sm: 6, md: 4 }}>
                   <MUISearch
                     value={searchValue}
                     onChange={e => handleSearch(e.target.value)}
@@ -254,7 +254,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   return (
     <>
       <Grid container spacing={6}>
-        <Grid item size={{ xs: 12 }}>
+        <Grid  size={{ xs: 12 }}>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}

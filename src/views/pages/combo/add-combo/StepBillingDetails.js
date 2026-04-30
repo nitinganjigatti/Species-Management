@@ -172,17 +172,14 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
         </Box>
 
         <Grid container spacing={5}>
-          <Grid item size={{ xs: 12 }}>
+          <Grid  size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
                 <CardContent sx={{ px: 0, py: 0 }}>
                   <Grid container spacing={6}>
-                    <Grid item size={{ xs: 4 }}>
+                    <Grid  size={{ xs: 4 }}>
                       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
                         <div
-                          item
-                          md={3}
-                          xs={12}
                           style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
                         >
                           <CardContent
@@ -298,7 +295,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       </Card>
                     </Grid>
 
-                    <Grid item size={{ xs: 8 }}>
+                    <Grid  size={{ xs: 8 }}>
                       <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>
                         {t('description')}
                       </Typography>
@@ -359,7 +356,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
             </>
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid  size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

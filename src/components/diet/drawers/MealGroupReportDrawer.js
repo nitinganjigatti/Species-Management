@@ -94,7 +94,7 @@ const MealGroupReportDrawer = ({ open, setOpen, onApplyFilter, sites, selectedSi
           }}
         >
           <Grid container sx={{ px: 5 }}>
-            <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
+            <Grid size={{ md: 4, sm: 4, xs: 4 }}>
               {leftMenu?.map(menu => (
                 <Box
                   key={menu.id}
@@ -108,7 +108,7 @@ const MealGroupReportDrawer = ({ open, setOpen, onApplyFilter, sites, selectedSi
                   }}
                   onClick={() => handleMenuClick(menu)}
                 >
-                  <Typography
+                  <Typography component='div'
                     sx={{
                       color: theme.palette.primary.dark,
                       fontSize: '16px',
@@ -124,7 +124,7 @@ const MealGroupReportDrawer = ({ open, setOpen, onApplyFilter, sites, selectedSi
                 </Box>
               ))}
             </Grid>
-            <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
+            <Grid size={{ md: 8, sm: 8, xs: 8 }}>
               {selectedMenu.name === 'Sites' ? (
                 <Box
                   sx={{

@@ -176,7 +176,7 @@ const AddDropPointDrawer = ({
             borderRadius: '4px'
           }}
         >
-          <Typography
+          <Typography component='div'
             variant='caption'
             sx={{
               fontWeight: 600,
@@ -214,7 +214,7 @@ const AddDropPointDrawer = ({
             borderRadius: '4px'
           }}
         >
-          <Typography
+          <Typography component='div'
             variant='caption'
             sx={{
               fontWeight: 600,

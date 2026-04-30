@@ -247,7 +247,7 @@ const CutSizes = () => {
         <CardHeader title='Cut Sizes' action={headerAction} sx={{ px: 5 }} />
         <Grid sx={{ mx: 5 }}>
           <Grid container sx={{ mt: 2, justifyContent: 'flex-end' }}>
-            <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <MUISearch
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}

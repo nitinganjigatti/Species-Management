@@ -6,7 +6,7 @@ import Divider from '@mui/material/Divider'
 import Avatar from 'src/@core/components/mui/avatar'
 import Button from '@mui/material/Button'
 import DoneIcon from '@mui/icons-material/Done'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import toast from 'react-hot-toast'
 import { Tooltip, Select, MenuItem, CircularProgress } from '@mui/material'
@@ -590,7 +590,7 @@ const ComboCard = ({
       ) : sortedRecipeList?.length > 0 ? (
         sortedRecipeList?.map((item, index) => {
           return (
-            <>
+            <Fragment key={item?.id ?? index}>
               <Box
                 sx={{
                   bgcolor: 'background.paper',
@@ -890,7 +890,7 @@ const ComboCard = ({
                   ''
                 )}
               </Box>
-            </>
+            </Fragment>
           )
         })
       ) : (

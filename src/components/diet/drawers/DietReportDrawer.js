@@ -68,9 +68,12 @@ const DietReportDrawer = ({
   // const isAllProductTypesSelected =
   // speciesList?.length > 0 && selectedOptions['Species']?.length === productTypes?.length
 
-  const isAllSpeciesSelected = speciesList?.length > 0 && selectedOptions['Species']?.length === speciesList?.length
+  const uniqueSpeciesList = Array.from(new Map(speciesList?.map(item => [item.tsn, item])).values())
+  const isAllSpeciesSelected =
+    uniqueSpeciesList?.length > 0 && selectedOptions['Species']?.length === uniqueSpeciesList?.length
 
-  const isAllSitesSelected = sites?.length > 0 && selectedOptions['Sites']?.length === sites?.length
+  const uniqueSites = Array.from(new Map(sites?.map(site => [site.site_id, site])).values())
+  const isAllSitesSelected = uniqueSites?.length > 0 && selectedOptions['Sites']?.length === uniqueSites?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -155,7 +158,7 @@ const DietReportDrawer = ({
     return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
-  const filteredSitesList = sites?.filter(site => site.site_name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredSitesList = uniqueSites?.filter(site => site.site_name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const handleSiteSelectAll = () => {
     handleSelectedAllSites()
@@ -207,7 +210,7 @@ const DietReportDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
+          <Grid size={{ md: 4, sm: 4, xs: 4 }}>
             {leftMenu?.map(menu => (
               <Box
                 key={menu.id}
@@ -221,7 +224,7 @@ const DietReportDrawer = ({
                 }}
                 onClick={() => handleMenuClick(menu)}
               >
-                <Typography
+                <Typography component='div'
                   sx={{
                     color: theme.palette.primary.dark,
                     fontSize: '16px',
@@ -237,7 +240,7 @@ const DietReportDrawer = ({
               </Box>
             ))}
           </Grid>
-          <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
+          <Grid size={{ md: 8, sm: 8, xs: 8 }}>
             {/* <Box
               sx={{
                 bgcolor: '#FFFFFF',
@@ -313,7 +316,7 @@ const DietReportDrawer = ({
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={site?.site_id}>
                     <Checkbox
                       inputProps={{ 'aria-label': 'controlled' }}
-                      checked={selectedOptions['Sites']?.includes(site?.site_id)}
+                      checked={selectedOptions['Sites']?.includes(site?.site_id) || false}
                       onChange={() => handleCheckbox(site?.site_id, 'Sites')}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
@@ -355,7 +358,7 @@ const DietReportDrawer = ({
                   <TextField
                     variant='outlined'
                     placeholder='Search'
-                    value={searchTaxonomyQuery}
+                    value={searchTaxonomyQuery || ""}
                     onChange={event => {
                       handleTaxonomySearch(event.target.value)
                     }}
@@ -380,11 +383,11 @@ const DietReportDrawer = ({
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
-                {speciesList?.map(type => (
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.id}>
+                {uniqueSpeciesList?.map((type, index) => (
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.tsn || index}>
                     <Checkbox
                       inputProps={{ 'aria-label': 'controlled' }}
-                      checked={selectedOptions['Species']?.includes(type?.tsn)}
+                      checked={selectedOptions['Species']?.includes(type?.tsn) || false}
                       onChange={() => handleCheckbox(type?.tsn, 'Species')}
                     />
 

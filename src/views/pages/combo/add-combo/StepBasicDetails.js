@@ -131,7 +131,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <ScrollToFieldError errors={errors} />
         <Grid container spacing={5} sx={{ px: 5 }}>
-          <Grid item size={{ xs: 12, sm: 6 }}>
+          <Grid  size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='recipe_name'
@@ -155,7 +155,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
           </Grid>
 
           {/* <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
-            <Grid item xs={12} sm={3}>
+            <Grid  xs={12} sm={3}>
               <FormControl fullWidth>
                 <Controller
                   name='portion_size'
@@ -183,7 +183,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3.17}>
+            <Grid  xs={12} sm={3.17}>
               <FormControl fullWidth>
                 
                 <Controller
@@ -232,7 +232,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             <Typography variant='h6'>Calories</Typography>
           </Box>
           <Grid container spacing={6} sx={{ px: 5, py: 5 }}>
-            <Grid item xs={12} sm={3}>
+            <Grid  xs={12} sm={3}>
               <FormControl fullWidth>
                 <Controller
                   name='nutrional_value'
@@ -260,7 +260,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3.2}>
+            <Grid  xs={12} sm={3.2}>
               <FormControl fullWidth>
                 
                 {console.log(uomList, 'uomList')}
@@ -300,7 +300,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item size={{xs: 12, sm: 3}} >
+            <Grid  size={{xs: 12, sm: 3}} >
               <FormControl fullWidth>
                 <Controller
                   name='kcal'
@@ -334,13 +334,13 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             <Typography variant='h6'>Add image</Typography>
           </Box>
           {console.log(uploadedImage, 'uploadedImage')}
-          <Grid item size={{ xs: 6 }} sx={{ pt: 0 }}>
+          <Grid  size={{ xs: 6 }} sx={{ pt: 0 }}>
             <CardContent sx={{ px: 0, paddingTop: 0 }}>
               <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
             </CardContent>
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid  size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

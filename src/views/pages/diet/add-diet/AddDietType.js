@@ -281,7 +281,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                         mb: 4
                       }}
                     >
-                      <Grid item size={{ xs: 12, sm: 5 }}>
+                      <Grid size={{ xs: 12, sm: 5 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].weight`}
@@ -318,7 +318,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             errors?.diet_types?.[index]?.weight?.message}
                         </Typography>
                       </Grid>
-                      {/* <Grid item size={{xs: 12, sm: 2.5}}>
+                      {/* <Grid size={{xs: 12, sm: 2.5}}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].maxWeight`}
@@ -350,7 +350,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             errors?.diet_types?.[index]?.maxWeight?.message}
                         </Typography>
                       </Grid> */}
-                      <Grid item size={{ xs: 12, sm: 5 }}>
+                      <Grid size={{ xs: 12, sm: 5 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`diet_types[${index}].unit.value`}
@@ -385,14 +385,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                         </FormControl>
                       </Grid>
                       {errors?.diet_types?.[index]?.weight?.message === 'same range value be not allowed' && (
-                        <Grid item size={{ xs: 10 }}>
+                        <Grid size={{ xs: 10 }}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
                             {errors?.diet_types?.[index]?.weight?.message}
                           </Typography>
                         </Grid>
                       )}
                       {/* {errors?.diet_types?.[index]?.maxWeight?.message === 'same range value be not allowed' && (
-                        <Grid item size={{xs: 10}}>
+                        <Grid size={{xs: 10}}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
                             {errors?.diet_types?.[index]?.maxWeight?.message}
                           </Typography>

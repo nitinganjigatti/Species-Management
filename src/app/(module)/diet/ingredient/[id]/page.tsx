@@ -182,7 +182,7 @@ const IngredientDetail = () => {
             </CardContent>
           ) : (
             <Grid container spacing={6}>
-              <Grid item size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                   <Typography color='inherit'>{t('navigation.diet')}</Typography>
                   <Typography
@@ -282,7 +282,7 @@ const IngredientDetail = () => {
                           getIngredientsDetailval={getIngredientsDetailval}
                         />
 
-                        <Grid item size={{ xs: 12, md: 8 }}>
+                        <Grid size={{ xs: 12, md: 8 }}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab

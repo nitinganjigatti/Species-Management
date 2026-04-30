@@ -66,7 +66,7 @@ const IngredientsList = () => {
     pageSize: parseInt(query.pageSize || 50, 10)
   })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(query.status || '')
+  const [status, setStatus] = useState(['', '0', '1'].includes(query.status) ? query.status : '')
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)

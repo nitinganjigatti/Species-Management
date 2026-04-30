@@ -291,7 +291,7 @@ const ListOfSpeciesMapped = ({
         </Box>
       </Box>
       {speciesview === 'details' ? (
-        <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
+        <Grid size={{ md: 8, sm: 8, xs: 8 }}>
           <Box
             sx={{
               bgcolor: theme.palette.background.paper,
@@ -623,7 +623,7 @@ const ListOfSpeciesMapped = ({
                       {mappedSpecies.map((species, index) =>
                         selectionType === 'species' ? (
                           <ListItem
-                            key={species.id}
+                            key={species.species_id}
                             sx={{
                               backgroundColor: theme.palette.background.paper,
                               display: 'flex',
@@ -685,7 +685,7 @@ const ListOfSpeciesMapped = ({
                           </ListItem>
                         ) : (
                           <ListItem
-                            key={species.id}
+                            key={species.animal_id}
                             sx={{
                               backgroundColor: theme.palette.background.paper,
                               display: 'flex',
@@ -835,7 +835,7 @@ const ListOfSpeciesMapped = ({
           }}
         >
           <DialogContent style={{ paddingBottom: '5px' }}>
-            <DialogContentText id='alert-dialog-description'>
+            <DialogContentText id='alert-dialog-description' component='div'>
               <Box
                 sx={{
                   width: '100%',

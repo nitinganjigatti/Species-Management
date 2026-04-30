@@ -369,7 +369,7 @@ const EditAnimalSpeciesMapped = ({
           </IconButton>
         </Box>
       </Box>
-      <Grid item size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
+      <Grid size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
         {!selectionType ? null : (
         <TabContext value={selectionType}>
           {checkForSite !== 'site_species' && speciesview === 'details' ? (
@@ -395,7 +395,7 @@ const EditAnimalSpeciesMapped = ({
             ''
           )}
           {speciesview === 'details' ? (
-            <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
+            <Grid size={{ md: 8, sm: 8, xs: 8 }}>
               <Box
                 sx={{
                   bgcolor: 'background.default',
