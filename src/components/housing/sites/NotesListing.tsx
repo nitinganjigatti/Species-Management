@@ -179,6 +179,10 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   const hasActiveFilters = Object.values(filters).some(v => v !== null)
 
+  const totalFilterCount = Object.values(filters)
+    .filter(v => v !== null)
+    .reduce((sum, v) => sum + String(v).split(',').filter(Boolean).length, 0)
+
   const handleNoteClick = (note: Note) => {
     setSelectedNote(note)
     setDetailsDrawerOpen(true)
@@ -270,7 +274,7 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     <Box>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <ListingHeader title={t('notes')} totalCount={total} />
-        {total > 0 && (
+        {(total > 0 || hasActiveFilters) && (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2, mt: 3, mb: 2 }}>
             <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddNote}>
               {t('housing_module.add_note')}
@@ -285,7 +289,7 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
               {hasActiveFilters && (
                 <Chip
                   size='small'
-                  label={Object.values(filters).filter(v => v !== null).length}
+                  label={totalFilterCount}
                   sx={{ ml: 1, height: 20, minWidth: 20 }}
                   color='primary'
                 />
