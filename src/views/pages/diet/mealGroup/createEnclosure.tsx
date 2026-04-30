@@ -1,0 +1,520 @@
+import {
+  Box,
+  Button,
+  Card,
+  Checkbox,
+  CircularProgress,
+  Drawer,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Select,
+  TextField,
+  Typography
+} from '@mui/material'
+import Icon from 'src/@core/components/icon'
+import { useTheme } from '@emotion/react'
+import { useContext, useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgroup'
+import SelectedEnclosure from './selectedEnclosure'
+import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
+import Error404 from 'src/pages/404'
+import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
+
+interface Props {
+  enclosureDrawer: any
+  selectedItems: any[]
+  setSelectedItems: (...args: any[]) => any
+  setEnclosureDrawer: (...args: any[]) => any
+  selectedOption: any
+  loader: any
+  groupId: any
+  setGroupId: (...args: any[]) => any
+  selectedForDrawer: any
+  fetchEnclosure: (...args: any[]) => any
+  checkedRows: any[]
+  setStatus: (...args: any[]) => any
+  setCheckedRows: (...args: any[]) => any
+  fetchSiteStats: (...args: any[]) => any
+  setEditItems: (...args: any[]) => any
+  searchValue: any
+  handleEnclosureSearch: (...args: any[]) => any
+}
+
+const CreateEnclosure: React.FC<Props> = ({
+  enclosureDrawer,
+  selectedItems,
+  setSelectedItems,
+  setEnclosureDrawer,
+  selectedOption,
+  loader,
+  groupId,
+  setGroupId,
+  selectedForDrawer,
+  fetchEnclosure,
+  checkedRows,
+  setStatus,
+  setCheckedRows,
+  fetchSiteStats,
+  setEditItems,
+  searchValue,
+  handleEnclosureSearch
+}) => {
+  const { t } = useTranslation()
+  const [selectedEnclosureIds, setSelectedEnclosureIds] = useState<any[]>([])
+  const [groupList, setGroupList] = useState<any[]>([])
+  const [mealGroupError, setMealGroupError] = useState<boolean>(false)
+  const [selectedEnclosureDrawer, setSelectedEnclosureDrawer] = useState<boolean>(false)
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+
+  useEffect(() => {
+    if (checkedRows) {
+      setSelectedEnclosureIds(checkedRows)
+
+      const fetchMealGroupNames = async () => {
+        const groupparams = {
+          site_id: selectedOption
+
+          // page_no: paginationModel.page + 1
+        }
+        try {
+          const response = await getMealGroupList(groupparams)
+          if (response.success) {
+            setGroupList(response.data.result)
+          } else {
+            console.error('Failed to fetch group names', response?.message || 'Unknown error')
+          }
+        } catch (error: any) {
+          console.log('Error', error)
+        }
+      }
+      fetchMealGroupNames()
+    }
+  }, [enclosureDrawer])
+
+  const theme = useTheme()
+
+  const handleGroupChange = (event: any) => {
+    const value = event.target.value
+    setGroupId(value)
+  }
+
+  const handleAddEnclosure = async () => {
+    if (!groupId.trim()) {
+      setMealGroupError(true)
+
+      return
+    }
+
+    setMealGroupError(false)
+
+    try {
+      const params = {
+        site_id: selectedOption,
+        enclosure_ids: JSON.stringify(selectedEnclosureIds),
+        meal_group_id: groupId
+      }
+
+      const response = await AddEnclosureToExistng(params)
+
+      if (response.success) {
+        toast.success('Enclosure(s) added successfully')
+        setStatus('mealgroup')
+        setEnclosureDrawer(false)
+        setCheckedRows([])
+        fetchEnclosure()
+        fetchSiteStats()
+      } else {
+        toast.error('Something went wrong')
+      }
+    } catch (error: any) {
+      console.error('Error adding enclosures:', error)
+      toast.error('An unexpected error occurred')
+    }
+  }
+
+  const handleSelected = () => {
+    setSelectedEnclosureDrawer(true)
+  }
+
+  const RenderSidebarFooter = () => {
+    function hexToHex8(hex: string, opacity: number) {
+      hex = hex.replace('#', '')
+
+      let alpha = Math.round(opacity * 255)
+        .toString(16)
+        .padStart(2, '0')
+
+      return `#${hex}${alpha}`
+    }
+
+    return (
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 0,
+          right: 0,
+          width: '100%',
+          maxWidth: '562px',
+
+          // width: { xs: '100%', sm: '73%', md: '562px' },
+          height: '106px',
+          bgcolor: 'white',
+          px: { xs: 2, sm: 3, md: 4 },
+          py: { xs: 2, sm: 2, md: '22px' }, // match padding
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          zIndex: 1300,
+          gap: { xs: 2, sm: 0 }
+        }}
+      >
+        {/* Left: Selected Dropdown */}
+        <Box
+          onClick={handleSelected}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-start' }
+          }}
+        >
+          <Typography
+            sx={{
+              ml: { xs: 0, sm: 2 },
+              color: theme.palette.primary.main,
+              fontWeight: 600,
+              fontSize: '16px',
+              fontFamily: 'Inter',
+              cursor: 'pointer'
+            }}
+          >
+            {selectedEnclosureIds.length} Selected
+          </Typography>
+          <IconButton size='small' sx={{ color: theme.palette.primary.main, ml: 1 }} onClick={handleSelected}>
+            <Icon icon='mdi:chevron-down' />
+          </IconButton>
+        </Box>
+        {/* Right: Cancel + Add Buttons */}
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-end' }
+          }}
+        >
+          <Button
+            onClick={(event: any) => {
+              event.stopPropagation()
+              setSelectedEnclosureIds([])
+
+              // setCheckedRows([]) // ✅ clear checkboxes
+              setSelectedItems([])
+              setEnclosureDrawer(false)
+            }}
+            variant='outlined'
+            fullWidth
+            sx={{
+              height: { xs: '45px', sm: '58px' },
+              width: { xs: '100%', sm: '140px' },
+              borderColor: hexToHex8(theme.palette.primary.main, 0.5),
+              color: theme.palette.customColors.customTextColorGray2,
+              opacity: 0.8,
+              fontWeight: 500
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddEnclosure}
+            variant='contained'
+            fullWidth
+            sx={{
+              height: { xs: '45px', sm: '58px' },
+              width: { xs: '100%', sm: '140px' },
+              bgcolor: theme.palette.primary.main,
+              fontWeight: 500
+            }}
+          >
+            Add
+          </Button>
+        </Box>
+      </Box>
+    )
+  }
+
+  const handleCheckboxChange = (id: any) => {
+    setSelectedEnclosureIds(prev => (prev.includes(id) ? prev.filter(eId => eId !== id) : [...prev, id]))
+  }
+
+  return dietModule ? (
+    <>
+      <Drawer
+        anchor='right'
+        open={enclosureDrawer}
+        ModalProps={{ keepMounted: true }}
+        sx={{
+          '& .MuiDrawer-paper': { width: '100%', maxWidth: '562px' },
+
+          // position: 'fixed',
+          position: 'relative',
+          top: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          bgcolor: theme.palette.customColors.bodyBg,
+          gap: '24px'
+        }}
+      >
+        <Box
+          sx={{
+            bgcolor: theme.palette.customColors.bodyBg,
+            zIndex: 10,
+            height: 'calc(100dvh - 0px)'
+          }}
+        >
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              px: 3,
+              py: 2
+            }}
+          >
+            <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+              <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+              <Typography
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '20px', fontWeight: 500 }}
+              >
+                {t('diet_module.add_enclosure_to_group')}
+              </Typography>
+            </Box>
+
+            <IconButton
+              size='small'
+              onClick={() => {
+                setEnclosureDrawer(false)
+                setEditItems([])
+                setSelectedItems([])
+              }}
+              sx={{ color: theme.palette.primary.light }}
+            >
+              <Icon icon='mdi:close' fontSize={25} />
+            </IconButton>
+          </Box>
+
+          <Box sx={{ overflowY: 'auto' }}>
+            {' '}
+            <Box sx={{ p: 4, backgroundColor: '#EEF5F1', borderRadius: '8px', mt: 3 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  mb: 6
+                }}
+              >
+                <TextField
+                  placeholder='Search...'
+                  variant='outlined'
+                  size='small'
+                  value={searchValue}
+                  fullWidth
+                  onChange={e => handleEnclosureSearch(e.target.value)}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      ),
+                      sx: {
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        height: '48px',
+                        input: { color: theme.palette.customColors.Outline, padding: '10px 0' }
+                      }
+                    }
+                  }}
+                />
+              </Box>
+
+              {checkedRows.length > 0 && (
+                <Select
+                  value={groupId}
+                  error={mealGroupError}
+                  onChange={handleGroupChange}
+                  displayEmpty
+                  renderValue={(selected: any) => {
+                    if (!selected || selected === '')
+                      return <Typography color='textSecondary'>Select Meal Group</Typography>
+                    const selectedItem = groupList.find(item => item.id === selected)
+
+                    return selectedItem?.group_name || ''
+                  }}
+                  size='small'
+                  sx={{
+                    backgroundColor: 'white',
+                    width: '100%',
+
+                    // maxWidth: '200px',
+                    borderRadius: '4px',
+                    mb: 5
+                  }}
+                >
+                  <MenuItem value=''>
+                    <Typography color='textSecondary'>{t('diet_module.select_meal_group')}</Typography>
+                  </MenuItem>
+                  {groupList.map(item => (
+                    <MenuItem key={item.id} value={item.id}>
+                      {item.group_name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              )}
+
+              <Box sx={{ height: '58vh' }}>
+                {' '}
+                <Card
+                  sx={{
+                    borderRadius: '8px',
+                    boxShadow: 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    width: '100%'
+                  }}
+                >
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      px: 2,
+                      pt: 2
+                    }}
+                  >
+                    {loader ? (
+                      <Box
+                        sx={{
+                          height: '100%',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <CircularProgress size={40} />
+                      </Box>
+                    ) : (
+                      selectedItems.map((item, index) => (
+                        <Box key={index} sx={{ m: 3 }}>
+                          <Card
+                            sx={{
+                              p: 2,
+                              width: '100%',
+                              height: '70px',
+                              borderTop:
+                                selectedEnclosureIds.includes(item?.enclosure_id) &&
+                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              borderLeft:
+                                selectedEnclosureIds.includes(item?.enclosure_id) &&
+                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              borderRight:
+                                selectedEnclosureIds.includes(item?.enclosure_id) &&
+                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              borderTopLeftRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
+                              borderTopRightRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
+                              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              bgcolor: selectedEnclosureIds.includes(item?.enclosure_id)
+                                ? theme.palette.customColors.Surface
+                                : 'white',
+                              borderRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : '2px',
+                              display: 'flex',
+                              boxShadow: 'none',
+                              justifyContent: 'space-between',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <Box>
+                              <Typography
+                                sx={{
+                                  fontWeight: 500,
+                                  fontSize: '16px',
+                                  color: theme.palette.customColors.OnSurfaceVariant
+                                }}
+                              >
+                                {item.user_enclosure_name}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontWeight: 400,
+                                  fontSize: '14px',
+                                  color: theme.palette.customColors.OnSurfaceVariant,
+                                  maxWidth: '100px',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {item.section_name}
+                              </Typography>
+                            </Box>
+
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                width: '100px',
+                                alignItems: 'flex-start',
+                                ml: 'auto'
+                              }}
+                            >
+                              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                                {t('navigation.Species')}: {item.species_count}
+                              </Typography>
+                              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                                {t('navigation.animals')}: {item.animal_count}
+                              </Typography>
+                            </Box>
+
+                            <Checkbox
+                              checked={selectedEnclosureIds.includes(item.enclosure_id)}
+                              onChange={() => handleCheckboxChange(item?.enclosure_id)}
+                            />
+                          </Card>
+                        </Box>
+                      ))
+                    )}
+                  </Box>
+                </Card>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+        <RenderSidebarFooter />
+      </Drawer>
+      {selectedEnclosureDrawer && (
+        <SelectedEnclosure
+          selectedEnclosureDrawer={selectedEnclosureDrawer}
+          setSelectedEnclosureDrawer={setSelectedEnclosureDrawer}
+          selectEnclosures={selectedItems.filter(item => selectedEnclosureIds.includes(item.enclosure_id))}
+          selectedEnclosureIds={selectedEnclosureIds}
+          loader={loader}
+          setSelectedEnclosureIds={setSelectedEnclosureIds}
+          selectedItems={selectedItems}
+          checkedRows={checkedRows}
+          setSelectedItems={setSelectedItems}
+          setCheckedRows={setCheckedRows}
+        />
+      )}
+    </>
+  ) : (
+    <Error404 />
+  )
+}
+
+export default CreateEnclosure
