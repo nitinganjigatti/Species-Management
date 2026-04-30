@@ -5,7 +5,7 @@
 // ==================== Animal Data ====================
 
 export interface AnimalData {
-  animal_id: string | number
+  animal_id: string | number | any
   default_common_name?: string
   scientific_name?: string
   user_enclosure_name?: string
