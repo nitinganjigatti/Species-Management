@@ -396,6 +396,7 @@ const DailyReport = () => {
       setTotal(0)
       skipNextAutoFetchRef.current = false
     }
+    fetchObservationMasterType()
   }, [
     fetchDailyReport,
     // explicit deps to trigger once per change:
@@ -698,7 +699,6 @@ const DailyReport = () => {
                   '&.Mui-focused fieldset': { borderColor: theme.palette.customColors.OutlineVariant }
                 }}
                 sx={{
-                  flex: '0 0 auto',
                   gap: '4px',
                   '& .MuiInputBase-input::placeholder': {
                     fontSize: '14px',
