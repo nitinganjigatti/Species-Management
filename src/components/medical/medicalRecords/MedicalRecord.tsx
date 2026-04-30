@@ -22,6 +22,7 @@ import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import { toast } from 'react-hot-toast'
 import utility from 'src/utility'
+import { ExportButton } from 'src/views/utility/render-snippets'
 const MedicalRecords = () => {
   const theme: any = useTheme()
   const router = useRouter()
@@ -473,20 +474,26 @@ const MedicalRecords = () => {
       sortable: false,
       headerName: '',
       renderCell: (params: any) => (
-        <IconButton
-          onClick={() => handleRowDownload(params.row)}
-          //  disabled={downloadingRowId === params.row.id}
+        <Box
+          sx={{ pointerEvents: 'auto' }}
+          onMouseDown={e => {
+            e.stopPropagation()
+          }}
         >
-          {downloadingRowId === params.row.id ? (
-            <CircularProgress size={20} />
-          ) : (
-            <Icon icon='mdi:download' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
-          )}
-        </IconButton>
+          <ExportButton
+            bgcolor='transparent'
+            tooltip='Download Medical Record'
+            loading={downloadingRowId === params.row.id}
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleRowDownload(params.row)
+            }}
+          />
+        </Box>
       )
     }
   ]
-
   const handleRowDownload = async (row: MedicalRow) => {
     const params = {
       ...buildFilterParams(),
@@ -495,6 +502,7 @@ const MedicalRecords = () => {
     try {
       setDownloadingRowId(row?.id)
       const result = await getMedicalRecordReport(params)
+
       if (result?.success) {
         toast.success(result.message)
         if (result?.data?.file_path) {
@@ -690,7 +698,17 @@ const MedicalRecords = () => {
                   getRowHeight={() => 'auto'}
                   externalTableStyle={{
                     '& .MuiDataGrid-cell': {
-                      padding: 4
+                      padding: 4,
+                      pointerEvents: 'auto'
+                    },
+                    '& .MuiDataGrid-cell[data-field="actions"]': {
+                      pointerEvents: 'auto !important',
+                      padding: '4px !important',
+                      position: 'relative',
+                      zIndex: 50
+                    },
+                    '& .MuiDataGrid-cell[data-field="actions"] *': {
+                      pointerEvents: 'auto !important'
                     },
                     padding: 0,
                     margin: 0
