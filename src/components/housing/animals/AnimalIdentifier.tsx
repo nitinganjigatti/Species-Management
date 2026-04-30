@@ -79,7 +79,7 @@ const AnimalIdentifier: React.FC = () => {
           if (res?.success) {
             setLocalIdentifierTypeData(
               res?.data?.animal_indetifier.map((item: any) => ({
-                label: item?.label || '',
+                label: t(item?.string_id || '', { defaultValue: item?.label }),
                 value: String(item?.id || '')
               }))
             )
@@ -485,7 +485,7 @@ const AnimalIdentifier: React.FC = () => {
         >
           View Details
         </MenuItem>
-        {selectedRow?.is_deleted === '1' ? (
+        {selectedRow?.is_deleted === '1' && (
           <MenuItem
             onClick={() => handleRestore(selectedRow)}
             sx={{
@@ -512,47 +512,47 @@ const AnimalIdentifier: React.FC = () => {
               t('animals_module.restore_identifier')
             )}
           </MenuItem>
-        ) : (
-          // Show edit and delete options for active identifiers
-          <>
-            <MenuItem
-              onClick={() => {
-                setAddIdentifierDrawer(true)
-                if (selectedRow) {
-                  setIdentifierData({
-                    id: String(selectedRow.id),
-                    type: selectedRow?.type ? String(selectedRow?.type) : undefined,
-                    local_identifier_value: selectedRow.local_identifier_value,
-                    is_primary: selectedRow.is_primary ? String(selectedRow.is_primary) : undefined
-                  })
-                }
-                setMenuAnchorEl(null)
-              }}
-              sx={{
-                fontWeight: 500,
-                p: 3,
-                fontSize: '16px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {t('animals_module.edit_identifier')}
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setOpenDeleteDialog(true)
-                setSelectedItemToDelete(selectedRow)
-                setMenuAnchorEl(null)
-              }}
-              sx={{
-                fontWeight: 500,
-                p: 3,
-                fontSize: '16px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {t('animals_module.delete_identifier')}
-            </MenuItem>
-          </>
+        )}
+        {selectedRow?.is_deleted !== '1' && (
+          <MenuItem
+            onClick={() => {
+              setAddIdentifierDrawer(true)
+              if (selectedRow) {
+                setIdentifierData({
+                  id: String(selectedRow.id),
+                  type: selectedRow?.type ? String(selectedRow?.type) : undefined,
+                  local_identifier_value: selectedRow.local_identifier_value,
+                  is_primary: selectedRow.is_primary ? String(selectedRow.is_primary) : undefined
+                })
+              }
+              setMenuAnchorEl(null)
+            }}
+            sx={{
+              fontWeight: 500,
+              p: 3,
+              fontSize: '16px',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            {t('animals_module.edit_identifier')}
+          </MenuItem>
+        )}
+        {selectedRow?.is_deleted !== '1' && (
+          <MenuItem
+            onClick={() => {
+              setOpenDeleteDialog(true)
+              setSelectedItemToDelete(selectedRow)
+              setMenuAnchorEl(null)
+            }}
+            sx={{
+              fontWeight: 500,
+              p: 3,
+              fontSize: '16px',
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            {t('animals_module.delete_identifier')}
+          </MenuItem>
         )}
       </Menu>
     </Box>

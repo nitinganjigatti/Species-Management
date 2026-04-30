@@ -79,8 +79,6 @@ const Listing: React.FC<SiteListingProps> = ({
       sortBy,
       sortOrder: sortOrder as 'asc' | 'desc'
     })
-
-    setInputValue(search)
   }, [query])
 
   const { data, isFetching, refetch } = useQuery({
