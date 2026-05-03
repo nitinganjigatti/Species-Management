@@ -10,6 +10,11 @@ const apiClient = axios.create()
 
 let isLoggingOut = false
 
+// Endpoints that must NEVER trigger the session-expired logout flow on 401.
+// These are auxiliary endpoints whose auth failures are handled by their callers
+// (e.g. geofence verify/heartbeat — caller decides what to do with the response).
+const SESSION_EXPIRED_EXEMPT_URLS = ['/auth/geofence-verify', '/auth/geofence-heartbeat']
+
 apiClient.interceptors.response.use(
   response => {
     console.log('API Response:', response)
@@ -17,11 +22,22 @@ apiClient.interceptors.response.use(
   },
   error => {
     const isLoginPage = window.location.pathname === '/login/' || window.location.pathname === '/login'
+    const url = error.config?.url || ''
+    const isSessionExpiredExempt = SESSION_EXPIRED_EXEMPT_URLS.some(suffix => url.includes(suffix))
 
     if (error.response?.status === 401) {
-      if (!isLoggingOut && !isLoginPage) {
+      if (!isLoggingOut && !isLoginPage && !isSessionExpiredExempt) {
         isLoggingOut = true
         window.dispatchEvent(new Event('session-expired'))
+      }
+    } else if (error.response?.status === 403) {
+      // Backend signals geofence lock via 403 with error/code geofence_locked.
+      // Surface a global event the AuthGuard subscribes to so the lock banner
+      // shows even on pages that don't directly mount the heartbeat hook.
+      const body = error.response?.data
+      const code = body?.error || body?.code
+      if (code === 'geofence_locked') {
+        window.dispatchEvent(new CustomEvent('geofence-locked', { detail: body?.data || {} }))
       }
     } else {
       console.error('API Error:', error)

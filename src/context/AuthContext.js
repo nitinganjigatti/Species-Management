@@ -2,6 +2,7 @@
 import { createContext, useEffect, useState } from 'react'
 import { read, readAsync, write } from '../lib/windows/utils'
 import { callRefreshToken } from 'src/lib/api/auth'
+import { verifyGeofence } from 'src/lib/api/geofence'
 
 import { usePharmacyContext } from './PharmacyContext'
 import { usePariveshContext } from './PariveshContext'
@@ -46,6 +47,15 @@ const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
   const [loginLoading, setLoginLoading] = useState(defaultProvider.loginLoading)
+  // Geofence soft-lock: token is still valid, but the user isn't physically inside the fence.
+  // AuthGuard renders the lock banner; on successful re-verify the flag clears and the user
+  // continues without re-authenticating.
+  const [geofenceLocked, setGeofenceLocked] = useState(false)
+  const [geofenceLockReason, setGeofenceLockReason] = useState(null)
+
+  // Geofence rejection at login time. Survives the GuestGuard fallback swap that happens
+  // when setUser briefly goes truthy then back to null during the verify→logOutUser flow.
+  const [geofenceLoginError, setGeofenceLoginError] = useState(null)
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
   const { updateSelectedHospital, updateHospitalStats } = useHospital()
@@ -155,6 +165,29 @@ const AuthProvider = ({ children }) => {
 
               // Fetch API translations now that user is authenticated
               loadLanguage(i18n.language || 'en-IN')
+
+              // Re-verify geofence on session restore. Token is valid, so we don't
+              // log the user out — we soft-lock the UI via the AuthGuard. The user can
+              // walk back inside and tap "Recheck location" to dismiss the lock without
+              // re-authenticating. Verify runs in the background; failure flips the flag.
+              try {
+                const verifyRes = await verifyGeofence()
+                if (verifyRes?.success === false) {
+                  setGeofenceLockReason({
+                    code: verifyRes?.error || 'geofence_failed',
+                    message: verifyRes?.message || 'Geofence check failed',
+                    data: verifyRes?.data || {}
+                  })
+                  setGeofenceLocked(true)
+                }
+              } catch (e) {
+                setGeofenceLockReason({
+                  code: e?.code || 'gps_error',
+                  message: e?.message || 'Could not verify your location',
+                  data: {}
+                })
+                setGeofenceLocked(true)
+              }
             } else {
               logOutUser()
               router.replace('/login')
@@ -335,8 +368,56 @@ const AuthProvider = ({ children }) => {
           }
 
           /*********pharmacy */
-          const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
-          router.replace(redirectURL)
+
+          // Geofence verification: must succeed before the user enters the app.
+          // On rejection we do a MINIMAL cleanup — wipe only the freshly-written
+          // auth state. We deliberately DON'T call the full logOutUser() because:
+          //   - There's no real session to log out of (verify ran post-login,
+          //     before the user ever entered the app).
+          //   - logOutUser() does heavy cascade work: localStorage.clear,
+          //     TanStack cache flush, language reset, pharmacy/parivesh/hospital
+          //     resets — none of which is needed when nothing was loaded yet.
+          //   - It also dispatches `session_expired` semantics which would show
+          //     the wrong toast on the login page.
+          // 401 (real token failure) is the only thing that triggers full logout.
+          let geofenceOk = true
+          const rejectGeofence = async payload => {
+            geofenceOk = false
+            // Discard the just-written token + user state. Keep everything else.
+            localStorage.removeItem(authConfig.storageTokenKeyName)
+            localStorage.removeItem('userData')
+            localStorage.removeItem('userDetails')
+            setUser(null)
+            setUserData(null)
+            setGeofenceLoginError(payload)
+            if (errorCallback) errorCallback(payload)
+          }
+
+          try {
+            const verifyRes = await verifyGeofence()
+            if (verifyRes?.success === false) {
+              await rejectGeofence({
+                kind: 'geofence',
+                code: verifyRes?.error || 'geofence_failed',
+                message: verifyRes?.message || 'Geofence check failed',
+                data: verifyRes?.data || {}
+              })
+            }
+          } catch (e) {
+            // GPS error (permission denied / timeout / unsupported) — same outcome
+            await rejectGeofence({
+              kind: 'geofence',
+              code: e?.code || 'gps_error',
+              message: e?.message || 'Could not verify your location',
+              data: {}
+            })
+          }
+
+          if (geofenceOk) {
+            setGeofenceLoginError(null)
+            const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+            router.replace(redirectURL)
+          }
         } else {
           if (errorCallback) errorCallback(response?.data?.message)
         }
@@ -410,6 +491,26 @@ const AuthProvider = ({ children }) => {
     }
   }
 
+  // Re-run geofence verify (called from the lock banner's "Recheck location" button).
+  // Throws on GPS errors so the banner can show a localized message; otherwise updates
+  // the lock state silently and returns the verify response.
+  const recheckGeofence = async () => {
+    const verifyRes = await verifyGeofence()
+    if (verifyRes?.success === false) {
+      setGeofenceLockReason({
+        code: verifyRes?.error || 'geofence_failed',
+        message: verifyRes?.message || 'Geofence check failed',
+        data: verifyRes?.data || {}
+      })
+      setGeofenceLocked(true)
+    } else {
+      setGeofenceLockReason(null)
+      setGeofenceLocked(false)
+    }
+
+    return verifyRes
+  }
+
   const values = {
     user,
     userData,
@@ -420,7 +521,13 @@ const AuthProvider = ({ children }) => {
     setLoading,
     setLoginLoading,
     login: handleLogin,
-    logout: handleLogout
+    logout: handleLogout,
+    geofenceLocked,
+    geofenceLockReason,
+    recheckGeofence,
+    geofenceLoginError,
+    setGeofenceLoginError,
+    clearGeofenceLoginError: () => setGeofenceLoginError(null)
   }
 
   return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>
