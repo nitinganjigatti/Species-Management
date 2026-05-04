@@ -791,6 +791,34 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     }
   }, [])
 
+  // Clear enclosure_medicines when navigating away from discharge, unless going to schedule-prescription
+  // Mirrors Pages Router router.events.on('routeChangeStart') by intercepting history API calls
+  useEffect(() => {
+    const handleNavigation = (url: string) => {
+      if (!String(url).includes('schedule-prescription')) {
+        clearEnclosureData()
+      }
+    }
+
+    const originalPushState = window.history.pushState.bind(window.history)
+    const originalReplaceState = window.history.replaceState.bind(window.history)
+
+    window.history.pushState = function (...args: Parameters<typeof window.history.pushState>) {
+      handleNavigation(String(args[2] ?? ''))
+      return originalPushState(...args)
+    }
+
+    window.history.replaceState = function (...args: Parameters<typeof window.history.replaceState>) {
+      handleNavigation(String(args[2] ?? ''))
+      return originalReplaceState(...args)
+    }
+
+    return () => {
+      window.history.pushState = originalPushState
+      window.history.replaceState = originalReplaceState
+    }
+  }, [])
+
   // patient data initial loading
   if (!patientData) {
     return (

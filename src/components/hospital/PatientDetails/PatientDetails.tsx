@@ -319,11 +319,18 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
       if (urlTab === 'discharge' && newValue !== 'discharge') {
-        // Clear discharge-related  context data
+        // Clear discharge-related context data, but preserve enclosure_medicines if going to schedule-prescription
+        const isSchedulePrescription = newValue === 'schedule-prescription'
+
         dispatch(resetState('transfer_medicines'))
         dispatch(resetState('transfer_temp_medicines'))
-        dispatch(resetState('enclosure_medicines'))
-        dispatch(resetState('enclosure_temp_medicines'))
+
+        // Only clear enclosure medicines if NOT going to schedule-prescription
+        if (!isSchedulePrescription) {
+          dispatch(resetState('enclosure_medicines'))
+          dispatch(resetState('enclosure_temp_medicines'))
+        }
+
         sessionStorage.removeItem('transfer_enclosure_form')
 
         const updated = { ...router.query }
@@ -391,11 +398,18 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
 
       // Leaving Discharge Tab  remove discharge_tab and  Update URL with the selected tab parameter
       if (urlTab === 'discharge' && newValue !== 'discharge') {
-        // Clear discharge-related  context data
+        // Clear discharge-related context data, but preserve enclosure_medicines if going to schedule-prescription
+        const isSchedulePrescription = newValue === 'schedule-prescription'
+
         dispatch(resetState('transfer_medicines'))
         dispatch(resetState('transfer_temp_medicines'))
-        dispatch(resetState('enclosure_medicines'))
-        dispatch(resetState('enclosure_temp_medicines'))
+
+        // Only clear enclosure medicines if NOT going to schedule-prescription
+        if (!isSchedulePrescription) {
+          dispatch(resetState('enclosure_medicines'))
+          dispatch(resetState('enclosure_temp_medicines'))
+        }
+
         sessionStorage.removeItem('transfer_enclosure_form')
 
         const updated = { ...router.query }
