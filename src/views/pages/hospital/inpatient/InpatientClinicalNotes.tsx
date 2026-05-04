@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Typography, Box, Button, IconButton, Skeleton, Grid } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined'
@@ -10,14 +10,12 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
+import RichTextEditor from 'src/components/RichTextEditor'
 import { useSelector } from 'react-redux'
+import { createEmptyRichTextValue, getRichTextContent, getRichTextHtmlValue } from 'src/utility'
+import 'quill/dist/quill.snow.css'
 
 const STORAGE_KEY = 'medical_record_data'
-
-const defaultValues = {
-  note: ''
-}
 
 interface InpatientClinicalNotesProps {
   clinicalNotesData?: any[]
@@ -38,7 +36,6 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
     onSubmitNote,
     onDeleteNote,
     isInitialLoading,
-
     isLoading,
     isSubmitting,
     lastClinicalNoteRef,
@@ -48,6 +45,31 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
   } = props
   const { t } = useTranslation()
   const theme: any = useTheme()
+  const [clinicalNote, setClinicalNote] = useState<any>(null)
+  const [expandedNotes, setExpandedNotes] = useState<Record<string, boolean>>({})
+  const [truncatedNotes, setTruncatedNotes] = useState<Record<string, boolean>>({})
+  const noteRefs = useRef<Record<string, any>>({})
+
+  const toggleNoteExpand = (noteId: string) => {
+    setExpandedNotes(prev => ({
+      ...prev,
+      [noteId]: !prev[noteId]
+    }))
+  }
+
+  const checkIfTruncated = (noteId: string, htmlContent: string) => {
+    if (!htmlContent) return
+
+    const tempContainer = document.createElement('div')
+    tempContainer.innerHTML = htmlContent
+
+    const hasMultipleElements = tempContainer.children.length > 1
+
+    setTruncatedNotes(prev => ({
+      ...prev,
+      [noteId]: hasMultipleElements
+    }))
+  }
 
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
@@ -56,21 +78,30 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
   const discharge_at = medicalRecordData?.discharge_at
   const status = medicalRecordData?.status
 
-  const { control, handleSubmit, reset, watch } = useForm({ defaultValues })
+  const { handleSubmit } = useForm()
 
-  const noteText = watch('note')?.trim()
+  useEffect(() => {
+    clinicalNotesData?.forEach((data: any) => {
+      const htmlContent = getRichTextHtmlValue(data?.note)
+      if (htmlContent) {
+        checkIfTruncated(data?.note_id, htmlContent)
+      }
+    })
+  }, [clinicalNotesData])
 
-  const onSubmit = async (formData: any) => {
+  const noteText = getRichTextContent(clinicalNote)?.trim()
+
+  const onSubmit = async () => {
     const payload: any = {
       medical_record_id: medical_record_id,
-      note: formData?.note,
+      note: getRichTextContent(clinicalNote),
       hospital_case_id: hospital_case_id
     }
 
     const success = await onSubmitNote(payload)
 
     if (success) {
-      reset(defaultValues)
+      setClinicalNote(createEmptyRichTextValue())
     }
   }
 
@@ -101,29 +132,28 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
           <form noValidate autoComplete='off' onSubmit={!isSubmitting ? handleSubmit(onSubmit) : undefined}>
             <Grid container>
               <Grid size={{ xs: 12 }}>
-                <ControlledTextArea
-                  name='note'
-                  control={control}
-                  placeholder={(t('hospital_module.add_notes') as string)}
-                  fullWidth={true}
-                  minRows={3}
-                  inputBackgroundColor={theme.palette.customColors.OnPrimary}
+                <RichTextEditor
+                  label={""}
+                  value={clinicalNote}
+                  onChange={setClinicalNote}
+                  placeholder='Add notes'
                 />
               </Grid>
             </Grid>
 
             {noteText && (
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
-                <Button
+                <LoadingButton
                   startIcon={<Icon icon='mdi:close' width={24} height={24} />}
                   variant='text'
                   sx={{ color: theme.palette.customColors.OnPrimaryContainer, fontWeight: 600, fontSize: '1rem' }}
-                  onClick={() => reset(defaultValues)}
+                  onClick={() => setClinicalNote(createEmptyRichTextValue())}
                   size='small'
+                  loading={isSubmitting}
                   disabled={isSubmitting}
                 >
                   {t('hospital_module.clear_text')}
-                </Button>
+                </LoadingButton>
                 <LoadingButton
                   variant='contained'
                   loading={isSubmitting}
@@ -142,6 +172,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
           </form>
         </Box>
       )}
+
       {/* Clinical Notes List or Skeletons */}
       {(clinicalNotesData?.length ?? 0) > 0 && (
         <>
@@ -167,28 +198,91 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                   dotColor={theme.palette.primary.main}
                   textColor={theme.palette.customColors.OnSurface}
                 />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6 }}>
-                  <Typography
-                    sx={{
-                      fontSize: '1rem',
-                      fontWeight: 400,
-                      color: theme.palette.customColors.OnSurfaceVariant,
-                      textAlign: 'justify',
-                      whiteSpace: 'pre-wrap'
-                    }}
-                  >
-                    {data?.note?.replace(/\\n/g, '\n') || 'NA'}
-                  </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    mb: truncatedNotes[data?.note_id] ? 2 : 3
+                  }}
+                >
+                  {!expandedNotes[data?.note_id] ? (
+                    <Box
+                      sx={{
+                        fontSize: '0.95rem',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        flex: 1,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      {(() => {
+                        const htmlContent = getRichTextHtmlValue(data?.note)
+                        if (!htmlContent) return 'NA'
+                        const tempContainer = document.createElement('div')
+                        tempContainer.innerHTML = htmlContent
+                        const firstElement = tempContainer.firstElementChild
+                        const text = firstElement ? firstElement.textContent : 'NA'
+                        return truncatedNotes[data?.note_id] ? `${text}...` : text
+                      })()}
+                    </Box>
+                  ) : (
+                    <Box
+                      className='ql-editor'
+                      sx={{
+                        fontSize: '0.95rem',
+                        fontWeight: 400,
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        flex: 1,
+                        padding: 0,
+                        border: 'none',
+                        '& p': { margin: 0 },
+                        '& ol, & ul': { paddingLeft: '1.5em', margin: '0.5em 0' }
+                      }}
+                      dangerouslySetInnerHTML={{
+                        __html: getRichTextHtmlValue(data?.note) || '<p>NA</p>'
+                      }}
+                    />
+                  )}
 
                   {(status == 'admitted' || status == 'discharge') && (
                     <IconButton
                       onClick={() => onDeleteNote(data?.note_id)}
-                      sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3 }}
+                      sx={{ color: theme.palette.customColors.Tertiary, p: 0, ml: 3, flexShrink: 0 }}
                     >
                       <CancelOutlinedIcon fontSize='medium' />
                     </IconButton>
                   )}
                 </Box>
+
+                {truncatedNotes[data?.note_id] && (
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
+                    <Button
+                      variant='text'
+                      size='small'
+                      onClick={() => toggleNoteExpand(data?.note_id)}
+                      sx={{
+                        color: theme.palette.primary.main,
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        textTransform: 'capitalize',
+                        p: 0,
+                        minWidth: 'auto',
+                        '&:hover': {
+                          backgroundColor: 'transparent',
+                          textDecoration: 'underline'
+                        }
+                      }}
+                    >
+                      {expandedNotes[data?.note_id] ? 'Read Less' : 'Read More'}
+                    </Button>
+                  </Box>
+                )}
+
                 <UserAvatarDetails
                   user_name={data?.created_by_user_name}
                   date={data?.created_at}
@@ -197,7 +291,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
                   profile_image={data?.user_created_profile_pic}
                 />
               </Box>
-            );
+            )
           })}
 
           {/* Show skeleton only when fetching more pages and we already have data */}
@@ -224,7 +318,7 @@ const InpatientClinicalNotes = (props: InpatientClinicalNotesProps) => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default InpatientClinicalNotes
