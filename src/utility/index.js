@@ -529,7 +529,7 @@ export const createEmptyRichTextValue = () => {
 
   return {
     delta,
-    html: '<p><br></p>',
+    html: '<></>',
     text: '',
     ops: delta.ops
   }
