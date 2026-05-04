@@ -14,11 +14,20 @@ interface StatsCardProps {
   color?: any
   backgroundColor?: any
   navigateTo?: any
+  onClick?: () => void
 }
 
-const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, navigateTo }: StatsCardProps) => {
+const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, navigateTo, onClick }: StatsCardProps) => {
   const theme: any = useTheme()
   const router: any = useSafeRouter()
+
+  const handleClick = () => {
+    if (onClick) {
+      onClick()
+    } else if (navigateTo) {
+      router.push(navigateTo)
+    }
+  }
 
   return (
     <Box
@@ -32,7 +41,7 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, nav
         backgroundColor,
         cursor: 'pointer'
       }}
-      onClick={() => router.push(navigateTo)}
+      onClick={handleClick}
     >
       <Box
         sx={{
@@ -91,9 +100,10 @@ const StatsCard = ({ icon, count, label, color = 'primary', backgroundColor, nav
 
 interface HealthcareOverviewProps {
   data?: any
+  onPrescriptionClick?: () => void
 }
 
-const HealthcareOverview = ({ data }: HealthcareOverviewProps) => {
+const HealthcareOverview = ({ data, onPrescriptionClick }: HealthcareOverviewProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
   const params = useParams()
@@ -127,7 +137,7 @@ const HealthcareOverview = ({ data }: HealthcareOverviewProps) => {
     {
       icon: '/icons/hospital/Prescription.svg',
       count: data?.active_prescriptions_count,
-      navigateTo: `/hospital/inpatient/${id}?tab=prescriptionMonitoring`,
+      onClick: onPrescriptionClick,
       label: t('hospital_module.prescription_label'),
       color: theme.palette.customColors.addPrimary,
       backgroundColor: theme.palette.customColors.bodyBg

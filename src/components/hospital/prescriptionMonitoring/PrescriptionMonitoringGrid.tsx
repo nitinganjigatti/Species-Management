@@ -4,6 +4,7 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Box, Typography, Grid as MuiGrid, Button } from '@mui/material'
+import Icon from 'src/@core/components/icon'
 const Grid: any = MuiGrid
 import { alpha, styled } from '@mui/material/styles'
 import { useTheme } from '@emotion/react'
@@ -19,8 +20,10 @@ const TimeSlotCell: any = TimeSlotCellRaw
 const MetricCard: any = MetricCardRaw
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
+import { useSelector } from 'react-redux'
 import ActionButtonsWithSelection from '../ActionButtonsWithSelection'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
 
 // Utility functions
 const getLabelForHour = (hour: number) => {
@@ -285,6 +288,9 @@ const PrescriptionMonitoringGrid = ({
   const theme: any = useTheme()
   const router: any = useSafeRouter()
   const routerParams: any = useParams()
+  const hospitalData: any = useSelector((state: any) => state.hospital.data)
+  const medicalRecordData: any = hospitalData?.['medical_record_data'] || {}
+  const animalId = medicalRecordData?.animal_id
 
   // Get id from dynamic route params (App Router) or from router.query fallback
   const id = routerParams?.id || router.query?.id
@@ -295,6 +301,7 @@ const PrescriptionMonitoringGrid = ({
   const [hoveredSlot, setHoveredSlot] = useState<any>(null)
   const [currentTime, setCurrentTime] = useState<Date>(new Date())
   const [didInitialScroll, setDidInitialScroll] = useState<boolean>(false)
+  const [prescriptionSheetOpen, setPrescriptionSheetOpen] = useState<boolean>(false)
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -699,7 +706,8 @@ const PrescriptionMonitoringGrid = ({
 
   return (
     <>
-      <Grid container spacing={4} sx={{ alignItems: 'center', my: 4, justifyContent: 'space-between' }}>
+      <Grid container spacing={2} sx={{ alignItems: 'center', my: 4 }}>
+        {/* Date Nav - flex: 1 */}
         <Grid item size={displayMetrics?.length === 0 ? { xs: 12 } : { xs: 8, sm: 9, lg: 9.5 }}>
           <HorizontalDateNav
             isLoading={isLoading}
@@ -708,6 +716,8 @@ const PrescriptionMonitoringGrid = ({
             dates={dates}
           />
         </Grid>
+
+        {/* Add Prescription Button */}
         {displayMetrics?.length > 0 ? (
           <Grid item size={{ xs: 4, sm: 3, lg: 2.5 }}>
             <Button onClick={handleRouterNavigation} sx={{ height: '48px', width: '100%' }} variant='contained'>
@@ -750,15 +760,26 @@ const PrescriptionMonitoringGrid = ({
                 </Box>
               )}
             </Box>
-            <MUISwitch
-              checked={isCurrentMedicalRecord}
-              onChange={handleSwitchChange}
-              label={(t('hospital_module.current_medical_records_only') as string)}
-            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <MUISwitch
+                checked={isCurrentMedicalRecord}
+                onChange={handleSwitchChange}
+                label={(t('hospital_module.current_medical_records_only') as string)}
+              />
+              <Button
+                onClick={() => setPrescriptionSheetOpen(true)}
+                sx={{ height: '40px', minWidth: '150px' }}
+                variant='outlined'
+                size='small'
+                startIcon={<Icon icon='mdi:prescription' />}
+              >
+                VIEW
+              </Button>
+            </Box>
           </Grid>
         )}
         {!isLoading && displayMetrics?.length <= 0 && (
-          <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex' }}>
+          <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <MUISwitch
               checked={isCurrentMedicalRecord}
               onChange={handleSwitchChange}
@@ -766,6 +787,15 @@ const PrescriptionMonitoringGrid = ({
               size='small'
               sx={{ ml: 2.6 }}
             />
+            <Button
+              onClick={() => setPrescriptionSheetOpen(true)}
+              sx={{ height: '40px', minWidth: '150px' }}
+              variant='outlined'
+              size='small'
+              startIcon={<Icon icon='mdi:prescription' />}
+            >
+              VIEW
+            </Button>
           </Grid>
         )}
 
@@ -942,6 +972,13 @@ const PrescriptionMonitoringGrid = ({
           isCancelLoading={isSkipLoading}
         />
       ) : null}
+
+      {/* Prescription Sidesheet */}
+      <PrescriptionSidesheet
+        open={prescriptionSheetOpen}
+        onClose={() => setPrescriptionSheetOpen(false)}
+        animalId={animalId}
+      />
     </>
   )
 }

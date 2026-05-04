@@ -22,6 +22,7 @@ import { useSelector } from 'react-redux'
 import MenuWithDots from 'src/components/MenuWithDots'
 import Icon from 'src/@core/components/icon'
 import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
+import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -52,6 +53,7 @@ const InpatientOverview = ({
 
   const [dischargeSummaryLoading, setDischargeSummaryLoading] = useState<boolean>(false)
   const [openVisitSummaryFilterDrawer, setOpenVisitSummaryFilterDrawer] = useState<boolean>(false)
+  const [prescriptionSheetOpen, setPrescriptionSheetOpen] = useState<boolean>(false)
 
   const [selectedVisit, setSelectedVisit] = useState<any>({
     case_id: null,
@@ -369,7 +371,7 @@ const InpatientOverview = ({
     <>
       <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box>
-          <HealthcareOverview data={overviewData} />
+          <HealthcareOverview data={overviewData} onPrescriptionClick={() => setPrescriptionSheetOpen(true)} />
         </Box>
         <Grid container spacing={6} sx={{ borderRadius: 2, padding: '0 0 16px 16px' }}>
           {isLoadingMedia ? (
@@ -527,6 +529,11 @@ const InpatientOverview = ({
           caseId={selectedVisit?.case_id}
         />
       )}
+      <PrescriptionSidesheet
+        open={prescriptionSheetOpen}
+        onClose={() => setPrescriptionSheetOpen(false)}
+        animalId={animal_id}
+      />
     </>
   )
 }
