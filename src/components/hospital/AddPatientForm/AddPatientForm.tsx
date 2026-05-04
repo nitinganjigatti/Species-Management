@@ -986,6 +986,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                           value={attendingSelectedDoctors}
                           loading={staffLoading}
                           filterSelectedOptions
+                          disableCloseOnSelect={true}
                           getOptionLabel={option => option?.label || ''}
                           isOptionEqualToValue={(option, value) => option.value === value?.value}
                           onInputChange={(event, value, reason) => {
