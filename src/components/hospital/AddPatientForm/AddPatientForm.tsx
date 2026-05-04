@@ -286,33 +286,26 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
   }, [selectedHospital, searchRoom, hospitalStats?.available_rooms])
 
   const selectedRoom = watch('room')
+  const selectedEnclosure = watch('holdingEnclosure')
 
+  // Fetch all enclosures from all rooms on initial load
   useEffect(() => {
-    // Reset holding enclosure when room changes
-    setValue('holdingEnclosure', {
-      label: '',
-      value: ''
-    })
-    setHoldingEnclosures([])
-
     const getHospitalBeds = async () => {
-      if (!selectedRoom?.value) return
       setBedsLoading(true)
       try {
         const res: any = await getRoomsAndEnclosures({
           hospital_id: selectedHospital?.id,
           status: 'active',
-          room_id: selectedRoom.value,
           page: 1,
-
-          // is_occupied: 'available',
           q: searchEnclosure
         })
         if (res?.success === true) {
           setHoldingEnclosures(
             res?.data?.records?.map((item: any) => ({
-              label: item?.bed_name,
-              value: item?.id
+              label: `${item?.bed_name}${item?.room_name ? ` (${item?.room_name})` : ''}`,
+              value: item?.id,
+              room_id: item?.room_id,
+              room_name: item?.room_name
             }))
           )
         }
@@ -324,8 +317,25 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
       }
     }
 
-    getHospitalBeds()
-  }, [selectedRoom, selectedHospital, searchEnclosure, hospitalStats?.available_rooms])
+    if (selectedHospital?.id) {
+      getHospitalBeds()
+    }
+  }, [selectedHospital, searchEnclosure, hospitalStats?.available_rooms])
+
+  // Auto-populate room when enclosure is selected
+  useEffect(() => {
+    if (selectedEnclosure?.value && selectedEnclosure?.room_id) {
+      const roomObj = rooms.find((r: any) => r.value === selectedEnclosure.room_id)
+      if (roomObj) {
+        setValue('room', roomObj)
+      } else {
+        setValue('room', {
+          label: selectedEnclosure.room_name || '',
+          value: selectedEnclosure.room_id
+        })
+      }
+    }
+  }, [selectedEnclosure, rooms, setValue])
 
   const debouncedSearch = React.useMemo(() => debounce((val: string) => setSearchRoom(val), 1000), [])
 
@@ -1061,56 +1071,6 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                   <Typography
                     sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                   >
-                    Room
-                  </Typography>
-                  <ControlledAutocomplete
-                    name='room'
-                    label='Select Room*'
-                    control={control}
-                    errors={errors}
-                    options={rooms}
-                    getOptionValue={(option: any) => option.value || ''}
-                    getOptionLabel={(option: any) => option.label || ''}
-                    isOptionEqualToValue={(option: any, value: any) => option.value === value?.value}
-                    required
-                    onInputChange={(val: any) => debouncedSearch(val)}
-                    sx={{ background: theme.palette.customColors.Surface, borderRadius: 1 }}
-                    fullWidth
-                    loading={roomsLoading}
-                    disabled={submitLoader}
-                    endAdornment={() =>
-                      havePermissionToAddHospital && (
-                        <Tooltip title='Add Rooms'>
-                          <IconButton
-                            size='small'
-                            onMouseDown={e => e.preventDefault()}
-                            onClick={() => setOpenAddRoomDrawer(true)}
-                            sx={{ ml: 1, fontSize: 28 }}
-                          >
-                            <Icon icon='mdi:plus' color={theme.palette.primary.main} />
-                          </IconButton>
-                        </Tooltip>
-                      )
-                    }
-                  />
-                  {rooms.length === 0 && (
-                    <Typography
-                      sx={{
-                        color: theme.palette.error.main,
-                        mt: '0px',
-                        mx: '4px',
-                        fontSize: '0.75rem',
-                        fontWeight: 400
-                      }}
-                    >
-                      No available Enclosures, All Enclosures are occupied
-                    </Typography>
-                  )}
-                </Grid>
-                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <Typography
-                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-                  >
                     Holding Enclosure
                   </Typography>
                   <ControlledAutocomplete
@@ -1143,7 +1103,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                       )
                     }
                   />
-                  {selectedRoom?.value && !bedsLoading && holdingEnclosures.length === 0 && (
+                  {!bedsLoading && holdingEnclosures.length === 0 && (
                     <Typography
                       sx={{
                         color: theme.palette.error.main,
@@ -1153,7 +1113,60 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
                         fontWeight: 400
                       }}
                     >
-                      No active/available enclosures available for this Room
+                      No active/available enclosures available
+                    </Typography>
+                  )}
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <Typography
+                    sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
+                    Room
+                  </Typography>
+                  <ControlledAutocomplete
+                    name='room'
+                    label='Select Room*'
+                    control={control}
+                    errors={errors}
+                    options={rooms}
+                    getOptionValue={(option: any) => option.value || ''}
+                    getOptionLabel={(option: any) => option.label || ''}
+                    isOptionEqualToValue={(option: any, value: any) => option.value === value?.value}
+                    required
+                    onInputChange={(val: any) => debouncedSearch(val)}
+                    sx={{
+                      background: theme.palette.customColors.Surface,
+                      borderRadius: 1
+                    }}
+                    fullWidth
+                    loading={roomsLoading}
+                    disabled={submitLoader}
+                    endAdornment={() =>
+                      havePermissionToAddHospital && (
+                        <Tooltip title='Add Rooms'>
+                          <IconButton
+                            size='small'
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => setOpenAddRoomDrawer(true)}
+                            sx={{ ml: 1, fontSize: 28 }}
+                          >
+                            <Icon icon='mdi:plus' color={theme.palette.primary.main} />
+                          </IconButton>
+                        </Tooltip>
+                      )
+                    }
+                  />
+                  {rooms.length === 0 && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.error.main,
+                        mt: '0px',
+                        mx: '4px',
+                        fontSize: '0.75rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      No available Rooms, All Rooms are occupied
                     </Typography>
                   )}
                 </Grid>

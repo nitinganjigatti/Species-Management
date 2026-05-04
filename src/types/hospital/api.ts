@@ -179,6 +179,8 @@ export type HealthStatusOption = {
 export type SelectAdmitOption = {
   bed_name?: string
   id?: Id
+  room_id?: Id
+  room_name?: string
 }
 
 export interface RoomEnclosureResponse {
