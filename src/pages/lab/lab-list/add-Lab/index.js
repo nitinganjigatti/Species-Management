@@ -1562,9 +1562,10 @@ const AddLab = () => {
                       </Box>
                     </Stack>
 
+                    <Stack spacing={2} sx={{ mt: 2 }}>
                     {sample?.tests?.map((parent, index) =>
                       parent?.child_tests?.length > 0 ? (
-                        <Card key={index} mt={2}>
+                        <Card key={index}>
                           <Accordion slotProps={{ heading: { component: 'h4' } }}>
                             <AccordionSummary
                               expandIcon={<ExpandMoreIcon />}
@@ -1660,6 +1661,7 @@ const AddLab = () => {
                         </Card>
                       )
                     )}
+                    </Stack>
                   </Box>
                 ))}
               </Stack>

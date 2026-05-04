@@ -454,7 +454,7 @@ const CreateEnclosure = ({
                               }}
                             >
                               <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                                {t('navigation.Species')}: {item.species_count}
+                                {t('navigation.species')}: {item.species_count}
                               </Typography>
                               <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
                                 {t('navigation.animals')}: {item.animal_count}

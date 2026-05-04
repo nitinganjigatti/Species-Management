@@ -21,7 +21,8 @@ import type { AnimalData, MedicalRow, FilterOptions, SortType, FilterDate, Pagin
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import { toast } from 'react-hot-toast'
-
+import utility from 'src/utility'
+import { ExportButton } from 'src/views/utility/render-snippets'
 const MedicalRecords = () => {
   const theme: any = useTheme()
   const router = useRouter()
@@ -72,13 +73,13 @@ const MedicalRecords = () => {
     setAnimalLoader(true)
     try {
       const res = await getAnimalDetailsOverview({
-        animal_id: Number(router.query.animal_id)
+        animal_id: router.query.animal_id as any
       })
 
       if (res?.success) {
         setSelectedAnimals([
           {
-            animal_id: Number(res?.data?.animal_details?.animal_id),
+            animal_id: res?.data?.animal_details?.animal_id,
             default_common_name: res?.data?.animal_details?.common_name,
             scientific_name: res?.data?.animal_details?.scientific_name ?? res?.data?.animal_details?.complete_name,
             user_enclosure_name: res?.data?.animal_details?.user_enclosure_name,
@@ -104,10 +105,10 @@ const MedicalRecords = () => {
   }
 
   useEffect(() => {
-    if ((router.query.animal_id as string) && selectedAnimals.length === 0) {
+    if (router.query.animal_id && selectedAnimals.length === 0) {
       fetchAnimal()
     }
-  }, [router.query.animal_id as string])
+  }, [router.query.animal_id])
 
   const updateRouterQuery = (query: Record<string, any>, shallow = true) => {
     router.push({ pathname: router.pathname, query }, undefined, { shallow })
@@ -473,17 +474,26 @@ const MedicalRecords = () => {
       sortable: false,
       headerName: '',
       renderCell: (params: any) => (
-        <IconButton onClick={() => handleRowDownload(params.row)} disabled={downloadingRowId === params.row.id}>
-          {downloadingRowId === params.row.id ? (
-            <CircularProgress size={20} />
-          ) : (
-            <Icon icon='mdi:download' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
-          )}
-        </IconButton>
+        <Box
+          sx={{ pointerEvents: 'auto' }}
+          onMouseDown={e => {
+            e.stopPropagation()
+          }}
+        >
+          <ExportButton
+            bgcolor='transparent'
+            tooltip='Download Medical Record'
+            loading={downloadingRowId === params.row.id}
+            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+              e.preventDefault()
+              e.stopPropagation()
+              handleRowDownload(params.row)
+            }}
+          />
+        </Box>
       )
     }
   ]
-
   const handleRowDownload = async (row: MedicalRow) => {
     const params = {
       ...buildFilterParams(),
@@ -492,8 +502,12 @@ const MedicalRecords = () => {
     try {
       setDownloadingRowId(row?.id)
       const result = await getMedicalRecordReport(params)
+
       if (result?.success) {
         toast.success(result.message)
+        if (result?.data?.file_path) {
+          utility.downloadFileFromURLWithBlob(result.data.download_url)
+        }
       } else {
         toast.error(result?.message || 'Failed to download report')
       }
@@ -531,7 +545,6 @@ const MedicalRecords = () => {
     try {
       setIsDownloading(true)
       const result = await getMedicalRecordReport(params)
-      debugger
       if (result?.success) {
         toast.success(result.message)
       } else {
@@ -685,7 +698,17 @@ const MedicalRecords = () => {
                   getRowHeight={() => 'auto'}
                   externalTableStyle={{
                     '& .MuiDataGrid-cell': {
-                      padding: 4
+                      padding: 4,
+                      pointerEvents: 'auto'
+                    },
+                    '& .MuiDataGrid-cell[data-field="actions"]': {
+                      pointerEvents: 'auto !important',
+                      padding: '4px !important',
+                      position: 'relative',
+                      zIndex: 50
+                    },
+                    '& .MuiDataGrid-cell[data-field="actions"] *': {
+                      pointerEvents: 'auto !important'
                     },
                     padding: 0,
                     margin: 0
