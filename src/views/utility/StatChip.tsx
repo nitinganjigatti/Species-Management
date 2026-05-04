@@ -14,10 +14,9 @@ const StatChip: React.FC<StatChipProps> = ({ value, bgcolor, color }) => {
     <Tooltip title={tooltipTitle} arrow placement='top'>
       <Box
         sx={{
-          px: 1.5,
+          px: 0.5,
           py: 0.5,
-          width: '48px',
-          height: '25px',
+          minWidth: 50,
           cursor: 'default',
           borderRadius: '4px',
           bgcolor: bgcolor,
@@ -26,10 +25,7 @@ const StatChip: React.FC<StatChipProps> = ({ value, bgcolor, color }) => {
           fontWeight: 600,
           display: 'inline-block',
           textAlign: 'center',
-          minWidth: 40,
-          overflow: 'hidden',
-          whiteSpace: 'nowrap',
-          textOverflow: 'ellipsis'
+          whiteSpace: 'nowrap'
         }}
       >
         {value}
