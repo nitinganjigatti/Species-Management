@@ -1,4 +1,4 @@
-import React, { useState, useEffect, FC, ReactNode } from 'react'
+import React, { useState, useEffect, FC, ReactNode, useRef } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import MedicalRecordsList from './MedicalRecordsList'
@@ -39,6 +39,7 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
   mortalityCreatedAt
 }) => {
   const theme = useTheme()
+  const prescriptionScrollContainerRef = useRef<HTMLDivElement | null>(null)
   const [activeTab, setActiveTab] = useState<TabType>('Medical Records')
   const [medicalStats, setMedicalStats] = useState<MedicalStats | null>(null)
   const [statsLoading, setStatsLoading] = useState<boolean>(true)
@@ -85,7 +86,14 @@ const MedicalHistoryTabs: FC<MedicalHistoryTabsProps> = ({
         return <DiagnosisList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
       case 'Prescription':
         return (
-          <PrescriptionList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />
+          <Box ref={prescriptionScrollContainerRef}>
+            <PrescriptionList
+              animalId={animalId}
+              mortalityId={mortalityId}
+              mortalityCreatedAt={mortalityCreatedAt}
+              scrollContainerRef={prescriptionScrollContainerRef}
+            />
+          </Box>
         )
       case 'Lab Requests':
         return <LabRequestsList animalId={animalId} mortalityId={mortalityId} mortalityCreatedAt={mortalityCreatedAt} />

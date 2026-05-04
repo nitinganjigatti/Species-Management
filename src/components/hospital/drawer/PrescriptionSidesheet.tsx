@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useRef } from 'react'
 import { Box, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
@@ -13,6 +13,7 @@ interface PrescriptionSidesheetProps {
 
 const PrescriptionSidesheet = ({ open, onClose, animalId }: PrescriptionSidesheetProps) => {
   const theme: any = useTheme()
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
 
   return (
     <Drawer
@@ -68,6 +69,7 @@ const PrescriptionSidesheet = ({ open, onClose, animalId }: PrescriptionSideshee
         </Box>
 
         <Box
+          ref={scrollContainerRef}
           sx={{
             flex: 1,
             overflowY: 'auto',
@@ -90,7 +92,7 @@ const PrescriptionSidesheet = ({ open, onClose, animalId }: PrescriptionSideshee
             }
           }}
         >
-          {animalId ? <PrescriptionList animalId={animalId} /> : null}
+          {animalId ? <PrescriptionList animalId={animalId} scrollContainerRef={scrollContainerRef} /> : null}
         </Box>
       </Box>
     </Drawer>
