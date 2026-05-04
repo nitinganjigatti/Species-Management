@@ -468,8 +468,8 @@ const RequestDetails = () => {
     //   )
     // },
     {
-      // flex: 0.8,
-      width: 300,
+      flex: 1,
+      minWidth: 200,
       field: 'test_name',
       sortable: false,
       headerName: 'Test Name',
@@ -493,7 +493,8 @@ const RequestDetails = () => {
       )
     },
     {
-      width: 300,
+      flex: 1,
+      minWidth: 200,
       field: 'sample_name',
       sortable: false,
       headerName: 'Sample',
@@ -520,7 +521,8 @@ const RequestDetails = () => {
     },
 
     {
-      width: 300,
+      flex: 1,
+      minWidth: 280,
       field: 'status',
       sortable: false,
       headerName: 'STATUS',
@@ -653,8 +655,8 @@ const RequestDetails = () => {
     permissions?.allow_upload_reports
       ? [
           {
-            // flex: 0.2,
-            width: 300,
+            flex: 1,
+            minWidth: 300,
             field: 'References',
             headerName: 'References',
             sortable: false,
@@ -796,8 +798,7 @@ const RequestDetails = () => {
             )
           }
         ]
-      : []),
-    ,
+      : [])
   ]
 
   const handleSortModel = async newModel => {

@@ -780,6 +780,7 @@ const ObservationReport = () => {
           selectedAnimal={selectedAnimal}
           setSelectedAnimal={setSelectedAnimal}
           handleAnimalClick={handleAnimalSelect}
+          type='all'
         />
       )}
     </>
