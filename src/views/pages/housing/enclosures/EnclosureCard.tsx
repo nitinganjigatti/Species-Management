@@ -48,7 +48,8 @@ interface EnclosureCardProps {
 const EnclosureCard: React.FC<EnclosureCardProps> = ({ enclosure, onClick }) => {
   const theme = useTheme() as any
   const isClickable = Boolean(onClick)
-  const { t } = useTranslation()
+  const translation = useTranslation()
+  const t = translation.t
 
   return (
     <Box

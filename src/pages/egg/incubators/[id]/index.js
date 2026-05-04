@@ -884,7 +884,7 @@ const IncubatorDetails = () => {
 
               <DetailCard radius={'8px'} DetailsListData={incubatorDetailList} />
 
-              <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -913,7 +913,7 @@ const IncubatorDetails = () => {
                     }}
                   />
                 </Box>
-                <Box sx={{ width: 220, display: 'flex', position: 'relative' }}>
+                <Box sx={{ width: 220, display: 'flex', position: 'relative', height: '40px' }}>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       sx={{
@@ -923,32 +923,19 @@ const IncubatorDetails = () => {
                         '& .MuiOutlinedInput-root': {
                           height: 40,
                           borderRadius: '4px'
-                        },
-                        '& .MuiInputLabel-root': {
-                          top: allocationDate ? -0 : -7
-                        },
-                        '& .MuiInputLabel-root': {
-                          top: -7
-                        },
-                        '& .MuiInputLabel-shrink': {
-                          top: 0
-                        },
-                        '& input': {
-                          // position: 'relative'
-                          // top: -7
                         }
                       }}
-                      value={allocationDate}
+                      value={allocationDate ? dayjs(allocationDate) : null}
                       onChange={newDate => {
                         if (newDate) {
-                          const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-                          setAllocationDate(moment(newDate.toISOString()).format('YYYY-MM-DD'))
+                          const formattedDate = dayjs(newDate).format('YYYY-MM-DD')
+                          setAllocationDate(formattedDate)
                           fetchTableData(
                             sort,
                             searchValue,
                             status,
                             formattedDate,
-                            collectedDate != null ? moment(collectedDate).format('YYYY-MM-DD') : null,
+                            collectedDate || null,
                             defaultSpecie?.taxonomy_id
                           )
                         } else {
@@ -958,11 +945,12 @@ const IncubatorDetails = () => {
                             searchValue,
                             status,
                             null,
-                            collectedDate != null ? moment(collectedDate).format('YYYY-MM-DD') : null,
+                            collectedDate || null,
                             defaultSpecie?.taxonomy_id
                           )
                         }
                       }}
+                      slotProps={{ textField: { size: 'small' } }}
                       label={t('egg_module.allocated_date')}
                       maxDate={dayjs()}
                       format='DD/MM/YYYY'
@@ -979,7 +967,7 @@ const IncubatorDetails = () => {
                           searchValue,
                           status,
                           null,
-                          collectedDate != null ? moment(collectedDate).format('YYYY-MM-DD') : null,
+                          collectedDate || null,
                           defaultSpecie?.taxonomy_id
                         )
                       }}
@@ -1000,7 +988,7 @@ const IncubatorDetails = () => {
                     </Box>
                   )}
                 </Box>
-                <Box sx={{ width: 220, display: 'flex', position: 'relative' }}>
+                <Box sx={{ width: 220, display: 'flex', position: 'relative', height: '40px' }}>
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                       sx={{
@@ -1009,36 +997,20 @@ const IncubatorDetails = () => {
                         width: '100%',
                         '& .MuiOutlinedInput-root': {
                           height: 40,
-
-                          // width: 200,
                           borderRadius: '4px'
-                        },
-                        '& .MuiInputLabel-root': {
-                          top: collectedDate ? -0 : -7
-                        },
-
-                        '& .MuiInputLabel-root': {
-                          top: -7
-                        },
-                        '& .MuiInputLabel-shrink': {
-                          top: 0
-                        },
-                        '& input': {
-                          // position: 'relative'
-                          // top: -7
                         }
                       }}
                       format='DD/MM/YYYY'
-                      value={collectedDate}
+                      value={collectedDate ? dayjs(collectedDate) : null}
                       onChange={newDate => {
                         if (newDate) {
-                          const formattedDate = moment(newDate.toISOString()).format('YYYY-MM-DD')
-                          setCollectedDate(newDate) // Save the dayjs object
+                          const formattedDate = dayjs(newDate).format('YYYY-MM-DD')
+                          setCollectedDate(formattedDate)
                           fetchTableData(
                             sort,
                             searchValue,
                             status,
-                            allocationDate != null ? moment(allocationDate).format('YYYY-MM-DD') : null,
+                            allocationDate || null,
                             formattedDate,
                             defaultSpecie?.taxonomy_id
                           )
@@ -1048,12 +1020,13 @@ const IncubatorDetails = () => {
                             sort,
                             searchValue,
                             status,
-                            allocationDate != null ? moment(allocationDate).format('YYYY-MM-DD') : null,
+                            allocationDate || null,
                             null,
                             defaultSpecie?.taxonomy_id
                           )
                         }
                       }}
+                      slotProps={{ textField: { size: 'small' } }}
                       label={t('egg_module.collected_date')}
                       maxDate={dayjs()} // Ensure the maxDate is also a dayjs object
                     />
@@ -1070,7 +1043,7 @@ const IncubatorDetails = () => {
                           sort,
                           searchValue,
                           status,
-                          allocationDate != null ? moment(allocationDate).format('YYYY-MM-DD') : null,
+                          allocationDate || null,
                           null,
                           defaultSpecie?.taxonomy_id
                         )

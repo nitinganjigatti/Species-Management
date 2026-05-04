@@ -41,7 +41,8 @@ const AnimalDrawer = ({
   filterCount,
   multiSelect = false,
   defaultSelected = [],
-  customQueryParams = null
+  customQueryParams = null,
+  type = 'single'
 }) => {
   const theme = useTheme()
   const queryClient = useQueryClient()
@@ -68,25 +69,24 @@ const AnimalDrawer = ({
   )
 
   useEffect(() => {
-  if (from !== 'Add Patient Form'){
-    const getAnimalsHorizontalNavigation = async () => {
-      try {
-        const params = {}
-        const response = await getAnimalFilterList({ params })
-        if (response?.success) {
-          setHorizontalNavList(response?.data)
-          setHorizontalLoading(false)
+    if (from !== 'Add Patient Form') {
+      const getAnimalsHorizontalNavigation = async () => {
+        try {
+          const params = {}
+          const response = await getAnimalFilterList({ params })
+          if (response?.success) {
+            setHorizontalNavList(response?.data)
+            setHorizontalLoading(false)
+          }
+        } catch (error) {
+          console.log('Error getting horizontal navigation list')
+          console.error(error)
         }
-      } catch (error) {
-        console.log('Error getting horizontal navigation list')
-        console.error(error)
       }
+
+      getAnimalsHorizontalNavigation()
     }
-
-    getAnimalsHorizontalNavigation()
-  }
-}, [])
-
+  }, [])
 
   useEffect(() => {
     return () => {
@@ -128,7 +128,7 @@ const AnimalDrawer = ({
         page_no: pageParam,
         limit: PAGE_SIZE,
         list_type: 'animals',
-        type: 'single',
+        type: type,
         // include_dead_animal: 0,
         ...(search.trim() && { filter_aid_local_identifier: search })
       }

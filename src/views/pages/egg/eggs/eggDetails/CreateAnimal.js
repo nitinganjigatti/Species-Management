@@ -1050,6 +1050,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
 
 const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   return (
     <Box
