@@ -7,7 +7,8 @@ import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
 
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
-import { CellInfo } from 'src/utility/render'
+import { CellInfo as CellInfoComponent } from 'src/utility/render'
+const CellInfo = CellInfoComponent as any
 import Search from 'src/views/utility/Search'
 import { getAllSections } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
@@ -244,13 +245,13 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
                     justifyContent: 'space-between'
                   }}
                 >
-                  {(CellInfo as any)({
-                    value: section?.section_name,
-                    imgUrl: section?.images?.[0]?.file,
-                    defaultImage: '/images/housing/section-icon-colored.png',
-                    defaultImageAlt: 'section image',
-                    inchagename: section?.incharge_name || ''
-                  })}
+                  <CellInfo
+                    value={section?.section_name}
+                    imgUrl={section?.images?.[0]?.file}
+                    defaultImage='/images/housing/section-icon-colored.png'
+                    defaultImageAlt='section image'
+                    inchagename={section?.incharge_name || ''}
+                  />
                 </Box>
               </Box>
               <Checkbox

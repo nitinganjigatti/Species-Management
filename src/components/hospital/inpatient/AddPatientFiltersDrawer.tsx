@@ -265,8 +265,8 @@ const AddPatientFiltersDrawer = ({
         newOptions.Enclosure = []
       }
 
-      const count = Object.values(newOptions).reduce((acc: number, curr: any) => acc + curr.length, 0)
-      setLocalFilterCount(count)
+      // const count = Object.values(newOptions).reduce((acc: number, curr: any) => acc + curr.length, 0)
+      // setLocalFilterCount(count)
 
       return newOptions
     })
@@ -296,8 +296,8 @@ const AddPatientFiltersDrawer = ({
           newOptions.Enclosure = []
         }
 
-        const count = Object.values(newOptions).reduce((acc: number, curr: any) => acc + curr.length, 0)
-        setLocalFilterCount(count)
+        // const count = Object.values(newOptions).reduce((acc: number, curr: any) => acc + curr.length, 0)
+        // setLocalFilterCount(count)
 
         return newOptions
       })
@@ -305,19 +305,35 @@ const AddPatientFiltersDrawer = ({
     [menuData]
   )
 
-  // const applyFilters = () => {
-  //   setFilterCount(localFilterCount)
-  //   onApplyFilters({
-  //     ...selectedOptions,
-  //     Site: localSelections.Sites?.map(item => item?.site_id ?? item) || [],
-  //     Section: localSelections.Sections?.map(item => item?.section_id ?? item) || [],
-  //     Enclosure: localSelections.Enclosures?.map(item => item?.enclosure_id ?? item) || []
-  //   })
-  // }
+  const getFilterCount = () => {
+    const hasSiteFilter =
+      (localSelections.Sites?.length || 0) > 0 ||
+      (localSelections.Sections?.length || 0) > 0 ||
+      (localSelections.Enclosures?.length || 0) > 0
+    const genderCount = selectedOptions.Gender?.length || 0
+    const speciesCount = selectedOptions.Species?.length || 0
+
+    return genderCount + speciesCount + (hasSiteFilter ? 1 : 0)
+  }
+
+  useEffect(() => {
+    const siteIds = localSelections.Sites?.map((item: any) => item?.site_id ?? item) || []
+    const sectionIds = localSelections.Sections?.map((item: any) => item?.section_id ?? item) || []
+    const enclosureIds = localSelections.Enclosures?.map((item: any) => item?.enclosure_id ?? item) || []
+
+    setSelectedOptions((prev: any) => ({
+      ...prev,
+      Site: siteIds,
+      Section: sectionIds,
+      Enclosure: enclosureIds
+    }))
+
+    setLocalFilterCount(getFilterCount())
+  }, [localSelections, selectedOptions.Gender, selectedOptions.Species])
 
   const applyFilters = () => {
     const convertToNumbers = (arr: any[]) => arr?.map((id: any) => Number(id)) || []
-    setFilterCount && setFilterCount(localFilterCount)
+    setFilterCount && setFilterCount(getFilterCount())
     onApplyFilters && onApplyFilters({
       ...selectedOptions,
       Site: convertToNumbers(localSelections.Sites?.map((item: any) => item?.site_id ?? item)),
@@ -353,11 +369,11 @@ const AddPatientFiltersDrawer = ({
   }, [openFilterDrawer])
 
   const handleCloseFilterDrawer = () => {
-    setLocalSelections({
-      Sites: initialSelectedOptions?.Site || [],
-      Sections: initialSelectedOptions?.Section || [],
-      Enclosures: initialSelectedOptions?.Enclosure || []
-    })
+    // setLocalSelections({
+    //   Sites: initialSelectedOptions?.Site || [],
+    //   Sections: initialSelectedOptions?.Section || [],
+    //   Enclosures: initialSelectedOptions?.Enclosure || []
+    // })
 
     // setSelectedOptions(initialSelectedOptions || {})
     // setLocalFilterCount(0)
