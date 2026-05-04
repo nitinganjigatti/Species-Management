@@ -686,7 +686,7 @@ const PatientMonitoring = React.memo(({ metrics = [], patientData, refetchPatien
               </Button>
             ) : (
               isToday &&
-              monitoringData?.length > 0 && (
+              monitoringData?.length > 0 && !isAfterDischarge && !isPatientDischarged && (
                 <Button
                   sx={{ height: '48px', width: '100%', fontSize: '0.8rem' }}
                   variant='contained'

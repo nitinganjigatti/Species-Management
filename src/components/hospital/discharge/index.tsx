@@ -794,9 +794,11 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
   // Clear enclosure_medicines when navigating away from discharge, unless going to schedule-prescription
   // Mirrors Pages Router router.events.on('routeChangeStart') by intercepting history API calls
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+
     const handleNavigation = (url: string) => {
       if (!String(url).includes('schedule-prescription')) {
-        clearEnclosureData()
+        timeoutId = setTimeout(() => clearEnclosureData(), 0)
       }
     }
 
@@ -816,6 +818,7 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     return () => {
       window.history.pushState = originalPushState
       window.history.replaceState = originalReplaceState
+      if (timeoutId !== null) clearTimeout(timeoutId)
     }
   }, [])
 
