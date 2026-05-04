@@ -2131,6 +2131,7 @@ const AddSurgeryRecord = () => {
         onSuccess={handleAnesthesiaCreateSuccess}
         loadMoreDoctors={loadMoreDoctors}
         loadingDoctors={doctorsLoading}
+        defaultLocation={selectedHospital?.name}
       />
       <SelectAnesthesiaRecordDrawer
         open={openSelectAnesthesiaDrawer}

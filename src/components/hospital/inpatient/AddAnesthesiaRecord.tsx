@@ -92,6 +92,7 @@ interface AddAnesthesiaRecordDrawerProps {
   onSuccess?: (record: any) => void
   loadMoreDoctors?: () => void
   loadingDoctors?: boolean
+  defaultLocation?: string
 }
 
 const AddanesthesiaRecordDrawer = ({
@@ -106,7 +107,8 @@ const AddanesthesiaRecordDrawer = ({
   animalInfoData = null,
   onSuccess = () => {},
   loadMoreDoctors = () => {},
-  loadingDoctors = false
+  loadingDoctors = false,
+  defaultLocation = ''
 }: AddAnesthesiaRecordDrawerProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
@@ -279,6 +281,7 @@ const AddanesthesiaRecordDrawer = ({
   const {
     handleSubmit,
     reset,
+    setValue,
     formState: { isSubmitting }
   } = methods
 
@@ -413,8 +416,14 @@ const AddanesthesiaRecordDrawer = ({
       return
     }
 
-    reset(defaultValues)
-  }, [isEditMode, editRecordData, buildEditFormValues, reset])
+    reset({
+      ...defaultValues,
+      basicDetails: {
+        ...defaultValues.basicDetails,
+        location: defaultLocation || ''
+      }
+    })
+  }, [isEditMode, editRecordData, buildEditFormValues, reset, defaultLocation])
 
   const onSubmit = async (data: any) => {
     const formData = new FormData()
@@ -530,6 +539,18 @@ const AddanesthesiaRecordDrawer = ({
       setEditRecordData(null)
     }
   }, [openAddanesthesiaDrawer, reset])
+
+  // Set default location for new records without resetting other fields
+  useEffect(() => {
+    if (openAddanesthesiaDrawer && !isEditMode && defaultLocation) {
+      // Use a timeout to let other effects set date/time first
+      const timer = setTimeout(() => {
+        setValue('basicDetails.location', defaultLocation)
+      }, 50)
+
+      return () => clearTimeout(timer)
+    }
+  }, [openAddanesthesiaDrawer, isEditMode, defaultLocation, setValue])
 
   useEffect(() => {
     const fetchPurposes = async () => {
