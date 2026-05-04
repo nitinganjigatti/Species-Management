@@ -31,56 +31,67 @@ const PrescriptionSidesheet = ({ open, onClose, animalId }: PrescriptionSideshee
         }
       }}
     >
-      {/* Header */}
       <Box
         sx={{
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          p: 2.5,
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          flexShrink: 0,
-          backgroundColor: theme.palette.background.paper
+          flexDirection: 'column',
+          height: '100%'
         }}
       >
-        <Typography
+        <Box
           sx={{
-            fontSize: '18px',
-            fontWeight: 600,
-            color: theme.palette.customColors.OnSurfaceVariant || theme.palette.text.primary
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: (theme: any) => theme.spacing(3, 3.255, 3, 5.255),
+            px: '24px',
+            borderBottom: `1px solid ${theme.palette.divider}`,
+            flexShrink: 0,
+            backgroundColor: theme.palette.background.paper
           }}
         >
-          Prescriptions
-        </Typography>
-        <IconButton onClick={onClose} size='small'>
-          <Icon icon='mdi:close' fontSize={20} />
-        </IconButton>
-      </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Icon icon='mdi:pill-multiple' fontSize={28} />
+            <Typography
+              sx={{
+                fontSize: '18px',
+                fontWeight: 600,
+                color: theme.palette.customColors.OnSurfaceVariant || theme.palette.text.primary
+              }}
+            >
+              Prescriptions
+            </Typography>
+          </Box>
+          <IconButton onClick={onClose} size='small'>
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+        </Box>
 
-      {/* Scrollable Body */}
-      <Box
-        sx={{
-          flex: 1,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          p: 2.5,
-          backgroundColor: theme.palette.background.paper,
-          '&::-webkit-scrollbar': {
-            width: '6px'
-          },
-          '&::-webkit-scrollbar-track': {
-            backgroundColor: 'transparent'
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: theme.palette.divider,
-            borderRadius: '4px',
-            '&:hover': {
-              backgroundColor: theme.palette.action.hover
+        <Box
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            px: '24px',
+            py: 3,
+            backgroundColor: theme.palette.background.paper,
+            '&::-webkit-scrollbar': {
+              width: '6px'
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'transparent'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: theme.palette.divider,
+              borderRadius: '4px',
+              '&:hover': {
+                backgroundColor: theme.palette.action.hover
+              }
             }
-          }
-        }}
-      >
-        {animalId ? <PrescriptionList animalId={animalId} /> : null}
+          }}
+        >
+          {animalId ? <PrescriptionList animalId={animalId} /> : null}
+        </Box>
       </Box>
     </Drawer>
   )
