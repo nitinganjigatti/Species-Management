@@ -349,6 +349,7 @@ export default function BasicDetails({
             errors={errors}
             label={`${t('hospital_module.date_and_time_of_anesthesia')}*`}
             ampm
+            outputFormat='YYYY-MM-DD HH:mm:ss'
             {...({
               minDateTime: dayjs((Utility as any).convertUTCToLocal(patientData?.admitted_at)),
               maxDateTime: patientData?.discharge_at ? dayjs((Utility as any).convertUTCToLocal(patientData?.discharge_at)) : dayjs()
