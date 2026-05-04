@@ -258,6 +258,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections, disable
               </Box>
               <Checkbox checked={isDisabled || isSelected} disabled={isDisabled} onChange={() => handleSiteSelect(site)} sx={{ mt: 0.5 }} />
             </Box>
+          </Box>
           )
         })}
 

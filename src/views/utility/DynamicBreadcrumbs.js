@@ -15,11 +15,11 @@ const DynamicBreadcrumbs = ({
 
   // Helper to process URL segments
   const generateBreadcrumbs = () => {
-    const asPathWithoutQuery = router.asPath.split('?')[0]
-    const asPathNestedRoutes = asPathWithoutQuery.split('/').filter(v => v.length > 0)
+    const asPathWithoutQuery = router.asPath?.split('?')[0]
+    const asPathNestedRoutes = asPathWithoutQuery?.split('/')?.filter(v => v.length > 0)
 
     return asPathNestedRoutes
-      .map((subpath, idx) => {
+      ?.map((subpath, idx) => {
         const href = '/' + asPathNestedRoutes.slice(0, idx + 1).join('/')
 
         let title = subpath
@@ -33,14 +33,14 @@ const DynamicBreadcrumbs = ({
 
         return { href, title, segment: subpath }
       })
-      .filter(item => !hiddenSegments.includes(item.segment));
+      .filter(item => !hiddenSegments.includes(item.segment))
   }
 
   const itemsToRender = pageItems || generateBreadcrumbs()
 
   return (
     <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5, ...sx }}>
-      {itemsToRender.map((item, index) => {
+      {itemsToRender?.map((item, index) => {
         const isLast = index === itemsToRender.length - 1
 
         // Handle simple string items

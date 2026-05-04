@@ -279,7 +279,6 @@ const AddIdentifierDrawer: React.FC<AddIdentifierDrawerProps> = ({ open, setOpen
                   options={localIdentifierTypeData}
                   getOptionLabel={(option: LocalIdentifierTypeOption) => option.label}
                   getOptionValue={(option: LocalIdentifierTypeOption) => option.value}
-                  disabled={identifierData !== null}
                 />
                 <ControlledTextField
                   name={'localIdentifier'}
