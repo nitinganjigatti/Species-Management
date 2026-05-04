@@ -132,10 +132,7 @@ const DoctorsList = () => {
         hospital_id: selectedHospital?.id,
         hospital_chief_doctor: user_id
       } as const
-      const response: AddRemoveChiefDoctorResponse = await addChiefDoctor(params)
-      if (response?.message && response?.success === true) {
-        Toaster({ type: 'success', message: response?.message })
-      }
+      await addChiefDoctor(params)
     } catch (error: unknown) {
       const err = error as ApiError
       Toaster({ type: 'error', message: err?.message })
@@ -149,10 +146,7 @@ const DoctorsList = () => {
         hospital_id: selectedHospital?.id,
         hospital_chief_doctor: user_id
       } as const
-      const response: AddRemoveChiefDoctorResponse = await removeChiefDoctor(params)
-      if (response?.message && response?.success === true) {
-        Toaster({ type: 'success', message: response?.message })
-      }
+      await removeChiefDoctor(params)
     } catch (error: unknown) {
       const err = error as ApiError
       Toaster({ type: 'error', message: err?.message })

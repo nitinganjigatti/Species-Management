@@ -385,6 +385,7 @@ export default function BasicDetails({
                 <Autocomplete
                   multiple
                   openOnFocus
+                  disableCloseOnSelect={true}
                   options={vetOptions}
                   getOptionLabel={(option: any) => option?.name || ''}
                   isOptionEqualToValue={(option: any, value: any) => String(option.id) === String(value.id)}
@@ -417,6 +418,7 @@ export default function BasicDetails({
                     <TextField
                       {...params}
                       label={`${t('hospital_module.veterinarian')}*`}
+                      placeholder={'Search & Select'}
                       fullWidth
                       error={!!(errors as any)?.basicDetails?.veterinarian_id}
                       helperText={(errors as any)?.basicDetails?.veterinarian_id?.message}
@@ -437,6 +439,7 @@ export default function BasicDetails({
               <Autocomplete
                 multiple
                 openOnFocus
+                disableCloseOnSelect={true}
                 options={anesthetistOptions}
                 getOptionLabel={(option: any) => option?.name || ''}
                 isOptionEqualToValue={(option: any, value: any) => String(option.id) === String(value.id)}
@@ -470,6 +473,7 @@ export default function BasicDetails({
                     {...params}
                     label={`${t('hospital_module.anesthetist')}*`}
                     fullWidth
+                    placeholder={'Search & Select'}
                     error={!!(errors as any)?.basicDetails?.anesthetist_id}
                     helperText={(errors as any)?.basicDetails?.anesthetist_id?.message}
                     sx={commonTextFieldSx}
