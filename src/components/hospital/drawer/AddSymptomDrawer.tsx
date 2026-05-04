@@ -128,7 +128,12 @@ const AddSymptomDrawer = ({
         </Box>
 
         <Box
-          sx={{ pt: 4, pb: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, height: '100vh' }}
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            minHeight: 0,
+            borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`
+          }}
         >
           <Box sx={{ p: 5, background: theme.palette.common.white, px: 5 }}>
             <Typography
@@ -265,16 +270,28 @@ const AddSymptomDrawer = ({
           </Box>
         </Box>
 
-        <SideSheetActionButtons
-          addLabel={t('add')}
-          cancelLabel={t('cancel')}
-          onAdd={handleSave}
-          onCancel={handleCancel}
-          width={260}
-          height={50}
-          isSubmitLoading={undefined}
-          isDisabled={undefined}
-        />
+        <Box
+          sx={{
+            position: 'sticky',
+            bottom: 0,
+            left: 0,
+            width: '100%',
+            backgroundColor: theme.palette.common.white,
+            zIndex: 1,
+            flexShrink: 0
+          }}
+        >
+          <SideSheetActionButtons
+            addLabel={t('add')}
+            cancelLabel={t('cancel')}
+            onAdd={handleSave}
+            onCancel={handleCancel}
+            width={260}
+            height={50}
+            isSubmitLoading={undefined}
+            isDisabled={undefined}
+          />
+        </Box>
       </Box>
     </Drawer>
   )
