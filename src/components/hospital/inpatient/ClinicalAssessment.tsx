@@ -237,6 +237,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
   const handleTabChange = (newValue: string) => {
     setCurrentTab(newValue)
     setPage(1)
+    setRecords([])
   }
 
   const filteredRecords = records
