@@ -1,6 +1,6 @@
 # Collection → Species — Pending / Missing Items
 
-> Status as of 2026-04-28. The UI shell is built against designs and most of the listing + Population tab is now wired to real APIs. This doc lists what is **still mocked**, **awaiting backend**, or **broken** so backend / product can prioritize.
+> Status as of 2026-05-04. The UI shell is built against designs; listing + 8 of 9 detail tabs + animal detail page are wired to real APIs. This doc lists what is **still mocked**, **awaiting backend**, or **broken** so backend / product can prioritize.
 
 Module entry points:
 - Listing: [src/app/(module)/collection/species/page.tsx](../../../src/app/(module)/collection/species/page.tsx)
@@ -20,6 +20,12 @@ Module entry points:
 | `GET v1/species/reportv1` | `getReportFilterList()` | Species listing table + CSV download | ⚠️ Yes — see §1.a #1 |
 | `POST v2/collection/insights` | `getCollectionInsights()` | Insights banner on listing (Species/Population summary + Natality/Accession/Mortality cards), with date-range refetch | No |
 | `GET v1/all/animal/report?tids={speciesId}` | `getAllAnimalReport()` | Population tab on species detail (paginated animal list + CSV download) | No (correct endpoint for that tab) |
+| `GET species-wise-details?type=site\|section\|enclosure` | `getSpeciesWiseDetails()` | Sites / Sections / Enclosures tabs | No |
+| `GET v2/get-texonomy-hierarchy-list-by-species` | `getSpeciesTaxonomyHierarchy()` | Taxonomy tab | No |
+| `GET mortality/species-wise-list` | `getMortalitySpeciesList()` | Mortality tab | No |
+| `GET v2/species-wise-necropsy-list` | `getNecropsySpeciesList()` | Necropsy tab | No |
+| `GET v1/animal/listing` | `getAnimalListing()` | Animal drilldown drawers from Sites/Sections/Enclosures tabs | No |
+| Animal detail overview | `getAnimalDetailsOverview()` (housing API) | `/collection/species/[id]/animal/[animalId]` page | Reuses housing endpoint — all 10 sub-tabs share housing animal components |
 
 Helpers live in [src/lib/api/collection/species.ts](../../../src/lib/api/collection/species.ts) and [src/lib/api/report/index.js](../../../src/lib/api/report/index.js).
 
@@ -56,7 +62,7 @@ These are wired so the design renders, but their data model doesn't match the de
 | 4 | **Species detail header** API (`GET /v2/collection/animalspecies/{tsn_id}` or similar) | `[id]/page.tsx` banner | `speciesData` is hardcoded — every species page currently shows "**Reverse Pebblenail / Somatogyrus somatogyrus**" regardless of the real species ([[id]/page.tsx:71-81](../../../src/app/(module)/collection/species/%5Bid%5D/page.tsx#L71-L81)). |
 | 5 | **Insights API on detail page** (scoped to species) | `[id]/page.tsx` insights banner | Detail-page insights values (natality / accession / external_transfer / mortality) are still hardcoded `94 / 44 / 24 / 359`. The same `/v2/collection/insights` accepts `type` + `parent_tsn`; the helper supports it but the detail page has been reverted to hardcoded values. |
 | 6 | **Population tab field gaps** | `PopulationTab` columns | 5 design columns render `-` / `00` because the API doesn't return them — see §2.b |
-| 7 | **All other detail tabs** APIs (8 tabs) | `species-detail/*Tab.tsx` | All hardcoded — see §3 |
+| 7 | **Diet tab** API + **Necropsy detail page** API | `DietTab.tsx`, `necropsy/[necropsyId]/page.tsx` | Last remaining hardcoded surfaces — see §3 |
 | 8 | **Add Animal: enclosure list** API | `AddAnimalDrawer` enclosure dropdown | Empty `<MenuItem>` ([AddAnimalDrawer.tsx:580](../../../src/components/collection/AddAnimalDrawer.tsx#L580)). |
 | 9 | **Insights drilldown** params | `SpeciesDrawer` opened from Natality/Accession/Mortality cards | Drawer is wired to `getAllSpeciesList` with `params: { insight_type }`. Backend must accept `insight_type` to filter species shown in the drilldown. |
 | 10 | **Population (animal) drilldown** params | `AnimalDrawer` opened from Population column | Sends `taxonomy_id: tsn_id`. Confirm backend expects TSN, not numeric taxonomy PK. |
@@ -105,15 +111,15 @@ The endpoint already returns extras not yet surfaced in the design that we could
 | Tab | File | Status |
 |---|---|---|
 | **Population** | [PopulationTab.tsx](../../../src/components/collection/species-detail/PopulationTab.tsx) | ✅ Wired to `GET /v1/all/animal/report?tids={speciesId}` — paginated (default 10/page), search-aware, real row click, CSV download, identifier and animal-name columns stacked. 5 columns render `-`/`00` pending backend (see §2.b). |
-| Sites | [SitesTab.tsx](../../../src/components/collection/species-detail/SitesTab.tsx) | ❌ Hardcoded fixture |
-| Sections | [SectionsTab.tsx](../../../src/components/collection/species-detail/SectionsTab.tsx) | ❌ Hardcoded fixture |
-| Enclosures | [EnclosuresTab.tsx](../../../src/components/collection/species-detail/EnclosuresTab.tsx) | ❌ Hardcoded fixture |
-| **Medical** | inline placeholder | "coming soon" — no component yet |
-| Taxonomy | [TaxonomyTab.tsx](../../../src/components/collection/species-detail/TaxonomyTab.tsx) | ❌ Hardcoded fixture |
-| Mortality | [MortalityTab.tsx](../../../src/components/collection/species-detail/MortalityTab.tsx) | ❌ Hardcoded fixture |
-| Necropsy | [NecropsyTab.tsx](../../../src/components/collection/species-detail/NecropsyTab.tsx) | ❌ Hardcoded fixture |
-| Diet | [DietTab.tsx](../../../src/components/collection/species-detail/DietTab.tsx) | ❌ Hardcoded fixture |
-| **Media** | inline placeholder | "coming soon" — no component yet |
+| Sites | [SitesTab.tsx](../../../src/components/collection/species-detail/SitesTab.tsx) | ✅ Wired to `getSpeciesWiseDetails({ type: 'site' })`. Drawers (Sections/Enclosures/Animals) wired via `getAnimalListing`. |
+| Sections | [SectionsTab.tsx](../../../src/components/collection/species-detail/SectionsTab.tsx) | ✅ Wired to `getSpeciesWiseDetails({ type: 'section' })`. |
+| Enclosures | [EnclosuresTab.tsx](../../../src/components/collection/species-detail/EnclosuresTab.tsx) | ✅ Wired to `getSpeciesWiseDetails({ type: 'enclosure' })`. |
+| **Medical** | inline placeholder | Currently commented out in `TAB_CONFIG` — re-enable when component lands. |
+| Taxonomy | [TaxonomyTab.tsx](../../../src/components/collection/species-detail/TaxonomyTab.tsx) | ✅ Wired to `getSpeciesTaxonomyHierarchy({ species_id })`. |
+| Mortality | [MortalityTab.tsx](../../../src/components/collection/species-detail/MortalityTab.tsx) | ✅ Wired to `getMortalitySpeciesList` (status filter: APPROVED default). Filter drawer not yet wired to backend. |
+| Necropsy | [NecropsyTab.tsx](../../../src/components/collection/species-detail/NecropsyTab.tsx) | ✅ Wired to `getNecropsySpeciesList` (status filter: PENDING/DRAFT/COMPLETED). **Filter button + Download button are no-ops.** Row click navigates using `necropsy_id || mortality_id` fallback. |
+| Diet | [DietTab.tsx](../../../src/components/collection/species-detail/DietTab.tsx) | ⚠️ Wired via `useQuery` but the source endpoint and shape need verification — last remaining tab to confirm. |
+| **Media** | inline placeholder | Currently commented out in `TAB_CONFIG` — re-enable when component lands. |
 
 Each remaining tab needs:
 - Listing API (paginated) keyed by `species_id`
@@ -129,8 +135,8 @@ Each remaining tab needs:
 
 | Route | Status |
 |---|---|
-| `/collection/species/[id]/animal/[animalId]` | UI shell — needs animal detail API |
-| `/collection/species/[id]/necropsy/[necropsyId]` | UI shell — needs necropsy detail API |
+| `/collection/species/[id]/animal/[animalId]` | ✅ Wired to housing's `getAnimalDetailsOverview`. Reuses 10 housing tab components (Overview / Medical / Incidents / Diet / Assessments / Journal / History / Notes / Identifier / Media). Breadcrumb shows raw `speciesId` instead of species name — minor UX gap. QR dialog wired. |
+| `/collection/species/[id]/necropsy/[necropsyId]` | ⚠️ Partially wired — fires `mortality/summary`, `v2/necropsy/summary/{id}`, `mortality/get-mortality-comments` in parallel. Header / Species block / Animal info row / Carcass Submission / Death Details / Notes / Activity Log all driven by API. **Lab Request Details + Download report still mocked / no-op (no backend yet).** Organ Lesions and Attachments fall back to mock content when API arrays are empty (response shape unconfirmed for non-empty case). NecropsyTab now passes `?mortality_id=` query param so the page can fetch both summaries. |
 
 ---
 
@@ -143,6 +149,10 @@ Each remaining tab needs:
 | B3 | Low | `AnimalDrawer` is double-gated on the listing: conditional mount AND `open={!!data}`. Kills MUI Drawer exit animation. | [page.tsx](../../../src/app/(module)/collection/species/page.tsx) |
 | B4 | Low | `Add Animal` success has TODO refetch — listing won't auto-refresh after creating an animal. | [page.tsx](../../../src/app/(module)/collection/species/page.tsx) |
 | B5 | Low | `handleClose` on `AddAnimalDrawer` doesn't guard against `loader === true` — user can dismiss mid-submit. | [AddAnimalDrawer.tsx:216-222](../../../src/components/collection/AddAnimalDrawer.tsx#L216-L222) |
+| B6 | Low | NecropsyTab Filter button and Download button are wired to no-op handlers. | [NecropsyTab.tsx:165,182](../../../src/components/collection/species-detail/NecropsyTab.tsx#L165) |
+| B7 | Low | Necropsy detail page uses raw hex colors (`#E53935`, `#1E88E5`) for PDF/DOC attachment icons — violates CLAUDE.md no-hardcoded-colors rule. | [necropsy/[necropsyId]/page.tsx:424-425](../../../src/app/(module)/collection/species/%5Bid%5D/necropsy/%5BnecropsyId%5D/page.tsx#L424-L425) |
+| B8 | Low | Animal detail breadcrumb shows raw `speciesId` (numeric) instead of resolved species name. | [animal/[animalId]/page.tsx:137](../../../src/app/(module)/collection/species/%5Bid%5D/animal/%5BanimalId%5D/page.tsx#L137) |
+| B9 | Low | `speciesFilter` dropdown ("All Species/Mammals/Birds/…") on listing is local state only — never sent to API. | [page.tsx:583-605](../../../src/app/(module)/collection/species/page.tsx#L583-L605) |
 
 ---
 
@@ -201,10 +211,10 @@ Each remaining tab needs:
 1. **Dedicated species listing endpoint** (§1.a #1) — one row per species with aggregated location counts. Replaces the `v1/species/reportv1` stand-in which returns species × enclosure rows. **Top priority** — current listing has duplicated species rows that don't match the design.
 2. **Species detail header** — `GET /v?/collection/species/{tsn_id}` (§1.a #2). Unblocks the entire detail-page banner (currently hardcoded).
 3. **Clarify detail-page insights call shape** (§1.a #3) — confirm the right `type` + `parent_tsn` to send when on a species detail page. One-line wiring change once decided.
-4. **`external_transfer`** field on `/v2/collection/insights` — needed in two places.
-5. **Population tab field gaps** (§2.b): UAID + previous weight + weight Δ% + life stage + 4 medical counts.
-6. **Filter master-data endpoints + accept filters as listing params** (Gender / Class / Order / Family / Genus).
-7. **Add Animal: enclosure list** API.
-8. **Sites / Sections / Enclosures / Mortality / Necropsy / Diet / Taxonomy** tab APIs (parallelizable).
-9. **Animal detail** API + **Necropsy detail** API.
+4. **Necropsy detail gaps** — confirm `necropsy_organs[]` + `attachments[]` response shape (currently fall back to mock when empty), provide a Lab Requests endpoint, and a download-PDF endpoint.
+5. **`external_transfer`** field on `/v2/collection/insights` — needed in two places.
+6. **Population tab field gaps** (§2.b): UAID + previous weight + weight Δ% + life stage + 4 medical counts.
+7. **Filter master-data endpoints + accept filters as listing params** (Gender / Class / Order / Family / Genus).
+8. **Add Animal: enclosure list** API.
+9. Confirm Diet tab endpoint/shape and wire NecropsyTab Filter + Download.
 10. CSV export for the remaining tabs.

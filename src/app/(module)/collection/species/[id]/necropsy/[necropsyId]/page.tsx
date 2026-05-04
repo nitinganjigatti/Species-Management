@@ -1,97 +1,172 @@
 'use client'
 
-import { Avatar, Box, Button, Card, Divider, Typography } from '@mui/material'
-import { useParams } from 'next/navigation'
+import { Avatar, Box, Button, Card, CircularProgress, Divider, Typography } from '@mui/material'
+import { useParams, useSearchParams } from 'next/navigation'
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
+import { useQuery } from '@tanstack/react-query'
+import moment from 'moment'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import Icon from 'src/@core/components/icon'
-// AnimalCard available for future use when API data has sex/gender fields
-// import AnimalCard from 'src/views/utility/AnimalCard'
+import { getMortalitySummary, getNecropsySummary, getNecropsyTimeline } from 'src/lib/api/necropsy'
 
-// TODO: Replace with real API data
-const necropsyData = {
-  necropsy_id: 'H2RE02933456',
-  completed_by: 'Jordan Stevenson',
-  completed_date: '10/10/2023 • 12:33 PM',
-  species: {
-    common_name: 'Rainbow Lorikeet',
-    scientific_name: 'Trichoglossus Moluccanus',
-    image: ''
+// Flip to true once the backend ships a lab-requests endpoint for necropsy.
+const FEATURE_LAB_REQUESTS = false
+
+const FALLBACK_ORGAN_LESIONS = [
+  {
+    title: 'Head and Neck',
+    findings: [
+      {
+        label: 'Skull',
+        text: 'The necropsy report indicates that the animal was in a stable condition prior to its passing. Further examination revealed no significant abnormalities in the vital organs.'
+      },
+      {
+        label: 'Nasal Passages',
+        text: 'Upon inspection, the nasal passages appeared clear, with no signs of obstruction or inflammation noted during the examination.'
+      }
+    ]
   },
-  animal_info: {
-    animal_id: '12345667878',
-    breed: 'Breed 12',
-    variant: 'Variant 2',
-    age: '12y 1m',
-    weight: '13 KG',
-    site: 'Gagava'
-  },
-  carcass_submission: {
-    date_time: '10:12 PM  20 July 2023',
-    general_description:
-      'Animals is of 30kg with a BCS 4 when last assessed. Animal seem to have been in healthy condition.',
-    short_history: 'Animal was under treatment for mild viral fever disease past week.'
-  },
-  organ_lesions: [
-    {
-      title: 'Head and Neck',
-      findings: [
-        {
-          label: 'Skull',
-          text: 'The necropsy report indicates that the animal was in a stable condition prior to its passing. Further examination revealed no significant abnormalities in the vital organs.'
-        },
-        {
-          label: 'Nasal Passages',
-          text: 'Upon inspection, the nasal passages appeared clear, with no signs of obstruction or inflammation noted during the examination.'
-        }
-      ]
-    },
-    {
-      title: 'Respiratory System',
-      findings: [
-        {
-          label: 'Skull',
-          text: 'The necropsy report reveals that the animal was in a stable condition prior to its passing. Further examination showed no significant abnormalities in the vital organs.'
-        },
-        {
-          label: 'Nasal Passages',
-          text: 'Upon inspection, the nasal passages appeared clear, with no signs of obstruction or inflammation noted during the examination.'
-        }
-      ]
-    }
-  ],
-  lab_requests: [
-    { id: 'LT207835473', date: '15 Apr 2025' },
-    { id: 'LT207835473', date: '15 Apr 2025' },
-    { id: 'LT207835473', date: '15 Apr 2025' }
-  ],
-  attachments: [
-    { name: 'Antz Yelahanka Site...', time: '12:23 PM', type: 'audio' },
-    { name: 'Antz Yelahanka Site...', time: '12:23 PM', type: 'image' },
-    { name: 'Antz Yelahanka Site...', time: '12:23 PM', type: 'pdf' },
-    { name: 'Antz Yelahanka Site...', time: '12:23 PM', type: 'doc' }
-  ],
-  death_details: {
-    date_time: '10:12 PM  20 July 2023',
-    place: 'Lorem ipsum dolor sit amet',
-    suspected_cause:
-      "Euthanasia was performed due to the animal's deteriorating health condition, which had been assessed over the previous week.",
-    opinion:
-      'The necropsy report indicates that the animal was in a stable condition prior to its passing. Further examination revealed no significant abnormalities in the vital organs, suggesting a natural decline rather than an acute illness.',
-    disposal_method: 'Necropsy Report Summary',
-    confirmed_cause:
-      "Euthanasia was performed due to the animal's deteriorating health condition, which had been assessed over the previous week."
-  },
-  notes: 'The nursery is optimizing its layout to enhance resource allocation and improve operational efficiency.'
+  {
+    title: 'Respiratory System',
+    findings: [
+      {
+        label: 'Skull',
+        text: 'The necropsy report reveals that the animal was in a stable condition prior to its passing. Further examination showed no significant abnormalities in the vital organs.'
+      },
+      {
+        label: 'Nasal Passages',
+        text: 'Upon inspection, the nasal passages appeared clear, with no signs of obstruction or inflammation noted during the examination.'
+      }
+    ]
+  }
+]
+
+const formatDateTime = (date?: string | null, time?: string | null) => {
+  if (!date) return '-'
+  const dateOnly = moment(date.split(' ')[0], 'YYYY-MM-DD')
+  if (!dateOnly.isValid()) return '-'
+  const datePart = dateOnly.format('DD MMM YYYY')
+  const timeRaw = time || (date.includes(' ') ? date.split(' ')[1] : null)
+  if (!timeRaw) return datePart
+  const timeMoment = moment(timeRaw, ['HH:mm:ss', 'HH:mm'])
+  const timePart = timeMoment.isValid() ? timeMoment.format('hh:mm A') : timeRaw
+
+  return `${timePart}  ${datePart}`
+}
+
+const formatCommentDate = (iso?: string) => {
+  if (!iso) return ''
+  const m = moment(iso, 'YYYY-MM-DD HH:mm:ss')
+
+  return m.isValid() ? m.format('hh:mm A • DD MMM YYYY') : iso
+}
+
+const fileTypeFromMime = (mime?: string, fileType?: string): string => {
+  const t = (fileType || mime || '').toLowerCase()
+  if (t.includes('audio')) return 'audio'
+  if (t.includes('pdf')) return 'pdf'
+  if (t.includes('word') || t.includes('doc')) return 'doc'
+  if (t.includes('image') || t.includes('png') || t.includes('jpg') || t.includes('jpeg')) return 'image'
+
+  return 'doc'
+}
+
+const formatAttachmentTime = (iso?: string) => {
+  if (!iso) return ''
+  const m = moment(iso, 'YYYY-MM-DD HH:mm:ss')
+
+  return m.isValid() ? m.format('hh:mm A') : iso
 }
 
 const NecropsyDetail: React.FC = () => {
   const theme = useTheme() as any
   const { id, necropsyId } = useParams() as { id?: string; necropsyId?: string }
-  const data = necropsyData
+  const searchParams = useSearchParams()
+  const mortalityId = searchParams?.get('mortality_id') || necropsyId
 
-  // Reusable section title
+  const { data: mortalityResp, isLoading: isMortalityLoading } = useQuery({
+    queryKey: ['necropsy-detail-mortality', mortalityId],
+    queryFn: () => getMortalitySummary({ mortality_id: mortalityId as string }),
+    enabled: Boolean(mortalityId)
+  })
+
+  const { data: necropsyResp, isLoading: isNecropsyLoading } = useQuery({
+    queryKey: ['necropsy-detail-summary', necropsyId],
+    queryFn: () => getNecropsySummary(Number(necropsyId)),
+    enabled: Boolean(necropsyId)
+  })
+
+  const { data: timelineResp } = useQuery({
+    queryKey: ['necropsy-detail-timeline', mortalityId],
+    queryFn: () =>
+      getNecropsyTimeline({ mortality_id: mortalityId as string, page_no: 1, type: 'necropsy', limit: 10 }),
+    enabled: Boolean(mortalityId)
+  })
+
+  const mortality = (mortalityResp as any)?.data || {}
+  const necropsy = (necropsyResp as any)?.data || {}
+  const timeline = ((timelineResp as any)?.data?.result || []) as Array<any>
+  const isLoading = isMortalityLoading || isNecropsyLoading
+
+  const necropsyCode = necropsy.necropsy_code || mortality.request_id || necropsyId || '-'
+  const conductedBy = necropsy.necropsy_conducted_by?.[0] || necropsy.user_profile || {}
+  const completedByName = conductedBy.name || mortality.user_full_name || '-'
+  const completedAvatar = conductedBy.user_profile_pic || mortality.user_profile_pic
+  const completedDate = necropsy.created_at || mortality.created_at
+  const speciesCommonName = necropsy.common_name || mortality.default_common_name || '-'
+  const speciesScientificName = necropsy.scientific_name || mortality.complete_name || ''
+  const speciesImage = necropsy.default_icon || mortality.default_icon || ''
+
+  const carcassSubmissionDateTime = formatDateTime(
+    necropsy.caracass_submission_date,
+    necropsy.caracass_submission_time
+  )
+  const generalDescription = necropsy.general_description || mortality.general_description || ''
+  const historyOfIllness = necropsy.history_of_illness || mortality.history_of_illness || ''
+
+  const dateOfDeath = mortality.date_of_death || necropsy.date_of_death
+  const dateOfDeathFormatted = dateOfDeath
+    ? formatDateTime(dateOfDeath.split(' ')[0], dateOfDeath.split(' ')[1])
+    : '-'
+
+  const placeOfDeath = necropsy.place_of_death || ''
+  const suspectedCause = necropsy.suspected_cause_of_death || mortality.manner_of_death || '-'
+  const opinion = necropsy.opinion || ''
+  const disposalMethod = necropsy.disposal_method || mortality.carcass_disposition_name || '-'
+  const confirmedCause = necropsy.confirmed_cause_of_death || '-'
+  const notes = necropsy.additional_notes || mortality.notes || ''
+
+  const animalIdValue = mortality.animal_id || necropsy.animal_id
+  const breed = mortality.breed_name || necropsy.breed_name || '-'
+  const morph = mortality.morph_name || necropsy.morph_name || '-'
+  const ageDisplay = mortality.age && mortality.age_unit ? `${mortality.age} ${mortality.age_unit}` : mortality.age || '-'
+  const weightDisplay =
+    necropsy.carcass_weight && necropsy.uom_abbr
+      ? `${necropsy.carcass_weight} ${necropsy.uom_abbr}`
+      : necropsy.carcass_weight || '-'
+  const siteName = mortality.site_name || necropsy.site_name || '-'
+
+  const apiOrgans = (necropsy.necropsy_organs || []) as Array<any>
+  const organLesions =
+    apiOrgans.length > 0
+      ? apiOrgans.map((organ: any) => ({
+          title: organ.title || organ.body_part_name || organ.organ_name || '-',
+          findings: (organ.findings || organ.body_parts || []).map((f: any) => ({
+            label: f.label || f.body_part_name || f.organ_name || '-',
+            text: f.text || f.description || f.note || ''
+          }))
+        }))
+      : FALLBACK_ORGAN_LESIONS
+
+  const apiAttachments = (necropsy.attachments || []) as Array<any>
+  const attachments = apiAttachments.map((a: any) => ({
+    name: a.file_original_name || a.file_name || 'Attachment',
+    time: formatAttachmentTime(a.created_at),
+    type: fileTypeFromMime(a.file_mime_type, a.file_type),
+    url: a.file
+  }))
+
   const SectionLabel = ({ children, italic }: { children: React.ReactNode; italic?: boolean }) => (
     <Typography
       sx={{
@@ -108,9 +183,17 @@ const NecropsyDetail: React.FC = () => {
 
   const SectionText = ({ children }: { children: React.ReactNode }) => (
     <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 4, lineHeight: 1.7 }}>
-      {children}
+      {children || '-'}
     </Typography>
   )
+
+  if (isLoading && !mortalityResp && !necropsyResp) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
 
   return (
     <Box>
@@ -121,13 +204,12 @@ const NecropsyDetail: React.FC = () => {
           { title: 'Species', href: '/collection/species' },
           { title: id || '', href: `/collection/species/${id}` },
           { title: 'Necropsy', href: `/collection/species/${id}?tab=necropsy` },
-          { title: necropsyId || '', href: '#', active: true }
+          { title: necropsyCode, href: '#', active: true }
         ]}
       />
 
       {/* ===== HEADER CARD ===== */}
       <Card sx={{ mb: 5, overflow: 'hidden' }}>
-        {/* Top Row */}
         <Box
           sx={{
             display: 'flex',
@@ -147,11 +229,14 @@ const NecropsyDetail: React.FC = () => {
               fontSize: { xs: '1rem', sm: '1.25rem' }
             }}
           >
-            Necropsy ID - {data.necropsy_id}
+            Necropsy ID - {necropsyCode}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Avatar sx={{ width: 32, height: 32, bgcolor: theme.palette.customColors.Surface }}>
+              <Avatar
+                src={completedAvatar || undefined}
+                sx={{ width: 32, height: 32, bgcolor: theme.palette.customColors.Surface }}
+              >
                 <Icon icon='mdi:account' fontSize={18} />
               </Avatar>
               <Box>
@@ -159,17 +244,17 @@ const NecropsyDetail: React.FC = () => {
                   variant='body2'
                   sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  {data.completed_by}
+                  {completedByName}
                 </Typography>
                 <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                  Completed on {data.completed_date}
+                  Completed on {formatCommentDate(completedDate) || '-'}
                 </Typography>
               </Box>
             </Box>
             <Button
               variant='text'
               onClick={() => {
-                /* TODO: Download report */
+                /* TODO: Backend endpoint pending */
               }}
               endIcon={<Icon icon='solar:download-square-linear' />}
               sx={{
@@ -184,7 +269,6 @@ const NecropsyDetail: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Species Card + Animal Info — unified light bg block */}
         <Box
           sx={{
             mx: { xs: 3, sm: 5 },
@@ -194,49 +278,36 @@ const NecropsyDetail: React.FC = () => {
             overflow: 'hidden'
           }}
         >
-          {/* Species info */}
           <Box sx={{ px: 4, pt: 4, pb: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
-              <Avatar
-                src={data.species.image}
-                sx={{ width: 44, height: 44, bgcolor: theme.palette.customColors.Surface }}
-              >
+              <Avatar src={speciesImage} sx={{ width: 44, height: 44, bgcolor: theme.palette.customColors.Surface }}>
                 <Icon icon='mdi:paw' fontSize={22} />
               </Avatar>
               <Box>
                 <Typography
                   sx={{ fontWeight: 600, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  {data.species.common_name}
+                  {speciesCommonName}
                 </Typography>
                 <Typography
                   sx={{ fontSize: '0.85rem', fontStyle: 'italic', color: theme.palette.customColors.neutralSecondary }}
                 >
-                  {data.species.scientific_name}
+                  {speciesScientificName}
                 </Typography>
               </Box>
             </Box>
           </Box>
 
-          {/* Divider */}
           <Divider sx={{ mx: 4 }} />
 
-          {/* Animal Info Row */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              px: 4,
-              py: 3
-            }}
-          >
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', px: 4, py: 3 }}>
             {[
-              { label: 'Animal Id', value: data.animal_info.animal_id },
-              { label: 'Breed', value: data.animal_info.breed },
-              { label: 'Variant', value: data.animal_info.variant },
-              { label: 'Age', value: data.animal_info.age },
-              { label: 'Weight', value: data.animal_info.weight },
-              { label: 'Site', value: data.animal_info.site }
+              { label: 'Animal Id', value: animalIdValue ? `AAID : ${animalIdValue}` : '-' },
+              { label: 'Breed', value: breed },
+              { label: 'Variant', value: morph },
+              { label: 'Age', value: ageDisplay },
+              { label: 'Weight', value: weightDisplay },
+              { label: 'Site', value: siteName }
             ].map((item, i) => (
               <Box
                 key={i}
@@ -256,7 +327,7 @@ const NecropsyDetail: React.FC = () => {
                   variant='body2'
                   sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  {item.value}
+                  {item.value || '-'}
                 </Typography>
               </Box>
             ))}
@@ -273,14 +344,14 @@ const NecropsyDetail: React.FC = () => {
         }}
       >
         <SectionLabel italic>Time and Date of Carcass Submission (at PM room )</SectionLabel>
-        <SectionText>{data.carcass_submission.date_time}</SectionText>
+        <SectionText>{carcassSubmissionDateTime}</SectionText>
 
         <SectionLabel>General Description</SectionLabel>
-        <SectionText>{data.carcass_submission.general_description}</SectionText>
+        <SectionText>{generalDescription}</SectionText>
 
         <SectionLabel>Short History of Illness</SectionLabel>
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.7 }}>
-          {data.carcass_submission.short_history}
+          {historyOfIllness || '-'}
         </Typography>
       </Card>
 
@@ -291,9 +362,8 @@ const NecropsyDetail: React.FC = () => {
         >
           Organ-wise Description of Lesions
         </Typography>
-        {data.organ_lesions.map((organ, idx) => (
+        {organLesions.map((organ, idx) => (
           <Box key={idx} sx={{ mb: 5 }}>
-            {/* Section header with left accent */}
             <Box
               sx={{
                 backgroundColor: theme.palette.customColors.neutral05,
@@ -310,7 +380,7 @@ const NecropsyDetail: React.FC = () => {
                 {organ.title}
               </Typography>
             </Box>
-            {organ.findings.map((finding, fIdx) => (
+            {organ.findings.map((finding: { label: string; text: string }, fIdx: number) => (
               <Box key={fIdx} sx={{ mb: 3, pl: 2 }}>
                 <Typography
                   sx={{
@@ -341,36 +411,27 @@ const NecropsyDetail: React.FC = () => {
         >
           Lab Request Details
         </Typography>
-        {data.lab_requests.map((lab, idx) => (
+        {FEATURE_LAB_REQUESTS ? null : (
           <Box
-            key={idx}
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: { xs: 'flex-start', sm: 'center' },
-              flexDirection: { xs: 'column', sm: 'row' },
-              p: 3,
-              px: { xs: 3, sm: 4 },
-              mb: 1,
-              gap: { xs: 0.5, sm: 0 },
-              borderRadius: 0.5,
-              backgroundColor: theme.palette.customColors.tableHeaderBg,
-              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              cursor: 'pointer',
-              '&:hover': { backgroundColor: theme.palette.customColors.OnBackground }
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 4,
+              gap: 1
             }}
           >
-            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Lab Test ID: <strong>{lab.id}</strong>
+            <Icon
+              icon='mdi:flask-empty-outline'
+              fontSize={32}
+              color={theme.palette.customColors.Outline}
+            />
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
+              No lab requests available
             </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                Requested on • <strong>{lab.date}</strong>
-              </Typography>
-              <Icon icon='mdi:chevron-right' fontSize={20} color={theme.palette.customColors.Outline} />
-            </Box>
           </Box>
-        ))}
+        )}
       </Card>
 
       {/* ===== ATTACHMENTS ===== */}
@@ -380,8 +441,25 @@ const NecropsyDetail: React.FC = () => {
         >
           Attachments
         </Typography>
+        {attachments.length === 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              py: 4,
+              gap: 1
+            }}
+          >
+            <Icon icon='mdi:paperclip' fontSize={32} color={theme.palette.customColors.Outline} />
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
+              No attachments available
+            </Typography>
+          </Box>
+        ) : (
         <Box sx={{ display: 'flex', gap: 3, overflowX: 'auto', pb: 2 }}>
-          {data.attachments.map((att, idx) => {
+          {attachments.map((att, idx) => {
             const isAudio = att.type === 'audio'
             const isPdf = att.type === 'pdf'
             const isDoc = att.type === 'doc'
@@ -399,7 +477,6 @@ const NecropsyDetail: React.FC = () => {
                   cursor: 'pointer'
                 }}
               >
-                {/* Thumbnail */}
                 <Box
                   sx={{
                     width: '100%',
@@ -421,19 +498,20 @@ const NecropsyDetail: React.FC = () => {
                   {isAudio && (
                     <Icon icon='mdi:microphone' fontSize={48} color={theme.palette.customColors.moderateSecondary} />
                   )}
-                  {isPdf && <Icon icon='mdi:file-pdf-box' fontSize={48} color='#E53935' />}
-                  {isDoc && <Icon icon='mdi:file-word-box' fontSize={48} color='#1E88E5' />}
+                  {isPdf && <Icon icon='mdi:file-pdf-box' fontSize={48} color={theme.palette.customColors.Tertiary} />}
+                  {isDoc && (
+                    <Icon icon='mdi:file-word-box' fontSize={48} color={theme.palette.customColors.OnSecondaryContainer} />
+                  )}
                   {isImage && (
                     <Box
                       component='img'
-                      src='/images/housing/testInDev.jpg'
+                      src={(att as any).url || '/images/housing/testInDev.jpg'}
                       alt={att.name}
                       sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                   )}
                 </Box>
 
-                {/* Name + Menu + Time */}
                 <Box sx={{ px: 2, py: 1.5 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography
@@ -463,32 +541,71 @@ const NecropsyDetail: React.FC = () => {
             )
           })}
         </Box>
+        )}
       </Card>
 
       {/* ===== DEATH DETAILS ===== */}
       <Card sx={{ p: { xs: 3, sm: 5 }, mb: 5, border: `1px solid ${theme.palette.customColors.SurfaceVariant}` }}>
         <SectionLabel italic>Time and Date of Death</SectionLabel>
-        <SectionText>{data.death_details.date_time}</SectionText>
+        <SectionText>{dateOfDeathFormatted}</SectionText>
 
         <SectionLabel>Place of Death</SectionLabel>
-        <SectionText>{data.death_details.place}</SectionText>
+        <SectionText>{placeOfDeath}</SectionText>
 
         <SectionLabel>Suspected cause of death</SectionLabel>
-        <SectionText>{data.death_details.suspected_cause}</SectionText>
+        <SectionText>{suspectedCause}</SectionText>
 
         <Divider sx={{ my: 3 }} />
 
         <SectionLabel>Opinion (Cause of death)</SectionLabel>
-        <SectionText>{data.death_details.opinion}</SectionText>
+        <SectionText>{opinion}</SectionText>
 
         <SectionLabel>Disposal Method</SectionLabel>
-        <SectionText>{data.death_details.disposal_method}</SectionText>
+        <SectionText>{disposalMethod}</SectionText>
 
         <SectionLabel>Confirmed Cause of Death (as per necropsy)</SectionLabel>
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.7 }}>
-          {data.death_details.confirmed_cause}
+          {confirmedCause}
         </Typography>
       </Card>
+
+      {/* ===== ACTIVITY LOG ===== */}
+      {timeline.length > 0 && (
+        <Card sx={{ p: { xs: 3, sm: 5 }, mb: 5, border: `1px solid ${theme.palette.customColors.SurfaceVariant}` }}>
+          <Typography
+            sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 4, color: theme.palette.customColors.OnSurfaceVariant }}
+          >
+            Activity Log
+          </Typography>
+          {timeline.map((item, idx) => (
+            <Box
+              key={item.id || idx}
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2,
+                py: 2,
+                borderBottom: idx < timeline.length - 1 ? `1px solid ${theme.palette.customColors.SurfaceVariant}` : 'none'
+              }}
+            >
+              <Avatar
+                src={item.user_profile_pic || undefined}
+                sx={{ width: 32, height: 32, bgcolor: theme.palette.customColors.Surface }}
+              >
+                <Icon icon='mdi:account' fontSize={18} />
+              </Avatar>
+              <Box sx={{ flex: 1 }}>
+                <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
+                  {item.comment}
+                </Typography>
+                <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                  {item.user_name} • {formatCommentDate(item.created_at)}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Card>
+      )}
 
       {/* ===== NOTES ===== */}
       <Card
@@ -508,7 +625,7 @@ const NecropsyDetail: React.FC = () => {
           variant='body2'
           sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.7 }}
         >
-          {data.notes}
+          {notes || '-'}
         </Typography>
       </Card>
     </Box>

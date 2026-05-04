@@ -193,7 +193,9 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
         getRowHeight={() => 'auto'}
         onRowClick={(params: any) => {
           const navId = params.row.necropsy_id || params.row.mortality_id
-          router.push(`/collection/species/${speciesId}/necropsy/${navId}`)
+          const mortalityId = params.row.mortality_id
+          const qs = mortalityId ? `?mortality_id=${mortalityId}` : ''
+          router.push(`/collection/species/${speciesId}/necropsy/${navId}${qs}`)
         }}
         externalTableStyle={stickyStyles}
       />
