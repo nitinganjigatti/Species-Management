@@ -335,11 +335,9 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
               <Box
                 key={`prescription-shimmer-${groupIndex}-${itemIndex}`}
                 sx={{
-                  border: `1px solid ${theme.palette.divider}`,
-                  borderLeft: `3px solid ${theme.palette.divider}`,
                   borderRadius: '12px',
                   p: 3,
-                  backgroundColor: alpha(theme.palette.divider, 0.04)
+                  backgroundColor: theme.palette.customColors.displaybgPrimary
                 }}
               >
                 <Skeleton variant='text' width='50%' height={24} sx={{ mb: 1.5 }} />
