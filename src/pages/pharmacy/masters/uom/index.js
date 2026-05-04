@@ -29,6 +29,7 @@ import RenderUtility, { pageTitle } from 'src/utility/render'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import { ExportButton } from 'src/views/utility/render-snippets'
+// import SessionGuard from 'src/components/SessionGuard'
 
 const ListOfUOM = () => {
   const theme = useTheme()
@@ -331,6 +332,12 @@ const ListOfUOM = () => {
             <FallbackSpinner />
           ) : (
             <>
+              {/* <SessionGuard
+                warnMinutes={4}
+                criticalMinutes={2}
+                customMessage={`Please save your changes to avoid data loss`}
+              /> */}
+
               <PageCardLayout title='UOM (Unit of Measurement) List' action={headerAction}>
                 <Grid container>
                   <Grid item container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>

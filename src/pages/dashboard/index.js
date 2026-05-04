@@ -24,6 +24,7 @@ import {
   getLabRequests
 } from 'src/lib/api/dashboard'
 import DashboardLabRequests from 'src/components/dashboard/DashboardLabRequests'
+// import SessionGuard from 'src/components/SessionGuard'
 
 function Dashboard() {
   const { t } = useTranslation()
@@ -122,13 +123,19 @@ function Dashboard() {
 
   useEffect(() => {
     fetchAllData()
-    const interval = setInterval(fetchAllData, 120000) // Refresh every 2 minutes
 
-    return () => clearInterval(interval) // Cleanup on unmount
+    // Refresh every 2 minutes — but skip when the tab is hidden so we
+    // don't pile up calls while the user is on another tab/window.
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchAllData()
+    }, 120000)
+
+    return () => clearInterval(interval)
   }, [fetchAllData])
 
   return (
     <div style={{ textAlign: 'center' }}>
+      {/* <SessionGuard warnMinutes={3} criticalMinutes={2} customMessage={`Please save your changes to avoid data loss`} /> */}
       {loading ? (
         <>
           <Box
