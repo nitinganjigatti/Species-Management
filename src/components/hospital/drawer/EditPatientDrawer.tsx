@@ -1,14 +1,15 @@
 'use client'
 
-import { Box, Button, CircularProgress, Drawer, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
+import { Box, Button, CircularProgress, Drawer, IconButton, Tooltip, Typography, useTheme, Autocomplete, TextField } from '@mui/material'
 import React, { useContext, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import DoctorsDrawer from '../PatientAdmissionForm/DoctorsDrawer'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { getHospitalRoomsList, getRoomsAndEnclosures } from 'src/lib/api/hospital/roomsAndEnclosures'
+import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { debounce } from 'lodash'
 import { useHospital } from 'src/context/HospitalContext'
 import { editAnimalAdmissionDetails } from 'src/lib/api/hospital/inpatient'
@@ -30,6 +31,7 @@ interface EditPatientDrawerProps extends BaseDrawerProps {
 interface FormValues {
   holdingEnclosure: any
   selectedDoctor: any
+  attendingVeterinarians: any[]
   admissionDate: any
   admissionTime: any
   room?: any
@@ -38,6 +40,7 @@ interface FormValues {
 const defaultValues: FormValues = {
   holdingEnclosure: null,
   selectedDoctor: null,
+  attendingVeterinarians: [],
   admissionDate: null,
   admissionTime: null
 
@@ -64,6 +67,10 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
   const [openAddBedsDrawer, setOpenAddBedsDrawer] = useState(false)
   const [previousRoomId, setPreviousRoomId] = useState<any>(null)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [attendingVeterinarians, setAttendingVeterinarians] = useState<any[]>([])
+  const [selectedAttendingVeterinarians, setSelectedAttendingVeterinarians] = useState<any[]>([])
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [searchAttendingVet, setSearchAttendingVet] = useState('')
 
   const {
     control,
@@ -115,6 +122,15 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
         admissionTimeValue = dayjsObj
       }
 
+      // Map co_attend_doctors to the format expected by Autocomplete
+      const mappedAttendingVets = (patientData?.co_attend_doctors || []).map((vet: any) => ({
+        id: String(vet.id),
+        label: vet.name,
+        value: String(vet.id),
+        default_icon: vet.profile,
+        role_name: vet.role
+      }))
+
       reset({
         holdingEnclosure: {
           label: patientData?.bed_name,
@@ -125,10 +141,12 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
           value: patientData?.room_id
         },
         selectedDoctor: doctorData,
+        attendingVeterinarians: mappedAttendingVets || [],
         admissionDate: admissionDateValue,
         admissionTime: admissionTimeValue
       } as any)
       setSelectedDoctor(doctorData)
+      setSelectedAttendingVeterinarians(mappedAttendingVets || [])
       setPreviousRoomId(patientData?.room_id)
       setIsInitialLoad(true)
     }
@@ -213,6 +231,51 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
 
   const debouncedEnclosureSearch = React.useMemo(() => debounce((val: string) => setSearchEnclosure(val), 1000), [])
 
+  const searchAttendingVeterinarians = React.useMemo(
+    () =>
+      debounce(async (searchVal = '') => {
+        if (!selectedHospital?.id) return
+        setStaffLoading(true)
+        try {
+          const res: any = await getHospitalStaff({
+            params: {
+              hospital_id: selectedHospital?.id,
+              page_no: 1,
+              limit: 10,
+              q: searchVal
+            }
+          })
+          const mapped = (res?.data?.records || []).map((item: any) => ({
+            id: String(item.user_id),
+            label: item.user_full_name,
+            value: String(item.user_id),
+            default_icon: item.user_profile_pic,
+            role_name: item.role_name
+          }))
+          setAttendingVeterinarians(mapped)
+        } catch (error) {
+          console.error('Error fetching veterinarians:', error)
+        } finally {
+          setStaffLoading(false)
+        }
+      }, 500),
+    [selectedHospital?.id]
+  )
+
+  const handleAttendingVetSearch = (_event: any, value: string, reason: string) => {
+    if (reason === 'input') {
+      setSearchAttendingVet(value)
+      searchAttendingVeterinarians(value)
+    }
+  }
+
+  // Fetch veterinarians when drawer opens
+  useEffect(() => {
+    if (open && selectedHospital?.id) {
+      searchAttendingVeterinarians('')
+    }
+  }, [open, selectedHospital?.id, searchAttendingVeterinarians])
+
   const handleDoctorSelection = (doctor: any) => {
     setSelectedDoctor(doctor)
     setValue('selectedDoctor', doctor)
@@ -258,7 +321,8 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
         hospital_case_id: patientData?.hospital_case_id,
         room_id: data?.room?.value || '',
         holding_enclosure: data?.holdingEnclosure?.value || '',
-        attend_by: data?.selectedDoctor?.id || ''
+        attend_by: data?.selectedDoctor?.id || '',
+        co_attend_doctor: (data?.attendingVeterinarians || []).map((v: any) => v.id)
       }
 
       // Format and add date and time if provided
@@ -270,12 +334,15 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
         payload.admit_time = dayjs(data.admissionTime).format('HH:mm')
       }
 
-      await editAnimalAdmissionDetails(payload).then((res: any) => {
+      await editAnimalAdmissionDetails(payload).then(async (res: any) => {
         if (res?.success === true) {
-          setSubmitLoader(false)
           Toaster({ type: 'success', message: res?.message })
+          // Refetch patient details to get updated data
+          if (refetch) {
+            await refetch()
+          }
+          setSubmitLoader(false)
           onClose()
-          refetch?.()
         } else {
           Toaster({ type: 'error', message: res?.message })
           setSubmitLoader(false)
@@ -400,6 +467,42 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
                 </Box>
               </>
             )}
+          </Box>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+              Attending Veterinarian
+            </Typography>
+            <Controller
+              name='attendingVeterinarians'
+              control={control}
+              defaultValue={[]}
+              render={({ field }) => (
+                <Autocomplete
+                  multiple
+                  options={attendingVeterinarians}
+                  value={field.value || []}
+                  loading={staffLoading}
+                  clearOnBlur
+                  filterSelectedOptions
+                  getOptionLabel={(option: any) => option?.label || ''}
+                  isOptionEqualToValue={(option: any, value: any) => option.id === value?.id || option.value === value?.value}
+                  noOptionsText='No available veterinarians...'
+                  onChange={(event, newValue) => {
+                    setSelectedAttendingVeterinarians(newValue)
+                    field.onChange(newValue)
+                  }}
+                  onInputChange={handleAttendingVetSearch}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px'
+                    }
+                  }}
+                  renderInput={params => (
+                    <TextField {...params} label='Attending Veterinarian' placeholder='Search & Select' />
+                  )}
+                />
+              )}
+            />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
