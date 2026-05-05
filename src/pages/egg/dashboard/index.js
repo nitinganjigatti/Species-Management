@@ -6,6 +6,7 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 
 import Toaster from 'src/components/Toaster'
+import { useAuth } from 'src/hooks/useAuth'
 
 // import TodaysCollection from 'src/views/pages/egg/eggDashboard/todaysCollection'
 // import TransferDetails from 'src/views/pages/egg/eggDashboard/transferDetails'
@@ -17,6 +18,8 @@ import { useTranslation } from 'react-i18next'
 const Dashboard = () => {
   const theme = useTheme()
   const { t } = useTranslation()
+  const auth = useAuth()
+  const eggViewInsights = auth?.userData?.roles?.settings?.egg_view_insights
   const [fromDate, setFromDate] = useState(null)
   const [tillDate, setTilDate] = useState(null)
   const [openDiscard, setOpenDiscard] = useState(false)
@@ -72,21 +75,28 @@ const Dashboard = () => {
           {t('egg_module.dashboard')}
         </Typography>
       </Breadcrumbs>
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        <Grid container spacing={6} sx={{ justifyContent: 'space-between' }} columns={5}>
-          <Grid item size={{ sm: 5, md: 2, xl: 2 }}>
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '24px',
-                fontWeight: '500',
-                lineHeight: '29.05px'
-              }}
-            >
-              {t('egg_module.eggs_stats')}
-            </Typography>
-          </Grid>
-          {/* <Grid item sm={5} md={3} xl={2}>
+      {eggViewInsights && (
+        <>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <Grid container spacing={6} sx={{ justifyContent: 'space-between' }} columns={5}>
+              <Grid item size={{ sm: 5, md: 2, xl: 2 }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '24px',
+                    fontWeight: '500',
+                    lineHeight: '29.05px'
+                  }}
+                >
+                  {t('egg_module.eggs_stats')}
+                </Typography>
+              </Grid>
+            </Grid>
+          </Box>
+          <EggsStats openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} allStats={allStats} />
+        </>
+      )}
+      {/* <Grid item sm={5} md={3} xl={2}>
             <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
@@ -138,9 +148,6 @@ const Dashboard = () => {
               </LocalizationProvider>
             </Box>
           </Grid> */}
-        </Grid>
-      </Box>
-      <EggsStats openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} allStats={allStats} />
       {/* <TodaysCollection /> */}
       {/* <TransferDetails /> */}
       <Species openDiscard={openDiscard} setOpenDiscard={setOpenDiscard} />

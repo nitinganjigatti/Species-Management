@@ -3,6 +3,29 @@ import { useMemo, useCallback } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 
+/**
+ * Ensures the last visible column stretches to fill remaining space,
+ * preventing an empty filler column from appearing at the end.
+ */
+const applyFlexToLastColumn = columns => {
+  if (!columns || columns.length === 0) return columns
+
+  // Check if any column already has flex set
+  const hasFlexColumn = columns.some(col => col.flex)
+  if (hasFlexColumn) return columns
+
+  // Apply flex: 1 and minWidth to the last column
+  const lastIndex = columns.length - 1
+
+  return columns.map((col, index) => {
+    if (index === lastIndex) {
+      return { ...col, flex: 1, minWidth: col.width || col.minWidth || 100 }
+    }
+
+    return col
+  })
+}
+
 const CommonTable = ({
   onRowClick,
   indexedRows,
@@ -225,7 +248,7 @@ const CommonTable = ({
       rows={indexedRows === undefined ? [] : indexedRows}
       // rowCount={total}
       rowCount={disablePagination ? undefined : total}
-      columns={columns}
+      columns={applyFlexToLastColumn(columns)}
       sortingMode='server'
       rowHeight={rowHeight}
       hideFooterPagination={hideFooterPagination}

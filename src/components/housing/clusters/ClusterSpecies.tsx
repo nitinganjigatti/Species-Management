@@ -405,7 +405,7 @@ const ClusterSpecies: React.FC = () => {
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_species')} totalCount={total} />
+      <ListingHeader title={t('housing_module.all_species')} totalCount={insightsViewAccess ? total : 0} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
