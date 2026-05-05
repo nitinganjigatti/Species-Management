@@ -14,6 +14,7 @@ import Species from 'src/views/pages/egg/eggDashboard/species'
 import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
 import { getAllStats } from 'src/lib/api/egg/dashboard'
 import { useTranslation } from 'react-i18next'
+import Error404 from 'src/pages/404'
 
 const Dashboard = () => {
   const theme = useTheme()
@@ -46,6 +47,10 @@ const Dashboard = () => {
       till_date: tillDate && moment(tillDate).format('YYYY-MM-DD')
     })
   }, [])
+
+  if (!eggViewInsights) {
+    return <Error404 />
+  }
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
