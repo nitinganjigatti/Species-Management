@@ -393,7 +393,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
     <>
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
-          <ListingHeader title={t('housing_module.all_enclosures')} totalCount={total} />
+          <ListingHeader title={t('housing_module.all_enclosures')} totalCount={insightsViewAccess ? total : 0} />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}

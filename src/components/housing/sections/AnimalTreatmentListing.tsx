@@ -16,6 +16,7 @@ import { getAnimalTreatmentList, getSectionAnimalTreatmentList } from 'src/lib/a
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import type { GridSortModel, GridCellParams, GridColDef, GridRowParams } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from 'src/hooks/useAuth'
 
 interface TreatmentFilters {
   page: number
@@ -65,6 +66,9 @@ const AnimalTreatmentListing: React.FC = () => {
   const router: any = useSafeRouter()
   const { id } = router.query
   const theme = useTheme() as Theme & { palette: any }
+
+  const auth = useAuth()
+  const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   const [downloading, setDownloading] = useState<boolean>(false)
   const [inputValue, setInputValue] = useState<string>('')
@@ -395,7 +399,7 @@ const AnimalTreatmentListing: React.FC = () => {
     <>
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
-          <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={total} />
+          <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={insightsViewAccess ? total : 0} />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}

@@ -463,7 +463,7 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
 
   return (
     <>
-      <ListingHeader title={t('housing_module.all_sites')} totalCount={total} />
+      <ListingHeader title={t('housing_module.all_sites')} totalCount={insightsViewAccess ? total : 0} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search

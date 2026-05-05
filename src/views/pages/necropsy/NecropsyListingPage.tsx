@@ -111,6 +111,7 @@ interface StatCardProps {
   card: StatCardData
   isActive: boolean
   onClick: () => void
+  hideCount?: boolean
 }
 
 interface AuthData {
@@ -237,7 +238,7 @@ const getDefaultStatCards = (theme: Theme, t: (key: string) => string): StatCard
 
 // ==================== StatCard Component ====================
 
-const StatCard: FC<StatCardProps> = memo(({ card, isActive, onClick }) => {
+const StatCard: FC<StatCardProps> = memo(({ card, isActive, onClick, hideCount }) => {
   const theme = useTheme()
 
   return (
@@ -291,7 +292,7 @@ const StatCard: FC<StatCardProps> = memo(({ card, isActive, onClick }) => {
             fontSize: '1.5rem'
           }}
         >
-          {card.count?.toString()?.padStart(2, '0')}
+          {!hideCount && card.count?.toString()?.padStart(2, '0')}
         </Typography>
       </Box>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -325,6 +326,7 @@ const NecropsyListingPage = () => {
   const authData = useContext(AuthContext) as unknown as AuthData | null
   const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
   const allowCarcassCollection = authData?.userData?.roles?.settings?.allow_carcass_collection
+  const mortalityViewInsights = (authData as any)?.userData?.roles?.settings?.mortality_view_insights
   const userId = authData?.userData?.user?.user_id
 
   // Use custom hooks for Redux state management
@@ -824,6 +826,7 @@ const NecropsyListingPage = () => {
             card={card}
             isActive={activeCard === card.id}
             onClick={() => handleStatCardClick(card.id)}
+            hideCount={!mortalityViewInsights}
           />
         ))}
       </Box>
