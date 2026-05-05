@@ -464,7 +464,7 @@ function PrescriptionLayout({ drawerType, overviewData, category }) {
             id: selectedSlotData?.data?.medicine_id,
             start_date: toUTCISOString(new Date()),
             end_date: toUTCISOString(new Date()),
-            notes: data.notes || '',
+            notes: formData.notes || '',
             schedule_doses: [
               {
                 id: '',
