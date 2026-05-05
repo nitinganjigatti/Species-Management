@@ -19,6 +19,54 @@ const FALLBACK_SCHEMA = [
     ]
   },
   {
+    key: 'geofencing',
+    label: 'Geofencing',
+    order: 5,
+    icon: 'mdi:map-marker-radius-outline',
+    description: 'Restrict access to users physically present at the zoo or its sites',
+    fields: [
+      { key: 'geofence_enabled', label: 'Enable Geofencing', type: 'toggle', default: 0 },
+      {
+        key: 'geofence_scope',
+        label: 'Scope',
+        type: 'radio',
+        default: 'zoo_geofence',
+        visible_when: { geofence_enabled: 1 },
+        options: [
+          { value: 'zoo_geofence', label: 'Zoo (single circle around the zoo center)' },
+          { value: 'per_site', label: 'Per-site (user must be within one of their mapped sites)' }
+        ]
+      },
+      {
+        key: 'zoo_coordinates',
+        label: 'Zoo Center Coordinates',
+        type: 'geo_coordinates',
+        lat_key: 'zoo_latitude',
+        lng_key: 'zoo_longitude',
+        radius_key: 'geofence_default_radius_m',
+        lat_label: 'Latitude',
+        lng_label: 'Longitude',
+        visible_when: { geofence_enabled: 1, geofence_scope: 'zoo_geofence' }
+      },
+      {
+        key: 'geofence_default_radius_m',
+        label: 'Default Radius (meters)',
+        type: 'number',
+        min: 1,
+        default: 5000,
+        visible_when: { geofence_enabled: 1 }
+      },
+      {
+        key: 'geofence_max_accuracy_m',
+        label: 'Max GPS Accuracy (meters)',
+        type: 'number',
+        min: 1,
+        default: 100,
+        visible_when: { geofence_enabled: 1 }
+      }
+    ]
+  },
+  {
     key: 'report_email',
     label: 'Report Email',
     order: 6,
@@ -91,7 +139,37 @@ const ZooSettings = () => {
     onError: () => {}
   })
 
-  const schema = schemaData?.data || FALLBACK_SCHEMA
+  // Collapse zoo_latitude + zoo_longitude pair into a single geo_coordinates field
+  // so the GeoCoordinatesField renderer (with map + "use my location") is used.
+  // This applies whether the schema came from the backend or from the fallback.
+  const normalizeGeofencingSection = section => {
+    if (section?.key !== 'geofencing' || !Array.isArray(section.fields)) return section
+    if (section.fields.some(f => f.type === 'geo_coordinates')) return section
+
+    const latIdx = section.fields.findIndex(f => f.key === 'zoo_latitude')
+    const lngIdx = section.fields.findIndex(f => f.key === 'zoo_longitude')
+    if (latIdx === -1 || lngIdx === -1) return section
+
+    const latField = section.fields[latIdx]
+    const fields = section.fields.filter(f => f.key !== 'zoo_latitude' && f.key !== 'zoo_longitude')
+    const insertAt = Math.min(latIdx, lngIdx)
+    fields.splice(insertAt, 0, {
+      key: 'zoo_coordinates',
+      label: 'Zoo Center Coordinates',
+      type: 'geo_coordinates',
+      lat_key: 'zoo_latitude',
+      lng_key: 'zoo_longitude',
+      radius_key: 'geofence_default_radius_m',
+      lat_label: 'Latitude',
+      lng_label: 'Longitude',
+      visible_when: latField.visible_when || { geofence_enabled: 1, geofence_scope: 'zoo_geofence' }
+    })
+
+    return { ...section, fields }
+  }
+
+  const rawSchema = schemaData?.data || FALLBACK_SCHEMA
+  const schema = Array.isArray(rawSchema) ? rawSchema.map(normalizeGeofencingSection) : rawSchema
 
   // Prefill state from API response using schema
   useEffect(() => {
@@ -105,14 +183,17 @@ const ZooSettings = () => {
       if (!section.fields) return
 
       const sectionData = data[section.key]
+      const source = sectionData != null && typeof sectionData === 'object' ? sectionData : data
       const values = {}
 
       section.fields.forEach(field => {
-        if (sectionData != null && typeof sectionData === 'object') {
-          values[field.key] = sectionData[field.key] ?? field.default ?? null
-        } else {
-          values[field.key] = data[field.key] ?? field.default ?? null
+        if (field.type === 'geo_coordinates') {
+          if (field.lat_key) values[field.lat_key] = source[field.lat_key] ?? null
+          if (field.lng_key) values[field.lng_key] = source[field.lng_key] ?? null
+
+          return
         }
+        values[field.key] = source[field.key] ?? field.default ?? null
       })
 
       newSectionValues[section.key] = values
@@ -165,6 +246,12 @@ const ZooSettings = () => {
       const payload = { section: sectionKey }
 
       ;(sectionSchema?.fields || []).forEach(field => {
+        if (field.type === 'geo_coordinates') {
+          if (field.lat_key) payload[field.lat_key] = values[field.lat_key] ?? null
+          if (field.lng_key) payload[field.lng_key] = values[field.lng_key] ?? null
+
+          return
+        }
         const val = values[field.key]
         if (field.type === 'user_picker' && Array.isArray(val)) {
           payload[field.key] = val.map(u => u.user_id)
@@ -172,6 +259,18 @@ const ZooSettings = () => {
           payload[field.key] = val
         }
       })
+
+      // Cross-field validation: zoo_geofence scope requires lat/lng
+      if (sectionKey === 'geofencing' && Number(values.geofence_enabled) === 1 && values.geofence_scope === 'zoo_geofence') {
+        const lat = values.zoo_latitude
+        const lng = values.zoo_longitude
+        const isEmpty = v => v === null || v === undefined || v === ''
+        if (isEmpty(lat) || isEmpty(lng)) {
+          toast.error('Latitude and longitude are required when scope is Zoo')
+
+          return
+        }
+      }
 
       const res = await saveZooSettings(payload)
       toast.success(res?.message || 'Settings saved')

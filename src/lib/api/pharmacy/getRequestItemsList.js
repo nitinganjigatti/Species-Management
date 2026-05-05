@@ -11,7 +11,7 @@ import {
   NOT_AVAILABLE_PRODUCT,
   REQUEST_PENDING_PRODUCTS
 } from '../../../constants/ApiConstant'
-import { axiosGet, axiosPost, axiosFormPost } from '../utility'
+import { axiosGet, axiosPost, axiosFormPost, fetchFormPost } from '../utility'
 
 const pharmacy = true
 
@@ -68,9 +68,11 @@ export async function getDispatchItemsByBatchId(id) {
 export async function addRequestItems(payload) {
   try {
     const url = `${REQUEST_ITEMS}`
-    const response = await axiosFormPost({ url, body: payload, pharmacy })
 
-    return response?.data
+    // const response = await axiosFormPost({ url, body: payload, pharmacy })
+    const response = await fetchFormPost({ url, body: payload, pharmacy })
+
+    return response
   } catch (error) {
     if (error.response) {
       console.info('Request made and server responded')
@@ -89,9 +91,10 @@ export async function updateRequestItems(id, payload) {
     var data = payload
     data.id = id
 
-    const response = await axiosFormPost({ url, body: data, pharmacy })
+    // const response = await axiosFormPost({ url, body: data, pharmacy })
+    const response = await fetchFormPost({ url, body: data, pharmacy })
 
-    return response?.data
+    return response
   } catch (error) {
     if (error.response) {
       console.info('Request made and server responded')

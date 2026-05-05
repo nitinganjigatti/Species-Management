@@ -508,7 +508,7 @@ const AddRequestForm = () => {
           Router.push(`/pharmacy/request/${response?.data}`)
         } else {
           setSubmitLoader(false)
-          toast.error(JSON.stringify(response), { position: 'top-left' })
+          toast.error(JSON.stringify(response?.message), { position: 'top-left' })
         }
       } catch (error) {
         toast.error(JSON.stringify(error), { position: 'top-left' })
@@ -516,6 +516,7 @@ const AddRequestForm = () => {
     } else {
       try {
         const response = await addRequestItems(postData)
+
         if (response?.success) {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)

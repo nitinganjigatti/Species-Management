@@ -2222,18 +2222,6 @@ const EggList = () => {
     } else {
     }
   }
-
-  // const searchTableData = useCallback(
-  //   debounce(async (sort, q, status, isDiscarded) => {
-  //     setSearchValue(q)
-  //     try {
-  //       await fetchTableData(sort, q, status, isDiscarded, selectedFiltersOptions)
-  //     } catch (error) {
-  //       console.error(error)
-  //     }
-  //   }, 1000),
-  //   []
-  // )
   const searchTableData = useCallback(
     debounce(async (sort, q, status, isDiscarded) => {
       setSearchValue(q)

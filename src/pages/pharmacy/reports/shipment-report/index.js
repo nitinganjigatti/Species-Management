@@ -574,33 +574,6 @@ const ShipmentReport = () => {
         </Typography>
       )
     },
-
-    // {
-    //   minWidth: 20,
-    //   width: 200,
-    //   field: 'comments',
-    //   sortable: false,
-    //   headerName: 'COMMENTS',
-    //   renderCell: params => (
-    //     <Tooltip title={params.row.comments}>
-    //       <Typography
-    //         variant='body2'
-    //         sx={{
-    //           color: theme.palette.customColors.customHeadingTextColor,
-    //           fontSize: '14px',
-    //           fontWeight: 400,
-    //           fontFamily: 'Inter',
-    //           overflow: 'hidden',
-    //           whiteSpace: 'nowrap',
-    //           textOverflow: 'ellipsis',
-    //           maxWidth: 200
-    //         }}
-    //       >
-    //         <span alt={params.row.comments}> {params.row.comments}</span>
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
     {
       minWidth: 200,
       field: 'shipment_created_at',

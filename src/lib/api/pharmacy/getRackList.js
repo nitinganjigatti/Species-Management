@@ -64,3 +64,9 @@ export async function getNewRackList() {
 
   return response?.data
 }
+
+export async function getRackConfigByProduct(productId) {
+  const response = await axiosGet({ url: `v1/pharmacy/stock-item/config/list/${productId}`, pharmacy: true })
+
+  return response.data.data
+}

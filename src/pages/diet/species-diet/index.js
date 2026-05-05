@@ -498,6 +498,7 @@ const SpeciesDietList = () => {
 
   const handleExport = async () => {
     try {
+      const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
       setExportLoading(true)
 
       const params = {
@@ -505,7 +506,8 @@ const SpeciesDietList = () => {
         q: searchValue,
         // column: sortColumn,
         response_type: 'csv',
-        with_diet: filterByDiet
+        with_diet: filterByDiet,
+        class_ids: classIds?.length > 0 ? classIds.toString() : ''
       }
       const response = await getSpeciesList(params)
       if (response?.success && response?.data) {

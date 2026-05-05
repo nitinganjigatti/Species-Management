@@ -756,7 +756,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               alt='Profile'
             />
           </Avatar>
-
           <Tooltip title={params.row.site_name ? Utility?.toPascalSentenceCase(params.row.site_name) : '-'}>
             <Typography
               sx={{
@@ -1337,8 +1336,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
               p: 1,
               objectFit: 'contain',
               borderRadius: '50%',
-              background: '#E8F4F2',
-              overflow: 'hidden'
+              background: '#E8F4F2'
             }}
           >
             <img

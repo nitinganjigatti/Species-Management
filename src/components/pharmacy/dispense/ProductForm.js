@@ -721,6 +721,7 @@ function ProductForm({
                           label='Product Name*'
                           placeholder='Search & Select'
                           error={Boolean(errors?.stock_id)}
+                          sx={{ backgroundColor: 'white', borderRadius: 1 }}
                         />
                       )}
                       renderOption={(props, option) => {

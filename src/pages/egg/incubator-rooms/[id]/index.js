@@ -517,11 +517,7 @@ const RoomDetails = () => {
 
   const handleSidebarClose = () => setDialog(false)
 
-  const onCellClick = params => {
-    Router.push({
-      pathname: `/egg/incubators/${params.row?.incubator_id}`
-    })
-  }
+  const onCellClick = params => Router.push({ pathname: `/egg/incubators/${params.row?.incubator_id}` })
 
   return (
     <>

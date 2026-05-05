@@ -1,5 +1,5 @@
 import { GET_MEDIA } from '../../../constants/ApiConstant'
-import { axiosFormPost, axiosGet, axiosPost } from '../utility'
+import { axiosFormPost, axiosGet, axiosPost, fetchFormPostMedia } from '../utility'
 
 export async function getMediaListById({ params }) {
   const url = `user/${params?.userId}/media`
@@ -10,10 +10,11 @@ export async function getMediaListById({ params }) {
 
 export async function uploadMediaFile(payload) {
   try {
-    const url = `/user/media/uploads`
-    const response = await axiosFormPost({ url, body: payload })
+    console.log(payload)
+    const url = `user/media/uploads`
+    const response = await fetchFormPostMedia({ url, body: payload })
 
-    return response?.data
+    return response
   } catch (error) {
     if (error.response) {
       console.info('Request made and server responded')
@@ -21,8 +22,8 @@ export async function uploadMediaFile(payload) {
       console.error(error.response.status)
       console.error(error.response.headers)
     }
-    
-return error
+
+    return error
   }
 }
 

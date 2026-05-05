@@ -5,17 +5,23 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     sectionTitle: 'Pharmacy'
   }
 
+  const dashboard = {
+    title: 'Dashboard',
+    path: '/pharmacy/dashboard',
+    icon: 'lets-icons:home-duotone'
+  }
+
   // const dashboard = {
   //   title: 'Dashboard',
   //   path: '/pharmacy/dashboard',
   //   icon: 'lets-icons:home-duotone'
   // }
 
-  const dashboard = {
-    title: 'Dashboard',
-    path: '/pharmacy/dashboard',
-    icon: 'lets-icons:home-duotone'
-  }
+  // const dashboard = {
+  //   title: 'Dashboard',
+  //   path: '/pharmacy/dashboard',
+  //   icon: 'lets-icons:home-duotone'
+  // }
 
   const inventoryParent = {
     title: 'Purchase Invoice',

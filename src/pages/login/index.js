@@ -8,6 +8,7 @@ import Image from 'next/image'
 // ** MUI Components
 import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
 import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
@@ -47,6 +48,8 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 import CommonCard from 'src/components/login/CommonCard'
 import CustomInput from 'src/components/login/CustomInput'
 import CustomButton from 'src/components/login/CustomButton'
+import { describeGeofenceError } from 'src/lib/geofence/copy'
+import { getGeolocationPermission } from 'src/lib/geofence/permission'
 
 // ** Custom Components
 
@@ -74,6 +77,14 @@ const LoginPage = () => {
   const [rememberMe, setRememberMe] = useState(true)
   const [loginError, setLoginError] = useState('')
 
+  // ** Hooks
+  const auth = useAuth()
+  const theme = useTheme()
+  const { settings } = useSettings()
+
+  // Geofence error lives in AuthContext so it survives GuestGuard fallback swaps.
+  const geofenceError = auth.geofenceLoginError
+
   useEffect(() => {
     if (sessionStorage.getItem('session_expired') === 'true') {
       sessionStorage.removeItem('session_expired')
@@ -81,10 +92,57 @@ const LoginPage = () => {
     }
   }, [])
 
-  // ** Hooks
-  const auth = useAuth()
-  const theme = useTheme()
-  const { settings } = useSettings()
+  // Pre-flight geolocation permission check. If the browser already has a denied
+  // permission for this site, surface the modal proactively so the user knows
+  // before typing credentials. Listens for permission changes — if they re-grant
+  // while the modal is open, dismiss it automatically.
+  useEffect(() => {
+    let permissionStatus = null
+    let cancelled = false
+
+    const showDeniedModal = () => {
+      auth.setGeofenceLoginError?.({
+        kind: 'geofence',
+        code: 'permission_denied',
+        message: 'Location permission is blocked',
+        data: {}
+      })
+    }
+
+    const handleChange = () => {
+      if (!permissionStatus) return
+      if (permissionStatus.state === 'denied') {
+        showDeniedModal()
+      } else {
+        // Granted or back to prompt — dismiss the proactive modal so they can log in
+        auth.clearGeofenceLoginError?.()
+      }
+    }
+
+    ;(async () => {
+      const state = await getGeolocationPermission()
+      if (cancelled) return
+      if (state === 'denied' || state === 'unsupported') {
+        showDeniedModal()
+      }
+      // Subscribe to live permission changes (Chrome / modern Safari)
+      if (typeof navigator !== 'undefined' && navigator.permissions?.query) {
+        try {
+          permissionStatus = await navigator.permissions.query({ name: 'geolocation' })
+          if (cancelled) return
+          permissionStatus.addEventListener?.('change', handleChange)
+        } catch {
+          // Older Safari may throw — non-fatal
+        }
+      }
+    })()
+
+    return () => {
+      cancelled = true
+      permissionStatus?.removeEventListener?.('change', handleChange)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ** Vars
   const { skin } = settings
@@ -103,14 +161,19 @@ const LoginPage = () => {
   const onSubmit = async data => {
     const { email, password } = data
     setLoginError('')
-    auth.login({ email, password, rememberMe }, () => {
-      // setError('email', {
-      //   type: 'manual',
-      //   message: 'Email or Password is invalid'
-      // })
-      setLoginError('Email or Password is invalid')
+    auth.clearGeofenceLoginError?.()
+    auth.login({ email, password, rememberMe }, err => {
+      // err is either a string (bad credentials) or { kind: 'geofence', ... } from AuthContext.
+      // The geofence path is also written to auth.geofenceLoginError in the context, which the
+      // modal reads — this callback only needs to handle non-geofence errors.
+      if (!err || typeof err !== 'object' || err.kind !== 'geofence') {
+        setLoginError('Email or Password is invalid')
+      }
     })
   }
+
+  const geofenceCopy = geofenceError ? describeGeofenceError(geofenceError) : null
+  const isError = geofenceCopy?.severity === 'error'
 
   return (
     <Box
@@ -120,9 +183,105 @@ const LoginPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'background.default'
+        backgroundColor: 'background.default',
+        position: 'relative'
       }}
     >
+      <Dialog
+        open={!!geofenceCopy}
+        onClose={(_, reason) => {
+          // Block backdrop click + ESC dismiss — user must explicitly Close or Retry.
+          if (reason === 'backdropClick' || reason === 'escapeKeyDown') return
+          auth.clearGeofenceLoginError?.()
+        }}
+        disableEscapeKeyDown
+        aria-labelledby='geofence-error-title'
+        aria-describedby='geofence-error-body'
+        maxWidth='xs'
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: '12px',
+            overflow: 'hidden',
+            border: '1px solid',
+            borderColor: isError ? 'error.main' : 'warning.main',
+            boxShadow: theme =>
+              `0 16px 40px -12px ${isError ? theme.palette.error.main : theme.palette.warning.main}55`
+          }
+        }}
+      >
+        {geofenceCopy && (
+          <>
+            <Box
+              sx={{
+                px: 4,
+                py: 2.5,
+                bgcolor: isError ? 'error.main' : 'warning.main',
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5
+              }}
+            >
+              <Icon icon={geofenceCopy.icon} fontSize={22} />
+              <Typography
+                id='geofence-error-title'
+                variant='subtitle1'
+                sx={{ fontWeight: 700, color: '#fff', flex: 1 }}
+              >
+                {geofenceCopy.title}
+              </Typography>
+            </Box>
+            <Box sx={{ px: 4, py: 3 }}>
+              <Typography
+                id='geofence-error-body'
+                variant='body2'
+                sx={{ color: 'customColors.OnSurfaceVariant', lineHeight: 1.6, mb: 2.5 }}
+              >
+                {geofenceCopy.body}
+              </Typography>
+              {geofenceError?.code === 'outside_geofence' && typeof geofenceError?.data?.distance_m === 'number' && (
+                <Box
+                  sx={{
+                    mb: 2.5,
+                    p: 1.5,
+                    borderRadius: '8px',
+                    bgcolor: 'customColors.BgTeritary',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1
+                  }}
+                >
+                  <Icon icon='mdi:map-marker-distance' fontSize={18} />
+                  <Typography variant='caption' sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500 }}>
+                    Approx. distance from facility:{' '}
+                    <strong>
+                      {geofenceError.data.distance_m >= 1000
+                        ? `${(geofenceError.data.distance_m / 1000).toFixed(1)} km`
+                        : `${Math.round(geofenceError.data.distance_m)} m`}
+                    </strong>
+                  </Typography>
+                </Box>
+              )}
+              <Button
+                variant='contained'
+                fullWidth
+                onClick={() => auth.clearGeofenceLoginError?.()}
+                sx={{
+                  height: 44,
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' }
+                }}
+              >
+                Got it
+              </Button>
+            </Box>
+          </>
+        )}
+      </Dialog>
       <CommonCard
         // bgImage='/images/frog_img.png'
         // logoVantara='/images/login/Vantara_Logo_registered.svg'
