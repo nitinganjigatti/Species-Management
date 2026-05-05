@@ -129,7 +129,6 @@ const AuthProvider = ({ children }) => {
           // delegates to client.logout() which does revoke + _clearTokens +
           // browser-redirect to /oidc/logout?id_token_hint=...
           try {
-            debugger
             await wso2HookLogout()
             // router.push('/login', {
             //   query: { returnUrl: router.asPath, message: 'Your session has expired. Please log in again.' }
@@ -145,7 +144,12 @@ const AuthProvider = ({ children }) => {
         setLoading(false)
         const path = router.pathname || ''
         if (!path.includes('login') && !path.includes('callback') && !path.includes('forgot-password')) {
-          router.replace('/login')
+          const asPath = router.asPath || ''
+          router.replace(
+            asPath && asPath !== '/'
+              ? { pathname: '/login', query: { returnUrl: asPath } }
+              : '/login'
+          )
         }
       }
     }
@@ -244,7 +248,6 @@ const AuthProvider = ({ children }) => {
   const handleLoginWso2 = async email => {
     const returnUrl = router.query?.returnUrl || '/'
     sessionStorage.setItem('returnUrl', returnUrl)
-    debugger
     await client.login({ loginHint: email })
     // await client.login()
   }
@@ -398,13 +401,6 @@ const AuthProvider = ({ children }) => {
     // with id_token_hint → redirect to postLogoutRedirectUri). We just
     // do app-specific cleanup first and then hand off.
     if (isWso2AuthEnabled()) {
-      // Tell Wso2SessionWatcher to skip its expiry toast/auto-logout —
-      // wso2HookLogout flips package status through 'unauthenticated'
-      // which would otherwise fire a duplicate "session expired" toast.
-      try {
-        sessionStorage.setItem('antz_manual_logout', '1')
-      } catch {}
-
       // Clear React/cache state. None of these touch antz_auth_* tokens.
       try {
         await queryClient.cancelQueries()

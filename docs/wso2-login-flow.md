@@ -46,13 +46,24 @@ auth_method  auth_method                         success: false
   │         POST /api/v2/auth/user/login
   │           {email, password, source:"web"}
   │          │
-  │         Backend:
-  │          - MD5-verifies password in antz_users
-  │          - Creates user in WSO2 via SCIM2
-  │          - Returns {success:true, token, message:"Proceed with SSO login"}
+  │         Backend returns one of two success shapes:
+  │          │
+  │  ┌───────┴────────────────────────────┐
+  │  │                                    │
+  │  a) SSO provision                     b) Normal login
+  │  {success:true,                        {success:true, token,
+  │   message:"Proceed with SSO login"}    user:{...}, ...}
+  │  │                                    │
+  │  ▼                                    ▼
+  │  Same as Scenario 1 →                 Store session directly:
+  │  client.login()                        write(userDetails, role, userData)
+  │                                        localStorage.accessToken = token
+  │                                        auth.setUser() + auth.setUserData()
+  │                                        router.replace(returnUrl || '/')
+  │                                        ← no WSO2 redirect
   │          │
   │          ▼
-  ▼         Same as Scenario 1
+  ▼         (SSO provision path only)
 client.login() — redirect to WSO2 /authorize
              │
              ▼
@@ -145,7 +156,8 @@ Helper: `ssoLoginCheck({email, password?})` in `src/lib/api/wso-login/index.js` 
 | Mode | Request body | Success response | Error response |
 |---|---|---|---|
 | Discovery | `{email, source:"web"}` | `{success:true, data:{auth_method:"sso"\|"password"}, message}` | `{success:false, message:"Invalid Username/Email"}` or `"This Account Has Been Suspended !!"` |
-| Full auth | `{email, password, source:"web"}` | `{success:true, data:{wso2Id, user_id, already_in_wso2, provisioned}, token, token_expiry, message:"Proceed with SSO login"}` | `{success:false, message:"Invalid Username/Email or Password"}` or `"Failed to Login"` |
+| Full auth — SSO provision | `{email, password, source:"web"}` | `{success:true, message:"Proceed with SSO login"}` → frontend calls `client.login()` | `{success:false, message:"Invalid Username/Email or Password"}` |
+| Full auth — Normal login | `{email, password, source:"web"}` | `{success:true, token, token_expiry, user:{...}, login_count, ...}` → frontend stores session + navigates directly | `{success:false, message:"..."}` |
 
 ### Session bootstrap after WSO2 callback (and on every page reload in SSO mode)
 
@@ -197,7 +209,7 @@ Every file touched by the WSO2 integration, grouped by role. New files are marke
 | File | Role |
 |---|---|
 | `authMode.js` **(new)** | One-liner: `isWso2AuthEnabled()` returns `process.env.NEXT_PUBLIC_WSO2_AUTH_ENABLED === 'true'`. Every WSO2-specific branch in the codebase gates on this. |
-| `wso2Client.js` **(new)** | Singleton `AntzAuthClient` configured from env vars (`NEXT_PUBLIC_WSO2_*`). Sets `refreshBufferSeconds: 10` so proactive silent-refresh fires 10s before expiry. Re-used by every other file that needs the client. |
+| `wso2Client.js` **(new)** | Singleton `AntzAuthClient` configured from env vars (`NEXT_PUBLIC_WSO2_*`). Sets `refreshBufferSeconds: 10` so proactive silent-refresh fires 10s before expiry. Also sets `enableDailyExpiryCheck: true`, `dailyCheckHour: 5`, `dailyCheckMinute: 0`, `expiryWarningWindowSeconds: 86400` — enables the daily 5 AM expiry check that fires `onDailyExpiryWarning` when RT expires within 24 h. Re-used by every other file that needs the client. |
 | `wso2Hydrate.js` **(new)** | `hydrateBackendSession()` — after a successful WSO2 callback, POSTs `/api/v2/auth/session` with the WSO2 Bearer → gets full Antz session (`{ user, roles, modules, token? }`) → writes `userDetails` / `userData` / `role` / `accessToken` / `selectedStore` to localStorage. Falls back to building a minimal session from id_token claims if the bootstrap call fails. Also runs `saveDeviceId()` + `setLastLoggedUser()`. |
 
 ### API layer — `src/lib/api/`
@@ -205,7 +217,7 @@ Every file touched by the WSO2 integration, grouped by role. New files are marke
 | File | Role |
 |---|---|
 | `auth.js` | Hosts the legacy `callRefreshToken()` only (POSTs `v1/auth/refreshtoken` for legacy-mode page reloads). The SSO bootstrap was moved out and renamed — see `wso-login/index.js`. |
-| `wso-login/index.js` **(new)** | SSO endpoints. `ssoLoginCheck({email, password?})` against `SSO_LOGIN_CHECK` (= `v2/auth/user/login`) for the 3-scenario discovery/full-auth flow. `getUserDataInSsoFlow()` against `WSO_SESSION` (= `v2/auth/session`) — the SSO equivalent of `callRefreshToken`, called from `wso2Hydrate.js` on first login AND from `AuthContext.initAuthWso2` on every page reload while in SSO mode. On a falsy/error response, this helper itself triggers `client.logout()` so the user can't get stuck in a re-auth loop. |
+| `wso-login/index.js` **(new)** | SSO endpoints. `ssoLoginCheck({email, password?})` against `SSO_LOGIN_CHECK` (= `v2/auth/user/login`) for the 3-scenario discovery/full-auth flow. **5xx responses are normalized** in the catch block — `error.response.status >= 500` returns `{ success: false, message: 'Something went wrong. Please try again later.' }` so raw PHP/backend error objects never reach the login UI. `getUserDataInSsoFlow()` against `WSO_SESSION` (= `v2/auth/session`) — the SSO equivalent of `callRefreshToken`, called on every page reload in SSO mode. On a falsy/error response triggers `client.logout()` to prevent silent re-auth loops. |
 | `login/index.js` | Legacy / non-SSO endpoints. `legacyLogin({email, password})` (renamed from `nonSsoLogin`) posts to `LEGACY_LOGIN` (= `/api/v1/auth/login`) — the temporary CORS-workaround path for `handleLoginLegacy`. `sendOTP` / `verifyOTP` / `resetPassword` (and their constants `SEND_OTP` / `VERIFY_OTP` / `RESET_PASSWORD`) drive the legacy forgot-password OTP flow. |
 | `utility/index.js` | `GetAPIHeader()` now prefers `userDetails.token` (backend JWT) and falls back to `wso2Client.getAccessToken()` only before hydrate has populated `userDetails`. `base_url` switches to relative `/api/` in dev so `axiosPost`/`axiosFormPost`/etc. all go through the Next.js rewrite (same-origin, no CORS preflight). The previous "WSO2 Bearer on every call" shape is kept as a commented reference block. |
 
@@ -220,24 +232,24 @@ Every file touched by the WSO2 integration, grouped by role. New files are marke
 
 | File | Role |
 |---|---|
-| `login/index.js` | 3-scenario login UI (email → Continue → discovery → SSO redirect or password field → full auth → SSO redirect) when `isWso2AuthEnabled()`. Legacy email+password form otherwise. Driven by `ssoLoginCheck()`. |
+| `login/index.js` | 3-scenario login UI. `handleSsoPasswordSubmit` handles two backend success shapes: **(a) Normal login** `{success:true, token, user:{...}}` — writes `userDetails`/`role`/`userData`/`accessToken` to localStorage, calls `auth.setUser()` + `auth.setUserData()`, navigates to dashboard directly (no WSO2 redirect). **(b) SSO provision** `{success:true, message:"Proceed with SSO login"}` — calls `client.login()` (PKCE redirect). Spinner held active until redirect; only reset on error or normal-login success. On mount reads `logout_reason` from localStorage and shows an inline expiry message; key only removed on user interaction. |
 | `callback/index.js` **(new)** | Dual-purpose `/callback`: (a) `?code=...` → `client.handleCallback()` + `hydrateBackendSession()` + push user/userData into `AuthContext` + redirect to `sessionStorage.returnUrl`; (b) post-logout landing with no `code` → straight to `/login`; (c) `?error=...` → toast + `/login?error=…`. Uses `BlankLayout`, `guestGuard = true`, `authGuard = false`. |
 | `change-password/index.js` **(new)** | WSO2-backed change-password flow. Calls `client.sendOtp()` → if `otpRequired:true`, shows OTP input; else proceeds directly. Then `client.changePassword(current, new, otp?)`. Handles all `Antz*Error` subclasses (`InvalidCredentials`, `InvalidOtp`, `OtpExpired`, `OtpRequired`, `OtpMaxAttempts`, `PasswordPolicy`, `SessionExpired`). Auto-logs out 2s after success because WSO2 invalidates the refresh token. |
 | `forgot-password/index.js` | WSO2 mode: `client.forgotPassword()` — opens WSO2's self-service password-reset flow. Legacy mode: existing OTP flow unchanged. |
 
-### Guards + watcher — `src/@core/components/auth/` + `src/components/auth/`
+### Guards + watcher — `src/@core/components/auth/` + `src/components/wso-auth/`
 
 | File | Role |
 |---|---|
-| `AuthGuard.js` | Session check now reads `client.isAuthenticated()` in WSO2 mode, `localStorage.userData` in legacy. When authenticated and in WSO2 mode, also renders `<Wso2SessionWatcher />` alongside `children`. |
-| `GuestGuard.js` | Same `isAuthenticated()` / `userData` gate in reverse — already-logged-in users can't see `/login`. |
-| `src/components/auth/Wso2SessionWatcher.js` **(new)** | Owns `useAntzAuth(client)`. Because it only mounts after `AuthGuard` verifies the user is authenticated, the hook's `restore()` sees tokens on first render and the package's proactive refresh timer + `visibilitychange` listener arm correctly. Watches `status === 'unauthenticated'`; when it flips, shows a `react-hot-toast` expiry message, calls `logout()` from the hook (best-effort token cleanup), then `auth.logout()` (our AuthContext cleanup + redirect). `firedRef` keeps it single-shot. |
+| `AuthGuard.js` | Session check reads `useAntzAuth(client).status` in WSO2 mode, `localStorage.userData` in legacy. In WSO2 mode: **does NOT redirect to `/login`** — all navigation is handled by `initAuthWso2` (initial unauthenticated load, now includes `returnUrl`) and `wso2HookLogout` (logout/expiry via `window.location.href`). Redirecting here raced with `wso2HookLogout`'s full-page navigation and mounted the login page twice. In legacy mode: redirects as before. Does NOT render `<Wso2SessionWatcher />`. |
+| `GuestGuard.js` | Same `status === 'authenticated'` / `userData` gate in reverse — already-logged-in users can't see `/login`. |
+| `src/components/wso-auth/Wso2SessionWatcher.js` **(new)** | Mounted inside `AuthContext.Provider` (at provider root, unconditionally). Uses `@antzsoft/wso2-auth-web` v1.3.6 SDK callbacks — **no status-watching, no refs**. `onSessionExpired`: fires when RT is already dead (e.g. tab reopen after idle); SDK has already cleared tokens before firing. `onDailyExpiryWarning`: fires from the daily 5 AM check when RT expires within 24 h; RT still valid at this point. Both callbacks: set `localStorage('logout_reason', 'session_expired')` then call `authLogout()` (= `AuthContext.handleLogout`). No toast, no `firedRef`, no `antz_manual_logout` guard, no `antz_auth_id_token` guard. |
 
 ### Contexts — `src/context/`
 
 | File | Role |
 |---|---|
-| `AuthContext.js` | Dual `initAuth` / `handleLogin*` / `handleLogout` paths gated on the flag. `initAuthWso2` calls `hydrateBackendSession()` (which calls `getUserDataInSsoFlow()`) on **every** mount in SSO mode — re-validates the backend session on every page reload, mirroring legacy `callRefreshToken`. `handleLoginWso2` stores `returnUrl` and calls `client.login()`. `handleLoginLegacy` routes through `legacyLogin()` (temporary CORS workaround) and only promotes the user when `data?.success === true`. `handleLogout` clears React/queryClient state + app-specific localStorage keys, then hands off to `wso2HookLogout()` (= the package's `useAntzAuth(client).logout`). The package 1.2.7 `client.logout()` does revoke + `_clearTokens` + a real browser GET `/oidc/logout?id_token_hint=...` that actually kills WSO2's `commonAuthId` cookie. Auto-logout is **not** owned here — `<Wso2SessionWatcher />` handles it. |
+| `AuthContext.js` | Dual `initAuth` / `handleLogin*` / `handleLogout` paths gated on the flag. `initAuthWso2` calls `hydrateBackendSession()` on **every** mount in SSO mode — re-validates the backend session on every page reload, mirroring legacy `callRefreshToken`. Now includes `returnUrl` in the `/login` redirect so deep links are preserved (AuthGuard no longer redirects in WSO2 mode). `handleLoginLegacy` routes through `legacyLogin()` (CORS workaround) and only promotes the user when `data?.success === true`. `handleLogout` clears React/queryClient state + app-specific localStorage keys (no `antz_manual_logout` flag), then hands off to `wso2HookLogout()` (= `useAntzAuth(client).logout`). The package 1.3.6 `client.logout()` does revoke + `_clearTokens` + browser GET `/oidc/logout?id_token_hint=...`. Renders `<Wso2SessionWatcher />`. Session expiry handled entirely by `Wso2SessionWatcher` callbacks. |
 | `PariveshContext.js` | `fetchOrgData()` gets its Bearer from `wso2Client.getAccessToken()` in WSO2 mode instead of `localStorage.accessToken`. Guards with `wso2Client.isAuthenticated()` before fetching. |
 
 ### UX chrome — `src/@core/layouts/components/shared-components/`
@@ -251,7 +263,7 @@ Every file touched by the WSO2 integration, grouped by role. New files are marke
 | File | Role |
 |---|---|
 | `next.config.js` | `transpilePackages: ['@antzsoft/wso2-auth-web']` so the ESM package works under Next.js. Rewrite now reads `NEXT_PUBLIC_BASE_URL` at dev-server startup (was hardcoded `http://localhost:8080`): `/api/:path*` → `${NEXT_PUBLIC_BASE_URL}/api/:path*`. Restart dev server after env changes. |
-| `package.json` | Adds `@antzsoft/wso2-auth-web` dep. `dev`/`start` scripts pinned to port 3001 (WSO2 console has `http://localhost:3001/callback` as the authorized redirect URL). |
+| `package.json` | `@antzsoft/wso2-auth-web` at `^1.3.6` (upgraded from 1.2.7 — adds `onSessionExpired` / `onDailyExpiryWarning` callbacks and daily expiry check config). `dev`/`start` scripts pinned to port 3001. |
 | `.env.development` | Adds `NEXT_PUBLIC_WSO2_AUTH_ENABLED`, `NEXT_PUBLIC_WSO2_BASE_URL`, `NEXT_PUBLIC_WSO2_TENANT`, `NEXT_PUBLIC_WSO2_CLIENT_ID`, `NEXT_PUBLIC_WSO2_REDIRECT_URI`, `NEXT_PUBLIC_APP_URL`. Backend URLs toggled via commented blocks for sso vs non-sso tunnels. |
 | `tsconfig.json` | Includes `.next/dev/types/**/*.ts` so TypeScript picks up the package's ambient types during dev. |
 | `next-env.d.ts` | Auto-regenerated reference line — no manual WSO2 content. |
@@ -333,15 +345,16 @@ User clicks logout (UserDropdown) OR Wso2SessionWatcher detects expiry
     │
     ▼
 auth.logout() — src/context/AuthContext.js (handleLogout)
-    - sessionStorage['antz_manual_logout'] = '1'  → silences watcher's expiry toast
     - queryClient cancel + clear (queries / mutations / caches)
     - clearLocalState() — setUser/setUserData/pharmacy/parivesh/hospital reset
     - resetLanguage()
-    - localStorage.removeItem for app-specific keys: accessToken, role,
+    - localStorage.removeItem for app-specific keys only: accessToken, role,
       selectedParivesh, selectedStore, userData, userDetails
-      (NOT localStorage.clear() — that would wipe antz_auth_* before the
-       package can read them; antz_device_id + antz_last_logged_user
+      (NOT localStorage.clear() in WSO2 mode — that would wipe antz_auth_*
+       before the package reads them; antz_device_id + antz_last_logged_user
        survive automatically because they're not in the removal list)
+      (Legacy mode uses localStorage.clear() + preserveDeviceInfo() to restore
+       antz_device_id, antz_last_logged_user, and logout_reason)
     - sessionStorage.clear()
     │
     ▼
@@ -350,14 +363,14 @@ wso2HookLogout() — useAntzAuth(client).logout
     - Delegates to client.logout()
     │
     ▼
-client.logout() — @antzsoft/wso2-auth-web@1.2.7
+client.logout() — @antzsoft/wso2-auth-web@1.3.6
     1. POST /oauth2/revoke (keepalive: true)         — kills refresh_token server-side
     2. _clearTokens()                                — removes 6 antz_auth_* keys
     3. window.location.href = ${WSO2}/oidc/logout
          ?id_token_hint=...&client_id=...&post_logout_redirect_uri=...
        ← real browser GET, NOT a fetch. The 302 chain runs in the browser
          so Set-Cookie: commonAuthId=; Max-Age=0 actually clears the WSO2
-         SSO cookie. (Pre-1.2.7 used POST via fetch which couldn't kill it.)
+         SSO cookie.
     │
     ▼
 WSO2 kills its session, redirects to postLogoutRedirectUri
@@ -373,27 +386,19 @@ User on /login. Click Sign In → no commonAuthId → WSO2 shows password page.
 
 ## Session expiry (auto-logout)
 
-Auto-logout is owned by a dedicated component — `<Wso2SessionWatcher />` (at `src/components/auth/Wso2SessionWatcher.js`) — which is rendered **inside `AuthGuard`** and only mounts once the user is authenticated. This is the critical ordering: `useAntzAuth` must first see tokens in `sessionStorage` for its one-shot `restore()` to succeed, which is what arms the package's internal proactive-refresh timer and visibility listener. (If the hook mounts at app root before login, `restore()` runs, finds no tokens, and goes dormant — timers never start.) This mirrors the `sample-nextjs-client-antz-auth/src/app/dashboard/page.tsx` pattern.
+All session expiry is handled exclusively by **`Wso2SessionWatcher`** (`src/components/wso-auth/Wso2SessionWatcher.js`) via two SDK callbacks from `@antzsoft/wso2-auth-web` v1.3.6. `AuthGuard` is no longer involved in expiry detection or auto-logout.
 
-The watcher is a minimal, render-nothing component:
+**`onSessionExpired`** — fires when the refresh token is already dead (e.g. tab reopen after long idle). The SDK has already cleared `antz_auth_*` tokens before this fires. No guards needed — the SDK only fires it when there genuinely was an authenticated session that expired.
 
-```js
-const { status, logout } = useAntzAuth(client)
-const auth = useAuth()
-useEffect(() => {
-  if (status !== 'unauthenticated') return
-  // show toast, then call package logout() and AuthContext auth.logout()
-}, [status])
-```
+**`onDailyExpiryWarning`** — fires from the daily 5 AM check (`enableDailyExpiryCheck: true` in `wso2Client.js`) when RT expires within `expiryWarningWindowSeconds` (24 h). RT is still valid at this point — `authLogout()` must be called to revoke it before redirecting.
 
-When the refresh token is revoked or expires, the package updates `status` → `'unauthenticated'`, the effect fires a `react-hot-toast` error — *"Your session has expired. Please log in again."* — then calls `logout()` from the hook (best-effort to clear the package's tokens) and `auth.logout()` (clears our localStorage/React state and redirects to `/login`). A `firedRef` guard keeps this to a single pass.
+Both callbacks: set `localStorage.setItem('logout_reason', 'session_expired')` then call `authLogout()` (= `AuthContext.handleLogout`). The login page reads `logout_reason` on mount and shows an **inline** message ("Your session has expired. Please sign in again."). The key is **not removed on mount** — only removed when the user actually interacts (form submit / field change), which prevents the message from disappearing in the AuthGuard-race / React StrictMode double-mount window.
 
-| Source of expiry detection | Who handles it |
+| Source of expiry | Who handles it |
 |---|---|
-| **Session restore on mount** (hook sees stale tokens at first render) | `useAntzAuth` internal `restore()` → sets `status='unauthenticated'` → watcher effect |
-| **Proactive silent refresh** (scheduled `refreshBufferSeconds` before expiry) | `useAntzAuth` internal timer → if refresh fails, status flips |
-| **Tab visibility return** (browser regains focus after long idle) | `useAntzAuth` internal `visibilitychange` listener |
-| **Manual logout click** | `auth.logout()` directly — watcher is not involved |
+| **RT dead on tab reopen** | `Wso2SessionWatcher.onSessionExpired` → `authLogout()` |
+| **RT expiring within 24 h** (daily 5 AM check) | `Wso2SessionWatcher.onDailyExpiryWarning` → `authLogout()` |
+| **Manual logout click** | `auth.logout()` directly — `Wso2SessionWatcher` not involved |
 
 `AuthContext` itself no longer runs a polling interval or listens for visibility — that was a workaround from when `useAntzAuth` was mounted at app root. Removing the workaround means `/oauth2/token` refresh calls now fire at the correct schedule (visible in DevTools → Network, filter `token`).
 
@@ -428,7 +433,7 @@ Note: the backend JWT (`userDetails.token`) has its own expiry. If it expires be
 1. **Backend JWT 401 mid-session not auto-refreshed.** `getUserDataInSsoFlow()` runs on every page reload, so realistic exposure is only to long-lived SPA sessions where the user never reloads. If `userDetails.token` expires mid-session, `/api/*` calls 401 silently. `Wso2SessionWatcher` only reacts to WSO2 session status, not backend-JWT 401s. Fix when needed: axios 401 interceptor that re-runs `getUserDataInSsoFlow()`.
 2. **Legacy login is on a temporary proxy path.** `handleLoginLegacy` calls `legacyLogin()` which posts to `LEGACY_LOGIN` (= `/api/v1/auth/login`) via the dev rewrite. The original direct-`base_url` code is kept as a commented block in `AuthContext.js`. Restore it once backend CORS is fixed for the legacy endpoint.
 3. **`postLogoutRedirectUri` adds an extra hop.** Set to `NEXT_PUBLIC_APP_URL || NEXT_PUBLIC_WSO2_REDIRECT_URI`; only the latter (`/callback`) is whitelisted in WSO2 Console, so logout currently lands on `/callback` and bounces to `/login`. Whitelisting `NEXT_PUBLIC_APP_URL` would skip the bounce.
-4. **No session-expiry warning UX** — watcher shows a single toast, waits 2s for it to be readable, then logs out. No countdown or "stay signed in" prompt.
+4. **No "stay signed in" prompt on RT expiry.** `Wso2SessionWatcher` callbacks immediately call `authLogout()` with no warning delay or user action. `SessionExpiryTimer` in the AppBar shows a countdown for the access token window, but there is no "extend session" action wired up.
 
 ---
 

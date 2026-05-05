@@ -3,7 +3,7 @@
 **Flow documentation lives in [`wso2-login-flow.md`](./wso2-login-flow.md).** This file is kept only for the migration changelog and mode-switching instructions. Anything about how the current system works belongs in the flow doc — don't duplicate it here.
 
 **Initial cutover**: 2026-04-17
-**Last revision**: 2026-04-28 — API layer split into `src/lib/api/wso-login/` (SSO: `ssoLoginCheck`, `getUserDataInSsoFlow`) and `src/lib/api/login/` (legacy: `legacyLogin`, `sendOTP`, `verifyOTP`, `resetPassword`); endpoint paths centralised in `src/constants/WsoLoginConstant.js` (`SSO_LOGIN_CHECK`, `WSO_SESSION`) and `src/constants/LegacyLoginConstant.js` (`LEGACY_LOGIN`, `SEND_OTP`, `VERIFY_OTP`, `RESET_PASSWORD`); SSO bootstrap renamed `bootstrapAntzSession` → `getUserDataInSsoFlow` (now points at `/api/v2/auth/session` exclusively); legacy login renamed `nonSsoLogin` → `legacyLogin`; `@antzsoft/wso2-auth-web` upgraded to ^1.2.7 (logout now does a real browser GET `/oidc/logout?id_token_hint=...` that actually kills `commonAuthId`); SSO refresh on every page load (`getUserDataInSsoFlow` is the SSO equivalent of legacy `callRefreshToken`).
+**Last revision**: 2026-05-05 — `@antzsoft/wso2-auth-web` upgraded to `^1.3.6`; `Wso2SessionWatcher` rewritten from status-watching to two SDK callbacks (`onSessionExpired`, `onDailyExpiryWarning`) — no more `wasAuthRef`, `firedRef`, `antz_manual_logout` flag, or toast; `AuthGuard` no longer redirects to `/login` in WSO2 mode (prevented login-page double render caused by race between `router.replace` and `wso2HookLogout`'s `window.location.href`); `initAuthWso2` now includes `returnUrl` in its `/login` redirect; login page `logout_reason` key is no longer removed on mount (only on user interaction) to fix message-flash bug; `ssoLoginCheck` normalizes 5xx responses to a friendly message before they reach the UI; daily expiry check config added to `wso2Client.js` (`enableDailyExpiryCheck`, `dailyCheckHour: 5`, `expiryWarningWindowSeconds: 86400`); `handleSsoPasswordSubmit` now handles two distinct backend success shapes — normal login `{success:true, token, user:{...}}` stores session directly and navigates to dashboard (no WSO2 redirect); SSO provision `{success:true, message:"Proceed with SSO login"}` redirects to WSO2 PKCE flow.
 
 ---
 
@@ -17,7 +17,7 @@
 | No CSRF protection | PKCE + state parameter baked into the authorization-code flow |
 | No SSO story | Single WSO2 session across all Antz apps |
 | Custom OTP / forgot-password pages | WSO2 self-service flows + `client.sendOtp()` / `client.changePassword()` |
-| No auto-logout on expiry | `<Wso2SessionWatcher />` flips on `status === 'unauthenticated'` and calls `auth.logout()` |
+| No auto-logout on expiry | `<Wso2SessionWatcher />` uses `onSessionExpired` / `onDailyExpiryWarning` SDK callbacks (v1.3.6) — calls `auth.logout()` on RT expiry or daily 5 AM warning |
 
 ---
 

@@ -24,7 +24,6 @@ import {
   getLabRequests
 } from 'src/lib/api/dashboard'
 import DashboardLabRequests from 'src/components/dashboard/DashboardLabRequests'
-// import SessionGuard from 'src/components/SessionGuard'
 
 function Dashboard() {
   const { t } = useTranslation()
@@ -135,7 +134,6 @@ function Dashboard() {
 
   return (
     <div style={{ textAlign: 'center' }}>
-      {/* <SessionGuard warnMinutes={3} criticalMinutes={2} customMessage={`Please save your changes to avoid data loss`} /> */}
       {loading ? (
         <>
           <Box

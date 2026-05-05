@@ -26,7 +26,16 @@ export async function ssoLoginCheck({ email, password }) {
 
     return response?.data
   } catch (error) {
-    if (error.response?.data) return error.response.data
+    const status = error.response?.status
+    const data = error.response?.data
+
+    // 5xx — backend crash / misconfiguration; never expose internal details to the UI
+    if (status >= 500) {
+      return { success: false, message: 'Something went wrong. Please try again later.' }
+    }
+
+    // Structured API error (4xx with { success, message } shape)
+    if (data) return data
 
     return { success: false, message: error.message || 'Login request failed' }
   }
@@ -72,7 +81,6 @@ export async function ssoLoginCheck({ email, password }) {
 
 export async function getUserDataInSsoFlow() {
   let resData
-  debugger
   try {
     const response = await axiosPost({ url: WSO_SESSION })
     resData = response?.data

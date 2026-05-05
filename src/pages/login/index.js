@@ -33,8 +33,8 @@ import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 import client from 'src/lib/auth/wso2Client'
 import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
 import { ssoLoginCheck } from 'src/lib/api/wso-login'
-import toast from 'react-hot-toast'
-import { set } from 'lodash'
+import { write } from 'src/lib/windows/utils'
+
 const LinkStyled = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
   color: `${theme.palette.customColors.OnSecondaryContainer} !important`,
@@ -103,11 +103,7 @@ const LoginPage = () => {
 
   const redirectToWso2 = async email => {
     try {
-      console.log('email', ssoEmail)
       const userEmail = email || ssoEmail
-      console.log('userEmail', userEmail)
-      debugger
-
       const returnUrl = router.query?.returnUrl || '/'
       sessionStorage.setItem('returnUrl', returnUrl)
 
@@ -123,10 +119,11 @@ const LoginPage = () => {
   // Step 1 — email discovery
   const handleSsoEmailSubmit = async ({ email }) => {
     setLoginError('')
+    setLogoutReasonMsg('')
+    localStorage.removeItem('logout_reason')
     setSsoLoading(true)
 
     const res = await ssoLoginCheck({ email })
-    debugger
 
     // Scenario 3: user not in Antz (or suspended)
     if (res?.success === false) {
@@ -160,26 +157,58 @@ const LoginPage = () => {
   }
 
   // Step 2 — full auth (email + password) → backend provisions WSO2 user → redirect to WSO2
+  // Two possible success shapes from the backend:
+  //   a) Normal login:  { success: true, token, user: {...}, ... }
+  //      → store session directly, update AuthContext, navigate to dashboard
+  //   b) SSO provision: { success: true, message: "Proceed with SSO login" }
+  //      → redirect to WSO2 PKCE flow
   const handleSsoPasswordSubmit = async ({ password }) => {
     setLoginError('')
+    setLogoutReasonMsg('')
+    localStorage.removeItem('logout_reason')
     setSsoLoading(true)
     const res = await ssoLoginCheck({ email: ssoEmail, password })
-    setSsoLoading(false)
 
     if (res?.success === false) {
       setLoginError(res?.message || 'Login failed')
+      setSsoLoading(false)
 
       return
     }
-    console.log('email', ssoEmail)
-    console.log('password', password)
-    debugger
-    // Expected success message: "Proceed with SSO login"
+
+    if (res?.token && res?.success) {
+      const u = res?.user || {}
+      const userData = {
+        email: u?.user_email,
+        fullName: u?.user_first_name,
+        lastName: u?.user_last_name,
+        role: 'admin',
+        id: u?.user_role_id || res?.roles?.role_id,
+        username: u?.user_name || u?.user_first_name
+      }
+      const roleName = res?.user?.role_name || res?.roles?.role_name
+      write('userDetails', res)
+      write('role', roleName)
+      write('userData', userData)
+      window.localStorage.setItem('accessToken', res?.token)
+      auth.setUser({ ...userData })
+      auth.setUserData({ ...res })
+
+      setSsoLoading(false)
+      const returnUrl = router?.query?.returnUrl || '/'
+      router.replace(returnUrl)
+
+      return
+    }
+
+    // SSO provision response — keep spinner active until WSO2 redirect
     await redirectToWso2(ssoEmail)
   }
 
   const handleLegacySubmit = data => {
     setLoginError('')
+    setLogoutReasonMsg('')
+    localStorage.removeItem('logout_reason')
     auth.login({ email: data.email, password: data.password, rememberMe: true }, () =>
       setLoginError('Email or Password is invalid')
     )
@@ -194,12 +223,11 @@ const LoginPage = () => {
   useEffect(() => {
     const reason = localStorage.getItem('logout_reason')
     if (reason === 'session_expired') {
-      setLogoutReasonMsg('Your session has expired. Please log in again.')
-      toast.error('Your session has expired. Please log in again.')
+      setLogoutReasonMsg('Your session has expired. Please sign in again.')
     }
-    console.log('logout reason', reason)
-    localStorage.removeItem('logout_reason')
-    // Your session has expired. Please log in again.
+    // Do NOT removeItem here — the key must survive intermediate client-side
+    // renders (AuthGuard race) and StrictMode double-mounts. Remove only when
+    // the user actually interacts (onChange / submit handlers below).
   }, [])
 
   // While WSO2 silent-restore is in flight, render nothing so a returning
@@ -238,7 +266,11 @@ const LoginPage = () => {
                     label='Username/Email'
                     placeholder='Enter username/email'
                     value={value}
-                    onChange={onChange}
+                    onChange={e => {
+                      onChange(e)
+                      setLogoutReasonMsg('')
+                      localStorage.removeItem('logout_reason')
+                    }}
                     onBlur={onBlur}
                     autoComplete='email'
                     error={!!emailForm.formState.errors.email}
@@ -280,7 +312,11 @@ const LoginPage = () => {
                     label='Password'
                     placeholder='Enter password'
                     value={value}
-                    onChange={onChange}
+                    onChange={e => {
+                      onChange(e)
+                      setLogoutReasonMsg('')
+                      localStorage.removeItem('logout_reason')
+                    }}
                     onBlur={onBlur}
                     autoComplete='current-password'
                     error={!!passwordForm.formState.errors.password}

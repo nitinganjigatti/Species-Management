@@ -26,7 +26,15 @@ const client = new AntzAuthClient({
   // Testing: with access_token TTL=60s, default buffer=60s would trigger a
   // tight refresh loop (token is always "expiring soon"). Reduce to 10s so
   // proactive refresh fires at t=50s of each token's life.
-  refreshBufferSeconds: 10
+  refreshBufferSeconds: 10,
+
+  // Daily expiry check — fires once per day at 5:00 AM local time.
+  // If the refresh token will expire within 24 h, onDailyExpiryWarning fires.
+  // Register the callback in useAntzAuth() (Wso2SessionWatcher), not here.
+  enableDailyExpiryCheck: true,
+  dailyCheckHour: 5,
+  dailyCheckMinute: 0,
+  expiryWarningWindowSeconds: 86400
 })
 
 export default client
