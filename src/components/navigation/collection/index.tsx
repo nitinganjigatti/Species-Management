@@ -21,7 +21,7 @@ const composeCollectionNavigation = (): NavigationItem[] => {
   const collection: NavItem = {
     title: 'Species',
     path: '/collection/species',
-    icon: <img src='/images/housing/species_colored.svg' alt='Species Icon' />,
+    icon: <img src='/images/collection/species_colored.svg' alt='Species Icon' />,
     activeIcon: <img src='/images/housing/species.svg' alt='Species Icon' />
   }
 
