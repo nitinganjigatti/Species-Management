@@ -58,8 +58,8 @@ const Error404 = () => {
       <Typography variant='body2' sx={{ fontSize: '16px', fontFamily: 'Inter', fontWeight: 400, mb: 2 }}>
         Oops! The page you're seeking cannot be found
       </Typography>
-      <Button onClick={() => router.back()} variant='contained' sx={{ px: 5.5, mt: 2 }}>
-        Go Back
+      <Button onClick={() => router.replace('/dashboard')} variant='contained' sx={{ px: 5.5, mt: 2 }}>
+        Go to Dashboard
       </Button>
     </Box>
   )

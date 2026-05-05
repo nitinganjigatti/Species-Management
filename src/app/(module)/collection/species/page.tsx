@@ -15,7 +15,9 @@ import {
 } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid'
 import { useRouter } from 'next/navigation'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useMemo, useState } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import { canAdd, canView } from 'src/utils/access'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import moment from 'moment'
@@ -69,6 +71,11 @@ const mapSpeciesReportRow = (item: any, index: number) => ({
 const CollectionSpecies = () => {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext) as any
+  const animalRecordsAccess = authData?.userData?.roles?.settings?.collection_animal_records
+  const animalRecordsLevel = authData?.userData?.roles?.settings?.collection_animal_record_access
+  const canViewAnimal = canView(animalRecordsAccess)
+  const canAddAnimal = canViewAnimal && canAdd(animalRecordsLevel)
 
   const [searchValue, setSearchValue] = useState('')
   const [filters, setFilters] = useState({ page: 1, limit: 10, q: '' })
@@ -563,7 +570,7 @@ const CollectionSpecies = () => {
             isListingPage
             pageTitle='All Species'
             image='/images/housing/testInDev.jpg'
-            actions={{ onAddNew: () => setAddAnimalDrawerOpen(true) }}
+            actions={{ onAddNew: canAddAnimal ? () => setAddAnimalDrawerOpen(true) : null }}
             addNewTooltip='Add Animals'
             addNewLabel='Add Animals'
             onCallClick={null}

@@ -59,6 +59,8 @@ const ComposeNavigation = () => {
   const hasPermissionToAddNecropsyCenter = authData?.userData?.permission?.user_settings?.add_necropsy_center
   const medicalAccess = authData?.userData?.roles?.settings?.medical_records
 
+  const enableCollectionInWeb = authData?.userData?.roles?.settings?.enable_collection_in_web
+
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -155,8 +157,10 @@ const ComposeNavigation = () => {
   }
 
   // Collection module (App Router)
-  const collectionNav = collectionNavigation()
-  navigationArray.push(...collectionNav)
+  if (enableCollectionInWeb) {
+    const collectionNav = collectionNavigation()
+    navigationArray.push(...collectionNav)
+  }
 
   // Component Library (Developer Tools)
   const componentLibraryNav = componentLibraryNavigation()

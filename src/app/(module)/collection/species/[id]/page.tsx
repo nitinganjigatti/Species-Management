@@ -2,7 +2,9 @@
 
 import { Box, Card, Tab, Tabs, Typography } from '@mui/material'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import { canAdd, canView } from 'src/utils/access'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import AddAnimalDrawer from 'src/components/collection/AddAnimalDrawer'
@@ -59,6 +61,11 @@ const SpeciesDetail: React.FC = () => {
   const searchParams = useSearchParams()
   const params = useParams() as { id?: string }
   const id = params.id
+  const authData = useContext(AuthContext) as any
+  const animalRecordsAccess = authData?.userData?.roles?.settings?.collection_animal_records
+  const animalRecordsLevel = authData?.userData?.roles?.settings?.collection_animal_record_access
+  const canViewAnimal = canView(animalRecordsAccess)
+  const canAddAnimal = canViewAnimal && canAdd(animalRecordsLevel)
 
   const [selectedTab, setSelectedTab] = useState('population')
   const [addAnimalDrawerOpen, setAddAnimalDrawerOpen] = useState(false)
@@ -160,7 +167,7 @@ const SpeciesDetail: React.FC = () => {
           pageTitle={speciesData.common_name}
           subtitle={speciesData.scientific_name}
           image=''
-          actions={{ onAddNew: () => setAddAnimalDrawerOpen(true) }}
+          actions={{ onAddNew: canAddAnimal ? () => setAddAnimalDrawerOpen(true) : null }}
           addNewTooltip='Add Animals'
           addNewLabel='Add Animals'
           onCallClick={null as any}
