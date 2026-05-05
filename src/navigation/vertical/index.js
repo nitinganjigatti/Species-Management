@@ -154,8 +154,8 @@ const ComposeNavigation = () => {
   }
 
   // Component Library (Developer Tools)
-  const componentLibraryNav = componentLibraryNavigation()
-  navigationArray.push(...componentLibraryNav)
+  // const componentLibraryNav = componentLibraryNavigation()
+  // navigationArray.push(...componentLibraryNav)
 
   return navigationArray
 }
