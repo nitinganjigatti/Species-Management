@@ -16,6 +16,7 @@ import Icon from 'src/@core/components/icon'
 import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import PopulationFilterDrawer, { PopulationFilterOptions } from 'src/components/collection/PopulationFilterDrawer'
 import { getAllAnimalReport } from 'src/lib/api/report'
+import { ROUTES } from 'src/constants/routes'
 
 interface PopulationTabProps {
   speciesId?: string
@@ -230,7 +231,8 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
           sx={{ cursor: 'pointer', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
           onClick={() => {
             const animalId = p.row.raw_animal_id
-            if (animalId) router.push(`/collection/species/${speciesId}/animal/${animalId}`)
+            //  if (animalId) router.push(`/collection/species/${speciesId}/animal/${animalId}`)
+            if (animalId && speciesId) router.push(ROUTES.collection.animal(speciesId, animalId))
           }}
         >
           <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} avatarSize={36} iconSize={18} />
@@ -307,14 +309,22 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       headerName: 'GENDER',
       renderCell: (p: GridRenderCellParams) => {
         const g = p.row.gender
-        const bg = g === 'M' ? `${theme.palette.customColors.SecondaryContainer}80`
-          : g === 'F' ? `${theme.palette.customColors.Tertiary}4D`
-          : g === 'G' ? theme.palette.customColors.addPrimary
-          : theme.palette.customColors.SurfaceVariant
-        const tc = g === 'M' ? theme.palette.customColors.addPrimary
-          : g === 'F' ? theme.palette.customColors.Tertiary
-          : g === 'G' ? theme.palette.common.white
-          : theme.palette.customColors.Error
+        const bg =
+          g === 'M'
+            ? `${theme.palette.customColors.SecondaryContainer}80`
+            : g === 'F'
+            ? `${theme.palette.customColors.Tertiary}4D`
+            : g === 'G'
+            ? theme.palette.customColors.addPrimary
+            : theme.palette.customColors.SurfaceVariant
+        const tc =
+          g === 'M'
+            ? theme.palette.customColors.addPrimary
+            : g === 'F'
+            ? theme.palette.customColors.Tertiary
+            : g === 'G'
+            ? theme.palette.common.white
+            : theme.palette.customColors.Error
         return <StatChip value={g} bgcolor={bg} color={tc} />
       }
     },

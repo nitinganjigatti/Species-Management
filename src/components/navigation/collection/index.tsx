@@ -1,26 +1,14 @@
-import { ReactNode } from 'react'
-
-interface NavTitle {
-  sectionTitle: string
-}
-
-interface NavItem {
-  title: string
-  path: string
-  icon?: string | ReactNode
-  activeIcon?: ReactNode
-}
-
-type NavigationItem = NavTitle | NavItem
+import { ROUTES } from 'src/constants/routes'
+import type { NavItem, NavSection, NavigationItem } from 'src/types/navigation'
 
 const composeCollectionNavigation = (): NavigationItem[] => {
-  const Title: NavTitle = {
+  const Title: NavSection = {
     sectionTitle: 'Collection'
   }
 
   const collection: NavItem = {
     title: 'Species',
-    path: '/collection/species',
+    path: ROUTES.collection.species,
     icon: <img src='/images/collection/species_colored.svg' alt='Species Icon' />,
     activeIcon: <img src='/images/housing/species.svg' alt='Species Icon' />
   }

@@ -38,6 +38,7 @@ import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
 import AddAnimalDrawer from 'src/components/collection/AddAnimalDrawer'
 import { getCollectionInsights, mapInsightsResponse } from 'src/lib/api/collection/species'
 import { getReportFilterList } from 'src/lib/api/report'
+import { ROUTES } from 'src/constants/routes'
 
 /** Map a row from /v1/species/reportv1 datalist into table row format */
 const mapSpeciesReportRow = (item: any, index: number) => ({
@@ -309,8 +310,15 @@ const CollectionSpecies = () => {
       field: 'male',
       headerName: 'MALE',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <StatChip value={params.row.male} bgcolor={`${theme.palette.customColors.SecondaryContainer}80`} color={theme.palette.customColors.addPrimary} />
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <StatChip
+            value={params.row.male}
+            bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
+            color={theme.palette.customColors.addPrimary}
+          />
         </Box>
       )
     },
@@ -320,8 +328,15 @@ const CollectionSpecies = () => {
       field: 'female',
       headerName: 'FEMALE',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <StatChip value={params.row.female} bgcolor={`${theme.palette.customColors.Tertiary}4D`} color={theme.palette.customColors.Tertiary} />
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <StatChip
+            value={params.row.female}
+            bgcolor={`${theme.palette.customColors.Tertiary}4D`}
+            color={theme.palette.customColors.Tertiary}
+          />
         </Box>
       )
     },
@@ -331,8 +346,15 @@ const CollectionSpecies = () => {
       field: 'undetermined',
       headerName: 'UNDETERMINED',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <StatChip value={params.row.undetermined} bgcolor={theme.palette.customColors.SurfaceVariant} color={theme.palette.customColors.Error} />
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <StatChip
+            value={params.row.undetermined}
+            bgcolor={theme.palette.customColors.SurfaceVariant}
+            color={theme.palette.customColors.Error}
+          />
         </Box>
       )
     },
@@ -342,8 +364,15 @@ const CollectionSpecies = () => {
       field: 'identified',
       headerName: 'IDENTIFIED',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <StatChip value={params.row.identified} bgcolor={theme.palette.customColors.displaybgSecondary} color={theme.palette.customColors.OnSecondaryContainer} />
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <StatChip
+            value={params.row.identified}
+            bgcolor={theme.palette.customColors.displaybgSecondary}
+            color={theme.palette.customColors.OnSecondaryContainer}
+          />
         </Box>
       )
     },
@@ -353,8 +382,13 @@ const CollectionSpecies = () => {
       field: 'class_name',
       headerName: 'CLASS',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{params.row.class_name}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+            {params.row.class_name}
+          </Typography>
         </Box>
       )
     },
@@ -364,8 +398,13 @@ const CollectionSpecies = () => {
       field: 'order_name',
       headerName: 'ORDER',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{params.row.order_name}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+            {params.row.order_name}
+          </Typography>
         </Box>
       )
     },
@@ -375,8 +414,13 @@ const CollectionSpecies = () => {
       field: 'family',
       headerName: 'FAMILY',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{params.row.family}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+            {params.row.family}
+          </Typography>
         </Box>
       )
     },
@@ -386,8 +430,13 @@ const CollectionSpecies = () => {
       field: 'genus',
       headerName: 'GENUS',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{params.row.genus}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+            {params.row.genus}
+          </Typography>
         </Box>
       )
     },
@@ -397,8 +446,13 @@ const CollectionSpecies = () => {
       field: 'site',
       headerName: 'SITES',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>{params.row.site}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
+            {params.row.site}
+          </Typography>
         </Box>
       )
     },
@@ -408,8 +462,13 @@ const CollectionSpecies = () => {
       field: 'section',
       headerName: 'SECTIONS',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>{params.row.section}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
+            {params.row.section}
+          </Typography>
         </Box>
       )
     },
@@ -419,8 +478,13 @@ const CollectionSpecies = () => {
       field: 'enclosure',
       headerName: 'ENCLOSURES',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>{params.row.enclosure}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
+            {params.row.enclosure}
+          </Typography>
         </Box>
       )
     },
@@ -430,8 +494,13 @@ const CollectionSpecies = () => {
       field: 'organisation',
       headerName: 'ORGANISATION',
       renderCell: (params: GridRenderCellParams) => (
-        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }} onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>{params.row.organisation}</Typography>
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
+          onClick={(e: React.MouseEvent) => e.stopPropagation()}
+        >
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
+            {params.row.organisation}
+          </Typography>
         </Box>
       )
     }
@@ -439,7 +508,8 @@ const CollectionSpecies = () => {
 
   const handleCellClick = (params: any) => {
     if (params.field === 'sl_no' || params.field === 'species_name') {
-      router.push(`/collection/species/${params.row.species_id}`)
+      //  router.push(`/collection/species/${params.row.species_id}`)
+      router.push(ROUTES.collection.speciesDetail(params.row.species_id))
     }
   }
 
@@ -468,7 +538,8 @@ const CollectionSpecies = () => {
       value: 0,
       label: 'External transfer',
       imagePath: '/images/collection/external_transfer.svg',
-      onClick: () => handleStatClick('External transfer', 'external_transfer', '/images/collection/external_transfer.svg')
+      onClick: () =>
+        handleStatClick('External transfer', 'external_transfer', '/images/collection/external_transfer.svg')
     },
     {
       value: insights.mortalityCount,

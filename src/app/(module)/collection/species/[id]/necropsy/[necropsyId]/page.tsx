@@ -9,6 +9,7 @@ import moment from 'moment'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import Icon from 'src/@core/components/icon'
 import { getMortalitySummary, getNecropsySummary, getNecropsyTimeline } from 'src/lib/api/necropsy'
+import { ROUTES } from 'src/constants/routes'
 
 // Flip to true once the backend ships a lab-requests endpoint for necropsy.
 const FEATURE_LAB_REQUESTS = false
@@ -118,17 +119,12 @@ const NecropsyDetail: React.FC = () => {
   const speciesScientificName = necropsy.scientific_name || mortality.complete_name || ''
   const speciesImage = necropsy.default_icon || mortality.default_icon || ''
 
-  const carcassSubmissionDateTime = formatDateTime(
-    necropsy.caracass_submission_date,
-    necropsy.caracass_submission_time
-  )
+  const carcassSubmissionDateTime = formatDateTime(necropsy.caracass_submission_date, necropsy.caracass_submission_time)
   const generalDescription = necropsy.general_description || mortality.general_description || ''
   const historyOfIllness = necropsy.history_of_illness || mortality.history_of_illness || ''
 
   const dateOfDeath = mortality.date_of_death || necropsy.date_of_death
-  const dateOfDeathFormatted = dateOfDeath
-    ? formatDateTime(dateOfDeath.split(' ')[0], dateOfDeath.split(' ')[1])
-    : '-'
+  const dateOfDeathFormatted = dateOfDeath ? formatDateTime(dateOfDeath.split(' ')[0], dateOfDeath.split(' ')[1]) : '-'
 
   const placeOfDeath = necropsy.place_of_death || ''
   const suspectedCause = necropsy.suspected_cause_of_death || mortality.manner_of_death || '-'
@@ -140,7 +136,8 @@ const NecropsyDetail: React.FC = () => {
   const animalIdValue = mortality.animal_id || necropsy.animal_id
   const breed = mortality.breed_name || necropsy.breed_name || '-'
   const morph = mortality.morph_name || necropsy.morph_name || '-'
-  const ageDisplay = mortality.age && mortality.age_unit ? `${mortality.age} ${mortality.age_unit}` : mortality.age || '-'
+  const ageDisplay =
+    mortality.age && mortality.age_unit ? `${mortality.age} ${mortality.age_unit}` : mortality.age || '-'
   const weightDisplay =
     necropsy.carcass_weight && necropsy.uom_abbr
       ? `${necropsy.carcass_weight} ${necropsy.uom_abbr}`
@@ -200,10 +197,14 @@ const NecropsyDetail: React.FC = () => {
       <DynamicBreadcrumbs
         sx={{ mb: 5 }}
         pageItems={[
-          { title: 'Collection', href: '/collection/species' },
-          { title: 'Species', href: '/collection/species' },
-          { title: id || '', href: `/collection/species/${id}` },
-          { title: 'Necropsy', href: `/collection/species/${id}?tab=necropsy` },
+          //  { title: 'Collection', href: '/collection/species' },
+          // { title: 'Species', href: '/collection/species' },
+          // { title: id || '', href: `/collection/species/${id}` },
+          // { title: 'Necropsy', href: `/collection/species/${id}?tab=necropsy` },
+          { title: 'Collection', href: ROUTES.collection.species },
+          { title: 'Species', href: ROUTES.collection.species },
+          { title: id || '', href: id ? ROUTES.collection.speciesDetail(id) : '#' },
+          { title: 'Necropsy', href: id ? `${ROUTES.collection.speciesDetail(id)}?tab=necropsy` : '#' },
           { title: necropsyCode, href: '#', active: true }
         ]}
       />
@@ -422,11 +423,7 @@ const NecropsyDetail: React.FC = () => {
               gap: 1
             }}
           >
-            <Icon
-              icon='mdi:flask-empty-outline'
-              fontSize={32}
-              color={theme.palette.customColors.Outline}
-            />
+            <Icon icon='mdi:flask-empty-outline' fontSize={32} color={theme.palette.customColors.Outline} />
             <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
               No lab requests available
             </Typography>
@@ -458,89 +455,95 @@ const NecropsyDetail: React.FC = () => {
             </Typography>
           </Box>
         ) : (
-        <Box sx={{ display: 'flex', gap: 3, overflowX: 'auto', pb: 2 }}>
-          {attachments.map((att, idx) => {
-            const isAudio = att.type === 'audio'
-            const isPdf = att.type === 'pdf'
-            const isDoc = att.type === 'doc'
-            const isImage = att.type === 'image'
+          <Box sx={{ display: 'flex', gap: 3, overflowX: 'auto', pb: 2 }}>
+            {attachments.map((att, idx) => {
+              const isAudio = att.type === 'audio'
+              const isPdf = att.type === 'pdf'
+              const isDoc = att.type === 'doc'
+              const isImage = att.type === 'image'
 
-            return (
-              <Box
-                key={idx}
-                sx={{
-                  minWidth: 180,
-                  maxWidth: 200,
-                  border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: 1,
-                  p: 1.5,
-                  cursor: 'pointer'
-                }}
-              >
+              return (
                 <Box
+                  key={idx}
                   sx={{
-                    width: '100%',
-                    height: 140,
+                    minWidth: 180,
+                    maxWidth: 200,
+                    border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: 1,
-                    backgroundColor: isAudio
-                      ? theme.palette.customColors.antzNotes
-                      : isPdf
-                      ? theme.palette.customColors.BgTeritary
-                      : isDoc
-                      ? theme.palette.customColors.antzSecondaryBg
-                      : theme.palette.customColors.SurfaceVariant,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    overflow: 'hidden'
+                    p: 1.5,
+                    cursor: 'pointer'
                   }}
                 >
-                  {isAudio && (
-                    <Icon icon='mdi:microphone' fontSize={48} color={theme.palette.customColors.moderateSecondary} />
-                  )}
-                  {isPdf && <Icon icon='mdi:file-pdf-box' fontSize={48} color={theme.palette.customColors.Tertiary} />}
-                  {isDoc && (
-                    <Icon icon='mdi:file-word-box' fontSize={48} color={theme.palette.customColors.OnSecondaryContainer} />
-                  )}
-                  {isImage && (
-                    <Box
-                      component='img'
-                      src={(att as any).url || '/images/housing/testInDev.jpg'}
-                      alt={att.name}
-                      sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  )}
-                </Box>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 140,
+                      borderRadius: 1,
+                      backgroundColor: isAudio
+                        ? theme.palette.customColors.antzNotes
+                        : isPdf
+                        ? theme.palette.customColors.BgTeritary
+                        : isDoc
+                        ? theme.palette.customColors.antzSecondaryBg
+                        : theme.palette.customColors.SurfaceVariant,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {isAudio && (
+                      <Icon icon='mdi:microphone' fontSize={48} color={theme.palette.customColors.moderateSecondary} />
+                    )}
+                    {isPdf && (
+                      <Icon icon='mdi:file-pdf-box' fontSize={48} color={theme.palette.customColors.Tertiary} />
+                    )}
+                    {isDoc && (
+                      <Icon
+                        icon='mdi:file-word-box'
+                        fontSize={48}
+                        color={theme.palette.customColors.OnSecondaryContainer}
+                      />
+                    )}
+                    {isImage && (
+                      <Box
+                        component='img'
+                        src={(att as any).url || '/images/housing/testInDev.jpg'}
+                        alt={att.name}
+                        sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    )}
+                  </Box>
 
-                <Box sx={{ px: 2, py: 1.5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ px: 2, py: 1.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography
+                        variant='caption'
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '0.75rem',
+                          fontWeight: 500,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          flex: 1
+                        }}
+                      >
+                        {att.name}
+                      </Typography>
+                      <Icon icon='mdi:dots-vertical' fontSize={18} color={theme.palette.customColors.Outline} />
+                    </Box>
                     <Typography
                       variant='caption'
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '0.75rem',
-                        fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        flex: 1
-                      }}
+                      sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '0.7rem' }}
                     >
-                      {att.name}
+                      {att.time}
                     </Typography>
-                    <Icon icon='mdi:dots-vertical' fontSize={18} color={theme.palette.customColors.Outline} />
                   </Box>
-                  <Typography
-                    variant='caption'
-                    sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '0.7rem' }}
-                  >
-                    {att.time}
-                  </Typography>
                 </Box>
-              </Box>
-            )
-          })}
-        </Box>
+              )
+            })}
+          </Box>
         )}
       </Card>
 
@@ -585,7 +588,8 @@ const NecropsyDetail: React.FC = () => {
                 alignItems: 'flex-start',
                 gap: 2,
                 py: 2,
-                borderBottom: idx < timeline.length - 1 ? `1px solid ${theme.palette.customColors.SurfaceVariant}` : 'none'
+                borderBottom:
+                  idx < timeline.length - 1 ? `1px solid ${theme.palette.customColors.SurfaceVariant}` : 'none'
               }}
             >
               <Avatar
@@ -595,7 +599,10 @@ const NecropsyDetail: React.FC = () => {
                 <Icon icon='mdi:account' fontSize={18} />
               </Avatar>
               <Box sx={{ flex: 1 }}>
-                <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
+                <Typography
+                  variant='body2'
+                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
+                >
                   {item.comment}
                 </Typography>
                 <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
