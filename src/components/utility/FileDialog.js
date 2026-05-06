@@ -18,11 +18,8 @@ import SignedMediaPlayer from './SignedMediaPlayer'
 import TextEllipsisWithModal from '../TextEllipsisWithModal'
 import Utility from 'src/utility'
 import { EXTENSION_TYPE_MAP } from 'src/constants/Constants'
-import { Document, Page, pdfjs } from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css'
 import 'react-pdf/dist/Page/TextLayer.css'
-
-pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
 const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) => {
   const theme = useTheme()
@@ -35,6 +32,7 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
   const [numPages, setNumPages] = useState(null)
   const [pageNumber, setPageNumber] = useState(1)
   const [containerWidth, setContainerWidth] = useState(600)
+  const [pdfRenderer, setPdfRenderer] = useState(null)
   const pdfContainerRef = useRef(null)
 
   // Derive file type from title if not explicitly provided
@@ -183,7 +181,10 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
     if (!src || isError) return renderFallback()
 
     switch (derivedFileType) {
-      case 'pdf':
+      case 'pdf': {
+        const Document = pdfRenderer?.Document
+        const Page = pdfRenderer?.Page
+
         return (
           <Box
             ref={pdfContainerRef}
@@ -199,26 +200,28 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
             }}
           >
             {isLoading && loadingOverlay}
-            <Document
-              file={src}
-              onLoadSuccess={({ numPages }) => {
-                setNumPages(numPages)
-                setIsLoading(false)
-              }}
-              onLoadError={() => {
-                setErrorType('broken')
-                setIsError(true)
-                setIsLoading(false)
-              }}
-              loading={null}
-            >
-              <Page
-                pageNumber={pageNumber}
-                width={Math.max(containerWidth - 40, 300)}
-                renderAnnotationLayer
-                renderTextLayer
-              />
-            </Document>
+            {Document && Page ? (
+              <Document
+                file={src}
+                onLoadSuccess={({ numPages }) => {
+                  setNumPages(numPages)
+                  setIsLoading(false)
+                }}
+                onLoadError={() => {
+                  setErrorType('broken')
+                  setIsError(true)
+                  setIsLoading(false)
+                }}
+                loading={null}
+              >
+                <Page
+                  pageNumber={pageNumber}
+                  width={Math.max(containerWidth - 40, 300)}
+                  renderAnnotationLayer
+                  renderTextLayer
+                />
+              </Document>
+            ) : null}
 
             {numPages > 1 && (
               <Box
@@ -256,6 +259,7 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
             )}
           </Box>
         )
+      }
       case 'image':
         return (
           <Box
@@ -359,6 +363,40 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
       setNumPages(null)
     }
   }, [open, src])
+
+  useEffect(() => {
+    if (!open || derivedFileType !== 'pdf' || typeof window === 'undefined') return
+
+    let cancelled = false
+
+    const loadPdfRenderer = async () => {
+      try {
+        const reactPdf = await import('react-pdf')
+        reactPdf.pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
+
+        if (!cancelled) {
+          setPdfRenderer({
+            Document: reactPdf.Document,
+            Page: reactPdf.Page
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load PDF preview renderer:', error)
+
+        if (!cancelled) {
+          setErrorType('unsupported')
+          setIsError(true)
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadPdfRenderer()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, derivedFileType])
 
   // Track PDF container width for responsive page rendering
   useEffect(() => {
