@@ -38,7 +38,7 @@ interface MissReportIncidentFormProps {
   missReportIncidence: string
   missReportIncidentForm: boolean
   setMissReportIncidentForm: (open: boolean) => void
-  animalId: string | string[] | undefined
+  animalId: string | number | string[] | undefined
   incidentId: number | null
   fetchAnimalIncidents: () => void
 }

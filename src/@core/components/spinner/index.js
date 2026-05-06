@@ -1,20 +1,32 @@
 // ** MUI Imports
-import { useTheme } from '@mui/material/styles'
+import { useEffect } from 'react'
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
+import NProgress from 'nprogress'
 
 import Image from 'next/image'
 
 import logoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
 import vantaraLogoAlt from 'public/branding/vantara/Weblogo_vantara_V.png'
 
+NProgress.configure({ showSpinner: false })
+
 const FallbackSpinner = ({ sx }) => {
-  // ** Hook
-  const theme = useTheme()
+  // Show the top progress bar while this fallback is mounted (matches the route-change UX in _app.js).
+  useEffect(() => {
+    NProgress.start()
+
+    return () => {
+      NProgress.done()
+    }
+  }, [])
 
   return (
     <Box
-      sx={{
+      // Layout via inline style so centering applies immediately on the SSR HTML —
+      // before Emotion injects its CSS-in-JS classes. Avoids the "logo flashes at
+      // top-left, then jumps to center" artifact on slow networks.
+      style={{
         position: 'fixed',
         top: 0,
         left: 0,
@@ -26,8 +38,10 @@ const FallbackSpinner = ({ sx }) => {
         alignItems: 'center',
         flexDirection: 'column',
         justifyContent: 'center',
+        zIndex: 9999
+      }}
+      sx={{
         backgroundColor: 'background.default',
-        zIndex: 9999,
         ...sx
       }}
     >

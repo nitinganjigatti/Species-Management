@@ -147,6 +147,7 @@ const DietUploadDrawer: React.FC<DietUploadDrawerProps> = ({
                 control={control}
                 errors={errors}
                 label='Drop your file here'
+                color={theme.palette.customColors.OnSurfaceVariant}
                 acceptFileTypes='.pdf,.doc,.docx'
               />
             </Card>

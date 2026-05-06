@@ -65,12 +65,13 @@ const AnimalMedia: React.FC<AnimalMediaProps> = ({ animalId: propAnimalId }) => 
         q: search
       })
 
-      const mediaItems = res?.data?.result || res?.data || []
+      const rawItems = res?.data?.result || res?.data || []
+      const mediaItems: Media[] = Array.isArray(rawItems) ? rawItems : []
 
       return {
         result: mediaItems,
         nextPage: mediaItems.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
-        total: res?.total_count || res?.data?.total_count || 0
+        total: (res as any)?.total_count || res?.data?.total_count || 0
       }
     },
     getNextPageParam: (lastPage: MediaPageResult) => lastPage.nextPage,

@@ -223,11 +223,11 @@ export interface Animal {
   enclosure_id?: number
   enclosure_name?: string
   images?: AnimalImage[]
-  is_alive?: boolean
+  is_alive?: boolean | string
   is_deceased?: boolean
-  is_deleted?: string
-  animal_transfered?: string
-  is_necropsy?: boolean
+  is_deleted?: string | number
+  animal_transfered?: string | number
+  is_necropsy?: boolean | string | number
   created_at?: string
   updated_at?: string
 }

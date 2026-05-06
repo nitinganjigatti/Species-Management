@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, Suspense } from 'react'
+import { ReactNode } from 'react'
 
 // ** Emotion Imports
 import { CacheProvider } from '@emotion/react'
@@ -18,7 +18,7 @@ import 'prismjs/components/prism-tsx'
 import 'src/iconify-bundle/icons-bundle-react'
 
 // ** Navigation Progress for App Router
-import NavigationProgress from './components/NavigationProgress'
+// import NavigationProgress from './components/NavigationProgress'
 
 // ** Component Imports
 import ThemeComponent from 'src/@core/theme/ThemeComponent'
@@ -75,9 +75,9 @@ export function Providers({ children }: ProvidersProps) {
                                   {({ settings }) => {
                                     return (
                                       <ThemeComponent settings={settings}>
-                                        <Suspense fallback={null}>
+                                        {/* <Suspense fallback={null}>
                                           <NavigationProgress />
-                                        </Suspense>
+                                        </Suspense> */}
                                         {children}
                                         <ReactHotToast>
                                           <Toaster
