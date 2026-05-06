@@ -4,13 +4,15 @@ import { ReactNode } from 'react'
 import { notFound } from 'next/navigation'
 import { useAuth } from 'src/hooks/useAuth'
 import Spinner from 'src/@core/components/spinner'
+import type { AccessFlag } from 'src/constants/accessFlags'
 
 interface RouteGuardProps {
   /**
    * Flag key under `auth.userData.roles.settings` that controls access.
-   * Examples: 'enable_collection_in_web', 'enable_housing_in_web', 'add_hospital'.
+   * Use values from `ACCESS_FLAGS` (src/constants/accessFlags.ts) so renames
+   * surface as TS errors at every call site instead of silent runtime 404s.
    */
-  accessFlag: string
+  accessFlag: AccessFlag
   children: ReactNode
 }
 
@@ -24,7 +26,7 @@ interface RouteGuardProps {
  *
  * Usage:
  *   export default function CollectionLayout({ children }) {
- *     return <RouteGuard accessFlag='enable_collection_in_web'>{children}</RouteGuard>
+ *     return <RouteGuard accessFlag={ACCESS_FLAGS.collection}>{children}</RouteGuard>
  *   }
  */
 export default function RouteGuard({ accessFlag, children }: RouteGuardProps) {
