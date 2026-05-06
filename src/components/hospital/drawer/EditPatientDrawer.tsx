@@ -296,14 +296,14 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
         const selectedDateTime = selectedDate.hour(selectedTime.hour()).minute(selectedTime.minute())
 
         // Check if selected datetime is before transfer_created_at
-        if (minDateTime && selectedDateTime.isBefore(minDateTime)) {
-          setSubmitLoader(false)
-          Toaster({
-            type: 'error',
-            message: `${t('hospital_module.admission_datetime_cannot_be_before')} ${minDateTime.format('YYYY-MM-DD HH:mm')}`
-          })
-          return
-        }
+        // if (minDateTime && selectedDateTime.isBefore(minDateTime)) {
+        //   setSubmitLoader(false)
+        //   Toaster({
+        //     type: 'error',
+        //     message: `${t('hospital_module.admission_datetime_cannot_be_before')} ${minDateTime.format('YYYY-MM-DD HH:mm')}`
+        //   })
+        //   return
+        // }
 
         // Check if selected datetime is after current time
         if (selectedDateTime.isAfter(maxDateTime)) {
@@ -599,6 +599,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
               fullWidth
               minDate={minDateTime}
               maxDate={maxDateTime}
+              disabled={patientData?.created_from_web == 1}
             />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -612,6 +613,7 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
               errors={errors}
               sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
               fullWidth
+              disabled={patientData?.created_from_web == 1}
             />
           </Box>
           {/* <Box
