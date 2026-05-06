@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useContext } from 'react'
 import { Box, CircularProgress, Grid, Skeleton } from '@mui/material'
+import { AuthContext } from 'src/context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import DashboardStatsPanel from '../../components/dashboard/DashboardStatsPanel'
 import DashboardCardHeader from '../../components/dashboard/DashboardCardHeader'
@@ -12,6 +13,8 @@ import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
 import DashboardPharmacyDetails from '../../components/dashboard/DashboardPharmacyDetails'
 import PharmacyPendingReqChart from '../../components/dashboard/charts/PharmacyPendingReqChart'
 import DashboardNotes from 'src/components/dashboard/charts/DashboardNotes'
+import Image from 'next/image'
+import welcomeToAntz from 'public/images/intro_antz_all.jpg'
 import {
   getDashboardAnalytics,
   getKeyInsights,
@@ -27,6 +30,7 @@ import DashboardLabRequests from 'src/components/dashboard/DashboardLabRequests'
 
 function Dashboard() {
   const { t } = useTranslation()
+  const authData = useContext(AuthContext)
   const [loading, setLoading] = useState(false)
   const [firstLoad, setFirstLoad] = useState(true)
   const [dashboardAnalyticsData, setDashboardAnalyticsData] = useState([])
@@ -55,6 +59,8 @@ function Dashboard() {
     completed_requests_percentage: 0,
     lab_stats: []
   })
+
+  const userRole = authData?.userData?.roles?.role_name
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -121,27 +127,31 @@ function Dashboard() {
   }, [firstLoad])
 
   useEffect(() => {
-    fetchAllData()
-    const interval = setInterval(fetchAllData, 120000) // Refresh every 2 minutes
+    if (userRole == 'Super Admin') {
+      fetchAllData()
+      const interval = setInterval(fetchAllData, 120000) // Refresh every 2 minutes
 
-    return () => clearInterval(interval) // Cleanup on unmount
+      return () => clearInterval(interval)
+    } // Cleanup on unmount
   }, [fetchAllData])
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      {loading ? (
-        <>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '80vh'
-            }}
-          >
-            <CircularProgress />
-          </Box>
-          {/* <Box sx={{ mt: 3 }}>
+    <>
+      {userRole == 'Super Admin' ? (
+        <div style={{ textAlign: 'center' }}>
+          {loading ? (
+            <>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '80vh'
+                }}
+              >
+                <CircularProgress />
+              </Box>
+              {/* <Box sx={{ mt: 3 }}>
             <Grid container spacing={3}>
               {Array.from(new Array(6)).map((_, index) => (
                 <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
@@ -159,63 +169,73 @@ function Dashboard() {
               ))}
             </Grid>
           </Box> */}
-        </>
+            </>
+          ) : (
+            <>
+              <DashboardStatsPanel stats={dashboardAnalyticsData} />
+              <Box sx={{ mt: 3 }}>
+                <ApexChartWrapper>
+                  <KeenSliderWrapper>
+                    <Grid container spacing={3} className='match-height'>
+                      <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
+                        <DashboardCardHeader title={t('dashboard.key_insights')}>
+                          <Box sx={{ p: 6 }}>
+                            <KeyInsights insights={keyInsightsData} />
+                          </Box>
+                        </DashboardCardHeader>
+                      </Grid>
+                      <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
+                        <DashboardCardHeader title={t('dashboard.animal_activity')}>
+                          <AnimalActivityChart animalActivityData={animalActivityData} />
+                        </DashboardCardHeader>
+                      </Grid>
+                      <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
+                        <DashboardCardHeader title={t('dashboard.animal_transfer')}>
+                          <Box sx={{ p: 6 }}>
+                            <AnimalTransferProgress animalTransfer={animalTransfer} />
+                          </Box>
+                        </DashboardCardHeader>
+                      </Grid>
+                      <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
+                        <DashboardCardHeader title={t('dashboard.eggs')}>
+                          <EggChart eggAnalytics={eggAnalytics} height={332} />
+                        </DashboardCardHeader>
+                      </Grid>
+                      <Grid item size={{ xs: 12, md: 4.5, sm: 6 }}>
+                        <DashboardPharmacyDetails pharmacyData={pharmacyData} />
+                      </Grid>
+                      <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
+                        <DashboardCardHeader title={t('dashboard.pending_requests_pharmacy')} isSmall={true}>
+                          <PharmacyPendingReqChart pendingRequests={pendingRequests} />
+                        </DashboardCardHeader>
+                      </Grid>
+                      <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
+                        <DashboardCardHeader title={t('dashboard.notes')}>
+                          <DashboardNotes notesData={notes} />
+                        </DashboardCardHeader>
+                      </Grid>
+                      <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
+                        <DashboardCardHeader title={t('dashboard.lab_requests')}>
+                          <DashboardLabRequests labRequests={labRequests} />
+                        </DashboardCardHeader>
+                      </Grid>
+                    </Grid>
+                  </KeenSliderWrapper>
+                </ApexChartWrapper>
+              </Box>
+            </>
+          )}
+        </div>
       ) : (
-        <>
-          <DashboardStatsPanel stats={dashboardAnalyticsData} />
-          <Box sx={{ mt: 3 }}>
-            <ApexChartWrapper>
-              <KeenSliderWrapper>
-                <Grid container spacing={3} className='match-height'>
-                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title={t('dashboard.key_insights')}>
-                      <Box sx={{ p: 6 }}>
-                        <KeyInsights insights={keyInsightsData} />
-                      </Box>
-                    </DashboardCardHeader>
-                  </Grid>
-                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title={t('dashboard.animal_activity')}>
-                      <AnimalActivityChart animalActivityData={animalActivityData} />
-                    </DashboardCardHeader>
-                  </Grid>
-                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title={t('dashboard.animal_transfer')}>
-                      <Box sx={{ p: 6 }}>
-                        <AnimalTransferProgress animalTransfer={animalTransfer} />
-                      </Box>
-                    </DashboardCardHeader>
-                  </Grid>
-                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
-                    <DashboardCardHeader title={t('dashboard.eggs')}>
-                      <EggChart eggAnalytics={eggAnalytics} height={332} />
-                    </DashboardCardHeader>
-                  </Grid>
-                  <Grid item size={{ xs: 12, md: 4.5, sm: 6 }}>
-                    <DashboardPharmacyDetails pharmacyData={pharmacyData} />
-                  </Grid>
-                  <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
-                    <DashboardCardHeader title={t('dashboard.pending_requests_pharmacy')} isSmall={true}>
-                      <PharmacyPendingReqChart pendingRequests={pendingRequests} />
-                    </DashboardCardHeader>
-                  </Grid>
-                  <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
-                    <DashboardCardHeader title={t('dashboard.notes')}>
-                      <DashboardNotes notesData={notes} />
-                    </DashboardCardHeader>
-                  </Grid>
-                  <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
-                    <DashboardCardHeader title={t('dashboard.lab_requests')}>
-                      <DashboardLabRequests labRequests={labRequests} />
-                    </DashboardCardHeader>
-                  </Grid>
-                </Grid>
-              </KeenSliderWrapper>
-            </ApexChartWrapper>
-          </Box>
-        </>
+        <div style={{ textAlign: 'center' }}>
+          <Image
+            src={welcomeToAntz}
+            style={{ maxWidth: '600px', width: '100%', height: 'calc(100vh - 180px)', objectFit: 'contain' }}
+            alt='Welcome to Antz'
+          />
+        </div>
       )}
-    </div>
+    </>
   )
 }
 
