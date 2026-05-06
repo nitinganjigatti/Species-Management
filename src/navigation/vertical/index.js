@@ -35,6 +35,7 @@ const ComposeNavigation = () => {
 
   const egg_nursery = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const egg_view_insights = authData?.userData?.roles?.settings?.egg_view_insights
 
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
@@ -106,7 +107,7 @@ const ComposeNavigation = () => {
     // navigationArray.push(...masterNav)
   }
   if (egg_nursery || egg_collection) {
-    const eggNav = eggNavigation({ egg_nursery, egg_collection })
+    const eggNav = eggNavigation({ egg_nursery, egg_collection, egg_view_insights })
     navigationArray.push(...eggNav)
   }
 
@@ -154,8 +155,8 @@ const ComposeNavigation = () => {
   }
 
   // Component Library (Developer Tools)
-  const componentLibraryNav = componentLibraryNavigation()
-  navigationArray.push(...componentLibraryNav)
+  // const componentLibraryNav = componentLibraryNavigation()
+  // navigationArray.push(...componentLibraryNav)
 
   return navigationArray
 }

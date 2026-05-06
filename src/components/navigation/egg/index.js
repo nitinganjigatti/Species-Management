@@ -1,4 +1,4 @@
-const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
+const composeEggNavigation = ({ egg_nursery, egg_collection, egg_view_insights }) => {
   const title = {
     sectionTitle: 'Egg Module'
   }
@@ -45,17 +45,26 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
     eggNavigation.push(title)
   }
 
+  if (egg_nursery && !egg_collection && egg_view_insights) {
+    eggNavigation.push(dashboard)
+  }
+
   if (egg_nursery && !egg_collection) {
-    eggNavigation.push(dashboard, nursery, incubatorRoom, incubators)
+    eggNavigation.push(nursery, incubatorRoom, incubators)
+  }
+
+  if (egg_collection && egg_view_insights) {
+    eggNavigation.push(dashboard)
   }
 
   if (egg_collection) {
-    eggNavigation.push(dashboard, nursery, incubatorRoom, incubators, eggs)
+    eggNavigation.push(nursery, incubatorRoom, incubators, eggs)
   }
 
   return eggNavigation
 }
 
-const eggNavigation = ({ egg_nursery, egg_collection }) => composeEggNavigation({ egg_nursery, egg_collection })
+const eggNavigation = ({ egg_nursery, egg_collection, egg_view_insights }) =>
+  composeEggNavigation({ egg_nursery, egg_collection, egg_view_insights })
 
 export default eggNavigation
