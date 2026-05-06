@@ -105,8 +105,12 @@ const VerticalNavLink = ({
       })
     }
 
-    // Fall back to default behavior - exact match or handleURLQueries
-    return normalizedCurrentPath === normalizedItemPath || handleURLQueries(router, item.path)
+    // Fall back to default behavior - exact match, prefix match for nested/detail pages, or handleURLQueries
+    return (
+      normalizedCurrentPath === normalizedItemPath ||
+      normalizedCurrentPath.startsWith(normalizedItemPath + '/') ||
+      handleURLQueries(router, item.path)
+    )
   }
 
   return (
