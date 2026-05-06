@@ -72,7 +72,7 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
       case 'cluster':
         return { type: 'cluster_incharge', idField: 'site_id' }
       case 'animal':
-        return { type: 'animal', idField: 'site_id' }
+        return { type: 'animal', idField: 'animal_id' }
       default:
         return { type: 'site_incharge', idField: 'site_id' }
     }

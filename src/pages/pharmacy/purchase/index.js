@@ -377,7 +377,6 @@ const ListOfPurchase = () => {
         </>
       )
     },
-
     {
       minWidth: 80,
       headerName: 'Action',

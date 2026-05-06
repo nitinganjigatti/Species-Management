@@ -604,7 +604,7 @@ const ClustersPage: React.FC = () => {
           />
           <Box sx={{ mt: 6 }}>
             <Card sx={{ p: { xs: 3, md: 5 } }}>
-              <ListingHeader title={t('housing_module.all_clusters')} totalCount={total} />
+              <ListingHeader title={t('housing_module.all_clusters')} totalCount={insightsViewAccess ? total : 0} />
               <Box>
                 <Grid
                   sx={{

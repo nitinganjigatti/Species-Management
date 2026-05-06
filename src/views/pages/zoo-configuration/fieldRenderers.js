@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import toast from 'react-hot-toast'
 import moment from 'moment-timezone'
 import dayjs from 'dayjs'
@@ -9,6 +10,23 @@ import {
 import Icon from 'src/@core/components/icon'
 import MUITimePicker from 'src/views/forms/form-fields/MUITimePicker'
 import MultiUserDrawer from 'src/components/zoo-configuration/MultiUserDrawer'
+
+// Leaflet needs the browser — load lazily with SSR disabled
+const GeofenceMap = dynamic(() => import('src/components/zoo-configuration/GeofenceMap'), {
+  ssr: false,
+  loading: () => (
+    <Box
+      sx={{
+        height: 320, width: '100%', borderRadius: '8px',
+        bgcolor: 'customColors.Surface',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'text.secondary', fontSize: 13
+      }}
+    >
+      Loading map…
+    </Box>
+  )
+})
 
 // ── Shared constants ──────────────────────────────────────────────
 
@@ -155,6 +173,113 @@ const NumberField = ({ field, value, onChange }) => (
     }}
   />
 )
+
+const GeoCoordinatesField = ({ field, values, onValuesChange }) => {
+  const [resolving, setResolving] = useState(false)
+  const latKey = field.lat_key || 'zoo_latitude'
+  const lngKey = field.lng_key || 'zoo_longitude'
+  const radiusKey = field.radius_key || 'geofence_default_radius_m'
+  const latValue = values?.[latKey]
+  const lngValue = values?.[lngKey]
+  const radiusValue = Number(values?.[radiusKey]) || 0
+  const latNum = latValue === '' || latValue == null ? null : Number(latValue)
+  const lngNum = lngValue === '' || lngValue == null ? null : Number(lngValue)
+  const showMap = field.show_map !== false
+
+  const handleUseCurrentLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      toast.error('Geolocation is not supported by this browser')
+
+      return
+    }
+
+    setResolving(true)
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        const lat = Number(position.coords.latitude.toFixed(6))
+        const lng = Number(position.coords.longitude.toFixed(6))
+        onValuesChange(latKey, lat)
+        onValuesChange(lngKey, lng)
+        setResolving(false)
+        toast.success('Current location filled')
+      },
+      error => {
+        setResolving(false)
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error('Location permission denied. Please allow access in your browser.')
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          toast.error('Location information is unavailable')
+        } else if (error.code === error.TIMEOUT) {
+          toast.error('Location request timed out')
+        } else {
+          toast.error('Could not get current location')
+        }
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    )
+  }
+
+  return (
+    <Box>
+      <Typography variant='body2' sx={{ mb: 1.5, fontWeight: 500 }}>
+        {field.label || 'Coordinates'}
+      </Typography>
+      <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <TextField
+          type='number'
+          size='small'
+          label={field.lat_label || 'Latitude'}
+          value={latValue ?? ''}
+          onChange={e => onValuesChange(latKey, e.target.value === '' ? null : Number(e.target.value))}
+          inputProps={{ step: 'any', min: -90, max: 90 }}
+          sx={{ flex: '1 1 200px', minWidth: 180 }}
+        />
+        <TextField
+          type='number'
+          size='small'
+          label={field.lng_label || 'Longitude'}
+          value={lngValue ?? ''}
+          onChange={e => onValuesChange(lngKey, e.target.value === '' ? null : Number(e.target.value))}
+          inputProps={{ step: 'any', min: -180, max: 180 }}
+          sx={{ flex: '1 1 200px', minWidth: 180 }}
+        />
+        <Box
+          onClick={resolving ? undefined : handleUseCurrentLocation}
+          sx={{
+            display: 'inline-flex', alignItems: 'center', gap: 0.75,
+            border: '1px solid', borderColor: 'customColors.OutlineVariant',
+            borderRadius: '8px', px: 2.5, height: 40,
+            cursor: resolving ? 'wait' : 'pointer',
+            color: 'primary.main', fontSize: '13px', fontWeight: 500,
+            transition: 'all 0.15s', whiteSpace: 'nowrap',
+            opacity: resolving ? 0.6 : 1,
+            '&:hover': resolving ? {} : { borderColor: 'primary.main', bgcolor: 'customColors.Surface' }
+          }}
+        >
+          <Icon icon={resolving ? 'mdi:loading' : 'mdi:crosshairs-gps'} fontSize={16} />
+          {resolving ? 'Resolving…' : 'Use my current location'}
+        </Box>
+      </Box>
+      {showMap && (
+        <Box sx={{ mt: 3 }}>
+          <GeofenceMap
+            lat={latNum}
+            lng={lngNum}
+            radiusM={radiusValue}
+            onChange={(lat, lng) => {
+              onValuesChange(latKey, Number(lat.toFixed(6)))
+              onValuesChange(lngKey, Number(lng.toFixed(6)))
+            }}
+            onRadiusChange={field.radius_key ? newRadius => onValuesChange(field.radius_key, newRadius) : undefined}
+          />
+          <Typography variant='caption' sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+            Drag the pin to move the zoo center, or drag the small handle on the right edge of the circle to resize the radius. You can also type lat/lng or radius directly above and below.
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
 
 const TextFieldRenderer = ({ field, value, onChange }) => (
   <TextField
@@ -406,7 +531,8 @@ const FIELD_RENDERERS = {
   text: TextFieldRenderer,
   user_picker: UserPickerField,
   checkbox_group: CheckboxGroupField,
-  time_picker_list: TimePickerListField
+  time_picker_list: TimePickerListField,
+  geo_coordinates: GeoCoordinatesField
 }
 
 export const getFieldRenderer = type => FIELD_RENDERERS[type] || TextFieldRenderer

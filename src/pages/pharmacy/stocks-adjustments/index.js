@@ -93,6 +93,8 @@ const ListOfStockAdjusted = () => {
         setLoading(false)
       } catch (error) {
         console.log('error', error)
+        setTotal(0)
+        setRows([])
         setLoading(false)
         setTotal(0)
         setRows([])

@@ -2,6 +2,8 @@ import React, { useState } from 'react'
 import { Drawer, IconButton, Typography, TextField, Button, Box, Avatar } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import moment from 'moment'
+import { format } from 'date-fns'
+import Utility from 'src/utility'
 
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -104,7 +106,15 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
                     {CommentData?.notes_modified_by || CommentData?.notes_added_by}
                   </Typography>
                   <Typography sx={{ fontSize: '12px', color: '#6F7F75' }}>
-                    {formatDateTime(CommentData.notes_modified_at || CommentData.notes_added_at)}
+                    {format(
+                      new Date(
+                        Utility.convertUTCToLocal(
+                          CommentData.notes_modified_at ? CommentData.notes_modified_at : CommentData.notes_added_at
+                        )
+                      ),
+                      'dd MMM yyyy hh:mm a'
+                    )}
+                    {/* {(CommentData.notes_modified_at || CommentData.notes_added_at)} */}
                     {/* {CommentData.notes_modified_at && ' (edited)'} */}
                   </Typography>
                 </Box>

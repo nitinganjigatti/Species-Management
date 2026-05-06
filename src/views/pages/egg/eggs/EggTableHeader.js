@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { useRouter } from 'next/router'
 import { CircularProgress, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
@@ -11,6 +11,7 @@ import Utility from 'src/utility'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
 import { useTranslation } from 'react-i18next'
+import { AuthContext } from 'src/context/AuthContext'
 
 const EggTableHeader = ({
   totalCount,
@@ -33,6 +34,8 @@ const EggTableHeader = ({
   const router = useRouter()
   const { search_value, subTab_value = 'eggs_discarded', tab_Value = 'eggs_incubation' } = router.query
   const { t } = useTranslation()
+  const authData = useContext(AuthContext)
+  const eggViewInsights = authData?.userData?.roles?.settings?.egg_view_insights
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const [selectedDate, setSelectedDate] = useState(null)
@@ -301,23 +304,25 @@ const EggTableHeader = ({
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 4, py: 4 }}>
         <Box>
-          <Typography sx={{ fontSize: '14px', fontWeight: 300 }}>
-            {' '}
-            {tab_Value === 'eggs_received'
-              ? t('egg_module.total_eggs_in_received')
-              : tab_Value === 'eggs_hatched'
-              ? t('egg_module.total_eggs_in_hatched')
-              : tab_Value === 'eggs_incubation'
-              ? t('egg_module.total_eggs_in_incubation')
-              : tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
-              ? t('egg_module.total_eggs_to_be_discarded')
-              : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded'
-              ? t('egg_module.total_batch_discarded')
-              : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery'
-              ? t('egg_module.total_eggs_discarded')
-              : t('egg_module.total_eggs')}{' '}
-            : <span style={{ fontWeight: 500, color: theme.palette.primary.deepDark }}>{totalCount}</span>
-          </Typography>
+          {eggViewInsights && (
+            <Typography sx={{ fontSize: '14px', fontWeight: 300 }}>
+              {' '}
+              {tab_Value === 'eggs_received'
+                ? t('egg_module.total_eggs_in_received')
+                : tab_Value === 'eggs_hatched'
+                ? t('egg_module.total_eggs_in_hatched')
+                : tab_Value === 'eggs_incubation'
+                ? t('egg_module.total_eggs_in_incubation')
+                : tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
+                ? t('egg_module.total_eggs_to_be_discarded')
+                : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded'
+                ? t('egg_module.total_batch_discarded')
+                : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery'
+                ? t('egg_module.total_eggs_discarded')
+                : t('egg_module.total_eggs')}{' '}
+              : <span style={{ fontWeight: 500, color: theme.palette.primary.deepDark }}>{totalCount}</span>
+            </Typography>
+          )}
         </Box>
         <Box sx={{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: 4 }}>
           <Box

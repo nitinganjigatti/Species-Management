@@ -1,7 +1,9 @@
 # Zoo Configuration Module
 
 ## Overview
-The Zoo Configuration module allows zoo administrators to manage zoo-level settings including timezone, currency preferences, and email report distribution recipients. Changes are saved automatically on user action — no manual save button required.
+The Zoo Configuration module allows zoo administrators to manage zoo-level settings including timezone, currency preferences, email report distribution recipients, and the geofencing feature that gates web and mobile sign-ins to physical presence at the facility.
+
+For the canonical, up-to-date reference see [Zoo Settings](./zoo-settings.md). The fields below describe the schema-driven sections that page renders.
 
 ## Module Location
 - **Page**: `src/pages/zoo-configuration/`
@@ -14,6 +16,19 @@ The Zoo Configuration module allows zoo administrators to manage zoo-level setti
 - **Currency** — Searchable dropdown with ~300 ISO 4217 currencies (e.g. `INR — Indian Rupee`)
 - Both fields use MUI `Autocomplete` with type-to-search and max-height scroll
 - Auto-saves on change with a toast confirmation
+
+### Geofencing
+Restrict app access to users physically at the zoo. Independent Save button.
+
+| Field | Visible when | Purpose |
+|---|---|---|
+| Enable Geofencing | always | Master toggle |
+| Scope | enabled = 1 | `zoo_geofence` (single circle around the zoo center) or `per_site` (mapped sites) |
+| Zoo Center Coordinates | enabled + scope = `zoo_geofence` | Lat / Lng pair, "Use my current location" button, Leaflet circle picker |
+| Default Radius (meters) | enabled = 1 | Inherited by sites in `per_site` mode unless overridden |
+| Max GPS Accuracy (meters) | enabled = 1 | Reject fixes worse than this |
+
+The map supports drag-the-marker to move center, drag-the-east-edge-handle to resize radius, click-empty-map to set initial center, and auto-fit on data change. See the [Geofencing module doc](../geofencing/README.md) for the runtime side (verify, heartbeat, lock banner).
 
 ### Report Distribution
 Configure **To** and **CC** email recipients for 4 scheduled reports:

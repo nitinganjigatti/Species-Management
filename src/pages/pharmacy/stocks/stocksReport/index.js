@@ -372,7 +372,7 @@ const ListOfStocks = () => {
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -405,7 +405,7 @@ const ListOfStocks = () => {
       field: 'stock_item_id',
       headerName: 'Average Price(₹)',
       type: 'number',
-      align: 'right',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {/* {Number.isInteger(params.row.total_cost / params.row.stock_qty)
@@ -542,20 +542,23 @@ const ListOfStocks = () => {
       type: 'text',
       align: 'center',
       headerName: 'BATCH NUMBER',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
         </Typography>
       )
     },
-
     {
       minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_type === 'non_medical' ? 'NA' : Utility.formatDisplayDate(params.row.expiry_date)}
+          {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date' || params.row.expiry_date == null
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.expiry_date)}
         </Typography>
       )
     },
@@ -942,7 +945,10 @@ const ListOfStocks = () => {
                                 const val = e.target.value
                                 setCategoryFilter(val)
                               }}
-                              options={[{ id: 'all', label: 'All', value: 'all' }, ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))]}
+                              options={[
+                                { id: 'all', label: 'All', value: 'all' },
+                                ...productCategoryOptions.map(opt => ({ ...opt, id: opt.value }))
+                              ]}
                             />
                           </Grid>
                           {selectedPharmacy.type === 'central' && (

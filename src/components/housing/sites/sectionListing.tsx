@@ -529,7 +529,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
     <>
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
-          <ListingHeader title={t('housing_module.all_sections')} totalCount={total} />
+          <ListingHeader title={t('housing_module.all_sections')} totalCount={insightsViewAccess ? total : 0} />
           <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}

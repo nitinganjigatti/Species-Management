@@ -40,11 +40,11 @@ docs/
 
 ## Component Library
 
-| Guide | Description |
-|-------|-------------|
-| [README](./component-library/README.md) | Overview, architecture, routes, categories, theming, component coverage |
-| [Adding Components](./component-library/adding-components.md) | Step-by-step guide with checklist for registering new components |
-| [Design Decisions](./component-library/design-decisions.md) | Key decisions (App Router, real rendering, no Storybook, etc.) |
+| Guide                                                         | Description                                                             |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [README](./component-library/README.md)                       | Overview, architecture, routes, categories, theming, component coverage |
+| [Adding Components](./component-library/adding-components.md) | Step-by-step guide with checklist for registering new components        |
+| [Design Decisions](./component-library/design-decisions.md)   | Key decisions (App Router, real rendering, no Storybook, etc.)          |
 
 ## Migration Guides
 
@@ -58,6 +58,8 @@ docs/
 | ------------------------------------------ | ---------------------------------------------------- |
 | [Hospital](./modules/hospital/README.md)   | Patient management, clinical records, media handling |
 | [Necropsy](./modules/necropsy/necropsy.md) | Post-mortem records, carcass management, Redux state |
+| [Zoo Configuration](./modules/zoo-configuration/zoo-settings.md) | Timezone, currency, report distribution, geofencing settings |
+| [Geofencing](./modules/geofencing/README.md) | Sign-in / session gating by physical presence at the zoo |
 
 # Antz Web Dashboard — Documentation
 
@@ -67,7 +69,8 @@ docs/
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Hospital**          | Patient management, medical records, media uploads           | [README](modules/hospital/README.md), [Patient Media Tab](modules/hospital/patient-media-tab.md)                                                                                                                                                                                           |
 | **Necropsy**          | Necropsy reports, carcass transfers, species views           | [Overview](modules/necropsy/necropsy.md), [Report Form](modules/necropsy/necropsy-report-form.md), [Carcass Transfer](modules/necropsy/carcass-transfer-listing.md), [Medical History](modules/necropsy/medical-history-tabs.md), [Species View](modules/necropsy/species-view-feature.md) |
-| **Zoo Configuration** | Zoo-level settings — timezone, currency, report distribution | [Zoo Settings](modules/zoo-configuration/zoo-settings.md)                                                                                                                                                                                                                                  |
+| **Zoo Configuration** | Zoo-level settings — timezone, currency, report distribution, geofencing | [Zoo Settings](modules/zoo-configuration/zoo-settings.md)                                                                                                                                                                                                                                  |
+| **Geofencing**        | Sign-in / session gating by physical presence at the zoo (verify + heartbeat) | [Geofencing](modules/geofencing/README.md)                                                                                                                                                                                                                                                |
 | **QR Download**       | QR code generation and download                              | [README](modules/qr_download/README.md)                                                                                                                                                                                                                                                    |
 
 ## Helpers
@@ -84,7 +87,8 @@ docs/
 | --------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **Hospital**          | Patient management, medical records, media uploads           | [README](modules/hospital/README.md), [Patient Media Tab](modules/hospital/patient-media-tab.md)                                                                                                                                                                                           |
 | **Necropsy**          | Necropsy reports, carcass transfers, species views           | [Overview](modules/necropsy/necropsy.md), [Report Form](modules/necropsy/necropsy-report-form.md), [Carcass Transfer](modules/necropsy/carcass-transfer-listing.md), [Medical History](modules/necropsy/medical-history-tabs.md), [Species View](modules/necropsy/species-view-feature.md) |
-| **Zoo Configuration** | Zoo-level settings — timezone, currency, report distribution | [Zoo Settings](modules/zoo-configuration/zoo-settings.md)                                                                                                                                                                                                                                  |
+| **Zoo Configuration** | Zoo-level settings — timezone, currency, report distribution, geofencing | [Zoo Settings](modules/zoo-configuration/zoo-settings.md)                                                                                                                                                                                                                                  |
+| **Geofencing**        | Sign-in / session gating by physical presence at the zoo (verify + heartbeat) | [Geofencing](modules/geofencing/README.md)                                                                                                                                                                                                                                                |
 | **QR Download**       | QR code generation and download                              | [README](modules/qr_download/README.md)                                                                                                                                                                                                                                                    |
 
 ## Helpers

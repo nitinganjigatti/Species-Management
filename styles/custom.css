@@ -1,11 +1,9 @@
 .tablerowi .cellmodule {
   padding-left: 0 !important;
 }
-
 .w_280 {
   width: 280px;
 }
-
 .text_overflow_moduled {
   width: 100%;
   float: left;
@@ -13,14 +11,12 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
 .w_155 {
   width: 155px;
 }
-
 .element {
-  border: 2px solid;
-  border-color: #446f5470;
+  border: 3px solid;
+  border-color: #446f54;
   border-image-slice: 1;
   border-radius: 15px;
 }

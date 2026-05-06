@@ -4,6 +4,18 @@ import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
 import { getFieldRenderer } from './fieldRenderers'
 
+const isFieldVisible = (field, values) => {
+  const cond = field.visible_when
+  if (!cond || typeof cond !== 'object') return true
+
+  return Object.entries(cond).every(([key, expected]) => {
+    const actual = values[key]
+    if (Array.isArray(expected)) return expected.includes(actual)
+
+    return actual === expected
+  })
+}
+
 const ZooSettingsDynamicSection = ({ section, values, onChange, onSave }) => {
   const [saving, setSaving] = useState(false)
 
@@ -58,14 +70,21 @@ const ZooSettingsDynamicSection = ({ section, values, onChange, onSave }) => {
       <CardContent sx={{ px: 6, py: 5 }}>
         <Grid container spacing={5}>
           {(section.fields || []).map(field => {
+            if (!isFieldVisible(field, values)) return null
             const Renderer = getFieldRenderer(field.type)
+            const isFullWidth =
+              field.type === 'user_picker' ||
+              field.type === 'radio' ||
+              field.type === 'geo_coordinates'
 
             return (
-              <Grid key={field.key} size={{ xs: 12, sm: field.type === 'user_picker' || field.type === 'radio' ? 12 : 6 }}>
+              <Grid key={field.key} size={{ xs: 12, sm: isFullWidth ? 12 : 6 }}>
                 <Renderer
                   field={field}
                   value={values[field.key] ?? field.default ?? null}
+                  values={values}
                   onChange={val => onChange(field.key, val)}
+                  onValuesChange={onChange}
                 />
               </Grid>
             )

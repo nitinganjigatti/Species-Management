@@ -1033,7 +1033,6 @@ const StepBasicDetails = ({
                 ingredientList: ingredient.ingredientList.filter(ing => ing?.ingredient_id !== ingredientIdToRemove)
               }
             }
-
             return ingredient
           })
           .filter(ingredient => ingredient.ingredientList.length > 0)
