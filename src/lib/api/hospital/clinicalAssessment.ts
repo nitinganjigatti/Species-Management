@@ -24,10 +24,13 @@ import type {
   ClinicalAssessmentListResponse,
   DiagnosisListResponse
 } from 'src/types/hospital'
+import { CheckAnimalStatusByTypePayload, CheckAnimalStatusByTypeResponse, CreateUpdateTemplatePayload, CreateUpdateTemplateResponse, DeleteNotesPayload, DeleteNotesResponse, GetSymptomClinicalTabPayload, GetSymptomClinicalTabResponse, GetTemplatePayload, GetTemplateResponse, UpdateNotesPayload, UpdateNotesResponse } from 'src/types/hospital/api/Inpatient/symptomClinical';
+import { CheckAnimalStatusByType } from 'src/types/hospital/models';
+import { GetClinicalAssessmentCardParams, GetClinicalAssessmentCardResponse,  GetClinicalAssessmentListParams,  GetClinicalAssessmentListResponse,  GetClinicalAssmntRecordParams, GetClinicalAssmntRecordResponse, UpdateClinicalAssmntParams, UpdateClinicalAssmntResponse } from 'src/types/hospital/api/Inpatient/clinicalAsmnt';
 
 export async function getClinicalAssessments(
-  params: ClinicalAssessmentListParams & { animal_id: string | number }
-): Promise<ClinicalAssessmentListResponse> {
+  params: GetClinicalAssessmentCardParams & { animal_id: string | number }
+): Promise<GetClinicalAssessmentCardResponse> {
   try {
     const url = `${GET_CLINICAL_ASSESSMENTS}${params.animal_id}/get-medical-common-data-v2`
     const response = await axiosGet({ url, params })
@@ -41,7 +44,7 @@ export async function getClinicalAssessments(
   }
 }
 
-export async function getDiagnosisList(params: Record<string, unknown>): Promise<DiagnosisListResponse> {
+export async function getDiagnosisList(params: GetSymptomClinicalTabPayload): Promise<GetSymptomClinicalTabResponse> {
   try {
     const url = GET_CLINICAL_DIAGNOSIS_LIST
     const response = await axiosGet({ url, params })
@@ -55,7 +58,7 @@ export async function getDiagnosisList(params: Record<string, unknown>): Promise
   }
 }
 
-export async function getDiagnosysType(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getDiagnosysType(params: GetClinicalAssessmentListParams): Promise<GetClinicalAssessmentListResponse> {
   try {
     const url = GET_CLINICAL_DIAGNOSIS_TYPE
     const response = await axiosGet({ url, params })
@@ -85,8 +88,8 @@ export async function addClinicalAssessment(
 }
 
 export async function updateClinicalAssessment(
-  payLoad: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: UpdateClinicalAssmntParams
+): Promise<UpdateClinicalAssmntResponse> {
   try {
     const response = await axiosPost({ url: `${UPDATE_NOTES}`, body: payLoad })
 
@@ -100,8 +103,8 @@ export async function updateClinicalAssessment(
 }
 
 export async function checkAnimalStatusByType(
-  payLoad: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payLoad: CheckAnimalStatusByTypePayload
+): Promise<CheckAnimalStatusByTypeResponse> {
   try {
     const response = await axiosPost({ url: `${GET_ANIMAL_STATUS_BY_TYPE}`, body: payLoad })
 
@@ -114,7 +117,7 @@ export async function checkAnimalStatusByType(
   }
 }
 
-export async function getNotes(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getNotes(params: GetClinicalAssmntRecordParams): Promise<GetClinicalAssmntRecordResponse>{
   try {
     const url = GET_NOTES
 
@@ -129,7 +132,7 @@ export async function getNotes(params: Record<string, unknown>): Promise<ApiResp
   }
 }
 
-export async function updateNotes(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function updateNotes(params: UpdateNotesPayload): Promise<UpdateNotesResponse> {
   try {
     const url = UPDATE_NOTES
 
@@ -146,8 +149,8 @@ export async function updateNotes(params: Record<string, unknown>): Promise<ApiR
 
 export const deleteNote = async (
   noteId: string | number,
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: DeleteNotesPayload
+): Promise<DeleteNotesResponse> => {
   try {
     const response = await axiosGet({ url: `${DELETE_NOTE_CLINICAL_ASSESSMENT}/${noteId}`, params })
 
@@ -160,7 +163,7 @@ export const deleteNote = async (
   }
 }
 
-export async function getMedicalTemplates(params: Record<string, unknown>): Promise<ApiResponse<unknown>> {
+export async function getMedicalTemplates(params: GetTemplatePayload): Promise<GetTemplateResponse> {
   try {
     const response = await axiosGet({ url: GET_MEDICAL_TEMPLATE, params })
 
@@ -174,8 +177,8 @@ export async function getMedicalTemplates(params: Record<string, unknown>): Prom
 }
 
 export async function createMedicalTemplate(
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payload: CreateUpdateTemplatePayload
+): Promise<CreateUpdateTemplateResponse> {
   try {
     const response = await axiosPost({ url: CREATE_MEDICAL_TEMPLATE, body: payload })
 
@@ -190,8 +193,8 @@ export async function createMedicalTemplate(
 
 export async function updateMedicalTemplate(
   id: string | number,
-  payload: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  payload: CreateUpdateTemplatePayload
+): Promise<CreateUpdateTemplateResponse> {
   try {
     const response = await axiosPost({ url: `${UPDATE_MEDICAL_TEMPLATE}/${id}`, body: payload })
 

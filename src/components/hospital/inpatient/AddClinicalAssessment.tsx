@@ -25,9 +25,24 @@ import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
+import { CheckAnimalStatusByTypePayload, CheckAnimalStatusByTypeResponse, GetSymptomClinicalTabPayload, GetSymptomClinicalTabResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
+import { GetClinicalAssessmentListParams, GetClinicalAssessmentListResponse } from 'src/types/hospital/api/Inpatient/clinicalAsmnt'
+import { Id } from 'src/types/hospital'
+import type { CheckAnimalStatusByType, ClinicalAssessmentList as ClinicalAssessmentListItem, GetSymptomClinicalTabList, SymptomsListForAdding } from 'src/types/hospital/models'
 
 const PAGE_SIZE = 10
 const STORAGE_KEY = 'medical_record_data'
+
+export interface ClinicalAssessmentFormData {
+  clinicalAsmnt?: string
+  prognosisVal?: string
+  chronicVal?: string
+  notes?: string
+  status?: string
+  recordedDateTime?: string
+}
+
+export interface ClinicalAssessmentSelection extends SymptomsListForAdding, ClinicalAssessmentFormData {}
 
 interface AddClinicalAssessmentProps {
   from?: string
@@ -41,8 +56,8 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
   const dispatch = useDispatch()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
-  const [selectedSymptoms, setSelectedSymptoms] = useState<any[]>([])
-  const [temporarilySelected, setTemporarilySelected] = useState<any>(null)
+  const [selectedSymptoms, setSelectedSymptoms] = useState<SymptomsListForAdding[]>([])
+  const [temporarilySelected, setTemporarilySelected] = useState<SymptomsListForAdding | null>(null)
   const [clinicalDrawerOpen, setClinicalDrawerOpen] = useState<boolean>(false)
   const [addDiagnosisDrawerOpen, setAddDiagnosisDrawerOpen] = useState<boolean>(false)
   const [clinicalAsmnt, setClinicalAsmnt] = useState<string>('')
@@ -64,22 +79,22 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
   const medicalRecordId = medicalRecordData?.medical_record_id
 
   // API states
-  const [allAssessments, setAllAssessments] = useState<any[]>([])
-  const [tabOptions, setTabOptions] = useState<any[]>([])
+  const [allAssessments, setAllAssessments] = useState<ClinicalAssessmentListItem[]>([])
+  const [tabOptions, setTabOptions] = useState<GetSymptomClinicalTabList[]>([])
   const [currentTab, setCurrentTab] = useState<string>('')
-  const [currentTabId, setCurrentTabId] = useState<string>('')
+  const [currentTabId, setCurrentTabId] = useState<Id>('')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [hasMore, setHasMore] = useState<boolean>(false)
   const [page, setPage] = useState<number>(1)
-  const [pickerItems, setPickerItems] = useState<any[]>([])
+  const [pickerItems, setPickerItems] = useState<SymptomsListForAdding[]>([])
   const [pickerIsLoading, setPickerIsLoading] = useState<boolean>(false)
   const [pickerHasMore, setPickerHasMore] = useState<boolean>(false)
   const [pickerPage, setPickerPage] = useState<number>(1)
   const [totalCount, setTotalCount] = useState<number>(0)
   const [isSubmitLoading, setIsSubmitLoading] = useState<boolean>(false)
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState<boolean>(false)
-  const [duplicateAssessments, setDuplicateAssessments] = useState<any[]>([])
-  const [alreadySelectedIds, setAlreadySelectedIds] = useState<any[]>([])
+  const [duplicateAssessments, setDuplicateAssessments] = useState<CheckAnimalStatusByType[]>([])
+  const [alreadySelectedIds, setAlreadySelectedIds] = useState<Id[]>([])
   const [templateRefreshToken, setTemplateRefreshToken] = useState<number>(0)
 
   // Refs for intersection observer
@@ -114,13 +129,13 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     try {
       setIsTabsLoading(true)
 
-      const params = {
+      const params: GetSymptomClinicalTabPayload = {
         include_all: 1,
         type: 'diagnosis',
         request_from: 'web_hospital',
         medical_record_id: medicalRecordId || ''
       }
-      const res: any = await getDiagnosisList(params)
+      const res: GetSymptomClinicalTabResponse = await getDiagnosisList(params)
       if (res?.success) {
         const categories = res.data?.result || []
         setTabOptions(categories)
@@ -141,7 +156,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
   const [isInitialLoading, setIsInitialLoading] = useState<boolean>(false)
 
   // Fetch diagnosis list
-  const fetchDiagnosisItems = useCallback(async (pageNum: number = 1, search: string = '', categoryId: string = '') => {
+  const fetchDiagnosisItems = useCallback(async (pageNum: number = 1, search: string = '', categoryId: Id = '') => {
     // Only show full shimmer on initial load (page 1)
     if (pageNum === 1) {
       setIsInitialLoading(true)
@@ -150,7 +165,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     }
 
     try {
-      const params = {
+      const params: GetClinicalAssessmentListParams = {
         page_no: pageNum,
         limit: PAGE_SIZE,
         q: search,
@@ -159,7 +174,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
         animal_id: animalId
       }
 
-      const res: any = await getDiagnosysType(params)
+      const res: GetClinicalAssessmentListResponse = await getDiagnosysType(params)
 
       if (res.success) {
         const newItems = res.data?.result || []
@@ -167,7 +182,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
 
         setTotalCount(total)
 
-        setAllAssessments((prev: any[]) => {
+        setAllAssessments((prev: ClinicalAssessmentListItem[]) => {
           const updatedList = pageNum === 1 ? newItems : [...prev, ...newItems]
           const canLoadMore = updatedList.length < total
           setHasMore(canLoadMore)
@@ -194,11 +209,11 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     }
   }, [])
 
-  const fetchPickerDiagnosisItems = useCallback(async (pageNum: number = 1, search: string = '', categoryId: string = '') => {
+  const fetchPickerDiagnosisItems = useCallback(async (pageNum: number = 1, search: string = '', categoryId: Id = '') => {
     setPickerIsLoading(true)
 
     try {
-      const params = {
+      const params: GetClinicalAssessmentListParams = {
         page_no: pageNum,
         limit: PAGE_SIZE,
         q: search,
@@ -207,15 +222,18 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
         animal_id: animalId
       }
 
-      const res: any = await getDiagnosysType(params)
+      const res: GetClinicalAssessmentListResponse = await getDiagnosysType(params)
 
       if (res.success) {
-        const newItems = res.data?.result || []
+        const newItems: SymptomsListForAdding[] = res.data?.result || []
         const total = res.data?.totalRecords || 0
 
-        setPickerItems((prev: any[]) => {
+        setPickerItems((prev: SymptomsListForAdding[]) => {
           const merged = pageNum === 1 ? newItems : [...prev, ...newItems]
-          const unique = merged.filter((item: any, index: number, arr: any[]) => arr.findIndex((candidate: any) => candidate.id === item.id) === index)
+          const unique = merged.filter(
+            (item: SymptomsListForAdding, index: number, arr: SymptomsListForAdding[]) =>
+              arr.findIndex((candidate: SymptomsListForAdding) => candidate.id === item.id) === index
+          )
           setPickerHasMore(unique.length < total)
 
           return unique
@@ -309,15 +327,15 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     setHasMore(false)
   }
 
-  const handleSymptomSelect = (symptom: any) => {
+  const handleSymptomSelect = (symptom: SymptomsListForAdding) => {
     setTemporarilySelected(symptom)
     setClinicalDrawerOpen(true)
   }
 
-  const addSymptomDetails = (details: any) => {
-    if (temporarilySelected?.id && selectedSymptoms.some((s: any) => s.id === temporarilySelected.id)) {
-      setSelectedSymptoms((prev: any[]) =>
-        prev.map((symptom: any) =>
+  const addSymptomDetails = (details: ClinicalAssessmentSelection) => {
+    if (temporarilySelected?.id && selectedSymptoms.some((s: SymptomsListForAdding) => s.id === temporarilySelected.id)) {
+      setSelectedSymptoms((prev: SymptomsListForAdding[]) =>
+        prev.map((symptom: SymptomsListForAdding) =>
           symptom.id === temporarilySelected.id
             ? {
                 ...symptom,
@@ -326,11 +344,11 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
                 prognosisVal: details.clinicalAsmnt === 'Tentative' ? '' : details.prognosisVal,
                 recordedDateTime: details.recordedDateTime
               }
-            : {...symptom, recordedDateTime: details.recordedDateTime}
+            : { ...symptom, recordedDateTime: details.recordedDateTime }
         )
       )
     } else {
-      setSelectedSymptoms((prev: any[]) => [...prev, { ...temporarilySelected, ...details }])
+      setSelectedSymptoms((prev: SymptomsListForAdding[]) => [...prev, { ...temporarilySelected, ...details }])
     }
 
     setTemporarilySelected(null)
@@ -354,12 +372,12 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     setStatus('')
   }
 
-  const removeSymptom = (symptom: any) => {
-    setSelectedSymptoms((prev: any[]) => prev.filter((s: any) => s.id !== symptom?.id))
+  const removeSymptom = (symptom: SymptomsListForAdding) => {
+    setSelectedSymptoms((prev: SymptomsListForAdding[]) => prev.filter((s: SymptomsListForAdding) => s.id !== symptom?.id))
   }
 
   const availableSymptoms = allAssessments?.filter(
-    (symptom: any) => !selectedSymptoms.some((s: any) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+    (symptom: ClinicalAssessmentListItem) => !selectedSymptoms.some((s: SymptomsListForAdding) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
   )
 
   const handleTemplatePickerSearchChange = (value: string) => {
@@ -377,7 +395,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
 
   const checkDuplicateAssessments = async () => {
     try {
-      const payload = {
+      const payload: CheckAnimalStatusByTypePayload = {
         type: 'diagnosis',
         animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
         master_ids: JSON.stringify(selectedSymptoms.map((s: any) => s.id))
@@ -398,7 +416,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
 
   const handleAddAssessment = async () => {
     setIsSubmitLoading(true)
-    const submittableSymptoms = selectedSymptoms.filter((symptom: any) => !alreadySelectedIds.includes(symptom?.id))
+    const submittableSymptoms = selectedSymptoms.filter((symptom: SymptomsListForAdding) => !alreadySelectedIds.includes(symptom?.id ?? ''))
 
     if (selectedSymptoms.length === 0) {
       Toaster({ type: 'error', message: t('hospital_module.select_at_least_one_assessment') })
@@ -414,13 +432,13 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
       return
     }
 
-    const duplicatesData: any = await checkAnimalStatusByType({
+    const duplicatesData: CheckAnimalStatusByTypeResponse = await checkAnimalStatusByType({
       type: 'diagnosis',
       animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
-      master_ids: JSON.stringify(submittableSymptoms.map((s: any) => s.id))
+      master_ids: JSON.stringify(submittableSymptoms.map((s: SymptomsListForAdding) => s.id))
     })
 
-    if (duplicatesData?.success && duplicatesData?.data?.length > 0) {
+    if (duplicatesData?.success && (duplicatesData?.data?.length ?? 0) > 0) {
       setDuplicatesErrorModelOpen(true)
       setDuplicateAssessments(duplicatesData?.data || [])
       setIsSubmitLoading(false)
@@ -428,12 +446,12 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
       return
     }
 
-    const diagnosis = submittableSymptoms.map((symptom: any) => ({
+    const diagnosis = submittableSymptoms.map((symptom: ClinicalAssessmentSelection) => ({
       id: symptom?.id,
       name: symptom?.name,
       additional_info: {
         status: symptom?.status?.toLowerCase() || 'active',
-        clinical_assessment: symptom.clinicalAsmnt.toLowerCase(),
+        clinical_assessment: symptom.clinicalAsmnt?.toLowerCase() || '',
         note: symptom?.notes || '',
         isChronic: symptom?.chronicVal === 'Yes',
         prognosis: symptom?.prognosisVal?.toLowerCase() || '',
@@ -455,7 +473,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     }
 
     try {
-      const response: any = await addClinicalAssessment(payload)
+      const response = await addClinicalAssessment(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.assessment_created_successfully') })
@@ -463,9 +481,9 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
       } else {
         Toaster({ type: 'error', message: response?.message || t('hospital_module.something_went_wrong') })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || t('hospital_module.an_unexpected_error_occurred') })
+      Toaster({ type: 'error', message: (error as Error)?.message || t('hospital_module.an_unexpected_error_occurred') })
     } finally {
       setIsSubmitLoading(false)
     }
@@ -521,7 +539,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     }
   }
 
-  const handleAssessmentEdit = (symptom: any) => {
+  const handleAssessmentEdit = (symptom: ClinicalAssessmentSelection) => {
     setClinicalAsmnt(symptom?.clinicalAsmnt || '')
     setPrognosisValue(symptom?.prognosisVal || '')
     setChronicVal(symptom?.chronicVal || 'No')
@@ -536,7 +554,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
     setAddDiagnosisDrawerOpen(true)
   }
 
-  const handleDiagnosisAdded = async (assessment: any) => {
+  const handleDiagnosisAdded = async (assessment: SymptomsListForAdding) => {
     handleSymptomSelect(assessment)
 
     // Refetch categories and diagnosis items
@@ -632,7 +650,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
               availableItems={pickerItems}
               onApplyTemplate={setSelectedSymptoms}
               templateLabel={(t('hospital_module.clinical_assessment_template') as string)}
-              mapTemplateItem={(item: any) => ({
+              mapTemplateItem={(item: SymptomsListForAdding) => ({
                 id: item?.id,
                 name: item?.name,
                 clinicalAsmnt: 'Tentative',
@@ -700,7 +718,7 @@ function AddClinicalAssessment({from = 'Inpatient'}: AddClinicalAssessmentProps)
       <ConfirmationDialog
         dialogBoxStatus={isDuplicatesErrorModelOpen}
         title={`${t('hospital_module.clinical_assessment')}${duplicateAssessments?.length > 1 ? 's' : ''} ${t('hospital_module.already_exists')}`}
-        description={`${t('hospital_module.duplicate_clinical_assessment')}: ${duplicateAssessments?.map((item: any) => item?.diagnosis)?.join(', ')}`}
+        description={`${t('hospital_module.duplicate_clinical_assessment')}: ${duplicateAssessments?.map((item: CheckAnimalStatusByType) => item?.diagnosis)?.join(', ')}`}
         additionalDescription={t('hospital_module.choose_different_assessment')}
         confirmBtnStyle={{ background: theme.palette.customColors.primary, py: 3 }}
         image={'/images/warning-icon.svg'}

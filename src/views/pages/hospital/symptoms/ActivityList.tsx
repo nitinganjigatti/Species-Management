@@ -7,13 +7,38 @@ import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import ActivityListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ActivityListShimmer'
 import Utility from 'src/utility'
+import { ComplaintNotes, DiagnosisNotes, DurationUnit, Id, NotesDump, Prognosis, Severity, SymptomStatus } from 'src/types/hospital/models'
+import { UpdateNotesPayload } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 interface ActivityListProps {
-  activities?: any[]
-  onEdit?: (activity: any) => void
+  activities?: ActivityFormData[]
+  onEdit?: (activity: ActivityFormData) => void
   activityLoader?: boolean
   isFromAssessment?: boolean
 }
+export interface ActivityFormData {
+  isSystemGenerated?: boolean
+  createdBy?: Id
+  formattedTime: string
+  oldSeverity?: Severity
+  newSeverity?: Severity
+  oldRecord?: string
+  newRecord?: string
+  oldPrognosis?: Prognosis
+  newPrognosis?: Prognosis
+  oldIsChronical?: number
+  newIsChronical?: number
+  note: string
+  status?: SymptomStatus
+  duration?: string | number
+  duration_unit?: DurationUnit
+  created_at?: string
+  notes_dump?: NotesDump
+  created_by_user_name?: string
+  is_system_generated?: number
+  note_id?: Id
+}
+
 
 const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessment = false }: ActivityListProps) => {
   const { t } = useTranslation()
@@ -37,7 +62,7 @@ const ActivityList = ({ activities = [], onEdit, activityLoader, isFromAssessmen
       ) : (
         <>
           <Typography sx={{ fontWeight: 600, mb: 2 }}>{t('hospital_module.activity_label')}</Typography>
-          {activities.map((activity: any, i: number) => {
+          {activities.map((activity: ActivityFormData, i: number) => {
             return (
               <Paper
                 key={i}

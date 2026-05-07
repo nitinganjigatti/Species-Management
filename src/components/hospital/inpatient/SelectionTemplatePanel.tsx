@@ -22,10 +22,13 @@ import {
   getMedicalTemplates,
   updateMedicalTemplate
 } from 'src/lib/api/hospital/clinicalAssessment'
+import { CreateUpdateTemplateResponse, GetTemplateResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
+import type { ComplaintsDiagnosisTemplates, Id, SymptomsListForAdding, Template, TemplateItems, TransformedTemplateItems } from 'src/types/hospital/models'
+import { Symptom } from 'src/types/hospital/models'
 
 interface SaveMedicalTemplateSectionProps {
   templateType: string
-  selectedItems?: any[]
+  selectedItems?: Symptom[]
   templateLabel?: string
   itemLabel?: string
   refreshToken?: number
@@ -45,14 +48,14 @@ export function SaveMedicalTemplateSection({
   const [showSaveTemplate, setShowSaveTemplate] = useState<boolean>(false)
   const [templateName, setTemplateName] = useState<string>('')
   const [isSaving, setIsSaving] = useState<boolean>(false)
-  const [templates, setTemplates] = useState<any[]>([])
+  const [templates, setTemplates] = useState<ComplaintsDiagnosisTemplates[]>([])
   const canSaveTemplate = selectedItems.length > 1
   const responseKey = templateType === 'complaints' ? 'complaintsTemplates' : 'diagnosisTemplates'
   const apiTemplateType = templateType === 'complaints' ? 'complaint' : 'diagnosis'
   const selectedItemIdsKey = useMemo(
     () =>
       selectedItems
-        .map((item: any) => Number(item?.id))
+        .map((item: Symptom) => Number(item?.id))
         .filter((id: number) => !Number.isNaN(id))
         .sort((a: number, b: number) => a - b)
         .join(','),
@@ -60,18 +63,18 @@ export function SaveMedicalTemplateSection({
   )
   const mappedTemplates = useMemo(
     () =>
-      templates.map((item: any) => ({
+      templates.map((item: ComplaintsDiagnosisTemplates) => ({
         id: item?.id,
-        name: item?.template_name ?? item?.name,
+        name: item?.template_name,
         template_items: Array.isArray(item?.template_items) ? item.template_items : []
       })),
     [templates]
   )
   const activeTemplateId = useMemo(() => {
     return (
-      mappedTemplates.find((template: any) => {
+      mappedTemplates.find((template) => {
         const templateIdsKey = template.template_items
-          .map((item: any) => Number(item?.id))
+          .map((item: TemplateItems) => Number(item?.id))
           .filter((id: number) => !Number.isNaN(id))
           .sort((a: number, b: number) => a - b)
           .join(',')
@@ -84,9 +87,11 @@ export function SaveMedicalTemplateSection({
 
   const loadTemplates = useCallback(async () => {
     try {
-      const response: any = await getMedicalTemplates({ type: 'all' })
-      const list = Array.isArray(response?.data?.[responseKey]) ? response.data[responseKey] : []
-      setTemplates(list)
+      const response: GetTemplateResponse = await getMedicalTemplates({ type: 'all' })
+      if (response?.success) {
+        const list = Array.isArray(response.data?.[responseKey]) ? response.data[responseKey] : []
+        setTemplates(list as ComplaintsDiagnosisTemplates[])
+      }
     } catch (error) {
       console.error(`Error loading ${templateType} templates:`, error)
       Toaster({ type: 'error', message: t('hospital_module.failed_to_load_templates') })
@@ -106,7 +111,7 @@ export function SaveMedicalTemplateSection({
       return
     }
 
-    const duplicateName = mappedTemplates.some((item: any) => item?.name?.toLowerCase() === trimmedName.toLowerCase())
+    const duplicateName = mappedTemplates.some((item) => item?.name?.toLowerCase() === trimmedName.toLowerCase())
     if (duplicateName) {
       Toaster({ type: 'error', message: t('hospital_module.template_name_already_exists') })
 
@@ -115,10 +120,10 @@ export function SaveMedicalTemplateSection({
 
     setIsSaving(true)
     try {
-      const response: any = await createMedicalTemplate({
+      const response: CreateUpdateTemplateResponse = await createMedicalTemplate({
         template_name: trimmedName,
         type: apiTemplateType,
-        template_items: selectedItems.map((item: any) => Number(item.id))
+        template_items: selectedItems.map((item: Symptom) => Number(item.id))
       })
 
       if (response?.success) {
@@ -219,8 +224,8 @@ export function SaveMedicalTemplateSection({
 
 interface SelectionTemplatePanelProps {
   templateType: string
-  selectedItems?: any[]
-  availableItems?: any[]
+  selectedItems?: Symptom[]
+  availableItems?: SymptomsListForAdding[]
   onApplyTemplate: (items: any[]) => void
   templateLabel?: string
   mapTemplateItem: (item: any) => any
@@ -250,13 +255,13 @@ function SelectionTemplatePanel({
 }: SelectionTemplatePanelProps) {
   const theme: any = useTheme()
   const { t } = useTranslation()
-  const [editingTemplate, setEditingTemplate] = useState<any>(null)
+  const [editingTemplate, setEditingTemplate] = useState<ComplaintsDiagnosisTemplates | null>(null)
   const [editingName, setEditingName] = useState<string>('')
-  const [editingItems, setEditingItems] = useState<any[]>([])
+  const [editingItems, setEditingItems] = useState<TemplateItems[]>([])
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
   const [templatesDrawerOpen, setTemplatesDrawerOpen] = useState<boolean>(false)
-  const [templates, setTemplates] = useState<any[]>([])
+  const [templates, setTemplates] = useState<ComplaintsDiagnosisTemplates[]>([])
   const [showSelectionPicker, setShowSelectionPicker] = useState<boolean>(false)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<boolean>(false)
 
@@ -265,7 +270,7 @@ function SelectionTemplatePanel({
   const selectedItemIdsKey = useMemo(
     () =>
       selectedItems
-        .map((item: any) => Number(item?.id))
+        .map((item: Symptom) => Number(item?.id))
         .filter((id: number) => !Number.isNaN(id))
         .sort((a: number, b: number) => a - b)
         .join(','),
@@ -274,9 +279,9 @@ function SelectionTemplatePanel({
 
   const mappedTemplates = useMemo(
     () =>
-      templates.map((item: any) => ({
+      templates.map((item: ComplaintsDiagnosisTemplates) => ({
         id: item?.id,
-        name: item?.template_name ?? item?.name,
+        name: item?.template_name,
         template_items: Array.isArray(item?.template_items) ? item.template_items : []
       })),
     [templates]
@@ -284,9 +289,9 @@ function SelectionTemplatePanel({
 
   const activeTemplateId = useMemo(() => {
     return (
-      mappedTemplates.find((template: any) => {
+      mappedTemplates.find((template) => {
         const templateIdsKey = template.template_items
-          .map((item: any) => Number(item?.id))
+          .map((item: TemplateItems) => Number(item?.id))
           .filter((id: number) => !Number.isNaN(id))
           .sort((a: number, b: number) => a - b)
           .join(',')
@@ -298,32 +303,34 @@ function SelectionTemplatePanel({
   const orderedTemplates = useMemo(() => {
     if (!activeTemplateId) return mappedTemplates
 
-    const activeTemplate = mappedTemplates.find((item: any) => item.id === activeTemplateId)
+    const activeTemplate = mappedTemplates.find((item) => item.id === activeTemplateId)
 
     if (!activeTemplate) return mappedTemplates
 
-    return [activeTemplate, ...mappedTemplates.filter((item: any) => item.id !== activeTemplateId)]
+    return [activeTemplate, ...mappedTemplates.filter((item) => item.id !== activeTemplateId)]
   }, [activeTemplateId, mappedTemplates])
   const inlineTemplates = orderedTemplates.slice(0, 3)
   const showTemplatesInDrawer = orderedTemplates.length > 3
-  const editingItemIds = useMemo(() => new Set(editingItems.map((item: any) => Number(item?.id))), [editingItems])
+  const editingItemIds = useMemo(() => new Set(editingItems.map((item) => Number(item?.id))), [editingItems])
   const pickerOptions = useMemo(() => {
     const templateSourceItems = Array.isArray(availableItems) ? availableItems : []
 
     return templateSourceItems
-      .map((item: any) => ({
+      .map((item: SymptomsListForAdding) => ({
         raw: item,
         id: Number(item?.id),
         name: item?.name || ''
       }))
-      .filter((item: any) => !Number.isNaN(item.id))
+      .filter((item) => !Number.isNaN(item.id))
   }, [availableItems])
 
   const loadTemplates = useCallback(async () => {
     try {
-      const response: any = await getMedicalTemplates({ type: 'all' })
-      const list = Array.isArray(response?.data?.[responseKey]) ? response.data[responseKey] : []
-      setTemplates(list)
+      const response: GetTemplateResponse = await getMedicalTemplates({ type: 'all' })
+      if (response?.success) {
+        const list = Array.isArray(response.data?.[responseKey]) ? response.data[responseKey] : []
+        setTemplates(list as ComplaintsDiagnosisTemplates[])
+      }
     } catch (error) {
       console.error(`Error loading ${templateType} templates:`, error)
       Toaster({ type: 'error', message: t('hospital_module.failed_to_load_templates') })
@@ -334,7 +341,7 @@ function SelectionTemplatePanel({
     loadTemplates()
   }, [loadTemplates, refreshToken])
 
-  const handleApplyTemplate = (template: any) => {
+  const handleApplyTemplate = (template: TransformedTemplateItems) => {
     const templateItems = Array.isArray(template?.template_items) ? template.template_items : []
 
     if (templateItems.length === 0) {
@@ -343,13 +350,13 @@ function SelectionTemplatePanel({
       return
     }
 
-    const mappedItems = templateItems.map((item: any) => mapTemplateItem(item)).filter(Boolean)
+    const mappedItems = templateItems.map((item: TemplateItems) => mapTemplateItem(item)).filter(Boolean)
     onApplyTemplate(mappedItems)
     Toaster({ type: 'success', message: t('hospital_module.template_applied_successfully') })
   }
 
-  const openEditDialog = (template: any) => {
-    setEditingTemplate(template)
+  const openEditDialog = (template: { id?: Id; name?: string; template_items?: TemplateItems[] }) => {
+    setEditingTemplate(template as unknown as ComplaintsDiagnosisTemplates)
     setEditingName(template?.name || '')
     setEditingItems(Array.isArray(template?.template_items) ? template.template_items : [])
     setShowSelectionPicker(false)
@@ -364,8 +371,8 @@ function SelectionTemplatePanel({
     setDeleteConfirmOpen(false)
   }
 
-  const handleRemoveEditingItem = (itemId: any) => {
-    setEditingItems((prev: any[]) => prev.filter((item: any) => item?.id !== itemId))
+  const handleRemoveEditingItem = (itemId: Id) => {
+    setEditingItems((prev) => prev.filter((item) => item?.id !== itemId))
   }
 
   const handleAddCurrentSelection = () => {
@@ -394,7 +401,7 @@ function SelectionTemplatePanel({
     }
 
     const duplicateName = mappedTemplates.some(
-      (item: any) => item?.id !== editingTemplate.id && item?.name?.toLowerCase() === trimmedName.toLowerCase()
+      (item) => item?.id !== editingTemplate.id && item?.name?.toLowerCase() === trimmedName.toLowerCase()
     )
     if (duplicateName) {
       Toaster({ type: 'error', message: t('hospital_module.template_name_already_exists') })
@@ -404,10 +411,10 @@ function SelectionTemplatePanel({
 
     setIsUpdating(true)
     try {
-      const response: any = await updateMedicalTemplate(editingTemplate.id, {
+      const response: CreateUpdateTemplateResponse = await updateMedicalTemplate(editingTemplate.id, {
         template_name: trimmedName,
         type: apiTemplateType,
-        template_items: editingItems.map((item: any) => Number(item?.id))
+        template_items: editingItems.map((item: TemplateItems) => Number(item?.id))
       })
 
       if (response?.success) {
@@ -431,7 +438,7 @@ function SelectionTemplatePanel({
 
     setIsDeleting(true)
     try {
-      const response: any = await deleteMedicalTemplate(editingTemplate.id)
+      const response = await deleteMedicalTemplate(editingTemplate.id)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Template deleted successfully' })
@@ -474,7 +481,7 @@ function SelectionTemplatePanel({
             ) : null}
           </Box>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-            {inlineTemplates.map((item: any) => (
+            {inlineTemplates.map((item) => (
               <Box
                 key={item.id}
                 sx={{
@@ -605,7 +612,7 @@ function SelectionTemplatePanel({
             </Box>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {editingItems.map((item: any) => (
+              {editingItems.map((item) => (
                 <Chip
                   key={item?.id}
                   label={item?.name}
@@ -713,12 +720,13 @@ function SelectionTemplatePanel({
                         onClick={() => {
                           if (isAlreadyInTemplate) return
 
-                          const candidate = selectedItems.concat(availableItems).find((item: any) => Number(item?.id) === option.id)
+                          const candidate = selectedItems.concat(availableItems).find((item: Symptom) => Number(item?.id) === option.id)
+                          if (!candidate) return
                           const mappedItem = mapTemplateItem(candidate)
 
                           if (!mappedItem) return
 
-                          setEditingItems((prev: any[]) => [...prev, mappedItem])
+                          setEditingItems((prev) => [...prev, mappedItem])
                         }}
                         sx={{
                           px: 3,
@@ -870,7 +878,7 @@ function SelectionTemplatePanel({
               gap: 3
             }}
           >
-            {orderedTemplates.map((item: any) => (
+            {orderedTemplates.map((item) => (
               <Box
                 key={item.id}
                 sx={{

@@ -2,23 +2,25 @@
 
 import React, { useEffect, useState } from 'react'
 import { Box, Typography, Select, MenuItem, TextField, IconButton, Drawer, FormControlLabel } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import Utility from 'src/utility'
 import type { BaseDrawerProps } from 'src/types/hospital'
+import type { SymptomsListForAdding, SymptomStatus } from 'src/types/hospital/models'
+import type { ClinicalAssessmentFormData } from '../inpatient/AddClinicalAssessment'
 
 dayjs.extend(utc)
 
 interface AddClinicalAsmntDrawerProps extends BaseDrawerProps {
-  selectedSymptom?: any
-  onSave: (payload: any) => void
+  selectedSymptom?: SymptomsListForAdding | null
+  onSave: (payload: ClinicalAssessmentFormData) => void
   clinicalAsmnt: string
   setClinicalAsmnt: (value: string) => void
   setPrognosisValue: (value: string) => void
@@ -27,10 +29,10 @@ interface AddClinicalAsmntDrawerProps extends BaseDrawerProps {
   chronicVal: string
   notes: string
   setNotes: (value: string) => void
-  status?: any
-  setStatus?: (value: any) => void
-  admittedDate?: any
-  dischargedDate?: any
+  status?: SymptomStatus
+  setStatus?: (value: SymptomStatus) => void
+  admittedDate?: string | null
+  dischargedDate?: string | null
   isDischarged?: boolean
 }
 
@@ -54,7 +56,7 @@ const AddClinicalAsmntDrawer = ({
   isDischarged
 }: AddClinicalAsmntDrawerProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme<Theme>()
   const { getSeverityColor } = useHospitalColorUtils()
   const activities = [1, 2, 3]
   const [recordedDateTime, setRecordedDateTime] = useState<any>(dayjs())
@@ -158,7 +160,7 @@ const AddClinicalAsmntDrawer = ({
             <Box sx={{ mb: 6 }}>
               <MUIDateTimePicker
                 value={recordedDateTime}
-                onChange={(newValue: any) => setRecordedDateTime(newValue)}
+                onChange={(newValue: Dayjs | null) => newValue && setRecordedDateTime(newValue)}
                 label=''
                 minDateTime={minDate}
                 maxDateTime={maxDate}

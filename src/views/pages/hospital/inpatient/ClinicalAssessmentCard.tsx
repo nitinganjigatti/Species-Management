@@ -8,10 +8,12 @@ import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { MedicalIdChip } from '../utility/hospitalSnippets'
 import Utility from 'src/utility'
 import { useTranslation } from 'react-i18next'
+import { ClinicalAssessmentCardList } from 'src/types/hospital/models'
 
 interface ClinicalAssessmentCardProps {
-  record: any
+  record: ClinicalAssessmentCardList
   isDifferential?: boolean
+  isResolved?: boolean
   handleClick?: () => void
   isDischared?: boolean
   patientData?: any
@@ -26,37 +28,14 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
     return type === 'diagnosis' ? t('hospital_module.diagnosis') : t('hospital_module.tentative')
   }
 
-  const mappedRecord: any = {
-    id: record.id,
-    title: record.name,
-    medical_record_code: record?.medical_record_code,
-    type: getTypeLabel(record.clinical_assessment),
-    status: record.additional_info?.status || 'active',
-    severity: record.additional_info?.severity || '',
-    category: record.category,
-    activity: record.comment_count - 1 > 0 ? `+${record.comment_count - 1}` : null,
-    clinicalAssessment: getTypeLabel(record.clinical_assessment),
-
-    oldRecord: record?.latest_note?.notes_dump?.old_data?.clinical_assessment,
-    newRecord: record?.latest_note?.notes_dump?.new_data?.clinical_assessment,
-    chronic: record.latest_note?.notes_dump?.new_data?.is_cronical ? (record.latest_note?.notes_dump?.new_data?.is_cronical ? t('yes') : t('no')) : null,
-    prognosis: Utility.capitalizeFirstLetter(record?.prognosis),
-    notes:
-      record.additional_info?.latest_note || record.additional_info?.start_note || record.additional_info?.stop_note,
-    description: record.latest_note?.note || record.additional_info?.latest_note,
-    lastUpdated: record.latest_note?.modified_at || record.latest_note?.created_at || record.created_at,
-    resolvedBy: {
-      name:
-        record.additional_info?.status === 'active'
-          ? record.created_by_user_name
-          : record.additional_info?.resolved_user_name,
-      avatar:
-        record.additional_info?.status === 'active'
-          ? record?.created_user_profile_pic
-          : record.additional_info?.resolved_user_profile_pic || record.created_by_user_name,
-      date: record?.comment_count > 1 ? record?.latest_note?.modified_at || record.additional_info?.closed_at : record?.additional_info?.recorded_date_time
-    }
-  }
+  const activity = Number(record.comment_count) - 1 > 0 ? `+${Number(record.comment_count) - 1}` : null
+  const oldRecord = record?.latest_note?.notes_dump?.old_data?.clinical_assessment
+  const newRecord = record?.latest_note?.notes_dump?.new_data?.clinical_assessment
+  const chronic = record.latest_note?.notes_dump?.new_data?.is_cronical ? (record.latest_note?.notes_dump?.new_data?.is_cronical ? t('yes') : t('no')) : null
+  const prognosis = Utility.capitalizeFirstLetter(record?.prognosis)
+  const notes = record.additional_info?.latest_note || record.additional_info?.start_note || record.additional_info?.stop_note
+  const description = record.latest_note?.note || record.additional_info?.latest_note
+  const lastUpdated = record.latest_note?.modified_at || record.latest_note?.created_at || record.created_at
 
   // Determine if resolved based on API data
   const resolved = record.additional_info?.status === 'closed' || record.additional_info?.closed_at !== null
@@ -72,7 +51,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
         padding: { xs: '16px', sm: '20px', md: '24px' },
         backgroundColor: resolved
           ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
-          : (!isDifferential && getSeverityColor(mappedRecord.prognosis).bgColor) || undefined,
+          : (!isDifferential && getSeverityColor(prognosis).bgColor) || undefined,
         cursor: isDischared ? 'not-allowed' : 'pointer'
       }}
     >
@@ -106,17 +85,17 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
               fontWeight: 500
             }}
           >
-            {mappedRecord.title}
+            {record.name}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
             <Chip
-              label={mappedRecord.type}
+              label={getTypeLabel(record.clinical_assessment)}
               size='small'
               sx={{
                 color: theme.palette.customColors.OnPrimaryContainer,
                 backgroundColor: resolved
                   ? theme.palette.customColors.mdAntzNeutral
-                  : getTypeChipColor(mappedRecord.type),
+                  : getTypeChipColor(getTypeLabel(record.clinical_assessment)),
                 border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                 borderRadius: '4px',
                 fontSize: { xs: '0.875rem', sm: '1rem' },
@@ -124,7 +103,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
               }}
             />
 
-            {mappedRecord?.prognosis && !isDifferential && (
+            {prognosis && !isDifferential && (
               <Box
                 component='span'
                 sx={{
@@ -134,7 +113,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   fontWeight: 500,
                   color: resolved
                     ? theme.palette.customColors.neutralSecondary
-                    : getSeverityColor(mappedRecord?.prognosis).color,
+                    : getSeverityColor(prognosis).color,
                   '&:before': {
                     content: { xs: '""', sm: '"•"' },
                     marginRight: { xs: 0, sm: '4px' },
@@ -142,7 +121,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   }
                 }}
               >
-                {mappedRecord.prognosis || ''}
+                {prognosis || ''}
               </Box>
             )}
           </Box>
@@ -150,40 +129,40 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
 
         {/* Middle Content */}
         <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
-          {mappedRecord.activity && (
+          {activity && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
                 {t('hospital_module.activity')}:
               </Typography>
               <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-                {mappedRecord.activity}
+                {activity}
               </Typography>
             </Box>
           )}
 
-          {record?.latest_note?.is_system_generated == 1 && (mappedRecord?.oldRecord || mappedRecord?.newRecord) && (
+          {record?.latest_note?.is_system_generated == 1 && (oldRecord || newRecord) && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 {t('hospital_module.clinical_assessment')} :{' '}
               </Typography>
-              {mappedRecord?.oldRecord && (
+              {oldRecord && (
                 <Typography
                   sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary, fontWeight: 600 }}
                 >
-                  {Utility.capitalizeFirstLetter(mappedRecord?.oldRecord)}
+                  {Utility.capitalizeFirstLetter(oldRecord)}
                 </Typography>
               )}
-              {mappedRecord?.newRecord && (
+              {newRecord && (
                 <Typography
                   sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient, fontWeight: 600 }}
                 >
-                  {mappedRecord?.oldRecord && '→'} {Utility.capitalizeFirstLetter(mappedRecord.newRecord)}
+                  {oldRecord && '→'} {Utility.capitalizeFirstLetter(newRecord)}
                 </Typography>
               )}
             </Box>
           )}
 
-          {record?.latest_note?.is_system_generated == true && mappedRecord.chronic && !isDifferential && (
+          {record?.latest_note?.is_system_generated == true && chronic && !isDifferential && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 {t('hospital_module.is_it_chronic')} :{' '}
@@ -191,16 +170,16 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
               <Typography
                 sx={{
                   fontSize: '0.875rem',
-                  color: mappedRecord.chronic === 'Yes' ? theme.palette.warning.main : theme.palette.success.main,
+                  color: chronic === 'Yes' ? theme.palette.warning.main : theme.palette.success.main,
                   fontWeight: 600
                 }}
               >
-                {mappedRecord.chronic}
+                {chronic}
               </Typography>
             </Box>
           )}
 
-          {record.latest_note?.is_system_generated == true && mappedRecord.prognosis && !isDifferential && (
+          {record.latest_note?.is_system_generated == true && prognosis && !isDifferential && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVarient }}>
                 {t('hospital_module.prognosis')} :{' '}
@@ -209,21 +188,21 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                 sx={{
                   fontSize: '0.875rem',
                   color: getPrognosisColor
-                    ? getSeverityColor(mappedRecord.prognosis).color
+                    ? getSeverityColor(prognosis).color
                     : theme.palette.customColors.OnSurfaceVarient,
                   fontWeight: 600
                 }}
               >
-                {mappedRecord.prognosis.charAt(0).toUpperCase() + mappedRecord.prognosis.slice(1)}
+                {prognosis.charAt(0).toUpperCase() + prognosis.slice(1)}
               </Typography>
             </Box>
           )}
 
-          {record.latest_note?.is_system_generated == true && mappedRecord.notes && (
+          {record.latest_note?.is_system_generated == true && notes && (
             <Tooltip
               title={
                 <Box sx={{ whiteSpace: 'pre-wrap' }}>
-                  {mappedRecord.notes}
+                  {notes}
                 </Box>
               }
               arrow
@@ -243,16 +222,16 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   whiteSpace: 'pre-wrap'
                 }}
               >
-                {t('hospital_module.notes_label')} : {mappedRecord.notes}
+                {t('hospital_module.notes_label')} : {notes}
               </Typography>
             </Tooltip>
           )}
 
-          {record.latest_note?.is_system_generated == false && mappedRecord.description && (
+          {record.latest_note?.is_system_generated == false && description && (
             <Tooltip
               title={
                 <Box sx={{ whiteSpace: 'pre-wrap' }}>
-                  {mappedRecord.description}
+                  {description}
                 </Box>
               }
               arrow
@@ -272,15 +251,15 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   whiteSpace: 'pre-wrap'
                 }}
               >
-                {mappedRecord.description}
+                {description}
               </Typography>
             </Tooltip>
           )}
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
             {t('hospital_module.last_updated')}:{' '}
-            {record?.comment_count > 1 ? `${Utility.convertUtcToLocalReadableDate(mappedRecord.lastUpdated)} • ${Utility.convertUTCToLocaltime(
-              mappedRecord.lastUpdated
+            {Number(record?.comment_count) > 1 ? `${Utility.convertUtcToLocalReadableDate(lastUpdated)} • ${Utility.convertUTCToLocaltime(
+              lastUpdated
             )}` : `${Utility.convertUtcToLocalReadableDate(record?.additional_info?.recorded_date_time)} • ${Utility.convertUTCToLocaltime(
               record?.additional_info?.recorded_date_time
             )}`}
@@ -324,7 +303,7 @@ const ClinicalAssessmentCard = ({ record, isDifferential = false, handleClick, i
                   : record.created_by_user_name
                 : record.additional_info?.resolved_user_name
             }
-            date={record?.comment_count > 1 ? record?.latest_note?.modified_at || record.additional_info?.closed_at : record?.additional_info?.recorded_date_time}
+            date={Number(record?.comment_count) > 1 ? record?.latest_note?.modified_at || record.additional_info?.closed_at : record?.additional_info?.recorded_date_time}
             show_time
             compact={true}
           />

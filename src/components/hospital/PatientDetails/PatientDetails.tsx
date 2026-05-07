@@ -25,6 +25,9 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { write } from 'src/lib/windows/utils'
 import { AuthContext } from 'src/context/AuthContext'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { PatientDetailFilters } from 'src/types/hospital/api/Inpatient/inpatient'
+import { TotalVisitsResponse } from 'src/types/hospital/api/Inpatient/visitHistory'
+import type { PatientDetailsResponse } from 'src/types/hospital/api'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -72,6 +75,12 @@ interface PatientDetailsProps {
   params?: any
 }
 
+export type TabItem = {
+  label: string
+  value: string
+  component: React.ComponentType
+}
+
 const PatientDetails = ({ category, params }: PatientDetailsProps) => {
   const router: any = useSafeRouter()
   const theme: any = useTheme()
@@ -93,19 +102,19 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
-  const [anchorEl, setAnchorEl] = useState<any>(null)
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [permissionStatus, setPermissionStatus] = useState<string>('checking')
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false)
 
   const openMenu = Boolean(anchorEl)
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<PatientDetailFilters>({
     page: 1,
     limit: 10
   })
 
   useEffect(() => {
-    const { page = '1', limit = '10' } = router.query as any
+    const { page = '1', limit = '10' } = router.query as PatientDetailFilters
 
     setFilters({
       page: parseInt(page as string),
@@ -125,7 +134,7 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
     enabled: !!id // only run when id exists and has hospital permission
   })
 
-  const patientResponse: any = patientResponseRaw
+  const patientResponse = patientResponseRaw as PatientDetailsResponse | undefined
 
   // Initialize medical record data when patient details are loaded
   useEffect(() => {
@@ -214,7 +223,7 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
     router.back()
   }
 
-  const handleMenuOpen = (event: any) => {
+  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
   }
 
@@ -224,13 +233,13 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
 
   const resolvedAnimalId = patientResponse?.data?.animal_detail?.animal_id
 
-  const { data: hospitalVisit, isFetching: patientVisitFetching } = useQuery({
+  const { data: hospitalVisit, isFetching: patientVisitFetching } = useQuery<TotalVisitsResponse>({
     queryKey: ['animal-total-hospital-visit', resolvedAnimalId, selectedHospital?.id, id, filters],
     queryFn: () =>
       getAnimalTotalHospitalVisits({
         page_no: filters.page,
         limit: filters.limit,
-        animal_id: resolvedAnimalId,
+        animal_id: resolvedAnimalId ?? '',
         hospital_id: selectedHospital?.id,
         hospital_case_id: id
       }),
@@ -239,7 +248,6 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
     staleTime: 0,
     cacheTime: 0,
     refetchOnMount: true,
-    refetchOnWindowFocus: true
   } as any)
 
   const totalVisitCount = (hospitalVisit as any)?.data?.total_records || 0
@@ -252,32 +260,31 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
     </Box>
   )
 
-  const tabConfig = useMemo(
+  const tabConfig = useMemo<TabItem[]>(
     () => [
-      { label: 'Overview', value: 'overview', component: InpatientOverview },
-      { label: 'Symptoms', value: 'symptoms', component: Symptoms },
-      { label: 'Clinical Assessment', value: 'clinicalAssessment', component: ClinicalAssessment },
-      { label: 'Prescription', value: 'prescriptionMonitoring', component: PrescriptionLayout },
-      { label: 'Clinical Notes', value: 'clinicalNotes', component: ClinicalNotes },
-      { label: 'Other Treatments', value: 'otherTreatments', component: OtherTreatments },
-      { label: 'Monitoring', value: 'treatmentMonitoring', component: TreatmentLayout },
-      { label: 'Medical Summary', value: 'medicalSummary', component: InpatientMedicalSummary },
-      { label: 'Anesthesia', value: 'anesthesia', component: Anesthesia },
-      { label: 'Surgery', value: 'surgery', component: InpatientSurgery },
-      { label: 'Media', value: 'media', component: PatientMedia },
-      { label: 'Discharge', value: 'discharge', component: InpatientDischarge }
+      { label: t('hospital_module.overview'), value: 'overview', component: InpatientOverview },
+      { label: t('hospital_module.symptoms'), value: 'symptoms', component: Symptoms },
+      { label: t('hospital_module.clinical_assessment'), value: 'clinicalAssessment', component: ClinicalAssessment },
+      { label: t('hospital_module.prescription'), value: 'prescriptionMonitoring', component: PrescriptionLayout },
+      { label: t('hospital_module.clinical_notes'), value: 'clinicalNotes', component: ClinicalNotes },
+      { label: t('hospital_module.other_treatments'), value: 'otherTreatments', component: OtherTreatments },
+      { label: t('hospital_module.monitoring'), value: 'treatmentMonitoring', component: TreatmentLayout },
+      { label: t('hospital_module.medical_summary'), value: 'medicalSummary', component: InpatientMedicalSummary },
+      { label: t('hospital_module.anesthesia'), value: 'anesthesia', component: Anesthesia },
+      { label: t('hospital_module.surgery'), value: 'surgery', component: InpatientSurgery },
+      { label: t('hospital_module.media'), value: 'media', component: PatientMedia },
+      { label: t('hospital_module.discharge'), value: 'discharge', component: InpatientDischarge }
     ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [t]
   )
 
-  const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
+  const [selectedTab, setSelectedTab] = useState<string>(tabConfig[0].value)
 
   // Effect to handle URL tab parameter - set initial tab from URL
   useEffect(() => {
     if (urlTab) {
       // Find if the URL tab exists in our tabConfig
-      const matchingTab: any = tabConfig.find((tab: any) => tab.value === urlTab)
+      const matchingTab = tabConfig.find((tab: TabItem) => tab.value === urlTab)
       if (matchingTab) {
         setSelectedTab(matchingTab.value)
       } else {
@@ -293,8 +300,8 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
   const drawerState = useDrawerState()
 
   // Memoize handlers to prevent child re-renders
-  const handleTabChange = useCallback(
-    (event: any, newValue: any) => {
+  const handleTabChange: (event: React.SyntheticEvent, value: string) => void =
+  useCallback((_, newValue)  => {
       setSelectedTab(newValue)
 
       const { discharge_tab, ...query } = router.query
@@ -448,7 +455,7 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
   )
 
   const handleBack = useCallback(() => {
-    router.back()
+    // router.back()
     // if (typeof window !== 'undefined' && window.history.length > 1) {
     //   console.log('window.history.length', window.history.length)
     //   router.back()
@@ -460,6 +467,21 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
     //     router.replace('/hospital/outpatient')
     //   }
     // }
+    if (category === 'Inpatient') {
+      router.push('/hospital/inpatient')
+    }
+    else if (category === 'Outpatients') {
+      router.push('/hospital/outpatient')
+    }
+    else if (category === 'Discharged') {
+      router.push('/hospital/discharged')
+    }
+    else if (category === 'Mortality') {
+      router.push('/hospital/mortality')
+    }
+    else if (category === 'Follow Up'){
+      router.push('/hospital/followup')
+    }
   }, [router])
 
   // Memoize selected component to avoid recalculation
@@ -477,19 +499,19 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
     () => (
       <DynamicBreadcrumbs
             pageItems={[{
-              title: 'Hospital'
+              title: t('hospital_module.hospital')
             },
             {
-              title: 'Patients'
+              title: t('hospital_module.patients')
             },
             {
               title: category, onClick: handleBack
             },
             {
-              title: 'Details'
+              title: t('hospital_module.details') 
             }]}/>
     ),
-    [handleBack, category]
+    [handleBack, category, t]
   )
 
   const tabElements = useMemo(
@@ -587,7 +609,7 @@ const PatientDetails = ({ category, params }: PatientDetailsProps) => {
                       </IconButton>
                     </Box>
                   )}
-                  {tabConfig.map((tab: any) => (
+                  {tabConfig.map((tab) => (
                     <MenuItem
                       key={tab.value}
                       onClick={() => handleMenuTabChange(tab.value)}

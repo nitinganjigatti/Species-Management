@@ -572,6 +572,7 @@
     "add_enclosure": "Add Enclosures",
     "holding_enclosure": "Holding Enclosure",
     "select_holding_enclosure": "Select Holding Enclosure",
+    "select_holding_enclosure_required": "Select Holding Enclosure*",
     "no_available_enclosures": "No active/available enclosures available for this Room",
     "admission_datetime_cannot_be_before": "Admission date and time cannot be before",
     "admission_datetime_cannot_be_in_future": "Admission date and time cannot be in the future",

@@ -16,7 +16,7 @@ import {
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
-import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
+import ActivityList, { ActivityFormData } from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 // import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
@@ -185,7 +185,7 @@ const EditClinicalAsmntDrawer = ({
 
     []
 
-  const handleEditActivity = (item: any) => {
+  const handleEditActivity = (item: ActivityFormData) => {
     setIsNotesOpen(true)
     handleEditNoteClick(item)
   }

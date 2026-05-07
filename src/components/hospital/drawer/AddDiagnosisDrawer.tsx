@@ -21,6 +21,7 @@ import AddCategoryDrawer from './AddCategoryDrawer'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
 import type { BaseDrawerProps } from 'src/types/hospital'
+import { GetSymptomClinicalTabPayload } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 interface AddDiagnosisDrawerProps extends BaseDrawerProps {
   onSuccess?: (payload: any) => void
@@ -77,7 +78,7 @@ const AddDiagnosisDrawer = (props: AddDiagnosisDrawerProps) => {
     try {
       setCategoryLoading(true)
 
-      const params = {
+      const params: GetSymptomClinicalTabPayload = {
         include_all: 1,
         type: 'diagnosis',
         request_from: 'web_hospital',

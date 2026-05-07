@@ -9,7 +9,6 @@ import MUISwitch from 'src/views/forms/form-fields/MUISwitch'
 import { useTheme } from '@mui/material/styles'
 import { useParams, useSearchParams } from 'next/navigation'
 import useSafeRouter from 'src/hooks/useSafeRouter'
-import ClinicalAssessmentCard from '../../../views/pages/hospital/inpatient/ClinicalAssessmentCard'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import debounce from 'lodash/debounce'
 import {
@@ -28,6 +27,13 @@ import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import ClinicalAssessmentCard from 'src/views/pages/hospital/inpatient/ClinicalAssessmentCard'
+import { ActivityFormData } from 'src/views/pages/hospital/symptoms/ActivityList'
+import { StatusKey } from './Symptoms'
+import { GetClinicalAssessmentCardResponse, GetClinicalAssmntRecordParams, GetClinicalAssmntRecordResponse, UpdateClinicalAssmntParams, UpdateClinicalAssmntResponse } from 'src/types/hospital/api/Inpatient/clinicalAsmnt'
+import { ClinicalAssessmentCardList, SymptomStatus, ClinicalAsmntType, Prognosis } from 'src/types/hospital/models'
+import { DeleteNotesPayload, DeleteNotesResponse, UpdateNotesPayload, UpdateNotesResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
+import { ApiError } from 'src/types/hospital/api'
 
 dayjs.extend(utc)
 
@@ -48,12 +54,12 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
   const id = routerParams?.id
   const { isCurrentMedicalRecordOnly } = router.query
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
-  const [currentTab, setCurrentTab] = useState<string>('Active')
+  const [currentTab, setCurrentTab] = useState<StatusKey>('Active')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [localSearch, setLocalSearch] = useState<string>('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState<boolean>(isCurrentMedicalRecordOnly === 'true')
-  const [records, setRecords] = useState<any[]>([])
-  const [tabCounts, setTabCounts] = useState<any>({ Active: 0, Resolved: 0, All: 0 })
+  const [records, setRecords] = useState<ClinicalAssessmentCardList[]>([])
+  const [tabCounts, setTabCounts] = useState<Record<StatusKey, number>>({ Active: 0, Resolved: 0, All: 0 })
   const [total, setTotal] = useState<number>(0)
   const [page, setPage] = useState<number>(1)
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -71,7 +77,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
   const [recordedDateTime, setRecordedDateTime] = useState<any>(dayjs())
   const [isSwitchToggle, setIsSwitchToggle] = useState<boolean>(false)
 
-  const [clinicalAsmnt, setClinicalAsmnt] = useState<string>('')
+  const [clinicalAsmnt, setClinicalAsmnt] = useState<string | ''>('')
   const [prognosisVal, setPrognosisValue] = useState<string>('')
   const [chronicVal, setChronicVal] = useState<any>(false)
   const [status, setStatus] = useState<string>('active')
@@ -84,14 +90,14 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
 
   const theme: any = useTheme()
 
-  const tabs = ['Active', 'Resolved', 'All']
+  const tabs: StatusKey[] = ['Active', 'Resolved', 'All']
 
   const handleUpdateNotes = async (newNotes?: any) => {
     if (!selectedAssessment) return
     setIsUpdating(true)
 
     try {
-      const payload: any = {
+      const payload: UpdateNotesPayload = {
         main_id: selectedAssessment?.main_diagnosis_id,
         med_id: selectedAssessment?.medical_record_id,
         type: 'DIAGNOSIS',
@@ -99,7 +105,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
         note_id: noteRecord?.note_id || '',
         hospital_case_id: id || ''
       }
-      const response: any = await updateNotes(payload)
+      const response: UpdateNotesResponse = await updateNotes(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Notes updated successfully.' })
@@ -124,12 +130,12 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
     setIsDeleting(true)
 
     try {
-      const payload = {
+      const payload: DeleteNotesPayload = {
         entity: 'diagnosis',
         medical_id: selectedAssessment?.medical_record_id,
         record_id: selectedAssessment?.main_diagnosis_id
       }
-      const response: any = await deleteNote(noteRecord?.note_id, payload)
+      const response: DeleteNotesResponse = await deleteNote(noteRecord?.note_id, payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Notes deleted successfully.' })
@@ -149,7 +155,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
     }
   }
 
-  const handleEditNoteClick = (item: any) => {
+  const handleEditNoteClick = (item: ActivityFormData) => {
     setNoteRecord(item)
     setNotes(item?.note || '')
   }
@@ -179,10 +185,10 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
   }, [currentTab])
 
   const fetchClinicalAssessments = useCallback(
-    async (pageNum: number = 1, search: string = '', status: string = '') => {
+    async (pageNum: number = 1, search: string = '', status: SymptomStatus = '') => {
       setIsLoading(true)
       try {
-        const res: any = await getClinicalAssessments({
+        const res: GetClinicalAssessmentCardResponse = await getClinicalAssessments({
           medical_type: 'diagnosis',
           page_no: pageNum,
           limit: PAGE_SIZE,
@@ -190,18 +196,18 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
           hospital_case_id: id || '',
           q: search,
           medical_record_id: currentRecordOnly && medical_record_id ? medical_record_id : '',
-          ...({ type: status } as any)
+          ...{ type: status }
         })
 
         if (res.success) {
           const newItems = res.data?.result || []
-          const totalCount = parseInt(res.data?.total_count || 0)
+          const totalCount = Number(res.data?.total_count ?? 0)
 
           setTotal(totalCount)
           setTabCounts({
-            Active: parseInt(res.data?.active || '0'),
-            Resolved: parseInt(res.data?.closed || '0'),
-            All: parseInt(res.data?.all || '0')
+            Active: Number(res.data?.active || '0'),
+            Resolved: Number(res.data?.closed || '0'),
+            All: Number(res.data?.all || '0')
           })
           setRecords((prev: any[]) => (pageNum === 1 ? newItems : [...prev, ...newItems]))
           setHasMore(newItems.length === PAGE_SIZE)
@@ -234,7 +240,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
     if (animal_id) fetchClinicalAssessments(1, searchQuery, getStatusFilter())
   }, [searchQuery, currentTab, currentRecordOnly, fetchClinicalAssessments, getStatusFilter, animal_id])
 
-  const handleTabChange = (newValue: string) => {
+  const handleTabChange = (newValue: StatusKey) => {
     setCurrentTab(newValue)
     setPage(1)
     setRecords([])
@@ -301,34 +307,34 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
     }
   }
 
-  const handleAssessmentClick = async (assessment: any) => {
+  const handleAssessmentClick = async (assessment: ClinicalAssessmentCardList) => {
     setSelectedAssessment({
       ...assessment,
-      additional_info: { ...assessment.additional_info, isChronic: assessment.additional_info.isChronic ? 'Yes' : 'No' }
+      additional_info: { ...assessment.additional_info, isChronic: assessment.additional_info?.isChronic ? 'Yes' : 'No' }
     })
     setTemporarilySelected(assessment)
     setClinicalAsmnt(assessment?.additional_info?.clinical_assessment || 'primary')
     setPrognosisValue(
       assessment?.additional_info?.prognosis
-        ? (Utility as any).capitalizeFirstLetter(assessment.additional_info.prognosis)
+        ? Utility.capitalizeFirstLetter(assessment.additional_info.prognosis)
         : 'Favourable'
     )
     setChronicVal(assessment?.additional_info?.isChronic ? 'Yes' : 'No')
     setNotes(assessment?.additional_info?.note || '')
     setStatus(
-      assessment?.additional_info?.status ? (Utility as any).capitalizeFirstLetter(assessment.additional_info.status) : 'Active'
+      assessment?.additional_info?.status ? Utility.capitalizeFirstLetter(assessment.additional_info.status) : 'Active'
     )
     setIsDrawerOpen(true)
     try {
       setActivityLoader(true)
 
-      const params = {
+      const params: GetClinicalAssmntRecordParams = {
         entity: 'diagnosis',
         medical_id: assessment?.medical_record_id || '',
         record_id: assessment?.main_diagnosis_id || ''
       }
 
-      const response: any = await getNotes(params)
+      const response: GetClinicalAssmntRecordResponse = await getNotes(params)
 
       if (response?.success) {
         setActivityListData(response?.data || [])
@@ -357,7 +363,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
 
     const isSystemGenerated = isClinicalAsmntChanged || isPrognosisChanged || isChronicChanged || isStatusChanged
 
-    const payload: any = {
+    const payload: UpdateClinicalAssmntParams = {
       main_id: selectedAssessment?.main_diagnosis_id || '',
       med_id: selectedAssessment?.medical_record_id || '',
       type: 'DIAGNOSIS',
@@ -368,11 +374,17 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
     }
 
     if (isClinicalAsmntChanged) {
-      payload.clinical_assessment = clinicalAsmnt?.toLowerCase() || ''
+      const lowered = clinicalAsmnt?.toLowerCase()
+      if (lowered === 'diagnosis' || lowered === 'tentative') {
+        payload.clinical_assessment = lowered
+      }
     }
 
     if (isPrognosisChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
-      payload.prognosis = prognosisVal.toLowerCase()
+      const lowered = prognosisVal.toLowerCase()
+      if (lowered === 'favourable' || lowered === 'guarded' || lowered === 'doubtful' || lowered === 'poor' || lowered === 'grave') {
+        payload.prognosis = lowered
+      }
     }
 
     if (isChronicChanged && clinicalAsmnt?.toLowerCase() === 'diagnosis') {
@@ -390,7 +402,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
     setIsSubmitLoading(true)
 
     try {
-      const response: any = await updateClinicalAssessment(payload)
+      const response: UpdateClinicalAssmntResponse = await updateClinicalAssessment(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || 'Assessment updated successfully' })
@@ -400,9 +412,10 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
       } else {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as ApiError
       console.error('Submit Error:', error)
-      Toaster({ type: 'error', message: error.message || t('hospital_module.an_unexpected_error_occurred') })
+      Toaster({ type: 'error', message: err.message || t('hospital_module.an_unexpected_error_occurred') })
     } finally {
       setIsSubmitLoading(false)
     }
@@ -474,7 +487,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
                 }}
               >
                 <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                  {tabs.map((tab: string) => (
+                  {tabs.map((tab) => (
                     <Box
                       key={tab}
                       onClick={() => handleTabChange(tab)}
@@ -558,7 +571,7 @@ const ClinicalAssessment = ({ overviewData, patientData, category }: ClinicalAss
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {isLoading && (filteredRecords?.length === 0 || !hasMore) && <ClinicalAssessmentShimmer count={5} />}
-        {filteredRecords?.map((record: any, index: number) => (
+        {filteredRecords?.map((record: ClinicalAssessmentCardList, index: number) => (
           <ClinicalAssessmentCard
             key={record.id || index}
             record={record}

@@ -6,16 +6,19 @@ import { Box, Drawer, IconButton, Typography } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
+import { TFunction } from 'i18next'
 import Toaster from 'src/components/Toaster'
 import { addMedicalCategory } from 'src/lib/api/medical/masters'
 import { useState } from 'react'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import type { BaseDrawerProps } from 'src/types/hospital'
+import type { Category } from 'src/types/hospital/models'
+import type { AddCategoryResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 interface AddCategoryDrawerProps extends BaseDrawerProps {
-  onSuccess?: (newCategory: any) => void
+  onSuccess?: (newCategory: Category) => void
   type?: string
 }
 
@@ -24,13 +27,13 @@ interface FormValues {
 }
 
 // Schema needs to be created after useTranslation, but validation messages are set dynamically
-const createSchema = (t: any) => yup.object().shape({
+const createSchema = (t: TFunction) => yup.object().shape({
   label_name: yup.string().trim().required(t('hospital_module.label_is_required') || 'Label is required')
 })
 
 const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
   const { open, onClose, onSuccess, type } = props
-  const theme: any = useTheme()
+  const theme = useTheme<Theme>()
   const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
 
@@ -61,13 +64,13 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
 
     try {
       setLoading(true)
-      const response: any = await addMedicalCategory(payload)
+      const response: AddCategoryResponse = await addMedicalCategory(payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.category_added_successfully') })
 
         // Create the new category object to pass back
-        const newCategory = {
+        const newCategory: Category = {
           id: response?.data,
           category: params?.label_name,
           label: params?.label_name,
@@ -83,9 +86,9 @@ const AddCategoryDrawer = (props: AddCategoryDrawerProps) => {
       } else {
         Toaster({ type: 'error', message: response?.message || t('hospital_module.failed_to_add_category') })
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding category:', error)
-      Toaster({ type: 'error', message: error.message || t('hospital_module.unexpected_error_occurred') })
+      Toaster({ type: 'error', message: (error as Error)?.message || t('hospital_module.unexpected_error_occurred') })
     } finally {
       setLoading(false)
     }

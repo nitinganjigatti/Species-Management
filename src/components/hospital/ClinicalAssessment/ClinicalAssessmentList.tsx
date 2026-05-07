@@ -10,31 +10,32 @@ import {
   Button
 } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, Theme } from '@mui/material/styles'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 import { AuthContext } from 'src/context/AuthContext'
 import Search from 'src/views/utility/Search'
 import MUICheckboxRaw from 'src/views/forms/form-fields/MUICheckbox'
+import type { ClinicalAssessmentList as ClinicalAssessmentListItem, GetSymptomClinicalTabList, Id, SymptomsListForAdding } from 'src/types/hospital/models'
 const MUICheckbox: any = MUICheckboxRaw
 
 interface ClinicalAssessmentListProps {
-  symptoms?: any[]
-  temporarilySelected?: any
-  selectedSymptoms?: any[]
-  onSelect?: (s: any) => void
-  handleTabChange?: (category: any, id: any) => void
-  currentTab?: any
+  symptoms?: ClinicalAssessmentListItem[]
+  temporarilySelected?: SymptomsListForAdding | null
+  selectedSymptoms?: SymptomsListForAdding[]
+  onSelect?: (s: ClinicalAssessmentListItem) => void
+  handleTabChange?: (category: string, id: Id) => void
+  currentTab?: string
   isTabsLoading?: boolean
   isInitialLoading?: boolean
-  tabOptions?: any[]
+  tabOptions?: GetSymptomClinicalTabList[]
   searchTerm?: string
   setSearchTerm?: (v: string) => void
   hasMore?: boolean
   totalCount?: number
   isLoading?: boolean
-  loadMoreTriggerRef?: any
+  loadMoreTriggerRef?: React.RefObject<HTMLDivElement | null>
   handleAddNewClick?: () => void
-  alreadySelectedIds?: any[]
+  alreadySelectedIds?: Id[]
 }
 
 export default function ClinicalAssessmentList({
@@ -57,7 +58,7 @@ export default function ClinicalAssessmentList({
   alreadySelectedIds = []
 }: ClinicalAssessmentListProps) {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme<Theme>()
 
   const authData: any = useContext(AuthContext)
   const userSettings = authData?.userData?.permission?.user_settings
@@ -124,7 +125,7 @@ export default function ClinicalAssessmentList({
                     sx={{ flexShrink: 0, borderRadius: '8px' }}
                   />
                 ))
-              : tabOptions?.map((tab: any) => (
+              : tabOptions?.map((tab: GetSymptomClinicalTabList) => (
                   <Box
                     key={tab.id}
                     onClick={() => handleTabChange && handleTabChange(tab?.category, tab?.id)}
@@ -192,15 +193,15 @@ export default function ClinicalAssessmentList({
               justifyContent: 'center'
             }}
           >
-            <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
+            <Box component='img' src='/images/no_data_animal_2.png' alt={t('hospital_module.no_clinical_assessment_alt') as string} sx={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               {t('hospital_module.no_clinical_assessment_to_show')}
             </Typography>
           </Box>
         ) : (
           <>
-            {filteredSymptoms.map((symptom: any, index: number) => {
-              const isSelected = selectedSymptoms.includes(symptom.id)
+            {filteredSymptoms.map((symptom: ClinicalAssessmentListItem, index: number) => {
+              const isSelected = selectedSymptoms.some((s: SymptomsListForAdding) => s.id === symptom.id)
               const isTemporarilySelected = temporarilySelected?.id === symptom.id
               const isAlreadyPrescribed = alreadySelectedIds?.includes(symptom.id)
 

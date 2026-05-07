@@ -10,7 +10,7 @@ import {
   HospitalBed,
   HospitalAnalytics,
   Patient,
-  IncomingPatient,
+  PatientDetailsData,
   Symptom,
   Diagnosis,
   ClinicalNote,
@@ -27,7 +27,6 @@ import {
   Id,
   HospitalStaff,
   StatusAction,
-  InpatientOverview
 } from './models'
 
 // ==================== Generic ====================
@@ -154,9 +153,9 @@ export interface IncomingPatientsParams extends PaginationParams {
   [key: string]: unknown
 }
 
-export interface IncomingPatientsResponse extends PaginatedResponse<IncomingPatient> {}
+// export interface IncomingPatientsResponse extends PaginatedResponse<IncomingPatient> {}
 
-export interface PatientDetailsResponse extends ApiResponse<Patient> {}
+export interface PatientDetailsResponse extends ApiResponse<PatientDetailsData> {}
 
 export type PatientStatus = 'pending' | 'rejected'
 
@@ -221,25 +220,6 @@ export interface InpatientListParams extends PaginationParams {
 
 export interface InpatientListResponse extends PaginatedResponse<Patient> {}
 
-export interface InpatientOverviewResponse {
-  success: boolean
-  data: {
-    data: InpatientOverview
-  }
-  total_records: number
-  limit: number
-  current_page: number
-  total_pages: number
-}
-
-export interface InpatientOverviewParams {
-  page_no: number
-  limit: number
-  animal_id: Id
-  hospital_id: Id
-  hospital_case_id: Id
-}
-
 // ==================== Discharge ====================
 
 export interface DischargePayload {
@@ -268,6 +248,7 @@ export interface ClinicalAssessmentListParams extends PaginationParams {
 }
 
 export interface ClinicalAssessmentListResponse extends PaginatedResponse<ClinicalAssessment> {}
+
 
 // ==================== Diagnosis ====================
 
