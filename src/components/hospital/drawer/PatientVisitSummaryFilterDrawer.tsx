@@ -16,13 +16,14 @@ import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getPatientVisitSummary } from 'src/lib/api/hospital/inpatient'
 import Utility from 'src/utility'
-import type { BaseDrawerProps } from 'src/types/hospital'
+import type { BaseDrawerProps, Id } from 'src/types/hospital'
+import { GetHospitalVisitSummaryResponse } from 'src/types/hospital/api/Inpatient/patientMedia'
 
 const ALL_REPORTS_KEY = 'all_reports'
 
 interface PatientVisitSummaryFilterDrawerProps extends BaseDrawerProps {
-  caseId?: any
-  animalId?: any
+  caseId?: Id
+  animalId?: Id
 }
 
 const PatientVisitSummaryFilterDrawer = ({
@@ -74,7 +75,7 @@ const PatientVisitSummaryFilterDrawer = ({
         hospital_case_id: caseId
       }
 
-      const response: any = await  getPatientVisitSummary(payload)
+      const response: GetHospitalVisitSummaryResponse = await  getPatientVisitSummary(payload)
       if (response?.success) {
       Utility.downloadFileFromURL(
       response?.data?.download_file_url,`hospital_visit_summary_${Date.now()}.pdf`)}

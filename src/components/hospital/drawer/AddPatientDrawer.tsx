@@ -597,7 +597,7 @@ const AddPatientDrawer = ({ open, onClose, patientData, animalData, refetch }: A
                 </Typography>
                 <ControlledAutocomplete
                   name='holdingEnclosure'
-                  label={(t('hospital_module.select_holding_enclosure') as string)}
+                  label={(t('hospital_module.select_holding_enclosure_required') as string)}
                   control={control}
                   errors={errors}
                   options={holdingEnclosures}

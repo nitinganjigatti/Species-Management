@@ -1,4 +1,4 @@
-import { Id, PurposeOfVisit, Incoming } from "../../models"
+import { Id, Incoming, VisitTypeReason } from "../../models"
 import { HospitalTransferRow } from "src/types/housing/hospitalTransfer"
 
 export type PatientStatus = 'pending' | 'rejected'
@@ -32,7 +32,7 @@ export interface GetIncomingPatientParam {
   reference_type?: string
   hospital_id?: Id
   hospital_status_filter?: PatientStatus
-  visit_type?: PurposeOfVisit
+  visit_type?: VisitTypeReason
   patient_category?: string
   users?: string
   from_date?: string | null

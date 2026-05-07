@@ -13,14 +13,15 @@ const axiosFormPost = _axiosFormPost as (params: { url: string; body?: unknown; 
 import type {
   ApiResponse,
   IncomingPatientsParams,
-  IncomingPatientsResponse,
   PatientDetailsResponse
 } from 'src/types/hospital'
 import { AdmitPatientResponse } from 'src/types/hospital/api/Incoming/admitPatient';
+import { GetInpatientListParams, GetPatientListResponse } from 'src/types/hospital/api/Inpatient/inpatient';
+import { GetIncomingPatientParam, GetIncomingPatientResponse } from 'src/types/hospital/api/Incoming/incoming';
 
 export const getIncomingPatients = async (
-  params: IncomingPatientsParams
-): Promise<IncomingPatientsResponse> => {
+  params: GetInpatientListParams
+): Promise<GetPatientListResponse> => {
   const response = await axiosGet({ url: `${GET_HOSPITAL_PATIENTS_LISTS}`, params })
 
   return response?.data
@@ -41,8 +42,8 @@ export const admitHospitalPatient = async (
 }
 
 export const getNewIncomingPatientsLists = async (
-  params: IncomingPatientsParams
-): Promise<IncomingPatientsResponse> => {
+  params: GetIncomingPatientParam
+): Promise<GetIncomingPatientResponse> => {
   const response = await axiosGet({ url: `${GET_NEW_INCOMING_PATIENTS_LISTS}`, params })
 
   return response?.data

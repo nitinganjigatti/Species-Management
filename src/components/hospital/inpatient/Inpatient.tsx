@@ -1,6 +1,7 @@
 'use client'
-import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem, alpha } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { Theme } from '@mui/material/styles'
+import { Breadcrumbs, Box, Typography, Card, CardHeader, Grid, Button, Select, Tooltip, MenuItem, alpha, SelectChangeEvent } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { differenceInDays } from 'date-fns'
 import { debounce } from 'lodash'
@@ -21,38 +22,56 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { GridColDef, GridPaginationModel, GridRenderCellParams, GridRowParams, GridSortModel } from '@mui/x-data-grid'
+import { GetInpatientListFilters, GetInpatientListParams, GetPatientListResponse } from 'src/types/hospital/api/Inpatient/inpatient'
+import { DateRangeValue, FilterDate, Id, Incoming , PatientData, VisitTypeReason } from 'src/types/hospital/models'
+import { InpatientListParams } from 'src/types/hospital'
+
+export type Rows = {
+  hospital_case_id: Id
+}
+export interface IndexedRows extends PatientData{
+  id: Id
+  sl_no: Id
+}
+
+export type MenuData = {
+  'Chief Veterinarian': number[] | string[]
+  'Origin Site': number[] | string[]
+}
+
 
 const HospitalInpatient = () => {
-  const theme: any = useTheme()
+  const theme = useTheme<Theme>()
   const { t } = useTranslation()
   const router: any = useSafeRouter()
 
-  const { selectedHospital, isHospitalAccessChecked }: any = useHospital()
+  const { selectedHospital, isHospitalAccessChecked } = useHospital()
 
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedVisitType, setSelectedVisitType] = useState<string>('')
+  const [selectedVisitType, setSelectedVisitType] = useState<VisitTypeReason>('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(0)
-  const [filterDate, setFilterDate] = useState<any>({})
-  const [rows, setRows] = useState<any[]>([])
+  const [filterDate, setFilterDate] = useState<FilterDate>({ startDate: null, endDate: null })
+  const [rows, setRows] = useState<PatientData[]>([])
   const [total, setTotal] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
-  const [sortModel, setSortModel] = useState<any[]>([])
+  const [sortModel, setSortModel] = useState<GridSortModel>([])
 
-  const [selectedOptions, setSelectedOptions] = useState<any>({
+  const [selectedOptions, setSelectedOptions] = useState<MenuData>({
     'Chief Veterinarian': [],
     'Origin Site': []
   })
 
-  const [filters, setFilters] = useState<any>({
+  const [filters, setFilters] = useState<GetInpatientListFilters>({
     page: 1,
     limit: 50,
     q: ''
   })
 
-  const applyFilters = (selectedOptions: any) => {
+  const applyFilters = (selectedOptions: MenuData) => {
     setSelectedOptions(selectedOptions)
-    setFilters((prev: any) => ({ ...prev, page: 1 }))
+    setFilters((prev: GetInpatientListFilters) => ({ ...prev, page: 1 }))
     setOpenFilterDrawer(false)
   }
 
@@ -68,14 +87,14 @@ const HospitalInpatient = () => {
     // setSearchValue(q)
   }, [router.query])
 
-  const prepareFilterParams = (key: string) => {
+  const prepareFilterParams = (key: keyof MenuData) => {
     return selectedOptions[key]?.length > 0 ? selectedOptions[key].join(',') : undefined
   }
 
-  const formatDate = (dateString: any) => {
-    if (!dateString) return null
+  const formatDate = (date: DateRangeValue | undefined): string | null => {
+    if (!date) return null
 
-    return new Date(dateString).toISOString().split('T')[0]
+    return new Date(date as unknown as string | number | Date).toISOString().split('T')[0]
   }
 
   const fetchIncomingPatients = async () => {
@@ -87,18 +106,18 @@ const HospitalInpatient = () => {
       const activeSortModel = sortModel[0]
       const sortParam = activeSortModel ? JSON.stringify({ [activeSortModel.field]: activeSortModel.sort }) : undefined
 
-      const res: any = await getIncomingPatients({
+      const res: GetPatientListResponse = await getIncomingPatients({
         page_no: filters?.page,
         limit: filters?.limit,
         q: filters?.q,
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
         patient_category: 'inpatient',
-        from_date: formatDate(filterDate.startDate),
-        to_date: formatDate(filterDate.endDate),
-        users: prepareFilterParams('Chief Veterinarian'),
-        origin_site: prepareFilterParams('Origin Site'),
-        sort: sortParam
+        from_date: formatDate(filterDate.startDate) ?? '',
+        to_date: formatDate(filterDate.endDate) ?? '',
+        users: prepareFilterParams('Chief Veterinarian') ?? '',
+        origin_site: prepareFilterParams('Origin Site') ?? '',
+        sort: sortParam ?? ''
       })
 
       setRows(res?.data?.records || [])
@@ -124,7 +143,7 @@ const HospitalInpatient = () => {
     sortModel
   ])
 
-  const updateUrlParams = (updatedFilters: any) => {
+  const updateUrlParams = (updatedFilters: GetInpatientListFilters) => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]: any) => {
       if (value) {
@@ -135,7 +154,7 @@ const HospitalInpatient = () => {
     router.push(`${router.pathname}?${queryString}`)
   }
 
-  const handlePaginationModelChange = (model: any) => {
+  const handlePaginationModelChange = (model: GridPaginationModel) => {
     const updated = {
       ...filters,
       page: model.page + 1,
@@ -172,37 +191,37 @@ const HospitalInpatient = () => {
     debouncedSearch('')
   }
 
-  const handleSortModel = (model: any) => {
+  const handleSortModel = (model: GridSortModel) => {
     setSortModel(model)
-    setFilters((prev: any) => ({ ...prev, page: 1 }))
+    setFilters((prev: GetInpatientListFilters) => ({ ...prev, page: 1 }))
   }
 
-  const handleDateChange = (start: any, end: any) => {
+  const handleDateChange = (start: DateRangeValue, end: DateRangeValue) => {
     setFilterDate({ startDate: start, endDate: end })
-    setFilters((prev: any) => ({ ...prev, page: 1 }))
+    setFilters((prev: GetInpatientListFilters) => ({ ...prev, page: 1 }))
   }
 
-  const handleVisitTypeChange = (e: any) => {
+  const handleVisitTypeChange = (e: SelectChangeEvent<VisitTypeReason>) => {
     setSelectedVisitType(e.target.value)
-    setFilters((prev: any) => ({ ...prev, page: 1 }))
+    setFilters((prev: GetInpatientListFilters) => ({ ...prev, page: 1 }))
   }
 
   const getSlNo = (index: number) => (filters.page - 1) * filters.limit + index + 1
 
-  const indexedRows = rows.map((row: any, index: number) => ({
+  const indexedRows: IndexedRows[] = rows.map((row: PatientData, index: number) => ({
     ...row,
     id: +row?.hospital_case_id,
     sl_no: getSlNo(index)
   }))
 
-  const columns: any[] = [
+  const columns: GridColDef[] = [
     {
       minWidth: 20,
       width: 80,
       sortable: false,
       field: 'sl_no',
-      headerName: t('hospital_module.sl_no'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.sl_no') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
         </Typography>
@@ -213,8 +232,8 @@ const HospitalInpatient = () => {
       minWidth: 20,
       sortable: false,
       field: 'animal_name',
-      headerName: t('hospital_module.animal_name_and_id'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.animal_name_and_id') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <AnimalCard
             data={{
@@ -238,8 +257,8 @@ const HospitalInpatient = () => {
       minWidth: 120,
       field: 'health_status',
       sortable: true,
-      headerName: t('hospital_module.health_status'),
-      renderCell: (params: any) => {
+      headerName: t('hospital_module.health_status') ?? '',
+      renderCell: (params: GridRenderCellParams) => {
         const status = params.row.health_status || 'stable'
         const isCritical = status === 'critical'
         const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1)
@@ -285,8 +304,8 @@ const HospitalInpatient = () => {
       minWidth: 120,
       field: 'case_code',
       sortable: false,
-      headerName: t('hospital_module.case_id'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.case_id') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <Typography
           sx={{
             fontSize: '14px',
@@ -302,8 +321,8 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'purpose_of_visit',
       sortable: false,
-      headerName: t('hospital_module.purpose_of_visit'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.purpose_of_visit') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5 }}>
@@ -345,22 +364,22 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'admitted_at',
       sortable: true,
-      headerName: t('hospital_module.admission_date'),
+      headerName: t('hospital_module.admission_date') ?? '',
       align: 'left',
       headerAlign: 'left',
 
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Box>
             <Typography
               sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {(Utility as any).convertUtcToLocalReadableDate(params?.row?.admitted_at)}
+              {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
             </Typography>
             <Typography
               sx={{ fontSize: '12px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}
             >
-              {(Utility as any).convertUTCToLocaltime(params?.row?.admitted_at)}
+              {Utility.convertUTCToLocaltime(params?.row?.admitted_at)}
             </Typography>
           </Box>
         </>
@@ -371,10 +390,10 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'total_admitted_days',
       sortable: false,
-      headerName: t('hospital_module.duration'),
+      headerName: t('hospital_module.duration') ?? '',
       align: 'left',
       headerAlign: 'left',
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         return (
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
             {params?.row?.total_admitted_days}
@@ -387,8 +406,8 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'bed_name',
       sortable: false,
-      headerName: t('hospital_module.location'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.location') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
             {params?.row?.bed_name || params?.row?.room_name ? `${params?.row?.bed_name}, ${params?.row?.room_name}` : '-'}
@@ -401,8 +420,8 @@ const HospitalInpatient = () => {
       minWidth: 20,
       field: 'doctor_full_name',
       sortable: false,
-      headerName: t('hospital_module.chief_doctor'),
-      renderCell: (params: any) => (
+      headerName: t('hospital_module.chief_doctor') ?? '',
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme?.palette?.customColors?.OnSurfaceVariant }}>
             {params?.row?.doctor_full_name}
@@ -412,7 +431,7 @@ const HospitalInpatient = () => {
     }
   ]
 
-  const handleRowClick = (params: any) => {
+  const handleRowClick = (params: GridRowParams) => {
     const patientId = params?.id || params?.row?.id
 
     if (patientId) {
@@ -474,7 +493,7 @@ const HospitalInpatient = () => {
                   displayEmpty
                   onChange={handleVisitTypeChange}
                 >
-                  {visitTypeOptions?.map((item: any, index: number) => (
+                  {visitTypeOptions?.map((item, index: number) => (
                     <MenuItem key={index} value={item?.value}>
                       {item?.label}
                     </MenuItem>

@@ -22,6 +22,10 @@ import { useSelector } from 'react-redux'
 import MenuWithDots from 'src/components/MenuWithDots'
 import Icon from 'src/@core/components/icon'
 import PatientVisitSummaryFilterDrawer from 'src/components/hospital/drawer/PatientVisitSummaryFilterDrawer'
+import { GetDischargeSummaryPayload, GetPatientMediaResponse } from 'src/types/hospital/api/Inpatient/patientMedia'
+import { Files, Id, VisitHistory } from 'src/types/hospital/models'
+import { GridColDef, GridPaginationModel, GridRenderCellParams } from '@mui/x-data-grid'
+import { VisitHistoryFilters } from 'src/types/hospital/api/Inpatient/visitHistory'
 import PrescriptionSidesheet from 'src/components/hospital/drawer/PrescriptionSidesheet'
 
 const STORAGE_KEY = 'medical_record_data'
@@ -36,6 +40,16 @@ interface InpatientOverviewProps {
   patientData?: any
 }
 
+export interface IndexedRows extends VisitHistory {
+  id?: Id
+  sl_no?: Id
+}
+
+export type SelectedVisit = {
+  case_id: Id | null
+  animal_id: Id | null
+}
+
 const InpatientOverview = ({
   overviewData,
   refetchPatient,
@@ -48,19 +62,19 @@ const InpatientOverview = ({
   const { t } = useTranslation()
   const params = useParams()
   const theme: any = useTheme()
-  const hospitalData: any = useSelector((state: any) => state.hospital.data)
-  const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
+  const hospitalData = useSelector((state: any) => state.hospital.data)
+  const medicalRecordData = hospitalData[STORAGE_KEY] || {}
 
   const [dischargeSummaryLoading, setDischargeSummaryLoading] = useState<boolean>(false)
   const [openVisitSummaryFilterDrawer, setOpenVisitSummaryFilterDrawer] = useState<boolean>(false)
   const [prescriptionSheetOpen, setPrescriptionSheetOpen] = useState<boolean>(false)
 
-  const [selectedVisit, setSelectedVisit] = useState<any>({
+  const [selectedVisit, setSelectedVisit] = useState<SelectedVisit>({
     case_id: null,
     animal_id: null
   })
 
-  const getMenuOptions = (caseId: any, animalId: any) => {
+  const getMenuOptions = (caseId: Id, animalId: Id) => {
     const options = [
       {
         label: (
@@ -88,10 +102,10 @@ const InpatientOverview = ({
     return options
   }
 
-  const getDischargeSummary = async (caseId: any, animalId: any) => {
+  const getDischargeSummary = async (caseId: Id, animalId: Id) => {
     setDischargeSummaryLoading(true)
     try {
-      const params: any = {
+      const params: GetDischargeSummaryPayload = {
         hospital_case_id: caseId
       }
 
@@ -109,7 +123,7 @@ const InpatientOverview = ({
     }
   }
 
-  const { selectedHospital }: any = useHospital()
+  const { selectedHospital } = useHospital()
   const { id }: any = params
   const animal_id = medicalRecordData?.animal_id
 
@@ -122,9 +136,9 @@ const InpatientOverview = ({
   const visitTotal = hospitalVisit?.data?.total_records || 0
   const rows: any[] = hospitalVisit?.data?.data || []
 
-  const updateUrlParams = (updatedFilters: any) => {
+  const updateUrlParams = (updatedFilters: VisitHistoryFilters) => {
     const params = new URLSearchParams()
-    Object.entries(updatedFilters).forEach(([key, value]: [string, any]) => {
+    Object.entries(updatedFilters).forEach(([key, value]) => {
       if (value) {
         params.set(key, value.toString())
       }
@@ -137,14 +151,14 @@ const InpatientOverview = ({
     data: mediaItems,
     isFetching: isFetchingMedia,
     isLoading: isLoadingMedia
-  } = useQuery<any>({
+  } = useQuery<GetPatientMediaResponse>({
     queryKey: ['media-items', id],
     queryFn: () => getOverviewMediaItems({ id }),
     enabled: !!id
   })
-  const mediaFiles: any[] = mediaItems?.data?.media?.files || []
+  const mediaFiles: Files[] = mediaItems?.data?.media?.files || []
 
-  const handlePaginationModelChange = (model: any) => {
+  const handlePaginationModelChange = (model: GridPaginationModel) => {
     const updated = {
       ...visitFilters,
       page: model.page + 1,
@@ -156,20 +170,20 @@ const InpatientOverview = ({
 
   const getSlNo = (index: number) => (visitFilters.page - 1) * visitFilters.limit + index + 1
 
-  const indexedRows = rows.map((row: any, index: number) => ({
+  const indexedRows: IndexedRows[] = rows.map((row: VisitHistory, index: number) => ({
     ...row,
     id: +row?.case_id,
     sl_no: getSlNo(index)
   }))
 
-  const columns: any[] = [
+  const columns: GridColDef[] = [
     {
       minWidth: 20,
       width: 80,
       sortable: false,
       field: 'sl_no',
       headerName: 'SL. NO',
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
           {params.row.sl_no}
         </Typography>
@@ -182,7 +196,7 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.medical_record_code}
         </Typography>
@@ -195,7 +209,7 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Tooltip
           title={
             <Box>
@@ -265,7 +279,7 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
             {Utility.convertUtcToLocalReadableDate(params?.row?.admitted_at)}
@@ -283,7 +297,7 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
             {params?.row?.discharge_at ? Utility.convertUtcToLocalReadableDate(params?.row?.discharge_at) : 'NA'}
@@ -301,7 +315,7 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: (params: any) => {
+      renderCell: (params: GridRenderCellParams) => {
         const totalDuration = Number(params?.row?.days_admitted) + 1
 
         return (
@@ -318,7 +332,7 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <VisitType title={params.row.visit_type} />
         </>
@@ -331,7 +345,7 @@ const InpatientOverview = ({
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <Tooltip title={params.row.doctor_name} arrow placement='top'>
           <Typography
             noWrap
@@ -359,7 +373,7 @@ const InpatientOverview = ({
       headerAlign: 'right',
       align: 'right',
       sortable: false,
-      renderCell: (params: any) => (
+      renderCell: (params: GridRenderCellParams) => (
         <>
           <MenuWithDots options={getMenuOptions(params?.row?.case_id, params?.row?.animal_id)} borderColor={undefined} menuSx={undefined} menuItemSx={undefined} iconSx={undefined} />
         </>
@@ -470,7 +484,7 @@ const InpatientOverview = ({
                     <CircularProgress size={20} sx={{ ml: 4 }} />
                   ) : mediaFiles?.length > 0 ? (
                     <MoreMediaListing
-                      mediaItems={mediaFiles as any}
+                      mediaItems={(mediaFiles as any)}
                       maxVisibleItems={{ xs: 1, sm: 3, md: 4, lg: 2 } as any}
                       onMoreClick={() => setOpenDrawer(true)}
                     />
@@ -525,8 +539,8 @@ const InpatientOverview = ({
         <PatientVisitSummaryFilterDrawer
           open={openVisitSummaryFilterDrawer}
           onClose={() => setOpenVisitSummaryFilterDrawer(false)}
-          animalId={selectedVisit?.animal_id}
-          caseId={selectedVisit?.case_id}
+          animalId={selectedVisit?.animal_id ?? ''}
+          caseId={selectedVisit?.case_id ?? ''}
         />
       )}
       <PrescriptionSidesheet

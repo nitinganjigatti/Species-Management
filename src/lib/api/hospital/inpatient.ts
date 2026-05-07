@@ -31,6 +31,8 @@ import type {
   PatientMediaListParams,
   PatientMediaListResponse
 } from 'src/types/hospital'
+import { TotalVisitParams, TotalVisitsResponse } from 'src/types/hospital/api/Inpatient/visitHistory';
+import { GetHospitalVisitSummaryPayload, GetHospitalVisitSummaryResponse, GetPatientMediaResponse } from 'src/types/hospital/api/Inpatient/patientMedia';
 
 export const updateAnimalHealthStatus = async (
   payload: FormData | Record<string, unknown>
@@ -49,8 +51,8 @@ export const addHospitalPatient = async (
 }
 
 export const getAnimalTotalHospitalVisits = async (
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> => {
+  params: TotalVisitParams
+): Promise<TotalVisitsResponse> => {
   const response = await axiosGet({ url: `${GET_ANIMAL_TOTAL_HOSPITAL_VISIT}`, params })
 
   return response?.data
@@ -82,7 +84,7 @@ export async function getOverviewMediaItems({
   id
 }: {
   id: string | number
-}): Promise<ApiResponse<unknown>> {
+}): Promise<GetPatientMediaResponse> {
   const response = await axiosGet({ url: `${GET_OVERVIEW_MEDIA_FILES}/${id}` })
 
   return response?.data
@@ -105,16 +107,16 @@ export async function getFollowUpPatientsListings(
 }
 
 export async function getPatientDischargeSummary(
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  params: GetHospitalVisitSummaryPayload
+): Promise<GetHospitalVisitSummaryResponse> {
   const response = await axiosGet({ url: `${GET_PATIENT_DISCHARGE_SUMMARY}`, params })
 
   return response?.data
 }
 
 export async function getPatientVisitSummary(
-  params: Record<string, unknown>
-): Promise<ApiResponse<unknown>> {
+  params: GetHospitalVisitSummaryPayload
+): Promise<GetHospitalVisitSummaryResponse> {
   const response = await axiosGet({ url: `${GET_PATIENT_VISIT_SUMMARY}`, params })
 
   return response?.data

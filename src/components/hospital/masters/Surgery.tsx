@@ -37,7 +37,7 @@ import {
 import { GridPaginationModel, GridRenderCellParams, GridColDef } from '@mui/x-data-grid'
 import type { ApiError } from 'src/types/hospital/api'
 import { SurgeryResponse, SurgeryFilters, AddUpdateSurgeryPayload, SurgeryFilter } from 'src/types/hospital/api/Masters/surgery'
-import type { PurposeOfVisit, SurgeryModel } from 'src/types/hospital/models'
+import type { VisitTypeReason, SurgeryModel } from 'src/types/hospital/models'
 
 const resolveBooleanStatus = (value: string | number | boolean) => {
   if (typeof value === 'string') {
@@ -55,7 +55,7 @@ const Surgery = () => {
   const router = useSafeRouter()
 
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedVisitType, setSelectedVisitType] = useState<PurposeOfVisit>('')
+  const [selectedVisitType, setSelectedVisitType] = useState<VisitTypeReason>('')
 
   const [filters, setFilters] = useState<SurgeryFilters>({
     page: 1,

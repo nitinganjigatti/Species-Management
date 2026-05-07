@@ -34,7 +34,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
-import { PurposeOfVisit } from 'src/types/hospital/models'
+import { VisitTypeReason } from 'src/types/hospital/models'
 import { GridColDef, GridPaginationModel, GridRenderCellParams, GridRowParams } from '@mui/x-data-grid'
 import { GetIncomingPatientResponse, IncomingFilters } from 'src/types/hospital/api/Incoming/incoming'
 import { PatientStatus } from 'src/types/hospital/api'
@@ -62,7 +62,7 @@ const HospitalIncoming = () => {
   const { selectedHospital, isHospitalAccessChecked } = useHospital()
 
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedVisitType, setSelectedVisitType] = useState<PurposeOfVisit>('')
+  const [selectedVisitType, setSelectedVisitType] = useState<VisitTypeReason>('')
   const [activeTab, setActiveTab] = useState<PatientStatus>('pending')
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(0)
@@ -409,7 +409,7 @@ const HospitalIncoming = () => {
                   size='small'
                   value={selectedVisitType}
                   displayEmpty
-                  onChange={(e: SelectChangeEvent<PurposeOfVisit>) => setSelectedVisitType(e.target.value)}
+                  onChange={(e: SelectChangeEvent<VisitTypeReason>) => setSelectedVisitType(e.target.value)}
                 >
                   {visitTypeOptions?.map((item, index: number) => (
                     <MenuItem key={index} value={item?.value}>
