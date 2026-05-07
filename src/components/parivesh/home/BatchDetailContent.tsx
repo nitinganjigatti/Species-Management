@@ -257,22 +257,12 @@ const BatchDetailContent: React.FC<BatchDetailContentProps> = ({ batchId }) => {
     setCsvLoading(true)
     try {
       const response = await downloadCsvForBatchData({ batch_id: batchId })
-      if (response?.success && response?.data) {
-        const url = response.data
-        if (typeof url === 'string' && (url.startsWith('https://') || url.startsWith('http://'))) {
-          const fetchResponse = await fetch(encodeURI(url))
-          const blob = await fetchResponse.blob()
-          const blobUrl = window.URL.createObjectURL(blob)
-          const link = document.createElement('a')
-          link.href = blobUrl
-          link.setAttribute('download', `batch_data_${batchId}.csv`)
-          link.style.display = 'none'
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          window.URL.revokeObjectURL(blobUrl)
-          Toaster({ type: 'success', message: response.message })
-        }
+      const url = response?.data ?? response
+
+      if (typeof url === 'string' && /^https?:\/\//i.test(url)) {
+        // Reuse the shared utility used by pharmacy/medical/hospital reports for the same job.
+        await Utility.downloadFileFromURLWithBlob(url, `batch_data_${batchId}.csv`)
+        Toaster({ type: 'success', message: response?.message ?? 'CSV downloaded' })
       } else {
         Toaster({ type: 'error', message: t('parivesh_module.failed_to_generate_csv') })
       }
@@ -310,14 +300,19 @@ const BatchDetailContent: React.FC<BatchDetailContentProps> = ({ batchId }) => {
             status: batchDetails?.status,
             batch_attachment: [file]
           })
-          if (res?.success && res?.data?.length > 0) {
+          if (res?.success) {
             successCount++
             message = res.message
-            setFilePreviews(res.data)
           } else {
             Toaster({ type: 'error', message: res?.message })
           }
         }
+
+        // Refetch the batch detail so `filePreviews` updates from server truth.
+        // Don't rely on the upload response shape — some backends return the new attachment
+        // only (not the full list), so `setFilePreviews(res.data)` would lose previously-uploaded files.
+        await queryClient.refetchQueries({ queryKey: ['parivesh-batch-detail', batchId] })
+
         if (successCount === acceptedFiles.length) {
           Toaster({ type: 'success', message })
         }
@@ -335,10 +330,12 @@ const BatchDetailContent: React.FC<BatchDetailContentProps> = ({ batchId }) => {
       const res = await deleteAttachmentForBatch(selectedAttachmentId, { batch_id: batchDetails?.batch_id })
       if (res?.success) {
         Toaster({ type: 'success', message: res.message })
-        setFilePreviews(res.data)
       } else {
         Toaster({ type: 'error', message: res?.message })
       }
+
+      // Refetch from server truth — same reason as upload: don't trust `res.data` shape.
+      await queryClient.refetchQueries({ queryKey: ['parivesh-batch-detail', batchId] })
     } catch {
       Toaster({ type: 'error', message: t('something_went_wrong') })
     } finally {
