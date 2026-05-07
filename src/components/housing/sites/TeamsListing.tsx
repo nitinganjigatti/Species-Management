@@ -27,7 +27,7 @@ import {
 import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
-import { GridCellParams } from '@mui/x-data-grid'
+import { GridCellParams, GridColDef } from '@mui/x-data-grid'
 import InchargeDrawer from '../utils/InchargeDrawer'
 import { Incharge } from 'src/types/housing/incharge'
 import Toaster from 'src/components/Toaster'
@@ -229,7 +229,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
     sl_no: index + 1
   }))
 
-  const columns = [
+  const columns: GridColDef[] = [
     {
       minWidth: 20,
       width: 90,
@@ -261,6 +261,34 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
         </Box>
       )
     },
+    ...(activeTab === 'transfer_user' && !isEditMode
+      ? [
+          {
+            minWidth: 40,
+            width: 80,
+            field: '',
+            headerName: '',
+            align: 'left' as const,
+            headerAlign: 'left' as const,
+            sortable: false,
+            renderCell: (params: GridCellParams) => (
+              <Box
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  pl: 2
+                }}
+              >
+                {(params.row as IndexedTeamMember).can_perform_action === '1' && (
+                  <Icon icon='f7:star-circle-fill' color={theme.palette.customColors.antzNotes80} />
+                )}
+              </Box>
+            )
+          }
+        ]
+      : []),
     {
       minWidth: 40,
       flex: 1,
@@ -467,7 +495,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {activeTab === 'transfer_user' && !isEditMode && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Icon icon='f7:star-circle-fill' color={theme.palette.customColors.antzNotes} />
+                  <Icon icon='f7:star-circle-fill' color={theme.palette.customColors.antzNotes80} />
                   <Typography
                     sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.onPrimaryContainer }}
                   >

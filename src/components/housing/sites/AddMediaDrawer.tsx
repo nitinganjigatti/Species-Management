@@ -97,7 +97,7 @@ const AddMediaDrawer: React.FC<AddMediaDrawerProps> = ({
 
       Toaster({ type: 'success', message: response?.message || 'Media added successfully' })
       // Invalidate media queries to refresh the listing
-      queryClient.invalidateQueries({ queryKey: ['media', String(refId)] })
+      // queryClient.invalidateQueries({ queryKey: ['media', String(refId)] })
       onSuccess?.()
       handleClose()
     },
