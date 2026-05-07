@@ -467,9 +467,9 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
             admit_date: dayjs(data?.admission_date).format('YYYY-MM-DD'),
             admit_time: dayjs(data?.admission_time).format('HH:mm')
           }),
-          co_attend_doctor: data?.coAttendDoctor?.length
-  ? JSON.stringify(data.coAttendDoctor.map((doc: any) => String(doc.value)))
-  : '[]'
+          co_attend_doctor: data?.attendingDoctors?.length
+            ? JSON.stringify(data.attendingDoctors.map((doc: any) => String(doc.value)))
+            : '[]'
         }
 
         const res: any = await addHospitalPatient(params)
@@ -490,7 +490,7 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
         setSubmitLoader(false)
       } catch (error: any) {
         Toaster({ type: 'error', message: error?.message })
-        console.error(error?.message, 'Cannot Add-Patient')
+        // console.error(error?.message, 'Cannot Add-Patient')
         setSubmitLoader(false)
       }
     
@@ -544,11 +544,9 @@ const AddPatientForm = ({ defaultTreatmentType }: AddPatientFormProps) => {
     setValue('selectedDoctor', doctor)
     clearErrors('selectedDoctor')
 
-    setAttendingSelectedDoctors((prev: any[]) => {
-      const filtered = prev.filter((item: any) => item.value !== doctor.id)
-      setValue('attendingDoctors', filtered)
-      return filtered
-    })
+    const filtered = attendingSelectedDoctors.filter((item: any) => item.value !== doctor.id)
+    setAttendingSelectedDoctors(filtered)
+    setValue('attendingDoctors', filtered)
   }
 
   const handleRemoveAnimal = () => {

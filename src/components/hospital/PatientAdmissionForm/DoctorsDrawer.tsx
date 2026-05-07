@@ -8,6 +8,7 @@ import { FilterButton as FilterButtonRaw } from 'src/views/utility/render-snippe
 const FilterButton: any = FilterButtonRaw
 import Search from 'src/views/utility/Search'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import NoDataFound from 'src/views/utility/NoDataFound'
 import { debounce } from 'lodash'
 import { getHospitalStaff } from 'src/lib/api/hospital/staff'
 import { useForm } from 'react-hook-form'
@@ -30,6 +31,7 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
   const [selected, setSelected] = useState<SelectDoctorOption | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [doctors, setDoctors] = useState<SelectDoctorOption[]>([])
+  const [initialDoctorCount, setInitialDoctorCount] = useState<number>(0)
 
   const getUserLists = async (query: string = '') => {
     setLoading(true)
@@ -41,16 +43,19 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
       await getHospitalStaff({ params: { hospital_id: hospitalId, is_hospital_chief_doctor: '1', ...params } }).then((res: HospitalStaffListResponse) => {
         console.log(res)
         if (res?.success === true) {
-          setDoctors(
-            ((res?.data?.records ?? []) as SelectDoctorOption[]).map(item => ({
-              name: item?.user_full_name,
-              id: item?.user_id,
-              default_icon: item?.user_profile_pic,
-              role_name: item?.role_name
-            }))
-          )
+          const mapped = ((res?.data?.records ?? []) as SelectDoctorOption[]).map(item => ({
+            name: item?.user_full_name,
+            id: item?.user_id,
+            default_icon: item?.user_profile_pic,
+            role_name: item?.role_name
+          }))
+          setDoctors(mapped)
+          if (query.trim() === '') {
+            setInitialDoctorCount(mapped.length)
+          }
         } else {
           setDoctors([])
+          setSelected(null)
         }
       })
     } catch (error) {
@@ -67,11 +72,15 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
     debounce((query: string) => {
       getUserLists(query)
     }, 1000),
+
     []
   )
 
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
+    if (initialDoctorCount > 1) {
+      setSelected(null)
+    }
     debouncedSearch(value)
   }
 
@@ -88,13 +97,12 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
   }
 
   useEffect(() => {
-    if (doctors.length === 1) {
+    if (initialDoctorCount === 1 && doctors.length >= 1) {
       const singleDoctor = doctors[0]
       setSelected(singleDoctor)
-
       setValue('doctors', singleDoctor)
     }
-  }, [doctors])
+  }, [doctors, initialDoctorCount])
 
   return (
     <>
@@ -188,6 +196,10 @@ const DoctorsDrawer = ({ open, setOpen, onSelectDoctor, hospitalId }: DoctorsDra
                 <CircularProgress />
               </Box>
             </>
+          ) : doctors?.length === 0 ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+              <NoDataFound />
+            </Box>
           ) : (
             <>
               {doctors?.map((doctor: SelectDoctorOption) => (
