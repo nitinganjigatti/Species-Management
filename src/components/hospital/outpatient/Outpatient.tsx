@@ -22,6 +22,8 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
 import Search from 'src/views/utility/Search'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { VisitTypeReason } from 'src/types/hospital/models'
+import { FilterDate } from 'src/types/medical'
 
 const HospitalOutPatient = () => {
   const theme: any = useTheme()
@@ -31,10 +33,10 @@ const HospitalOutPatient = () => {
   const { selectedHospital } = useHospital()
 
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedVisitType, setSelectedVisitType] = useState<string>('')
+  const [selectedVisitType, setSelectedVisitType] = useState<VisitTypeReason>('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(0)
-  const [filterDate, setFilterDate] = useState<any>({})
+  const [filterDate, setFilterDate] = useState<FilterDate>({ startDate: null, endDate: null })
   const [rows, setRows] = useState<any[]>([])
   const [total, setTotal] = useState<number>(0)
   const [loading, setLoading] = useState<boolean>(false)
@@ -95,8 +97,8 @@ const HospitalOutPatient = () => {
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
         patient_category: 'outpatient',
-        from_date: formatDate(filterDate.startDate),
-        to_date: formatDate(filterDate.endDate),
+        from_date: formatDate(filterDate.startDate) ?? '',
+        to_date: formatDate(filterDate.endDate) ?? '',
         users: prepareFilterParams('Chief Veterinarian'),
         origin_site: prepareFilterParams('Origin Site'),
         sort: sortParam
@@ -173,7 +175,7 @@ const HospitalOutPatient = () => {
     setFilters((prev: any) => ({ ...prev, page: 1 }))
   }
 
-  const handleVisitTypeChange = (e: SelectChangeEvent<string>) => {
+  const handleVisitTypeChange = (e: SelectChangeEvent<VisitTypeReason>) => {
     setSelectedVisitType(e.target.value)
     setFilters((prev: any) => ({ ...prev, page: 1 }))
   }

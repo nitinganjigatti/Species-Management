@@ -1,4 +1,4 @@
-import { PurposeOfVisit, SurgeryModel, StatusAction } from "../../models"
+import { VisitTypeReason, SurgeryModel, StatusAction } from "../../models"
 export interface SurgeryResponse {
   success?: boolean
   message?: string
@@ -22,7 +22,7 @@ export interface SurgeryParams {
   page_no: string | number
   limit: string | number
   q: string
-  visit_type?: PurposeOfVisit
+  visit_type?: VisitTypeReason
 }
 
 export interface SurgeryFilter {

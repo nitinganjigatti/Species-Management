@@ -41,6 +41,7 @@ import toast from 'react-hot-toast'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { extractTextFromHtml } from 'src/utility'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import { FilterDate, VisitTypeReason } from 'src/types/hospital/models'
 
 const HospitalDischarged = () => {
   const theme: any = useTheme()
@@ -50,7 +51,7 @@ const HospitalDischarged = () => {
   const { selectedHospital } = useHospital()
 
   const [searchValue, setSearchValue] = useState<string>('')
-  const [selectedVisitType, setSelectedVisitType] = useState<string>('')
+  const [selectedVisitType, setSelectedVisitType] = useState<VisitTypeReason>('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
   const [filterCount, setFilterCount] = useState<number>(0)
   const [filterDate, setFilterDate] = useState<any>({})
@@ -118,9 +119,9 @@ const HospitalDischarged = () => {
         hospital_id: selectedHospital?.id,
         visit_type: selectedVisitType,
         patient_category: 'discharge',
-        from_date: formatDate(filterDate.startDate),
-        to_date: formatDate(filterDate.endDate),
-        users: prepareFilterParams('Chief Veterinarian'),
+        from_date: formatDate(filterDate.startDate) ?? '',
+        to_date: formatDate(filterDate.endDate) ?? '',
+        users: prepareFilterParams('Chief Veterinarian'), 
         origin_site: prepareFilterParams('Origin Site'),
         discharge_treatment_type: selectedDischargeType || undefined
       })
@@ -502,7 +503,7 @@ const HospitalDischarged = () => {
                   size='small'
                   value={selectedVisitType}
                   displayEmpty
-                  onChange={(e: SelectChangeEvent<string>) => setSelectedVisitType(e.target.value)}
+                  onChange={(e: SelectChangeEvent<VisitTypeReason>) => setSelectedVisitType(e.target.value)}
                 >
                   {visitTypeOptions?.map((item: any, index: number) => (
                     <MenuItem key={index} value={item?.value}>
