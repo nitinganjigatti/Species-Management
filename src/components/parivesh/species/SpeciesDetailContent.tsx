@@ -1,22 +1,31 @@
 import React, { useMemo, useState } from 'react'
 import {
-  Box, Breadcrumbs, Button, Card, CardContent,
-  CardHeader, CircularProgress, Grid, Tooltip, Typography
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+  Grid,
+  Tooltip,
+  Typography
 } from '@mui/material'
 import { GridRenderCellParams, GridSortModel } from '@mui/x-data-grid'
 import { useRouter } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@mui/material/styles'
-import { debounce } from 'lodash'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import Search from 'src/views/utility/Search'
 import Icon from 'src/@core/components/icon'
 import CustomAccordion from 'src/components/parivesh/CustomAccordion'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import AddSpeciesNewEntry from 'src/views/pages/parivesh/addSpeciesEntry/addSpeciesEntry'
+import Toaster from 'src/components/Toaster'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
+import { addSpeciesToOrganization, updateSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
 import Utility from 'src/utility'
 import { buildStats, buildCards } from 'src/components/parivesh/home/OverviewTab'
 
@@ -34,21 +43,39 @@ const SpeciesDetailContent: React.FC<SpeciesDetailContentProps> = ({ tsnId, orgI
   const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
+  const queryClient = useQueryClient()
   const { selectedParivesh } = usePariveshContext()
 
-  const [localSearch, setLocalSearch] = useState('')
-  const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('scientific_name')
   const [filters, setFilters] = useState({ page: 1, limit: 10 })
 
+  // Add-entry drawer state — restored from pre-migration species details page
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState<{ id: number | null; name: string | null; active: string | null }>({
+    id: null,
+    name: null,
+    active: null
+  })
+
   // ==================== Entries ====================
 
   const { data: entriesData, isLoading: entriesLoading } = useQuery({
-    queryKey: ['parivesh-species-entries', tsnId, orgId, tsnRelation, filters, sort, sortColumn, searchValue],
-    queryFn: () => getEntryList({
-      params: { q: searchValue, tsn_id: tsnId, tsn_relation: tsnRelation, page: filters.page, sortBy: sort, sortColumn, org_id: orgId, limit: filters.limit }
-    }),
+    queryKey: ['parivesh-species-entries', tsnId, orgId, tsnRelation, filters, sort, sortColumn],
+    queryFn: () =>
+      getEntryList({
+        params: {
+          tsn_id: tsnId,
+          tsn_relation: tsnRelation,
+          page: filters.page,
+          sortBy: sort,
+          sortColumn,
+          org_id: orgId,
+          limit: filters.limit
+        }
+      }),
     enabled: Boolean(tsnId)
   })
 
@@ -57,7 +84,10 @@ const SpeciesDetailContent: React.FC<SpeciesDetailContentProps> = ({ tsnId, orgI
   }, [entriesData])
 
   const total = Number(entriesData?.data?.total_count) || 0
-  const speciesDetails = { scientific_name: entriesData?.data?.scientific_name, common_name: entriesData?.data?.common_name }
+  const speciesDetails = {
+    scientific_name: entriesData?.data?.scientific_name,
+    common_name: entriesData?.data?.common_name
+  }
 
   // ==================== Org Count ====================
 
@@ -81,45 +111,135 @@ const SpeciesDetailContent: React.FC<SpeciesDetailContentProps> = ({ tsnId, orgI
       }))
   }, [orgCountData, t])
 
-  const debouncedSearch = useMemo(() => debounce((val: string) => setSearchValue(val), 500), [])
+  // ===== Drawer handlers (restored from pre-migration species details page) =====
+
+  const addEventSidebarOpen = () => {
+    setEditParams({ id: null, name: null, active: null })
+    setResetForm(true)
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    setEditParams({ id: null, name: null, active: null })
+    setResetForm(true)
+    setOpenDrawer(false)
+  }
+
+  const handleSubmitData = async (data: any) => {
+    const payload = { ...data, org_id: orgId, tsn_id: tsnId, tsn_relation: tsnRelation }
+    try {
+      setSubmitLoader(true)
+      const response = editParams?.id !== null
+        ? await updateSpeciesToOrganization(payload, editParams.id)
+        : await addSpeciesToOrganization(payload)
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+        setResetForm(true)
+        setOpenDrawer(false)
+      } else {
+        Toaster({ type: 'error', message: response?.message })
+      }
+
+      // Always refetch — handles backends that save the row but don't include `success: true`.
+      await queryClient.refetchQueries({ queryKey: ['parivesh-species-entries'] })
+      await queryClient.refetchQueries({ queryKey: ['parivesh-species-org-count'] })
+    } catch {
+      Toaster({ type: 'error', message: t('something_went_wrong') })
+    } finally {
+      setSubmitLoader(false)
+    }
+  }
 
   const handleSortModel = (newModel: GridSortModel) => {
-    if (newModel.length) { setSort(newModel[0].sort === 'asc' ? 'asc' : 'desc'); setSortColumn(newModel[0].field) }
+    if (newModel.length) {
+      setSort(newModel[0].sort === 'asc' ? 'asc' : 'desc')
+      setSortColumn(newModel[0].field)
+    }
   }
 
   // ==================== Columns ====================
 
   const columns = [
     {
-      flex: 0.2, width: 60, field: 'sl_no', headerName: 'S.NO', sortable: false,
+      flex: 0.2,
+      width: 60,
+      field: 'sl_no',
+      headerName: 'S.NO',
+      sortable: false,
       renderCell: (p: GridRenderCellParams) => <Typography variant='body2'>{p.row.id}</Typography>
     },
     {
-      flex: 0.3, minWidth: 80, field: 'image_type', headerName: t('image'), sortable: false,
-      renderCell: (p: GridRenderCellParams) => <div onClick={e => e.stopPropagation()}><ImageLightbox images={p.row.species_image} /></div>
+      flex: 0.3,
+      minWidth: 80,
+      field: 'image_type',
+      headerName: t('image'),
+      sortable: false,
+      renderCell: (p: GridRenderCellParams) => (
+        <div onClick={e => e.stopPropagation()}>
+          <ImageLightbox images={p.row.species_image} />
+        </div>
+      )
     },
     {
-      flex: 0.4, minWidth: 140, field: 'common_name', headerName: t('parivesh_module.common_name'), sortable: false,
-      renderCell: (p: GridRenderCellParams) => <Tooltip title={p.row.common_name || '-'}><Typography noWrap variant='body2' sx={{ fontWeight: 500 }}>{p.row.common_name || '-'}</Typography></Tooltip>
+      flex: 0.4,
+      minWidth: 140,
+      field: 'common_name',
+      headerName: t('parivesh_module.common_name'),
+      sortable: false,
+      renderCell: (p: GridRenderCellParams) => (
+        <Tooltip title={p.row.common_name || '-'}>
+          <Typography noWrap variant='body2' sx={{ fontWeight: 500 }}>
+            {p.row.common_name || '-'}
+          </Typography>
+        </Tooltip>
+      )
     },
     {
-      flex: 0.4, minWidth: 140, field: 'scientific_name', headerName: t('parivesh_module.scientific_name'), sortable: false,
-      renderCell: (p: GridRenderCellParams) => <Tooltip title={p.row.scientific_name || '-'}><Typography noWrap variant='body2'>{p.row.scientific_name || '-'}</Typography></Tooltip>
+      flex: 0.4,
+      minWidth: 140,
+      field: 'scientific_name',
+      headerName: t('parivesh_module.scientific_name'),
+      sortable: false,
+      renderCell: (p: GridRenderCellParams) => (
+        <Tooltip title={p.row.scientific_name || '-'}>
+          <Typography noWrap variant='body2'>
+            {p.row.scientific_name || '-'}
+          </Typography>
+        </Tooltip>
+      )
     },
     {
-      flex: 0.4, minWidth: 120, field: 'gender_count', headerName: t('parivesh_module.gender_count'), sortable: false,
+      flex: 0.4,
+      minWidth: 120,
+      field: 'gender_count',
+      headerName: t('parivesh_module.gender_count'),
+      sortable: false,
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2'>
-          {p.row.gender ? `${p.row.gender.charAt(0).toUpperCase() + p.row.gender.slice(1)} : ${p.row.animal_count}` : '-'}
+          {p.row.gender
+            ? `${p.row.gender.charAt(0).toUpperCase() + p.row.gender.slice(1)} : ${p.row.animal_count}`
+            : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.3, minWidth: 120, field: 'transaction_date', headerName: t('date'), sortable: false,
+      flex: 0.3,
+      minWidth: 120,
+      field: 'transaction_date',
+      headerName: t('date'),
+      sortable: false,
       renderCell: (p: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-          <Typography variant='body2'>{p.row.transaction_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(p.row.transaction_date)) : '-'}</Typography>
-          <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>{p.row.transaction_date ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(p.row.transaction_date)) : ''}</Typography>
+          <Typography variant='body2'>
+            {p.row.transaction_date
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(p.row.transaction_date))
+              : '-'}
+          </Typography>
+          <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
+            {p.row.transaction_date
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(p.row.transaction_date))
+              : ''}
+          </Typography>
         </Box>
       )
     }
@@ -147,12 +267,25 @@ const SpeciesDetailContent: React.FC<SpeciesDetailContentProps> = ({ tsnId, orgI
               <CardContent key={idx} sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Box
                   sx={{
-                    mb: 3, width: '100%', display: 'flex', alignItems: 'center',
-                    background: '#00ABAB1A', padding: '0.8rem', borderRadius: '0.5rem',
+                    mb: 3,
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    background: '#00ABAB1A',
+                    padding: '0.8rem',
+                    borderRadius: '0.5rem',
                     color: '#00AFD6'
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', background: '#AFEFEB', padding: '8px', borderRadius: '6px' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      background: '#AFEFEB',
+                      padding: '8px',
+                      borderRadius: '6px'
+                    }}
+                  >
                     <Icon icon='material-symbols:corporate-fare' />
                   </Box>
                   <Typography sx={{ color: '#00AFD6', marginLeft: '0.5rem', fontWeight: 'bold' }} variant='subtitle2'>
@@ -197,42 +330,50 @@ const SpeciesDetailContent: React.FC<SpeciesDetailContentProps> = ({ tsnId, orgI
       )}
 
       {/* Entries Table */}
-      <Card sx={{ mt: 4 }}>
+      <Card sx={{ mt: 4, p: 4 }}>
         <CardHeader
+          sx={{ p: 0 }}
           title={t('parivesh_module.entries')}
           action={
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Search
-                borderRadius='4px' width='200px'
-                placeholder={t('search') as string}
-                value={localSearch}
-                onClear={() => { setLocalSearch(''); setSearchValue('') }}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  setLocalSearch(e.target.value)
-                  debouncedSearch(e.target.value)
-                }}
-              />
-              <Button
-                variant='contained'
-                startIcon={<Icon icon='mdi:add' />}
-                sx={{ background: '#1F415B', '&:hover': { backgroundColor: '#0D2B3E' } }}
-                onClick={() => router.push(`/parivesh/home/new-entries/add`)}
-              >
-                {t('parivesh_module.new_entries')}
-              </Button>
-            </Box>
+            <Button
+              variant='contained'
+              startIcon={<Icon icon='mdi:add' />}
+              sx={{ background: '#1F415B', '&:hover': { backgroundColor: '#0D2B3E' } }}
+              onClick={addEventSidebarOpen}
+            >
+              {t('parivesh_module.new_entries')}
+            </Button>
           }
         />
         <CommonTable
-          columns={columns} indexedRows={rows} total={total} loading={entriesLoading}
+          columns={columns}
+          indexedRows={rows}
+          total={total}
+          loading={entriesLoading}
           paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
           setPaginationModel={(m: any) => setFilters({ page: m.page + 1, limit: m.pageSize })}
-          handleSortModel={handleSortModel} searchValue='' getRowHeight={() => 'auto'}
+          handleSortModel={handleSortModel}
+          searchValue=''
+          getRowHeight={() => 'auto'}
           onRowClick={() => {}}
           columnVisibilityModel={{ sl_no: false }}
-          externalTableStyle={{ '& .MuiDataGrid-cell': { padding: '12px 8px' }, '& .MuiDataGrid-row:hover': { cursor: 'default' } }}
+          externalTableStyle={{
+            '& .MuiDataGrid-cell': { padding: '12px 8px' },
+            '& .MuiDataGrid-row:hover': { cursor: 'default' }
+          }}
         />
       </Card>
+
+      <AddSpeciesNewEntry
+        drawerWidth={400}
+        addEventSidebarOpen={openDrawer}
+        handleSidebarClose={handleSidebarClose}
+        handleSubmitData={handleSubmitData}
+        resetForm={resetForm}
+        submitLoader={submitLoader}
+        editParams={editParams}
+        speciesDetails={speciesDetails}
+      />
     </>
   )
 }

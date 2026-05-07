@@ -50,8 +50,8 @@ const PariveshHousingPage: React.FC = () => {
 
   const isLoading = usersLoading || housingLoading || speciesLoading
 
-  const housingCsv = useMemo(() => housingData?.data ? jsonToCsv(housingData.data) : '', [housingData])
-  const speciesCsv = useMemo(() => speciesData?.data ? jsonToCsv(speciesData.data) : '', [speciesData])
+  const housingCsv = useMemo(() => housingData?.data ? jsonToCsv(housingData.data as any[]) : '', [housingData])
+  const speciesCsv = useMemo(() => speciesData?.data ? jsonToCsv(speciesData.data as any[]) : '', [speciesData])
 
   const handleSpeciesExport = () => {
     if (!speciesCsv) { Toaster({ type: 'error', message: t('something_went_wrong') }); return }

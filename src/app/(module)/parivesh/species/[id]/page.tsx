@@ -10,9 +10,9 @@ const SpeciesDetailPage = () => {
   const params = useParams<{ id: string }>()
   const searchParams = useSearchParams()
 
-  const tsnId = searchParams.get('tsn_id') || params?.id
-  const orgId = searchParams.get('org_id') || ''
-  const tsnRelation = searchParams.get('tsn_relation') || ''
+  const tsnId = searchParams?.get('tsn_id') || params?.id
+  const orgId = searchParams?.get('org_id') || ''
+  const tsnRelation = searchParams?.get('tsn_relation') || ''
 
   if (!tsnId) return null
 

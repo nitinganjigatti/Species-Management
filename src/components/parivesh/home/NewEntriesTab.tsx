@@ -364,6 +364,7 @@ const NewEntriesTab: React.FC = () => {
 
       <Card sx={{ p: 4 }}>
         <CardHeader
+          sx={{ p: 0 }}
           title={t('parivesh_module.new_entries')}
           action={
             <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>

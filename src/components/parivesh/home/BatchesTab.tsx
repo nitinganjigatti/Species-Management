@@ -182,7 +182,7 @@ const ReportedBatchesTable: React.FC = () => {
   return (
     <>
       <Card sx={{ p: 4 }}>
-        <CardHeader title={t('parivesh_module.to_be_submitted')} />
+        <CardHeader sx={{ p: 0 }} title={t('parivesh_module.to_be_submitted')} />
         <CommonTable
           columns={columns}
           indexedRows={rows}
@@ -393,7 +393,7 @@ const SubmittedBatchesTable: React.FC = () => {
 
   return (
     <Card sx={{ p: 4, mt: 4 }}>
-      <CardHeader title={t('parivesh_module.submitted_batches')} />
+      <CardHeader sx={{ p: 0 }} title={t('parivesh_module.submitted_batches')} />
       <CommonTable
         columns={columns}
         indexedRows={rows}

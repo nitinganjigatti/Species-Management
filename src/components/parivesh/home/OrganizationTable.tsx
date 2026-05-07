@@ -121,7 +121,7 @@ const OrganizationTable: React.FC = () => {
 
   return (
     <Card sx={{ p: 4 }}>
-      <CardHeader title={t('parivesh_module.approved_batches')} />
+      <CardHeader sx={{ p: 0 }} title={t('parivesh_module.approved_batches')} />
       <CommonTable
         columns={columns}
         indexedRows={rows}
