@@ -12,6 +12,9 @@ import Search from 'src/views/utility/Search'
 import { getNewIncomingPatientsLists } from 'src/lib/api/hospital/incomingPatient'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import HospitalTransferDrawer from 'src/components/housing/utils/HospitalTransferDrawer'
+import TransferFilterDrawer, {
+  TransferFilters as FilterDrawerValues
+} from 'src/components/housing/sites/HospitalTransferFilterDrawer'
 import {
   StyledTypographyProps,
   TransferFilters,
@@ -23,6 +26,8 @@ import {
 import { GridRenderCellParams, GridRowParams, GridColDef, GridPaginationModel } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
+import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNotification'
+import Utility from 'src/utility'
 
 const HospitalTransferListing = () => {
   const router = useSafeRouter()
@@ -38,6 +43,11 @@ const HospitalTransferListing = () => {
   const [filters, setFilters] = useState<TransferFilters>({ page_no: 1, limit: 10, search: '' })
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false)
   const [selectedTransferRow, setSelectedTransferRow] = useState<HospitalTransferRow | null>(null)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState<boolean>(false)
+  const [filterCount, setFilterCount] = useState<number>(0)
+  const [activeFilterValues, setActiveFilterValues] = useState<FilterDrawerValues>({
+    hospitalIds: []
+  })
 
   // Debounce search input
   const debouncedSearch = useMemo(() => debounce(setSearchQuery, 500), [])
@@ -60,7 +70,10 @@ const HospitalTransferListing = () => {
         entity_id: id,
         reference_type: 'hospital_transfer',
         transfer_status: activeTab,
-        request_from: 'mobile'
+        request_from: 'mobile',
+        ...(filters?.start_date && { start_date: filters.start_date }),
+        ...(filters?.end_date && { end_date: filters.end_date }),
+        ...(filters?.hospital_id && { hospital_id: filters.hospital_id })
       }),
     enabled: !!id,
     placeholderData: keepPreviousData
@@ -99,6 +112,21 @@ const HospitalTransferListing = () => {
     debouncedSearch('')
   }
 
+  const handleApplyFilters = (values: FilterDrawerValues): void => {
+    setActiveFilterValues(values)
+
+    const count = (values.startDate ? 1 : 0) + (values.hospitalIds.length > 0 ? 1 : 0)
+    setFilterCount(count)
+
+    setFilters(prev => ({
+      ...prev,
+      page_no: 1,
+      start_date: values.startDate ? Utility.formatDate(values.startDate) : undefined,
+      end_date: values.endDate ? Utility.formatDate(values.endDate) : undefined,
+      hospital_id: values.hospitalIds.length > 0 ? values.hospitalIds.join(',') : undefined
+    }))
+  }
+
   // Gets the label for a tab, including the item count if available
   const getTabLabel = (key: string, label: string): string => {
     if (isFetching && !data) return label
@@ -116,14 +144,14 @@ const HospitalTransferListing = () => {
     const transfer_type = item?.transfer_type
 
     const labels: Record<string, TransferStatusInfo> = {
-      pending: { label: 'Pending' },
-      cancelled: { label: 'Cancelled' },
-      rejected: { label: 'Rejected' },
-      completed: { label: 'Transfer Completed' },
-      awaitingApproval: { label: 'Awaiting Acceptance' },
-      loadingPending: { label: 'Loading Pending' },
-      checkoutPending: { label: 'Security Checkout Pending' },
-      checkingPending: { label: 'Security Checking Pending' }
+      pending: { label: t('animals_module.pending') },
+      cancelled: { label: t('animals_module.cancelled') },
+      rejected: { label: t('animals_module.rejected') },
+      completed: { label: t('animals_module.transfer_completed') },
+      awaitingApproval: { label: t('animals_module.awaiting_acceptance') },
+      loadingPending: { label: t('animals_module.loading_pending') },
+      checkoutPending: { label: t('animals_module.security_checkout_pending') },
+      checkingPending: { label: t('animals_module.security_checking_pending') }
     } as const
 
     // If transfer is explicitly canceled
@@ -312,14 +340,17 @@ const HospitalTransferListing = () => {
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, mb: 4 }}>
           <ListingHeader title={t('housing_module.hospital_transfer')} totalCount={total} />
-          <Search
-            width='300px'
-            placeholder={t('housing_module.search_by_animal_id') as string}
-            value={searchInput}
-            onChange={handleSearchChange}
-            onClear={handleSearchClear}
-            inputStyle={{ py: '12px', px: '12px' }}
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Search
+              width='250px'
+              placeholder={t('housing_module.search_by_animal_id') as string}
+              value={searchInput}
+              onChange={handleSearchChange}
+              onClear={handleSearchClear}
+              inputStyle={{ py: '12px', px: '12px' }}
+            />
+            <FilterButtonWithNotification onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={filterCount} />
+          </Box>
         </Box>
 
         <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
@@ -355,6 +386,12 @@ const HospitalTransferListing = () => {
           showQRCode={true}
         />
       )}
+      <TransferFilterDrawer
+        open={openFilterDrawer}
+        onClose={() => setOpenFilterDrawer(false)}
+        onApplyFilters={handleApplyFilters}
+        initialFilters={activeFilterValues}
+      />
     </>
   )
 }
