@@ -22,7 +22,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { DrawerType, DrawerData, SiteFilters, IndexedSiteRow, Site } from 'src/types/housing'
 import { GridCellParams, GridSortModel } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
-
+import { useSearchParams } from 'next/navigation'
 interface SiteListingProps {
   drawerType: DrawerType
   setDrawerType: (type: DrawerType) => void
@@ -52,8 +52,9 @@ const Listing: React.FC<SiteListingProps> = ({
   const { t } = useTranslation()
   const auth = useAuth()
   const { query } = router
+  const searchParams = useSearchParams()
 
-  const [inputValue, setInputValue] = useState<string>('')
+  const [inputValue, setInputValue] = useState<string>(searchParams?.get('search') || '')
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -185,24 +186,7 @@ const Listing: React.FC<SiteListingProps> = ({
   }))
 
   const handleRowClick = (params: GridCellParams): void => {
-    if (
-      params.field !== 'actions' &&
-      params.field !== 'id' &&
-      params.field !== 'species' &&
-      params.field !== 'animals' &&
-      params.field !== 'sections' &&
-      params.field !== 'enclosures' &&
-      params.field !== 'incharge'
-    ) {
-      const queryParams = new URLSearchParams()
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value !== '' && value !== null && value !== undefined) {
-          queryParams.set(key, String(value))
-        }
-      })
-      const search = queryParams.toString()
-      router.push(`/housing/sites/${(params.row as IndexedSiteRow).site_id}${search ? '?' + search : ''}`)
-    }
+    router.push(`/housing/sites/${(params.row as IndexedSiteRow).site_id}`)
   }
 
   const handleDownload = (): void => {
@@ -252,17 +236,25 @@ const Listing: React.FC<SiteListingProps> = ({
       headerName: t('housing_module.site_name'),
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <CellInfo
-          value={(params.row as IndexedSiteRow).site_name}
-          subtitle=''
-          color={theme.palette.customColors?.OnSurfaceVariant || ''}
-          subtitleColor={theme.palette.customColors?.OnSurfaceVariant || ''}
-          imgUrl={(params.row as IndexedSiteRow).images?.[0]?.file}
-          defaultImage={'/images/housing/site-icon-colored.svg'}
-          defaultImageAlt={'Site'}
-          avatarUrl=''
-          inchagename=''
-        />
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            handleRowClick(params)
+          }}
+        >
+          <CellInfo
+            value={(params.row as IndexedSiteRow).site_name}
+            subtitle=''
+            color={theme.palette.customColors?.OnSurfaceVariant || ''}
+            subtitleColor={theme.palette.customColors?.OnSurfaceVariant || ''}
+            imgUrl={(params.row as IndexedSiteRow).images?.[0]?.file}
+            defaultImage={'/images/housing/site-icon-colored.svg'}
+            defaultImageAlt={'Site'}
+            avatarUrl=''
+            inchagename=''
+          />
+        </Box>
       )
     },
     ...(insightsViewAccess
@@ -566,7 +558,7 @@ const Listing: React.FC<SiteListingProps> = ({
           }}
         >
           <CommonTable
-            onCellClick={handleRowClick}
+            // onCellClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}

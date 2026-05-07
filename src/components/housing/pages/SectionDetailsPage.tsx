@@ -57,6 +57,7 @@ interface StatItem {
 
 interface SectionDetailsPageProps {
   id: string
+  siteId?: string
 }
 
 const allTabConfig: TabConfigItem[] = [
@@ -82,7 +83,7 @@ const allTabConfig: TabConfigItem[] = [
   { labelKey: 'housing_module.food_wastage', value: 'foodWastage', component: FoodWastageListing }
 ]
 
-const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
+const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id, siteId }) => {
   const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
@@ -193,7 +194,6 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
     }
   ]
 
-  const siteId = (data?.data as any)?.site_id
   const siteName = (data?.data as any)?.site_name
   const editSectionAccess = Number((data?.data as any)?.is_system_generated) == 1
 
@@ -293,7 +293,9 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
           actions={{
             onAddNew: addEnclosureAccess ? () => setAddEnclosureDrawerOpen(true) : null,
             onEdit: addSectionAccess ? () => setShowEditSectionDrawer(true) : null,
-            onEditRestricted: editSectionAccess ? () => Toaster({ type: 'warning', message: t('system_generated_section_note_restrictions') as string }) : null,
+            onEditRestricted: editSectionAccess
+              ? () => Toaster({ type: 'warning', message: t('system_generated_section_note_restrictions') as string })
+              : null
           }}
           addNewTooltip={t('housing_module.add_new_enclosure') as string}
           editTooltip={t('housing_module.edit_section') as string}
@@ -337,6 +339,7 @@ const SectionDetailsPage: React.FC<SectionDetailsPageProps> = ({ id }) => {
               entityType='section'
               entityId={id || ''}
               entityDetails={data?.data}
+              siteId={siteId}
             />
           </Box>
         </Card>

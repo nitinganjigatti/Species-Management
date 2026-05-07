@@ -6,6 +6,7 @@ import { debounce, DebouncedFunc } from 'lodash'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'next/navigation'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -50,6 +51,7 @@ interface EnclosureListingProps {
   drawerData: DrawerData | null
   setDrawerData: (data: DrawerData | null) => void
   refetchEnclosure?: boolean
+  siteId?: string
 }
 
 interface PaginationModel {
@@ -64,19 +66,23 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
   setDrawerType,
   drawerData,
   setDrawerData,
-  refetchEnclosure
+  refetchEnclosure,
+  siteId
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
   const router = useSafeRouter()
   const { id } = router.query
+  const sectionId = (router.query.sectionId as string) || (id as string)
+
   const auth = useAuth()
 
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   const zooId = (auth as any)?.userData?.user?.zoos?.[0]?.zoo_id
 
-  const [inputValue, setInputValue] = useState<string>('')
+  const searchParams = useSearchParams()
+  const [inputValue, setInputValue] = useState<string>(searchParams?.get('enclosureSearch') || '')
   const [downloading, setDownloading] = useState<boolean>(false)
   const [totalCount, setTotalCount] = useState<number>(0)
 
@@ -89,10 +95,10 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
   })
 
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['enclosures', id, filters, refetchEnclosure],
+    queryKey: ['enclosures', sectionId, filters, refetchEnclosure],
     queryFn: () =>
       getEnclosureListSectionWise({
-        section_id: Number(id),
+        section_id: Number(sectionId),
         page_no: filters.page,
         limit: filters.pageSize,
         q: filters.search,
@@ -114,11 +120,8 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
   const total: number = data?.data?.total_count || 0
 
   const updateUrlParams = (updatedFilters: EnclosureFilters): void => {
-    const currentQuery = { ...router.query }
-
     // Update only the section-related filter keys
     const updatedQuery = {
-      ...currentQuery,
       enclosurePage: updatedFilters.page,
       enclosurePageSize: updatedFilters.pageSize,
       enclosureSearch: updatedFilters.search,
@@ -213,7 +216,6 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
       sortBy: (router.query.enclosureSortBy as string) || '',
       sortOrder: (router.query.enclosureSortOrder as string) || 'asc'
     }))
-    setInputValue((router.query.enclosureSearch as string) || '')
   }, [
     router.query.enclosurePage,
     router.query.enclosurePageSize,
@@ -249,13 +251,21 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
       headerName: t('enclosures') as string,
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <SpeciesCard
-          species={{
-            common_name: params.row.user_enclosure_name,
-            scientific_name: params.row.parent_enclosure_name ? `P. Encl: ${params.row.parent_enclosure_name}` : '',
-            default_icon: params.row.image
+        <Box
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            onRowClick(params)
           }}
-        />
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        >
+          <SpeciesCard
+            species={{
+              common_name: params.row.user_enclosure_name,
+              scientific_name: params.row.parent_enclosure_name ? `P. Encl: ${params.row.parent_enclosure_name}` : '',
+              default_icon: params.row.image
+            }}
+          />
+        </Box>
       )
     },
     ...(insightsViewAccess
@@ -378,15 +388,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
   }
 
   const onRowClick = (params: GridCellParams): void => {
-    if (
-      params.field !== 'id' &&
-      params.field !== 'species_count' &&
-      params.field !== 'enclosure_wise_animal_count' &&
-      params.field !== 'sub_enclosure_count' &&
-      params.field !== 'site_name'
-    ) {
-      router.push(`/housing/enclosure/${params.row.enclosure_id}?enclosureTab=enclosures`)
-    }
+    router.push(`/housing/sites/${siteId}/section/${sectionId}/enclosure/${params.row.enclosure_id}`)
   }
 
   return (

@@ -3,6 +3,7 @@ import { Box, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'next/navigation'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import { getAllSections } from 'src/lib/api/housing'
@@ -49,8 +50,9 @@ const SectionListing: React.FC<SectionListingProps> = ({
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
+  const searchParams = useSearchParams()
   const [downloading, setDownloading] = useState<boolean>(false)
-  const [inputValue, setInputValue] = useState<string>('')
+  const [inputValue, setInputValue] = useState<string>(searchParams?.get('sectionSearch') || '')
 
   const [filters, setFilters] = useState<SectionFilters>({
     page: 1,
@@ -84,11 +86,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
   const total: number = data?.data?.total_count || 0
 
   const updateUrlParams = (updatedFilters: SectionFilters): void => {
-    const currentQuery = { ...router.query }
-
-    // Update only the section-related filter keys
     const updatedQuery = {
-      ...currentQuery,
       sectionPage: updatedFilters.page,
       sectionPageSize: updatedFilters.pageSize,
       sectionSearch: updatedFilters.search,
@@ -203,33 +201,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
   }
 
   const handleRowClick = (params: GridCellParams): void => {
-    if (
-      params.field !== 'actions' &&
-      params.field !== 'id' &&
-      params.field !== 'species' &&
-      params.field !== 'animals' &&
-      params.field !== 'sections' &&
-      params.field !== 'enclosures'
-    ) {
-      const query = { ...router.query }
-      delete query.tab
-      delete query.id
-      router.push(
-        {
-          pathname: `/housing/sections/${(params.row as IndexedSectionRow).section_id}`,
-          query: {
-            ...query,
-            sectionPage: filters.page,
-            sectionPageSize: filters.pageSize,
-            sectionSearch: filters.search,
-            sectionSortBy: filters.sortBy,
-            sectionSortOrder: filters.sortOrder
-          }
-        },
-        undefined,
-        { shallow: true }
-      )
-    }
+    router.push(`/housing/sites/${id}/section/${(params.row as IndexedSectionRow).section_id}`)
   }
 
   useEffect(() => {
@@ -297,17 +269,25 @@ const SectionListing: React.FC<SectionListingProps> = ({
       headerName: t('housing_module.section_name'),
       sortable: false,
       renderCell: (params: GridCellParams) => (
-        <CellInfo
-          value={(params.row as IndexedSectionRow).section_name}
-          subtitle={''}
-          color={theme.palette.customColors?.OnSurfaceVariant || ''}
-          subtitleColor={theme.palette.customColors?.OnSurfaceVariant || ''}
-          imgUrl={(params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')?.file}
-          defaultImage={'/images/housing/section-icon-colored.png'}
-          defaultImageAlt={'Section'}
-          avatarUrl={''}
-          inchagename={''}
-        />
+        <Box
+          onClick={(e: React.MouseEvent) => {
+            e.stopPropagation()
+            handleRowClick(params)
+          }}
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        >
+          <CellInfo
+            value={(params.row as IndexedSectionRow).section_name}
+            subtitle={''}
+            color={theme.palette.customColors?.OnSurfaceVariant || ''}
+            subtitleColor={theme.palette.customColors?.OnSurfaceVariant || ''}
+            imgUrl={(params.row as IndexedSectionRow).images?.find((img: any) => img?.display_type === 'banner')?.file}
+            defaultImage={'/images/housing/section-icon-colored.png'}
+            defaultImageAlt={'Section'}
+            avatarUrl={''}
+            inchagename={''}
+          />
+        </Box>
       )
     },
     ...(insightsViewAccess
@@ -556,7 +536,6 @@ const SectionListing: React.FC<SectionListingProps> = ({
           }}
         >
           <CommonTable
-            onCellClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
