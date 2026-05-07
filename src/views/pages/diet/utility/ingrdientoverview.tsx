@@ -4,13 +4,14 @@ import {
   CardContent,
   CardHeader,
   FormControl,
-  Grid,
+  Grid as GridBase,
   InputLabel,
   MenuItem,
   OutlinedInput,
   Select,
   Typography
 } from '@mui/material'
+const Grid = GridBase as any
 import SwapCallsIcon from '@mui/icons-material/SwapCalls'
 import styled from '@emotion/styled'
 import Icon from 'src/@core/components/icon'

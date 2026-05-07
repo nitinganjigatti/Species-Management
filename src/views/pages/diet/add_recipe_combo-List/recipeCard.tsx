@@ -3,7 +3,8 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import Divider from '@mui/material/Divider'
-import Avatar from 'src/@core/components/mui/avatar'
+import AvatarBase from 'src/@core/components/mui/avatar'
+const Avatar = AvatarBase as any
 import Button from '@mui/material/Button'
 import DoneIcon from '@mui/icons-material/Done'
 import { Fragment, useEffect, useState } from 'react'
@@ -54,7 +55,7 @@ const RecipeCard = ({
 
   const theme = useTheme()
   const { t } = useTranslation()
-  const [selectedCount, setSelectedCount] = useState<any[]>([])
+  const [selectedCount, setSelectedCount] = useState<any>([])
   const [selectedDays, setSelectedDays] = useState<any>()
   const [validationErrors, setValidationErrors] = useState<any[]>([])
 
@@ -182,7 +183,7 @@ const RecipeCard = ({
         if (updatedDay) {
           return updatedDay
         } else {
-          const existingDay = selectedDays?.find(existing => existing.cardId === row.id)
+          const existingDay = selectedDays?.find((existing: any) => existing.cardId === row.id)
 
           return existingDay || { cardId: row.id, days: Day }
         }
@@ -204,7 +205,7 @@ const RecipeCard = ({
       searchValue
     ) {
       const finalSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find((prev: any) => prev.cardId === row.id)
 
         const enabledAllDays = Day.map(day => ({
           id: day.id,
@@ -236,7 +237,7 @@ const RecipeCard = ({
       const previousSelectedDays = selectedDays || []
 
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find((prev: any) => prev.cardId === row.id)
 
         if (previousDay) {
           return previousDay
@@ -257,7 +258,7 @@ const RecipeCard = ({
       const previousSelectedDays = selectedDays || []
 
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays?.find(prev => prev.cardId === row.id)
+        const previousDay = previousSelectedDays?.find((prev: any) => prev.cardId === row.id)
 
         if (previousDay) {
           return previousDay
@@ -289,7 +290,7 @@ const RecipeCard = ({
   }, [allRecipeSelectedValues, checkid, formData, rows, addEventSidebarOpen, searchValue])
 
   const handleSelectedDays = (dayId: any, dayName: any, cardId: any) => {
-    let updatedDays = selectedDays.map(card => {
+    let updatedDays = selectedDays.map((card: any) => {
       if (card.cardId !== cardId) {
         return card
       }
@@ -298,14 +299,14 @@ const RecipeCard = ({
 
       if (dayId === 0) {
         // Toggle All
-        const isAllCurrentlyActive = card.days.find(d => d.id === 0)?.isActive
-        updatedCard.days = updatedCard.days.map(day => ({
+        const isAllCurrentlyActive = card.days.find((d: any) => d.id === 0)?.isActive
+        updatedCard.days = updatedCard.days.map((day: any) => ({
           ...day,
           isActive: !isAllCurrentlyActive
         }))
       } else {
         // Toggle specific day
-        updatedCard.days = updatedCard.days.map(day => {
+        updatedCard.days = updatedCard.days.map((day: any) => {
           if (day.id === dayId) {
             return {
               ...day,
@@ -316,10 +317,10 @@ const RecipeCard = ({
         })
 
         // Check if all individual days are selected
-        const anyDayUnselected = updatedCard.days.filter(d => d.id !== 0).some(day => !day.isActive)
+        const anyDayUnselected = updatedCard.days.filter((d: any) => d.id !== 0).some((day: any) => !day.isActive)
 
         // Update 'All' day status based on whether all other days are selected
-        updatedCard.days = updatedCard.days.map(day => {
+        updatedCard.days = updatedCard.days.map((day: any) => {
           if (day.id === 0) {
             return {
               ...day,
@@ -336,30 +337,30 @@ const RecipeCard = ({
     setSelectedDays(updatedDays)
 
     // Remove validation error for this card if it now has at least one day selected
-    const updatedCard = updatedDays.find(c => c.cardId === cardId)
-    const activeDaysCount = updatedCard?.days.filter(d => d.isActive && d.id !== 0).length || 0
+    const updatedCard = updatedDays.find((c: any) => c.cardId === cardId)
+    const activeDaysCount = updatedCard?.days.filter((d: any) => d.isActive && d.id !== 0).length || 0
     if (activeDaysCount > 0) {
       setValidationErrors(prevErrors => prevErrors.filter(id => id !== cardId))
     }
   }
 
-  const handleCardClick = item => {
+  const handleCardClick = (item: any, _index?: any) => {
     const index = selectedCardRecipe.findIndex(card => card.id === item.id)
 
     const selectedDaysForItem = Day.filter(day =>
       selectedDays.some(
-        selectedDay =>
-          selectedDay.cardId === item.id && selectedDay.days.some(selectedDay => selectedDay.dayId === day.id)
+        (selectedDay: any) =>
+          selectedDay.cardId === item.id && selectedDay.days.some((selectedDay: any) => selectedDay.dayId === day.id)
       )
     )
 
     const daysSelected = selectedDaysForItem.length > 0
 
     if (index !== -1) {
-      setSelectedCardRecipe(prevValues => prevValues.filter(card => card.id !== item.id))
-      setValidationErrors(prevValues => prevValues.filter(id => id !== item.id))
+      setSelectedCardRecipe((prevValues: any) => prevValues.filter((card: any) => card.id !== item.id))
+      setValidationErrors((prevValues: any) => prevValues.filter((id: any) => id !== item.id))
     } else {
-      setSelectedCardRecipe(prevValues => {
+      setSelectedCardRecipe((prevValues: any) => {
         if (daysSelected) {
           setSelectedCount(selectedCardRecipe.length)
         }
@@ -377,8 +378,8 @@ const RecipeCard = ({
     }
 
     const invalidRecipes = selectedCardRecipe.filter(item => {
-      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
-      const activeDays = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0) || []
+      const selectedDaysForItem = selectedDays.find((selectedDay: any) => selectedDay.cardId === item.id)
+      const activeDays = selectedDaysForItem?.days.filter((d: any) => d.isActive && d.id !== 0) || []
 
       return activeDays.length === 0
     })
@@ -391,16 +392,16 @@ const RecipeCard = ({
     }
 
     const filteredItems = selectedCardRecipe.map(item => {
-      const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
+      const selectedDaysForItem = selectedDays.find((selectedDay: any) => selectedDay.cardId === item.id)
 
-      const selectedDayNames = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.name) || []
-      const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive && d.id !== 0).map(d => d.id) || []
+      const selectedDayNames = selectedDaysForItem?.days.filter((d: any) => d.isActive).map((d: any) => d.name) || []
+      const selectedDayId = selectedDaysForItem?.days.filter((d: any) => d.isActive && d.id !== 0).map((d: any) => d.id) || []
 
       const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
 
-      const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
-      const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
-      const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
+      const ingredientNames = item?.ingredients?.map((ingredient: any) => ingredient.ingredient_name)
+      const quantity = item?.ingredients?.map((ingredient: any) => ingredient.quantity)
+      const quantityper = item?.ingredients?.map((ingredient: any) => ingredient.quantity_type)
 
       const existingCard = selectedCardRecipe.find(card => card.id === item.id)
 
@@ -535,7 +536,7 @@ const RecipeCard = ({
                       </>
                     ) : (
                       <Avatar
-                        variant='round'
+                        variant={'rounded' as any}
                         alt='Ingredient Image'
                         sx={{
                           width: '54.4px',
@@ -566,7 +567,7 @@ const RecipeCard = ({
                         </Typography>
                       </Tooltip>
                       <Typography
-                        variant='body'
+                        variant={'body2' as any}
                         sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
                       >
                         {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
@@ -611,7 +612,7 @@ const RecipeCard = ({
                         {t('diet_module.cut_size')}
                       </Typography>
                     </Box>
-                    {item.ingredients.map((ingredient, index) => (
+                    {item.ingredients.map((ingredient: any, index: any) => (
                       <Box
                         key={index}
                         sx={{
@@ -731,9 +732,9 @@ const RecipeCard = ({
                             fontSize: 11,
                             fontWeight: 'bold',
                             bgcolor: selectedDays?.find(
-                              selectedDay =>
+                              (selectedDay: any) =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay?.days?.find(d => d.id === day.id && d.isActive)
+                                selectedDay?.days?.find((d: any) => d.id === day.id && d.isActive)
                             )
                               ? '#203e56'
                               : '#dedede',
@@ -744,9 +745,9 @@ const RecipeCard = ({
                             cursor: 'pointer',
 
                             color: selectedDays?.find(
-                              selectedDay =>
+                              (selectedDay: any) =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay?.days?.find(d => d.id === day.id && d.isActive)
+                                selectedDay?.days?.find((d: any) => d.id === day.id && d.isActive)
                             )
                               ? 'white'
                               : 'black'

@@ -11,7 +11,7 @@ import {
   Typography
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 import { useContext, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { getMealGroupList, AddEnclosureToExistng } from 'src/lib/api/diet/mealgroup'
@@ -50,7 +50,7 @@ const AddEnclosureToGroup: React.FC<Props> = ({
 }) => {
   const theme = useTheme()
   const { t } = useTranslation()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const [groupList, setGroupList] = useState<any[]>([])
   const [groupId, setGroupId] = useState<string>('')
   const [selectedEnclosureIds, setSelectedEnclosureIds] = useState<any[]>([])
@@ -104,8 +104,8 @@ const AddEnclosureToGroup: React.FC<Props> = ({
   const showToast = (message: string, type: string = 'error') => {
     if (toastLock.current) return
 
-    toastLock.current = true
-    toast[type](message)
+    toastLock.current = true;
+    (toast as any)[type](message)
 
     setTimeout(() => {
       toastLock.current = false
@@ -156,8 +156,6 @@ const AddEnclosureToGroup: React.FC<Props> = ({
     return (
       <Box
         sx={{
-          position: 'fixed',
-          right: 0,
           height: '80px',
           width: '100%',
           maxWidth: '562px',

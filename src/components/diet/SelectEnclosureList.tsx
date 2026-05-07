@@ -346,6 +346,8 @@ const SelectEnclosureList: React.FC<SelectEnclosureListProps> = ({
                           src={enclosure?.default_icon}
                           fallback='/images/housing/enclosure-icon-colored.svg'
                           variant='rounded'
+                          onLoad={() => {}}
+                          onError={() => {}}
                           sx={{
                             backgroundColor: theme.palette.customColors.displaybgPrimary,
                             p: enclosure?.default_icon ? 0 : 2,

@@ -39,7 +39,7 @@ interface Props {
 const AddEditDropPoint = (props: Props) => {
   const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
   const { t } = useTranslation()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const allSites = authData?.userData?.user?.zoos?.[0]?.sites || []
   const sites = React.useMemo(() => {
     return Array.from(new Map(allSites.map((site: any) => [site.site_id, site])).values())
@@ -182,7 +182,7 @@ const AddEditDropPoint = (props: Props) => {
 
           <ControlledTextField
             name='drop_point_name'
-            label={t('diet_module.drop_point_name')}
+            label={t('diet_module.drop_point_name') ?? undefined}
             control={control}
             errors={errors}
             required={true}

@@ -172,7 +172,7 @@ const AddCutSize = (props: Props) => {
                 />
               )}
             />
-            {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{errors.label.message}</FormHelperText>}
+            {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{String((errors as any).label?.message ?? '')}</FormHelperText>}
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 6 }}>
@@ -194,7 +194,7 @@ const AddCutSize = (props: Props) => {
                 />
               )}
             />
-            {errors.comments && <FormHelperText sx={{ color: 'error.main' }}>{errors.comments.message}</FormHelperText>}
+            {errors.comments && <FormHelperText sx={{ color: 'error.main' }}>{String((errors as any).comments?.message ?? '')}</FormHelperText>}
           </FormControl>
 
           {editParams?.id !== null ? (

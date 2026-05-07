@@ -39,7 +39,7 @@ import {
   removeMealGroup,
   updateMealGroup
 } from 'src/lib/api/diet/mealgroup'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import useSafeRouter from 'src/hooks/useSafeRouter';
 import { useParams, useSearchParams } from 'next/navigation';
@@ -62,27 +62,27 @@ const MealGroup = () => {
   const searchParams = useSearchParams();
   const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
   const { t } = useTranslation()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const theme = useTheme()
   const allSites = authData?.userData?.user?.zoos?.[0]?.sites || []
-  const uniqueSites = Array.from(new Map(allSites.map(site => [site.site_id, site])).values())
+  const uniqueSites = Array.from(new Map(allSites.map((site: any) => [site.site_id, site])).values())
   const firstSite = uniqueSites?.[0] || null
 
-  const updateUrlParams = params => {
+  const updateUrlParams = (params: any) => {
     const query = { ...routerQuery, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.push({ pathname: (router as any).pathname, query } as any)
   }
 
   const [defaultSite, setDefaultSite] = useState(firstSite)
 
-  const [selectedOption, setSelectedOption] = useState(
-    routerQuery.site_id ? routerQuery.site_id : firstSite?.site_id || ''
+  const [selectedOption, setSelectedOption] = useState<any>(
+    routerQuery.site_id ? routerQuery.site_id : (firstSite as any)?.site_id || ''
   )
   const [status, setStatus] = useState(routerQuery.status || 'unmapped')
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [enclosureList, setEnclosureList] = useState([])
-  const [menuGroupList, setMenuGroupList] = useState([])
+  const [enclosureList, setEnclosureList] = useState<any[]>([])
+  const [menuGroupList, setMenuGroupList] = useState<any[]>([])
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
   const [openDeleteEnclosureDialog, setopenDeleteEnclosureDialog] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
@@ -92,13 +92,13 @@ const MealGroup = () => {
   const [Loader, setLoader] = useState(false)
 
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(routerQuery.page) || 0,
-    pageSize: parseInt(routerQuery.limit) || 50
+    page: parseInt(routerQuery.page as string) || 0,
+    pageSize: parseInt(routerQuery.limit as string) || 50
   })
-  const [originalItems, setOriginalItems] = useState([])
-  const [selectedItems, setSelectedItems] = useState([])
+  const [originalItems, setOriginalItems] = useState<any[]>([])
+  const [selectedItems, setSelectedItems] = useState<any[]>([])
   const [enclosureDrawer, setEnclosureDrawer] = useState(false)
-  const [editeditems, setEditItems] = useState([])
+  const [editeditems, setEditItems] = useState<any[]>([])
 
   const [siteStats, setSiteStats] = useState({
     meal_groups_count: '0',
@@ -108,11 +108,11 @@ const MealGroup = () => {
     total_animals: '',
     total_species: ''
   })
-  const [sectionList, setSectionList] = useState([])
+  const [sectionList, setSectionList] = useState<any[]>([])
   const [selectedSection, setSelectedSection] = useState('all') // new state to hold selected value
-  const [speciesList, setSpeciesList] = useState([])
+  const [speciesList, setSpeciesList] = useState<any[]>([])
   const [selectedSpecies, setSelectedSpecies] = useState('all')
-  const [groupList, setGroupList] = useState([])
+  const [groupList, setGroupList] = useState<any[]>([])
   const [selectedGroup, setSelectedGroup] = useState('all')
   const [editParam, setEditParam] = useState({})
   const [searchValue, setSearchValue] = useState('')
@@ -135,10 +135,10 @@ const MealGroup = () => {
       if (siteIdFromQuery) {
         console.log('All Sites >', allSites[0])
 
-        const matchedSite = uniqueSites.find(site => site.site_id == siteIdFromQuery)
+        const matchedSite = (uniqueSites as any[]).find((site: any) => site.site_id == siteIdFromQuery)
         if (matchedSite) {
           setDefaultSite(matchedSite)
-          setSelectedOption(matchedSite.site_id)
+          setSelectedOption((matchedSite as any).site_id)
 
           return
         }
@@ -148,47 +148,45 @@ const MealGroup = () => {
       const first = uniqueSites?.[0] || null
       if (first) {
         setDefaultSite(first)
-        setSelectedOption(first.site_id)
+        setSelectedOption((first as any).site_id)
         router.replace(
           {
-            pathname: router.pathname,
-            query: { ...routerQuery, site_id: first.site_id }
-          },
-          undefined,
-          { shallow: true }
+            pathname: (router as any).pathname,
+            query: { ...routerQuery, site_id: (first as any).site_id }
+          } as any
         )
       }
     }
   }, [routerQuery.site_id])
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
-  const [checkedRows, setCheckedRows] = useState([])
-  const [checkedMealGroups, setCheckedMealGroups] = useState([])
+  const [checkedRows, setCheckedRows] = useState<any[]>([])
+  const [checkedMealGroups, setCheckedMealGroups] = useState<any[]>([])
 
   console.log('Checked >>', checkedRows, selectedItems)
 
-  const handleSectionChange = event => {
+  const handleSectionChange = (event: any) => {
     const value = event.target.value
     setSelectedSection(value) // value is string
     setCheckedRows([])
   }
 
-  const handleSpeciesChange = event => {
+  const handleSpeciesChange = (event: any) => {
     const value = event.target.value
     setSelectedSpecies(value) // value is string
     setCheckedRows([])
   }
 
-  const handleGroupChange = event => {
+  const handleGroupChange = (event: any) => {
     const value = event.target.value
     setSelectedGroup(value) // value is string
     setCheckedRows([])
   }
 
-  const handleCheckboxChange = (e, row) => {
+  const handleCheckboxChange = (e: any, row: any) => {
     const id = row.enclosure_id
 
     if (e.target.checked) {
@@ -200,7 +198,7 @@ const MealGroup = () => {
     }
   }
 
-  const handleSelectAll = e => {
+  const handleSelectAll = (e: any) => {
     if (e.target.checked) {
       const allIds = enclosureList.map(item => item.enclosure_id)
       setCheckedRows(allIds)
@@ -211,7 +209,7 @@ const MealGroup = () => {
     }
   }
 
-  const handleMealGroupCheckboxChange = (e, row) => {
+  const handleMealGroupCheckboxChange = (e: any, row: any) => {
     e.stopPropagation()
 
     // Don't allow selection if drop point is assigned
@@ -228,7 +226,7 @@ const MealGroup = () => {
     }
   }
 
-  const handleMealGroupSelectAll = e => {
+  const handleMealGroupSelectAll = (e: any) => {
     if (e.target.checked) {
       // Only select meal groups that don't have drop points
       const selectableIds = menuGroupList.filter(item => !item.drop_point_id).map(item => item.id)
@@ -238,7 +236,7 @@ const MealGroup = () => {
     }
   }
 
-  const handleRemoveDropPoint = async (e, mealGroup) => {
+  const handleRemoveDropPoint = async (e: any, mealGroup: any) => {
     e.stopPropagation()
 
     if (!mealGroup.drop_point_id) {
@@ -267,7 +265,7 @@ const MealGroup = () => {
     }
   }
 
-  const fetchEnclosure = async passedParams => {
+  const fetchEnclosure = async (passedParams?: any) => {
     if (!selectedOption) return
 
     setLoading(true)
@@ -406,17 +404,17 @@ const MealGroup = () => {
     [selectedOption] // ✅ make sure to track this
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setSearchValue(value)
     debouncedSearch(value)
   }
 
-  const handleEnclosureSearch = value => {
+  const handleEnclosureSearch = (value: any) => {
     setSearchValue(value)
     debouncedEnclosureSearch(value)
   }
 
-  const handleEditSearch = (value, mealId) => {
+  const handleEditSearch = (value: any, mealId: any) => {
     setEditSearchValue(value)
     debouncedEditEnclosureSearch(value, mealId)
   }
@@ -445,8 +443,8 @@ const MealGroup = () => {
         limit: paginationModel.pageSize
       })
       if (response.success) {
-        const uniqueSections = Array.from(new Map(response.data.result.map(item => [item.section_id, item])).values())
-        setSectionList(uniqueSections)
+        const uniqueSections = Array.from(new Map(response.data.result.map((item: any) => [item.section_id, item])).values())
+        setSectionList(uniqueSections as any[])
       } else {
         console.error('Failed to fetch site stats:', response?.message || 'Unknown error')
       }
@@ -462,8 +460,8 @@ const MealGroup = () => {
         limit: paginationModel.pageSize
       })
       if (response.success) {
-        const uniqueSpecies = Array.from(new Map(response.data.result.map(item => [item.species_id, item])).values())
-        setSpeciesList(uniqueSpecies)
+        const uniqueSpecies = Array.from(new Map(response.data.result.map((item: any) => [item.species_id, item])).values())
+        setSpeciesList(uniqueSpecies as any[])
       } else {
         console.error('Failed to fetch site species:', response?.message || 'Unknown error')
       }
@@ -481,8 +479,8 @@ const MealGroup = () => {
     try {
       const response = await getMealGroupList(groupparams)
       if (response.success) {
-        const uniqueGroups = Array.from(new Map(response.data.result.map(item => [item.id, item])).values())
-        setGroupList(uniqueGroups)
+        const uniqueGroups = Array.from(new Map(response.data.result.map((item: any) => [item.id, item])).values())
+        setGroupList(uniqueGroups as any[])
       } else {
         console.error('Failed to fetch group names', response?.message || 'Unknown error')
       }
@@ -513,7 +511,7 @@ const MealGroup = () => {
     selectedGroup
   ])
 
-  const StatCard = ({ value, label, bgColor, textColor }) => (
+  const StatCard = ({ value, label, bgColor, textColor }: any) => (
     <Card
       sx={{
         backgroundColor: bgColor,
@@ -563,7 +561,7 @@ const MealGroup = () => {
     </Card>
   )
 
-  const FooterCard = ({ count }) => {
+  const FooterCard = ({ count }: any) => {
     return (
       <>
         <Box
@@ -619,7 +617,7 @@ const MealGroup = () => {
     )
   }
 
-  const TabBadge = ({ label, totalCount }) => (
+  const TabBadge = ({ label, totalCount }: any) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
       {totalCount ? (
@@ -628,7 +626,7 @@ const MealGroup = () => {
     </div>
   )
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setStatus(newValue)
     setSelectedSection('all')
     setSelectedGroup('all')
@@ -642,7 +640,7 @@ const MealGroup = () => {
     setEditParam({})
   }
 
-  const handleEnclosureEvent = async (event, id) => {
+  const handleEnclosureEvent = async (event: any, id: any) => {
     event.stopPropagation()
     try {
       setEnclosureDrawer(true)
@@ -672,7 +670,7 @@ const MealGroup = () => {
     }
   }
 
-  const handleRemove = (event, id) => {
+  const handleRemove = (event: any, id: any) => {
     event.stopPropagation()
     setDeleteId(id)
     setOpenDeleteDialog(true)
@@ -706,7 +704,7 @@ const MealGroup = () => {
     }
   }
 
-  const handleEdit = async (event, row) => {
+  const handleEdit = async (event: any, row: any) => {
     console.log('Row Detail >', row)
     event.stopPropagation()
 
@@ -811,7 +809,7 @@ const MealGroup = () => {
       // setEnclosureDrawer(true)
       setAddEnclosureDrawer(true)
       setLoader(true)
-      setGroupId('')
+      setGroupId(null)
 
       const params = {
         type: 'unmapped',
@@ -827,7 +825,7 @@ const MealGroup = () => {
         const list = response.data.result || []
 
         // Filter the list to only include items whose enclosure_id is in checkedRows
-        const selected = list.filter(item => checkedRows.includes(item.enclosure_id))
+        const selected = list.filter((item: any) => checkedRows.includes(item.enclosure_id))
 
         setSelectedItems(selected)
       } else {
@@ -897,7 +895,7 @@ const MealGroup = () => {
           </Box>
         )
       },
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box
           sx={{
             display: 'flex',
@@ -921,7 +919,6 @@ const MealGroup = () => {
               variant='body2'
               sx={{
                 textAlign: 'center',
-                color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '16px',
                 fontWeight: 500,
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -969,12 +966,11 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography
           variant='body2'
           sx={{
             textAlign: 'center',
-            color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: 400,
@@ -1017,12 +1013,11 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography
           variant='body2'
           sx={{
             textAlign: 'center',
-            color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             color: '#44544A',
             fontWeight: 400,
@@ -1064,12 +1059,11 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography
           variant='body2'
           sx={{
             textAlign: 'center',
-            color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             fontWeight: 400,
             color: theme.palette.customColors.OnSurfaceVariant,
@@ -1111,7 +1105,7 @@ const MealGroup = () => {
           </Box>
         </>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box
           sx={{
             display: 'flex',
@@ -1228,7 +1222,7 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box
           sx={{
             display: 'flex',
@@ -1295,7 +1289,7 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           <Tooltip title={params.row.section_name}>
             <Typography
@@ -1349,7 +1343,7 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography
           variant='body2'
           sx={{
@@ -1395,7 +1389,7 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography
           variant='body2'
           sx={{
@@ -1441,7 +1435,7 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography
           variant='body2'
           sx={{
@@ -1461,15 +1455,15 @@ const MealGroup = () => {
     }
   ]
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = enclosureList?.map((row, index) => ({
+  const indexedRows = enclosureList?.map((row: any, index: any) => ({
     ...row,
     id: `${row.enclosure_id}`,
     sl_no: getSlNo(index)
   }))
 
-  const GroupindexedRows = menuGroupList?.map((row, index) => ({
+  const GroupindexedRows = menuGroupList?.map((row: any, index: any) => ({
     // console.log
     ...row,
     id: `${row.id}`,
@@ -1478,17 +1472,15 @@ const MealGroup = () => {
 
   console.log('Indexed >', indexedRows)
 
-  const handleSiteChange = site => {
+  const handleSiteChange = (site: any) => {
     if (!site) {
       setDefaultSite(null)
       setSelectedOption(null)
       router.replace(
         {
-          pathname: router.pathname,
+          pathname: (router as any).pathname,
           query: { ...routerQuery, site_id: undefined }
-        },
-        undefined,
-        { shallow: true }
+        } as any
       )
     } else {
       setDefaultSite(site)
@@ -1504,11 +1496,11 @@ const MealGroup = () => {
     }
   }
 
-  const addEventSidebarOpen = event => {
+  const addEventSidebarOpen = (event: any) => {
     event.stopPropagation()
 
     // Collect selected row objects from checkedRows
-    const selected = enclosureList.filter(row => checkedRows.includes(row.enclosure_id))
+    const selected = enclosureList.filter((row: any) => checkedRows.includes(row.enclosure_id))
 
     setSelectedItems(selected)
     setEditParam({})
@@ -1521,7 +1513,7 @@ const MealGroup = () => {
     setOpenDrawer(false)
   }
 
-  const handleView = async parm => {
+  const handleView = async (parm: any) => {
     setLoader(true)
     setOpenDrawer(true)
     setEditParam(parm.row)
@@ -1588,50 +1580,41 @@ const MealGroup = () => {
                 {t('diet_module.meal_group_site')} -
               </Typography>
 
-              <Autocomplete
-                sx={{
+              {React.createElement(Autocomplete as any, {
+                sx: {
                   width: '100%',
                   maxWidth: { sm: '276px' },
                   borderRadius: '8px',
-                  '& .MuiInputBase-input': {
-                    color: '#fff'
-                  },
-                  '& .MuiAutocomplete-listbox': {
-                    color: '#fff'
-                  }
-                }}
-                name='site_id'
-                value={defaultSite}
-                disablePortal
-                id='site_id'
-                // clearIcon={firstSite?.site_id ? true: false}
-                disableClearable={defaultSite?.site_id === firstSite?.site_id}
-                options={uniqueSites}
-                getOptionLabel={option => option?.site_name || ''}
-                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                onChange={(e, val) => handleSiteChange(val)}
-                renderOption={(props, option) => (
+                  '& .MuiInputBase-input': { color: '#fff' },
+                  '& .MuiAutocomplete-listbox': { color: '#fff' }
+                },
+                name: 'site_id',
+                value: defaultSite,
+                disablePortal: true,
+                id: 'site_id',
+                disableClearable: (defaultSite as any)?.site_id === (firstSite as any)?.site_id,
+                options: uniqueSites as any[],
+                getOptionLabel: (option: any) => option?.site_name || '',
+                isOptionEqualToValue: (option: any, value: any) => option?.site_id === value?.site_id,
+                onChange: (e: any, val: any) => handleSiteChange(val),
+                renderOption: (props: any, option: any) => (
                   <li {...props} key={option.site_id}>
                     {option.site_name}
                   </li>
-                )}
-                renderInput={params => (
+                ),
+                renderInput: (params: any) => (
                   <TextField
                     {...params}
                     placeholder='Search & Select'
                     sx={{
                       backgroundColor: theme.palette.primary.main,
                       borderRadius: '8px',
-                      '& .MuiInputBase-input': {
-                        color: '#fff'
-                      }
+                      '& .MuiInputBase-input': { color: '#fff' }
                     }}
-                    slotProps={{
-                      inputLabel: { shrink: false }
-                    }}
+                    slotProps={{ inputLabel: { shrink: false } }}
                   />
-                )}
-              />
+                )
+              })}
             </Box>
           </Box>
 
@@ -1673,7 +1656,7 @@ const MealGroup = () => {
       {/* Main Card */}
       <Card sx={{ mt: 5, p: { xs: 2, md: 4 }, boxShadow: 'none', mb: 20 }}>
         <Grid>
-          <TabContext value={status}>
+          <TabContext value={status as string}>
             <Box>
               <TabList onChange={handleChange} variant='scrollable' scrollButtons='auto'>
                 <Tab
@@ -1952,8 +1935,8 @@ const MealGroup = () => {
                     onRowClick={status === 'mealgroup' ? handleView : undefined}
                     indexedRows={dataRows}
                     total={total}
-                    handleSortModel={''}
-                    columns={status === 'mealgroup' ? groupcolumns : columns}
+                    handleSortModel={(() => {}) as any}
+                    columns={(status === 'mealgroup' ? groupcolumns : columns) as any}
                     paginationModel={paginationModel}
                     setPaginationModel={setPaginationModel}
                     loading={loading}
@@ -2080,92 +2063,84 @@ const MealGroup = () => {
         </FixedFooterWrapper>
       )}
 
-      {openDrawer && (
-        <CreateMealGroup
-          openDrawer={openDrawer}
-          handleCloseSideBar={handleCloseSideBar}
-          selectedItems={selectedItems}
-          setSelectedItems={setSelectedItems}
-          originalItems={originalItems}
-          setOriginalItems={setOriginalItems}
-          checkedRows={checkedRows}
-          setCheckedRows={setCheckedRows}
-          mealType={mealType}
-          selectedOption={selectedOption}
-          editParam={editParam}
-          editeditems={editeditems}
-          setEditItems={setEditItems}
-          loader={Loader}
-          fetchEnclosure={fetchEnclosure}
-          siteStats={siteStats}
-          setStatus={setStatus}
-          searchValue={searchValue}
-          groupId={groupId}
-          mealId={mealId}
-          handleEditSearch={handleEditSearch}
-          fetchSiteStats={fetchSiteStats}
-        />
-      )}
-      {enclosureDrawer && (
-        <CreateEnclosure
-          enclosureDrawer={enclosureDrawer}
-          setSelectedItems={setSelectedItems}
-          selectedItems={selectedItems}
-          setEnclosureDrawer={setEnclosureDrawer}
-          selectedOption={selectedOption}
-          groupId={groupId}
-          setGroupId={setGroupId}
-          loader={Loader}
-          selectedForDrawer={selectedForDrawer}
-          fetchEnclosure={fetchEnclosure}
-          checkedRows={checkedRows}
-          setStatus={setStatus}
-          setCheckedRows={setCheckedRows}
-          fetchSiteStats={fetchSiteStats}
-          setEditItems={setEditItems}
-          editSearchValue={editSearchValue}
-          handleEnclosureSearch={handleEnclosureSearch}
-        />
-      )}
-      {addEnclosureDrawer && (
-        <AddEnclosureToGroup
-          addEnclosureDrawer={addEnclosureDrawer}
-          setSelectedItems={setSelectedItems}
-          selectedItems={selectedItems}
-          setAddEnclosureDrawer={setAddEnclosureDrawer}
-          selectedOption={selectedOption}
-          groupId={groupId}
-          setGroupId={setGroupId}
-          siteStats={siteStats}
-          loader={Loader}
-          selectedForDrawer={selectedForDrawer}
-          fetchEnclosure={fetchEnclosure}
-          checkedRows={checkedRows}
-          setStatus={setStatus}
-          setCheckedRows={setCheckedRows}
-          fetchSiteStats={fetchSiteStats}
-          setEditItems={setEditItems}
-          editSearchValue={editSearchValue}
-          handleEnclosureSearch={handleEnclosureSearch}
-        />
-      )}
-      {dropPointDrawer && (
-        <AddDropPointDrawer
-          openDrawer={dropPointDrawer}
-          handleCloseSideBar={() => {
-            setDropPointDrawer(false)
-            setCheckedMealGroups([])
-          }}
-          selectedOption={selectedOption}
-          selectedMealGroups={checkedMealGroups}
-          mealGroupsList={menuGroupList}
-          siteName={defaultSite?.site_name}
-          fetchEnclosure={fetchEnclosure}
-          onRemoveMealGroup={mealGroupId => {
-            setCheckedMealGroups(prev => prev.filter(id => id !== mealGroupId))
-          }}
-        />
-      )}
+      {openDrawer && React.createElement(CreateMealGroup as any, {
+        openDrawer,
+        handleCloseSideBar,
+        selectedItems,
+        setSelectedItems,
+        originalItems,
+        setOriginalItems,
+        checkedRows,
+        setCheckedRows,
+        mealType,
+        selectedOption,
+        editParam,
+        editeditems,
+        setEditItems,
+        loader: Loader,
+        fetchEnclosure,
+        siteStats,
+        setStatus,
+        searchValue,
+        groupId,
+        mealId,
+        handleEditSearch,
+        fetchSiteStats
+      })}
+      {enclosureDrawer && React.createElement(CreateEnclosure as any, {
+        enclosureDrawer,
+        setSelectedItems,
+        selectedItems,
+        setEnclosureDrawer,
+        selectedOption,
+        groupId,
+        setGroupId,
+        loader: Loader,
+        selectedForDrawer,
+        fetchEnclosure,
+        checkedRows,
+        setStatus,
+        setCheckedRows,
+        fetchSiteStats,
+        setEditItems,
+        editSearchValue,
+        handleEnclosureSearch
+      })}
+      {addEnclosureDrawer && React.createElement(AddEnclosureToGroup as any, {
+        addEnclosureDrawer,
+        setSelectedItems,
+        selectedItems,
+        setAddEnclosureDrawer,
+        selectedOption,
+        groupId,
+        setGroupId,
+        siteStats,
+        loader: Loader,
+        selectedForDrawer,
+        fetchEnclosure,
+        checkedRows,
+        setStatus,
+        setCheckedRows,
+        fetchSiteStats,
+        setEditItems,
+        editSearchValue,
+        handleEnclosureSearch
+      })}
+      {dropPointDrawer && React.createElement(AddDropPointDrawer as any, {
+        openDrawer: dropPointDrawer,
+        handleCloseSideBar: () => {
+          setDropPointDrawer(false)
+          setCheckedMealGroups([])
+        },
+        selectedOption,
+        selectedMealGroups: checkedMealGroups,
+        mealGroupsList: menuGroupList,
+        siteName: (defaultSite as any)?.site_name,
+        fetchEnclosure,
+        onRemoveMealGroup: (mealGroupId: any) => {
+          setCheckedMealGroups((prev: any[]) => prev.filter((id: any) => id !== mealGroupId))
+        }
+      })}
     </React.Fragment>
   ) : (
     <Error404 />

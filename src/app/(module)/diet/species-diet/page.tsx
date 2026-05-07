@@ -99,7 +99,7 @@ const SpeciesDietList = () => {
 
   ///////////////////////////////////////////////////
 
-  const gridRef = useRef()
+  const gridRef = useRef<any>(null)
   const [gridWidth, setGridWidth] = useState(0)
 
   // const [siteList, setSiteList] = useState([])
@@ -123,12 +123,12 @@ const SpeciesDietList = () => {
     }
   }, [])
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
   const isAnimalTab = activeTab === TAB_VALUES.ANIMAL
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (event: any, newValue: any) => {
     setActiveTab(newValue)
     setSpeciesDetailsDrawer(false)
     setUploadDietDrawer(false)
@@ -138,14 +138,14 @@ const SpeciesDietList = () => {
     setAnimalDetailsDrawer(false)
   }
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async (q, newModel) => {
+    async (q: any, newModel?: any) => {
       try {
-        const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
+        const classIds = (selectedFiltersOptions as any)?.Class?.map((option: any) => option.id) || []
         setLoading(true)
 
         const params = {
@@ -159,7 +159,7 @@ const SpeciesDietList = () => {
         }
         await getSpeciesList(params).then(res => {
           // Generate uid field based on the index
-          let listWithId = res?.data?.result?.map((el, i) => {
+          let listWithId = res?.data?.result?.map((el: any, i: any) => {
             return { ...el, id: i + 1 }
           })
 
@@ -181,14 +181,14 @@ const SpeciesDietList = () => {
     }
   }, [fetchTableData, selectedFiltersOptions, activeTab])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = (rows as any[])?.map((row: any, index: any) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     setSortModel(newModel)
     fetchTableData(searchValue, newModel[0])
   }
@@ -205,12 +205,12 @@ const SpeciesDietList = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setSearchValue(value)
     searchTableData(value)
   }
 
-  const mapAnimalRow = (el, fallbackId) => {
+  const mapAnimalRow = (el: any, fallbackId: any) => {
     const scientificName = el?.scientific_name || el?.complete_name || ''
     return {
       ...el,
@@ -225,7 +225,7 @@ const SpeciesDietList = () => {
     }
   }
 
-  const downloadCsvFile = (fileName, csvRows) => {
+  const downloadCsvFile = (fileName: any, csvRows: any) => {
     const csvContent = csvRows.join('\n')
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = window.URL.createObjectURL(blob)
@@ -239,9 +239,9 @@ const SpeciesDietList = () => {
   }
 
   const fetchAnimalTableData = useCallback(
-    async (q, newModel) => {
+    async (q: any, newModel?: any) => {
       try {
-        const classIds = animalSelectedFiltersOptions?.Class?.map(option => option.id) || []
+        const classIds = (animalSelectedFiltersOptions as any)?.Class?.map((option: any) => option.id) || []
         setAnimalLoading(true)
 
         const params = {
@@ -254,7 +254,7 @@ const SpeciesDietList = () => {
         }
 
         const res = await getAnimalList(params)
-        const listWithId = res?.data?.result?.map((el, i) => mapAnimalRow(el, i + 1))
+        const listWithId = res?.data?.result?.map((el: any, i: any) => mapAnimalRow(el, i + 1))
 
         setAnimalTotal(parseInt(res?.data?.count || 0))
         setAnimalRows(loadServerRows(animalPaginationModel.page, listWithId || []))
@@ -273,14 +273,14 @@ const SpeciesDietList = () => {
     }
   }, [fetchAnimalTableData, activeTab])
 
-  const getAnimalSlNo = index => (animalPaginationModel.page + 1 - 1) * animalPaginationModel.pageSize + index + 1
+  const getAnimalSlNo = (index: any) => (animalPaginationModel.page + 1 - 1) * animalPaginationModel.pageSize + index + 1
 
-  const indexedAnimalRows = animalRows?.map((row, index) => ({
+  const indexedAnimalRows = (animalRows as any[])?.map((row: any, index: any) => ({
     ...row,
     sl_no: getAnimalSlNo(index)
   }))
 
-  const handleAnimalSortModel = newModel => {
+  const handleAnimalSortModel = (newModel: any) => {
     setAnimalSortModel(newModel)
     fetchAnimalTableData(animalSearchValue, newModel[0])
   }
@@ -297,7 +297,7 @@ const SpeciesDietList = () => {
     [fetchAnimalTableData]
   )
 
-  const handleAnimalSearch = value => {
+  const handleAnimalSearch = (value: any) => {
     setAnimalSearchValue(value)
     searchAnimalTableData(value)
   }
@@ -305,7 +305,7 @@ const SpeciesDietList = () => {
   const handleAnimalExport = async () => {
     try {
       setAnimalExportLoading(true)
-      const classIds = animalSelectedFiltersOptions?.Class?.map(option => option.id) || []
+      const classIds = (animalSelectedFiltersOptions as any)?.Class?.map((option: any) => option.id) || []
       const params = {
         q: animalSearchValue,
         response_type: 'csv',
@@ -332,13 +332,13 @@ const SpeciesDietList = () => {
         }
         if (Array.isArray(response?.data?.result)) {
           const headers = ['Common Name', 'Scientific Name', 'Active Diets']
-          const rowsData = response.data.result.map((item, index) => {
+          const rowsData = response.data.result.map((item: any, index: any) => {
             const row = mapAnimalRow(item, index + 1)
 
             return [row.common_name || '', row.scientific_name || '', row.attachment_count || 0]
           })
-          const csvRows = [headers, ...rowsData].map(row =>
-            row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+          const csvRows = [headers, ...rowsData].map((row: any) =>
+            row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(',')
           )
           downloadCsvFile('animal-diet-list.csv', csvRows)
 
@@ -352,7 +352,7 @@ const SpeciesDietList = () => {
     }
   }
 
-  const handleSpeciesUploadClick = params => {
+  const handleSpeciesUploadClick = (params: any) => {
     const scientific_name = params.row.scientific_name
     const common_name = params.row.common_name
     const default_icon = params.row.default_icon
@@ -361,7 +361,7 @@ const SpeciesDietList = () => {
     setUploadDietDrawer(true)
   }
 
-  const handleAnimalUploadClick = params => {
+  const handleAnimalUploadClick = (params: any) => {
     const scientific_name = params.row.scientific_name
     const common_name = params.row.common_name
     const default_icon = params.row.default_icon
@@ -370,14 +370,14 @@ const SpeciesDietList = () => {
     setAnimalUploadDietDrawer(true)
   }
 
-  const buildColumns = ({ nameHeader, onRowClick, onUploadClick, renderCard }) => [
+  const buildColumns = ({ nameHeader, onRowClick, onUploadClick, renderCard }: any) => [
     {
       width: colWidths[0],
       field: 'id',
       headerName: 'SL',
       align: 'center',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography
           onClick={onRowClick ? () => onRowClick(params) : undefined}
           sx={{
@@ -398,7 +398,7 @@ const SpeciesDietList = () => {
       field: 'scientific_name',
       headerName: nameHeader,
       cellClassName: 'diet-name-cell',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box
           onClick={onRowClick ? () => onRowClick(params) : undefined}
           sx={{
@@ -417,7 +417,7 @@ const SpeciesDietList = () => {
       sortable: false,
       field: 'attachment_count',
       headerName: t('diet_module.active_diets'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.attachment_count ? params.row.attachment_count : 0}>
           <Typography
             noWrap
@@ -443,7 +443,7 @@ const SpeciesDietList = () => {
       field: 'diet_attachment_upload',
       headerName: t('action'),
       headerAlign: 'right',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
             <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
@@ -487,14 +487,14 @@ const SpeciesDietList = () => {
     nameHeader: 'SPECIES',
     onRowClick: () => setSpeciesDetailsDrawer(true),
     onUploadClick: handleSpeciesUploadClick,
-    renderCard: row => <SpeciesCard species={row} />
+    renderCard: (row: any) => <SpeciesCard species={row} />
   })
 
   const animalColumns = buildColumns({
     nameHeader: 'ANIMAL',
     onRowClick: () => setAnimalDetailsDrawer(true),
     onUploadClick: handleAnimalUploadClick,
-    renderCard: row => <AnimalCard data={row} />
+    renderCard: (row: any) => <AnimalCard data={row} />
   })
 
   const handleExport = async () => {
@@ -521,7 +521,7 @@ const SpeciesDietList = () => {
     }
   }
 
-  const onCellClick = e => {
+  const onCellClick = (e: any) => {
     const scientific_name = e.row.scientific_name
     const common_name = e.row.common_name
     const default_icon = e.row.default_icon
@@ -634,7 +634,6 @@ const SpeciesDietList = () => {
                   </Grid>
 
                   <Grid
-                    item
                     size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}
                     sx={{ display: 'flex', justifyContent: 'flex-end', marginLeft: { xs: 4, md: 0 }, marginRight: 4 }}
                   >
@@ -692,6 +691,7 @@ const SpeciesDietList = () => {
                         </Tooltip>
                       </Box>
 
+                      {/* @ts-ignore */}
                       <FilterButton
                         onClick={() => (isAnimalTab ? setAnimalOpenFilterDrawer(true) : setOpenFilterDrawer(true))}
                         appliedFiltersCount={activeFilterCount}
@@ -757,7 +757,7 @@ const SpeciesDietList = () => {
               key={isAnimalTab ? 'diet-animal-table' : 'diet-species-table'}
               indexedRows={activeRows === undefined ? [] : activeRows}
               total={activeTotal}
-              columns={activeColumns}
+              columns={activeColumns as any}
               paginationModel={activePaginationModel}
               handleSortModel={isAnimalTab ? handleAnimalSortModel : handleSortModel}
               setPaginationModel={isAnimalTab ? setAnimalPaginationModel : setPaginationModel}
@@ -805,47 +805,39 @@ const SpeciesDietList = () => {
           setSiteList={setSiteList}
         />
       )} */}
-          {!isAnimalTab && speciesDetailsDrawer && (
-            <SpeciesDetails
-              fetchTableData={fetchTableData}
-              speciesId={speciesId}
-              setspeciesId={setspeciesId}
-              speciesDetailsDrawer={speciesDetailsDrawer}
-              setSpeciesDetailsDrawer={setSpeciesDetailsDrawer}
-            />
-          )}
-          {isAnimalTab && animalDetailsDrawer && (
-            <AnimalDetails
-              fetchTableData={fetchAnimalTableData}
-              animalId={animalId}
-              setAnimalId={setAnimalId}
-              animalDetailsDrawer={animalDetailsDrawer}
-              setAnimalDetailsDrawer={setAnimalDetailsDrawer}
-            />
-          )}
-          {!isAnimalTab && uploadDietDrawer && (
-            <UploadDiet
-              fetchTableData={fetchTableData}
-              speciesId={speciesId}
-              speciesData={speciesData}
-              setspeciesId={setspeciesId}
-              uploadDietDrawer={uploadDietDrawer}
-              handleSearch={handleSearch}
-              setUploadDietDrawer={setUploadDietDrawer}
-            />
-          )}
-          {isAnimalTab && animalUploadDietDrawer && (
-            <UploadDiet
-              fetchTableData={fetchAnimalTableData}
-              uploadDietDrawer={animalUploadDietDrawer}
-              setUploadDietDrawer={setAnimalUploadDietDrawer}
-              handleSearch={handleAnimalSearch}
-              entityType='animal'
-              entityId={animalId}
-              setEntityId={setAnimalId}
-              entityData={animalData}
-            />
-          )}
+          {!isAnimalTab && speciesDetailsDrawer && React.createElement(SpeciesDetails as any, {
+            fetchTableData,
+            speciesId,
+            setspeciesId,
+            speciesDetailsDrawer,
+            setSpeciesDetailsDrawer
+          })}
+          {isAnimalTab && animalDetailsDrawer && React.createElement(AnimalDetails as any, {
+            fetchTableData: fetchAnimalTableData,
+            animalId,
+            setAnimalId,
+            animalDetailsDrawer,
+            setAnimalDetailsDrawer
+          })}
+          {!isAnimalTab && uploadDietDrawer && React.createElement(UploadDiet as any, {
+            fetchTableData,
+            speciesId,
+            speciesData,
+            setspeciesId,
+            uploadDietDrawer,
+            handleSearch,
+            setUploadDietDrawer
+          })}
+          {isAnimalTab && animalUploadDietDrawer && React.createElement(UploadDiet as any, {
+            fetchTableData: fetchAnimalTableData,
+            uploadDietDrawer: animalUploadDietDrawer,
+            setUploadDietDrawer: setAnimalUploadDietDrawer,
+            handleSearch: handleAnimalSearch,
+            entityType: 'animal',
+            entityId: animalId,
+            setEntityId: setAnimalId,
+            entityData: animalData
+          })}
           {(isAnimalTab ? animalOpenFilterDrawer : openFilterDrawer) && (
             <SpeciesDietFilterDrawer
               setOpenFilterDrawer={isAnimalTab ? setAnimalOpenFilterDrawer : setOpenFilterDrawer}

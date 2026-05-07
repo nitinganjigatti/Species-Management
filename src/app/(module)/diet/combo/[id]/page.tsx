@@ -69,26 +69,26 @@ const RecipeDetail = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const { id, source } = routerQuery
   const { t } = useTranslation()
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
-  const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
+  const [IngredientsDetailsval, setIngredientsDetailsval] = useState<any>({})
   const [statusDialog, setstatusDialog] = useState(false)
   const [dietListTotal, setDietListTotal] = useState(0)
-  const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
-  const authData = useContext(AuthContext)
+  const [isActive, setIsActive] = useState((IngredientsDetailsval as any)?.active || '0')
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setValue(newValue)
   }
 
-  const handleStatusClickOpen = async event => {
+  const handleStatusClickOpen = async (event: any) => {
     setstatusDialog(true)
   }
 
@@ -104,7 +104,7 @@ const RecipeDetail = () => {
     setDeleteDialogBox(true)
   }
 
-  const getRecipeDetailval = async id => {
+  const getRecipeDetailval = async (id: any) => {
     try {
       const response = await getRecipeDetail(id)
       if (response.data.success === true && response.data.data !== null) {
@@ -161,7 +161,7 @@ const RecipeDetail = () => {
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
-      const response = await deleteRecipe(id, { meal_type: 'combo' })
+      const response = await deleteRecipe(id as string, { meal_type: 'combo' })
 
       // console.log(response, 'response')
       if (response.success === true) {
@@ -285,7 +285,7 @@ const RecipeDetail = () => {
                                       Number(IngredientsDetailsval?.diet_count) >
                                     0
                                   ) {
-                                    handleStatusClickOpen()
+                                    handleStatusClickOpen(null)
                                   } else {
                                     handleClickOpen()
                                   }
@@ -302,7 +302,7 @@ const RecipeDetail = () => {
                                 variant='square'
                                 onClick={() => {
                                   if (Number(IngredientsDetailsval?.diet_count) > 0) {
-                                    handleStatusClickOpen()
+                                    handleStatusClickOpen(null)
                                   } else {
                                     handleClickOpen()
                                   }
@@ -397,19 +397,23 @@ const RecipeDetail = () => {
             ConfirmationText={'Delete'}
             confirmAction={confirmDeleteAction}
           />
-          <DeleteDialogConfirmation
+          {(() => { const D = DeleteDialogConfirmation as any; return (
+          <D
             handleClosenew={handleStatusClose}
             action={confirmStatusUpdateAction}
             open={statusDialog}
             active={isActive == '1'}
             actionType={'confirm'}
             type='combo'
+            typeCount={0}
+            recipeCount={0}
             dietCount={IngredientsDetailsval.diet_count}
             ingredientCount={IngredientsDetailsval.total_ingredients}
             message={
               <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>Deletion isn't possible!</span>
             }
           />
+          ); })()}
         </Grid>
       )}
     </>

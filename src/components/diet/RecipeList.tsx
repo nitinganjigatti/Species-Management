@@ -6,7 +6,8 @@ import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
 import { margin, padding } from '@mui/system'
 import { useState, useEffect, useCallback } from 'react'
-import RecipeCard from 'src/views/pages/diet/add_recipe_combo-List/recipeCard'
+import RecipeCardBase from 'src/views/pages/diet/add_recipe_combo-List/recipeCard'
+const RecipeCard = RecipeCardBase as any
 import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -223,7 +224,7 @@ const RecipeList: React.FC<Props> = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                placeholder={t('diet_module.search_recipe')}
+                placeholder={t('diet_module.search_recipe') as string}
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {

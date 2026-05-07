@@ -17,7 +17,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import { useTranslation } from 'react-i18next'
@@ -132,7 +132,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   }
 
   const handlechangecheck = (data, val) => {
-    Router.push({
+    router.push({
       pathname: `/diet/diet/${data?.id}`,
       query: { source: val, recipeId: id }
     })

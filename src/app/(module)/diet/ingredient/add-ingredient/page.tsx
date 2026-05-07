@@ -50,20 +50,20 @@ import Toaster from 'src/components/Toaster'
 
 const AddIngredient = () => {
   const theme = useTheme()
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const { t } = useTranslation()
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const { id, feedTypeId, feedTypeName } = routerQuery
   const [loading, setLoading] = useState(false)
-  const [uomList, setUom] = useState([])
-  const [FeedTypeList, setFeedTypeList] = useState([])
-  const [defaultUom, setDefaultUom] = useState(null)
+  const [uomList, setUom] = useState<any[]>([])
+  const [FeedTypeList, setFeedTypeList] = useState<any[]>([])
+  const [defaultUom, setDefaultUom] = useState<any>(null)
 
   // console.log('defaultUom', defaultUom)
-  const [defaultFeedType, setDefaultFeedType] = useState(null)
+  const [defaultFeedType, setDefaultFeedType] = useState<any>(null)
   const [displayFile, setDisplayFile] = useState('')
   const [imgSrc, setImgSrc] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -71,15 +71,15 @@ const AddIngredient = () => {
   const [sort, setSort] = useState('asc')
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
-  const [options, setOptions] = useState(false)
+  const [options, setOptions] = useState<any>(false)
   const [resetForm, setResetForm] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  const [openSnackbar, setOpenSnackbar] = useState({
+  const [openSnackbar, setOpenSnackbar] = useState<any>({
     open: false,
     severity: '',
     message: ''
@@ -122,7 +122,7 @@ const AddIngredient = () => {
       .required('At least one preparation type is required')
   })
 
-  const handleKeyUp = values => {
+  const handleKeyUp = (values: any) => {
     const waterPer = getValues('waterPercentage')
     const dryMatterPer = getValues('dryMatterPercentage')
     if (Number(waterPer) + Number(dryMatterPer) > 100) {
@@ -189,12 +189,12 @@ const AddIngredient = () => {
     fileInputRef?.current?.click()
   }
 
-  const handleInputImageChange = file => {
+  const handleInputImageChange = (file: any) => {
     const reader = new FileReader()
     const { files } = file.target
     if (files && files.length !== 0) {
       reader.onload = () => {
-        setImgSrc(reader?.result)
+        setImgSrc(reader?.result as string)
       }
       setDisplayFile(files[0]?.name)
       reader?.readAsDataURL(files[0])
@@ -226,7 +226,7 @@ const AddIngredient = () => {
     reValidateMode: 'onChange'
   })
 
-  const callFeedTypeList = async ({ status, page_no, limit, q }) => {
+  const callFeedTypeList = async ({ status, page_no, limit, q }: any) => {
     try {
       const params = {
         status,
@@ -272,7 +272,7 @@ const AddIngredient = () => {
     getPreparationList(sort, searchValue, sortColumn)
   }, [])
 
-  const getPreparationList = useCallback(async (sort, q, column) => {
+  const getPreparationList = useCallback(async (sort: any, q: any, column: any) => {
     try {
       await getPreparationTypeList({ sort, q, limit: 10, column, status: 1 }).then(res => {
         setOptions(res?.data?.result)
@@ -294,7 +294,7 @@ const AddIngredient = () => {
     []
   )
 
-  const onError = errors => {
+  const onError = (errors: any) => {
     // console.log('Form errros', errors)
     setOpenSnackbar({
       ...openSnackbar,
@@ -304,7 +304,7 @@ const AddIngredient = () => {
     })
   }
 
-  const onSubmit = async params => {
+  const onSubmit = async (params: any) => {
     const {
       active,
       ingredientName,
@@ -332,7 +332,7 @@ const AddIngredient = () => {
       standard_unit: nutritionalValuesPer,
       uom_id: uom,
       calorie,
-      preparation_types: JSON?.stringify(preprationTypes?.map(i => Number(i?.id)))
+      preparation_types: JSON?.stringify(preprationTypes?.map((i: any) => Number(i?.id)))
     }
 
     // console.log('submit', params)
@@ -343,7 +343,7 @@ const AddIngredient = () => {
         await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
           if (res?.success) {
-            Toaster({ type: 'success', message: 'Item updated successfully' || 'Items' + ' ' + res?.message })
+            Toaster({ type: 'success', message: 'Item updated successfully' })
 
             // router.push(`/diet/ingredient`)
 
@@ -396,7 +396,7 @@ const AddIngredient = () => {
     }
   }
 
-  const handlePreparationSubmitData = async payload => {
+  const handlePreparationSubmitData = async (payload: any) => {
     try {
       setPreparationTypeSubmitLoader(true)
       var response
@@ -446,7 +446,7 @@ const AddIngredient = () => {
       const files = acceptedFiles
       if (files && files.length !== 0) {
         reader.onload = () => {
-          setImgSrc(reader?.result)
+          setImgSrc(reader?.result as string)
         }
         setDisplayFile(files[0]?.name)
         reader?.readAsDataURL(files[0])
@@ -476,7 +476,7 @@ const AddIngredient = () => {
           </Box>
           {loading ? (
             <Box sx={{ justifyContent: 'center', display: 'flex', alignItems: 'center', height: '70vh' }}>
-              <FallbackSpinner />
+              <FallbackSpinner sx={{}} />
             </Box>
           ) : (
             <form onSubmit={handleSubmit(onSubmit, onError)}>
@@ -538,7 +538,7 @@ const AddIngredient = () => {
                           />
                           {errors.ingredientName && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors.ingredientName?.message}
+                              {errors.ingredientName?.message as any}
                             </FormHelperText>
                           )}
                         </FormControl>
@@ -574,10 +574,14 @@ const AddIngredient = () => {
                                 value={defaultFeedType}
                                 disablePortal
                                 id='feedType'
-                                placeholder='Search & Select'
                                 options={FeedTypeList}
                                 getOptionLabel={option => option?.feed_type_name}
                                 isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                renderOption={(props: any, option: any) => (
+                                  <li {...props} key={option.id}>
+                                    {option.feed_type_name}
+                                  </li>
+                                )}
                                 onChange={(e, val) => {
                                   if (val === null) {
                                     setDefaultFeedType(null)
@@ -590,7 +594,7 @@ const AddIngredient = () => {
                                   }
                                 }}
                                 onKeyUp={e => {
-                                  feedTypeListSearch(e?.target?.value)
+                                  feedTypeListSearch((e?.target as any)?.value)
                                 }}
                                 renderInput={params => (
                                   <TextField
@@ -604,7 +608,7 @@ const AddIngredient = () => {
                             )}
                           />
                           {errors?.feedType && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.feedType?.message}</FormHelperText>
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.feedType?.message as any}</FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
@@ -635,7 +639,7 @@ const AddIngredient = () => {
                           />
                           {errors.waterPercentage && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors.waterPercentage?.message}
+                              {errors.waterPercentage?.message as any}
                             </FormHelperText>
                           )}
                         </FormControl>
@@ -667,7 +671,7 @@ const AddIngredient = () => {
                           />
                           {errors.dryMatterPercentage && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.dryMatterPercentage?.message}
+                              {errors?.dryMatterPercentage?.message as any}
                             </FormHelperText>
                           )}
                         </FormControl>
@@ -704,7 +708,7 @@ const AddIngredient = () => {
                           />
                           {errors.nutritionalValuesPer && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors.nutritionalValuesPer?.message}
+                              {errors.nutritionalValuesPer?.message as any}
                             </FormHelperText>
                           )}
                         </FormControl>
@@ -746,7 +750,7 @@ const AddIngredient = () => {
                             )}
                           />
                           {errors?.uom && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.uom?.message}</FormHelperText>
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.uom?.message as any}</FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
@@ -772,7 +776,7 @@ const AddIngredient = () => {
                             )}
                           />
                           {errors.calorie && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors.calorie?.message}</FormHelperText>
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors.calorie?.message as any}</FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
@@ -806,7 +810,7 @@ const AddIngredient = () => {
                             )}
                           />
                           {errors.description && (
-                            <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message as any}</FormHelperText>
                           )}
                         </FormControl>
                       </Grid>
@@ -984,8 +988,8 @@ const AddIngredient = () => {
                           disabled={
                             watch('ingredientName') === '' ||
                             watch('feedType') === '' ||
-                            errors.dryMatterPercentage ||
-                            errors.waterPercentage ||
+                            !!errors.dryMatterPercentage ||
+                            !!errors.waterPercentage ||
                             watch('preprationTypes')?.length === 0 ||
                             submitLoader
                           }
@@ -1010,15 +1014,15 @@ const AddIngredient = () => {
               </Card>
             </form>
           )}
-          <AddPreparationType
-            drawerWidth={400}
-            addEventSidebarOpen={openDrawer}
-            handleSidebarClose={handleSidebarClose}
-            handleSubmitData={handlePreparationSubmitData}
-            resetForm={resetForm}
-            submitLoader={preparationTypeSubmitLoader}
-            editParams={{ id: null, label: null, status: null }}
-          />
+          {React.createElement(AddPreparationType as any, {
+            drawerWidth: 400,
+            addEventSidebarOpen: openDrawer,
+            handleSidebarClose,
+            handleSubmitData: handlePreparationSubmitData,
+            resetForm,
+            submitLoader: preparationTypeSubmitLoader,
+            editParams: { id: null, label: null, status: null }
+          })}
         </Box>
       ) : (
         <>

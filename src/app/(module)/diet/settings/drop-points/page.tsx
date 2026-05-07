@@ -15,23 +15,23 @@ const DropPoints = () => {
   const editParamsInitialState = { id: null, drop_point_name: null, site_id: null }
   const { t } = useTranslation()
   const [total, setTotal] = useState(0)
-  const [rows, setRows] = useState([])
+  const [rows, setRows] = useState<any[]>([])
   const [searchValue, setSearchValue] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [editParams, setEditParams] = useState(editParamsInitialState)
+  const [editParams, setEditParams] = useState<any>(editParamsInitialState)
 
-  const dietModuleAccessContext = useContext(AuthContext)
-  const dietModuleAccess = dietModuleAccessContext?.userData?.roles?.settings?.diet_module_access || ''
+  const dietModuleAccessContext = useContext(AuthContext) as any
+  const dietModuleAccess: string = (dietModuleAccessContext as any)?.userData?.roles?.settings?.diet_module_access || ''
 
   const hasAddAccess = dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
   const hasEditAccess = dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
   const hasFullAccess = dietModuleAccess === 'allow_full_access'
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
@@ -46,13 +46,13 @@ const DropPoints = () => {
     setResetForm(false)
   }
 
-  const handleEdit = async (id, drop_point_name, site_id, meal_group_count) => {
+  const handleEdit = async (id: any, drop_point_name: any, site_id: any, meal_group_count: any) => {
     console.log('Edit params:', { id, drop_point_name, site_id, meal_group_count })
     setEditParams({ id, drop_point_name, site_id, meal_group_count })
     setOpenDrawer(true)
   }
 
-  const handleSubmitData = async payload => {
+  const handleSubmitData = async (payload: any) => {
     try {
       setSubmitLoader(true)
       var response
@@ -99,7 +99,7 @@ const DropPoints = () => {
       sortable: false,
       headerAlign: 'left',
       align: 'left',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 400 }}>
           {parseInt(params.row.sl_no)}
         </Typography>
@@ -112,7 +112,7 @@ const DropPoints = () => {
       headerName: t('diet_module.drop_point_name'),
       headerAlign: 'left',
       align: 'left',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.drop_point_name?.length > 30 ? params.row.drop_point_name : ''}>
           <Typography
             sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 500 }}
@@ -130,7 +130,7 @@ const DropPoints = () => {
       headerName: t('navigation.site'),
       headerAlign: 'left',
       align: 'left',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.site_name?.length > 30 ? params.row.site_name : ''}>
           <Typography
             sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 400 }}
@@ -148,7 +148,7 @@ const DropPoints = () => {
       headerName: t('navigation.meal_groups'),
       headerAlign: 'center',
       align: 'center',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography sx={{ color: 'text.primary', fontSize: '0.875rem', fontWeight: 400 }}>
           {params.row.meal_group_count || 0}
         </Typography>
@@ -165,7 +165,7 @@ const DropPoints = () => {
       headerName: t('action'),
       headerAlign: 'left',
       align: 'left',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <IconButton
             size='small'
@@ -188,7 +188,7 @@ const DropPoints = () => {
   }
 
   const fetchTableData = useCallback(
-    async q => {
+    async (q: any) => {
       try {
         setLoading(true)
 
@@ -203,7 +203,7 @@ const DropPoints = () => {
         if (res?.success) {
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
-          let listWithId = res?.data?.result?.map((el, i) => {
+          let listWithId = res?.data?.result?.map((el: any, i: any) => {
             return { ...el, sl_no: startingIndex + i + 1 }
           })
 
@@ -242,16 +242,16 @@ const DropPoints = () => {
   )
 
   const handleSearch = useCallback(
-    value => {
+    (value: any) => {
       setSearchValue(value)
       searchTableData(value)
     },
     [searchTableData]
   )
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = rows?.map((row: any, index: any) => ({
     ...row,
     id: row.drop_point_id || row.id || `drop-point-${index}`,
     drop_point_id: row.drop_point_id || row.id,
@@ -260,6 +260,7 @@ const DropPoints = () => {
 
   const headerAction =
     hasAddAccess || hasFullAccess ? (
+      // @ts-ignore
       <AddButton title={t('diet_module.add_drop_point')} action={addEventSidebarOpen} />
     ) : null
 
@@ -280,7 +281,7 @@ const DropPoints = () => {
           </Grid>
           <CommonTable
             columnVisibilityModel={{ id: false }}
-            columns={columns}
+            columns={columns as any}
             indexedRows={indexedRows}
             total={total}
             paginationModel={paginationModel}
@@ -292,14 +293,14 @@ const DropPoints = () => {
           />
         </Grid>
       </Card>
-      <AddEditDropPoint
-        addEventSidebarOpen={openDrawer}
-        handleSidebarClose={handleSidebarClose}
-        handleSubmitData={handleSubmitData}
-        resetForm={resetForm}
-        submitLoader={submitLoader}
-        editParams={editParams}
-      />
+      {React.createElement(AddEditDropPoint as any, {
+        addEventSidebarOpen: openDrawer,
+        handleSidebarClose,
+        handleSubmitData,
+        resetForm,
+        submitLoader,
+        editParams
+      })}
     </>
   )
 }

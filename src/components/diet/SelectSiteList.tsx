@@ -129,7 +129,7 @@ const SelectSiteList: React.FC<SelectSiteListProps> = ({
   }, [openSiteListDrawer])
 
   const handleSelectAllSites = () => {
-    const sitesToSelect = searchTerm ? filteredSites.map(site => site.site_id) : items.Site.map((site: any) => site.site_id)
+    const sitesToSelect = searchTerm ? filteredSites.map((site: any) => site.site_id) : items.Site.map((site: any) => site.site_id)
 
     const isAllSelected = searchTerm
       ? filteredSites.every((site: any) => pendingSelections.Site.includes(site.site_id))
@@ -344,6 +344,8 @@ const SelectSiteList: React.FC<SelectSiteListProps> = ({
                       src={site?.site_image}
                       fallback='/images/housing/site-icon-colored.svg'
                       variant='rounded'
+                      onLoad={() => {}}
+                      onError={() => {}}
                       sx={{
                         backgroundColor: theme.palette.customColors.displaybgPrimary,
                         p: site?.site_image ? 0 : 2,

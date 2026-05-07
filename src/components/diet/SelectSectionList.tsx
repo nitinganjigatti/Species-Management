@@ -352,6 +352,8 @@ const SelectSectionList: React.FC<SelectSectionListProps> = ({
                         src={section.default_icon}
                         fallback='/images/housing/section-icon-colored.png'
                         variant='rounded'
+                        onLoad={() => {}}
+                        onError={() => {}}
                         sx={{
                           backgroundColor: theme.palette.customColors.displaybgPrimary,
                           p: section?.default_icon ? 0 : 2,

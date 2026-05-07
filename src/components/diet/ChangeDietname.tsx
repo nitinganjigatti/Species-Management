@@ -133,13 +133,13 @@ const ChangeDietName: React.FC<Props> = ({ isOpen, setIsOpen, dietid, dietname }
                     value={value}
                     onChange={onChange}
                     focused={value !== ''}
-                    placeholder={t('diet_module.diet_name')}
+                    placeholder={t('diet_module.diet_name') as string}
                     error={Boolean(errors.label)}
                     name='label'
                   />
                 )}
               />
-              {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{errors.label.message}</FormHelperText>}
+              {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{String(errors.label.message ?? '')}</FormHelperText>}
             </FormControl>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Fragment>

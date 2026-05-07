@@ -69,26 +69,26 @@ const RecipeDetail = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const { t } = useTranslation()
   const { id, source } = routerQuery
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
-  const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
+  const [IngredientsDetailsval, setIngredientsDetailsval] = useState<any>({})
   const [statusDialog, setstatusDialog] = useState(false)
   const [dietListTotal, setDietListTotal] = useState(0)
   const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setValue(newValue)
   }
 
-  const handleStatusClickOpen = async event => {
+  const handleStatusClickOpen = async (event: any) => {
     setstatusDialog(true)
   }
 
@@ -104,7 +104,7 @@ const RecipeDetail = () => {
     setDeleteDialogBox(true)
   }
 
-  const getRecipeDetailval = async id => {
+  const getRecipeDetailval = async (id: any) => {
     try {
       const response = await getRecipeDetail(id)
 
@@ -162,7 +162,7 @@ const RecipeDetail = () => {
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
-      const response = await deleteRecipe(id, { meal_type: 'recipe' })
+      const response = await deleteRecipe(id as string, { meal_type: 'recipe' })
 
       if (response.success === true) {
         router.push(`/diet/recipe`)
@@ -291,7 +291,7 @@ const RecipeDetail = () => {
                                 variant='square'
                                 onClick={() => {
                                   if (Number(IngredientsDetailsval?.diet_count) > 0) {
-                                    handleStatusClickOpen()
+                                    handleStatusClickOpen(null)
                                   } else {
                                     handleClickOpen()
                                   }
@@ -385,6 +385,7 @@ const RecipeDetail = () => {
             ConfirmationText={'Delete'}
             confirmAction={confirmDeleteAction}
           />
+          {/* @ts-ignore */}
           <DeleteDialogConfirmation
             handleClosenew={handleStatusClose}
             action={confirmStatusUpdateAction}
@@ -392,6 +393,8 @@ const RecipeDetail = () => {
             active={isActive == '1'}
             actionType={'confirm'}
             type='recipe'
+            typeCount={0}
+            recipeCount={0}
             dietCount={IngredientsDetailsval.diet_count}
             ingredientCount={IngredientsDetailsval.total_ingredients}
             message={

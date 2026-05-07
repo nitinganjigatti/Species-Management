@@ -20,7 +20,8 @@ import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
-import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
+import DeleteDialogConfirmationBase from 'src/components/utility/DeleteDialogConfirmation'
+const DeleteDialogConfirmation = DeleteDialogConfirmationBase as any
 import { deleteDiet, dietStatusChange } from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
@@ -229,7 +230,6 @@ const DietDetailCard = ({
                 <Switch
                   checked={isActive === '1' ? true : false}
                   onChange={handleSwitchChange}
-                  fontSize={2}
                   disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
                   sx={{
                     '&.Mui-disabled': {

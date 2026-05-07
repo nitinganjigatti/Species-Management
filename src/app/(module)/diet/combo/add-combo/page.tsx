@@ -35,18 +35,18 @@ const AddCombo = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const { id, name } = routerQuery
   const { t } = useTranslation()
   const [activeStep, setActiveStep] = useState(0)
-  const [uomList, setUom] = useState([])
-  const [cutsizeList, setcutSize] = useState([])
-  const [IngredientTypeList, setIngredientTypeList] = useState([])
-  const [fullIngredientList, setFullIngredientList] = useState([])
+  const [uomList, setUom] = useState<any[]>([])
+  const [cutsizeList, setcutSize] = useState<any[]>([])
+  const [IngredientTypeList, setIngredientTypeList] = useState<any[]>([])
+  const [fullIngredientList, setFullIngredientList] = useState<any[]>([])
   const [urlType, seturlType] = useState('')
   const [loader, setLoader] = useState(false)
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     recipe_name: '',
     portion_size: '',
     portion_uom_id: '',
@@ -132,7 +132,7 @@ const AddCombo = () => {
     }
   }, 500)
 
-  const callIngredientTypeList = async ({ status, page, limit, q }) => {
+  const callIngredientTypeList = async ({ status, page, limit, q }: { status: any; page: any; limit: any; q: any }) => {
     try {
       const params = {
         //status,
@@ -147,7 +147,7 @@ const AddCombo = () => {
         setIngredientTypeList(res?.data?.result)
         setFullIngredientList(prevList => [
           ...prevList,
-          ...res?.data?.result.filter(newItem => !prevList.some(item => item.id === newItem.id))
+          ...res?.data?.result.filter((newItem: any) => !prevList.some((item: any) => item.id === newItem.id))
         ])
       })
     } catch (e) {
@@ -164,9 +164,9 @@ const AddCombo = () => {
   }
 
   const handleCancelIconClick = async () => {
-    setFormData(prevData => ({
+    setFormData((prevData: any) => ({
       ...prevData,
-      by_quantity: prevData.by_quantity.map(item => ({
+      by_quantity: prevData.by_quantity.map((item: any) => ({
         ...item,
         ingredient_id: '',
         ingredient_name: '',
@@ -178,7 +178,7 @@ const AddCombo = () => {
     callIngredientTypeList({ status: 1, page: 1, limit: 20, q: '' })
   }
 
-  const getIngredientsDetailval = async id => {
+  const getIngredientsDetailval = async (id: any) => {
     try {
       setLoader(true)
       const response = await getRecipeDetail(id)
@@ -192,13 +192,13 @@ const AddCombo = () => {
 
         const convertedData = {
           ...data,
-          by_percentage: data.by_percentage.map(item => ({
+          by_percentage: data.by_percentage.map((item: any) => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
             preparation_type_id: String(item.preparation_type_id),
             cut_size_id: String(item.cut_size_id)
           })),
-          by_quantity: data.by_quantity.map(item => ({
+          by_quantity: data.by_quantity.map((item: any) => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
             preparation_type_id: String(item.preparation_type_id),
@@ -208,20 +208,20 @@ const AddCombo = () => {
         }
 
         const initialKeys = Object.keys(formData)
-        const updatedData = {}
+        const updatedData: any = {}
         Object.keys(convertedData).forEach(key => {
           if (initialKeys.includes(key)) {
             updatedData[key] = convertedData[key]
           }
         })
 
-        setFormData(prevData => ({
+        setFormData((prevData: any) => ({
           ...prevData,
           ...updatedData
         }))
 
         const combinedIngredients = [
-          ...data.by_percentage.map(item => ({
+          ...data.by_percentage.map((item: any) => ({
             id: item.ingredient_id,
             ingredient_name: item.ingredient_name
           }))
@@ -235,9 +235,9 @@ const AddCombo = () => {
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
         setLoader(false)
-        setFullIngredientList(prevList => [
+        setFullIngredientList((prevList: any[]) => [
           ...prevList,
-          ...uniqueIngredientList.filter(newItem => !prevList.some(item => item.id === newItem.id))
+          ...uniqueIngredientList.filter((newItem: any) => !prevList.some((item: any) => item.id === newItem.id))
         ])
       }
     } catch (error) {
@@ -260,7 +260,7 @@ const AddCombo = () => {
     }
   }, [id, urlType])
 
-  const handleNext = data => {
+  const handleNext = (data: any) => {
     // setFormData(prevData => ({
     //   ...prevData,
     //   ...newData
@@ -275,24 +275,24 @@ const AddCombo = () => {
     }
   }
 
-  const handleIngredientChange = (name, value, ingredient, index) => {
-    setFormData(prevData => ({
+  const handleIngredientChange = (name: any, value: any, ingredient: any, index: any) => {
+    setFormData((prevData: any) => ({
       ...prevData,
       [name]: value,
       ingredients: {
         ...prevData.ingredients,
-        byPercentage: prevData.ingredients.byPercentage.map((item, i) =>
+        byPercentage: prevData.ingredients.byPercentage.map((item: any, i: any) =>
           i === index ? { ...item, ingredient_id: ingredient.value } : item
         ),
-        byQuantity: prevData.ingredients.byQuantity.map((item, i) =>
+        byQuantity: prevData.ingredients.byQuantity.map((item: any, i: any) =>
           i === index ? { ...item, ingredient_id: ingredient.value } : item
         )
       }
     }))
   }
 
-  const updateFormData = newData => {
-    setFormData(prevData => ({
+  const updateFormData = (newData: any) => {
+    setFormData((prevData: any) => ({
       ...prevData,
       ...newData
     }))
@@ -305,7 +305,7 @@ const AddCombo = () => {
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+          formData.by_percentage.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -317,7 +317,7 @@ const AddCombo = () => {
           }))
         ),
         by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
+          formData.by_quantity.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -361,7 +361,7 @@ const AddCombo = () => {
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+          formData.by_percentage.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -373,7 +373,7 @@ const AddCombo = () => {
           }))
         ),
         by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
+          formData.by_quantity.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -387,7 +387,7 @@ const AddCombo = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
         by_percentage: numericFormData.by_percentage,
 
@@ -426,7 +426,7 @@ const AddCombo = () => {
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+          formData.by_percentage.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -438,7 +438,7 @@ const AddCombo = () => {
           }))
         ),
         by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
+          formData.by_quantity.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -452,7 +452,7 @@ const AddCombo = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
         by_percentage: numericFormData.by_percentage,
 
@@ -472,7 +472,7 @@ const AddCombo = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      const apival = await updateRecipe(id, updatedFormData)
+      const apival = await updateRecipe(id as string, updatedFormData)
 
       if (apival.success === true) {
         router.push(`/diet/combo`)
@@ -488,7 +488,7 @@ const AddCombo = () => {
     }
   }
 
-  const getStepContent = step => {
+  const getStepContent = (step: any) => {
     switch (step) {
       case 0:
         return (
@@ -499,7 +499,8 @@ const AddCombo = () => {
               updateFormData={updateFormData}
               uomList={uomList}
             /> */}
-            <StepAddIngredients
+            {(() => { const S = StepAddIngredients as any; return (
+            <S
               handleNext={handleNext}
               handlePrev={handlePrev}
               handleIngredientChange={handleIngredientChange}
@@ -515,6 +516,7 @@ const AddCombo = () => {
               loader={loader}
               fetchMoreIngredients={fetchMoreIngredients}
             />
+            ); })()}
           </>
         )
       case 1:
@@ -575,6 +577,7 @@ const AddCombo = () => {
                 <Step key={index}>
                   <StepLabel
                     slots={{
+                      // @ts-ignore
                       icon: StepperCustomDot
                     }}
                   >

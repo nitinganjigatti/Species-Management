@@ -19,24 +19,24 @@ const DietCategory = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [editParams, setEditParams] = useState(editParamsInitialState)
+  const [editParams, setEditParams] = useState<any>(editParamsInitialState)
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
-  const [rows, setRows] = useState([])
+  const [rows, setRows] = useState<any[]>([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
 
-  const dietModuleAccessContext = useContext(AuthContext)
-  const dietModuleAccess = dietModuleAccessContext?.userData?.roles?.settings?.diet_module_access || ''
+  const dietModuleAccessContext = useContext(AuthContext) as any
+  const dietModuleAccess: string = (dietModuleAccessContext as any)?.userData?.roles?.settings?.diet_module_access || ''
 
   const hasAddAccess = dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
   const hasEditAccess = dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
   const hasFullAccess = dietModuleAccess === 'allow_full_access'
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
@@ -50,7 +50,7 @@ const DietCategory = () => {
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, label, status) => {
+  const handleEdit = async (id: any, label: any, status: any) => {
     setEditParams({ id, label, status })
     setOpenDrawer(true)
   }
@@ -62,7 +62,7 @@ const DietCategory = () => {
       field: 'uid',
       headerName: 'SL No',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography sx={{ color: 'text.primary', pl: 4, fontSize: '0.875rem', fontWeight: 400 }}>
           {parseInt(params.row.uid)}
         </Typography>
@@ -73,7 +73,7 @@ const DietCategory = () => {
       minWidth: 100,
       field: 'label',
       headerName: t('name'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.label?.length > 30 ? params.row.label : ''}>
           <Typography
             sx={{ color: 'text.primary', pl: 1, fontSize: '0.875rem', fontWeight: 400 }}
@@ -89,7 +89,7 @@ const DietCategory = () => {
       minWidth: 100,
       field: 'active',
       headerName: t('status'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography sx={{ color: 'text.primary', pl: 2, fontSize: '0.875rem', fontWeight: 400 }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
@@ -104,7 +104,7 @@ const DietCategory = () => {
       minWidth: 100,
       field: 'Action',
       headerName: t('action'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center', pl: 2 }}>
           {parseInt(params.row.zoo_id) === 0 ? null : (
             <IconButton
@@ -125,11 +125,12 @@ const DietCategory = () => {
 
   const headerAction =
     hasAddAccess || hasFullAccess ? (
+      // @ts-ignore
       <AddButton title={t('diet_module.add_diet_category')} action={addEventSidebarOpen} />
     ) : null
 
   const fetchTableData = useCallback(
-    async (sortBy, q, column) => {
+    async (sortBy: any, q: any, column: any) => {
       try {
         setLoading(true)
 
@@ -145,7 +146,7 @@ const DietCategory = () => {
           const startingIndex = paginationModel.page * paginationModel.pageSize
           console.log('res.data', res?.data)
 
-          let listWithId = res?.data?.list_items?.map((el, i) => {
+          let listWithId = res?.data?.list_items?.map((el: any, i: any) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
@@ -164,7 +165,7 @@ const DietCategory = () => {
     fetchTableData(sort, searchValue, sortColumn)
   }, [fetchTableData])
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -186,7 +187,7 @@ const DietCategory = () => {
   )
 
   const handleSearch = useCallback(
-    value => {
+    (value: any) => {
       setSearchValue(value)
       searchTableData(sort, value, sortColumn)
     },
@@ -194,7 +195,7 @@ const DietCategory = () => {
     [sort, sortColumn, searchTableData, searchValue]
   )
 
-  const handleSubmitData = async payload => {
+  const handleSubmitData = async (payload: any) => {
     try {
       setSubmitLoader(true)
       var response
@@ -223,9 +224,9 @@ const DietCategory = () => {
     }
   }
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = rows?.map((row: any, index: any) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
@@ -259,15 +260,15 @@ const DietCategory = () => {
           />
         </Grid>
       </Card>
-      <AddEditDietCategory
-        drawerWidth={400}
-        addEventSidebarOpen={openDrawer}
-        handleSidebarClose={handleSidebarClose}
-        handleSubmitData={handleSubmitData}
-        resetForm={resetForm}
-        submitLoader={submitLoader}
-        editParams={editParams}
-      />
+      {React.createElement(AddEditDietCategory as any, {
+        drawerWidth: 400,
+        addEventSidebarOpen: openDrawer,
+        handleSidebarClose,
+        handleSubmitData,
+        resetForm,
+        submitLoader,
+        editParams
+      })}
     </>
   )
 }

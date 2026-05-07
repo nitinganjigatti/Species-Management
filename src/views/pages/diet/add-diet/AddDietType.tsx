@@ -7,9 +7,10 @@ import {
   FormControl,
   FormGroup,
   FormHelperText,
-  Grid,
+  Grid as GridBase,
   Typography
 } from '@mui/material'
+const Grid = GridBase as any
 import { Box } from '@mui/system'
 import TextField from '@mui/material/TextField'
 import React, { useEffect, useState } from 'react'
@@ -205,7 +206,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
         message: 'same weight not be allowed'
       })
     } else {
-      clearErrors(`diet_types[${index}]`, 'weight')
+      clearErrors(`diet_types[${index}].weight`)
     }
   }
 
@@ -305,7 +306,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
 
                                     //setDis(false)
                                   }}
-                                  error={Boolean(errors?.diet_types?.[index]?.weight)}
+                                  error={Boolean((errors as any)?.diet_types?.[index]?.weight)}
                                   type='number'
                                   name={`diet_types[${index}].weight`}
                                   onKeyUp={() => {
@@ -321,8 +322,8 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                         </FormControl>
 
                         <Typography sx={{ fontSize: 12, ml: 2 }}>
-                          {errors?.diet_types?.[index]?.weight?.message != 'same range value be not allowed' &&
-                            errors?.diet_types?.[index]?.weight?.message}
+                          {(errors as any)?.diet_types?.[index]?.weight?.message != 'same range value be not allowed' &&
+                            (errors as any)?.diet_types?.[index]?.weight?.message}
                         </Typography>
                       </Grid>
                       {/* <Grid size={{xs: 12, sm: 2.5}}>
@@ -391,10 +392,10 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                           />
                         </FormControl>
                       </Grid>
-                      {errors?.diet_types?.[index]?.weight?.message === 'same range value be not allowed' && (
+                      {(errors as any)?.diet_types?.[index]?.weight?.message === 'same range value be not allowed' && (
                         <Grid size={{ xs: 10 }}>
                           <Typography sx={{ fontSize: 12, ml: 2 }}>
-                            {errors?.diet_types?.[index]?.weight?.message}
+                            {(errors as any)?.diet_types?.[index]?.weight?.message}
                           </Typography>
                         </Grid>
                       )}
@@ -407,7 +408,7 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                       )} */}
 
                       <Grid
-                        item
+                        {...({ item: true } as any)}
                         sx={{
                           alignSelf: 'center',
                           display: 'flex',

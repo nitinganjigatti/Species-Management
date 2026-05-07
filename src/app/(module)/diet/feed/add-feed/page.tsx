@@ -36,8 +36,8 @@ import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 
 const AddFeedType = () => {
-  const fileInputRef = useRef(null)
-  const authData = useContext(AuthContext)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const authData = useContext(AuthContext) as any
   const { t } = useTranslation()
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
@@ -105,7 +105,7 @@ const AddFeedType = () => {
   //   }
   // }
 
-  const handleInputImageChange = file => {
+  const handleInputImageChange = (file: any) => {
     const { files } = file.target
     const reader = new FileReader()
 
@@ -124,7 +124,7 @@ const AddFeedType = () => {
       }
 
       reader.onload = () => {
-        setImgSrc(reader.result)
+        setImgSrc(reader.result as string)
       }
 
       setDisplayFile(selectedFile.name)
@@ -141,7 +141,7 @@ const AddFeedType = () => {
 
   useEffect(() => {
     if (id && dietModule) {
-      getFeedById(id).then(res => {
+      getFeedById(id as string).then(res => {
         setImgSrc(res?.data?.image)
         setValue('name', res?.data?.feed_type_name)
         setValue('status', parseFloat(res?.data?.active) === 0 ? 'inactive' : 'active')
@@ -152,8 +152,8 @@ const AddFeedType = () => {
     }
   }, [])
 
-  const onSubmit = async params => {
-    const { status, name, description, feedImg } = { ...params }
+  const onSubmit = async (params: any) => {
+    const { status, name, description, feedImg } = params
 
     const payload = {
       status: status == 'inactive' ? 0 : 1,
@@ -166,7 +166,7 @@ const AddFeedType = () => {
     if (id) {
       try {
         setBtnLoader(true)
-        await updateFeedType({ ...payload }, id).then(res => {
+        await updateFeedType({ ...payload }, id as string).then(res => {
           console.log(res, 'res')
           if (res?.success) {
             setBtnLoader(false)
@@ -297,7 +297,7 @@ const AddFeedType = () => {
                       />
                     )}
                   />
-                  {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name?.message}</FormHelperText>}
+                  {errors.name && <FormHelperText sx={{ color: 'error.main' }}>{errors.name?.message as any}</FormHelperText>}
                 </FormControl>
                 <FormControl fullWidth sx={{ mb: 6 }}>
                   <Controller
@@ -318,7 +318,7 @@ const AddFeedType = () => {
                     )}
                   />
                   {errors.description && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message}</FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message as any}</FormHelperText>
                   )}
                 </FormControl>
                 <input
@@ -369,7 +369,7 @@ const AddFeedType = () => {
                   </Button>
                 )}
                 {errors.feedImg && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message}</FormHelperText>
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors.feedImg?.message as any}</FormHelperText>
                 )}
 
                 <RenderSidebarFooter />

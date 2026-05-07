@@ -19,7 +19,7 @@ import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
 import { useTranslation } from 'react-i18next'
 
-const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
+const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }: { IngredientsDetailsval: any }) => {
   const [loader, setLoader] = useState(false)
   const { t } = useTranslation()
   const theme = useTheme()
@@ -28,10 +28,10 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   const [searchValue, setSearchValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('active')
-  const [rowsPercentage, setRowsPercentage] = useState([])
-  const [rowsQuantity, setRowsQuantity] = useState([])
+  const [rowsPercentage, setRowsPercentage] = useState<any[]>([])
+  const [rowsQuantity, setRowsQuantity] = useState<any[]>([])
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setTotal(0)
     setStatus(newValue)
   }
@@ -39,13 +39,13 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   useEffect(() => {
     // Filter ingredients by percentage
     const filteredPercentage = IngredientsDetailsval?.by_percentage.filter(
-      ingredient =>
+      (ingredient: any) =>
         ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase()) && ingredient.status === status
     )
 
     // Filter ingredients by quantity
     const filteredQuantity = IngredientsDetailsval?.by_quantity.filter(
-      ingredient =>
+      (ingredient: any) =>
         ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase()) && ingredient.status === status
     )
     setRowsPercentage(filteredPercentage)
@@ -53,7 +53,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
     setTotal(filteredPercentage.length + filteredQuantity.length)
   }, [IngredientsDetailsval, searchValue, status])
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setSearchValue(value)
   }
 
@@ -69,7 +69,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 30,
       field: 'ingredient_name',
       headerName: t('diet_module.item_name'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
@@ -99,7 +99,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 10,
       field: 'ingredient_id',
       headerName: t('diet_module.item_id'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
         </Typography>
@@ -110,7 +110,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 20,
       field: 'feed_type',
       headerName: t('diet_module.feed_type'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }} title={params.row.feed_type}>
           {params.row.feed_type_label ? params.row.feed_type_label : '-'}
         </Typography>
@@ -121,7 +121,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 10,
       field: 'quantity',
       headerName: t('diet_module.quantity_perc'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.quantity ? Utility.formatNumber(params.row.quantity) : '-'}
           {params.row.uom_text ? ` ${params.row.uom_text}` : '%'}
@@ -133,7 +133,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 20,
       field: 'preparation_type',
       headerName: t('diet_module.preparation_type'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params?.row?.preparation_type} arrow placement='bottom-start'>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
             {params.row.preparation_type ? params.row.preparation_type : '-'}
@@ -147,13 +147,13 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
     return (
       <>
         {loader ? (
-          <FallbackSpinner />
+          <FallbackSpinner sx={{}} />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
             <CardHeader title={t('diet_module.item_by_perc')} sx={{ pl: 0 }} />
 
             <CommonTable
-              indexedRows={rowsPercentage.map((row, index) => ({ ...row, id: index }))}
+              indexedRows={rowsPercentage.map((row: any, index: number) => ({ ...(row as any), id: index }))}
               total={rowsPercentage.length}
               columns={columnsforPercentage}
               loading={loading}
@@ -181,7 +181,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
               value={searchValue}
               onChange={e => handleSearch(e.target.value)}
               onClear={handleClearSearch}
-              placeholder={t('diet_module.search_ingredients')}
+              placeholder={t('diet_module.search_ingredients') as string}
             />
           </Grid>
         </Grid>

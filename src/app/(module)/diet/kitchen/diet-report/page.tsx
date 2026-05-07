@@ -1,6 +1,6 @@
 'use client';
 // ** React Imports
-import { useState, useContext, useMemo } from 'react'
+import React, { useState, useContext, useMemo } from 'react'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -93,8 +93,8 @@ const DietReportPage = () => {
     //   downloadStatus: false
     // }
   ]
-  const authData = useContext(AuthContext)
-  const sites = authData.userData.user.zoos[0]?.sites || []
+  const authData = useContext(AuthContext) as any
+  const sites = authData?.userData?.user?.zoos[0]?.sites || []
   const { t } = useTranslation()
   // ** States
   const [loading, setLoading] = useState(false)
@@ -103,7 +103,7 @@ const DietReportPage = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
   const [sitesList, setSitesList] = useState(sites)
-  const [taxonomyList, setTaxonomyList] = useState([])
+  const [taxonomyList, setTaxonomyList] = useState<any[]>([])
   const [totalTaxonomyCount, setTaxonomyCount] = useState(0)
   const [downloadStatus, setDownloadStatus] = useState({})
   const [searchTaxonomyQuery, setSearchTaxonomyQuery] = useState('')
@@ -118,7 +118,7 @@ const DietReportPage = () => {
     to_date: Utility.formatDate(format(addDays(new Date(), 1), 'dd MMM, yyyy'))
   })
 
-  const [selectedOptions, setSelectedOptions] = useState({
+  const [selectedOptions, setSelectedOptions] = useState<any>({
     Sites: [],
     Species: []
   })
@@ -131,7 +131,7 @@ const DietReportPage = () => {
     limit: 50
   })
 
-  const productTypes = []
+  const productTypes: any[] = []
 
   // const handleUpdateStatus = (reportId, status) => {
   //   setDownloadStatus(prev => ({
@@ -140,12 +140,12 @@ const DietReportPage = () => {
   //   }))
   // }
 
-  const handleFilter = async filterList => {
+  const handleFilter = async (filterList: any) => {
     setFilteredData(filterList)
     calculateAppliedFiltersCount(filterList)
   }
 
-  const calculateAppliedFiltersCount = filteredData => {
+  const calculateAppliedFiltersCount = (filteredData: any) => {
     let count = 0
 
     if (filteredData && filteredData['Sites'] && filteredData['Sites'].length > 0) {
@@ -168,7 +168,7 @@ const DietReportPage = () => {
     if (!selectAllSites) {
       setSelectedOptions({
         ...selectedOptions,
-        Sites: sitesList.map(p => p.site_id)
+        Sites: sitesList.map((p: any) => p.site_id)
       })
     } else {
       setSelectedOptions({
@@ -183,7 +183,7 @@ const DietReportPage = () => {
     if (!selectAllSpecies) {
       setSelectedOptions({
         ...selectedOptions,
-        Species: taxonomyList.map(pr => pr.tsn)
+        Species: taxonomyList.map((pr: any) => pr.tsn)
       })
     } else {
       setSelectedOptions({
@@ -198,13 +198,13 @@ const DietReportPage = () => {
   //   onUpdateStatus: handleUpdateStatus
   // })
 
-  const handleUpdateStatus = (reportId, status) => {
+  const handleUpdateStatus = (reportId: any, status: any) => {
     setRows(currentRows => currentRows.map(row => (row.id === reportId ? { ...row, downloadStatus: status } : row)))
   }
 
-  const handleDownload = async (reportId, reportAlias, filteredData) => {
+  const handleDownload = async (reportId: any, reportAlias: any, filteredData: any) => {
     try {
-      const params = {
+      const params: any = {
         site_ids: JSON.stringify(filteredData['Sites']) || [],
         taxonomy_ids: JSON.stringify(filteredData['Species']) || [],
         file_type: 'excel',
@@ -257,7 +257,7 @@ const DietReportPage = () => {
       alignItems: 'center',
       align: 'center',
       sortable: false,
-      renderCell: params => params.value
+      renderCell: (params: any) => params.value
     },
     {
       flex: 1,
@@ -265,7 +265,7 @@ const DietReportPage = () => {
       field: 'reportName',
       headerName: t('diet_module.report_name'),
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'customColors.OnSecondaryContainer', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.reportName}
@@ -290,7 +290,7 @@ const DietReportPage = () => {
       align: 'center',
       headerAlign: 'center',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           {!params?.row.downloadStatus ? (
             <Button
@@ -312,7 +312,7 @@ const DietReportPage = () => {
     }
   ]
 
-  const handleDateRangeChange = (startDate, endDate) => {
+  const handleDateRangeChange = (startDate: any, endDate: any) => {
     if (startDate && endDate) {
       const formattedStartDate = Utility.formatDate(startDate)
       const formattedEndDate = Utility.formatDate(endDate)
@@ -323,7 +323,7 @@ const DietReportPage = () => {
     }
   }
 
-  const getTaxonomyListFunc = async (q, page_no) => {
+  const getTaxonomyListFunc = async (q?: any, page_no?: any) => {
     try {
       setTaxonomyLoading(true)
 
@@ -347,14 +347,14 @@ const DietReportPage = () => {
   }
 
   const debouncedSearch = useMemo(
-    search =>
-      debounce(async (search, page_no) => {
+    () =>
+      debounce(async (search: any, page_no: any) => {
         await getTaxonomyListFunc(search, page_no)
       }, 1000),
     []
   )
 
-  const handleScrollforTaxonomy = debounce(scrollEvent => {
+  const handleScrollforTaxonomy = debounce((scrollEvent: any) => {
     const { target } = scrollEvent
     const threshold = 10
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
@@ -365,7 +365,7 @@ const DietReportPage = () => {
     }
   }, 200)
 
-  const handleTaxonomySearch = search => {
+  const handleTaxonomySearch = (search: any) => {
     setPaginationModel(prev => ({ ...prev, page_no: 1 }))
     setTaxonomyList([])
     setSearchTaxonomyQuery(search)
@@ -421,7 +421,6 @@ const DietReportPage = () => {
                     }}
                   >
                     <Grid
-                      item
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
@@ -429,6 +428,7 @@ const DietReportPage = () => {
                         justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                       }}
                     >
+                      {/* @ts-ignore */}
                       <FilterButton
                         onClick={() => {
                           setOpenFilterDrawer(true)
@@ -441,31 +441,32 @@ const DietReportPage = () => {
                 </Grid>
               </Grid>
             </Box>
-            <DietReportView
-              rows={rows}
-              columns={columns}
-              loading={loading}
-              downloadStatus={downloadStatus}
-              filterList={filteredData}
-            />
+            {React.createElement(DietReportView as any, {
+              rows,
+              columns,
+              loading,
+              downloadStatus,
+              filterList: filteredData
+            })}
           </CardContent>
         </Card>
-        <DietReportDrawer
-          setOpenFilterDrawer={setOpenFilterDrawer}
-          openFilterDrawer={openFilterDrawer}
-          onApplyFilter={handleFilter}
-          selectedOptions={selectedOptions}
-          setSelectedOptions={setSelectedOptions}
-          sites={sitesList}
-          speciesList={taxonomyList}
-          handleSelectedAllSites={handleSelectedAllSites}
-          handleSelectedSpecies={handleSelectedSpecies}
-          taxonomyListCallback={getTaxonomyListFunc}
-          handleScrollforTaxonomy={handleScrollforTaxonomy}
-          taxonomyLoading={taxonomyLoading}
-          handleTaxonomySearch={handleTaxonomySearch}
-          searchTaxonomyQuery={searchTaxonomyQuery}
-        />
+        {React.createElement(DietReportDrawer as any, {
+          setOpenFilterDrawer,
+          openFilterDrawer,
+          onApplyFilter: handleFilter,
+          selectedOptions,
+          setSelectedOptions,
+          sites: sitesList,
+          speciesList: taxonomyList,
+          handleSelectedAllSites,
+          handleSelectedSpecies,
+          taxonomyListCallback: getTaxonomyListFunc,
+          handleScrollforTaxonomy,
+          taxonomyLoading,
+          handleTaxonomySearch,
+          searchTaxonomyQuery,
+          productTypes
+        })}
       </Grid>
     </Grid>
   )

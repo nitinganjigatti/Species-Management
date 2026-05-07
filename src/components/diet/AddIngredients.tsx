@@ -1110,7 +1110,7 @@ const AddIngredients: React.FC<Props> = props => {
                   >
                     {selectFeed[item.id]?.name !== '' ? (
                       <>
-                        <Divider mt={-2} />
+                        <Divider sx={{ mt: -2 }} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
                           <Typography>{`${t('diet_module.enter_cutsize')} *`}</Typography>
 

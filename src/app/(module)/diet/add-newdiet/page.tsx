@@ -28,12 +28,12 @@ const MealTabs = () => {
     setActiveTab(meals.length)
   }
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (event: any, newValue: any) => {
     setActiveTab(newValue)
   }
 
-  const handleMealChange = (index, field, value) => {
-    const updatedMeals = [...meals]
+  const handleMealChange = (index: any, field: any, value: any) => {
+    const updatedMeals: any[] = [...meals]
     updatedMeals[index][field] = value
     setMeals(updatedMeals)
   }
@@ -63,24 +63,24 @@ const MealTabs = () => {
                 <Grid size={{ xs: 12, sm: 3 }}>
                   <FormControl fullWidth>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <TimePicker
-                        label={t('diet_module.select_time_from')}
-                        value={meal.fromTime ? dayjs(meal.fromTime) : null}
-                        onChange={newValue => handleMealChange(index, 'fromTime', newValue)}
-                        renderInput={params => <TextField {...params} />}
-                      />
+                      {React.createElement(TimePicker as any, {
+                        label: t('diet_module.select_time_from'),
+                        value: meal.fromTime ? dayjs(meal.fromTime) : null,
+                        onChange: (newValue: any) => handleMealChange(index, 'fromTime', newValue),
+                        renderInput: (params: any) => React.createElement(TextField, params)
+                      })}
                     </LocalizationProvider>
                   </FormControl>
                 </Grid>
                 <Grid size={{ xs: 12, sm: 3 }}>
                   <FormControl fullWidth>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                      <TimePicker
-                        label={t('diet_module.select_time_to')}
-                        value={meal.toTime ? dayjs(meal.toTime) : null}
-                        onChange={newValue => handleMealChange(index, 'toTime', newValue)}
-                        renderInput={params => <TextField {...params} />}
-                      />
+                      {React.createElement(TimePicker as any, {
+                        label: t('diet_module.select_time_to'),
+                        value: meal.toTime ? dayjs(meal.toTime) : null,
+                        onChange: (newValue: any) => handleMealChange(index, 'toTime', newValue),
+                        renderInput: (params: any) => React.createElement(TextField, params)
+                      })}
                     </LocalizationProvider>
                   </FormControl>
                 </Grid>

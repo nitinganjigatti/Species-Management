@@ -140,6 +140,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
       delete newPrimaryStatus[item[idField]]
       setPrimaryStatus(newPrimaryStatus)
     } else {
+      // @ts-ignore
       const speciesIds = [species.species_id]
       setLoading(true)
 
@@ -153,7 +154,7 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
         if (response.success === true) {
           await refreshSpeciesData()
           setPageNo(1)
-          Toaster({ type: 'success', message: response?.message, duration: 2000 })
+          Toaster({ type: 'success', message: response?.message })
           setTempSelectedSpecies([])
           setSelectedSpecies([])
         } else {
@@ -696,7 +697,6 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
                                 }
                                 onChange={() => handleTogglePrimary(species)}
                                 color='primary'
-                                fontSize={70}
                               />
                             </Box>
 
@@ -753,7 +753,6 @@ const ListOfSpeciesMapped: React.FC<Props> = ({
                                 }
                                 onChange={() => handleTogglePrimary(species)}
                                 color='primary'
-                                fontSize={70}
                               />
                             </Box>
 

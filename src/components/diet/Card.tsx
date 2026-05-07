@@ -103,7 +103,7 @@ const Card: React.FC<Props> = props => {
         <Box sx={{ mr: 2, mt: 2 }}>
           <img
             src={FoodData?.image}
-            style={{ width: '100%', borderRadius: 10, width: 60, height: 60 } as any}
+            style={{ borderRadius: 10, width: 60, height: 60 } as any}
             alt='ingredient'
           />
         </Box>

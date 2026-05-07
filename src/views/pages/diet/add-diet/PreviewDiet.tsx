@@ -87,7 +87,7 @@ const StepPreviewDiet = ({
   const [dietTypes, setDietTypes] = useState<any[]>([])
   const [activitySidebarOpen, setActivitySidebarOpen] = useState<boolean>(false)
   const [diettypechildvalues, setdiettypechildvalues] = useState<any[]>([])
-  const [uomId, setuomId] = useState<string>('')
+  const [uomId, setuomId] = useState<string | number>('')
   const [uomLabel, setuomLabel] = useState<string>('')
   const [errorpop, setErrorpop] = useState<string>('')
   const [expanded, setExpanded] = useState<boolean>(false)
@@ -109,15 +109,15 @@ const StepPreviewDiet = ({
     label: item.name
   }))
 
-  const handleClickOpen = (index, item, type, dietType) => {
-    const getUomValues = mealTypeObject => {
+  const handleClickOpen = (index: any, item: any, type: any, dietType: any) => {
+    const getUomValues = (mealTypeObject: any) => {
       return {
         feedUomName: item?.portion_uom_id ? item.portion_uom_name : mealTypeObject?.feed_uom_name,
         mealValueUomId: item?.portion_uom_id ? item.portion_uom_id : mealTypeObject?.meal_value_uom_id
       }
     }
     if (formData.diet_type_name !== 'By Weight') {
-      const mealTypeObject = item?.meal_type?.find(meal => meal.meal_value_header === type)
+      const mealTypeObject = item?.meal_type?.find((meal: any) => meal.meal_value_header === type)
       const { feedUomName, mealValueUomId } = getUomValues(mealTypeObject)
 
       setFormValue('quantity', mealTypeObject?.quantity)
@@ -145,7 +145,7 @@ const StepPreviewDiet = ({
     } else {
       const numericType = type !== 'Generic' ? parseFloat(type) : type
 
-      const mealTypeObject = item?.meal_type?.find((meal, mealIndex) => {
+      const mealTypeObject = item?.meal_type?.find((meal: any, mealIndex: any) => {
         if (meal.meal_value_header !== 'Generic') {
           return parseFloat(meal.meal_value_header) === numericType
         } else {
@@ -232,14 +232,14 @@ const StepPreviewDiet = ({
     setDietTypes(dietTypesData)
     setActivitySidebarOpen(false)
 
-    const stateforHeader = dietTypesData.map(item => {
+    const stateforHeader = dietTypesData.map((item: any) => {
       const { weight, unit } = item
       const { name } = unit.value
 
       return `${weight} ${name}`
     })
 
-    const apival = dietTypesData.map(item => {
+    const apival = dietTypesData.map((item: any) => {
       const { weight, unit } = item
       const { _id, name } = unit.value
 
@@ -296,9 +296,9 @@ const StepPreviewDiet = ({
       const dietTypeChildVal = getCookie('dietTypeChildVal')
       if (dietTypeChildValues !== null) {
         const parsedValue = JSON?.parse(dietTypeChildValues)
-        const parsedvaldiet = JSON?.parse(dietTypeChildVal)
+        const parsedvaldiet = JSON?.parse(dietTypeChildVal ?? '')
 
-        const newarr = parsedvaldiet?.map((item, index) => ({
+        const newarr = parsedvaldiet?.map((item: any, index: any) => ({
           unit: {
             value: {
               _id: item.weight_uom_id,
@@ -317,9 +317,9 @@ const StepPreviewDiet = ({
       const dietTypeChildVal = getCookie('dietTypeChildVal')
       if (dietTypeChildValues !== null) {
         const parsedValue = JSON?.parse(dietTypeChildValues)
-        const parsedvaldiet = JSON?.parse(dietTypeChildVal)
+        const parsedvaldiet = JSON?.parse(dietTypeChildVal ?? '')
 
-        const newarr = parsedvaldiet?.map((item, index) => ({
+        const newarr = parsedvaldiet?.map((item: any, index: any) => ({
           unit: {
             value: {
               _id: item.weight_uom_id,
@@ -353,7 +353,7 @@ const StepPreviewDiet = ({
     }
   })
 
-  const useStyles = styled({
+  const useStyles = (styled as any)({
     table: {
       minWidth: 650
     },
@@ -367,7 +367,7 @@ const StepPreviewDiet = ({
   })
   const classes = useStyles()
 
-  const SelectQuantityclick = (index: any, item: any, val: any) => {
+  const SelectQuantityclick = (index: any, item: any, val?: any) => {
     const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
     if (quantity && feed_uom_name) {
       setErrorpop('')
@@ -375,18 +375,18 @@ const StepPreviewDiet = ({
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
         const updatedFormData = { ...formData }
 
-        const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
+        const addMealIndex = updatedFormData.meal_data.findIndex((meal: any) => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
           const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredient.findIndex(
-            (ingredient, i) => ingredient.mealid === ingredientvalueid && i === mealingredientIndex
+            (ingredient: any, i: any) => ingredient.mealid === ingredientvalueid && i === mealingredientIndex
           )
 
           if (ingredientIndex !== -1) {
             const mealTypeArray = updatedFormData.meal_data[addMealIndex].ingredient[ingredientIndex].meal_type || []
 
             if (formData.diet_type_name === 'By Weight') {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => {
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
@@ -420,7 +420,7 @@ const StepPreviewDiet = ({
                 })
               }
             } else {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => meal.meal_value_header === headertype)
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
                   meal_value_header: headertype,
@@ -449,18 +449,18 @@ const StepPreviewDiet = ({
       } else if (dietTypeval === 'recipe') {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
         const updatedFormData = { ...formData }
-        const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
+        const addMealIndex = updatedFormData.meal_data.findIndex((meal: any) => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
           const ingredientIndex = updatedFormData.meal_data[addMealIndex].recipe.findIndex(
-            (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
+            (recipe: any, i: any) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
           )
 
           if (ingredientIndex !== -1) {
             const mealTypeArray = updatedFormData.meal_data[addMealIndex].recipe[ingredientIndex].meal_type || []
 
             if (formData.diet_type_name === 'By Weight') {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => {
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
@@ -494,7 +494,7 @@ const StepPreviewDiet = ({
                 })
               }
             } else {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => meal.meal_value_header === headertype)
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
                   meal_value_header: headertype,
@@ -522,18 +522,18 @@ const StepPreviewDiet = ({
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
         const updatedFormData = { ...formData }
 
-        const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
+        const addMealIndex = updatedFormData.meal_data.findIndex((meal: any) => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
           const ingredientIndex = updatedFormData.meal_data[addMealIndex].combo.findIndex(
-            (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
+            (recipe: any, i: any) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
           )
 
           if (ingredientIndex !== -1) {
             const mealTypeArray = updatedFormData.meal_data[addMealIndex].combo[ingredientIndex].meal_type || []
 
             if (formData.diet_type_name === 'By Weight') {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => {
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
@@ -567,7 +567,7 @@ const StepPreviewDiet = ({
                 })
               }
             } else {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => meal.meal_value_header === headertype)
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
                   meal_value_header: headertype,
@@ -594,11 +594,11 @@ const StepPreviewDiet = ({
       } else {
         const { quantity, meal_value_uom_id, notes, feed_uom_name } = getValues()
         const updatedFormData = { ...formData }
-        const addMealIndex = updatedFormData.meal_data.findIndex(meal => meal.mealid === ingredientvalueid)
+        const addMealIndex = updatedFormData.meal_data.findIndex((meal: any) => meal.mealid === ingredientvalueid)
 
         if (addMealIndex !== -1) {
           const ingredientIndex = updatedFormData.meal_data[addMealIndex].ingredientwithchoice.findIndex(
-            (recipe, i) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
+            (recipe: any, i: any) => recipe.mealid === ingredientvalueid && i === mealingredientIndex
           )
 
           if (ingredientIndex !== -1) {
@@ -606,7 +606,7 @@ const StepPreviewDiet = ({
               updatedFormData.meal_data[addMealIndex].ingredientwithchoice[ingredientIndex].meal_type || []
 
             if (formData.diet_type_name === 'By Weight') {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => {
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => {
                 if (headertype === 'Generic') {
                   return meal.meal_value_header === headertype
                 } else {
@@ -639,7 +639,7 @@ const StepPreviewDiet = ({
                 })
               }
             } else {
-              const existingMealTypeIndex = mealTypeArray.findIndex(meal => meal.meal_value_header === headertype)
+              const existingMealTypeIndex = mealTypeArray.findIndex((meal: any) => meal.meal_value_header === headertype)
               if (existingMealTypeIndex !== -1) {
                 mealTypeArray[existingMealTypeIndex] = {
                   meal_value_header: headertype,
@@ -698,11 +698,11 @@ const StepPreviewDiet = ({
   useEffect(() => {
     const updatedFormData = { ...formData }
 
-    updatedFormData.meal_data.forEach(meal => {
+    updatedFormData.meal_data.forEach((meal: any) => {
       if (meal.ingredient) {
-        meal.ingredient.forEach(ingredient => {
+        meal.ingredient.forEach((ingredient: any) => {
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
-            ingredient.meal_type = ingredient.meal_type.filter(mealType => {
+            ingredient.meal_type = ingredient.meal_type.filter((mealType: any) => {
               if (mealType.meal_value_header === 'Generic') return true
 
               return formData.diet_type_name === 'By Weight'
@@ -714,9 +714,9 @@ const StepPreviewDiet = ({
       }
 
       if (meal.recipe) {
-        meal.recipe.forEach(recipe => {
+        meal.recipe.forEach((recipe: any) => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
-            recipe.meal_type = recipe.meal_type.filter(mealType => {
+            recipe.meal_type = recipe.meal_type.filter((mealType: any) => {
               if (mealType.meal_value_header === 'Generic') return true
 
               return formData.diet_type_name === 'By Weight'
@@ -728,9 +728,9 @@ const StepPreviewDiet = ({
       }
 
       if (meal.combo) {
-        meal.combo.forEach(recipe => {
+        meal.combo.forEach((recipe: any) => {
           if (recipe.meal_type && recipe.meal_type.length > 0) {
-            recipe.meal_type = recipe.meal_type.filter(mealType => {
+            recipe.meal_type = recipe.meal_type.filter((mealType: any) => {
               if (mealType.meal_value_header === 'Generic') return true
 
               return formData.diet_type_name === 'By Weight'
@@ -742,9 +742,9 @@ const StepPreviewDiet = ({
       }
 
       if (meal.ingredientwithchoice) {
-        meal.ingredientwithchoice.forEach(ingredientwithchoice => {
+        meal.ingredientwithchoice.forEach((ingredientwithchoice: any) => {
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
-            ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
+            ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter((mealType: any) => {
               if (mealType.meal_value_header === 'Generic') return true
 
               return formData.diet_type_name === 'By Weight'
@@ -759,7 +759,7 @@ const StepPreviewDiet = ({
     setOpen(false)
   }, [formData.child])
 
-  const onSubmit = async data => {
+  const onSubmit = async (data: any) => {
     const updatedData = { ...data, ...LocalformData }
 
     handleNext(updatedData)
@@ -777,23 +777,23 @@ const StepPreviewDiet = ({
     { id: 7, name: 'Sun', isActive: false }
   ]
 
-  const getDayName = dayId => {
+  const getDayName = (dayId: any) => {
     const day = Day.find(d => d.id === dayId)
 
     return day ? day.name : ''
   }
 
-  const handleclickRecipeDetail = val => {
+  const handleclickRecipeDetail = (val: any) => {
     const url = `/diet/recipe/${val}`
     window.open(url, '_blank')
   }
 
-  const handleclickComboDetail = val => {
+  const handleclickComboDetail = (val: any) => {
     const url = `/diet/combo/${val}`
     window.open(url, '_blank')
   }
 
-  const getModal = (index, item, val) => {
+  const getModal = (index: any, item: any, val: any) => {
     return (
       <Dialog
         className=''
@@ -885,7 +885,6 @@ const StepPreviewDiet = ({
                         defaultValue={initialValues.feed_uom_name ? initialValues.feed_uom_name : null}
                         options={transformedArray}
                         getOptionLabel={option => option.label}
-                        getOptionValue={option => option.value}
                         renderInput={params => (
                           <TextField {...params} label='Select Unit' placeholder='Search & Select' />
                         )}
@@ -958,7 +957,7 @@ const StepPreviewDiet = ({
                   }}
                 >
                   {Array.isArray(formData.diet_image) && formData.diet_image.length > 0 ? (
-                    formData.diet_image.map(file => (
+                    formData.diet_image.map((file: any) => (
                       <Avatar
                         key={file.name}
                         variant='square'
@@ -1047,7 +1046,7 @@ const StepPreviewDiet = ({
             </Grid>
           </Grid>
           <Card sx={{ boxShadow: 'none', px: 5 }}>
-            <Grid sx={{ overflowX: 'auto' }} value='full'>
+            <Grid sx={{ overflowX: 'auto' }} {...({ value: 'full' } as any)}>
               <Typography
                 variant='h6'
                 sx={formData.diet_type_name === 'By Weight' ? { width: '50%', mt: 3, float: 'left' } : { mb: 3 }}
@@ -1073,7 +1072,7 @@ const StepPreviewDiet = ({
               ) : (
                 ''
               )}
-              <Grid sx={{ overflowX: 'auto', pb: 0 }} value='full'>
+              <Grid sx={{ overflowX: 'auto', pb: 0 }} {...({ value: 'full' } as any)}>
                 <CustomScrollbar
                   style={{
                     maxWidth: '100%'
@@ -1183,7 +1182,7 @@ const StepPreviewDiet = ({
                               <Typography sx={{ fontWeight: 600 }}>GENERIC</Typography>
                             </TableCell>
 
-                            {formData.child?.map((all, index) => {
+                            {formData.child?.map((all: any, index: any) => {
                               return (
                                 <TableCell
                                   key={index}
@@ -1217,7 +1216,7 @@ const StepPreviewDiet = ({
                               <Typography sx={{ fontWeight: 600 }}>GENERIC</Typography>
                             </TableCell>
 
-                            {formData.child?.map((all, index) => {
+                            {formData.child?.map((all: any, index: any) => {
                               return (
                                 <TableCell
                                   key={index}
@@ -1265,7 +1264,7 @@ const StepPreviewDiet = ({
                             >
                               <Typography sx={{ fontWeight: 600 }}>GENERIC</Typography>
                             </TableCell>
-                            {formData.child?.map((all, index) => {
+                            {formData.child?.map((all: any, index: any) => {
                               return (
                                 <TableCell
                                   key={index}
@@ -1289,7 +1288,7 @@ const StepPreviewDiet = ({
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {formData.meal_data?.map((itemd, index) => {
+                      {formData.meal_data?.map((itemd: any, index: any) => {
                         const fromdate = new Date(itemd.meal_from_time)
 
                         const formattedfromTime = fromdate.toLocaleTimeString('en-US', {
@@ -1427,7 +1426,7 @@ const StepPreviewDiet = ({
                             </TableRow>
 
                             <React.Fragment key={`recipes-${index}`}>
-                              {itemd?.recipe?.map((item, rIndex) => {
+                              {itemd?.recipe?.map((item: any, rIndex: any) => {
                                 return (
                                   <TableRow
                                     key={`recipe-${index}-${rIndex}`}
@@ -1455,7 +1454,7 @@ const StepPreviewDiet = ({
                                           display: 'flex',
                                           flexDirection: 'column',
 
-                                          backgroundColor: theme.palette.background.OnBackground,
+                                          backgroundColor: (theme.palette.background as any).OnBackground,
                                           borderRadius: '8px',
                                           p: '12px',
                                           gap: '16px'
@@ -1547,7 +1546,7 @@ const StepPreviewDiet = ({
                                                     gap: '10px'
                                                   }}
                                                 >
-                                                  {item.ingredients.map((name, i) => (
+                                                  {item.ingredients.map((name: any, i: any) => (
                                                     <Box
                                                       key={i}
                                                       sx={{
@@ -1596,7 +1595,7 @@ const StepPreviewDiet = ({
                                                   gap: '24px'
                                                 }}
                                               >
-                                                {item?.recipe?.map((r, i) => (
+                                                {item?.recipe?.map((r: any, i: any) => (
                                                   <Box key={i} sx={{ display: 'flex' }}>
                                                     <Typography
                                                       sx={{
@@ -1722,8 +1721,8 @@ const StepPreviewDiet = ({
                                             ) : (
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
                                                 {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, index) => (
+                                                  ?.sort((a: any, b: any) => a - b)
+                                                  .map((dayId: any, index: any) => (
                                                     <Box
                                                       key={index}
                                                       sx={{
@@ -1808,7 +1807,7 @@ const StepPreviewDiet = ({
                                               ? (() => {
                                                   // Prepare the display values
                                                   const genericMeals = item.meal_type
-                                                    .map(meal => {
+                                                    .map((meal: any) => {
                                                       if (meal.meal_value_header === 'Generic') {
                                                         // If portion_uom_id exists, use portion_uom_name
                                                         const uomName = item?.portion_uom_id
@@ -1827,7 +1826,7 @@ const StepPreviewDiet = ({
                                                 })()
                                               : 'Add'}
                                             {item.meal_type
-                                              ? item.meal_type.map((meal, i) =>
+                                              ? item.meal_type.map((meal: any, i: any) =>
                                                   meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
@@ -1846,7 +1845,7 @@ const StepPreviewDiet = ({
                                         </Box>
                                       </Box>
                                     </TableCell>
-                                    {formData.child?.map((all, indexnew) => {
+                                    {formData.child?.map((all: any, indexnew: any) => {
                                       if (all !== 'Generic') {
                                         return (
                                           <TableCell
@@ -1902,7 +1901,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -1914,7 +1913,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -1926,7 +1925,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -1934,7 +1933,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -1943,7 +1942,7 @@ const StepPreviewDiet = ({
                                                     : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -1965,7 +1964,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -1987,7 +1986,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -2009,7 +2008,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -2044,7 +2043,7 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`combos-${index}`}>
-                              {itemd?.combo?.map((item, cIndex) => {
+                              {itemd?.combo?.map((item: any, cIndex: any) => {
                                 return (
                                   <TableRow
                                     key={`combo-${index}-${cIndex}`}
@@ -2163,7 +2162,7 @@ const StepPreviewDiet = ({
                                                     gap: '10px'
                                                   }}
                                                 >
-                                                  {item.ingredients.map((name, i) => (
+                                                  {item.ingredients.map((name: any, i: any) => (
                                                     <Box
                                                       key={i}
                                                       sx={{
@@ -2214,7 +2213,7 @@ const StepPreviewDiet = ({
                                                   gap: '24px'
                                                 }}
                                               >
-                                                {item?.recipe?.map((r, i) => (
+                                                {item?.recipe?.map((r: any, i: any) => (
                                                   <Box key={i} sx={{ display: 'flex' }}>
                                                     <Typography
                                                       sx={{
@@ -2339,8 +2338,8 @@ const StepPreviewDiet = ({
                                             ) : (
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
                                                 {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, i) => (
+                                                  ?.sort((a: any, b: any) => a - b)
+                                                  .map((dayId: any, i: any) => (
                                                     <Box
                                                       key={i}
                                                       sx={{
@@ -2422,7 +2421,7 @@ const StepPreviewDiet = ({
                                           >
                                             {item.meal_type
                                               ? item.meal_type
-                                                  .map((meal, i) => {
+                                                  .map((meal: any, i: any) => {
                                                     return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity +
                                                           (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -2430,7 +2429,7 @@ const StepPreviewDiet = ({
                                                   })
                                                   .filter(Boolean).length === 0
                                                 ? 'Add'
-                                                : item.meal_type.map((meal, i) => {
+                                                : item.meal_type.map((meal: any, i: any) => {
                                                     return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity +
                                                           (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -2438,7 +2437,7 @@ const StepPreviewDiet = ({
                                                   })
                                               : 'Add'}
                                             {item.meal_type
-                                              ? item.meal_type.map((meal, i) =>
+                                              ? item.meal_type.map((meal: any, i: any) =>
                                                   meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
@@ -2457,7 +2456,7 @@ const StepPreviewDiet = ({
                                         </Box>
                                       </Box>
                                     </TableCell>
-                                    {formData.child?.map((all, indexnew) => {
+                                    {formData.child?.map((all: any, indexnew: any) => {
                                       if (all !== 'Generic') {
                                         return (
                                           <TableCell
@@ -2512,7 +2511,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -2524,7 +2523,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -2536,7 +2535,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -2544,7 +2543,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -2553,7 +2552,7 @@ const StepPreviewDiet = ({
                                                     : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -2575,7 +2574,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -2597,7 +2596,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -2619,7 +2618,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -2654,7 +2653,7 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`ingredients-${index}`}>
-                              {itemd?.ingredient?.map((item, iIndex) => {
+                              {itemd?.ingredient?.map((item: any, iIndex: any) => {
                                 return (
                                   <TableRow
                                     key={`ingredient-${index}-${iIndex}`}
@@ -2786,7 +2785,7 @@ const StepPreviewDiet = ({
                                                   gap: '24px'
                                                 }}
                                               >
-                                                {item?.ingredient?.map((r, i) => (
+                                                {item?.ingredient?.map((r: any, i: any) => (
                                                   <Box key={i} sx={{ display: 'flex' }}>
                                                     <Typography
                                                       sx={{
@@ -2911,8 +2910,8 @@ const StepPreviewDiet = ({
                                             ) : (
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
                                                 {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, i) => (
+                                                  ?.sort((a: any, b: any) => a - b)
+                                                  .map((dayId: any, i: any) => (
                                                     <Box
                                                       key={i}
                                                       sx={{
@@ -2994,7 +2993,7 @@ const StepPreviewDiet = ({
                                           >
                                             {item.meal_type
                                               ? item.meal_type
-                                                  .map((meal, i) => {
+                                                  .map((meal: any, i: any) => {
                                                     return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity +
                                                           (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3002,7 +3001,7 @@ const StepPreviewDiet = ({
                                                   })
                                                   .filter(Boolean).length === 0
                                                 ? 'Add'
-                                                : item.meal_type.map((meal, i) => {
+                                                : item.meal_type.map((meal: any, i: any) => {
                                                     return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity +
                                                           (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3010,7 +3009,7 @@ const StepPreviewDiet = ({
                                                   })
                                               : 'Add'}
                                             {item.meal_type
-                                              ? item.meal_type.map((meal, i) =>
+                                              ? item.meal_type.map((meal: any, i: any) =>
                                                   meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
@@ -3029,7 +3028,7 @@ const StepPreviewDiet = ({
                                         </Box>
                                       </Box>
                                     </TableCell>
-                                    {formData.child?.map((all, indexnew) => {
+                                    {formData.child?.map((all: any, indexnew: any) => {
                                       if (all !== 'Generic') {
                                         return (
                                           <TableCell
@@ -3084,7 +3083,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -3096,7 +3095,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -3108,7 +3107,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3116,7 +3115,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3125,7 +3124,7 @@ const StepPreviewDiet = ({
                                                     : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -3147,7 +3146,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -3169,7 +3168,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -3191,7 +3190,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -3227,7 +3226,7 @@ const StepPreviewDiet = ({
                             </React.Fragment>
 
                             <React.Fragment key={`choice-${index}`}>
-                              {itemd?.ingredientwithchoice?.map((item, chIndex) => {
+                              {itemd?.ingredientwithchoice?.map((item: any, chIndex: any) => {
                                 return (
                                   <TableRow
                                     key={`choice-${index}-${chIndex}`}
@@ -3327,7 +3326,7 @@ const StepPreviewDiet = ({
                                                 rowGap: '10px'
                                               }}
                                             >
-                                              {item?.ingredientList?.map((il, i) => (
+                                              {item?.ingredientList?.map((il: any, i: any) => (
                                                 <React.Fragment key={i}>
                                                   <Box
                                                     sx={{
@@ -3452,8 +3451,8 @@ const StepPreviewDiet = ({
                                             ) : (
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
                                                 {item?.days_of_week
-                                                  ?.sort((a, b) => a - b)
-                                                  .map((dayId, i) => (
+                                                  ?.sort((a: any, b: any) => a - b)
+                                                  .map((dayId: any, i: any) => (
                                                     <Box
                                                       key={i}
                                                       sx={{
@@ -3536,7 +3535,7 @@ const StepPreviewDiet = ({
                                           >
                                             {item.meal_type
                                               ? item.meal_type
-                                                  .map((meal, i) => {
+                                                  .map((meal: any, i: any) => {
                                                     return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity +
                                                           (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3544,7 +3543,7 @@ const StepPreviewDiet = ({
                                                   })
                                                   .filter(Boolean).length === 0
                                                 ? 'Add'
-                                                : item.meal_type.map((meal, i) => {
+                                                : item.meal_type.map((meal: any, i: any) => {
                                                     return meal.meal_value_header === 'Generic'
                                                       ? meal.quantity +
                                                           (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3552,7 +3551,7 @@ const StepPreviewDiet = ({
                                                   })
                                               : 'Add'}
                                             {item.meal_type
-                                              ? item.meal_type.map((meal, i) =>
+                                              ? item.meal_type.map((meal: any, i: any) =>
                                                   meal.meal_value_header === 'Generic' &&
                                                   meal.notes &&
                                                   meal.notes.trim() !== '' ? (
@@ -3571,7 +3570,7 @@ const StepPreviewDiet = ({
                                         </Box>
                                       </Box>
                                     </TableCell>
-                                    {formData.child?.map((all, indexnew) => {
+                                    {formData.child?.map((all: any, indexnew: any) => {
                                       if (all !== 'Generic') {
                                         return (
                                           <TableCell
@@ -3627,7 +3626,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -3639,7 +3638,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (all.includes(meal.meal_value_header)) {
                                                             return (
                                                               meal.quantity +
@@ -3651,7 +3650,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3659,7 +3658,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? 'Add'
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           return meal.meal_value_header === all
                                                             ? meal.quantity +
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
@@ -3668,7 +3667,7 @@ const StepPreviewDiet = ({
                                                     : 'Add'}
                                                   {formData.diet_type_name === 'By Weight' && item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -3690,7 +3689,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             all.includes(meal.meal_value_header) &&
                                                             meal.notes &&
@@ -3712,7 +3711,7 @@ const StepPreviewDiet = ({
                                                         })
                                                     : item.meal_type
                                                     ? item.meal_type
-                                                        .map((meal, i) => {
+                                                        .map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&
@@ -3734,7 +3733,7 @@ const StepPreviewDiet = ({
                                                         })
                                                         .filter(Boolean).length === 0
                                                       ? ''
-                                                      : item.meal_type.map((meal, i) => {
+                                                      : item.meal_type.map((meal: any, i: any) => {
                                                           if (
                                                             meal.meal_value_header === all &&
                                                             meal.notes &&

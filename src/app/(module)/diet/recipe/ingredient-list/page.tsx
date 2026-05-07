@@ -17,7 +17,7 @@ import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
 
-const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
+const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }: any) => {
   const [loader, setLoader] = useState(false)
   const theme = useTheme()
   const [total, setTotal] = useState(0)
@@ -25,10 +25,10 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   const [searchValue, setSearchValue] = useState('')
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('active')
-  const [rowsPercentage, setRowsPercentage] = useState([])
-  const [rowsQuantity, setRowsQuantity] = useState([])
+  const [rowsPercentage, setRowsPercentage] = useState<any[]>([])
+  const [rowsQuantity, setRowsQuantity] = useState<any[]>([])
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setTotal(0)
     setStatus(newValue)
   }
@@ -36,13 +36,13 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
   useEffect(() => {
     // Filter ingredients by percentage
     const filteredPercentage = IngredientsDetailsval?.by_percentage.filter(
-      ingredient =>
+      (ingredient: any) =>
         ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase()) && ingredient.status === status
     )
 
     // Filter ingredients by quantity
     const filteredQuantity = IngredientsDetailsval?.by_quantity.filter(
-      ingredient =>
+      (ingredient: any) =>
         ingredient.ingredient_name.toLowerCase().includes(searchValue.toLowerCase()) && ingredient.status === status
     )
     setRowsPercentage(filteredPercentage)
@@ -50,7 +50,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
     setTotal(filteredPercentage.length + filteredQuantity.length)
   }, [IngredientsDetailsval, searchValue, status])
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setSearchValue(value)
   }
 
@@ -66,7 +66,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 30,
       field: 'ingredient_name',
       headerName: 'ITEM NAME',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box
           sx={{
             display: 'flex',
@@ -112,7 +112,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 10,
       field: 'ingredient_id',
       headerName: 'ITEM ID',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
         </Typography>
@@ -123,7 +123,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 20,
       field: 'feed_type',
       headerName: 'FEED TYPE',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.feed_type_label ? params.row.feed_type_label : ''}>
           <Typography
             variant='body2'
@@ -140,7 +140,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 10,
       field: 'quantity',
       headerName: 'QUANTITY',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           <Tooltip
             title={`${params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}${
@@ -160,7 +160,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 30,
       field: 'preparation_type',
       headerName: 'PREPARATION TYPE',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.preparation_type}>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
             {params.row.preparation_type ? params.row.preparation_type : '-'}
@@ -173,7 +173,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       minWidth: 20,
       field: 'cut_size',
       headerName: 'CUT SIZE',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params?.row?.cut_size}>
           <Typography
             variant='body2'
@@ -197,13 +197,13 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
     return (
       <>
         {loader ? (
-          <FallbackSpinner />
+          <FallbackSpinner sx={{}} />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
             <CardHeader title='Item by quantity' sx={{ pl: 0 }} />
 
             <CommonTable
-              indexedRows={rowsQuantity.map((row, index) => ({ ...row, id: index }))}
+              indexedRows={rowsQuantity.map((row: any, index: any) => ({ ...row, id: index }))}
               total={rowsQuantity.length}
               columns={columns}
               loading={loading}

@@ -44,14 +44,14 @@ const RecipeList = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
-  const { query } = router
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
+  const { query } = router as any
   const [loader, setLoader] = useState(false)
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [sortBy, setSortBy] = useState('desc')
   const [sortColumn, setSortColumn] = useState('created_at')
-  const [rows, setRows] = useState([])
+  const [rows, setRows] = useState<any[]>([])
   const [searchValue, setSearchValue] = useState(query.q || '')
   const [searchColumns, setSearchColumns] = useState('')
 
@@ -62,17 +62,17 @@ const RecipeList = () => {
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState(query.status || '')
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
   // Common function to update URL query parameters
   const updateQueryParams = useCallback(
-    newParams => {
+    (newParams: any) => {
       router.replace(
         {
           pathname: router.pathname,
@@ -80,9 +80,7 @@ const RecipeList = () => {
             ...routerQuery,
             ...newParams
           }
-        },
-        undefined,
-        { shallow: true }
+        } as any
       )
     },
     [router]
@@ -97,7 +95,7 @@ const RecipeList = () => {
     setStatus(status)
   }, [query.page, query.pageSize, query.status])
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setStatus(newValue)
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 50 })
@@ -105,7 +103,7 @@ const RecipeList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, searchColumns, status, pageSize = paginationModel.pageSize) => {
+    async (sortBy: any, q: any, sortColumn: any, searchColumns: any, status: any, pageSize: any = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -123,7 +121,7 @@ const RecipeList = () => {
         await getRecipeList({ params: params }).then(res => {
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
-          let listWithId = res.data.result.map((el, i) => {
+          let listWithId = res.data.result.map((el: any, i: any) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
@@ -143,14 +141,14 @@ const RecipeList = () => {
     fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
   }, [status, paginationModel.page, paginationModel.pageSize])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSortBy(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -186,7 +184,7 @@ const RecipeList = () => {
     </>
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
@@ -199,7 +197,7 @@ const RecipeList = () => {
       width: 70,
       field: 'uid',
       headerName: 'SL ',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
@@ -210,7 +208,7 @@ const RecipeList = () => {
       width: 300,
       field: 'recipe_name',
       headerName: 'RECIPE',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
@@ -253,7 +251,7 @@ const RecipeList = () => {
       width: 130,
       field: 'id',
       headerName: 'RECIPE ID',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'REP' + params.row.id : '-'}
         </Typography>
@@ -264,7 +262,7 @@ const RecipeList = () => {
       width: 200,
       field: 'portion_size',
       headerName: 'PORTION SIZE',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.portion_size ? `${params.row.portion_size} ${params.row.portion_uom_name || ''}`.trim() : '-'}
         </Typography>
@@ -275,12 +273,12 @@ const RecipeList = () => {
       width: 200,
       field: 'items',
       headerName: 'NO OF ITEMS',
-      renderCell: params => (
-        <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+      renderCell: (params: any) => (
+        <Box sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
             title={
               params.row.ingredients && params.row.ingredients.length > 0
-                ? params.row.ingredients.map(preparation => (
+                ? params.row.ingredients.map((preparation: any) => (
                     <div style={{ padding: '4px' }} key={preparation.ingredient_name}>
                       {preparation.ingredient_name}
                     </div>
@@ -300,13 +298,15 @@ const RecipeList = () => {
       width: 260,
       field: 'user_name',
       headerName: 'CREATED BY',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box>
           {RenderUtility.renderUserAvatarDetails({
             profile_image: params?.row?.created_by_user?.profile_pic,
             user_name: params?.row?.created_by_user?.user_name,
             date: moment(params?.row?.created_at).format('YYYY-MM-DD'),
-            crby_width: 200
+            crby_width: 200,
+            text_color: undefined,
+            description: undefined
           })}
         </Box>
       )
@@ -316,7 +316,7 @@ const RecipeList = () => {
       width: 100,
       field: 'status',
       headerName: 'STATUS',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <CustomChip
           skin='light'
           size='small'
@@ -335,7 +335,7 @@ const RecipeList = () => {
     }
   ]
 
-  const onCellClick = params => {
+  const onCellClick = (params: any) => {
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {
@@ -347,7 +347,7 @@ const RecipeList = () => {
     }
   }
 
-  const TabBadge = ({ label, totalCount }) => (
+  const TabBadge = ({ label, totalCount }: { label: any; totalCount: any }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
       {totalCount ? (
@@ -360,7 +360,7 @@ const RecipeList = () => {
     return (
       <>
         {loader ? (
-          <FallbackSpinner />
+          <FallbackSpinner sx={{}} />
         ) : (
           <Card>
             <CardHeader title='Recipes' action={headerAction} sx={{ px: 5 }} />

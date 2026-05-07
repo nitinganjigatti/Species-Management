@@ -13,7 +13,7 @@ import {
   Typography
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 import { useContext, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgroup'
@@ -69,7 +69,7 @@ const CreateEnclosure: React.FC<Props> = ({
   const [selectedEnclosureDrawer, setSelectedEnclosureDrawer] = useState<boolean>(false)
   const [loading, setLoading] = useState<boolean>(false)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   useEffect(() => {
@@ -420,16 +420,19 @@ const CreateEnclosure: React.FC<Props> = ({
                               width: '100%',
                               height: '70px',
                               borderTop:
-                                selectedEnclosureIds.includes(item?.enclosure_id) &&
-                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                selectedEnclosureIds.includes(item?.enclosure_id)
+                                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                  : undefined,
                               borderLeft:
-                                selectedEnclosureIds.includes(item?.enclosure_id) &&
-                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                selectedEnclosureIds.includes(item?.enclosure_id)
+                                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                  : undefined,
                               borderRight:
-                                selectedEnclosureIds.includes(item?.enclosure_id) &&
-                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                              borderTopLeftRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
-                              borderTopRightRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
+                                selectedEnclosureIds.includes(item?.enclosure_id)
+                                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                  : undefined,
+                              borderTopLeftRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : undefined,
+                              borderTopRightRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : undefined,
                               borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                               bgcolor: selectedEnclosureIds.includes(item?.enclosure_id)
                                 ? theme.palette.customColors.Surface

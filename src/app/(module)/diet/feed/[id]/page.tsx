@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useCallback, useContext } from 'react'
+import React, { useEffect, useState, useCallback, useContext } from 'react'
 import {
   Avatar,
   Button,
@@ -19,7 +19,7 @@ import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import FeedOverview from 'src/views/pages/diet/feed/feedoverview'
 import { feedDelete, feedStatusChange, getFeedDetails, getIngredientsOnFeed } from 'src/lib/api/diet/getFeedDetails'
-import format from 'date-fns/format'
+import { format } from 'date-fns/format'
 import useSafeRouter from 'src/hooks/useSafeRouter';
 import { useParams, useSearchParams } from 'next/navigation';
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -77,7 +77,7 @@ const FeedDetails = () => {
   const theme = useTheme()
   const { t } = useTranslation()
   const [value, setValue] = useState('1')
-  const [FeedDetailsValue, setFeedDetails] = useState([])
+  const [FeedDetailsValue, setFeedDetails] = useState<any>([])
   const [loader, setLoader] = useState(true)
 
   const [rows, setRows] = useState([])
@@ -93,7 +93,7 @@ const FeedDetails = () => {
 
   const [isActive, setIsActive] = useState(FeedDetailsValue?.active || '0')
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
@@ -150,11 +150,11 @@ const FeedDetails = () => {
     setExpanded(!expanded)
   }
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setValue(newValue)
   }
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
@@ -165,7 +165,7 @@ const FeedDetails = () => {
       field: 'id',
       headerName: 'SL',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id}
         </Typography>
@@ -176,7 +176,7 @@ const FeedDetails = () => {
       minWidth: 40,
       field: 'ingredient_name',
       headerName: 'ITEMS',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
           <Avatar variant='square' src={params?.row?.image || '/icons/icon_ingredient_fill.png'} />
           {params?.row?.ingredient_name ? params?.row?.ingredient_name : ''}
@@ -188,17 +188,17 @@ const FeedDetails = () => {
       minWidth: 10,
       field: 'created_by_user',
       headerName: 'ADDED BY',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center', mt: 0 }}>
           <Avatar
-            variant='round'
+            variant='circular'
             src={params?.row?.created_by_user?.profile_pic ? params?.row?.created_by_user?.profile_pic : ''}
           />
           <Box sx={{ display: 'flex', flexDirection: 'column', mx: 2 }}>
             <Typography sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
               {params?.row?.created_by_user?.user_name ? params?.row?.created_by_user?.user_name : ''}
             </Typography>
-            <Typography variant='caption' sx={{ color: 'text.disabled', color: 'rgb(76 78 100 / 56%)' }}>
+            <Typography variant='caption' sx={{ color: 'rgb(76 78 100 / 56%)' }}>
               Added on {format(new Date(params?.row?.created_at ? params?.row?.created_at : ''), 'MM/dd/yyyy')}
             </Typography>
           </Box>
@@ -219,7 +219,7 @@ const FeedDetails = () => {
     // }
   ]
 
-  const convertToTitleCase = str => {
+  const convertToTitleCase = (str: any) => {
     if (!str) return ''
 
     const firstLetter = str.charAt(0).toUpperCase()
@@ -228,7 +228,7 @@ const FeedDetails = () => {
     return firstLetter + restOfWord
   }
 
-  const getFeedDetailsList = async id => {
+  const getFeedDetailsList = async (id: any) => {
     try {
       const response = await getFeedDetails(id)
       if (response.data.success === true) {
@@ -249,19 +249,19 @@ const FeedDetails = () => {
   }, [id])
 
   const getIngredientsonFeedList = useCallback(
-    async (q, sortColumning) => {
+    async (q: any, sortColumning: any) => {
       if (id) {
         try {
           setLoading(true)
 
-          await getIngredientsOnFeed(id, {
+          await getIngredientsOnFeed(id as string, {
             q,
             page: paginationModel.page + 1,
             searchColumns: sortColumning,
             limit: paginationModel.pageSize
           }).then(res => {
             if (res?.data?.success) {
-              let listWithId = res.data?.data?.result.map((el, i) => {
+              let listWithId = res.data?.data?.result.map((el: any, i: any) => {
                 return { ...el, id: i + 1 }
               })
               setTotal(parseInt(res?.data?.data?.total_count))
@@ -282,14 +282,14 @@ const FeedDetails = () => {
     getIngredientsonFeedList(searchValue, sortColumning)
   }, [id, getIngredientsonFeedList])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = (rows as any[])?.map((row: any, index: any) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setsortColumning(newModel[0].field)
@@ -309,7 +309,7 @@ const FeedDetails = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setSearchValue(value)
     searchTableData(value, sortColumning)
   }
@@ -562,13 +562,7 @@ const FeedDetails = () => {
                                 </Typography>
                                 <Button
                                   onClick={() =>
-                                    router.push({
-                                      pathname: '/diet/ingredient/add-ingredient',
-                                      query: {
-                                        feedTypeId: FeedDetailsValue?.id,
-                                        feedTypeName: FeedDetailsValue?.feed_type_name
-                                      }
-                                    })
+                                    router.push(`/diet/ingredient/add-ingredient?feedTypeId=${FeedDetailsValue?.id}&feedTypeName=${FeedDetailsValue?.feed_type_name}`)
                                   }
                                   sx={{ px: 7, py: 5, ml: 94 }}
                                   size='small'
@@ -620,22 +614,23 @@ const FeedDetails = () => {
                           </span>
                         }
                       /> */}
-                      <DeleteDialogConfirmation
-                        handleClosenew={handleClosenew}
-                        action={confirmStatusAction}
-                        open={statusDialog}
-                        typeCount={FeedDetailsValue?.ingredients}
-                        type='feed'
-                        active={isActive == '1'}
-                        dietCount={FeedDetailsValue.ingredients}
-                        actionType={'confirm'}
-                        message={
+                      {React.createElement(DeleteDialogConfirmation as any, {
+                        handleClosenew,
+                        action: confirmStatusAction,
+                        open: statusDialog,
+                        typeCount: FeedDetailsValue?.ingredients,
+                        type: 'feed',
+                        active: isActive == '1',
+                        dietCount: FeedDetailsValue.ingredients,
+                        recipeCount: undefined,
+                        ingredientCount: undefined,
+                        actionType: 'confirm',
+                        message: (
                           <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
-                            {/* {isActive === '1' ? 'Deactivate' : 'Activate'} Feed Type? */}
                             Deletion isn't possible!
                           </span>
-                        }
-                      />
+                        )
+                      })}
 
                       <ConfirmationDialog
                         icon={'mdi:delete'}

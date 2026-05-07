@@ -1,6 +1,6 @@
 'use client';
 // ** React Imports
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
@@ -38,18 +38,18 @@ const AddRecipe = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const { t } = useTranslation()
   const { id, name } = routerQuery
   const [activeStep, setActiveStep] = useState(0)
-  const [uomList, setUom] = useState([])
-  const [cutsizeList, setcutSize] = useState([])
-  const [IngredientTypeList, setIngredientTypeList] = useState([])
-  const [fullIngredientList, setFullIngredientList] = useState([])
+  const [uomList, setUom] = useState<any[]>([])
+  const [cutsizeList, setcutSize] = useState<any[]>([])
+  const [IngredientTypeList, setIngredientTypeList] = useState<any[]>([])
+  const [fullIngredientList, setFullIngredientList] = useState<any[]>([])
   const [urlType, seturlType] = useState('')
   const [loader, setLoader] = useState(false)
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     recipe_name: '',
     portion_size: '',
     portion_uom_id: '',
@@ -135,7 +135,7 @@ const AddRecipe = () => {
     }
   }, 500)
 
-  const callIngredientTypeList = async ({ status, page, limit, q }) => {
+  const callIngredientTypeList = async ({ status, page, limit, q }: any) => {
     try {
       const params = {
         //status,
@@ -148,9 +148,9 @@ const AddRecipe = () => {
       await getIngredientList({ params: params }).then(res => {
         setTotalCount(res?.data?.total_count || 0)
         setIngredientTypeList(res?.data?.result)
-        setFullIngredientList(prevList => [
+        setFullIngredientList((prevList: any[]) => [
           ...prevList,
-          ...res?.data?.result.filter(newItem => !prevList.some(item => item.id === newItem.id))
+          ...res?.data?.result.filter((newItem: any) => !prevList.some((item: any) => item.id === newItem.id))
         ])
       })
     } catch (e) {
@@ -167,9 +167,9 @@ const AddRecipe = () => {
   }
 
   const handleCancelIconClick = async () => {
-    setFormData(prevData => ({
+    setFormData((prevData: any) => ({
       ...prevData,
-      by_quantity: prevData.by_quantity.map(item => ({
+      by_quantity: prevData.by_quantity.map((item: any) => ({
         ...item,
         ingredient_id: '',
         ingredient_name: '',
@@ -181,7 +181,7 @@ const AddRecipe = () => {
     callIngredientTypeList({ status: 1, page: 1, limit: 20, q: '' })
   }
 
-  const getIngredientsDetailval = async id => {
+  const getIngredientsDetailval = async (id: any) => {
     try {
       setLoader(true)
       const response = await getRecipeDetail(id)
@@ -195,13 +195,13 @@ const AddRecipe = () => {
 
         const convertedData = {
           ...data,
-          by_percentage: data.by_percentage.map(item => ({
+          by_percentage: data.by_percentage.map((item: any) => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
             preparation_type_id: String(item.preparation_type_id),
             cut_size_id: String(item.cut_size_id)
           })),
-          by_quantity: data.by_quantity.map(item => ({
+          by_quantity: data.by_quantity.map((item: any) => ({
             ...item,
             ingredient_id: String(item.ingredient_id),
             preparation_type_id: String(item.preparation_type_id),
@@ -211,36 +211,36 @@ const AddRecipe = () => {
         }
 
         const initialKeys = Object.keys(formData)
-        const updatedData = {}
+        const updatedData: any = {}
         Object.keys(convertedData).forEach(key => {
           if (initialKeys.includes(key)) {
             updatedData[key] = convertedData[key]
           }
         })
 
-        setFormData(prevData => ({
+        setFormData((prevData: any) => ({
           ...prevData,
           ...updatedData
         }))
 
         const combinedIngredients = [
-          ...data.by_percentage.map(item => ({
+          ...data.by_percentage.map((item: any) => ({
             id: item.ingredient_id,
             ingredient_name: item.ingredient_name
           })),
-          ...data.by_quantity.map(item => ({
+          ...data.by_quantity.map((item: any) => ({
             id: item.ingredient_id,
             ingredient_name: item.ingredient_name
           }))
         ]
 
         const uniqueIngredientList = combinedIngredients.filter(
-          (item, index, self) => index === self.findIndex(i => i.id === item.id)
+          (item, index, self) => index === self.findIndex((i: any) => i.id === item.id)
         )
         setLoader(false)
-        setFullIngredientList(prevList => [
+        setFullIngredientList((prevList: any[]) => [
           ...prevList,
-          ...uniqueIngredientList.filter(newItem => !prevList.some(item => item.id === newItem.id))
+          ...uniqueIngredientList.filter((newItem: any) => !prevList.some((item: any) => item.id === newItem.id))
         ])
       }
     } catch (error) {
@@ -263,7 +263,7 @@ const AddRecipe = () => {
     }
   }, [id, urlType])
 
-  const handleNext = data => {
+  const handleNext = (data: any) => {
     // setFormData(prevData => ({
     //   ...prevData,
     //   ...newData
@@ -278,24 +278,24 @@ const AddRecipe = () => {
     }
   }
 
-  const handleIngredientChange = (name, value, ingredient, index) => {
-    setFormData(prevData => ({
+  const handleIngredientChange = (name: any, value: any, ingredient: any, index: any) => {
+    setFormData((prevData: any) => ({
       ...prevData,
       [name]: value,
       ingredients: {
         ...prevData.ingredients,
-        byPercentage: prevData.ingredients.byPercentage.map((item, i) =>
+        byPercentage: prevData.ingredients.byPercentage.map((item: any, i: any) =>
           i === index ? { ...item, ingredient_id: ingredient.value } : item
         ),
-        byQuantity: prevData.ingredients.byQuantity.map((item, i) =>
+        byQuantity: prevData.ingredients.byQuantity.map((item: any, i: any) =>
           i === index ? { ...item, ingredient_id: ingredient.value } : item
         )
       }
     }))
   }
 
-  const updateFormData = newData => {
-    setFormData(prevData => ({
+  const updateFormData = (newData: any) => {
+    setFormData((prevData: any) => ({
       ...prevData,
       ...newData
     }))
@@ -308,7 +308,7 @@ const AddRecipe = () => {
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+          formData.by_percentage.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -320,7 +320,7 @@ const AddRecipe = () => {
           }))
         ),
         by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
+          formData.by_quantity.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -334,7 +334,7 @@ const AddRecipe = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
 
         //by_percentage: numericFormData.by_percentage,
@@ -364,7 +364,7 @@ const AddRecipe = () => {
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+          formData.by_percentage.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -376,7 +376,7 @@ const AddRecipe = () => {
           }))
         ),
         by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
+          formData.by_quantity.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -390,7 +390,7 @@ const AddRecipe = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
 
         //by_percentage: numericFormData.by_percentage,
@@ -429,7 +429,7 @@ const AddRecipe = () => {
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
-          formData.by_percentage.map(item => ({
+          formData.by_percentage.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -441,7 +441,7 @@ const AddRecipe = () => {
           }))
         ),
         by_quantity: JSON.stringify(
-          formData.by_quantity.map(item => ({
+          formData.by_quantity.map((item: any) => ({
             ingredient_id: item.ingredient_id,
             ingredient_name: item.ingredient_name,
             feed_type_label: item.feed_type_label,
@@ -455,7 +455,7 @@ const AddRecipe = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
 
         //by_percentage: numericFormData.by_percentage,
@@ -491,35 +491,35 @@ const AddRecipe = () => {
     }
   }
 
-  const getStepContent = step => {
+  const getStepContent = (step: any) => {
     switch (step) {
       case 0:
         return (
-          <StepBasicDetails
-            handleNext={handleNext}
-            formData={formData}
-            updateFormData={updateFormData}
-            uomList={uomList}
-            loader={loader}
-          />
+          React.createElement(StepBasicDetails as any, {
+            handleNext,
+            formData,
+            updateFormData,
+            uomList,
+            loader
+          })
         )
       case 1:
         return (
-          <StepAddIngredients
-            handleNext={handleNext}
-            handlePrev={handlePrev}
-            handleIngredientChange={handleIngredientChange}
-            updateFormData={updateFormData}
-            formData={formData}
-            uomList={uomList}
-            cutsizeList={cutsizeList}
-            fullIngredientList={fullIngredientList}
-            setFullIngredientList={setFullIngredientList}
-            IngredientTypeListSearch={IngredientTypeListSearch}
-            onCancelIconClick={handleCancelIconClick}
-            setcutSize={setcutSize}
-            fetchMoreIngredients={fetchMoreIngredients}
-          />
+          React.createElement(StepAddIngredients as any, {
+            handleNext,
+            handlePrev,
+            handleIngredientChange,
+            updateFormData,
+            formData,
+            uomList,
+            cutsizeList,
+            fullIngredientList,
+            setFullIngredientList,
+            IngredientTypeListSearch,
+            onCancelIconClick: handleCancelIconClick,
+            setcutSize,
+            fetchMoreIngredients
+          })
         )
       case 2:
         return (
@@ -579,11 +579,7 @@ const AddRecipe = () => {
             {steps.map((step, index) => {
               return (
                 <Step key={index}>
-                  <StepLabel
-                    slots={{
-                      icon: StepperCustomDot
-                    }}
-                  >
+                  <StepLabel StepIconComponent={StepperCustomDot}>
                     <div className='step-label'>
                       {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
                       <div>

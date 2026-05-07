@@ -1,5 +1,5 @@
 import { Box, Card, CircularProgress, Drawer, IconButton, Typography } from '@mui/material'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { useContext, useState } from 'react'
 import Error404 from 'src/pages/404'
@@ -35,7 +35,7 @@ const SelectedEnclosure: React.FC<Props> = ({
   const { t } = useTranslation()
   const [selectedEnclosures, setSelectedEnclosures] = useState<any[]>(selectEnclosures)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   const handleRemove = (index: number) => {
@@ -133,18 +133,21 @@ const SelectedEnclosure: React.FC<Props> = ({
                         width: '100%',
                         height: '70px',
                         borderTop:
-                          selectedEnclosureIds.includes(item?.enclosure_id) &&
-                          `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          selectedEnclosureIds.includes(item?.enclosure_id)
+                            ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                            : undefined,
                         borderLeft:
-                          selectedEnclosureIds.includes(item?.enclosure_id) &&
-                          `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                          selectedEnclosureIds.includes(item?.enclosure_id)
+                            ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                            : undefined,
                         borderRight:
-                          selectedEnclosureIds.includes(item?.enclosure_id) &&
-                          `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        borderTopLeftRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
-                        borderTopRightRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
+                          selectedEnclosureIds.includes(item?.enclosure_id)
+                            ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                            : undefined,
+                        borderTopLeftRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : undefined,
+                        borderTopRightRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : undefined,
                         borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        bgcolor: selectedEnclosureIds.includes(item?.enclosure_id) && 'white',
+                        bgcolor: selectedEnclosureIds.includes(item?.enclosure_id) ? 'white' : undefined,
                         borderRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : '2px',
                         display: 'flex',
                         boxShadow: 'none',

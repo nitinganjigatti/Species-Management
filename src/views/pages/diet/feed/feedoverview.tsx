@@ -13,7 +13,8 @@ import Icon from 'src/@core/components/icon'
 // ** Utils Import
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
+import DeleteDialogConfirmationBase from 'src/components/utility/DeleteDialogConfirmation'
+const DeleteDialogConfirmation = DeleteDialogConfirmationBase as any
 import { feedStatusChange } from 'src/lib/api/diet/getFeedDetails'
 import IconButton from '@mui/material/IconButton'
 import Toaster from 'src/components/Toaster'
@@ -190,8 +191,7 @@ const FeedOverview: React.FC<Props> = ({ isActive, setIsActive, FeedDetailsValue
                   control={
                     <Switch
                       checked={isActive === '1' ? true : false}
-                      onChange={permission ? handleSwitchChange : null}
-                      fontSize={2}
+                      onChange={permission ? handleSwitchChange : undefined}
                     />
                   }
                   labelPlacement='start'

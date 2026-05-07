@@ -819,7 +819,7 @@ const AddIngredientswithChoice: React.FC<Props> = props => {
                     )
                   }
                 }}
-                placeholder={t('diet_module.search_item')}
+                placeholder={t('diet_module.search_item') as string}
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -1218,7 +1218,7 @@ const AddIngredientswithChoice: React.FC<Props> = props => {
                   >
                     {selectFeed[item.id]?.name !== '' ? (
                       <>
-                        <Divider mt={-2} />
+                        <Divider sx={{ mt: -2 }} />
                         <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
                           <Typography>{`${t('diet_module.enter_cutsize')} *`}</Typography>
 

@@ -28,17 +28,23 @@ import { Controller } from 'react-hook-form'
 import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { TimePicker } from '@mui/x-date-pickers/TimePicker'
+// TimePicker imported below as TimePickerAny cast
 import toast from 'react-hot-toast'
 import { useTheme } from '@mui/material/styles'
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
 import Icon from 'src/@core/components/icon'
-import AddIngredientswithChoice from 'src/components/diet/AddIngredientswithchoice'
-import AddIngredients from 'src/components/diet/AddIngredients'
-import RecipeList from 'src/components/diet/RecipeList'
-import ComboList from 'src/components/diet/ComboList'
+import AddIngredientswithChoiceBase from 'src/components/diet/AddIngredientswithchoice'
+import AddIngredientsBase from 'src/components/diet/AddIngredients'
+import RecipeListBase from 'src/components/diet/RecipeList'
+import ComboListBase from 'src/components/diet/ComboList'
+const AddIngredientswithChoice = AddIngredientswithChoiceBase as any
+const AddIngredients = AddIngredientsBase as any
+const RecipeList = RecipeListBase as any
+const ComboList = ComboListBase as any
 import { useTranslation } from 'react-i18next'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
+import { TimePicker as TimePickerBase } from '@mui/x-date-pickers/TimePicker'
+const TimePickerAny = TimePickerBase as any
 
 const defaultValues = {
   diet_name: '',
@@ -223,7 +229,7 @@ const StepBasicDetails = ({
     name: 'meal_data'
   })
 
-  const handleImageUpload = (imageData: any) => {
+  const handleImageUpload = (imageData?: any) => {
     setUploadedImage(imageData)
   }
 
@@ -241,10 +247,10 @@ const StepBasicDetails = ({
     setChildStateValue(value)
 
     const uniqueValues = value.filter(
-      (val, index, self) =>
+      (val: any, index: any, self: any) =>
         index ===
         self.findIndex(
-          v => String(v?.ingredient_id) === String(val?.ingredient_id) && String(v?.mealid) === String(val?.mealid)
+          (v: any) => String(v?.ingredient_id) === String(val?.ingredient_id) && String(v?.mealid) === String(val?.mealid)
         )
     )
 
@@ -252,18 +258,18 @@ const StepBasicDetails = ({
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal =>
+            (uniqueVal: any) =>
               String(uniqueVal?.ingredient_id) === String(prevVal?.ingredient_id) &&
               String(uniqueVal?.mealid) === String(prevVal?.mealid)
           )
       )
 
-      const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
+      const updatedValues = [...filteredPrevState, ...uniqueValues].map((uniqueVal: any) => {
         const matchedMealData = formData.meal_data.find(
-          mealData =>
+          (mealData: any) =>
             Array.isArray(mealData.ingredient) &&
             mealData.ingredient.some(
-              ingredient =>
+              (ingredient: any) =>
                 String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
                 String(ingredient?.mealid) === String(uniqueVal?.mealid)
             )
@@ -271,7 +277,7 @@ const StepBasicDetails = ({
 
         if (matchedMealData) {
           const matchedIngredient = matchedMealData.ingredient.find(
-            ingredient =>
+            (ingredient: any) =>
               String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
               String(ingredient?.mealid) === String(uniqueVal?.mealid)
           )
@@ -286,8 +292,8 @@ const StepBasicDetails = ({
       })
 
       for (let i = 0; i < fieldsIngredients.length; i++) {
-        const field = fieldsIngredients[i]
-        field.ingredient = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
+        const field = fieldsIngredients[i] as any
+        field.ingredient = updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
       }
 
       return updatedValues
@@ -300,10 +306,10 @@ const StepBasicDetails = ({
     setRecipeChildStateValue(value)
 
     const uniqueValues = value.filter(
-      (val, index, self) =>
+      (val: any, index: any, self: any) =>
         index ===
         self.findIndex(
-          v => String(v?.recipe_id) === String(val?.recipe_id) && String(v?.mealid) === String(val?.mealid)
+          (v: any) => String(v?.recipe_id) === String(val?.recipe_id) && String(v?.mealid) === String(val?.mealid)
         )
     )
 
@@ -311,18 +317,18 @@ const StepBasicDetails = ({
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal =>
+            (uniqueVal: any) =>
               String(uniqueVal?.recipe_id) === String(prevVal?.recipe_id) &&
               String(uniqueVal?.mealid) === String(prevVal?.mealid)
           )
       )
 
-      const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
+      const updatedValues = [...filteredPrevState, ...uniqueValues].map((uniqueVal: any) => {
         const matchedMealData = formData.meal_data.find(
-          mealData =>
+          (mealData: any) =>
             Array.isArray(mealData.recipe) &&
             mealData.recipe.some(
-              recipe =>
+              (recipe: any) =>
                 String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
                 String(recipe?.mealid) === String(uniqueVal?.mealid)
             )
@@ -330,7 +336,7 @@ const StepBasicDetails = ({
 
         if (matchedMealData) {
           const matchedRecipe = matchedMealData.recipe.find(
-            recipe =>
+            (recipe: any) =>
               String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
               String(recipe?.mealid) === String(uniqueVal?.mealid)
           )
@@ -345,8 +351,8 @@ const StepBasicDetails = ({
       })
 
       for (let i = 0; i < fieldsIngredients.length; i++) {
-        const field = fieldsIngredients[i]
-        field.recipe = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
+        const field = fieldsIngredients[i] as any
+        field.recipe = updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
       }
 
       return updatedValues
@@ -359,10 +365,10 @@ const StepBasicDetails = ({
     setComboChildStateValue(value)
 
     const uniqueValues = value.filter(
-      (val, index, self) =>
+      (val: any, index: any, self: any) =>
         index ===
         self.findIndex(
-          v => String(v?.recipe_id) === String(val?.recipe_id) && String(v?.mealid) === String(val?.mealid)
+          (v: any) => String(v?.recipe_id) === String(val?.recipe_id) && String(v?.mealid) === String(val?.mealid)
         )
     )
 
@@ -370,18 +376,18 @@ const StepBasicDetails = ({
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal =>
+            (uniqueVal: any) =>
               String(uniqueVal?.recipe_id) === String(prevVal?.recipe_id) &&
               String(uniqueVal?.mealid) === String(prevVal?.mealid)
           )
       )
 
-      const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
+      const updatedValues = [...filteredPrevState, ...uniqueValues].map((uniqueVal: any) => {
         const matchedMealData = formData.meal_data.find(
-          mealData =>
+          (mealData: any) =>
             Array.isArray(mealData.combo) &&
             mealData.combo?.some(
-              combo =>
+              (combo: any) =>
                 String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
                 String(combo?.mealid) === String(uniqueVal?.mealid)
             )
@@ -389,7 +395,7 @@ const StepBasicDetails = ({
 
         if (matchedMealData) {
           const matchedCombo = matchedMealData.combo?.find(
-            combo =>
+            (combo: any) =>
               String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
               String(combo?.mealid) === String(uniqueVal?.mealid)
           )
@@ -404,8 +410,8 @@ const StepBasicDetails = ({
       })
 
       for (let i = 0; i < fieldsIngredients.length; i++) {
-        const field = fieldsIngredients[i]
-        field.combo = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
+        const field = fieldsIngredients[i] as any
+        field.combo = updatedValues.filter((up: any) => String(up?.mealid) === String(field?.mealid))
       }
 
       return updatedValues
@@ -420,8 +426,8 @@ const StepBasicDetails = ({
     setAllIngredientchoiceSelectedValues(value)
 
     for (let i = 0; i < fieldsIngredients.length; i++) {
-      const field = fieldsIngredients[i]
-      field.ingredientwithchoice = value.filter(up => up?.mealid === field.mealid)
+      const field = fieldsIngredients[i] as any
+      field.ingredientwithchoice = value.filter((up: any) => up?.mealid === field.mealid)
     }
     setfinalvalueingredientchoice(fieldsIngredients)
   }
@@ -434,16 +440,16 @@ const StepBasicDetails = ({
     if (formData) {
       setUploadedImage(formData.diet_image)
 
-      const flattenedIngredients = formData.meal_data?.flatMap(all =>
-        all.ingredient?.map(ing => ({
+      const flattenedIngredients = formData.meal_data?.flatMap((all: any) =>
+        all.ingredient?.map((ing: any) => ({
           ...ing,
           ingredient_id: String(ing.ingredient_id)
         }))
       )
       setAllSelectedValues(flattenedIngredients)
 
-      const flattenedRecipes = formData.meal_data?.flatMap(all =>
-        all.recipe?.map(ing => ({
+      const flattenedRecipes = formData.meal_data?.flatMap((all: any) =>
+        all.recipe?.map((ing: any) => ({
           ...ing,
           recipe_id: String(ing.recipe_id),
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
@@ -452,8 +458,8 @@ const StepBasicDetails = ({
 
       setAllRecipeSelectedValues(flattenedRecipes)
 
-      const flattenedCombos = formData.meal_data?.flatMap(all =>
-        all.combo?.map(ing => ({
+      const flattenedCombos = formData.meal_data?.flatMap((all: any) =>
+        all.combo?.map((ing: any) => ({
           ...ing,
           recipe_id: String(ing.recipe_id),
           ingredients_count: ing?.ingredients?.length || ing?.ingredient_name?.length || 0
@@ -463,24 +469,24 @@ const StepBasicDetails = ({
       setAllComboSelectedValues(flattenedCombos)
 
       const flattenedIngchoice = formData.meal_data
-        ?.flatMap(all => {
+        ?.flatMap((all: any) => {
           return all?.ingredientwithchoice
-            ?.map(ingChoice => {
+            ?.map((ingChoice: any) => {
               const updatedIngredientList = ingChoice.ingredientList
-                .map(ingredient => ({
+                .map((ingredient: any) => ({
                   ...ingredient,
                   ingredient_id: String(ingredient.ingredient_id)
                 }))
-                .filter(ingredient => ingredient)
+                .filter((ingredient: any) => ingredient)
 
               return {
                 ...ingChoice,
                 ingredientList: updatedIngredientList
               }
             })
-            .filter(ingChoice => ingChoice)
+            .filter((ingChoice: any) => ingChoice)
         })
-        .filter(all => all)
+        .filter((all: any) => all)
 
       setAllIngredientchoiceSelectedValues(flattenedIngchoice)
     }
@@ -559,12 +565,11 @@ const StepBasicDetails = ({
           const res = await getIngredientList({ params })
 
           if (res?.data?.result?.length > 0) {
-            const newResults = res.data.result.filter(
-              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            const newResults = res.data.result.filter((item: any) => !ingredientList.some(existingItem => existingItem.id === item.id)
             )
 
             const combinedList = [...ingredientList, ...newResults]
-            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+            const uniqueList = Array.from(new Map(combinedList.map((item: any) => [item.id, item])).values())
 
             setIngredientList(uniqueList)
             setTotalCount(res?.data?.total_count)
@@ -575,7 +580,7 @@ const StepBasicDetails = ({
 
         if (OpenIngredientchoice) {
           if (fromrow === 'rowedit_ingredientwithchoice' && Array.isArray(ingredientwithChoiceName)) {
-            let allResults = []
+            let allResults: any[] = []
 
             for (const name of ingredientwithChoiceName) {
               const params = {
@@ -589,15 +594,14 @@ const StepBasicDetails = ({
               const res = await getIngredientList({ params })
 
               if (res?.data?.result?.length > 0) {
-                const newResults = res.data.result.filter(
-                  item => !allResults.some(existingItem => existingItem.id === item.id)
+                const newResults = res.data.result.filter((item: any) => !allResults.some(existingItem => existingItem.id === item.id)
                 )
                 allResults = [...allResults, ...newResults]
               }
             }
 
             const combinedList = [...ingredientList, ...allResults]
-            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+            const uniqueList = Array.from(new Map(combinedList.map((item: any) => [item.id, item])).values())
 
             setIngredientList(uniqueList)
             setReachedEnd(false)
@@ -613,12 +617,11 @@ const StepBasicDetails = ({
             const res = await getIngredientList({ params })
 
             if (res?.data?.result?.length > 0) {
-              const newResults = res.data.result.filter(
-                item => !ingredientList.some(existingItem => existingItem.id === item.id)
+              const newResults = res.data.result.filter((item: any) => !ingredientList.some(existingItem => existingItem.id === item.id)
               )
 
               const combinedList = [...ingredientList, ...newResults]
-              const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+              const uniqueList = Array.from(new Map(combinedList.map((item: any) => [item.id, item])).values())
 
               setIngredientList(uniqueList)
               setTotalCount(res?.data?.total_count)
@@ -646,7 +649,7 @@ const StepBasicDetails = ({
     setFromRow('')
   }
 
-  const handleAddIngerdientChoicewithindex = (val: any, index: any, type: any, ingtype: any, rowval: any, id: any, name: any) => {
+  const handleAddIngerdientChoicewithindex = (val: any, index: any, type: any, ingtype?: any, rowval?: any, id?: any, name?: any) => {
     setOpenIngredientchoice(true)
     setcheckid(val.mealid)
     setingType(type)
@@ -655,13 +658,13 @@ const StepBasicDetails = ({
     setIngredientwithChoiceId(id)
     setIngredientwithChoiceName(name)
     setIngredientchoiceChildStateValue(prevState => {
-      const newState = prevState.filter(item => item.mealid === val.id)
+      const newState = prevState.filter((item: any) => item.mealid === val.id)
 
       return newState
     })
   }
 
-  const addEventSidebarOpen = (val: any, index: any, type: any, rowval: any, id: any, name: any) => {
+  const addEventSidebarOpen = (val: any, index: any, type: any, rowval?: any, id?: any, name?: any) => {
     if (type === 'recipe') {
       setOpenDrawer(true)
       setFromRow(rowval)
@@ -683,7 +686,7 @@ const StepBasicDetails = ({
     setOpenDrawercombo(false)
   }
 
-  const handleAddIngerdient = (val: any, index: any, type: any, rowval: any, id: any, name: any) => {
+  const handleAddIngerdient = (val: any, index: any, type?: any, rowval?: any, id?: any, name?: any) => {
     setFromRow(rowval)
     setIngredientId(id)
     setIngredientName(name)
@@ -691,7 +694,7 @@ const StepBasicDetails = ({
     setcheckid(val.mealid)
 
     setChildStateValue(prevState => {
-      const newState = prevState.filter(item => item.mealid === val.id)
+      const newState = prevState.filter((item: any) => item.mealid === val.id)
 
       return newState
     })
@@ -709,7 +712,7 @@ const StepBasicDetails = ({
       const imageData = await handleImageUpload()
       console.log(imageData, 'imageData')
 
-      const updatedAddMeals = data.meal_data.map((meal, index) => {
+      const updatedAddMeals = data.meal_data.map((meal: any, index: any) => {
         if (finalvalue[index]) {
           return {
             ...meal,
@@ -720,7 +723,7 @@ const StepBasicDetails = ({
         return meal
       })
 
-      const updatedAddMealswithingChoice = updatedAddMeals.map((meal, index) => {
+      const updatedAddMealswithingChoice = updatedAddMeals.map((meal: any, index: any) => {
         if (finalvalueingredientchoice[index]) {
           return {
             ...meal,
@@ -731,7 +734,7 @@ const StepBasicDetails = ({
         return meal
       })
 
-      const updatedAddMealsWithRecipes = updatedAddMealswithingChoice.map((meal, index) => {
+      const updatedAddMealsWithRecipes = updatedAddMealswithingChoice.map((meal: any, index: any) => {
         if (finalvaluerecipe[index]) {
           return {
             ...meal,
@@ -742,7 +745,7 @@ const StepBasicDetails = ({
         return meal
       })
 
-      const updatedAddMealsWithCombos = updatedAddMealsWithRecipes.map((meal, index) => {
+      const updatedAddMealsWithCombos = updatedAddMealsWithRecipes.map((meal: any, index: any) => {
         if (finalvaluecombo[index]) {
           return {
             ...meal,
@@ -753,7 +756,7 @@ const StepBasicDetails = ({
         return meal
       })
 
-      const mergedAddMeals = updatedAddMealsWithCombos.map((meal, index) => ({
+      const mergedAddMeals = updatedAddMealsWithCombos.map((meal: any, index: any) => ({
         ...meal,
         ingredient: updatedAddMeals[index].ingredient
       }))
@@ -765,7 +768,7 @@ const StepBasicDetails = ({
       }
       console.log(formDataWithImage, 'formDataWithImage')
 
-      const invalidIndexes = formDataWithImage.meal_data.reduce((invalidIndexes, meal, index) => {
+      const invalidIndexes = formDataWithImage.meal_data.reduce((invalidIndexes: any, meal: any, index: any) => {
         if (
           (!meal.ingredient || meal.ingredient.length === 0) &&
           (!meal.recipe || meal.recipe.length === 0) &&
@@ -779,7 +782,7 @@ const StepBasicDetails = ({
       }, [])
 
       if (invalidIndexes.length > 0) {
-        invalidIndexes.forEach(index => {
+        invalidIndexes.forEach((index: any) => {
           toast.error(`Meal ${index + 1} must contain at least one of item, recipe, combo or items with choice.`)
         })
 
@@ -795,8 +798,8 @@ const StepBasicDetails = ({
       } else {
         handleNext(formDataWithImage)
       }
-    } catch (validationErrors) {
-      validationErrors.inner?.forEach(error => {
+    } catch (validationErrors: any) {
+      validationErrors.inner?.forEach((error: any) => {
         setError(error.path, { message: error.message })
       })
       toast.error('Submission failed. Please check the form for errors.')
@@ -805,7 +808,7 @@ const StepBasicDetails = ({
 
   const checkForTimeOverlap = (mealData: any) => {
     let lastOverlapIndex = -1
-    mealData.forEach((meal, index) => {
+    mealData.forEach((meal: any, index: any) => {
       const { meal_from_time, meal_to_time } = meal
       const fromTime = new Date(meal_from_time).getTime()
       const toTime = new Date(meal_to_time).getTime()
@@ -910,7 +913,7 @@ const StepBasicDetails = ({
           icon='material-symbols:cancel'
           sx={{
             fontSize: { xs: 20, sm: 22, md: 24 },
-            color: theme => theme.palette.error.main,
+            color: (theme: any) => theme.palette.error.main,
             transition: 'transform 0.2s ease-in-out',
             '&:hover': {
               transform: 'scale(1.1)'
@@ -934,19 +937,19 @@ const StepBasicDetails = ({
   const removeingClick = (ingredientIdToRemove: any, val: any) => {
     setChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(
-        ingredient => ingredient?.ingredient_id !== ingredientIdToRemove
+        (ingredient: any) => ingredient?.ingredient_id !== ingredientIdToRemove
       )
 
       setAllSelectedValues(prevAllSelectedValues => {
-        return prevAllSelectedValues.filter(ingredient => {
+        return prevAllSelectedValues.filter((ingredient: any) => {
           return !(ingredient?.mealid === val && ingredient?.ingredient_id === ingredientIdToRemove)
         })
       })
 
-      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+      const updatedFieldsIngredients = fieldsIngredients.map((field: any) => {
         if (field?.mealid === val) {
           // Remove ingredient only if mealid matches
-          field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
+          field.ingredient = field.ingredient?.filter((ing: any) => String(ing.ingredient_id) !== ingredientIdToRemove)
         }
 
         return field
@@ -971,12 +974,12 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+      const updatedFieldsIngredients = fieldsIngredients.map((field: any) => {
         if (field?.mealid === val) {
-          field.ingredientwithchoice = field.ingredientwithchoice?.filter(ingWithChoice => {
-            const hasMatchingIngredient = ingWithChoice.ingredientList?.some(ing => {
+          field.ingredientwithchoice = field.ingredientwithchoice?.filter((ingWithChoice: any) => {
+            const hasMatchingIngredient = ingWithChoice.ingredientList?.some((ing: any) => {
               return value.ingredientList?.some(
-                valIng =>
+                (valIng: any) =>
                   String(valIng.preparation_type_id) === String(ing.preparation_type_id) &&
                   String(valIng.mealid) === String(ing.mealid) &&
                   String(valIng.ingredient_id) === String(ing.ingredient_id)
@@ -1005,9 +1008,9 @@ const StepBasicDetails = ({
         })
       })
 
-      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+      const updatedFieldsIngredients = fieldsIngredients.map((field: any) => {
         if (field?.mealid === val) {
-          field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
+          field.recipe = field.recipe?.filter((ing: any) => String(ing.recipe_id) !== recipeIdToRemove)
         }
 
         return field
@@ -1029,9 +1032,9 @@ const StepBasicDetails = ({
         })
       })
 
-      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+      const updatedFieldsIngredients = fieldsIngredients.map((field: any) => {
         if (field?.mealid === val) {
-          field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
+          field.combo = field.combo?.filter((ing: any) => String(ing.recipe_id) !== recipeIdToRemove)
         }
 
         return field
@@ -1046,7 +1049,7 @@ const StepBasicDetails = ({
   const removeingClickingwithChoice = (ingredientIdToRemove: any, val: any, index: any, value: any) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
-        ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
+        ingredient.ingredientList.some((ing: any) => ing.ingredient_id !== ingredientIdToRemove)
       )
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
@@ -1055,22 +1058,22 @@ const StepBasicDetails = ({
             if (i === index && ingredient?.mealid === val) {
               return {
                 ...ingredient,
-                ingredientList: ingredient.ingredientList.filter(ing => ing?.ingredient_id !== ingredientIdToRemove)
+                ingredientList: ingredient.ingredientList.filter((ing: any) => ing?.ingredient_id !== ingredientIdToRemove)
               }
             }
 
             return ingredient
           })
-          .filter(ingredient => ingredient.ingredientList.length > 0)
+          .filter((ingredient: any) => ingredient.ingredientList.length > 0)
 
         return updatedAllSelectedValues
       })
 
-      const updatedFieldsIngredients = fieldsIngredients.map(field => {
+      const updatedFieldsIngredients = fieldsIngredients.map((field: any) => {
         if (field?.mealid === val) {
           const updatedIngredientWithChoice = field.ingredientwithchoice
-            ?.map(ingWithChoice => {
-              const updatedIngredientList = ingWithChoice.ingredientList?.filter(ing => {
+            ?.map((ingWithChoice: any) => {
+              const updatedIngredientList = ingWithChoice.ingredientList?.filter((ing: any) => {
                 return !(
                   String(value.preparation_type_id) === String(ing.preparation_type_id) &&
                   String(value.mealid) === String(ing.mealid) &&
@@ -1083,7 +1086,7 @@ const StepBasicDetails = ({
                 ingredientList: updatedIngredientList?.length > 0 ? updatedIngredientList : undefined
               }
             })
-            .filter(ingWithChoice => ingWithChoice.ingredientList)
+            .filter((ingWithChoice: any) => ingWithChoice.ingredientList)
 
           return {
             ...field,
@@ -1135,7 +1138,7 @@ const StepBasicDetails = ({
                     )}
                   />
                   {errors.diet_name && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_name?.message}</FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_name?.message as string}</FormHelperText>
                   )}
                 </FormControl>
               </Grid>
@@ -1172,7 +1175,7 @@ const StepBasicDetails = ({
                               deleteCookie('dietTypeChildVal')
                             }
                           }}
-                          renderInput={params => (
+                          renderInput={(params: any) => (
                             <TextField
                               {...params}
                               label={`${t('diet_module.diet_type')} *`}
@@ -1187,7 +1190,7 @@ const StepBasicDetails = ({
                   />
 
                   {errors?.diet_type_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message}</FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message as string}</FormHelperText>
                   )}
                 </FormControl>
               </Grid>
@@ -1206,6 +1209,11 @@ const StepBasicDetails = ({
                           options={dieticianList || []}
                           getOptionLabel={option => option.label}
                           isOptionEqualToValue={(option, value) => option?.value === String(value)}
+                          renderOption={(props: any, option: any) => (
+                            <li {...props} key={option.value}>
+                              {option.label}
+                            </li>
+                          )}
                           onChange={(e, val) => {
                             if (val === null) {
                               setFormValue('dietitian_id', '')
@@ -1216,7 +1224,7 @@ const StepBasicDetails = ({
                               trigger('dietitian_id')
                             }
                           }}
-                          renderInput={params => (
+                          renderInput={(params: any) => (
                             <TextField
                               {...params}
                               label={`${t('diet_module.nutritionist')} *`}
@@ -1230,14 +1238,14 @@ const StepBasicDetails = ({
                     }}
                   />
                   {errors?.dietitian_id && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message as string}</FormHelperText>
                   )}
                 </FormControl>
               </Grid>
 
               <Grid size={{ xs: 6 }}>
                 <CardContent sx={{ px: 0, paddingTop: 2, pb: '0.7rem !important' }}>
-                  <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
+                  <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} {...({} as any)} />
                 </CardContent>
               </Grid>
 
@@ -1279,14 +1287,14 @@ const StepBasicDetails = ({
             </Grid>
           </Card>
 
-          {fieldsIngredients.map((field, index) => (
+          {fieldsIngredients.map((field: any, index: any) => (
             <Card sx={{ mt: 7 }} key={field.id}>
               <CardHeader
                 title={`${t('diet_module.add_meal')} ${index + 1}`}
                 sx={{ float: 'left', width: '50%', mb: 5 }}
               />
               {(fieldsIngredients.length - 1 === index && index > 0) ||
-              (!index <= 0 && !fieldsIngredients.length - 1 <= 0) ? (
+              (!(index <= 0) && !((fieldsIngredients.length - 1) <= 0)) ? (
                 <Grid sx={{ float: 'right', width: '4%', marginRight: '24px', cursor: 'pointer' }}>
                   {removeIngredientButton(index)}
                 </Grid>
@@ -1308,13 +1316,13 @@ const StepBasicDetails = ({
                             label={t('diet_module.meal_name')}
                             name={`meal_data[${index}].meal_name`}
                             error={
-                              errors.meal_data && errors.meal_data[index] && errors.meal_data[index].meal_name?.message
+                              errors.meal_data && (errors.meal_data as any)[index] && (errors.meal_data as any)[index].meal_name?.message
                                 ? true
                                 : false
                             }
                             onChange={onChange}
                             placeholder=''
-                            onInput={e => {
+                            onInput={(e: any) => {
                               if (e.target.value < 0) {
                                 e.target.value = ''
                               }
@@ -1322,9 +1330,9 @@ const StepBasicDetails = ({
                           />
                         )}
                       />
-                      {errors.meal_data && errors.meal_data[index] && (
+                      {errors.meal_data && (errors.meal_data as any)[index] && (
                         <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.meal_data[index].meal_name?.message}
+                          {(errors.meal_data as any)[index].meal_name?.message}
                         </FormHelperText>
                       )}
                     </FormControl>
@@ -1337,8 +1345,8 @@ const StepBasicDetails = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <TimePicker
-                              label={t('diet_module.select_time_from')}
+                            <TimePickerAny
+                              label={t('diet_module.select_time_from') as string}
                               onChange={onChange}
                               name={`meal_data[${index}].meal_from_time`}
                               defaultValue={value ? dayjs(value) : null}
@@ -1346,22 +1354,22 @@ const StepBasicDetails = ({
                                 '& fieldset': {
                                   borderColor:
                                     errors.meal_data &&
-                                    errors.meal_data[index] &&
-                                    errors.meal_data[index]?.meal_from_time
+                                    (errors.meal_data as any)[index] &&
+                                    (errors.meal_data as any)[index]?.meal_from_time
                                       ? 'red'
                                       : undefined
                                 }
                               }}
-                              renderInput={params => (
+                              renderInput={(params: any) => (
                                 <TextField
                                   {...params}
                                   label='Diet Type *'
                                   placeholder='Search & Select'
-                                  error={Boolean(errors.meal_data[index].meal_from_time?.message)}
+                                  error={Boolean((errors.meal_data as any)[index].meal_from_time?.message)}
                                   name={`meal_data[${index}].meal_from_time`}
                                   sx={{
                                     '& fieldset': {
-                                      borderColor: errors.meal_data?.[index]?.meal_from_time ? 'red' : undefined // Change border color to red if there's an error
+                                      borderColor: (errors.meal_data as any)?.[index]?.meal_from_time ? 'red' : undefined // Change border color to red if there's an error
                                     }
                                   }}
                                 />
@@ -1371,9 +1379,9 @@ const StepBasicDetails = ({
                         )}
                       />
 
-                      {errors.meal_data && errors.meal_data[index] && (
+                      {errors.meal_data && (errors.meal_data as any)[index] && (
                         <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.meal_data[index].meal_from_time?.message}
+                          {(errors.meal_data as any)[index].meal_from_time?.message}
                         </FormHelperText>
                       )}
                     </FormControl>
@@ -1387,8 +1395,8 @@ const StepBasicDetails = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <TimePicker
-                              label={t('diet_module.select_time_to')}
+                            <TimePickerAny
+                              label={t('diet_module.select_time_to') as string}
                               name={`meal_data[${index}].meal_to_time`}
                               onChange={onChange}
                               defaultValue={value ? dayjs(value) : null}
@@ -1396,9 +1404,9 @@ const StepBasicDetails = ({
                           </LocalizationProvider>
                         )}
                       />
-                      {errors.meal_data && errors.meal_data[index] && (
+                      {errors.meal_data && (errors.meal_data as any)[index] && (
                         <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.meal_data[index].meal_to_time?.message}
+                          {(errors.meal_data as any)[index].meal_to_time?.message}
                         </FormHelperText>
                       )}
                     </FormControl>
@@ -1427,7 +1435,7 @@ const StepBasicDetails = ({
                         container
                         spacing={5}
                         sx={{
-                          background: theme.palette.background.OnBackground,
+                          background: (theme.palette.background as any).OnBackground,
                           mt: 0,
                           borderTopLeftRadius: 7,
                           borderTopRightRadius: 7,
@@ -2049,12 +2057,12 @@ const StepBasicDetails = ({
                                 <Grid size={{ xs: 12, sm: 2.3 }} sx={{ pl: 1 }}>
                                   <Typography className='w_155'>
                                     <Tooltip
-                                      title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
+                                      title={all?.ingredientList.map((all: any) => all.preparation_type).join(', ')}
                                       arrow
                                       placement='bottom'
                                       className='text_overflow_moduled'
                                     >
-                                      <span>{all?.ingredientList.map(all => all.preparation_type).join(', ')}</span>
+                                      <span>{all?.ingredientList.map((all: any) => all.preparation_type).join(', ')}</span>
                                     </Tooltip>
                                   </Typography>
                                 </Grid>
@@ -2110,8 +2118,8 @@ const StepBasicDetails = ({
                                       'addingIndex',
                                       'ingredientwithchoice',
                                       'rowedit_ingredientwithchoice',
-                                      all?.ingredientList.map(all => all.ingredient_id),
-                                      all?.ingredientList.map(all => all.ingredient_name)
+                                      all?.ingredientList.map((all: any) => all.ingredient_id),
+                                      all?.ingredientList.map((all: any) => all.ingredient_name)
                                     )
                                   }
                                   icon='bx:pencil'
@@ -2132,7 +2140,7 @@ const StepBasicDetails = ({
                                     mt: 3
                                   }}
                                 >
-                                  {all?.ingredientList?.map((all, i) => {
+                                  {all?.ingredientList?.map((all: any, i: any) => {
                                     return (
                                       <Grid key={i}>
                                         <Card sx={{ width: '280px', height: '90px', mr: 0, boxShadow: 'none', mt: 3 }}>

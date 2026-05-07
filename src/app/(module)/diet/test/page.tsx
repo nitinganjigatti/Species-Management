@@ -1,6 +1,6 @@
 'use client';
 import { Card, CardHeader, Button } from '@mui/material'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import RecipeList from 'src/components/diet/RecipeList'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
@@ -8,11 +8,11 @@ import { getRecipeList } from 'src/lib/api/diet/recipe'
 // import { getRecipeList } from 'src/lib/api/diet/recipe'
 
 const TestPage = () => {
-  const [recipeList, setRecipeList] = useState([])
+  const [recipeList, setRecipeList] = useState<any[]>([])
   const [loader, setLoader] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [selectedCard, setSelectedCard] = useState([])
+  const [selectedCard, setSelectedCard] = useState<any[]>([])
 
   const addEventSidebarOpen = () => {
     setOpenDrawer(true)
@@ -27,7 +27,7 @@ const TestPage = () => {
   return (
     <>
       {loader ? (
-        <FallbackSpinner />
+        <FallbackSpinner sx={{}} />
       ) : (
         <Card sx={{ display: 'flex' }}>
           <CardHeader title='Recipe List' />
@@ -43,17 +43,15 @@ const TestPage = () => {
         </Card>
       )}
 
-      {
-        <RecipeList
-          recipeList={recipeList}
-          setSelectedCard={setSelectedCard}
-          selectedCard={selectedCard}
-          drawerWidth={400}
-          addEventSidebarOpen={openDrawer}
-          handleSidebarClose={handleSidebarClose}
-          submitLoader={submitLoader}
-        />
-      }
+      {React.createElement(RecipeList as any, {
+        recipeList,
+        setSelectedCard,
+        selectedCard,
+        drawerWidth: 400,
+        addEventSidebarOpen: openDrawer,
+        handleSidebarClose,
+        submitLoader
+      })}
     </>
   )
 }

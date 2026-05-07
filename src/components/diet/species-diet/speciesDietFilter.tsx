@@ -43,7 +43,7 @@ const DashboardFilter: React.FC<DashboardFilterProps> = ({
   setSiteList
 }) => {
   const theme = useTheme()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const [selectedMenu, setSelectedMenu] = useState<any>(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [selectAll, setSelectAll] = useState<boolean>(false)

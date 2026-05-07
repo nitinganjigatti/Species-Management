@@ -25,7 +25,7 @@ const PreparationTypes = () => {
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [editParams, setEditParams] = useState(editParamsInitialState)
+  const [editParams, setEditParams] = useState<any>(editParamsInitialState)
 
   const [openSnackbar, setOpenSnackbar] = useState(false)
   const [snackbarMessage, setSnackbarMessage] = useState('')
@@ -33,16 +33,16 @@ const PreparationTypes = () => {
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
-  const [rows, setRows] = useState([])
+  const [rows, setRows] = useState<any[]>([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
-  const handleClose = (event, reason) => {
+  const handleClose = (event: any, reason: any) => {
     if (reason === 'clickaway') {
       return
     }
@@ -60,7 +60,7 @@ const PreparationTypes = () => {
     setOpenDrawer(false)
   }
 
-  const handleEdit = async (id, label, status) => {
+  const handleEdit = async (id: any, label: any, status: any) => {
     setEditParams({ id, label, status })
     setOpenDrawer(true)
   }
@@ -72,7 +72,7 @@ const PreparationTypes = () => {
       field: 'uid',
       headerName: 'SL No',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 4 }}>
           {parseInt(params.row.uid)}
         </Typography>
@@ -83,7 +83,7 @@ const PreparationTypes = () => {
       minWidth: 20,
       field: 'label',
       headerName: t('name'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.label}
         </Typography>
@@ -95,7 +95,7 @@ const PreparationTypes = () => {
       minWidth: 20,
       field: 'active',
       headerName: t('status'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
@@ -106,7 +106,7 @@ const PreparationTypes = () => {
       minWidth: 20,
       field: 'Action',
       headerName: t('action'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
           {parseInt(params.row.zoo_id) === 0 ? null : (
             <IconButton
@@ -125,12 +125,13 @@ const PreparationTypes = () => {
 
   const headerAction = (
     <div>
+      {/* @ts-ignore */}
       <AddButton title={t('diet_module.add_preparation_type')} action={() => addEventSidebarOpen()} />
     </div>
   )
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort: any, q: any, column: any) => {
       try {
         setLoading(true)
 
@@ -145,7 +146,7 @@ const PreparationTypes = () => {
         await getPreparationTypeList(params).then(res => {
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
-          let listWithId = res.data.result.map((el, i) => {
+          let listWithId = res.data.result.map((el: any, i: any) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
@@ -164,7 +165,7 @@ const PreparationTypes = () => {
     fetchTableData(sort, searchValue, sortColumn)
   }, [fetchTableData])
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -186,7 +187,7 @@ const PreparationTypes = () => {
   )
 
   const handleSearch = useCallback(
-    value => {
+    (value: any) => {
       setSearchValue(value)
       searchTableData(sort, value, sortColumn)
     },
@@ -194,7 +195,7 @@ const PreparationTypes = () => {
     [sort, sortColumn, searchTableData, searchValue]
   )
 
-  const handleSubmitData = async payload => {
+  const handleSubmitData = async (payload: any) => {
     try {
       setSubmitLoader(true)
       var response
@@ -223,9 +224,9 @@ const PreparationTypes = () => {
     }
   }
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = rows?.map((row: any, index: any) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
@@ -261,15 +262,15 @@ const PreparationTypes = () => {
           />
         </Grid>
       </Card>
-      <AddPreparationType
-        drawerWidth={400}
-        addEventSidebarOpen={openDrawer}
-        handleSidebarClose={handleSidebarClose}
-        handleSubmitData={handleSubmitData}
-        resetForm={resetForm}
-        submitLoader={submitLoader}
-        editParams={editParams}
-      />
+      {React.createElement(AddPreparationType as any, {
+        drawerWidth: 400,
+        addEventSidebarOpen: openDrawer,
+        handleSidebarClose,
+        handleSubmitData,
+        resetForm,
+        submitLoader,
+        editParams
+      })}
       <UserSnackbar status={openSnackbar} message={snackbarMessage} severity={severity} handleClose={handleClose} />
     </>
   )

@@ -341,7 +341,7 @@ const SpeciesDietFilterDrawer: React.FC<Props> = ({
                   {getOptionsForMenu(selectedMenu)?.map((option, index) => (
                     <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                       <Checkbox
-                        checked={selectedOptions[selectedMenu.name]?.some((item: any) => item.id === option.id)}
+                        checked={selectedOptions[selectedMenu.name]?.some((item: any) => item.id === option.id) ?? false}
                         onChange={() => handleCheckboxChange(option.id, option.name)}
                         inputProps={{ 'aria-label': 'controlled' }}
                       />

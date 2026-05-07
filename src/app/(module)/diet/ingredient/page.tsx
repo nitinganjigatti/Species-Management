@@ -51,13 +51,13 @@ const IngredientsList = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const { t } = useTranslation()
-  const { query } = router
+  const { query } = router as any
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([])
+  const [rows, setRows] = useState<any[]>([])
   const [searchValue, setSearchValue] = useState(query.q || '')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
 
@@ -73,18 +73,18 @@ const IngredientsList = () => {
   const [selectedIngredient, setSelectedIngredient] = useState()
   console.log('selectedIngredient', selectedIngredient)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [openIngredient, setOpenIngredient] = useState(false)
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
   // Common function to update URL query parameters
   const updateQueryParams = useCallback(
-    newParams => {
+    (newParams: any) => {
       router.replace(
         {
           pathname: router.pathname,
@@ -92,9 +92,7 @@ const IngredientsList = () => {
             ...routerQuery,
             ...newParams
           }
-        },
-        undefined,
-        { shallow: true }
+        } as any
       )
     },
     [router]
@@ -109,7 +107,7 @@ const IngredientsList = () => {
     setStatus(status)
   }, [query.page, query.pageSize, query.status])
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setStatus(newValue)
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 50 })
@@ -121,7 +119,7 @@ const IngredientsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
+    async (sortBy: any, q: any, sortColumn: any, status: any, pageSize: any = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -140,7 +138,7 @@ const IngredientsList = () => {
           // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
-          let listWithId = res.data.result.map((el, i) => {
+          let listWithId = res.data.result.map((el: any, i: any) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
@@ -163,14 +161,14 @@ const IngredientsList = () => {
     }
   }, [status, paginationModel.page, paginationModel.pageSize])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setsortColumning(newModel[0].field)
@@ -220,7 +218,7 @@ const IngredientsList = () => {
     </>
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
@@ -233,7 +231,7 @@ const IngredientsList = () => {
       width: 80,
       field: 'uid',
       headerName: 'SL',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
@@ -244,7 +242,7 @@ const IngredientsList = () => {
       width: 250,
       field: 'ingredient_name',
       headerName: t('diet_module.items'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
@@ -287,7 +285,7 @@ const IngredientsList = () => {
       width: 200,
       field: 'feed_type_label',
       headerName: t('diet_module.feed_type'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.feed_type_label}
         </Typography>
@@ -298,7 +296,7 @@ const IngredientsList = () => {
       width: 200,
       field: 'ingredient_alias',
       headerName: t('diet_module.item_alias'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography
@@ -317,7 +315,7 @@ const IngredientsList = () => {
       width: 140,
       field: 'id',
       headerName: t('diet_module.item_id'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'ING' + params.row.id : '-'}
         </Typography>
@@ -328,7 +326,7 @@ const IngredientsList = () => {
       width: 150,
       field: 'calorie',
       headerName: t('diet_module.calories'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.calorie ? params.row.calorie + ' Kcal' : '-'}
         </Typography>
@@ -339,12 +337,12 @@ const IngredientsList = () => {
       width: 170,
       field: 'preparation_type_count',
       headerName: t('diet_module.preparation_types'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
             title={
               params.row.preparation_types && params.row.preparation_types.length > 0
-                ? params.row.preparation_types.map(preparation => (
+                ? params.row.preparation_types.map((preparation: any) => (
                     <div style={{ padding: '4px' }} key={preparation.label}>
                       {preparation.label}
                     </div>
@@ -364,13 +362,15 @@ const IngredientsList = () => {
       width: 260,
       field: 'user_name',
       headerName: t('created_by'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box>
           {RenderUtility.renderUserAvatarDetails({
             profile_image: params?.row?.created_by_user?.profile_pic,
             user_name: params?.row?.created_by_user?.user_name,
-            date: moment(params?.row?.created_at).format('YYYY-MM-DD')
-            //crby_width: 200
+            date: moment(params?.row?.created_at).format('YYYY-MM-DD'),
+            crby_width: 200,
+            text_color: undefined,
+            description: undefined
           })}
         </Box>
       )
@@ -380,7 +380,7 @@ const IngredientsList = () => {
       minWidth: 120,
       field: 'status',
       headerName: t('status'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <CustomChip
           skin='light'
           size='small'
@@ -399,7 +399,7 @@ const IngredientsList = () => {
     }
   ]
 
-  const onCellClick = params => {
+  const onCellClick = (params: any) => {
     console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
 
@@ -412,7 +412,7 @@ const IngredientsList = () => {
     }
   }
 
-  const TabBadge = ({ label, totalCount }) => (
+  const TabBadge = ({ label, totalCount }: { label: any; totalCount: any }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
       {totalCount ? (
@@ -425,7 +425,7 @@ const IngredientsList = () => {
     return (
       <>
         {loader ? (
-          <FallbackSpinner />
+          <FallbackSpinner sx={{}} />
         ) : (
           <Card>
             <CardHeader title='Items' action={headerAction} sx={{ px: 5 }} />
@@ -452,7 +452,7 @@ const IngredientsList = () => {
                   description={
                     'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
                   }
-                  color={theme.palette.formContent?.tertiary}
+                  color={(theme.palette as any).formContent?.tertiary}
                   value={check}
                   setValue={setCheck}
                 />
@@ -517,6 +517,7 @@ const IngredientsList = () => {
             </TabContext>
           </Grid>
           {openIngredient && (
+            // @ts-ignore
             <AddIngredients
               open={openIngredient}
               handleSidebarClose={handleSidebarClose}

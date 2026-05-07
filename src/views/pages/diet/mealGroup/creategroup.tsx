@@ -11,7 +11,7 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
@@ -122,8 +122,8 @@ const CreateMealGroup: React.FC<Props> = ({
   const showToast = (message: string, type: string = 'error') => {
     if (toastLock.current) return
 
-    toastLock.current = true
-    toast[type](message)
+    toastLock.current = true;
+    (toast as any)[type](message)
 
     setTimeout(() => {
       toastLock.current = false
@@ -288,15 +288,13 @@ const CreateMealGroup: React.FC<Props> = ({
   // }
 
   const theme = useTheme()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   const RenderSidebarFooter = () => {
     return (
       <Box
         sx={{
-          position: 'fixed',
-          right: 0,
           height: '80px',
           width: '100%',
           maxWidth: '562px',
@@ -457,7 +455,7 @@ const CreateMealGroup: React.FC<Props> = ({
                 />
               </FormControl>
 
-              {!Object.keys(editParam).length > 0 && (
+              {!(Object.keys(editParam).length > 0) && (
                 <Box
                   sx={{
                     display: 'flex',
@@ -567,7 +565,7 @@ const CreateMealGroup: React.FC<Props> = ({
                 fontWeight: 500,
                 color: theme.palette.customColors.OnSurfaceVariant,
                 ml: 2,
-                mb: mealType.type === 'view' && 4
+                mb: mealType.type === 'view' ? 4 : undefined
               }}
             >
               {t('diet_module.selected_enclosures')}

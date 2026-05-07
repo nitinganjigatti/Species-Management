@@ -562,6 +562,8 @@ const SpeciesAnimalsMapped: React.FC<SpeciesAnimalsMappedProps> = ({
                                     user_name: species.user_details.created_by,
                                     date: species?.user_details?.created_at,
                                     text_color: theme.palette.customColors.OnSurfaceVariant,
+                                    description: '',
+                                    crby_width: undefined,
                                     show_time: true,
                                     size: 'small'
                                   })
@@ -858,6 +860,8 @@ const SpeciesAnimalsMapped: React.FC<SpeciesAnimalsMappedProps> = ({
                                     user_name: species.user_details.created_by,
                                     date: species?.user_details?.created_at,
                                     text_color: theme.palette.customColors.OnSurfaceVariant,
+                                    description: '',
+                                    crby_width: undefined,
                                     show_time: true,
                                     size: 'small'
                                   })
@@ -1191,6 +1195,7 @@ const SpeciesAnimalsMapped: React.FC<SpeciesAnimalsMappedProps> = ({
                                           user_name: species.user_details.created_by,
                                           date: species?.user_details?.created_at,
                                           text_color: theme.palette.customColors.OnSurfaceVariant,
+                                          description: '',
                                           show_time: true,
                                           size: 'small',
                                           crby_width: 200

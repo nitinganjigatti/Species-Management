@@ -20,7 +20,6 @@ import Grid from '@mui/material/Grid'
 import Icon from 'src/@core/components/icon'
 import useSafeRouter from 'src/hooks/useSafeRouter';
 import { useParams, useSearchParams } from 'next/navigation';
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { getDietList } from 'src/lib/api/diet/dietList'
 import CustomChip from 'src/@core/components/mui/chip'
 
@@ -44,34 +43,33 @@ const Diet = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const theme = useTheme()
   const { t } = useTranslation()
-  const { query } = router
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(query.q || '')
+  const [rows, setRows] = useState<any[]>([])
+  const [searchValue, setSearchValue] = useState(routerQuery.q || '')
   const [sortColumn, setSortColumn] = useState('created_at')
 
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(query.page || 0, 10),
-    pageSize: parseInt(query.pageSize || 50, 10)
+    page: parseInt(routerQuery.page || 0, 10),
+    pageSize: parseInt(routerQuery.pageSize || 50, 10)
   })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(query.status || '')
+  const [status, setStatus] = useState(routerQuery.status || '')
   const [loader, setLoader] = useState(false)
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
   // Common function to update URL query parameters
   const updateQueryParams = useCallback(
-    newParams => {
+    (newParams: any) => {
       router.replace(
         {
           pathname: router.pathname,
@@ -79,24 +77,13 @@ const Diet = () => {
             ...routerQuery,
             ...newParams
           }
-        },
-        undefined,
-        { shallow: true }
+        }
       )
     },
     [router]
   )
 
-  useEffect(() => {
-    const page = parseInt(query.page || 0, 10)
-    const pageSize = parseInt(query.pageSize || 50, 10)
-    const status = query.status || ''
-
-    setPaginationModel({ page: page, pageSize: pageSize })
-    setStatus(status)
-  }, [query.page, query.pageSize, query.status])
-
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setStatus(newValue)
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 50 })
@@ -104,11 +91,11 @@ const Diet = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
+    async (sort: any, q: any, sortColumn: any, status: any, pageSize: any = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
-        const params = {
+        const apiParams = {
           sortBy: sort,
           q,
           sortColumn,
@@ -117,10 +104,10 @@ const Diet = () => {
           status
         }
 
-        await getDietList({ params: params }).then(res => {
+        await getDietList({ params: apiParams }).then((res: any) => {
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
-          let listWithId = res.data.result.map((el, i) => {
+          let listWithId = res.data.result.map((el: any, i: any) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
@@ -141,14 +128,14 @@ const Diet = () => {
     }
   }, [status, paginationModel.page, paginationModel.pageSize])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = rows?.map((row: any, index: any) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -159,7 +146,7 @@ const Diet = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, sortColumn, status, pageSize) => {
+    debounce(async (sort: any, q: any, sortColumn: any, status: any, pageSize: any) => {
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, sortColumn, status, pageSize)
@@ -183,7 +170,7 @@ const Diet = () => {
     </>
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
@@ -196,7 +183,7 @@ const Diet = () => {
       width: 80,
       field: 'uid',
       headerName: 'SL',
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
@@ -207,7 +194,7 @@ const Diet = () => {
       width: 350,
       field: 'diet_no',
       headerName: t('diet_module.diet_id'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
@@ -242,7 +229,7 @@ const Diet = () => {
       width: 150,
       field: 'no_meals',
       headerName: t('diet_module.no_of_mixes'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.combo ? params.row.combo : '-'}
         </Typography>
@@ -253,7 +240,7 @@ const Diet = () => {
       width: 160,
       field: 'no_recipe',
       headerName: t('diet_module.no_of_recipes'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
         </Typography>
@@ -265,7 +252,7 @@ const Diet = () => {
       width: 260,
       field: 'dietitian_name',
       headerName: t('diet_module.nutritionist'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           <Box>
             <UserAvatarDetails
@@ -284,13 +271,15 @@ const Diet = () => {
       width: 260,
       field: 'created_at',
       headerName: t('created_by'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           <Box>
             {RenderUtility.renderUserAvatarDetails({
               profile_image: params.row.profile_pic,
               user_name: params.row.user_name,
               date: moment(params.row.created_at, 'DD/MM/YYYY').format('YYYY-MM-DD'),
+              text_color: undefined,
+              description: undefined,
               crby_width: 200
             })}
           </Box>
@@ -303,7 +292,7 @@ const Diet = () => {
       width: 120,
       field: 'status',
       headerName: t('status'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <CustomChip
           skin='light'
           size='small'
@@ -322,7 +311,7 @@ const Diet = () => {
     }
   ]
 
-  const onCellClick = params => {
+  const onCellClick = (params: any) => {
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {
@@ -334,7 +323,7 @@ const Diet = () => {
     }
   }
 
-  const TabBadge = ({ label, totalCount }) => (
+  const TabBadge = ({ label, totalCount }: { label: any; totalCount: any }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
       {totalCount ? (
@@ -347,7 +336,7 @@ const Diet = () => {
     return (
       <>
         {loader ? (
-          <FallbackSpinner />
+          <FallbackSpinner sx={{}} />
         ) : (
           <>
             <Card>
@@ -356,7 +345,7 @@ const Diet = () => {
                 <Box sx={{ width: 250 }}>
                   <MUISearch
                     value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
+                    onChange={(e: any) => handleSearch(e.target.value)}
                     onClear={() => handleSearch('')}
                     placeholder='Search...'
                   />
@@ -370,7 +359,7 @@ const Diet = () => {
                   columns={columns}
                   paginationModel={paginationModel}
                   handleSortModel={handleSortModel}
-                  setPaginationModel={newPaginationModel => {
+                  setPaginationModel={(newPaginationModel: any) => {
                     updateQueryParams({
                       page: newPaginationModel.page,
                       pageSize: newPaginationModel.pageSize
@@ -405,22 +394,27 @@ const Diet = () => {
     <>
       {dietModule ? (
         <Grid>
-          <TabContext sx={{ cursor: 'pointer' }} value={status}>
-            <TabList onChange={handleChange}>
-              <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
-              <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
-              <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
-            </TabList>
-            <TabPanel sx={{ cursor: 'pointer' }} value='1'>
-              {tableData()}
-            </TabPanel>
-            <TabPanel sx={{ cursor: 'pointer' }} value='0'>
-              {tableData()}
-            </TabPanel>
-            <TabPanel sx={{ cursor: 'pointer' }} value=''>
-              {tableData()}
-            </TabPanel>
-          </TabContext>
+          {(() => {
+            const TC = TabContext as any;
+            return (
+              <TC value={status}>
+                <TabList onChange={handleChange}>
+                  <Tab value='' label={<TabBadge label='All' totalCount={status === '' ? total : null} />} />
+                  <Tab value='1' label={<TabBadge label='Active' totalCount={status === '1' ? total : null} />} />
+                  <Tab value='0' label={<TabBadge label='Inactive' totalCount={status === '0' ? total : null} />} />
+                </TabList>
+                <TabPanel sx={{ cursor: 'pointer' }} value='1'>
+                  {tableData()}
+                </TabPanel>
+                <TabPanel sx={{ cursor: 'pointer' }} value='0'>
+                  {tableData()}
+                </TabPanel>
+                <TabPanel sx={{ cursor: 'pointer' }} value=''>
+                  {tableData()}
+                </TabPanel>
+              </TC>
+            );
+          })()}
         </Grid>
       ) : (
         <Error404></Error404>

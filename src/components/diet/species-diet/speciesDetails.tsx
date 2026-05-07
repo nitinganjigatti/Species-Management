@@ -28,7 +28,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const theme = useTheme()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [detailsLoader, setDetailsLoader] = useState<boolean>(true)
@@ -452,6 +452,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             >
               <SpeciesCard species={specieDetails} />
             </Box>
+            {/* @ts-ignore */}
             <TabContext sx={{ width: '100%' }} value={status}>
               <TabList
                 sx={{ width: '100%', borderBottom: `1px solid ${theme.palette.customColors.Outline}` }}
@@ -543,7 +544,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             speciesId={speciesId}
             speciesData={speciesData}
             setspeciesId={setspeciesId}
-            fileInputRef={fileInputRef}
+            fileInputRef={fileInputRef as React.RefObject<HTMLInputElement>}
             uploadDietDrawer={uploadDietDrawer}
             setUploadDietDrawer={setUploadDietDrawer}
             speciesDetailsDrawer={speciesDetailsDrawer}

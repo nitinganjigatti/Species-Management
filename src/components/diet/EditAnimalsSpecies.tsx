@@ -669,7 +669,7 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
                             {/* Species List */}
                             {mappedSpecies.map((species, index) => (
                               <ListItem
-                                key={species.id}
+                                key={species.assign_id}
                                 sx={{
                                   backgroundColor: theme.palette.background.paper,
                                   display: 'flex',
@@ -708,7 +708,6 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
                                     }
                                     onChange={() => handleTogglePrimary(species)}
                                     color='primary'
-                                    fontSize={70}
                                   />
                                 </Box>
 
@@ -886,7 +885,7 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
                             {/* Species List */}
                             {mappedSpecies.map((species, index) => (
                               <ListItem
-                                key={species.id}
+                                key={species.assign_id}
                                 sx={{
                                   backgroundColor: theme.palette.background.paper,
                                   display: 'flex',
@@ -924,7 +923,6 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
                                     }
                                     onChange={() => handleTogglePrimary(species)}
                                     color='primary'
-                                    fontSize={70}
                                   />
                                 </Box>
 
@@ -1182,9 +1180,9 @@ const EditAnimalSpeciesMapped: React.FC<Props> = ({
                                     />
                                   </Box>
 
-                                  {site.species?.map((species: any, index: any) => (
+                                  {site.species?.map((species: any) => (
                                     <ListItem
-                                      key={species.species_id}
+                                      key={species.assign_id}
                                       sx={{
                                         backgroundColor: theme.palette.background.paper,
                                         display: 'flex',

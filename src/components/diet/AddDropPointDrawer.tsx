@@ -6,7 +6,8 @@ import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { addDropPointToMealGroup, getDropPointList } from 'src/lib/api/diet/mealgroup'
 import toast from 'react-hot-toast'
-import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import ControlledAutocompleteBase from 'src/views/forms/form-fields/ControlledAutocomplete'
+const ControlledAutocomplete = ControlledAutocompleteBase as any
 import { useTranslation } from 'react-i18next'
 
 interface Props {
@@ -307,7 +308,7 @@ const AddDropPointDrawer: React.FC<Props> = ({
                   value: inputValue.trim()
                 }
                 console.log('Setting custom value on blur:', customValue)
-                setValue('drop_point_name', customValue, { shouldValidate: true })
+                setValue('drop_point_name', customValue as any, { shouldValidate: true })
               }
             }}
             getOptionLabel={(option: any) => option?.label || ''}

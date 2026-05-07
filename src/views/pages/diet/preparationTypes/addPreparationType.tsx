@@ -138,7 +138,7 @@ const AddPreparationType: React.FC<Props> = props => {
         </Box>
       </Box>
       <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6) }}>
-        <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
+        <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
           <FormControl fullWidth sx={{ mb: 6 }}>
             <Controller
               name='label'
@@ -156,7 +156,7 @@ const AddPreparationType: React.FC<Props> = props => {
                 />
               )}
             />
-            {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{errors.label.message}</FormHelperText>}
+            {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{String((errors as any).label?.message ?? '')}</FormHelperText>}
           </FormControl>
 
           {editParams?.id !== null ? (

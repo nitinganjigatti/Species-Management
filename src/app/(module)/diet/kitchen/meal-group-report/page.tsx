@@ -39,18 +39,18 @@ const MealGroupReport = () => {
     }
   ]
 
-  const authData = useContext(AuthContext)
-  const sites = authData.userData.user.zoos[0]?.sites || []
+  const authData = useContext(AuthContext) as any
+  const sites = authData?.userData?.user?.zoos[0]?.sites || []
   const { t } = useTranslation()
   console.log(sites, 'sites')
 
-  const siteOptions = sites.map(site => ({
+  const siteOptions = sites.map((site: any) => ({
     label: site.site_name,
     value: site.site_id
   }))
 
   const defaultValues = {
-    site: siteOptions.find(site => site.value === 16) || null
+    site: siteOptions.find((site: any) => site.value === 16) || null
   }
 
   const {
@@ -71,11 +71,11 @@ const MealGroupReport = () => {
   const [loading, setLoading] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date())
 
-  const handleUpdateStatus = (reportId, status) => {
+  const handleUpdateStatus = (reportId: any, status: any) => {
     setRows(currentRows => currentRows.map(row => (row.id === reportId ? { ...row, downloadStatus: status } : row)))
   }
 
-  const handleDownload = async (reportId, reportAlias) => {
+  const handleDownload = async (reportId: any, reportAlias: any) => {
     const selectedSite = getValues('site')
     const site_id = selectedSite?.value || null
     try {
@@ -123,7 +123,7 @@ const MealGroupReport = () => {
       alignItems: 'center',
       align: 'center',
       sortable: false,
-      renderCell: params => params.value
+      renderCell: (params: any) => params.value
     },
     {
       flex: 1,
@@ -131,7 +131,7 @@ const MealGroupReport = () => {
       field: 'reportName',
       headerName: t('diet_module.report_name'),
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'customColors.OnSecondaryContainer', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.reportName}
@@ -156,7 +156,7 @@ const MealGroupReport = () => {
       align: 'center',
       headerAlign: 'center',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           {!params?.row.downloadStatus ? (
             <Button
@@ -178,7 +178,7 @@ const MealGroupReport = () => {
     }
   ]
 
-  const handleDateChange = date => {
+  const handleDateChange = (date: any) => {
     setSelectedDate(date)
   }
 
@@ -204,19 +204,20 @@ const MealGroupReport = () => {
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-                  <SingleDatePicker
-                    date={selectedDate}
-                    onChangeHandler={handleDateChange}
-                    maxDate={addDays(new Date(), 7)}
-                    name='Select Date'
-                    minDate={new Date()}
-                    dateFormat='dd-MM-yyyy'
-                  />
+                  {React.createElement(SingleDatePicker as any, {
+                    date: selectedDate,
+                    onChangeHandler: handleDateChange,
+                    maxDate: addDays(new Date(), 7),
+                    name: 'Select Date',
+                    minDate: new Date(),
+                    dateFormat: 'dd-MM-yyyy',
+                    popperPlacement: 'bottom',
+                    size: 'medium'
+                  })}
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 4 }}>
                   <Grid
-                    item
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
@@ -224,22 +225,22 @@ const MealGroupReport = () => {
                       justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                     }}
                   >
-                    <ControlledAutocomplete
-                      name='site'
-                      label='Select Site*'
-                      control={control}
-                      errors={errors}
-                      options={siteOptions}
-                      getOptionLabel={option => option.label || ''}
-                      isOptionEqualToValue={(option, value) => option.value === value?.value}
-                      required
-                      fullWidth
-                    />
+                    {React.createElement(ControlledAutocomplete as any, {
+                      name: 'site',
+                      label: 'Select Site*',
+                      control,
+                      errors,
+                      options: siteOptions,
+                      getOptionLabel: (option: any) => (option as any).label || '',
+                      isOptionEqualToValue: (option: any, value: any) => (option as any).value === value?.value,
+                      required: true,
+                      fullWidth: true
+                    })}
                   </Grid>
                 </Grid>
               </Grid>
             </Box>
-            <DietReportView rows={rows} columns={columns} loading={loading} downloadStatus={downloadStatus} />
+            {React.createElement(DietReportView as any, { rows, columns, loading, downloadStatus })}
           </CardContent>
         </Card>
       </Grid>

@@ -38,7 +38,7 @@ const FeedTypes = () => {
   const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
   const { t } = useTranslation()
   const theme = useTheme()
-  const { query } = router
+  const { query } = router as any
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -52,28 +52,26 @@ const FeedTypes = () => {
   const [status, setStatus] = useState(query.status || '')
   const [searchValue, setSearchValue] = useState(query.q || '')
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
 
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
   // Common function to update URL query parameters
   const updateQueryParams = useCallback(
-    newParams => {
+    (newParams: any) => {
       router.replace(
         {
-          pathname: router.pathname,
+          pathname: (router as any).pathname,
           query: {
             ...routerQuery,
             ...newParams
           }
-        },
-        undefined,
-        { shallow: true }
+        } as any
       )
     },
     [router]
@@ -88,7 +86,7 @@ const FeedTypes = () => {
     setStatus(status)
   }, [query.page, query.pageSize, query.status])
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setStatus(newValue)
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 50 })
@@ -96,7 +94,7 @@ const FeedTypes = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, sortColumn, status, pageSize = paginationModel.pageSize) => {
+    async (sort: any, q: any, sortColumn: any, status: any, pageSize: any = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -113,7 +111,7 @@ const FeedTypes = () => {
           if (res?.success) {
             const startingIndex = paginationModel.page * paginationModel.pageSize
 
-            let listWithId = res.data.result.map((el, i) => {
+            let listWithId = res.data.result.map((el: any, i: any) => {
               return { ...el, uid: startingIndex + i + 1 }
             })
             setTotal(parseInt(res?.data?.total_count))
@@ -143,7 +141,7 @@ const FeedTypes = () => {
       field: 'id',
       headerName: 'SL',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
@@ -155,7 +153,7 @@ const FeedTypes = () => {
       field: 'feed_type_name',
       headerName: t('diet_module.feeds'),
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <>
           <Avatar
             variant='square'
@@ -188,7 +186,7 @@ const FeedTypes = () => {
       field: 'desc',
       headerName: t('description'),
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.desc} placement='bottom'>
           <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {params.row.desc}
@@ -202,7 +200,7 @@ const FeedTypes = () => {
       field: 'active',
       headerName: t('status'),
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <CustomChip
           skin='light'
           size='small'
@@ -221,19 +219,19 @@ const FeedTypes = () => {
     }
   ]
 
-  const onCellClick = params => {
+  const onCellClick = (params: any) => {
     // router.push(`/diet/feed/${id}?id=${params?.id}`)
     router.push({ pathname: `/diet/feed/${params?.id}` })
   }
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = (rows as any[])?.map((row: any, index: any) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setsortColumning(newModel[0].field)
@@ -254,7 +252,7 @@ const FeedTypes = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
 
     setSearchValue(value)
@@ -275,7 +273,7 @@ const FeedTypes = () => {
     </>
   )
 
-  const TabBadge = ({ label, totalCount }) => (
+  const TabBadge = ({ label, totalCount }: any) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
       {totalCount ? (

@@ -1,4 +1,12 @@
-export const SpeciesDietUploadingCard = () => (
+import React from 'react'
+import { Avatar, LinearProgress, Typography } from '@mui/material'
+import { Box } from '@mui/system'
+import { useTheme } from '@mui/material/styles'
+
+export const SpeciesDietUploadingCard = ({ uploadingFileName = '' }: { uploadingFileName?: string }) => {
+  const theme = useTheme()
+
+  return (
   <Box sx={{}}>
     <Box
       sx={{
@@ -60,10 +68,10 @@ export const SpeciesDietUploadingCard = () => (
       </Box>
     </Box>
   </Box>
-)
+  )
+}
 
-{
-  /* <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
+/* <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
                     <Typography
                       sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}
                     >
@@ -72,7 +80,6 @@ export const SpeciesDietUploadingCard = () => (
                         : (item?.file_size / 1024).toFixed(2) + ' KB'}
                     </Typography>
                   </Box> */
-}
 
 // attach:-
 // backgroundColor:'#fff'

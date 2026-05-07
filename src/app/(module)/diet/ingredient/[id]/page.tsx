@@ -68,28 +68,28 @@ const IngredientDetail = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const { t } = useTranslation()
   const { id, source } = routerQuery
   const [value, setValue] = useState('1')
   const [loader, setLoader] = useState(true)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
-  const [IngredientsDetailsval, setIngredientsDetailsval] = useState({})
+  const [IngredientsDetailsval, setIngredientsDetailsval] = useState<any>({})
   const [dietListTotal, setDietListTotal] = useState(0)
   const [isActive, setIsActive] = useState(IngredientsDetailsval?.active || '0')
   const [recipeListTotal, setRecipeListTotal] = useState(0)
   const [comboListTotal, setComboListTotal] = useState(0)
   const [statusDialog, setstatusDialog] = useState(false)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setValue(newValue)
   }
 
-  const handleStatusClickOpen = async event => {
+  const handleStatusClickOpen = async (event: any) => {
     setstatusDialog(true)
   }
 
@@ -105,7 +105,7 @@ const IngredientDetail = () => {
     setDeleteDialogBox(true)
   }
 
-  const getIngredientsDetailval = async id => {
+  const getIngredientsDetailval = async (id: any) => {
     try {
       const response = await getIngredientDetail(id)
       if (response.success === true) {
@@ -156,7 +156,7 @@ const IngredientDetail = () => {
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
-      const response = await deleteIngredient(id)
+      const response = await deleteIngredient(id as string)
 
       // console.log(response, 'response')
       if (response.success === true) {
@@ -262,7 +262,7 @@ const IngredientDetail = () => {
                                         Number(IngredientsDetailsval?.diet_count) >
                                       0
                                     ) {
-                                      handleStatusClickOpen()
+                                      handleStatusClickOpen(null)
                                     } else {
                                       handleClickOpen()
                                     }
@@ -332,6 +332,7 @@ const IngredientDetail = () => {
                               />
                             </TabPanel>
                             <TabPanel value='3'>
+                              {/* @ts-ignore */}
                               <IngredientDetialDietListTabview onTotalChange={setDietListTotal} />
                             </TabPanel>
                           </TabContext>
@@ -368,6 +369,7 @@ const IngredientDetail = () => {
                 ConfirmationText={'Delete'}
                 confirmAction={confirmDeleteAction}
               />
+              {/* @ts-ignore */}
               <DeleteDialogConfirmation
                 handleClosenew={handleStatusClose}
                 action={confirmStatusUpdateAction}
@@ -375,6 +377,8 @@ const IngredientDetail = () => {
                 type='ingredient'
                 active={isActive == '1'}
                 actionType={'confirm'}
+                typeCount={0}
+                ingredientCount={0}
                 recipeCount={IngredientsDetailsval.recipe_count}
                 dietCount={IngredientsDetailsval.diet_count}
                 message={

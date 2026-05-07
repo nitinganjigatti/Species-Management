@@ -192,12 +192,12 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
 
         <Grid container spacing={5}>
           {console.log(formData, 'formData')}
-          <Grid  size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
                 <CardContent sx={{ pt: 0 }}>
                   <Grid container spacing={6}>
-                    <Grid  size={{ xs: 4 }}>
+                    <Grid size={{ xs: 4 }}>
                       <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
                         <div
                           style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
@@ -320,7 +320,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       </Card>
                     </Grid>
 
-                    <Grid  size={{ xs: 8 }}>
+                    <Grid size={{ xs: 8 }}>
                       <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>Description</Typography>
                       <Typography variant='body2' sx={{ fontSize: '14px', pt: 2 }}>
                         {formData.desc ? formData.desc : 'No Description to show'}
@@ -356,6 +356,10 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                     <CardHeader title='Item by Quantity' sx={{ pl: 0 }} />
                     <DataGrid
                       sx={{
+                        '.MuiDataGrid-main': {
+                          borderRadius: '8px',
+                          border: '1px solid #e9e9ec'
+                        },
                         '.MuiDataGrid-cell:focus': {
                           outline: 'none'
                         },
@@ -365,12 +369,14 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                         '& .MuiDataGrid-columnHeader': {
                           whiteSpace: 'nowrap', // Prevents text wrapping in header
                           overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          textOverflow: 'ellipsis',
+                          backgroundColor: theme.palette.customColors.customTableHeaderBg
                         },
                         '& .MuiDataGrid-cell': {
                           whiteSpace: 'nowrap', // Prevents text wrapping in cell
                           overflow: 'hidden',
-                          textOverflow: 'ellipsis'
+                          textOverflow: 'ellipsis',
+                          padding: '12px'
                         }
                       }}
                       columnVisibilityModel={{
@@ -389,7 +395,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
             </>
           </Grid>
 
-          <Grid  size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12, mx: 5 }}>
               <Button
                 color='secondary'

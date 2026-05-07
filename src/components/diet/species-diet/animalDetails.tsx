@@ -30,7 +30,7 @@ function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, 
   const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [detailsLoader, setDetailsLoader] = useState<boolean>(true)
@@ -169,7 +169,7 @@ function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, 
                     alignItems: 'center',
                     gap: '8px',
                     mb: '6px',
-                    maxWidth: '400px'
+                    maxWidth: item?.dietitian_name?.length && item?.dietitian_name?.length > 20 ? '260px' : 'fit-content'
                   }}
                 >
                   <UserAvatarDetails
@@ -367,6 +367,7 @@ function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, 
             >
               <AnimalCard data={animalDetails} />
             </Box>
+            {/* @ts-ignore */}
             <TabContext sx={{ width: '100%' }} value={status}>
               <TabList
                 sx={{ width: '100%', borderBottom: `1px solid ${theme.palette.customColors.Outline}` }}
@@ -388,9 +389,8 @@ function AnimalDetails({ animalDetailsDrawer, setAnimalDetailsDrawer, animalId, 
                   style={{ fontSize: 12 }}
                   label={
                     <TabBadge
-                      label={`${t('diet_module.in_active_diets')} - ${
-                        animalDetails?.deactive_attachments?.length || 0
-                      }`}
+                      label={`${t('diet_module.in_active_diets')} - ${animalDetails?.deactive_attachments?.length || 0
+                        }`}
                     />
                   }
                 />

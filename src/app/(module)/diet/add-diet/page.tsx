@@ -42,27 +42,27 @@ const AddDiet = () => {
   const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
   const { id, name } = routerQuery
   const [activeStep, setActiveStep] = useState(0)
-  const [uomList, setUomList] = useState([])
-  const [dieticianList, setDieticianList] = useState([])
-  const [uomprevnew, setUomprevnew] = useState([])
-  const [IngredientTypeList, setIngredientTypeList] = useState([])
-  const [selectedCardRecipe, setSelectedCardRecipe] = useState([])
-  const [selectedCardCombo, setSelectedCardCombo] = useState([])
-  const [diettypechildvalues, setdiettypechildvalues] = useState([])
+  const [uomList, setUomList] = useState<any[]>([])
+  const [dieticianList, setDieticianList] = useState<any[]>([])
+  const [uomprevnew, setUomprevnew] = useState<any[]>([])
+  const [IngredientTypeList, setIngredientTypeList] = useState<any[]>([])
+  const [selectedCardRecipe, setSelectedCardRecipe] = useState<any[]>([])
+  const [selectedCardCombo, setSelectedCardCombo] = useState<any[]>([])
+  const [diettypechildvalues, setdiettypechildvalues] = useState<any[]>([])
   const [urlType, seturlType] = useState('')
   const [loader, setLoader] = useState(false)
-  const [cutsizelist, setcutsize] = useState([])
-  const [uom, setUom] = useState([])
-  const [feedType, setFeedType] = useState([])
+  const [cutsizelist, setcutsize] = useState<any[]>([])
+  const [uom, setUom] = useState<any[]>([])
+  const [feedType, setFeedType] = useState<any[]>([])
   const [feedtotalCount, setFeedTotalCount] = useState(0)
   const [page, setPage] = useState(1)
   const [loadingfeed, setLoadingFeed] = useState(false)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     diet_name: '',
     diet_type_name: '',
     diet_type_id: '',
@@ -87,11 +87,11 @@ const AddDiet = () => {
     ]
   })
 
-  const handleSelectedCardChange = card => {
+  const handleSelectedCardChange = (card: any) => {
     setSelectedCardRecipe(card)
   }
 
-  const handleSelectedCardChangeCombo = card => {
+  const handleSelectedCardChangeCombo = (card: any) => {
     setSelectedCardCombo(card)
   }
 
@@ -104,7 +104,7 @@ const AddDiet = () => {
       await getDietTypeList({ params: params }).then(res => {
         setUomList(res?.data)
       })
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
     }
   }
@@ -119,7 +119,7 @@ const AddDiet = () => {
       await getUnitsForRecipe({ params: params }).then(res => {
         setUomprevnew(res?.data?.result)
       })
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
     }
   }
@@ -135,7 +135,7 @@ const AddDiet = () => {
         setcutsize(res?.data?.result)
         setUom(res?.data?.result)
       })
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
     }
   }
@@ -148,7 +148,7 @@ const AddDiet = () => {
         await getUserList({ zoo_id }).then(res => {
           if (res?.data?.length > 0) {
             setDieticianList(
-              res?.data?.map(item => ({
+              res?.data?.map((item: any) => ({
                 label: item?.user_name,
                 value: item?.user_id
               }))
@@ -156,7 +156,7 @@ const AddDiet = () => {
           }
         })
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log('user error', error)
     }
   }
@@ -175,7 +175,7 @@ const AddDiet = () => {
 
         setFeedTotalCount(total)
         setFeedType(prev => (pageNum === 1 ? newData : [...prev, ...newData]))
-      } catch (error) {
+      } catch (error: any) {
         console.log('error', error)
       } finally {
         setLoadingFeed(false)
@@ -185,23 +185,41 @@ const AddDiet = () => {
   )
 
   const handleFeedSearch = useCallback(
-    debounce(val => {
+    debounce((val: any) => {
       setFeedSearchValue(val)
       setPage(1)
     }, 500),
     []
   )
 
-  const IngredientTypeListSearch = debounce(async value => {
+  const callIngredientTypeList = async ({ status, page, limit, q }: { status?: any; page?: any; limit?: any; q?: any }) => {
+    try {
+      const params = {
+        //status,
+        q,
+
+        //active: 1,
+        page,
+        limit
+      }
+      await getIngredientList({ params: params }).then(res => {
+        setIngredientTypeList(res?.data?.result)
+      })
+    } catch (e: any) {
+      console.log(e)
+    }
+  }
+
+  const IngredientTypeListSearch = debounce(async (value: any) => {
     try {
       await callIngredientTypeList({ status: 1, page: 1, limit: 20, q: value })
-    } catch (e) {
+    } catch (e: any) {
       console.log(e)
     }
   }, 500)
 
-  const handleRemarksChange = newRemarks => {
-    setFormData(prevFormData => ({
+  const handleRemarksChange = (newRemarks: any) => {
+    setFormData((prevFormData: any) => ({
       ...prevFormData,
       remarks: newRemarks
     }))
@@ -239,9 +257,9 @@ const AddDiet = () => {
   }, [id])
 
   const handleCancelIconClick = async () => {
-    setFormData(prevData => ({
+    setFormData((prevData: any) => ({
       ...prevData,
-      by_quantity: prevData.by_quantity.map(item => ({
+      by_quantity: prevData.by_quantity.map((item: any) => ({
         ...item,
         ingredient_id: '',
         ingredient_name: '',
@@ -257,7 +275,7 @@ const AddDiet = () => {
     }
   }, [id, urlType])
 
-  const getIngredientsDetailval = async id => {
+  const getIngredientsDetailval = async (id: any) => {
     try {
       setLoader(true)
       const response = await getDietDetails(id, { week_day: 0 })
@@ -265,7 +283,7 @@ const AddDiet = () => {
       if (response.success === true && response.data !== null) {
         const data = response.data
 
-        setFormData(prevFormData => ({
+        setFormData((prevFormData: any) => ({
           ...prevFormData,
           diet_name: urlType === 'copy' ? name : data.diet_name,
           diet_type_name: data.diet_type_name,
@@ -276,8 +294,8 @@ const AddDiet = () => {
           diet_image: data.diet_image,
           desc: data.desc,
           remarks: data.remarks,
-          meal_data: data.meal_data.map(meal => {
-            const parseTime = time => {
+          meal_data: data.meal_data.map((meal: any) => {
+            const parseTime = (time: any) => {
               if (time.toLowerCase().includes('am') || time.toLowerCase().includes('pm')) {
                 return dayjs(time, 'hh:mm A')
               }
@@ -295,11 +313,11 @@ const AddDiet = () => {
 
         const dietTypesData = data.child
 
-        const convertedData = dietTypesData?.map(item => item.replace(/(\d+) /g, '$1_'))
+        const convertedData = dietTypesData?.map((item: any) => item.replace(/(\d+) /g, '$1_'))
 
-        const newarr = convertedData?.map(item => {
+        const newarr = convertedData?.map((item: any) => {
           const [weight, unitName] = item.split('_')
-          const matchedUom = uomprevnew.find(item => item.name === unitName)
+          const matchedUom = uomprevnew.find((u: any) => u.name === unitName)
 
           return {
             meal_value_header: parseFloat(weight),
@@ -308,7 +326,7 @@ const AddDiet = () => {
           }
         })
 
-        const newarrdiet = newarr?.map((item, index) => ({
+        const _newarrdiet = newarr?.map((item: any, _index: any) => ({
           unit: {
             value: {
               _id: item.weight_uom_id,
@@ -323,7 +341,7 @@ const AddDiet = () => {
         document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
         setLoader(false)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log('Feed list', error)
     }
   }
@@ -335,7 +353,7 @@ const AddDiet = () => {
   //   return date.toUTCString()
   // }
 
-  const formatTime = timeString => {
+  const formatTime = (timeString: any) => {
     return dayjs(timeString).format('HH:mm') // Standardize the format
   }
 
@@ -350,7 +368,7 @@ const AddDiet = () => {
     getDieticianList()
   }, [])
 
-  const handleNext = data => {
+  const handleNext = (data: any) => {
     // setFormData(prevData => ({
     //   ...prevData,
     //   ...newData
@@ -365,12 +383,12 @@ const AddDiet = () => {
     }
   }
 
-  function deleteCookie(name) {
+  function deleteCookie(name: any) {
     document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   }
 
-  const updateFormData = newData => {
-    setFormData(prevData => ({
+  const updateFormData = (newData: any) => {
+    setFormData((prevData: any) => ({
       ...prevData,
       ...newData
     }))
@@ -390,11 +408,11 @@ const AddDiet = () => {
   const handleStepBillingSubmit = async () => {
     console.log(formData, 'formdata')
 
-    const deepCleanImages = data => {
+    const deepCleanImages = (data: any): any => {
       if (Array.isArray(data)) {
-        return data.map(item => deepCleanImages(item))
+        return data.map((item: any) => deepCleanImages(item))
       } else if (data !== null && typeof data === 'object') {
-        const cleaned = {}
+        const cleaned: Record<string, any> = {}
         for (const [key, value] of Object.entries(data)) {
           if (key !== 'recipe_image' && key !== 'ingredient_image') {
             cleaned[key] = deepCleanImages(value)
@@ -408,17 +426,17 @@ const AddDiet = () => {
     let mealTypeError = false
     let genericError = false
 
-    formData.meal_data.forEach(item => {
+    formData.meal_data.forEach((item: any) => {
       const { ingredientwithchoice, recipe, combo, ingredient } = item
 
-      const checkMealType = data => {
+      const checkMealType = (data: any) => {
         if (data && data.length > 0) {
-          if (!data.every(d => d.meal_type && Array.isArray(d.meal_type) && d.meal_type.length > 0)) {
+          if (!data.every((d: any) => d.meal_type && Array.isArray(d.meal_type) && d.meal_type.length > 0)) {
             mealTypeError = true
 
             return false
           }
-          if (!data.every(d => d.meal_type.some(mealType => mealType.meal_value_header === 'Generic'))) {
+          if (!data.every((d: any) => d.meal_type.some((mealType: any) => mealType.meal_value_header === 'Generic'))) {
             genericError = true
 
             return false
@@ -447,18 +465,18 @@ const AddDiet = () => {
       // const { child, ...formDataWithoutChild } = formData
       setLoader(true)
 
-      const numericFormData = {
+      const numericFormData: any = {
         // ...formDataWithoutChild,
         ...formData,
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
-          formData.meal_data.map(item => {
+          formData.meal_data.map((item: any) => {
             const fromTime = formatTime(item.meal_from_time)
             const toTime = formatTime(item.meal_to_time)
 
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
-                return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+                return !Array.isArray(value) || (value as any[]).some((val: any) => val !== null && val !== undefined)
               }).map(([key, value]) => {
                 if (Array.isArray(value)) {
                   return [key, deepCleanImages(value)]
@@ -483,7 +501,7 @@ const AddDiet = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
         meal_data: numericFormData.meal_data,
         diet_image: numericFormData?.diet_image?.length > 0 ? numericFormData.diet_image[0] : null
@@ -508,18 +526,18 @@ const AddDiet = () => {
     } else if (id && urlType === 'copy') {
       setLoader(true)
 
-      const numericFormData = {
+      const numericFormData: any = {
         //...formDataWithoutChild,
         ...formData,
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
-          formData.meal_data.map(item => {
+          formData.meal_data.map((item: any) => {
             const fromTime = formatTime(item.meal_from_time)
             const toTime = formatTime(item.meal_to_time)
 
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
-                return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+                return !Array.isArray(value) || (value as any[]).some((val: any) => val !== null && val !== undefined)
               }).map(([key, value]) => {
                 if (Array.isArray(value)) {
                   return [key, deepCleanImages(value)]
@@ -544,7 +562,7 @@ const AddDiet = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
         meal_data: numericFormData.meal_data
       }
@@ -579,18 +597,18 @@ const AddDiet = () => {
     } else {
       setLoader(true)
 
-      const numericFormData = {
+      const numericFormData: any = {
         //...formDataWithoutChild,
         ...formData,
         child: JSON.stringify(formData.child),
         meal_data: JSON.stringify(
-          formData.meal_data.map(item => {
+          formData.meal_data.map((item: any) => {
             const fromTime = formatTime(item.meal_from_time)
             const toTime = formatTime(item.meal_to_time)
 
             const filteredItem = Object.fromEntries(
               Object.entries(item).filter(([key, value]) => {
-                return !Array.isArray(value) || value.some(val => val !== null && val !== undefined)
+                return !Array.isArray(value) || (value as any[]).some((val: any) => val !== null && val !== undefined)
               }).map(([key, value]) => {
                 if (Array.isArray(value)) {
                   return [key, deepCleanImages(value)]
@@ -615,7 +633,7 @@ const AddDiet = () => {
         )
       }
 
-      const updatedFormData = {
+      const updatedFormData: any = {
         ...numericFormData,
         meal_data: numericFormData.meal_data
       }
@@ -631,7 +649,7 @@ const AddDiet = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      const apival = await updateDiet(id, updatedFormData)
+      const apival = await updateDiet(id as string, updatedFormData)
 
       if (apival.success === true) {
         router.push(`/diet/diet`)
@@ -651,11 +669,12 @@ const AddDiet = () => {
     }
   }
 
-  const getStepContent = step => {
+  const getStepContent = (step: any) => {
     switch (step) {
-      case 0:
+      case 0: {
+        const StepBasicDetailsComp = StepBasicDetails as any
         return (
-          <StepBasicDetails
+          <StepBasicDetailsComp
             handleNext={handleNext}
             formData={formData}
             updateFormData={updateFormData}
@@ -679,9 +698,11 @@ const AddDiet = () => {
             handleFeedSearch={handleFeedSearch}
           />
         )
-      case 1:
+      }
+      case 1: {
+        const StepPreviewDietComp = StepPreviewDiet as any
         return (
-          <StepPreviewDiet
+          <StepPreviewDietComp
             handleNext={handleNext}
             handlePrev={handlePrev}
             updateFormData={updateFormData}
@@ -703,6 +724,7 @@ const AddDiet = () => {
             // diettypechildvalues={diettypechildvalues}
           />
         )
+      }
       default:
         return null
     }
@@ -751,6 +773,7 @@ const AddDiet = () => {
                   <Step key={index}>
                     <StepLabel
                       slots={{
+                        // @ts-ignore
                         icon: StepperCustomDot
                       }}
                     >

@@ -144,7 +144,7 @@ const ChangeRecipeName: React.FC<Props> = ({ isOpen, setIsOpen, recipeid, recipe
                   />
                 )}
               />
-              {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{errors.label.message}</FormHelperText>}
+              {errors.label && <FormHelperText sx={{ color: 'error.main' }}>{String(errors.label.message ?? '')}</FormHelperText>}
             </FormControl>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Fragment>

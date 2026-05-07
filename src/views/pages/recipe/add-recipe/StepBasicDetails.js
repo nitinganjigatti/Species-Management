@@ -12,7 +12,6 @@ import Autocomplete from '@mui/material/Autocomplete'
 import { Divider, CardContent, FormHelperText, CircularProgress } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
-import Router from 'next/router'
 import { useForm } from 'react-hook-form'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
@@ -130,7 +129,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList, loader }) => {
   }
 
   const cancelBack = () => {
-    Router.push('/diet/recipe/')
+    router.push('/diet/recipe/')
   }
 
   console.log(formData, 'formdata')

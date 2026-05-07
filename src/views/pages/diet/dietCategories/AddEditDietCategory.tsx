@@ -130,11 +130,11 @@ const AddEditDietCategory = (props: Props) => {
         <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : undefined}>
           <ControlledTextField
             name='label'
-            label={t('diet_module.diet_category_name')}
+            label={t('diet_module.diet_category_name') ?? undefined}
             control={control}
             errors={errors}
             required={true}
-            inputProps={{ placeholder: t('diet_module.diet_category_name') }}
+            inputProps={{ placeholder: t('diet_module.diet_category_name') ?? undefined }}
             sx={{ mb: 6 }}
           />
           {editParams?.id && (

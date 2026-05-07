@@ -45,37 +45,37 @@ const RecipeList = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const theme = useTheme()
   const { t } = useTranslation()
-  const { query } = router
+  // const { query } = router
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
   const [sortBy, setSortBy] = useState('desc')
   const [sortColumn, setSortColumn] = useState('created_at')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState(query.q || '')
+  const [rows, setRows] = useState<any[]>([])
+  const [searchValue, setSearchValue] = useState(routerQuery.q || '')
   const [searchColumns, setSearchColumns] = useState('')
 
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(query.page || 0, 10),
-    pageSize: parseInt(query.pageSize || 50, 10)
+    page: parseInt(routerQuery.page || 0, 10),
+    pageSize: parseInt(routerQuery.pageSize || 50, 10)
   })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState(query.status || '')
+  const [status, setStatus] = useState(routerQuery.status || '')
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(currentPage: any, data: any) {
     return data
   }
 
   // Common function to update URL query parameters
   const updateQueryParams = useCallback(
-    newParams => {
+    (newParams: any) => {
       router.replace(
         {
           pathname: router.pathname,
@@ -83,24 +83,22 @@ const RecipeList = () => {
             ...routerQuery,
             ...newParams
           }
-        },
-        undefined,
-        { shallow: true }
+        }
       )
     },
     [router]
   )
 
   useEffect(() => {
-    const page = parseInt(query.page || 0, 10)
-    const pageSize = parseInt(query.pageSize || 50, 10)
-    const status = query.status || ''
+    const page = parseInt(routerQuery.page || 0, 10)
+    const pageSize = parseInt(routerQuery.pageSize || 50, 10)
+    const status = routerQuery.status || ''
 
     setPaginationModel({ page: page, pageSize: pageSize })
     setStatus(status)
-  }, [query.page, query.pageSize, query.status])
+  }, [routerQuery.page, routerQuery.pageSize, routerQuery.status])
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setStatus(newValue)
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 50 })
@@ -108,7 +106,7 @@ const RecipeList = () => {
   }
 
   const fetchTableData = useCallback(
-    async (sortBy, q, sortColumn, searchColumns, status, pageSize = paginationModel.pageSize) => {
+    async (sortBy: any, q: any, sortColumn: any, searchColumns: any, status: any, pageSize = paginationModel.pageSize) => {
       try {
         setLoading(true)
 
@@ -126,7 +124,7 @@ const RecipeList = () => {
         await getRecipeList({ params: params }).then(res => {
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
-          let listWithId = res.data.result.map((el, i) => {
+          let listWithId = res.data.result.map((el: any, i: any) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
           setTotal(parseInt(res?.data?.total_count))
@@ -144,14 +142,14 @@ const RecipeList = () => {
     fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
   }, [status, paginationModel.page, paginationModel.pageSize])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: any) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows = rows?.map((row: any, index: any) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: any) => {
     if (newModel.length) {
       setSortBy(newModel[0].sort)
       setSortColumn(newModel[0].field)
@@ -163,7 +161,7 @@ const RecipeList = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sortBy, q, sortColumn, searchColumns, status, pageSize) => {
+    debounce(async (sortBy: any, q: any, sortColumn: any, searchColumns: any, status: any, pageSize: any) => {
       setSearchValue(q)
       try {
         await fetchTableData(sortBy, q, sortColumn, searchColumns, status, pageSize)
@@ -187,7 +185,7 @@ const RecipeList = () => {
     </>
   )
 
-  const handleSwitchChange = async (event, rowData) => {
+  const handleSwitchChange = async (event: any, rowData: any) => {
     const newIsActive = event.target.checked ? 1 : 0
     try {
       const response = await updateRecipeStatus(rowData?.id, { active: newIsActive })
@@ -196,7 +194,7 @@ const RecipeList = () => {
         fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
 
         return toast(
-          t => (
+          (t: any) => (
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Icon
@@ -236,7 +234,7 @@ const RecipeList = () => {
     }
   }
 
-  const handleSearch = value => {
+  const handleSearch = (value: any) => {
     setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
@@ -250,7 +248,7 @@ const RecipeList = () => {
       field: 'uid',
       headerName: 'SL ',
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
         </Typography>
@@ -261,7 +259,7 @@ const RecipeList = () => {
       width: 300,
       field: 'recipe_name',
       headerName: t('navigation.mix'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
             variant='square'
@@ -304,7 +302,7 @@ const RecipeList = () => {
       width: 130,
       field: 'id',
       headerName: t('diet_module.mix_id'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'CMB' + params.row.id : '-'}
         </Typography>
@@ -327,12 +325,12 @@ const RecipeList = () => {
       width: 200,
       field: 'items',
       headerName: t('diet_module.no_of_items'),
-      renderCell: params => (
-        <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+      renderCell: (params: any) => (
+        <Box sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
             title={
               params.row.ingredients && params.row.ingredients.length > 0
-                ? params.row.ingredients.map(preparation => (
+                ? params.row.ingredients.map((preparation: any) => (
                     <div style={{ padding: '4px' }} key={preparation.ingredient_name}>
                       {preparation.ingredient_name}
                     </div>
@@ -352,12 +350,14 @@ const RecipeList = () => {
       width: 260,
       field: 'user_name',
       headerName: t('created_by'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Box>
           {RenderUtility.renderUserAvatarDetails({
             profile_image: params?.row?.created_by_user?.profile_pic,
             user_name: params?.row?.created_by_user?.user_name,
             date: moment(params?.row?.created_at).format('YYYY-MM-DD'),
+            text_color: undefined,
+            description: undefined,
             crby_width: 200
           })}
         </Box>
@@ -368,7 +368,7 @@ const RecipeList = () => {
       minWidth: 100,
       field: 'status',
       headerName: t('status'),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <CustomChip
           skin='light'
           size='small'
@@ -404,7 +404,7 @@ const RecipeList = () => {
     // }
   ]
 
-  const onCellClick = params => {
+  const onCellClick = (params: any) => {
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {
@@ -416,7 +416,7 @@ const RecipeList = () => {
     }
   }
 
-  const TabBadge = ({ label, totalCount }) => (
+  const TabBadge = ({ label, totalCount }: { label: any; totalCount: any }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
       {totalCount ? (
@@ -429,7 +429,7 @@ const RecipeList = () => {
     return (
       <>
         {loader ? (
-          <FallbackSpinner />
+          <FallbackSpinner sx={{}} />
         ) : (
           <Card>
             <CardHeader title='Mix' action={headerAction} sx={{ px: 5 }} />

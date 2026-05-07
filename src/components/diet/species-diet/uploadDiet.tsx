@@ -275,7 +275,6 @@ function UploadDiet({
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <Autocomplete
-                        name='dietitian_id'
                         value={defaultPreparedBy}
                         disablePortal
                         id='dietitian_id'
@@ -283,6 +282,11 @@ function UploadDiet({
                         options={preparedByUsers}
                         getOptionLabel={(option: any) => option.user_name}
                         isOptionEqualToValue={(option: any, value: any) => option?.user_id === value?.user_id}
+                        renderOption={(props: any, option: any) => (
+                          <li {...props} key={option.user_id}>
+                            {option.user_name}
+                          </li>
+                        )}
                         onChange={(e, val) => {
                           if (val === null) {
                             setDefaultPreparedBy(null)
@@ -307,7 +311,7 @@ function UploadDiet({
                     )}
                   />
                   {errors && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
+                    <FormHelperText sx={{ color: 'error.main' }}>{String(errors?.dietitian_id?.message ?? '')}</FormHelperText>
                   )}
                 </FormControl>
 
@@ -451,7 +455,7 @@ function UploadDiet({
                       )}
                     />
                     {errors.attachment && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.attachment?.message}</FormHelperText>
+                      <FormHelperText sx={{ color: 'error.main' }}>{String(errors.attachment?.message ?? '')}</FormHelperText>
                     )}
                   </FormControl>
                 </Grid>
@@ -464,7 +468,6 @@ function UploadDiet({
         <Box
           sx={{
             height: '122px',
-            width: '100%',
             width: {
               xs: '100%', // 0px and up
               sm: '560px'

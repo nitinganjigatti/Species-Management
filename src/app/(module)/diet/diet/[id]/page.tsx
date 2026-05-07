@@ -52,26 +52,26 @@ const DietDetail = () => {
   const router = useSafeRouter();
   const params = useParams();
   const searchParams = useSearchParams();
-  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) };
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
   const theme = useTheme()
   const { t } = useTranslation()
   const { id } = routerQuery
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [loader, setLoader] = useState(true)
   const [loaderTwo, setLoaderTwo] = useState(false)
-  const [dietDetails, setDietDetails] = useState({})
+  const [dietDetails, setDietDetails] = useState<any>({})
   const [value, setValue] = useState('full')
   const [isOpen, setIsOpen] = useState(false)
   const [isOpennew, setIsOpennew] = useState(false)
   const [isOpentab, setIsOpenTabs] = useState(false)
   const [isOpentabEdit, setIsOpenTabsEdit] = useState(false)
-  const [selectedSpecies, setSelectedSpecies] = useState([])
+  const [selectedSpecies, setSelectedSpecies] = useState<any[]>([])
   const [speciesview, setspeciesview] = useState('')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [openSiteListDrawer, setSiteListDrawer] = useState(false)
   const [activeTab, setActiveTab] = useState('Site')
   const [searchTerm, setSearchTerm] = useState('')
-  const [speciesData, setspeciesData] = useState([])
+  const [speciesData, setspeciesData] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [pageNo, setPageNo] = useState(1)
   const [pageNoTaxonomy, setPageNoTaxonomy] = useState(1)
@@ -80,8 +80,8 @@ const DietDetail = () => {
   const [speciestotalcount, setspeciestotalcount] = useState('')
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState([])
   const [selectionType, setSelectionType] = useState('')
-  const [primaryStatus, setPrimaryStatus] = useState({})
-  const [allFetchedData, setAllFetchedData] = useState([])
+  const [primaryStatus, setPrimaryStatus] = useState<any>({})
+  const [allFetchedData, setAllFetchedData] = useState<any[]>([])
   const [hasMoreData, setHasMoreData] = useState(true)
   const [loadingTaxonomy, setLoadingTaxonomy] = useState(false)
   const [loadingSpecies, setLoadingSpecies] = useState(false)
@@ -105,12 +105,12 @@ const DietDetail = () => {
   const [enclosuresData, setEnclosuresData] = useState([])
   const [selectedSpeciesIds, setSelectedSpeciesIds] = useState([])
   const [selectedTaxonomyIds, setSelectedTaxonomyIds] = useState([])
-  const [taxonomyList, setTaxonomyList] = useState([])
-  const [taxonomyCount, setTaxonomyCount] = useState([])
+  const [taxonomyList, setTaxonomyList] = useState<any[]>([])
+  const [taxonomyCount, setTaxonomyCount] = useState<any>(0)
   const [filterState, setFilterState] = useState('')
-  const [speciesDataforFilter, setspeciesDataforFilter] = useState([])
-  const [sepeciescountforFilter, setsepeciescountforFilter] = useState('')
-  const [filteredTaxonomyList, setFilteredTaxonomyList] = useState([])
+  const [speciesDataforFilter, setspeciesDataforFilter] = useState<any[]>([])
+  const [sepeciescountforFilter, setsepeciescountforFilter] = useState<any>('')
+  const [filteredTaxonomyList, setFilteredTaxonomyList] = useState<any[]>([])
   const [taxonomySearchQuery, setTaxonomySearchQuery] = useState('')
   const [applyfilterCheck, setapplyfilterCheck] = useState(false)
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
@@ -118,22 +118,22 @@ const DietDetail = () => {
   const [taxonomyLoading, setTaxonomyLoading] = useState(false)
   const [speciesFilterLoading, setSpeciesFilterLoading] = useState(false)
   const [checkForSite, setCheckForSite] = useState('')
-  const [siteId, setSiteID] = useState(null)
+  const [siteId, setSiteID] = useState<any>(null)
   const [removeFilterTriggered, setRemoveFilterTriggered] = useState(false)
   const [siteSpeciesTotalCount, setSiteSpeciesTotalCount] = useState('')
   const [downloadingPdf, setDownloadingPdf] = useState(false)
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const tabsforfilter = ['Site', 'Taxonomy', 'Species']
 
-  const handleChange = (event, newValue) => {
+  const handleChange = (event: any, newValue: any) => {
     setValue(newValue)
   }
 
-  const handleSpeciesClick = value => {
+  const handleSpeciesClick = (value: any) => {
     setPageNo(1)
     setTempSelectedSpecies([])
     setSelectedSpecies([])
@@ -144,22 +144,22 @@ const DietDetail = () => {
       setIsOpen(true)
       setSelectionType(value)
       setCheckForSite('')
-      setSiteID('')
+      setSiteID(null)
     }
   }
 
-  const handleSingleSiteSelect = selectedSiteId => {
+  const handleSingleSiteSelect = (selectedSiteId: any) => {
     setSiteID(selectedSiteId)
     setIsOpen(true)
     setPageNo(1)
   }
 
-  const handleSpeciesClicknew = (val, type) => {
+  const handleSpeciesClicknew = (val: any, type: any) => {
     setIsOpenTabs(true)
     setspeciesview(val)
     setSelectionType(type)
     setCheckForSite('')
-    setSiteID('')
+    setSiteID(null)
   }
 
   const handleDownloadPdf = async () => {
@@ -190,19 +190,19 @@ const DietDetail = () => {
     }
   }
 
-  const handleSelectedSpeciesChange = updatedSelectedSpecies => {
+  const handleSelectedSpeciesChange = (updatedSelectedSpecies: any) => {
     setSelectedSpecies(updatedSelectedSpecies)
   }
 
   const siteList = async (q = '') => {
     try {
-      const sites = authData.userData.user.zoos[0]?.sites || []
+      const sites = authData?.userData?.user?.zoos?.[0]?.sites || []
 
-      const filteredSites = q ? sites.filter(site => site.site_name.toLowerCase().includes(q.toLowerCase())) : sites
+      const filteredSites = q ? sites.filter((site: any) => site.site_name.toLowerCase().includes(q.toLowerCase())) : sites
 
       setItems(prev => ({
         ...prev,
-        Site: filteredSites.map(site => ({
+        Site: filteredSites.map((site: any) => ({
           site_id: site.id,
           site_name: site.site_name,
           ...site
@@ -233,7 +233,7 @@ const DietDetail = () => {
     }
   }, [items.Section, items.Enclosure, selectedItems.Site])
 
-  const fetchList = async (searchQuery, type = null) => {
+  const fetchList = async (searchQuery: any, type: any = null) => {
     try {
       if (filterState === 'species') {
         setSpeciesFilterLoading(true)
@@ -396,7 +396,7 @@ const DietDetail = () => {
         }
       }
     } catch (e) {
-      Toaster({ type: 'error', message: e?.message })
+      Toaster({ type: 'error', message: (e as any)?.message })
     } finally {
       setLoading(false)
       setIsLoadingMore(false)
@@ -613,27 +613,27 @@ const DietDetail = () => {
     }
   }, [id, value, dietModule])
 
-  const handleScroll = scrollEvent => {
+  const handleScroll = (scrollEvent: any) => {
     const { target } = scrollEvent
     const threshold = 10
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
-    if (isBottom && !loading && speciesData.length < speciestotalcount) {
+    if (isBottom && !loading && speciesData.length < Number(speciestotalcount)) {
       setPageNo(prevPageNo => prevPageNo + 1)
     }
   }
 
-  const handleScrollforFilter = scrollEvent => {
+  const handleScrollforFilter = (scrollEvent: any) => {
     const { target } = scrollEvent
     const threshold = 10
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
 
-    if (isBottom && !loading && speciesDataforFilter.length < sepeciescountforFilter) {
+    if (isBottom && !loading && speciesDataforFilter.length < Number(sepeciescountforFilter)) {
       setPageNo(prevPageNo => prevPageNo + 1)
     }
   }
 
-  const handleScrollforTaxonomy = scrollEvent => {
+  const handleScrollforTaxonomy = (scrollEvent: any) => {
     const { target } = scrollEvent
     const threshold = 10
     const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
@@ -662,18 +662,8 @@ const DietDetail = () => {
     }
   }
 
-  const useStyles = styled({
-    table: {
-      minWidth: 650
-    },
-    sticky: {
-      position: 'sticky',
-      left: 0,
-      background: 'white',
-      boxShadow: '5px 2px 5px grey',
-      borderRight: '2px solid black'
-    }
-  })
+  // useStyles replaced with plain object for className usage
+  const classes = { sticky: '' }
 
   const CustomScrollbar = styled('div')({
     overflowX: 'auto',
@@ -689,7 +679,7 @@ const DietDetail = () => {
       borderRadius: 5
     }
   })
-  const classes = useStyles()
+  // const classes = useStyles()
 
   const tabs = [
     { value: 'full', label: 'Full Week' },
@@ -713,18 +703,18 @@ const DietDetail = () => {
     { id: 7, name: 'Sun', isActive: false }
   ]
 
-  const getDayName = dayId => {
+  const getDayName = (dayId: any) => {
     const day = Day.find(d => d.id === dayId)
 
     return day ? day.name : ''
   }
 
-  const handleclickRecipeDetail = val => {
+  const handleclickRecipeDetail = (val: any) => {
     const url = `/diet/recipe/${val}`
     window.open(url, '_blank')
   }
 
-  const handleclickComboDetail = val => {
+  const handleclickComboDetail = (val: any) => {
     const url = `/diet/combo/${val}`
     window.open(url, '_blank')
   }
@@ -866,7 +856,7 @@ const DietDetail = () => {
               </Box>
             </CardContent>
           ) : (
-            <Box spacing={6}>
+            <Box>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Diet</Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
@@ -881,7 +871,7 @@ const DietDetail = () => {
                 </Typography>
               </Breadcrumbs>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <DietDetailCard
+                {(() => { const DDC = DietDetailCard as any; return <DDC
                   dietDetails={dietDetails}
                   dietModulePermission={dietModule}
                   dietModuleAccess={dietModuleAccess}
@@ -892,7 +882,7 @@ const DietDetail = () => {
                   authData={authData}
                   onDownloadPdf={handleDownloadPdf}
                   downloadingPdf={downloadingPdf}
-                />
+                />; })()}
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
                     <Typography sx={{ fontWeight: 500, fontSize: '20px' }}>
@@ -905,7 +895,7 @@ const DietDetail = () => {
                       <TabList
                         sx={{
                           '& button': {
-                            borderBottom: theme.components.MuiDataGrid.styleOverrides.cell.borderBottom,
+                            borderBottom: (theme as any).components?.MuiDataGrid?.styleOverrides?.cell?.borderBottom,
                             color: theme.palette.customColors.Outline
                           }
                         }}
@@ -913,11 +903,11 @@ const DietDetail = () => {
                         aria-label='simple tabs example'
                         className='tabs_diet_dtl'
                       >
-                        {tabs.map((item, index) => (
+                        {tabs.map((item: any, index: any) => (
                           <Tab key={item?.value} value={item.value} label={item.label} />
                         ))}
                       </TabList>
-                      {tabs.map((item, index) => (
+                      {tabs.map((item: any, index: any) => (
                         <React.Fragment key={item?.value}>
                           {item?.value === value && (
                             <TabPanel
@@ -944,7 +934,7 @@ const DietDetail = () => {
                                 >
                                   <Table aria-label='simple table' style={{ tableLayout: 'fixed' }}>
                                     {dietDetails?.meal_data?.every(
-                                      all =>
+                                      (all: any) =>
                                         (!all?.ingredient || all?.ingredient?.length === 0) &&
                                         (!all?.ingredientwithchoice || all?.ingredientwithchoice?.length === 0) &&
                                         (!all?.recipe || all?.recipe?.length === 0) &&
@@ -1050,7 +1040,7 @@ const DietDetail = () => {
                                               >
                                                 <Typography>GENERIC</Typography>
                                               </TableCell>
-                                              {dietDetails.child?.map((all, index) => {
+                                              {dietDetails.child?.map((all: any, index: any) => {
                                                 return (
                                                   <TableCell
                                                     colSpan={5}
@@ -1085,7 +1075,7 @@ const DietDetail = () => {
                                                 <Typography>GENERIC</Typography>
                                               </TableCell>
 
-                                              {dietDetails.child?.map((all, index) => {
+                                              {dietDetails.child?.map((all: any, index: any) => {
                                                 return (
                                                   <TableCell
                                                     colSpan={5}
@@ -1136,7 +1126,7 @@ const DietDetail = () => {
                                               >
                                                 <Typography sx={{ fontSize: 13, fontWeight: 500 }}>GENERIC</Typography>
                                               </TableCell>
-                                              {dietDetails.child?.map((all, index) => {
+                                              {dietDetails.child?.map((all: any, index: any) => {
                                                 return (
                                                   <TableCell
                                                     colSpan={5}
@@ -1165,7 +1155,7 @@ const DietDetail = () => {
                                     )}
                                     {dietDetails?.meal_data?.length > 0 ? (
                                       <TableBody>
-                                        {dietDetails.meal_data?.map((itemd, index) => {
+                                        {dietDetails.meal_data?.map((itemd: any, index: any) => {
                                           const formattedfromTime = moment(itemd?.meal_from_time, 'h:mm A').isValid()
                                             ? moment(itemd.meal_from_time, 'h:mm A').format('h:mm A')
                                             : undefined
@@ -1300,7 +1290,7 @@ const DietDetail = () => {
                                                   {/* Recipe module start */}
                                                   <>
                                                     {itemd?.recipe?.length > 0 &&
-                                                      itemd?.recipe?.map((item, index) => {
+                                                      itemd?.recipe?.map((item: any, index: any) => {
                                                         return (
                                                           <TableRow
                                                             key={`recipe-${index}`}
@@ -1328,7 +1318,7 @@ const DietDetail = () => {
                                                                   display: 'flex',
                                                                   flexDirection: 'column',
                                                                   backgroundColor:
-                                                                    theme.palette.background.OnBackground,
+                                                                    (theme.palette.background as any).OnBackground,
                                                                   borderRadius: '8px',
                                                                   p: '12px',
                                                                   gap: '16px'
@@ -1415,7 +1405,7 @@ const DietDetail = () => {
                                                                             }}
                                                                           >
                                                                             {item?.ingredient_name.map(
-                                                                              (name, index) => (
+                                                                              (name: any, index: any) => (
                                                                                 <Box
                                                                                   key={index}
                                                                                   sx={{
@@ -1467,7 +1457,7 @@ const DietDetail = () => {
                                                                             gap: '10px'
                                                                           }}
                                                                         >
-                                                                          {item.ingredients.map((name, index) => (
+                                                                          {item.ingredients.map((name: any, index: any) => (
                                                                             <Box
                                                                               key={index}
                                                                               sx={{
@@ -1518,7 +1508,7 @@ const DietDetail = () => {
                                                                           gap: '24px'
                                                                         }}
                                                                       >
-                                                                        {item?.recipe?.map((item, index) => (
+                                                                        {item?.recipe?.map((item: any, index: any) => (
                                                                           <Box key={index} sx={{ display: 'flex' }}>
                                                                             <Typography
                                                                               sx={{
@@ -1649,7 +1639,7 @@ const DietDetail = () => {
                                                                           </Typography>
                                                                         </Box>
                                                                       ) : (
-                                                                        item?.days_of_week?.map((item, index) => (
+                                                                        item?.days_of_week?.map((item: any, index: any) => (
                                                                           <Box
                                                                             key={index}
                                                                             sx={{
@@ -1733,7 +1723,7 @@ const DietDetail = () => {
                                                                     }}
                                                                   >
                                                                     {item.meal_type
-                                                                      ? item.meal_type.map((meal, i) => {
+                                                                      ? item.meal_type.map((meal: any, i: any) => {
                                                                         return meal.meal_value_header === 'Generic'
                                                                           ? meal.quantity +
                                                                           (meal.feed_uom_name
@@ -1743,7 +1733,7 @@ const DietDetail = () => {
                                                                       })
                                                                       : ''}
                                                                     {item.meal_type
-                                                                      ? item.meal_type.map((meal, i) =>
+                                                                      ? item.meal_type.map((meal: any, i: any) =>
                                                                         meal.meal_value_header === 'Generic' &&
                                                                           meal.notes &&
                                                                           meal.notes.trim() !== '' ? (
@@ -1769,7 +1759,7 @@ const DietDetail = () => {
                                                               </Box>
                                                             </TableCell>
                                                             {dietDetails?.child?.length > 0 &&
-                                                              dietDetails.child?.map((all, indexnew) => {
+                                                              dietDetails.child?.map((all: any, indexnew: any) => {
                                                                 if (all !== 'Generic') {
                                                                   return (
                                                                     <TableCell
@@ -1832,7 +1822,7 @@ const DietDetail = () => {
                                                                           >
                                                                             {dietDetails.diet_type_name ===
                                                                               'By Weight' && item.meal_type
-                                                                              ? item.meal_type.map((meal, i) => {
+                                                                              ? item.meal_type.map((meal: any, i: any) => {
                                                                                 if (
                                                                                   all.includes(meal.meal_value_header)
                                                                                 ) {
@@ -1847,7 +1837,7 @@ const DietDetail = () => {
                                                                                 }
                                                                               })
                                                                               : item.meal_type
-                                                                                ? item.meal_type.map((meal, i) => {
+                                                                                ? item.meal_type.map((meal: any, i: any) => {
                                                                                   return meal.meal_value_header === all
                                                                                     ? meal.quantity +
                                                                                     (meal.feed_uom_name
@@ -1859,7 +1849,7 @@ const DietDetail = () => {
                                                                             {dietDetails.diet_type_name ===
                                                                               'By Weight' && item.meal_type
                                                                               ? item.meal_type
-                                                                                .map((meal, i) => {
+                                                                                .map((meal: any, i: any) => {
                                                                                   if (
                                                                                     all.includes(
                                                                                       meal.meal_value_header
@@ -1889,7 +1879,7 @@ const DietDetail = () => {
                                                                                 })
                                                                                 .filter(Boolean).length === 0
                                                                                 ? ''
-                                                                                : item.meal_type.map((meal, i) => {
+                                                                                : item.meal_type.map((meal: any, i: any) => {
                                                                                   if (
                                                                                     all.includes(
                                                                                       meal.meal_value_header
@@ -1919,7 +1909,7 @@ const DietDetail = () => {
                                                                                 })
                                                                               : item.meal_type
                                                                                 ? item.meal_type
-                                                                                  .map((meal, i) => {
+                                                                                  .map((meal: any, i: any) => {
                                                                                     if (
                                                                                       meal.meal_value_header === all &&
                                                                                       meal.notes &&
@@ -1947,7 +1937,7 @@ const DietDetail = () => {
                                                                                   })
                                                                                   .filter(Boolean).length === 0
                                                                                   ? ''
-                                                                                  : item.meal_type.map((meal, i) => {
+                                                                                  : item.meal_type.map((meal: any, i: any) => {
                                                                                     if (
                                                                                       meal.meal_value_header === all &&
                                                                                       meal.notes &&
@@ -1991,7 +1981,7 @@ const DietDetail = () => {
                                                   {/* Combo module start */}
                                                   <>
                                                     {itemd?.combo?.length > 0 &&
-                                                      itemd?.combo?.map((item, index) => {
+                                                      itemd?.combo?.map((item: any, index: any) => {
                                                         return (
                                                           <TableRow
                                                             key={`combo-${index}`}
@@ -2105,7 +2095,7 @@ const DietDetail = () => {
                                                                             }}
                                                                           >
                                                                             {item?.ingredient_name.map(
-                                                                              (name, index) => (
+                                                                              (name: any, index: any) => (
                                                                                 <Box
                                                                                   key={index}
                                                                                   sx={{
@@ -2157,7 +2147,7 @@ const DietDetail = () => {
                                                                             gap: '10px'
                                                                           }}
                                                                         >
-                                                                          {item.ingredients.map((name, index) => (
+                                                                          {item.ingredients.map((name: any, index: any) => (
                                                                             <Box
                                                                               key={index}
                                                                               sx={{
@@ -2210,7 +2200,7 @@ const DietDetail = () => {
                                                                           gap: '24px'
                                                                         }}
                                                                       >
-                                                                        {item?.recipe?.map((item, index) => (
+                                                                        {item?.recipe?.map((item: any, index: any) => (
                                                                           <Box key={index} sx={{ display: 'flex' }}>
                                                                             <Typography
                                                                               sx={{
@@ -2341,7 +2331,7 @@ const DietDetail = () => {
                                                                       </Box>
                                                                     ) : (
                                                                       <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                                        {item?.days_of_week?.map((item, index) => (
+                                                                        {item?.days_of_week?.map((item: any, index: any) => (
                                                                           <Box
                                                                             key={index}
                                                                             sx={{
@@ -2427,7 +2417,7 @@ const DietDetail = () => {
                                                                     }}
                                                                   >
                                                                     {item.meal_type
-                                                                      ? item.meal_type.map((meal, i) => {
+                                                                      ? item.meal_type.map((meal: any, i: any) => {
                                                                         return meal.meal_value_header === 'Generic'
                                                                           ? meal.quantity +
                                                                           (meal.feed_uom_name
@@ -2437,7 +2427,7 @@ const DietDetail = () => {
                                                                       })
                                                                       : ''}
                                                                     {item.meal_type
-                                                                      ? item.meal_type.map((meal, i) =>
+                                                                      ? item.meal_type.map((meal: any, i: any) =>
                                                                         meal.meal_value_header === 'Generic' &&
                                                                           meal.notes &&
                                                                           meal.notes.trim() !== '' ? (
@@ -2463,7 +2453,7 @@ const DietDetail = () => {
                                                               </Box>
                                                             </TableCell>
                                                             {dietDetails?.child?.length > 0 &&
-                                                              dietDetails.child?.map((all, indexnew) => {
+                                                              dietDetails.child?.map((all: any, indexnew: any) => {
                                                                 if (all !== 'Generic') {
                                                                   return (
                                                                     <TableCell
@@ -2525,7 +2515,7 @@ const DietDetail = () => {
                                                                           >
                                                                             {dietDetails.diet_type_name ===
                                                                               'By Weight' && item.meal_type
-                                                                              ? item.meal_type.map((meal, i) => {
+                                                                              ? item.meal_type.map((meal: any, i: any) => {
                                                                                 if (
                                                                                   all.includes(meal.meal_value_header)
                                                                                 ) {
@@ -2540,7 +2530,7 @@ const DietDetail = () => {
                                                                                 }
                                                                               })
                                                                               : item.meal_type
-                                                                                ? item.meal_type.map((meal, i) => {
+                                                                                ? item.meal_type.map((meal: any, i: any) => {
                                                                                   return meal.meal_value_header === all
                                                                                     ? meal.quantity +
                                                                                     (meal.feed_uom_name
@@ -2552,7 +2542,7 @@ const DietDetail = () => {
                                                                             {dietDetails.diet_type_name ===
                                                                               'By Weight' && item.meal_type
                                                                               ? item.meal_type
-                                                                                .map((meal, i) => {
+                                                                                .map((meal: any, i: any) => {
                                                                                   if (
                                                                                     all.includes(
                                                                                       meal.meal_value_header
@@ -2582,7 +2572,7 @@ const DietDetail = () => {
                                                                                 })
                                                                                 .filter(Boolean).length === 0
                                                                                 ? ''
-                                                                                : item.meal_type.map((meal, i) => {
+                                                                                : item.meal_type.map((meal: any, i: any) => {
                                                                                   if (
                                                                                     all.includes(
                                                                                       meal.meal_value_header
@@ -2612,7 +2602,7 @@ const DietDetail = () => {
                                                                                 })
                                                                               : item.meal_type
                                                                                 ? item.meal_type
-                                                                                  .map((meal, i) => {
+                                                                                  .map((meal: any, i: any) => {
                                                                                     if (
                                                                                       meal.meal_value_header === all &&
                                                                                       meal.notes &&
@@ -2640,7 +2630,7 @@ const DietDetail = () => {
                                                                                   })
                                                                                   .filter(Boolean).length === 0
                                                                                   ? ''
-                                                                                  : item.meal_type.map((meal, i) => {
+                                                                                  : item.meal_type.map((meal: any, i: any) => {
                                                                                     if (
                                                                                       meal.meal_value_header === all &&
                                                                                       meal.notes &&
@@ -2684,7 +2674,7 @@ const DietDetail = () => {
                                                   {/* ingredient module start */}
                                                   <>
                                                     {itemd?.ingredient?.length > 0 &&
-                                                      itemd?.ingredient?.map((item, index) => {
+                                                      itemd?.ingredient?.map((item: any, index: any) => {
                                                         return (
                                                           <TableRow
                                                             key={`ingredient-${index}`}
@@ -2823,7 +2813,7 @@ const DietDetail = () => {
                                                                           gap: '24px'
                                                                         }}
                                                                       >
-                                                                        {item?.ingredient?.map((item, index) => (
+                                                                        {item?.ingredient?.map((item: any, index: any) => (
                                                                           <Box key={index} sx={{ display: 'flex' }}>
                                                                             <Typography
                                                                               sx={{
@@ -2954,7 +2944,7 @@ const DietDetail = () => {
                                                                       </Box>
                                                                     ) : (
                                                                       <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                                        {item?.days_of_week?.map((item, index) => (
+                                                                        {item?.days_of_week?.map((item: any, index: any) => (
                                                                           <Box
                                                                             key={index}
                                                                             sx={{
@@ -3043,7 +3033,7 @@ const DietDetail = () => {
                                                                     }}
                                                                   >
                                                                     {item.meal_type
-                                                                      ? item.meal_type.map((meal, i) => {
+                                                                      ? item.meal_type.map((meal: any, i: any) => {
                                                                         return meal.meal_value_header === 'Generic'
                                                                           ? meal.quantity +
                                                                           (meal.feed_uom_name
@@ -3053,7 +3043,7 @@ const DietDetail = () => {
                                                                       })
                                                                       : ''}
                                                                     {item.meal_type
-                                                                      ? item.meal_type.map((meal, i) =>
+                                                                      ? item.meal_type.map((meal: any, i: any) =>
                                                                         meal.meal_value_header === 'Generic' &&
                                                                           meal.notes &&
                                                                           meal.notes.trim() !== '' ? (
@@ -3079,7 +3069,7 @@ const DietDetail = () => {
                                                               </Box>
                                                             </TableCell>
                                                             {dietDetails?.child?.length > 0 &&
-                                                              dietDetails.child?.map((all, indexnew) => {
+                                                              dietDetails.child?.map((all: any, indexnew: any) => {
                                                                 if (all !== 'Generic') {
                                                                   return (
                                                                     <TableCell
@@ -3144,7 +3134,7 @@ const DietDetail = () => {
                                                                           >
                                                                             {dietDetails.diet_type_name ===
                                                                               'By Weight' && item.meal_type
-                                                                              ? item.meal_type.map((meal, i) => {
+                                                                              ? item.meal_type.map((meal: any, i: any) => {
                                                                                 if (
                                                                                   all.includes(meal.meal_value_header)
                                                                                 ) {
@@ -3159,7 +3149,7 @@ const DietDetail = () => {
                                                                                 }
                                                                               })
                                                                               : item.meal_type
-                                                                                ? item.meal_type.map((meal, i) => {
+                                                                                ? item.meal_type.map((meal: any, i: any) => {
                                                                                   return meal.meal_value_header === all
                                                                                     ? meal.quantity +
                                                                                     (meal.feed_uom_name
@@ -3171,7 +3161,7 @@ const DietDetail = () => {
                                                                             {dietDetails.diet_type_name ===
                                                                               'By Weight' && item.meal_type
                                                                               ? item.meal_type
-                                                                                .map((meal, i) => {
+                                                                                .map((meal: any, i: any) => {
                                                                                   if (
                                                                                     all.includes(
                                                                                       meal.meal_value_header
@@ -3201,7 +3191,7 @@ const DietDetail = () => {
                                                                                 })
                                                                                 .filter(Boolean).length === 0
                                                                                 ? ''
-                                                                                : item.meal_type.map((meal, i) => {
+                                                                                : item.meal_type.map((meal: any, i: any) => {
                                                                                   if (
                                                                                     all.includes(
                                                                                       meal.meal_value_header
@@ -3231,7 +3221,7 @@ const DietDetail = () => {
                                                                                 })
                                                                               : item.meal_type
                                                                                 ? item.meal_type
-                                                                                  .map((meal, i) => {
+                                                                                  .map((meal: any, i: any) => {
                                                                                     if (
                                                                                       meal.meal_value_header === all &&
                                                                                       meal.notes &&
@@ -3259,7 +3249,7 @@ const DietDetail = () => {
                                                                                   })
                                                                                   .filter(Boolean).length === 0
                                                                                   ? ''
-                                                                                  : item.meal_type.map((meal, i) => {
+                                                                                  : item.meal_type.map((meal: any, i: any) => {
                                                                                     if (
                                                                                       meal.meal_value_header === all &&
                                                                                       meal.notes &&
@@ -3302,7 +3292,7 @@ const DietDetail = () => {
                                                   {/* ingredient module end */}
 
                                                   <>
-                                                    {itemd?.ingredientwithchoice?.map((item, index) => {
+                                                    {itemd?.ingredientwithchoice?.map((item: any, index: any) => {
                                                       return (
                                                         <TableRow
                                                           key={`iwc-${index}`}
@@ -3395,7 +3385,7 @@ const DietDetail = () => {
                                                                       rowGap: '10px'
                                                                     }}
                                                                   >
-                                                                    {item?.ingredientList?.map((item, index) => (
+                                                                    {item?.ingredientList?.map((item: any, index: any) => (
                                                                       <Box
                                                                         key={index}
                                                                         sx={{
@@ -3524,7 +3514,7 @@ const DietDetail = () => {
                                                                     </Box>
                                                                   ) : (
                                                                     <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                                      {item?.days_of_week?.map((item, index) => (
+                                                                      {item?.days_of_week?.map((item: any, index: any) => (
                                                                         <Box
                                                                           key={index}
                                                                           sx={{
@@ -3611,7 +3601,7 @@ const DietDetail = () => {
                                                                   }}
                                                                 >
                                                                   {item.meal_type
-                                                                    ? item.meal_type.map((meal, i) => {
+                                                                    ? item.meal_type.map((meal: any, i: any) => {
                                                                       return meal.meal_value_header === 'Generic'
                                                                         ? meal.quantity +
                                                                         (meal.feed_uom_name
@@ -3621,7 +3611,7 @@ const DietDetail = () => {
                                                                     })
                                                                     : ''}
                                                                   {item.meal_type
-                                                                    ? item.meal_type.map((meal, i) =>
+                                                                    ? item.meal_type.map((meal: any, i: any) =>
                                                                       meal.meal_value_header === 'Generic' &&
                                                                         meal.notes &&
                                                                         meal.notes.trim() !== '' ? (
@@ -3647,7 +3637,7 @@ const DietDetail = () => {
                                                             </Box>
                                                           </TableCell>
                                                           {dietDetails?.child?.length > 0 &&
-                                                            dietDetails.child?.map((all, indexnew) => {
+                                                            dietDetails.child?.map((all: any, indexnew: any) => {
                                                               if (all !== 'Generic') {
                                                                 return (
                                                                   <TableCell
@@ -3709,7 +3699,7 @@ const DietDetail = () => {
                                                                         >
                                                                           {dietDetails.diet_type_name === 'By Weight' &&
                                                                             item.meal_type
-                                                                            ? item.meal_type.map((meal, i) => {
+                                                                            ? item.meal_type.map((meal: any, i: any) => {
                                                                               if (
                                                                                 all.includes(meal.meal_value_header)
                                                                               ) {
@@ -3724,7 +3714,7 @@ const DietDetail = () => {
                                                                               }
                                                                             })
                                                                             : item.meal_type
-                                                                              ? item.meal_type.map((meal, i) => {
+                                                                              ? item.meal_type.map((meal: any, i: any) => {
                                                                                 return meal.meal_value_header === all
                                                                                   ? meal.quantity +
                                                                                   (meal.feed_uom_name
@@ -3736,7 +3726,7 @@ const DietDetail = () => {
                                                                           {dietDetails.diet_type_name === 'By Weight' &&
                                                                             item.meal_type
                                                                             ? item.meal_type
-                                                                              .map((meal, i) => {
+                                                                              .map((meal: any, i: any) => {
                                                                                 if (
                                                                                   all.includes(
                                                                                     meal.meal_value_header
@@ -3766,7 +3756,7 @@ const DietDetail = () => {
                                                                               })
                                                                               .filter(Boolean).length === 0
                                                                               ? ''
-                                                                              : item.meal_type.map((meal, i) => {
+                                                                              : item.meal_type.map((meal: any, i: any) => {
                                                                                 if (
                                                                                   all.includes(
                                                                                     meal.meal_value_header
@@ -3796,7 +3786,7 @@ const DietDetail = () => {
                                                                               })
                                                                             : item.meal_type
                                                                               ? item.meal_type
-                                                                                .map((meal, i) => {
+                                                                                .map((meal: any, i: any) => {
                                                                                   if (
                                                                                     meal.meal_value_header === all &&
                                                                                     meal.notes &&
@@ -3824,7 +3814,7 @@ const DietDetail = () => {
                                                                                 })
                                                                                 .filter(Boolean).length === 0
                                                                                 ? ''
-                                                                                : item.meal_type.map((meal, i) => {
+                                                                                : item.meal_type.map((meal: any, i: any) => {
                                                                                   if (
                                                                                     meal.meal_value_header === all &&
                                                                                     meal.notes &&
@@ -3943,12 +3933,12 @@ const DietDetail = () => {
             </Box>
           )}
 
-          <SpeciesMappedtoDiet {...speciesMappedProps} />
-          <ListOfSpeciesMapped {...listOfSpeciesProps} />
-          <SpeciesAnimalsMapped {...speciesAnimalsProps} />
+          {(() => { const C = SpeciesMappedtoDiet as any; return <C {...speciesMappedProps} />; })()}
+          {(() => { const C = ListOfSpeciesMapped as any; return <C {...listOfSpeciesProps} />; })()}
+          {(() => { const C = SpeciesAnimalsMapped as any; return <C {...speciesAnimalsProps} />; })()}
           <EditAnimalSpeciesMapped {...editAnimalSpeciesProps} />
           <SpeciesMappedtoDietFilter {...speciesFilterProps} />
-          <SelectSiteList {...selectSiteListProps} />
+          {(() => { const C = SelectSiteList as any; return <C {...selectSiteListProps} />; })()}
         </>
       ) : (
         <>

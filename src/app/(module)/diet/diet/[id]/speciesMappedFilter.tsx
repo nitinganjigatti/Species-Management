@@ -81,7 +81,7 @@ const SpeciesMappedtoDietFilter = ({
   loadingTaxonomy,
   loadingSpecies,
   checkForSite
-}) => {
+}: any) => {
   const theme = useTheme()
 
   const [collapsed, setCollapsed] = useState(true)
@@ -114,14 +114,14 @@ const SpeciesMappedtoDietFilter = ({
     }
   }
 
-  const handleSpeciesCheckboxChange = speciesId => {
-    setSelectedSpeciesIds(prev =>
-      prev.includes(speciesId) ? prev.filter(id => id !== speciesId) : [...prev, speciesId]
+  const handleSpeciesCheckboxChange = (speciesId: any) => {
+    setSelectedSpeciesIds((prev: any) =>
+      prev.includes(speciesId) ? prev.filter((id: any) => id !== speciesId) : [...prev, speciesId]
     )
   }
 
-  const handleTaxonomyCheckboxChange = tsnId => {
-    setSelectedTaxonomyIds(prev => (prev.includes(tsnId) ? prev.filter(id => id !== tsnId) : [...prev, tsnId]))
+  const handleTaxonomyCheckboxChange = (tsnId: any) => {
+    setSelectedTaxonomyIds((prev: any) => (prev.includes(tsnId) ? prev.filter((id: any) => id !== tsnId) : [...prev, tsnId]))
   }
 
   useEffect(() => {
@@ -144,11 +144,11 @@ const SpeciesMappedtoDietFilter = ({
     setPageNo(1)
 
     setapplyfilterCheck(true)
-    const allSectionIds = tempSelectedItems?.Section.map(section_id => section_id)
-    const allEnclosureIds = tempSelectedItems?.Enclosure.map(enclosure_id => enclosure_id)
+    const allSectionIds = tempSelectedItems?.Section.map((section_id: any) => section_id)
+    const allEnclosureIds = tempSelectedItems?.Enclosure.map((enclosure_id: any) => enclosure_id)
 
-    const allSpeciesIds = selectedSpeciesIds.map(id => Number(id))
-    const allTaxonomyIds = selectedTaxonomyIds.map(id => Number(id))
+    const allSpeciesIds = selectedSpeciesIds.map((id: any) => Number(id))
+    const allTaxonomyIds = selectedTaxonomyIds.map((id: any) => Number(id))
 
     setSelectedItems({
       ...tempSelectedItems,
@@ -162,13 +162,13 @@ const SpeciesMappedtoDietFilter = ({
   }
 
   const handleCancelAll = async () => {
-    const clearedTempSelectedItems = Object.keys(tempSelectedItems).reduce((acc, key) => {
+    const clearedTempSelectedItems: any = Object.keys(tempSelectedItems).reduce((acc: any, key) => {
       acc[key] = []
 
       return acc
     }, {})
 
-    const clearedSelectedItems = Object.keys(selectedItems).reduce((acc, key) => {
+    const clearedSelectedItems: any = Object.keys(selectedItems).reduce((acc: any, key) => {
       acc[key] = []
 
       return acc
@@ -188,17 +188,17 @@ const SpeciesMappedtoDietFilter = ({
 
   const handleSelectAll = () => {
     if (activeTab === 'Species') {
-      const allSpeciesIds = speciesDataforFilter.map(species => species.species_id.toString())
+      const allSpeciesIds = speciesDataforFilter.map((species: any) => species.species_id.toString())
       const areAllSelected = selectedSpeciesIds.length === speciesDataforFilter.length
 
       setSelectedSpeciesIds(areAllSelected ? [] : allSpeciesIds)
     } else if (activeTab === 'Taxonomy') {
-      const allTaxonomyIds = taxonomyList.map(species => species.tsn.toString())
+      const allTaxonomyIds = taxonomyList.map((species: any) => species.tsn.toString())
       const areAllSelected = selectedTaxonomyIds.length === taxonomyList.length
 
       setSelectedTaxonomyIds(areAllSelected ? [] : allTaxonomyIds)
     } else {
-      const allSelectedIds = items[activeTab].map(item =>
+      const allSelectedIds = items[activeTab].map((item: any) =>
         activeTab === 'Site' ? Number(item.site_id) : Number(item.id)
       )
       setTempSelectedItems({
@@ -208,56 +208,56 @@ const SpeciesMappedtoDietFilter = ({
     }
   }
 
-  const filteredItems = items[activeTab].filter(item => {
+  const filteredItems = items[activeTab].filter((item: any) => {
     const itemName = activeTab === 'Site' ? item.site_name : item.name
 
     return itemName.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
-  const handleRemove = siteId => {
-    setTempSelectedItems(prev => ({
+  const handleRemove = (siteId: any) => {
+    setTempSelectedItems((prev: any) => ({
       ...prev,
-      Site: prev.Site.filter(id => id !== siteId)
+      Site: prev.Site.filter((id: any) => id !== siteId)
     }))
   }
 
-  const handleRemoveSection = sectionId => {
-    setTempSelectedItems(prev => ({
+  const handleRemoveSection = (sectionId: any) => {
+    setTempSelectedItems((prev: any) => ({
       ...prev,
-      Section: prev.Section.filter(id => id !== sectionId)
+      Section: prev.Section.filter((id: any) => id !== sectionId)
     }))
 
-    setSectionsData(prev => prev.filter(section => section.section_id !== sectionId.toString()))
+    setSectionsData((prev: any) => prev.filter((section: any) => section.section_id !== sectionId.toString()))
 
     if (setSelectedSections) {
-      setSelectedSections(prev => prev.filter(id => id !== sectionId))
+      setSelectedSections((prev: any) => prev.filter((id: any) => id !== sectionId))
     }
   }
 
-  const handleRemoveEnclosure = enclosureId => {
-    setTempSelectedItems(prev => ({
+  const handleRemoveEnclosure = (enclosureId: any) => {
+    setTempSelectedItems((prev: any) => ({
       ...prev,
-      Enclosure: prev.Enclosure.filter(id => id !== enclosureId)
+      Enclosure: prev.Enclosure.filter((id: any) => id !== enclosureId)
     }))
 
-    setEnclosuresData(prev => prev.filter(enclosure => enclosure.enclosure_id !== enclosureId.toString()))
+    setEnclosuresData((prev: any) => prev.filter((enclosure: any) => enclosure.enclosure_id !== enclosureId.toString()))
 
     if (setSelectedEnclosures) {
-      setSelectedEnclosures(prev => prev.filter(id => id !== enclosureId))
+      setSelectedEnclosures((prev: any) => prev.filter((id: any) => id !== enclosureId))
     }
   }
 
   useEffect(() => {
     if (activeTab === 'Species' && selectedItems.Species) {
-      setSelectedSpeciesIds(selectedItems.Species.map(id => id.toString()))
+      setSelectedSpeciesIds(selectedItems.Species.map((id: any) => id.toString()))
     } else if (activeTab === 'Taxonomy' && selectedItems.Taxonomy) {
-      setSelectedTaxonomyIds(selectedItems.Taxonomy.map(id => id.toString()))
+      setSelectedTaxonomyIds(selectedItems.Taxonomy.map((id: any) => id.toString()))
     } else if (activeTab === 'Site') {
       setTempSelectedItems({ ...selectedItems })
     }
   }, [activeTab, selectedItems.Species, openFilterDrawer])
 
-  const handleSearch = event => {
+  const handleSearch = (event: any) => {
     const value = event.target.value
 
     if (activeTab === 'Taxonomy') {
@@ -282,7 +282,7 @@ const SpeciesMappedtoDietFilter = ({
     }
   }
 
-  const getTabSelectionCount = tab => {
+  const getTabSelectionCount = (tab: any) => {
     if (tab === 'Taxonomy') {
       return selectedTaxonomyIds?.length ?? tempSelectedItems?.Taxonomy?.length ?? selectedItems?.Taxonomy?.length ?? 0
     }
@@ -342,7 +342,7 @@ const SpeciesMappedtoDietFilter = ({
           <Grid container sx={{ px: 5 }}>
             <Grid size={{ xs: 4, sm: 4, md: 4 }}>
               {tabsforfilter
-                .filter(tab => {
+                .filter((tab: any) => {
                   if (selectionType === 'species' && tab === 'Species') return false
                   if (selectionType === 'animals' && tab === 'Taxonomy') return false
 
@@ -358,7 +358,7 @@ const SpeciesMappedtoDietFilter = ({
 
                   return true
                 })
-                .map(tab => {
+                .map((tab: any) => {
                   const tabCount = getTabSelectionCount(tab)
                   return (
                     <Box
@@ -368,10 +368,9 @@ const SpeciesMappedtoDietFilter = ({
                         padding: 1,
                         cursor: 'pointer',
                         backgroundColor: activeTab === tab ? theme.palette.common.white : 'transparent',
-                        fontWeight: activeTab === tab ? 'bold' : 'normal',
                         color: theme.palette.primary.dark,
                         fontSize: '16px',
-                        fontWeight: 400,
+                        fontWeight: activeTab === tab ? 'bold' : 400,
                         py: 4,
                         pl: 4,
                         borderTopLeftRadius: '6px',
@@ -525,7 +524,7 @@ const SpeciesMappedtoDietFilter = ({
                       />
                       {tempSelectedItems?.Site?.length > 0 && (
                         <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: '4px !important' }}>
-                          {items.Site?.filter(site => tempSelectedItems?.Site?.includes(site.site_id)).map(site => (
+                          {items.Site?.filter((site: any) => tempSelectedItems?.Site?.includes(site.site_id)).map((site: any) => (
                             <Box
                               key={site.site_id}
                               sx={{
@@ -611,12 +610,12 @@ const SpeciesMappedtoDietFilter = ({
                           }
                         />
                         {tempSelectedItems?.Section?.length > 0 &&
-                          sectionsData?.filter(section => tempSelectedItems?.Section?.includes(section.section_id))
+                          sectionsData?.filter((section: any) => tempSelectedItems?.Section?.includes(section.section_id))
                             ?.length > 0 && (
                             <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: '4px !important' }}>
                               {sectionsData
-                                .filter(section => tempSelectedItems?.Section?.includes(section.section_id))
-                                .map(section => (
+                                .filter((section: any) => tempSelectedItems?.Section?.includes(section.section_id))
+                                .map((section: any) => (
                                   <Box
                                     key={section.section_id}
                                     sx={{
@@ -690,13 +689,13 @@ const SpeciesMappedtoDietFilter = ({
                           }
                         />
                         {tempSelectedItems?.Enclosure?.length > 0 &&
-                          enclosuresData?.filter(enclosure =>
+                          enclosuresData?.filter((enclosure: any) =>
                             tempSelectedItems?.Enclosure?.includes(enclosure.enclosure_id)
                           )?.length > 0 && (
                             <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: '4px !important' }}>
                               {enclosuresData
-                                .filter(enclosure => tempSelectedItems?.Enclosure?.includes(enclosure.enclosure_id))
-                                .map(enclosure => (
+                                .filter((enclosure: any) => tempSelectedItems?.Enclosure?.includes(enclosure.enclosure_id))
+                                .map((enclosure: any) => (
                                   <Box
                                     key={enclosure.enclosure_id}
                                     sx={{
@@ -742,7 +741,7 @@ const SpeciesMappedtoDietFilter = ({
                       <Box sx={{ mb: 3, width: '100%' }}>
                         <Box sx={{ mt: 1, height: '100vh', width: '100%' }}>
                           {speciesDataforFilter?.length > 0 ? (
-                            speciesDataforFilter.map((item, index) => {
+                            speciesDataforFilter.map((item: any, index: any) => {
                               const itemName = item.scientific_name
                               const itemId = item.species_id
                               const isLast = index === speciesDataforFilter?.length - 1
@@ -863,7 +862,7 @@ const SpeciesMappedtoDietFilter = ({
                       <Box sx={{ mb: 3, width: '100%' }}>
                         <Box sx={{ height: '100vh', mt: 1, width: '100%' }}>
                           {filteredTaxonomyList?.length > 0 ? (
-                            filteredTaxonomyList.map((item, index) => {
+                            filteredTaxonomyList.map((item: any, index: any) => {
                               const itemName = item.scientific_name
                               const itemId = item.tsn
                               const isLast = index === filteredTaxonomyList?.length - 1
@@ -999,7 +998,7 @@ const SpeciesMappedtoDietFilter = ({
             onClick={handleApplyFilter}
             disabled={
               !(
-                Object.values(tempSelectedItems).some(array => array.length > 0) ||
+                Object.values(tempSelectedItems).some((array: any) => array.length > 0) ||
                 selectedSpeciesIds?.length > 0 ||
                 selectedTaxonomyIds?.length > 0
               )
@@ -1009,7 +1008,8 @@ const SpeciesMappedtoDietFilter = ({
           </LoadingButton>
         </Box>
       </Drawer>
-      <SelectSiteList
+      {(() => { const SSL = SelectSiteList as any; return (
+      <SSL
         setSiteListDrawer={setSiteListDrawer}
         openSiteListDrawer={openSiteListDrawer}
         tabsforfilter={tabsforfilter}
@@ -1024,7 +1024,9 @@ const SpeciesMappedtoDietFilter = ({
         tempSelectedItems={tempSelectedItems}
         setTempSelectedItems={setTempSelectedItems}
       />
-      <SelectSectionList
+      ); })()}
+      {(() => { const SSecL = SelectSectionList as any; return (
+      <SSecL
         open={openSectionListDrawer}
         setSectionsData={setSectionsData}
         sectionsData={sectionsData}
@@ -1036,15 +1038,17 @@ const SpeciesMappedtoDietFilter = ({
         selectedSections={selectedSections}
         tempSelectedItems={tempSelectedItems}
         openFilterDrawer={openFilterDrawer}
-        onSelectSections={selectedSections => {
-          setTempSelectedItems(prev => ({
+        onSelectSections={(selectedSections: any[]) => {
+          setTempSelectedItems((prev: any) => ({
             ...prev,
             Section: selectedSections
           }))
           setOpenSectionListDrawer(false)
         }}
       />
-      <SelectEnclosureList
+      ); })()}
+      {(() => { const SEncL = SelectEnclosureList as any; return (
+      <SEncL
         open={openEnclosureListDrawer}
         enclosuresData={enclosuresData}
         setEnclosuresData={setEnclosuresData}
@@ -1056,14 +1060,15 @@ const SpeciesMappedtoDietFilter = ({
         selectedEnclosures={selectedEnclosures}
         tempSelectedItems={tempSelectedItems}
         openFilterDrawer={openFilterDrawer}
-        onSelectEnclosures={selectedEnclosures => {
-          setTempSelectedItems(prev => ({
+        onSelectEnclosures={(selectedEnclosures: any[]) => {
+          setTempSelectedItems((prev: any) => ({
             ...prev,
             Enclosure: selectedEnclosures
           }))
           setOpenEnclosureListDrawer(false)
         }}
       />
+      ); })()}
     </>
   )
 }
