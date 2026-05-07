@@ -20,12 +20,14 @@ import ClearIcon from '@mui/icons-material/Clear'
 import ClinicalAssessmentListShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentListShimmer'
 import { AuthContext } from 'src/context/AuthContext'
 import { useTranslation } from 'react-i18next'
+import { StatusKey } from '../inpatient/Symptoms'
+import { GetSymptomClinicalTabList, Id, Symptom, SymptomsListForAdding } from 'src/types/hospital/models'
 
 interface SymptomsListProps {
-  symptoms?: any[]
-  temporarilySelected?: any
-  selectedSymptoms?: any[]
-  onSelect?: (s: any) => void
+  symptoms?: SymptomsListForAdding[]
+  temporarilySelected?: SymptomsListForAdding | null
+  selectedSymptoms?: Id[]
+  onSelect?: (s: SymptomsListForAdding) => void
   searchQuery?: string
   handleSearchChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
   handleClearSearch?: () => void
@@ -33,13 +35,13 @@ interface SymptomsListProps {
   loading?: boolean
   searching?: boolean
   isTabsLoading?: boolean
-  tabOptions?: any[]
-  currentTab?: any
-  handleTabChange?: (category: any, id: any) => void
+  tabOptions?: GetSymptomClinicalTabList[]
+  currentTab?: StatusKey | string
+  handleTabChange?: (category: string, id: Id) => void
   symptomsCount?: number
   hasMore?: boolean
   handleAddNewClick?: () => void
-  alreadySelectedIds?: any[]
+  alreadySelectedIds?: Id[]
 }
 
 export default function SymptomsList({
@@ -142,7 +144,7 @@ export default function SymptomsList({
                     sx={{ flexShrink: 0, borderRadius: '8px' }}
                   />
                 ))
-              : tabOptions?.map((tab: any) => (
+              : tabOptions?.map((tab: GetSymptomClinicalTabList) => (
                   <Box
                     key={tab.id}
                     onClick={() => handleTabChange && handleTabChange(tab?.category, tab?.id)}
@@ -210,16 +212,16 @@ export default function SymptomsList({
               justifyContent: 'center'
             }}
           >
-            <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
+            <Box component='img' src='/images/no_data_animal_2.png' alt='No Symptoms' sx={{ maxWidth: '250px' }} />
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
               {t('hospital_module.no_symptoms_to_show')}
             </Typography>
           </Box>
         ) : (
-          symptoms.map((symptom: any) => {
-            const isSelected = selectedSymptoms.includes(symptom?.id)
+          symptoms.map((symptom: SymptomsListForAdding) => {
+            const isSelected = selectedSymptoms.includes(symptom.id)
             const isTemporarilySelected = temporarilySelected?.id === symptom?.id
-            const isAlreadyPrescribed = alreadySelectedIds?.includes(symptom?.id)
+            const isAlreadyPrescribed = alreadySelectedIds?.includes(symptom.id)
 
             return (
               <Box

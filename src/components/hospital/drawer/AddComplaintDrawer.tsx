@@ -14,6 +14,9 @@ import { getCategoriesList, addMedicalComplaintOrDiagnosis } from 'src/lib/api/m
 import AddCategoryDrawer from './AddCategoryDrawer'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import { AddSymptomsPayload, AddSymptomsResponse } from 'src/types/hospital/api/Inpatient/symptoms'
+import { Category } from 'src/types/hospital/models'
+import { CategoryResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 interface AddComplaintDrawerProps {
   open: boolean
@@ -59,7 +62,7 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
     mode: 'onBlur'
   })
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (): Promise<Category[]>  => {
     try {
       setCategoriesLoading(true)
 
@@ -67,14 +70,19 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
         type: 'complaints',
         q: ''
       }
-      const response: any = await getCategoriesList({ params })
+      const response: CategoryResponse = await getCategoriesList({ params })
       if (response?.success) {
-        setCategoriesList(response?.data || [])
+        const data = response?.data || []
+        setCategoriesList(data)
+        return data
       }
+      return []
     } catch (error) {
       console.error('Error fetching categories:', error)
+      return [] 
     } finally {
       setCategoriesLoading(false)
+      
     }
   }
 
@@ -88,12 +96,12 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
     try {
       setLoading(true)
 
-      const payload = {
+      const payload: AddSymptomsPayload = {
         label: params?.label_name,
         category_id: params?.category?.med_cat_id
       }
 
-      const response: any = await addMedicalComplaintOrDiagnosis('complaints', payload)
+      const response: AddSymptomsResponse = await addMedicalComplaintOrDiagnosis('complaints', payload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
@@ -116,11 +124,11 @@ const AddComplaintDrawer = (props: AddComplaintDrawerProps) => {
     }
   }
 
-  const handleCategoryAdded = async (newCategory: any) => {
-    const updatedCategories: any = await fetchCategories()
+  const handleCategoryAdded = async (newCategory: Category) => {
+    const updatedCategories: Category[] = await fetchCategories()
 
     // Find and auto-select the newly added category
-    const addedCategory = updatedCategories?.find((cat: any) => cat.id == newCategory.id)
+    const addedCategory = updatedCategories?.find((cat) => cat.id == newCategory.id)
 
     if (addedCategory) {
       setValue('category', addedCategory)

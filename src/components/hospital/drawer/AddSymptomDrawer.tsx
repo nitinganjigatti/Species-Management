@@ -22,23 +22,25 @@ import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import Utility from 'src/utility'
 import type { BaseDrawerProps } from 'src/types/hospital'
+import type { DurationUnit, Severity, SymptomsListForAdding } from 'src/types/hospital/models'
+import type { SymptomFormData } from '../inpatient/AddSymptoms'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 interface AddSymptomDrawerProps extends BaseDrawerProps {
-  selectedSymptom?: any
-  onSave: (payload: any) => void
-  severity: string
-  setSeverity: (v: string) => void
-  durationValue: any
-  setDurationValue: (v: any) => void
-  durationUnit: string
-  setDurationUnit: (v: string) => void
+  selectedSymptom?: SymptomsListForAdding | null
+  onSave: (payload: SymptomFormData) => void
+  severity: Severity
+  setSeverity: (v: Severity) => void
+  durationValue: number | string
+  setDurationValue: (v: number | string) => void
+  durationUnit: DurationUnit
+  setDurationUnit: (v: DurationUnit) => void
   notes: string
   setNotes: (v: string) => void
-  admittedDate?: any
-  dischargedDate?: any
+  admittedDate?: string | null
+  dischargedDate?: string | null
   isDischarged?: boolean
 }
 
@@ -168,7 +170,7 @@ const AddSymptomDrawer = ({
 
                 <Select
                   value={severity}
-                  onChange={e => setSeverity(e.target.value as string)}
+                  onChange={e => setSeverity(e.target.value as Severity)}
                   sx={{
                     backgroundColor: getSymptomsSeverityColor(severity).bgColor,
 
@@ -225,7 +227,7 @@ const AddSymptomDrawer = ({
                         <InputAdornment position='end' sx={{ p: 0, m: 0 }}>
                           <Select
                             value={durationUnit}
-                            onChange={e => setDurationUnit(e.target.value as string)}
+                            onChange={e => setDurationUnit(e.target.value as DurationUnit)}
                             variant='standard'
                             disableUnderline
                             sx={{

@@ -13,6 +13,8 @@ import SymptomsCard from 'src/views/pages/hospital/inpatient/SymptomsCard'
 import ClinicalAssessmentShimmer from 'src/views/pages/hospital/inpatient/shimmer/ClinicalAssessmentShimmer'
 import { useSelector } from 'react-redux'
 import NoMedicalData from 'src/views/utility/NoMedicalData'
+import { GetSymptomRecordResponse, GetSymptomsCardParams, GetSymptomsCardResponse } from 'src/types/hospital/api/Inpatient/symptoms'
+import { Id, SymptomList, SymptomStatus } from 'src/types/hospital/models'
 
 const STORAGE_KEY = 'medical_record_data'
 
@@ -23,10 +25,16 @@ interface SymptomsProps {
   category?: string
 }
 
+export type StatusKey = 'Active' | 'Resolved' | 'All' 
+export type Params = {
+  id: string
+  medical_record_id: string
+}
+
 const Symptoms = ({ selectedTab, patientData, overviewData, category }: SymptomsProps = {}) => {
   const { t } = useTranslation()
   const router: any = useRouter()
-  const params: any = useParams()
+  const params = useParams() as Params
   const searchParams: any = useSearchParams()
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
   const id = params?.id
@@ -34,7 +42,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
 
   const isDischared = overviewData?.status === 'discharge'
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
-  const [currentTab, setCurrentTab] = useState<string>('Active')
+  const [currentTab, setCurrentTab] = useState<StatusKey>('Active')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [currentRecordOnly, setCurrentRecordOnly] = useState<boolean>(isCurrentMedicalRecordOnly === 'true')
   const [records, setRecords] = useState<any[]>([])
@@ -51,9 +59,9 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
   const theme: any = useTheme()
   const observerRef = useRef<IntersectionObserver | null>(null)
 
-  const tabs = ['Active', 'Resolved', 'All']
+  const tabs: StatusKey[] = ['Active', 'Resolved', 'All']
 
-  const tabTypeMap: any = {
+  const tabTypeMap: Record<StatusKey, SymptomStatus> = {
     Active: 'active',
     Resolved: 'closed',
     All: 'all'
@@ -69,7 +77,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
         if (newPage === 1) setLoading(true)
         else setIsFetchingMore(true)
 
-        const params: any = {
+        const params: GetSymptomsCardParams = {
           type: tabTypeMap[currentTab],
           page_no: newPage,
           limit: 20,
@@ -82,13 +90,13 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
           params.medical_record_id = medicalRecordId
         }
 
-        const response: any = await getSymptomsList(animalId, params)
+        const response: GetSymptomsCardResponse = await getSymptomsList(animalId, params)
 
         if (response.success === true) {
           if (newPage > 1 && response?.data?.result?.length === 0) {
             return
           }
-          setRecords((prevRecords: any[]) =>
+          setRecords((prevRecords: GetSymptomsCardResponse[]) =>
             append ? [...prevRecords, ...response?.data?.result] : response?.data?.result || []
           )
           setTotalRecordsCount(response?.data?.all || 0)
@@ -112,7 +120,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
     [currentTab, patientData, animalId, currentRecordOnly]
   )
 
-  const handleTabChange = (newValue: string) => {
+  const handleTabChange = (newValue: StatusKey) => {
     setCurrentTab(newValue)
     setPage(1)
     setRecords([])
@@ -221,7 +229,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
                 }}
               >
                 <Box sx={{ display: 'inline-flex', gap: 3, pr: 1, alignItems: 'center' }}>
-                  {tabs.map((tab: string) => {
+                  {tabs.map((tab) => {
                     const countKey = tabTypeMap[tab]
                     const tabCount = recordTypeCount?.[countKey] || 0
 
@@ -329,7 +337,7 @@ const Symptoms = ({ selectedTab, patientData, overviewData, category }: Symptoms
             />
           </Box>
         ) : (
-          records.map((record: any, index: number) => (
+          records.map((record: SymptomList, index: number) => (
             <SymptomsCard
               key={index}
               record={record}

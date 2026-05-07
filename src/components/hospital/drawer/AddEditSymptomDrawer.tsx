@@ -16,7 +16,7 @@ import {
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
-import ActivityList from 'src/views/pages/hospital/symptoms/ActivityList'
+import ActivityList, { ActivityFormData } from 'src/views/pages/hospital/symptoms/ActivityList'
 import SideSheetActionButtons from '../SideSheetActionButtons'
 import { updateNotes } from 'src/lib/api/hospital/clinicalAssessment'
 import { deleteNoteSymptoms } from 'src/lib/api/hospital/symptoms'
@@ -26,41 +26,46 @@ import EditNotes from '../inpatient/EditNotes'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
 import MUIDateTimePicker from 'src/views/forms/form-fields/MUIDateTimePicker'
-import dayjs from 'dayjs'
+import dayjs, { Dayjs } from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
-import type { BaseDrawerProps } from 'src/types/hospital'
+import type { BaseDrawerProps, Id } from 'src/types/hospital'
+import { ComplaintNotes, Severity, SymptomList, SymptomRecords, SymptomStatus } from 'src/types/hospital/models'
+import { DeleteSymptomNotesResponse, GetSymptomRecordResponse, GetSymptomsCardResponse } from 'src/types/hospital/api/Inpatient/symptoms'
+import { DurationUnit } from 'src/types/hospital/models'
+import { UpdateSymptomsCardFormData } from 'src/views/pages/hospital/inpatient/SymptomsCard'
+import { UpdateNotesPayload, UpdateNotesResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
 interface AddEditSymptomDrawerProps extends BaseDrawerProps {
-  selectedSymptom?: any
-  onSave: (payload: any) => void
-  severity: string
-  setSeverity: (v: string) => void
+  selectedSymptom?: SymptomList | null
+  onSave: (payload: UpdateSymptomsCardFormData) => void
+  severity: Severity
+  setSeverity: (v: Severity) => void
   durationValue: any
-  setDurationValue: (v: any) => void
-  durationUnit: string
-  setDurationUnit: (v: string) => void
+  setDurationValue: (v: string) => void
+  durationUnit: DurationUnit
+  setDurationUnit: (v: DurationUnit) => void
   notes: string
   setNotes: (v: string) => void
-  setNoteId: (v: any) => void
-  noteId: any
-  status: string
-  setStatus: (v: string) => void
-  activityListData: any
+  setNoteId: (v: Id) => void
+  noteId: Id
+  status: SymptomStatus
+  setStatus: (v: SymptomStatus) => void
+  activityListData: SymptomRecords | null
   activityLoader?: boolean
-  temporarilySelected?: any
+  temporarilySelected: SymptomList | null
   setSymptomNoteModal: (v: boolean) => void
   symptomNoteModal: boolean
-  fetchNotesForSymptom: (s: any) => Promise<any>
+  fetchNotesForSymptom: (s: SymptomList | null) => Promise<GetSymptomRecordResponse>
   setIsUpdating: (v: boolean) => void
   isUpdating: boolean
   setIsDeleting: (v: boolean) => void
   isDeleting: boolean
   isSubmitLoading?: boolean
-  setActivityListData: (v: any) => void
+  setActivityListData: (v: SymptomRecords | null) => void
   isChanged?: boolean
   isResolved?: boolean
   admittedDate?: any
@@ -158,11 +163,11 @@ const AddEditSymptomDrawer = ({
   }
 
   const processedActivities =
-    activityListData?.complaint_notes?.map((activity: any, index: number) => ({
+    activityListData?.complaint_notes?.map((activity: ComplaintNotes, index: number) => ({
       ...activity,
       isSystemGenerated: activity?.is_system_generated === 1,
-      oldSeverity: activity?.notes_dump?.old_data?.severity || '',
-      newSeverity: activity?.notes_dump?.new_data?.severity || '',
+      oldSeverity: activity?.notes_dump?.old_data?.severity || '' as Severity,
+      newSeverity: activity?.notes_dump?.new_data?.severity || '' as Severity,
       createdBy: activity?.created_by_user_name || '',
       formattedTime: activityListData?.complaint_notes?.length === index + 1 ? `${Utility.convertUtcToLocalReadableDate(activityListData?.recorded_date_time)} • ${Utility.convertUTCToLocaltime(
         activityListData?.recorded_date_time
@@ -177,10 +182,10 @@ const AddEditSymptomDrawer = ({
 
     []
 
-  const handleEditActivity = (value: any) => {
+  const handleEditActivity = (value: ActivityFormData) => {
     setSymptomNoteModal(true)
     setNotes(value?.note)
-    setNoteId(value?.note_id)
+    setNoteId(value?.note_id ?? '')
   }
 
   const handleCloseModal = () => {
@@ -197,21 +202,21 @@ const AddEditSymptomDrawer = ({
 
     try {
       const payload = {
-        main_id: temporarilySelected?.complaint_id,
-        med_id: temporarilySelected?.medical_record_id,
+        main_id: temporarilySelected?.complaint_id ?? '',
+        med_id: temporarilySelected?.medical_record_id ?? '',
         type: 'COMPLAINT',
         note: notes || '',
         note_id: noteId || '',
         hospital_case_id: id || ''
       }
-      const response: any = await updateNotes(payload)
+      const response: UpdateNotesResponse = await updateNotes(payload as UpdateNotesPayload)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.notes_updated_successfully') })
         setNotes('')
         setSymptomNoteModal(false)
 
-        const responseNotes: any = await fetchNotesForSymptom(temporarilySelected)
+        const responseNotes: GetSymptomRecordResponse = await fetchNotesForSymptom(temporarilySelected)
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
@@ -234,13 +239,13 @@ const AddEditSymptomDrawer = ({
     setIsDeleting(true)
 
     try {
-      const response: any = await deleteNoteSymptoms(noteId)
+      const response: DeleteSymptomNotesResponse = await deleteNoteSymptoms(noteId)
 
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message || t('hospital_module.notes_deleted_successfully') })
         setNotes('')
         setSymptomNoteModal(false)
-        const responseNotes: any = await fetchNotesForSymptom(temporarilySelected)
+        const responseNotes: GetSymptomRecordResponse = await fetchNotesForSymptom(temporarilySelected)
         if (responseNotes?.success === true) {
           setActivityListData(responseNotes?.data || [])
         }
@@ -327,10 +332,10 @@ const AddEditSymptomDrawer = ({
               sx={{ color: theme.palette.customColors.OnSurfaceVariant, mb: 3, fontWeight: 400, fontSize: '14px' }}
             >
               {selectedSymptom?.created_by_user_name || selectedSymptom?.additional_info?.resolved_user_name}{' '}
-              <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
+              <Box component='span' sx={{ mx: 2, color: theme.palette.customColors.neutralSecondary }}>•</Box>
               {/* {Utility?.formatDisplayDate(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)} */}
               {Utility?.formatDisplayDate(selectedSymptom?.created_at)}
-              <span style={{ margin: '0 8px', color: theme.palette.customColors.neutralSecondary }}>•</span>
+              <Box component='span' sx={{ mx: 2, color: theme.palette.customColors.neutralSecondary }}>•</Box>
               {Utility.convertUTCToLocaltime(selectedSymptom?.created_at)}
               {/* {Utility.convertUTCToLocaltime(selectedSymptom?.latest_note?.modified_at || selectedSymptom?.created_at)} */}
             </Typography>
@@ -364,7 +369,7 @@ const AddEditSymptomDrawer = ({
             </Typography>
             <Select
               value={status}
-              onChange={e => setStatus(e.target.value as string)}
+              onChange={e => setStatus(e.target.value as SymptomStatus)}
               fullWidth
               sx={{
                 background: theme.palette.common.white,
@@ -373,7 +378,7 @@ const AddEditSymptomDrawer = ({
                 borderRadius: '4px',
                 '& .MuiSelect-select': { py: 4.0 }
               }}
-              renderValue={(selected: any) => (
+              renderValue={(selected: SymptomStatus) => (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   {renderStatusIcon(selected)}
                   <Typography>{selected === 'active' ? t('hospital_module.active') : t('hospital_module.resolved')}</Typography>
@@ -409,7 +414,7 @@ const AddEditSymptomDrawer = ({
 
                 <Select
                   value={severity}
-                  onChange={e => setSeverity(e.target.value as string)}
+                  onChange={e => setSeverity(e.target.value as Severity)}
                   disabled={status === 'closed'}
                   sx={{
                     backgroundColor: getSymptomsSeverityColor(severity).bgColor,
@@ -466,7 +471,7 @@ const AddEditSymptomDrawer = ({
                         <InputAdornment position='end' sx={{ p: 0, m: 0 }}>
                           <Select
                             value={durationUnit}
-                            onChange={e => setDurationUnit(e.target.value as string)}
+                            onChange={e => setDurationUnit(e.target.value as DurationUnit)}
                             variant='standard'
                             disabled={status === 'closed'}
                             disableUnderline

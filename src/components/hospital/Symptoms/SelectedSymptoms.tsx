@@ -6,12 +6,13 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
 import { useTranslation } from 'react-i18next'
+import { Id, Severity, SymptomsListForAdding } from 'src/types/hospital/models'
 
 interface SelectedSymptomsProps {
-  selected?: any[]
-  onRemove?: (id: any) => void
-  severity?: any
-  alreadySelectedIds?: any[]
+  selected?: SymptomsListForAdding[]
+  onRemove?: (id: Id) => void
+  severity?: Severity
+  alreadySelectedIds?: Id[]
   footer?: any
 }
 
@@ -63,7 +64,7 @@ export default function SelectedSymptoms({
             justifyContent: 'center'
           }}
         >
-          <img src='/images/no_data_animal_2.png' alt='No Symptoms' style={{ maxWidth: '250px' }} />
+          <Box component='img' src='/images/no_data_animal_2.png' alt='No Symptoms' sx={{ maxWidth: '250px' }} />
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400, fontSize: '16px' }}>
             {t('hospital_module.selected_symptoms_appear_here')}
           </Typography>
@@ -81,7 +82,7 @@ export default function SelectedSymptoms({
             overflow: 'auto'
           }}
         >
-          {selected.map((symptom: any, idx: number) => {
+          {selected.map((symptom: SymptomsListForAdding, idx: number) => {
             const isAlreadyPrescribed = alreadySelectedIds.includes(symptom?.id)
 
             return (

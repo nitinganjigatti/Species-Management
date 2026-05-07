@@ -16,15 +16,19 @@ import Toaster from 'src/components/Toaster'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateState } from 'src/store/slices/hospital/hospitalSlice'
 import { checkAnimalStatusByType, getDiagnosisList } from 'src/lib/api/hospital/clinicalAssessment'
+import type { Id, CheckAnimalStatusByType, ComplaintsAdditionalInfo, Severity, DurationUnit, GetSymptomClinicalTabList, TemplateItems, SymptomsListForAdding } from 'src/types/hospital/models'
+import type { CheckAnimalStatusByTypePayload, CheckAnimalStatusByTypeResponse, GetSymptomClinicalTabPayload, GetSymptomClinicalTabResponse } from 'src/types/hospital/api/Inpatient/symptomClinical'
+import type { AddSymptomsCardResponse, GetSymptomsListForAddingParams, GetSymptomsListForAddingResponse } from 'src/types/hospital/api/Inpatient/symptoms'
 import AnimalInfoCard from 'src/views/pages/hospital/inpatient/AnimalInfoCard'
 import BottomActionBar from 'src/views/utility/BottomActionBar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import SelectionTemplatePanel, { SaveMedicalTemplateSection } from './SelectionTemplatePanel'
+import { StatusKey } from './Symptoms'
 
 const STORAGE_KEY = 'medical_record_data'
 
 const useDebounce = (callback: (...args: any[]) => void, delay: number) => {
-  const timeoutRef = useRef<any>(null)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     return () => {
@@ -48,6 +52,30 @@ const useDebounce = (callback: (...args: any[]) => void, delay: number) => {
   )
 }
 
+export interface Symptom {
+  id: Id
+  name: string
+  severity?: Severity
+  notes?: string
+  durationValue?: number
+  durationUnit?: DurationUnit
+  recordedDateTime?: string
+}
+
+export interface AddSymptomFormData {
+  id: Id
+  name: string
+  additional_info: ComplaintsAdditionalInfo
+}
+
+export interface SymptomFormData {
+  severity?: Severity
+  durationValue?: number | string
+  durationUnit?: DurationUnit
+  notes?: string
+  recordedDateTime?: string
+}
+
 function AddSymptoms() {
   const { t } = useTranslation()
   const theme: any = useTheme()
@@ -57,23 +85,23 @@ function AddSymptoms() {
   const hospitalData: any = useSelector((state: any) => state.hospital.data)
   const id = routerParams?.id || router.query?.id
   const medicalRecordData: any = hospitalData[STORAGE_KEY] || {}
-  const [selectedSymptoms, setSelectedSymptoms] = useState<any[]>([])
-  const [temporarilySelected, setTemporarilySelected] = useState<any>(null)
+  const [selectedSymptoms, setSelectedSymptoms] = useState<SymptomsListForAdding[]>([])
+  const [temporarilySelected, setTemporarilySelected] = useState<Symptom | null>(null)
   const [symptomDrawerOpen, setSymptomDrawerOpen] = useState<boolean>(false)
   const [complaintDrawerOpen, setComplaintDrawerOpen] = useState<boolean>(false)
-  const [severity, setSeverity] = useState<string>('Mild')
+  const [severity, setSeverity] = useState<Severity>('Mild')
   const [durationValue, setDurationValue] = useState<number>(0)
   const [durationUnit, setDurationUnit] = useState<string>('Days')
   const [notes, setNotes] = useState<string>('')
   const [status, setStatus] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(false)
-  const [symptomsList, setSymptomsList] = useState<any[]>([])
+  const [symptomsList, setSymptomsList] = useState<SymptomsListForAdding[]>([])
   const [symptomsCount, setSymptomCount] = useState<number>(0)
   const [page, setPage] = useState<number>(1)
   const [hasMore, setHasMore] = useState<boolean>(true)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [pickerSearchQuery, setPickerSearchQuery] = useState<string>('')
-  const [pickerList, setPickerList] = useState<any[]>([])
+  const [pickerList, setPickerList] = useState<SymptomsListForAdding[]>([])
   const [pickerPage, setPickerPage] = useState<number>(1)
   const [pickerHasMore, setPickerHasMore] = useState<boolean>(true)
   const [pickerLoading, setPickerLoading] = useState<boolean>(false)
@@ -84,12 +112,12 @@ function AddSymptoms() {
   const [patientData, setPatientData] = useState<any>(null)
   const [patientLoading, setPatientLoading] = useState<boolean>(false)
   const [isTabsLoading, setIsTabsLoading] = useState<boolean>(false)
-  const [tabOptions, setTabOptions] = useState<any[]>([])
-  const [currentTab, setCurrentTab] = useState<string>('')
-  const [currentTabId, setCurrentTabId] = useState<string>('')
+  const [tabOptions, setTabOptions] = useState<GetSymptomClinicalTabList[]>([])
+  const [currentTab, setCurrentTab] = useState<StatusKey | string>('Active')
+  const [currentTabId, setCurrentTabId] = useState<Id>('')
   const [isDuplicatesErrorModelOpen, setDuplicatesErrorModelOpen] = useState<boolean>(false)
-  const [duplicateSymptoms, setDuplicateSymptoms] = useState<any[]>([])
-  const [alreadySelectedIds, setAlreadySelectedIds] = useState<any[]>([])
+  const [duplicateSymptoms, setDuplicateSymptoms] = useState<CheckAnimalStatusByType[]>([])
+  const [alreadySelectedIds, setAlreadySelectedIds] = useState<Id[]>([])
   const [templateRefreshToken, setTemplateRefreshToken] = useState<number>(0)
   const medicalRecordId = medicalRecordData?.medical_record_id
 
@@ -100,7 +128,7 @@ function AddSymptoms() {
   const isFetchingRef = useRef<boolean>(false)
   const isPickerFetchingRef = useRef<boolean>(false)
 
-  const handleSymptomSelect = (symptom: any) => {
+  const handleSymptomSelect = (symptom: SymptomsListForAdding) => {
     setTemporarilySelected({ id: symptom.id, name: symptom.name })
     setSymptomDrawerOpen(true)
     setDurationValue(0)
@@ -109,8 +137,9 @@ function AddSymptoms() {
     setSeverity('Mild')
   }
 
-  const addSymptomDetails = (details: any) => {
-    setSelectedSymptoms((prev: any[]) => [...prev, { id: temporarilySelected.id, name: temporarilySelected.name, ...details }])
+  const addSymptomDetails = (details: SymptomsListForAdding[]) => {
+    if (!temporarilySelected) return  
+    setSelectedSymptoms((prev: SymptomsListForAdding[]) => [...prev, { id: temporarilySelected.id, name: temporarilySelected.name, ...details }])
     setTemporarilySelected(null)
     setSymptomDrawerOpen(false)
     setDurationValue(0)
@@ -124,16 +153,16 @@ function AddSymptoms() {
     setSymptomDrawerOpen(false)
   }
 
-  const removeSymptom = (symptomId: any) => {
-    setSelectedSymptoms((prev: any[]) => prev.filter((s: any) => s.id !== symptomId))
+  const removeSymptom = (symptomId: Id) => {
+    setSelectedSymptoms((prev) => prev.filter((s: any) => s.id !== symptomId))
   }
 
   const availableSymptoms = symptomsList.filter(
-    (symptom: any) => !selectedSymptoms.some((s: any) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+    (symptom) => !selectedSymptoms.some((s: SymptomsListForAdding) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
   )
 
   const fetchSymptoms = useCallback(
-    async (query: string = '', pageNo: number = 1, append: boolean = false, categoryId: string = '') => {
+    async (query: string = '', pageNo: number = 1, append: boolean = false, categoryId: Id = '') => {
       if (isFetchingRef.current) return
 
       try {
@@ -145,7 +174,7 @@ function AddSymptoms() {
           setLoading(true)
         }
 
-        const params = {
+        const params: GetSymptomsListForAddingParams = {
           page_no: pageNo,
           type: 'complaints',
           q: query,
@@ -155,7 +184,7 @@ function AddSymptoms() {
           limit: 20
         }
 
-        const response: any = await getSymptomsListForAdding(params)
+        const response: GetSymptomsListForAddingResponse = await getSymptomsListForAdding(params)
 
         if (response.success) {
           const newResults = response?.data?.result || []
@@ -167,7 +196,7 @@ function AddSymptoms() {
           const currentLoadedCount = (loadedItemsRef.current[key] || 0) + newResults.length
           loadedItemsRef.current[key] = currentLoadedCount
 
-          setSymptomsList((prev: any[]) => {
+          setSymptomsList((prev: SymptomsListForAdding[]) => {
             if (!append) return newResults
 
             const combined = [...prev, ...newResults]
@@ -210,7 +239,7 @@ function AddSymptoms() {
   )
 
   const fetchPickerSymptoms = useCallback(
-    async (query: string = '', pageNo: number = 1, append: boolean = false, categoryId: string = '') => {
+    async (query: string = '', pageNo: number = 1, append: boolean = false, categoryId: Id = '') => {
       if (isPickerFetchingRef.current) return
 
       try {
@@ -222,7 +251,7 @@ function AddSymptoms() {
           setPickerLoading(true)
         }
 
-        const params = {
+        const params: GetSymptomsListForAddingParams = {
           page_no: pageNo,
           type: 'complaints',
           q: query,
@@ -232,7 +261,7 @@ function AddSymptoms() {
           limit: 20
         }
 
-        const response: any = await getSymptomsListForAdding(params)
+        const response: GetSymptomsListForAddingResponse = await getSymptomsListForAdding(params)
 
         if (response.success) {
           const newResults = response?.data?.result || []
@@ -274,28 +303,29 @@ function AddSymptoms() {
     try {
       setIsTabsLoading(true)
 
-      const params = {
+      const params: GetSymptomClinicalTabPayload = {
         include_all: 1,
         type: 'complaints',
         request_from: 'web_hospital',
         medical_record_id: patientData?.medical_record_id || ''
       }
 
-      const res: any = await getDiagnosisList(params)
+      const res: GetSymptomClinicalTabResponse = await getDiagnosisList(params)
       if (res?.success) {
         const categories = res.data?.result || []
         setTabOptions(categories)
 
         if (categories.length > 0 && !currentTabId) {
           const firstCategory = categories[0]
+          const firstCategoryId = String(firstCategory?.id ?? '')
           setCurrentTab(firstCategory?.category || '')
-          setCurrentTabId(firstCategory?.id || '')
+          setCurrentTabId(firstCategoryId)
 
-          const key = `${firstCategory?.id || 'all'}_noquery`
+          const key = `${firstCategoryId || 'all'}_noquery`
           loadedItemsRef.current[key] = 0
 
-          fetchSymptoms('', 1, false, firstCategory?.id || '')
-          fetchPickerSymptoms('', 1, false, firstCategory?.id || '')
+          fetchSymptoms('', 1, false, firstCategoryId)
+          fetchPickerSymptoms('', 1, false, firstCategoryId)
         }
       }
     } catch (error) {
@@ -400,7 +430,7 @@ function AddSymptoms() {
     initialLoadRef.current = true
   }, [patientData?.medical_record_id, fetchDiagnosisTypes])
 
-  const handleTabChange = (tabValue: string, tabId: string) => {
+  const handleTabChange = (tabValue: string, tabId: Id) => {
     setCurrentTab(tabValue)
     setCurrentTabId(tabId)
     setPage(1)
@@ -416,30 +446,32 @@ function AddSymptoms() {
     fetchPickerSymptoms(pickerSearchQuery, 1, false, tabId)
   }
 
-  const checkDuplicateSymptoms = async (symptomItems: any[]) => {
+  const checkDuplicateSymptoms = async (symptomItems: Symptom[]):Promise<CheckAnimalStatusByType[]> => {
     try {
-      const payload = {
+      const payload: CheckAnimalStatusByTypePayload = {
         type: 'complaint',
         animal_ids: JSON.stringify([Number(patientData?.animal_detail?.animal_id)]),
-        master_ids: JSON.stringify((symptomItems || []).map((s: any) => s.id))
+        master_ids: JSON.stringify((symptomItems || []).map((s: Symptom) => s.id))
       }
-      const response: any = await checkAnimalStatusByType(payload)
+      const response: CheckAnimalStatusByTypeResponse = await checkAnimalStatusByType(payload)
 
       if (response?.success) {
-        setDuplicateSymptoms(response?.data)
+        setDuplicateSymptoms(response?.data ?? [])
 
-        return response?.data || []
+        return response?.data ?? []
       } else {
         return []
       }
     } catch (error) {
       console.error('Error checking animal status:', error)
+
+      return []
     }
   }
 
   const handleAddClick = async () => {
     setAddLoading(true)
-    const submittableSymptoms = selectedSymptoms.filter((symptom: any) => !alreadySelectedIds.includes(symptom?.id))
+    const submittableSymptoms = selectedSymptoms.filter((symptom: SymptomsListForAdding) => !alreadySelectedIds.includes(symptom?.id))
 
     try {
       if (selectedSymptoms.length === 0) {
@@ -454,7 +486,7 @@ function AddSymptoms() {
         return
       }
 
-      const duplicatesData: any = await checkDuplicateSymptoms(submittableSymptoms)
+      const duplicatesData: CheckAnimalStatusByType[] = await checkDuplicateSymptoms(submittableSymptoms)
 
       if (duplicatesData?.length > 0) {
         setDuplicatesErrorModelOpen(true)
@@ -462,7 +494,7 @@ function AddSymptoms() {
         return
       }
 
-      const complaints = submittableSymptoms.map((symptom: any) => ({
+      const complaints: AddSymptomFormData[] = submittableSymptoms.map((symptom: Symptom): AddSymptomFormData  => ({
         id: symptom.id,
         name: symptom.name,
         additional_info: {
@@ -483,7 +515,7 @@ function AddSymptoms() {
       formData.append('complaints', JSON.stringify(complaints))
       formData.append('hospital_case_id', id)
 
-      const response: any = await addSymptoms(formData)
+      const response: AddSymptomsCardResponse = await addSymptoms(formData)
 
       if (response.success) {
         Toaster({ type: 'success', message: response?.message })
@@ -503,7 +535,7 @@ function AddSymptoms() {
     setComplaintDrawerOpen(true)
   }
 
-  const handleComplaintAdded = (symptom: any) => {
+  const handleComplaintAdded = (symptom: Symptom) => {
     handleSymptomSelect(symptom)
 
     fetchDiagnosisTypes()
@@ -562,7 +594,7 @@ function AddSymptoms() {
           <SymptomsList
             symptoms={availableSymptoms}
             temporarilySelected={temporarilySelected}
-            selectedSymptoms={selectedSymptoms.map((s: any) => s.id)}
+            selectedSymptoms={selectedSymptoms.map((s: SymptomsListForAdding) => s.id)}
             onSelect={handleSymptomSelect}
             searchQuery={searchQuery}
             handleSearchChange={handleSearchChange}
@@ -586,11 +618,11 @@ function AddSymptoms() {
               templateType='complaints'
               selectedItems={selectedSymptoms}
               availableItems={pickerList.filter(
-                (symptom: any) => !selectedSymptoms.some((s: any) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
+                (symptom: SymptomsListForAdding) => !selectedSymptoms.some((s: Symptom) => s.id === symptom.id) && temporarilySelected?.id !== symptom.id
               )}
               onApplyTemplate={setSelectedSymptoms}
               templateLabel={t('hospital_module.symptom_template') as string}
-              mapTemplateItem={(item: any) => ({
+              mapTemplateItem={(item: TemplateItems) => ({
                 id: item?.id,
                 name: item?.name,
                 severity: 'Mild',
@@ -611,19 +643,17 @@ function AddSymptoms() {
               selected={selectedSymptoms}
               onRemove={removeSymptom}
               severity={severity}
-              {...({
-                alreadySelectedIds: alreadySelectedIds,
-                footer: (
-                  <SaveMedicalTemplateSection
-                    templateType='complaints'
-                    selectedItems={selectedSymptoms}
-                    templateLabel={t('hospital_module.symptom_template') as string}
-                    itemLabel={t('hospital_module.symptoms') as string}
-                    refreshToken={templateRefreshToken}
-                    onTemplateSaved={() => setTemplateRefreshToken((prev: number) => prev + 1)}
-                  />
-                )
-              } as any)}
+              alreadySelectedIds={alreadySelectedIds}
+              footer={
+                <SaveMedicalTemplateSection
+                  templateType='complaints'
+                  selectedItems={selectedSymptoms}
+                  templateLabel={t('hospital_module.symptom_template') as string}
+                  itemLabel={t('hospital_module.symptoms') as string}
+                  refreshToken={templateRefreshToken}
+                  onTemplateSaved={() => setTemplateRefreshToken((prev: number) => prev + 1)}
+                />
+              }
             />
           </Box>
         </Grid>

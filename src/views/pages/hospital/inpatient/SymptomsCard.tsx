@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { Box, Chip, Tooltip, Typography } from '@mui/material'
-import { alpha, useTheme } from '@mui/material/styles'
+import { alpha, useTheme, Theme } from '@mui/material/styles'
 import { useParams } from 'next/navigation'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import useHospitalColorUtils from 'src/hooks/useHospitalColorUtils'
@@ -14,43 +14,73 @@ import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
+import { GetSymptomRecordPayload, GetSymptomRecordResponse, UpdateSymptomsCardPayload } from 'src/types/hospital/api/Inpatient/symptoms'
+import { AddSymptomsCard, Id, Severity, SymptomList, SymptomRecords, SymptomStatus, UpdateSymptomsCard } from 'src/types/hospital/models'
+import { DurationUnit } from 'src/types/hospital/models'
 
 interface SymptomsCardProps {
-  record?: any
+  record: SymptomList
   isResolved?: boolean
-  fetchSymptoms?: any
-  setPage?: any
-  patientData?: any
+  fetchSymptoms: (query?: string, page?: number, append?: boolean) => Promise<void> | void
+  setPage: any
+  patientData?: {
+    animal_detail?: { animal_id?: Id }
+    medical_record_code?: string
+    admitted_at?: string
+    discharge_at?: string
+    status?: string
+  }
   isDischared?: boolean
+}
+
+export interface UpdateSymptomsCardFormData {
+  complaint_id?: Id
+  medical_record_id?: Id
+  animal_id?: Id
+  durationValue: number | string
+  durationUnit: DurationUnit
+  notes: string
+  recordedDateTime: string
+  severity: Severity
+  status: SymptomStatus
+}
+
+export interface PreviousDetails {
+  severity: Severity
+  durationValue: number | string
+  durationUnit: DurationUnit
+  recordedDateTime: string
+  status: SymptomStatus
+
 }
 
 const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData, isDischared }: SymptomsCardProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme = useTheme<Theme>()
   const params = useParams()
-  const { id }: any = params
+  const id = (params?.id as string) ?? ''
 
   const [symptomDrawerNewOpen, setSymptomDrawerNewOpen] = useState<boolean>(false)
-  const [selectedSymptoms, setSelectedSymptoms] = useState<any>([])
-  const [severity, setSeverity] = useState<any>('Mild')
-  const [durationValue, setDurationValue] = useState<any>(0)
-  const [durationUnit, setDurationUnit] = useState<any>('Days')
+  const [selectedSymptoms, setSelectedSymptoms] = useState<UpdateSymptomsCardFormData | null>(null)
+  const [severity, setSeverity] = useState<Severity>('Mild')
+  const [durationValue, setDurationValue] = useState<number | string>(0)
+  const [durationUnit, setDurationUnit] = useState<DurationUnit>('Days')
   const [notes, setNotes] = useState<string>('')
-  const [noteId, setNoteId] = useState<any>('')
-  const [status, setStatus] = useState<any>('')
-  const [temporarilySelected, setTemporarilySelected] = useState<any>(null)
+  const [noteId, setNoteId] = useState<Id>('')
+  const [status, setStatus] = useState<SymptomStatus>('')
+  const [temporarilySelected, setTemporarilySelected] = useState<SymptomList | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState<boolean>(false)
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false)
   const [activityLoader, setactivityLoader] = useState<boolean>(false)
-  const [activityListData, setActivityListData] = useState<any>()
+  const [activityListData, setActivityListData] = useState<SymptomRecords | null>(null)
   const [symptomNoteModal, setSymptomNoteModal] = useState<boolean>(false)
   const [isUpdating, setIsUpdating] = useState<boolean>(false)
   const [isDeleting, setIsDeleting] = useState<boolean>(false)
-  const [pendingDetails, setPendingDetails] = useState<any>(null)
-  const [previousDetails, setPreviousDetails] = useState<any>(null)
+  const [pendingDetails, setPendingDetails] = useState<UpdateSymptomsCardFormData| null>(null)
+  const [previousDetails, setPreviousDetails] = useState<PreviousDetails | null>(null)
   const { getSymptomsSeverityColor } = useHospitalColorUtils()
 
-  const handleClickDetail = async (recordData: any) => {
+  const handleClickDetail = async (recordData: SymptomList) => {
     try {
       setactivityLoader(true)
       setSymptomDrawerNewOpen(true)
@@ -97,8 +127,8 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
     }
   }
 
-  const fetchNotesForSymptom = async (recordData: any) => {
-    const params: any = {
+  const fetchNotesForSymptom = async (recordData: SymptomList | null) => {
+    const params: GetSymptomRecordPayload = {
       entity: 'complaint',
       medical_id: recordData?.medical_record_id,
       record_id: recordData?.complaint_id
@@ -118,7 +148,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
     setSymptomDrawerNewOpen(false)
   }
 
-  const addSymptomDetails = (details: any) => {
+  const addSymptomDetails = (details: UpdateSymptomsCardFormData) => {
     setPendingDetails(details)
     // setIsDeleteDialogOpen(true)
     handleConfirmAddSymptom(details)
@@ -132,7 +162,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
     const canEnableButton = isChanged || notes?.trim()?.length > 0
 
-    const handleConfirmAddSymptom = async (pendingDetails: any) => {
+    const handleConfirmAddSymptom = async (pendingDetails: UpdateSymptomsCardFormData) => {
       if (!pendingDetails) return
 
       try {
@@ -143,10 +173,10 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
       const isSystemGenerated = isChanged ? true : false
 
-      const payload: any = {
-        main_id: temporarilySelected?.complaint_id,
-        med_id: temporarilySelected?.medical_record_id,
-        animal_id: patientData?.animal_detail?.animal_id,
+      const payload: UpdateSymptomsCardPayload = {
+        main_id: temporarilySelected?.complaint_id || '',
+        med_id: temporarilySelected?.medical_record_id || '' ,
+        animal_id: patientData?.animal_detail?.animal_id || '',  
         type: 'COMPLAINT',
         is_system_generated: isSystemGenerated ? 1 : 0,
         severity: pendingDetails?.severity,
@@ -186,10 +216,11 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
     setPendingDetails(null)
   }
 
-  const hasData = (data: any) =>
+  const hasData = (data: unknown) =>
     (Array.isArray(data) && data?.length > 0) || (data && typeof data === 'object' && Object.keys(data)?.length > 0)
 
-  const formatDurationUnit = (value: any, unit: any) => {
+  const formatDurationUnit = (value: number | string,
+  unit: string) => {
     if (!unit) return ''
 
     return Number(value) === 1 || Number(value) === 0 ? unit.replace(/s$/i, '') : unit;
@@ -201,7 +232,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         borderRadius: '8px',
         padding: { xs: '16px', sm: '20px', md: '24px' },
         backgroundColor: isResolved
-          ? alpha(theme.palette.customColors.neutralSecondary, 0.05)
+          ? alpha(theme.palette.customColors.neutralSecondary ?? '', 0.05)
           : getSymptomsSeverityColor(
               record?.additional_info?.severity === 'Mild'
                 ? 'Mild'
@@ -293,14 +324,14 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
         </Box>
 
         <Box sx={{ gridColumn: { xs: '1', sm: '2', md: '2' } }}>
-          {record?.comment_count > 0 && (
+          {Number(record?.comment_count ?? 0) > 0 && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, flexWrap: 'wrap' }}>
               <Typography sx={{ fontSize: '0.875rem', color: theme.palette.customColors.neutralSecondary }}>
                 {t('hospital_module.activity')}:
               </Typography>
 
               <Typography sx={{ fontSize: '1rem', color: theme.palette.customColors.OnSurface, fontWeight: 600 }}>
-                {record?.comment_count === '1' ? '1' : '+' + (record?.comment_count - 1)}
+                {record?.comment_count === '1' ? '1' : '+' + (Number(record?.comment_count ?? 0) - 1)}
               </Typography>
             </Box>
           )}
@@ -325,15 +356,15 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
                 {t('hospital_module.severity')} :{' '}
               </Typography>
               <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }}>
-                <span style={{ color: theme.palette.customColors.secondaryBg }}>
+                <Box component='span' sx={{ color: theme.palette.customColors.secondaryBg }}>
                   {record?.latest_note?.notes_dump?.old_data?.severity}
-                </span>
+                </Box>
                 {record?.latest_note?.notes_dump?.old_data?.severity && (
-                  <span style={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </span>
+                  <Box component='span' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}> → </Box>
                 )}
-                <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                <Box component='strong' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                   {record?.latest_note?.notes_dump?.new_data?.severity || record?.additional_info?.severity}
-                </strong>
+                </Box>
               </Typography>
             </Box>
           ) : (
@@ -344,9 +375,9 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               }}
             >
               {t('hospital_module.severity')} :{' '}
-              <strong style={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+              <Box component='strong' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                 {record?.additional_info?.severity}
-              </strong>
+              </Box>
             </Typography>
           )}
 
@@ -381,7 +412,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
 
           <Typography sx={{ fontSize: '0.75rem', color: theme.palette.customColors.neutralSecondary }}>
             {t('hospital_module.last_updated')}:{' '}
-            {record?.comment_count > 1 ? `${Utility?.convertUtcToLocalReadableDate(
+            {Number(record?.comment_count ?? 0) > 1 ? `${Utility?.convertUtcToLocalReadableDate(
               record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
             )} • ${Utility.convertUTCToLocaltime(
               record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at
@@ -423,7 +454,7 @@ const SymptomsCard = ({ record, isResolved, fetchSymptoms, setPage, patientData,
               user_name={record?.additional_info?.resolved_user_name || record?.created_by_user_name}
               date={
                 record?.status === 'active'
-                  ? record?.comment_count > 1 ? record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at : record?.additional_info?.recorded_date_time
+                  ? Number(record?.comment_count ?? 0) > 1 ? record?.latest_note?.modified_at || record?.created_at || record?.latest_note?.created_at : record?.additional_info?.recorded_date_time
                   : record?.latest_note?.modified_at || record?.additional_info?.closed_comment_date
               }
               show_time
