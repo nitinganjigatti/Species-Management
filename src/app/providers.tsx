@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, Suspense } from 'react'
+import { ReactNode } from 'react'
 
 // ** Emotion Imports
 import { CacheProvider } from '@emotion/react'
@@ -75,9 +75,7 @@ export function Providers({ children }: ProvidersProps) {
                                   {({ settings }) => {
                                     return (
                                       <ThemeComponent settings={settings}>
-                                        <Suspense fallback={null}>
-                                          <NavigationProgress />
-                                        </Suspense>
+                                        {/* <NavigationProgress /> */}
                                         {children}
                                         <ReactHotToast>
                                           <Toaster

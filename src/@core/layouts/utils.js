@@ -10,7 +10,14 @@ export const handleURLQueries = (router, path) => {
     // Get pathname without query string to avoid matching paths in query parameters
     const pathWithoutQuery = router.asPath.split('?')[0]
 
-    return (pathWithoutQuery === path || pathWithoutQuery.startsWith(path + '/')) && path !== '/'
+    // Normalize trailing slashes on both sides — next.config has `trailingSlash: true`,
+    // so the browser URL always ends with '/' but nav `path` strings may or may not.
+    // Without this, `path + '/'` produces '//' and the startsWith check silently fails,
+    // leaving parent nav items unhighlighted on detail/sub-pages.
+    const normPath = path.replace(/\/+$/, '')
+    const normCurrent = pathWithoutQuery.replace(/\/+$/, '')
+
+    return (normCurrent === normPath || normCurrent.startsWith(normPath + '/')) && normPath !== ''
   }
 
   return false
