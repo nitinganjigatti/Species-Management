@@ -247,7 +247,7 @@ declare module 'src/views/forms/form-fields/ControlledDatePicker' {
     disabled?: boolean
     sx?: Record<string, unknown>
     size?: string
-    onChangeOverride?: () => void
+    onChangeOverride?: (value: any) => void
     [key: string]: unknown
   }
 

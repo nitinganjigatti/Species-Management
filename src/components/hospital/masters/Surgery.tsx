@@ -78,7 +78,7 @@ const Surgery = () => {
   useEffect(() => {
     if (!router.isReady) return
 
-    const { page = '1', limit = '10', q = '', visit_type: visitTypeQuery = '' } = router.query as SurgeryFilter
+    const { page = '1', limit = '10', q = '', visit_type: visitTypeQuery = '' } = router.query as any
 
     const safePage = Array.isArray(page) ? page[0] : page
     const safeLimit = Array.isArray(limit) ? limit[0] : limit

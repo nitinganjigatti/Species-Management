@@ -238,7 +238,7 @@ const EditTreatmentDrawer = ({
                   name={'startDate'}
                   minDate={admissionDate}
                   maxDate={dischargedDate || dayjs()}
-                  onChangeOverride={value => onChange('startDate', value)}
+                  onChangeOverride={(value: any) => onChange('startDate', value)}
                   sx={{
                     ...commonFieldStyles,
                     '& .MuiOutlinedInput-root': {
