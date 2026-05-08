@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-import Router, { useRouter } from 'next/router'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { Box, Badge, Breadcrumbs, Tooltip, Typography, Button, Card, CardHeader, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -24,15 +24,15 @@ interface IndexedLab extends Lab {
   sl_no: number
 }
 
-const ListOfLab = () => {
+const LabListPage = () => {
   const theme = useTheme()
   const router = useRouter()
-
-  const [loader, setLoader] = useState(false)
-  const [show, setShow] = useState(false)
-  const [configureMedId, setConfigureMedId] = useState('')
-  const [storedData, setStoredData] = useState<unknown>()
+  const searchParams = useSearchParams()
   const authData = useContext(AuthContext) as any
+
+  const [loader] = useState(false)
+  const [storedData, setStoredData] = useState<unknown>()
+  const authData2 = useContext(AuthContext) as any
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -41,30 +41,25 @@ const ListOfLab = () => {
 
   const handleEdit = async (e: React.MouseEvent, params: GridRenderCellParams) => {
     e.stopPropagation()
-
-    Router.push({
-      pathname: '/lab/lab-list/add-Lab',
-      query: {
-        id: params.row.id,
-        action: 'edit',
-        page: router.query?.page,
-        pageSize: router.query?.pageSize,
-        q: router.query.q
-      }
-    })
+    const sp = new URLSearchParams()
+    sp.set('id', String(params.row.id))
+    sp.set('action', 'edit')
+    if (searchParams?.get('page')) sp.set('page', searchParams?.get('page')!)
+    if (searchParams?.get('pageSize')) sp.set('pageSize', searchParams?.get('pageSize')!)
+    if (searchParams?.get('q')) sp.set('q', searchParams?.get('q')!)
+    router.push(`/lab/lab-list/add-Lab?${sp.toString()}`)
   }
 
-  /***** Serverside pagination */
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('ASC')
   const [rows, setRows] = useState<Lab[]>([])
 
-  const [searchValue, setSearchValue] = useState(router.query.q ? String(router.query.q) : '')
+  const [searchValue, setSearchValue] = useState(searchParams?.get('q') || '')
   const [sortColumn, setSortColumn] = useState('name')
 
   const [paginationModel, setPaginationModel] = useState({
-    page: router?.query?.page ? parseInt(String(router?.query?.page)) : 0,
-    pageSize: router?.query?.pageSize ? parseInt(String(router?.query?.pageSize)) : 50
+    page: searchParams?.get('page') ? parseInt(searchParams?.get('page')!) : 0,
+    pageSize: searchParams?.get('pageSize') ? parseInt(searchParams?.get('pageSize')!) : 50
   })
   const [loading, setLoading] = useState(false)
 
@@ -99,23 +94,14 @@ const ListOfLab = () => {
   )
 
   const handlePaginationModelChange = async (data: { page: number; pageSize: number }) => {
-    updateUrlParams({
-      q: searchValue,
-      page: data.page,
-      pageSize: data.pageSize
-    })
-
+    updateUrlParams({ q: searchValue, page: data.page, pageSize: data.pageSize })
     setPaginationModel(data)
   }
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }: FetchDataParams) => {
       setSearchValue(q)
-      updateUrlParams({
-        page: 0,
-        pageSize: 10,
-        q
-      })
+      updateUrlParams({ page: 0, pageSize: 10, q })
       setPaginationModel({ page: 0, pageSize: 10 })
       try {
         await fetchTableData({ sort, q, column })
@@ -138,11 +124,7 @@ const ListOfLab = () => {
 
   const handleSearch = async (value: string) => {
     setSearchValue(value)
-    updateUrlParams({
-      page: 0,
-      pageSize: 10,
-      q: value
-    })
+    updateUrlParams({ page: 0, pageSize: 10, q: value })
     setPaginationModel({ page: 0, pageSize: 10 })
     await searchTableData({ sort, q: value, column: sortColumn })
   }
@@ -172,12 +154,7 @@ const ListOfLab = () => {
             </Typography>
           </Tooltip>
           {params.row.is_default === '1' ? (
-            <Badge
-              sx={{ position: 'relative', right: 20, top: 10 }}
-              color='success'
-              badgeContent='Default'
-              style={{}}
-            ></Badge>
+            <Badge sx={{ position: 'relative', right: 20, top: 10 }} color='success' badgeContent='Default' />
           ) : null}
         </Box>
       )
@@ -207,7 +184,6 @@ const ListOfLab = () => {
         </Tooltip>
       )
     },
-
     {
       flex: 0.4,
       minWidth: 160,
@@ -224,7 +200,6 @@ const ListOfLab = () => {
         </Tooltip>
       )
     },
-
     ...(authData?.userData?.roles?.settings?.add_lab
       ? [
           {
@@ -250,10 +225,12 @@ const ListOfLab = () => {
           size='medium'
           variant='outlined'
           onClick={() => {
-            Router.push({
-              pathname: '/lab/lab-list/add-Lab',
-              query: { page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
-            })
+            const sp = new URLSearchParams()
+            if (searchParams?.get('page')) sp.set('page', searchParams?.get('page')!)
+            if (searchParams?.get('pageSize')) sp.set('pageSize', searchParams?.get('pageSize')!)
+            if (searchValue) sp.set('q', searchValue)
+            const qs = sp.toString()
+            router.push(`/lab/lab-list/add-Lab${qs ? `?${qs}` : ''}`)
           }}
         >
           Add Lab
@@ -271,16 +248,21 @@ const ListOfLab = () => {
 
   const onCellClick = (params: { row: Lab }) => {
     const data = params.row
-
-    Router.push({
-      pathname: '/lab/lab-list/lab-details',
-      query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
-    })
+    const sp = new URLSearchParams()
+    sp.set('id', String(data?.id))
+    if (searchParams?.get('page')) sp.set('page', searchParams?.get('page')!)
+    if (searchParams?.get('pageSize')) sp.set('pageSize', searchParams?.get('pageSize')!)
+    if (searchValue) sp.set('q', searchValue)
+    router.push(`/lab/lab-list/lab-details?${sp.toString()}`)
   }
 
   const updateUrlParams = (params: Record<string, string | number>) => {
-    const query = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+    const sp = new URLSearchParams()
+    const merged = { q: searchValue, page: paginationModel.page, pageSize: paginationModel.pageSize, ...params }
+    Object.entries(merged).forEach(([k, v]) => {
+      if (v != null && v !== '') sp.set(k, String(v))
+    })
+    router.replace(`/lab/lab-list?${sp.toString()}`)
   }
 
   return (
@@ -293,13 +275,7 @@ const ListOfLab = () => {
             <>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Lab</Typography>
-                <Typography
-                  sx={{
-                    color: 'text.primary'
-                  }}
-                >
-                  Lab list
-                </Typography>
+                <Typography sx={{ color: 'text.primary' }}>Lab list</Typography>
               </Breadcrumbs>
               <Card sx={{ paddingX: 5 }}>
                 <CardHeader sx={{ paddingX: 0 }} title='Lab List' action={headerAction} />
@@ -317,16 +293,12 @@ const ListOfLab = () => {
                   handleSearch={handleSearch}
                   externalTableStyle={{
                     borderTopLeftRadius: '8px',
-                    '& .MuiBox-root': {
-                      paddingX: 0
-                    },
+                    '& .MuiBox-root': { paddingX: 0 },
                     '.MuiDataGrid-main': {
                       border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
                       borderRadius: '8px'
                     },
-                    '& .MuiDataGrid-footerContainer': {
-                      border: 'none !important'
-                    }
+                    '& .MuiDataGrid-footerContainer': { border: 'none !important' }
                   }}
                 />
               </Card>
@@ -340,4 +312,4 @@ const ListOfLab = () => {
   )
 }
 
-export default ListOfLab
+export default LabListPage

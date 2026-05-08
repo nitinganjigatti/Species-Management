@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 import type { MouseEvent, SyntheticEvent } from 'react'
-import Router from 'next/router'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, useParams } from 'next/navigation'
 
 import {
   Button,
@@ -131,9 +130,14 @@ const RequestDetails = () => {
   const authData = useContext(AuthContext) as any
   const localLabData = authData?.userData?.modules?.lab_data?.lab
 
-  const { id, lab_id, page, q, pageSize } = Router.query
+  const routeParams = useParams<{ id: string }>()
+  const id = routeParams?.id
   const searchParams = useSearchParams()
-  const Selectedlab_id = searchParams?.get('lab_id')
+  const lab_id = searchParams?.get('lab_id')
+  const page = searchParams?.get('page')
+  const q = searchParams?.get('q')
+  const pageSize = searchParams?.get('pageSize')
+  const Selectedlab_id = lab_id
 
   const [fileViews, setFileViews] = useState<FileViews | undefined>(
     authData?.userData?.settings?.DEFAULT_IMAGE_MASTER as FileViews | undefined
@@ -1303,10 +1307,7 @@ const RequestDetails = () => {
               sx={{ cursor: 'pointer' }}
               color='inherit'
               onClick={() =>
-                router.push({
-                  pathname: '/lab/request',
-                  query: { page, pageSize, q }
-                } as never)
+                router.push(`/lab/request?${new URLSearchParams(Object.fromEntries(Object.entries({ page, pageSize, q }).filter(([, v]) => v != null) as [string, string][])).toString()}`)
               }
             >
               Requests list

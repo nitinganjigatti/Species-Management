@@ -1,6 +1,7 @@
 /* eslint-disable lines-around-comment */
 /* eslint-disable react/jsx-key */
 import React, { useState, useEffect, useRef, useContext } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import {
   Grid,
@@ -31,8 +32,6 @@ import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import { getAllLabSample, getLabDeatilsById, updateLabById } from 'src/lib/api/lab/addLab'
 import { LoadingButton } from '@mui/lab'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
@@ -45,7 +44,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import { addLab } from 'src/lib/api/lab/addLab'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
-import ErrorScreen from 'src/pages/Error'
+import { notFound } from 'next/navigation'
 import Toaster from 'src/components/Toaster'
 import geolocation from 'geolocation'
 
@@ -63,9 +62,14 @@ interface LabFormValues {
   is_default: number | boolean
 }
 
-const AddLab = () => {
+const AddLabPage = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext) as any
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const id = searchParams?.get('id')
+  const action = searchParams?.get('action')
 
   const [loader, setLoader] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -74,22 +78,15 @@ const AddLab = () => {
   const [open, setOpen] = useState(false)
   const [labType, setLabType] = useState('')
   const [TestData, setTestData] = useState<LabSampleWithTests[]>([])
-
   const [prevTests, setPrevTests] = useState<LabSampleWithTests[]>([])
-
   const [dataToUpdate, setDataToUpdate] = useState<LabSampleWithTests[]>([])
-
   const [showLabTests, setShowLabTests] = useState<LabSampleWithTests[]>([])
-
   const [labTestsEmpty, setLabTestsEmpty] = React.useState(false)
   const [testList, setTestList] = useState<LabSampleWithTests[]>([])
   const [uploadedImage, setUploadedImage] = useState<string | undefined>()
-
   const [files, setFiles] = useState<File[]>([])
 
   const shouldClearFieldsRef = useRef(false)
-  const router = useRouter()
-  const { id, action } = router.query
   const [isDefault, setIsDefault] = useState<string | number>(0)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -116,10 +113,7 @@ const AddLab = () => {
                     prevChildTest => prevChildTest.test_id.toString() === childTest.test_id.toString()
                   )
 
-                  return {
-                    ...childTest,
-                    value: matchingPrevChildTest ? matchingPrevChildTest.value : false
-                  }
+                  return { ...childTest, value: matchingPrevChildTest ? matchingPrevChildTest.value : false }
                 })
 
                 return {
@@ -134,10 +128,7 @@ const AddLab = () => {
                 ...test,
                 value: false,
                 full_test: false,
-                child_tests: test.child_tests.map(childTest => ({
-                  ...childTest,
-                  value: false
-                }))
+                child_tests: test.child_tests.map(childTest => ({ ...childTest, value: false }))
               }
             })
           }
@@ -150,10 +141,7 @@ const AddLab = () => {
             ...test,
             value: false,
             full_test: false,
-            child_tests: test.child_tests.map(childTest => ({
-              ...childTest,
-              value: false
-            }))
+            child_tests: test.child_tests.map(childTest => ({ ...childTest, value: false }))
           }))
         }
       })
@@ -164,9 +152,9 @@ const AddLab = () => {
     }
   }
 
-  const labDeatilsById = async (labId: string | string[]) => {
+  const labDeatilsById = async (labId: string) => {
     try {
-      const res = await getLabDeatilsById(String(labId))
+      const res = await getLabDeatilsById(labId)
       if (res) {
         setImgSrc(pre => [...pre, res?.data?.[0]?.image as string])
         setValue('lab_name', res?.data?.[0]?.lab_name ?? '')
@@ -185,7 +173,7 @@ const AddLab = () => {
   }
 
   useEffect(() => {
-    if (id != undefined && action === 'edit') {
+    if (id && action === 'edit') {
       labDeatilsById(id)
     }
   }, [id, action])
@@ -208,10 +196,7 @@ const AddLab = () => {
   }, [])
 
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const handleClick = () => {
@@ -226,10 +211,6 @@ const AddLab = () => {
         setValue('longitude', longitude)
       }
     })
-  }
-
-  const onImageUpload = async (imageData: File[]) => {
-    setFiles(imageData)
   }
 
   const handleSwitchChange = (isChecked: boolean) => {
@@ -253,7 +234,6 @@ const AddLab = () => {
     type: yup.string().required('Lab Type is required'),
     incharge_name: yup.string().trim().required('Lab Incharge name is required'),
     address: yup.string().trim().required('Address is required'),
-
     lab_contact_number: yup
       .string()
       .trim()
@@ -302,9 +282,7 @@ const AddLab = () => {
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true,
-    accept: {
-      '*/*': []
-    },
+    accept: { '*/*': [] },
     onDrop: acceptedFiles => {
       const reader = new FileReader()
       const droppedFiles = acceptedFiles
@@ -316,7 +294,6 @@ const AddLab = () => {
         reader?.readAsDataURL(droppedFiles[0])
         setImgSrc(_pre => [droppedFiles[0]])
         setValue('image', droppedFiles[0])
-
         clearErrors('image')
       }
     }
@@ -383,30 +360,25 @@ const AddLab = () => {
       image: imgSrc[0] as string | File
     }
 
-    console.log('imgSrc', imgSrc[0])
-
     if (labTestsEmpty) return
     setSubmitLoader(true)
 
-    if (id !== undefined && action === 'edit') {
-      const response = await updateLabById(payload, String(id))
+    if (id && action === 'edit') {
+      const response = await updateLabById(payload, id)
       setSubmitLoader(false)
 
       if (response?.success) {
-        Router.push('/lab/lab-list')
-
+        router.push('/lab/lab-list')
         Toaster({ type: 'success', message: response.message })
       } else {
         Toaster({ type: 'error', message: response.message })
       }
     } else {
       const response = await addLab(payload)
-
       setSubmitLoader(false)
       reset(defaultValues)
       if (response?.success) {
-        Router.push('/lab/lab-list')
-
+        router.push('/lab/lab-list')
         Toaster({ type: 'success', message: response.message })
       } else {
         Toaster({ type: 'error', message: response.message })
@@ -419,7 +391,7 @@ const AddLab = () => {
   }
 
   useEffect(() => {
-    if (id != undefined && action === 'edit') {
+    if (id && action === 'edit') {
       updateTestData()
     }
   }, [open])
@@ -437,10 +409,7 @@ const AddLab = () => {
           tests: sample.tests.map(test => ({
             ...test,
             full_test: false,
-            child_tests: test.child_tests.map(childTest => ({
-              ...childTest,
-              value: false
-            }))
+            child_tests: test.child_tests.map(childTest => ({ ...childTest, value: false }))
           }))
         }))
       )
@@ -465,14 +434,7 @@ const AddLab = () => {
                 test_id: parent.test_id,
                 test_name: parent.test_name,
                 full_test: false,
-                child_tests: [
-                  {
-                    test_id: child.test_id,
-                    test_name: child.test_name,
-                    value: isChecked,
-                    input_type: child.input_type
-                  }
-                ]
+                child_tests: [{ test_id: child.test_id, test_name: child.test_name, value: isChecked, input_type: child.input_type }]
               }
             ]
           }
@@ -485,7 +447,6 @@ const AddLab = () => {
                 const updatedChildTests = test.child_tests.map(ct =>
                   ct.test_id === child.test_id ? { ...ct, value: isChecked } : ct
                 )
-
                 const anyChildUnchecked = updatedChildTests.some(ct => !ct.value)
 
                 return { ...test, full_test: !anyChildUnchecked, child_tests: updatedChildTests }
@@ -493,7 +454,6 @@ const AddLab = () => {
                 return test
               }
             })
-
             const anyParentUnchecked = updatedTests.some(test => !test.full_test)
 
             return { ...data, value: !anyParentUnchecked, tests: updatedTests }
@@ -517,14 +477,7 @@ const AddLab = () => {
               sample_id: sample.sample_id,
               sample_name: sample.sample_name,
               value: true,
-              tests: [
-                {
-                  test_id: parent.test_id,
-                  test_name: parent.test_name,
-                  full_test: isChecked,
-                  child_tests: parent.child_tests
-                }
-              ]
+              tests: [{ test_id: parent.test_id, test_name: parent.test_name, full_test: isChecked, child_tests: parent.child_tests }]
             }
           ]
         }
@@ -539,16 +492,12 @@ const AddLab = () => {
               return {
                 ...test,
                 full_test: isChecked,
-                child_tests: test.child_tests.map(childTest => ({
-                  ...childTest,
-                  value: isChecked
-                }))
+                child_tests: test.child_tests.map(childTest => ({ ...childTest, value: isChecked }))
               }
             } else {
               return test
             }
           })
-
           const anyParentUnchecked = updatedTests.some(test => !test.full_test)
 
           return { ...data, value: !anyParentUnchecked, tests: updatedTests }
@@ -569,10 +518,7 @@ const AddLab = () => {
               tests: data.tests.map(test => ({
                 ...test,
                 full_test: isChecked,
-                child_tests: test.child_tests.map(childTest => ({
-                  ...childTest,
-                  value: isChecked
-                }))
+                child_tests: test.child_tests.map(childTest => ({ ...childTest, value: isChecked }))
               }))
             }
           : data
@@ -587,13 +533,7 @@ const AddLab = () => {
         tests: sample.tests.reduce<LabParentTest[]>((accTests, parent) => {
           const updatedParent: LabParentTest = {
             ...parent,
-            child_tests: parent.child_tests.filter(child => {
-              if (child.value === true) {
-                return true
-              } else {
-                return false
-              }
-            })
+            child_tests: parent.child_tests.filter(child => child.value === true)
           }
 
           if (updatedParent.child_tests.length > 0 || updatedParent.full_test) {
@@ -623,10 +563,7 @@ const AddLab = () => {
             if (sample.sample_id === sampleId) {
               const updatedTests = sample.tests.filter(test => test.test_id !== testId)
               if (updatedTests.length > 0) {
-                return {
-                  ...sample,
-                  tests: updatedTests
-                }
+                return { ...sample, tests: updatedTests }
               }
 
               return null
@@ -647,10 +584,7 @@ const AddLab = () => {
                   return {
                     ...test,
                     full_test: false,
-                    child_tests: test.child_tests.map(child => ({
-                      ...child,
-                      value: false
-                    }))
+                    child_tests: test.child_tests.map(child => ({ ...child, value: false }))
                   }
                 }
 
@@ -671,10 +605,7 @@ const AddLab = () => {
             if (sample.sample_id === sampleId) {
               const updatedTests = sample.tests.filter(test => test.test_id !== testId)
               if (updatedTests.length > 0) {
-                return {
-                  ...sample,
-                  tests: updatedTests
-                }
+                return { ...sample, tests: updatedTests }
               }
 
               return null
@@ -695,10 +626,7 @@ const AddLab = () => {
                   return {
                     ...test,
                     full_test: false,
-                    child_tests: test.child_tests.map(child => ({
-                      ...child,
-                      value: false
-                    }))
+                    child_tests: test.child_tests.map(child => ({ ...child, value: false }))
                   }
                 }
 
@@ -718,34 +646,21 @@ const AddLab = () => {
     setShowLabTests(dataToUpdate)
   }
 
+  if (!authData?.userData?.roles?.settings?.add_lab) notFound()
+
   return (
     <>
-      {authData?.userData?.roles?.settings?.add_lab ? (
-        <>
+      <>
           {loader ? (
             <FallbackSpinner sx={{}} />
           ) : (
             <>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Lab</Typography>
-                <Typography
-                  sx={{ cursor: 'pointer' }}
-                  color='inherit'
-                  onClick={() =>
-                    router.push({
-                      pathname: '/lab/lab-list'
-                    })
-                  }
-                >
+                <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.push('/lab/lab-list')}>
                   Lab list
                 </Typography>
-                <Typography
-                  sx={{
-                    color: 'text.primary'
-                  }}
-                >
-                  Add lab
-                </Typography>
+                <Typography sx={{ color: 'text.primary' }}>Add lab</Typography>
               </Breadcrumbs>
               <Grid container spacing={6} className='match-height'>
                 <Grid size={{ xs: 12 }}>
@@ -774,9 +689,7 @@ const AddLab = () => {
                                 )}
                               />
                               {errors.lab_name && (
-                                <FormHelperText sx={{ color: 'error.main' }}>
-                                  {errors?.lab_name?.message}
-                                </FormHelperText>
+                                <FormHelperText sx={{ color: 'error.main' }}>{errors?.lab_name?.message}</FormHelperText>
                               )}
                             </FormControl>
                           </Grid>
@@ -835,7 +748,6 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
@@ -873,9 +785,7 @@ const AddLab = () => {
                                     placeholder=''
                                     error={Boolean(errors?.lab_contact_number)}
                                     name='lab_contact_number'
-                                    slotProps={{
-                                      htmlInput: { inputMode: 'numeric', pattern: '[0-9]*' }
-                                    }}
+                                    slotProps={{ htmlInput: { inputMode: 'numeric', pattern: '[0-9]*' } }}
                                   />
                                 )}
                               />
@@ -914,16 +824,8 @@ const AddLab = () => {
                             />
                           </Grid>
 
-                          {/* test Data */}
                           <Grid size={{ xs: 12, sm: 12, md: 12 }}>
-                            <Card
-                              sx={{
-                                p: 2,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 2
-                              }}
-                            >
+                            <Card sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                               <div>
                                 <Box
                                   sx={{
@@ -966,26 +868,18 @@ const AddLab = () => {
                                           >
                                             <>
                                               <Typography variant='subtitle1'>{parent.test_name}</Typography>
-                                              <IconButton
-                                                onClick={() => handleCloseTest(sample.sample_id, parent.test_id)}
-                                              >
+                                              <IconButton onClick={() => handleCloseTest(sample.sample_id, parent.test_id)}>
                                                 <Icon icon='zondicons:close-outline' fontSize={20} color='red' />
                                               </IconButton>
                                             </>
                                           </Stack>
-
                                           <Stack>
                                             {parent.child_tests?.map(child =>
                                               child.value === true ? (
                                                 <Stack
                                                   key={child.test_id}
                                                   direction='row'
-                                                  sx={{
-                                                    gap: 2,
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    p: 1
-                                                  }}
+                                                  sx={{ gap: 2, display: 'flex', alignItems: 'center', p: 1 }}
                                                 >
                                                   <Icon
                                                     icon='ic:baseline-check'
@@ -1014,12 +908,7 @@ const AddLab = () => {
                           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
                             <Card sx={{ p: 2 }}>
                               <Box
-                                sx={{
-                                  bgcolor: theme.palette.customColors.mainBg,
-                                  borderRadius: '8px',
-                                  p: 2,
-                                  mb: 2
-                                }}
+                                sx={{ bgcolor: theme.palette.customColors.mainBg, borderRadius: '8px', p: 2, mb: 2 }}
                                 onClick={handleClick}
                               >
                                 <Typography
@@ -1053,16 +942,10 @@ const AddLab = () => {
                                   )}
                                 />
                                 {errors?.longitude && (
-                                  <FormHelperText sx={{ color: 'error.main' }}>
-                                    {errors?.longitude?.message}
-                                  </FormHelperText>
+                                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.longitude?.message}</FormHelperText>
                                 )}
                               </FormControl>
-                              <Box
-                                sx={{
-                                  mt: 2
-                                }}
-                              >
+                              <Box sx={{ mt: 2 }}>
                                 <FormControl fullWidth>
                                   <Controller
                                     name='latitude'
@@ -1080,14 +963,13 @@ const AddLab = () => {
                                     )}
                                   />
                                   {errors?.latitude && (
-                                    <FormHelperText sx={{ color: 'error.main' }}>
-                                      {errors?.latitude?.message}
-                                    </FormHelperText>
+                                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.latitude?.message}</FormHelperText>
                                   )}
                                 </FormControl>
                               </Box>
                             </Card>
                           </Grid>
+
                           <Grid size={{ xs: 12, sm: 12, md: 12 }}>
                             <Card>
                               <CardHeader title='Add Lab Picture' />
@@ -1102,7 +984,6 @@ const AddLab = () => {
                                       name='image'
                                       ref={fileInputRef}
                                     />
-
                                     <Box
                                       {...getRootProps({ className: 'dropzone' })}
                                       onClick={handleAddImageClick}
@@ -1111,14 +992,12 @@ const AddLab = () => {
                                         alignItems: 'center',
                                         gap: 7,
                                         height: 100,
-
                                         border: `2px solid ${theme.palette.customColors.trackBg}`,
                                         borderRadius: 1,
                                         padding: 3
                                       }}
                                     >
                                       <Image alt={'filename'} src={imageUploader} width={50} height={50} />
-
                                       <Typography>Drop your files here</Typography>
                                     </Box>
                                   </Grid>
@@ -1142,11 +1021,7 @@ const AddLab = () => {
                                                 }}
                                               >
                                                 <img
-                                                  style={{
-                                                    aspectRatio: 2 / 2,
-                                                    height: '100%',
-                                                    borderRadius: '5%'
-                                                  }}
+                                                  style={{ aspectRatio: 2 / 2, height: '100%', borderRadius: '5%' }}
                                                   alt='image'
                                                   src={
                                                     typeof img === 'string' &&
@@ -1171,9 +1046,7 @@ const AddLab = () => {
                                                     icon='material-symbols-light:close'
                                                     color={theme.palette.primary.contrastText}
                                                     onClick={() => removeSelectedImage(index)}
-                                                  >
-                                                    {' '}
-                                                  </Icon>
+                                                  />
                                                 </Box>
                                               </Box>
                                             </Box>
@@ -1185,20 +1058,16 @@ const AddLab = () => {
                               </CardContent>
                             </Card>
                           </Grid>
+
                           <Box sx={{ width: '100%', display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                             <LoadingButton
-                              onClick={() => router.push('/lab/lab-list/')}
+                              onClick={() => router.push('/lab/lab-list')}
                               loading={submitLoader}
                               variant='outlined'
                             >
                               Cancel
                             </LoadingButton>
-                            <LoadingButton
-                              loading={submitLoader}
-                              onClick={handleSubmitData}
-                              type='submit'
-                              variant='outlined'
-                            >
+                            <LoadingButton loading={submitLoader} onClick={handleSubmitData} type='submit' variant='outlined'>
                               Submit
                             </LoadingButton>
                           </Box>
@@ -1253,47 +1122,38 @@ const AddLab = () => {
                           {sample?.sample_name}
                         </Typography>
                       </Tooltip>
-
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography sx={{ alignItems: 'center', display: 'flex', fontSize: '15px' }}>
-                          Select All
-                        </Typography>
+                        <Typography sx={{ alignItems: 'center', display: 'flex', fontSize: '15px' }}>Select All</Typography>
                         <Switch
                           checked={sample?.value}
                           onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)}
                         />
                       </Box>
                     </Stack>
-
                     <Stack spacing={2} sx={{ mt: 2 }}>
-                    {sample?.tests?.map((parent, index) =>
-                      parent?.child_tests?.length > 0 ? (
-                        <Card key={index}>
-                          <Accordion slotProps={{ heading: { component: 'h4' } }}>
-                            <AccordionSummary
-                              expandIcon={<ExpandMoreIcon />}
-                              aria-controls='panel1a-content'
-                              id='panel1a-header'
-                            >
-                              <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
-                                <Typography
-                                  sx={{
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    maxWidth: 200,
-                                    fontSize: '15px',
-                                    fontWeight: '500'
-                                  }}
-                                  component='span'
-                                >
-                                  {parent?.test_name}
-                                </Typography>
-                              </Tooltip>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                              {parent?.child_tests?.map(child => {
-                                return (
+                      {sample?.tests?.map((parent, index) =>
+                        parent?.child_tests?.length > 0 ? (
+                          <Card key={index}>
+                            <Accordion slotProps={{ heading: { component: 'h4' } }}>
+                              <AccordionSummary expandIcon={<ExpandMoreIcon />} aria-controls='panel1a-content' id='panel1a-header'>
+                                <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
+                                  <Typography
+                                    sx={{
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      maxWidth: 200,
+                                      fontSize: '15px',
+                                      fontWeight: '500'
+                                    }}
+                                    component='span'
+                                  >
+                                    {parent?.test_name}
+                                  </Typography>
+                                </Tooltip>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                {parent?.child_tests?.map(child => (
                                   <Stack
                                     direction='row'
                                     key={child?.test_id}
@@ -1319,39 +1179,38 @@ const AddLab = () => {
                                       }}
                                     />
                                   </Stack>
-                                )
-                              })}
-                            </AccordionDetails>
-                          </Accordion>
-                        </Card>
-                      ) : (
-                        <Card>
-                          <Stack
-                            direction='row'
-                            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}
-                          >
-                            <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
-                              <Typography
-                                sx={{
-                                  ml: 4,
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  maxWidth: 200,
-                                  fontSize: '15px'
-                                }}
-                              >
-                                {parent?.test_name}
-                              </Typography>
-                            </Tooltip>
-                            <Checkbox
-                              checked={parent?.full_test}
-                              onClick={e => handleTestFullTestSwitch(sample, parent, (e.target as HTMLInputElement).checked)}
-                            />
-                          </Stack>
-                        </Card>
-                      )
-                    )}
+                                ))}
+                              </AccordionDetails>
+                            </Accordion>
+                          </Card>
+                        ) : (
+                          <Card key={index}>
+                            <Stack
+                              direction='row'
+                              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}
+                            >
+                              <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
+                                <Typography
+                                  sx={{
+                                    ml: 4,
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    maxWidth: 200,
+                                    fontSize: '15px'
+                                  }}
+                                >
+                                  {parent?.test_name}
+                                </Typography>
+                              </Tooltip>
+                              <Checkbox
+                                checked={parent?.full_test}
+                                onClick={e => handleTestFullTestSwitch(sample, parent, (e.target as HTMLInputElement).checked)}
+                              />
+                            </Stack>
+                          </Card>
+                        )
+                      )}
                     </Stack>
                   </Box>
                 ))}
@@ -1374,11 +1233,8 @@ const AddLab = () => {
             </Box>
           </Drawer>
         </>
-      ) : (
-        <ErrorScreen />
-      )}
     </>
   )
 }
 
-export default AddLab
+export default AddLabPage

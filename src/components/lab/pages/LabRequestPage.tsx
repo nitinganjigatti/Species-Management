@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import {
   Box,
@@ -49,15 +49,16 @@ interface FetchDataParams {
   lab_id?: number | string
 }
 
-const ListOfRequest = () => {
+const LabRequestPage = () => {
   const theme = useTheme()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const authData = useContext(AuthContext) as any
 
-  const [loader, setLoader] = useState(false)
-  const [selectLoader, setSelectLoader] = useState(false)
+  const [loader] = useState(false)
+  const [selectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState<number | string | undefined>()
-  const [lab, setLab] = useState<LabItem[]>((authData?.userData?.modules?.lab_data?.lab as LabItem[] | undefined) ?? [])
+  const [lab] = useState<LabItem[]>((authData?.userData?.modules?.lab_data?.lab as LabItem[] | undefined) ?? [])
   const [stats, setStats] = useState<RequestStats | undefined>()
 
   const [selectedLab, setSelectedLab] = useState<number | string | null>(
@@ -69,26 +70,23 @@ const ListOfRequest = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState<LabRequestRow[]>([])
-  const [searchValue, setSearchValue] = useState((router.query.q as string) || '')
+  const [searchValue, setSearchValue] = useState(searchParams?.get('q') || '')
   const [sortColumn, setSortColumn] = useState('name')
 
   const [paginationModel, setPaginationModel] = useState({
-    page: router?.query?.page ? parseInt(router?.query?.page as string) : 0,
-    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize as string) : 50
+    page: searchParams?.get('page') ? parseInt(searchParams?.get('page')!) : 0,
+    pageSize: searchParams?.get('pageSize') ? parseInt(searchParams?.get('pageSize')!) : 50
   })
   const [loading, setLoading] = useState(false)
 
   const handleClickRequestId = (params: { row: LabRequestRow }) => {
     const id = params.row.lab_test_id
-    router.push({
-      pathname: `/lab/request/${id}`,
-      query: {
-        lab_id: params.row.lab_id,
-        page: router.query?.page,
-        pageSize: router.query?.pageSize,
-        q: router.query.q
-      }
-    })
+    const sp = new URLSearchParams()
+    sp.set('lab_id', String(params.row.lab_id))
+    if (searchParams?.get('page')) sp.set('page', searchParams?.get('page')!)
+    if (searchParams?.get('pageSize')) sp.set('pageSize', searchParams?.get('pageSize')!)
+    if (searchParams?.get('q')) sp.set('q', searchParams?.get('q')!)
+    router.push(`/lab/request/${id}?${sp.toString()}`)
   }
 
   const columns: GridColDef[] = [
@@ -103,7 +101,6 @@ const ListOfRequest = () => {
         </Typography>
       )
     },
-
     {
       width: 200,
       sortable: false,
@@ -123,7 +120,6 @@ const ListOfRequest = () => {
         </Typography>
       )
     },
-
     {
       width: 150,
       field: 'created_at',
@@ -155,22 +151,13 @@ const ListOfRequest = () => {
         </Typography>
       )
     },
-
     {
       width: 200,
       field: 'status',
       sortable: false,
       headerName: 'Status',
       renderCell: (params: GridRenderCellParams) => (
-        <Stack
-          direction='row'
-          spacing={2}
-          sx={{
-            gap: 2,
-            display: 'flex',
-            alignItems: 'center'
-          }}
-        >
+        <Stack direction='row' spacing={2} sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
           {params.row.total_tests_pending > 0 && (
             <Box
               sx={{
@@ -188,7 +175,6 @@ const ListOfRequest = () => {
               {params.row.total_tests_pending}
             </Box>
           )}
-
           {params.row.total_tests_inprogress > 0 && (
             <Box
               sx={{
@@ -206,7 +192,6 @@ const ListOfRequest = () => {
               {params.row.total_tests_inprogress}
             </Box>
           )}
-
           {params.row.total_tests_completed > 0 && (
             <Box
               sx={{
@@ -227,7 +212,6 @@ const ListOfRequest = () => {
         </Stack>
       )
     },
-
     {
       width: 200,
       field: 'Reports',
@@ -267,14 +251,7 @@ const ListOfRequest = () => {
     debounce(async ({ sort, q, column, lab_id }: FetchDataParams) => {
       setSearchValue(q ?? '')
       try {
-        await fetchData({
-          sort,
-          q,
-          column,
-          lab_id,
-          page: paginationModel.page + 1,
-          pageSize: paginationModel.pageSize
-        })
+        await fetchData({ sort, q, column, lab_id, page: paginationModel.page + 1, pageSize: paginationModel.pageSize })
       } catch (error) {
         console.error(error)
       }
@@ -314,7 +291,6 @@ const ListOfRequest = () => {
         const params2 = { lab_id: Data as number | string }
         GetLabRequestStatus(params2)
         fetchData(params)
-        setSelectLoader(false)
       } else {
         handleLabChange(firstLab)
       }
@@ -334,7 +310,6 @@ const ListOfRequest = () => {
       const params2 = { lab_id: data }
       GetLabRequestStatus(params2)
       fetchData(params)
-      setSelectLoader(false)
     }
   }
 
@@ -365,11 +340,7 @@ const ListOfRequest = () => {
     setPaginationModel({ page: 0, pageSize: 10 })
     setLabSelected(value)
     const storedLabData = await readAsync('selectedLAB')
-    if (storedLabData) {
-      setSelectedLab(value)
-    } else {
-      setSelectedLab(value)
-    }
+    setSelectedLab(value)
 
     const params: FetchDataParams = {
       sort,
@@ -393,24 +364,14 @@ const ListOfRequest = () => {
       limit: data.pageSize,
       lab_id: selectedLab ?? undefined
     }
-    updateUrlParams({
-      q: searchValue,
-      page: data.page,
-      pageSize: data.pageSize
-    })
-
+    updateUrlParams({ q: searchValue, page: data.page, pageSize: data.pageSize })
     setPaginationModel(data)
-
     await fetchData(params)
   }
 
   const handleSearch = async (value: string) => {
     setSearchValue(value)
-    updateUrlParams({
-      page: 0,
-      pageSize: 10,
-      q: value
-    })
+    updateUrlParams({ page: 0, pageSize: 10, q: value })
     setPaginationModel({ page: 0, pageSize: 10 })
     await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab ?? undefined })
   }
@@ -423,8 +384,12 @@ const ListOfRequest = () => {
   }))
 
   const updateUrlParams = (params: Record<string, unknown>) => {
-    const query = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query: query as Record<string, string> }, undefined, { shallow: true })
+    const sp = new URLSearchParams()
+    const merged = { q: searchValue, page: paginationModel.page, pageSize: paginationModel.pageSize, ...params }
+    Object.entries(merged).forEach(([k, v]) => {
+      if (v != null && v !== '') sp.set(k, String(v))
+    })
+    router.replace(`/lab/request?${sp.toString()}`)
   }
 
   useEffect(() => {
@@ -441,14 +406,7 @@ const ListOfRequest = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Labs
             </Typography>
-            <Typography
-              sx={{
-                color: 'text.primary',
-                cursor: 'pointer'
-              }}
-            >
-              Requests list
-            </Typography>
+            <Typography sx={{ color: 'text.primary', cursor: 'pointer' }}>Requests list</Typography>
           </Breadcrumbs>
           <Card key={String(selectedLab)}>
             <CardHeader title={'Requests lists'} />
@@ -470,11 +428,7 @@ const ListOfRequest = () => {
                       label='Select Lab'
                       onChange={event => handleLabChange(event.target.value as number | string)}
                       sx={{ fontWeight: 'bold', borderRadius: '5px' }}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: { maxHeight: 300, overflowY: 'auto' }
-                        }
-                      }}
+                      MenuProps={{ PaperProps: { sx: { maxHeight: 300, overflowY: 'auto' } } }}
                     >
                       {lab?.map(item => (
                         <MenuItem key={item?.lab_id} value={item?.lab_id}>
@@ -500,17 +454,12 @@ const ListOfRequest = () => {
               <Stack
                 direction={{ md: 'row', sm: 'row', sx: 'column' }}
                 spacing={2}
-                sx={{
-                  gap: 2,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
+                sx={{ gap: 2, display: 'flex', alignItems: 'center' }}
               >
                 <Typography>
                   Total Requests -{' '}
                   <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
-
                 <Box
                   sx={{
                     border: '1px solid',
@@ -553,7 +502,6 @@ const ListOfRequest = () => {
               </Stack>
             </Box>
 
-            {/* Status */}
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}
               spacing={4}
@@ -562,33 +510,15 @@ const ListOfRequest = () => {
               <>
                 <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
               </>
-              <Box
-                sx={{
-                  gap: 1,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
+              <Box sx={{ gap: 1, display: 'flex', alignItems: 'center' }}>
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.customDropdownColor} />
                 <Typography variant='subtitle1'>Pending</Typography>
               </Box>
-              <Box
-                sx={{
-                  gap: 1,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
+              <Box sx={{ gap: 1, display: 'flex', alignItems: 'center' }}>
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.moderateSecondary} />
                 <Typography variant='subtitle1'>In Progress</Typography>
               </Box>
-              <Box
-                sx={{
-                  gap: 1,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
+              <Box sx={{ gap: 1, display: 'flex', alignItems: 'center' }}>
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.primary.main} />
                 <Typography variant='subtitle1'>Completed</Typography>
               </Box>
@@ -605,9 +535,7 @@ const ListOfRequest = () => {
               onRowClick={handleClickRequestId}
               slots={{ toolbar: ServerSideToolbar }}
               slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
+                baseButton: { variant: 'outlined' },
                 toolbar: {
                   value: searchValue,
                   clearSearch: () => handleSearch(''),
@@ -617,9 +545,7 @@ const ListOfRequest = () => {
                   }
                 }
               }}
-              externalTableStyle={{
-                paddingX: 5
-              }}
+              externalTableStyle={{ paddingX: 5 }}
             />
           </Card>
         </>
@@ -628,4 +554,4 @@ const ListOfRequest = () => {
   )
 }
 
-export default ListOfRequest
+export default LabRequestPage

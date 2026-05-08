@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react'
-
 import {
   Box,
   Breadcrumbs,
@@ -12,38 +11,44 @@ import {
   debounce
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import toast from 'react-hot-toast'
 import moment from 'moment'
+import toast from 'react-hot-toast'
+
+import { AuthContext } from 'src/context/AuthContext'
+import { notFound } from 'next/navigation'
 
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
-import { AuthContext } from 'src/context/AuthContext'
-import Error404 from 'src/pages/404'
 import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import AddLabTest from 'src/views/pages/lab/test/addTest'
-import TestDetails from 'src/views/pages/lab/test/testDetails'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import AddSample from 'src/views/pages/lab/sample/addSample'
+import SampleDetails from 'src/views/pages/lab/sample/sampleDetails'
 
-import { addLabTest, deleteLabTest, getLabTestList, updateLabTest } from 'src/lib/api/lab/master'
+import { addLabSample, deleteLabSample, getLabSampleList, updateLabSample } from 'src/lib/api/lab/master'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
-import type { LabTestMaster, EditParams } from 'src/types/lab'
+import type { LabSampleMaster, EditParams } from 'src/types/lab'
 import type { GridColDef, GridRenderCellParams, GridSortModel } from '@mui/x-data-grid'
 
-interface IndexedLabTestMaster extends LabTestMaster {
+interface IndexedLabSampleMaster extends LabSampleMaster {
   sl_no: number
 }
 
-const LabTest = () => {
+const LabSamples = () => {
   const theme = useTheme()
+  const authData = useContext(AuthContext) as any
+  const editParamsInitialState: EditParams = { id: null, label: null }
+
+  const medical_add_samples = authData?.userData?.permission?.user_settings?.medical_add_samples
+
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
   const [sortColumn, setSortColumn] = useState('label')
   const [total, setTotal] = useState(0)
-  const [rows, setRows] = useState<LabTestMaster[]>([])
+  const [rows, setRows] = useState<LabSampleMaster[]>([])
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const editParamsInitialState: EditParams = { id: null, label: null, sample_type_count: null, sub_test_count: null }
   const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
   const [resetForm, setResetForm] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
@@ -51,11 +56,8 @@ const LabTest = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState<number | null>(null)
-  const authData = useContext(AuthContext) as any
 
-  const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
-
-  function loadServerRows(_currentPage: number, data: LabTestMaster[]) {
+  function loadServerRows(_currentPage: number, data: LabSampleMaster[]) {
     return data
   }
 
@@ -71,9 +73,9 @@ const LabTest = () => {
           limit: paginationModel.pageSize
         }
 
-        await getLabTestList({ params }).then(res => {
+        await getLabSampleList({ params }).then(res => {
           setTotal(parseInt(String(res?.data?.total_count)))
-          setRows(loadServerRows(paginationModel.page, (res?.data as { data?: LabTestMaster[] })?.data ?? []))
+          setRows(loadServerRows(paginationModel.page, res?.data?.result ?? []))
         })
         setResetForm(true)
         setLoading(false)
@@ -114,19 +116,19 @@ const LabTest = () => {
   }
 
   const addEventSidebarOpen = () => {
-    setEditParams({ id: null, label: null, sample_type_count: null, sub_test_count: null })
+    setEditParams({ id: null, label: null })
     setResetForm(true)
     setOpenDrawer(true)
   }
 
-  const handleSubmitData = async (payload: Record<string, unknown> | FormData) => {
+  const handleSubmitData = async (payload: Record<string, unknown>) => {
     try {
       setSubmitLoader(true)
       let response
       if (editParams?.id !== null) {
-        response = await updateLabTest(editParams?.id as number, payload as unknown as Parameters<typeof updateLabTest>[1])
+        response = await updateLabSample(editParams?.id as number, payload)
       } else {
-        response = await addLabTest(payload as unknown as Parameters<typeof addLabTest>[0])
+        response = await addLabSample(payload)
       }
       if (response?.success) {
         Toaster({ type: 'success', message: response?.message })
@@ -144,7 +146,7 @@ const LabTest = () => {
     }
   }
 
-  const handleEdit = async (event: React.MouseEvent, params: LabTestMaster) => {
+  const handleEdit = async (event: React.MouseEvent, params: LabSampleMaster) => {
     event.stopPropagation()
     setResetForm(true)
     setEditParams(params as EditParams)
@@ -154,7 +156,7 @@ const LabTest = () => {
   const confirmDeleteAction = async () => {
     try {
       setBtnLoader(true)
-      const res = await deleteLabTest(selectedId as number)
+      const res = await deleteLabSample(selectedId as number)
       if (res?.success) {
         setBtnLoader(false)
         setIsModalOpenDelete(false)
@@ -173,7 +175,7 @@ const LabTest = () => {
     }
   }
 
-  const handleDelete = (event: React.MouseEvent, testId: LabTestMaster) => {
+  const handleDelete = (event: React.MouseEvent, testId: LabSampleMaster) => {
     event.stopPropagation()
     setIsModalOpenDelete(true)
     setSelectedId(testId?.id)
@@ -184,8 +186,8 @@ const LabTest = () => {
       flex: 0.3,
       minWidth: 200,
       sortable: false,
-      field: 'LAB TEST NAME',
-      headerName: 'LAB TEST NAME',
+      field: 'LAB SAMPLE NAME',
+      headerName: 'LAB SAMPLE NAME',
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title={params.row.label ? params.row.label : '-'}>
           <Typography
@@ -206,25 +208,13 @@ const LabTest = () => {
     },
     {
       flex: 0.3,
-      minWidth: 180,
-      field: 'NO OF SAMPLES TYPES',
-      headerName: 'NO OF SAMPLES TYPES',
-      sortable: false,
-      renderCell: (params: GridRenderCellParams) => (
-        <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.sample_type_count ? params.row.sample_type_count : '-'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.3,
       minWidth: 170,
-      field: 'NO OF SUB TESTS ',
-      headerName: 'NO OF SUB TESTS ',
+      field: 'NO OF LAB TESTS ',
+      headerName: 'NO OF LAB TESTS ',
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.sub_test_count ? params.row.sub_test_count : '-'}
+          {params.row.lab_test_count ? params.row.lab_test_count : '-'}
         </Typography>
       )
     },
@@ -243,8 +233,7 @@ const LabTest = () => {
               width: 30,
               height: 30,
               borderRadius: '50%',
-              background: theme.palette.customColors.displaybgPrimary,
-              overflow: 'hidden'
+              background: theme.palette.customColors.displaybgPrimary
             }}
             src={params?.row.created_by_user?.profile_pic}
           />
@@ -264,7 +253,7 @@ const LabTest = () => {
                 {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
               </Typography>
             </Tooltip>
-            <Tooltip title={params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}>
+            <Tooltip title={params.row.created_at ? moment(params.row.created_at).format('DD/MMM/YYYY') : '-'}>
               <Typography
                 noWrap
                 variant='body2'
@@ -276,7 +265,7 @@ const LabTest = () => {
                   whiteSpace: 'nowrap'
                 }}
               >
-                {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
+                {params.row.created_at ? moment(params.row.created_at).format('DD/MMM/YYYY') : '-'}
               </Typography>
             </Tooltip>
           </Box>
@@ -291,19 +280,17 @@ const LabTest = () => {
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <>
-          {parseInt(params.row.zoo_id) === 0 ? null : (
-            <Box>
-              <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton>
-            </Box>
-          )}
+          {params?.row?.zoo_id !== '0' ? (
+            <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          ) : null}
         </>
       )
     }
   ]
 
-  const handleCellClick = (params: { row: LabTestMaster }) => {
+  const handleCellClick = (params: { row: LabSampleMaster }) => {
     setEditParams(params.row as EditParams)
     setOpenDetailsDrawer(true)
   }
@@ -319,17 +306,17 @@ const LabTest = () => {
 
   const getSlNo = (index: number) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows: IndexedLabTestMaster[] = rows?.map((row, index) => ({
+  const indexedRows: IndexedLabSampleMaster[] = rows?.map((row, index) => ({
     ...row,
     id: row.id,
     sl_no: getSlNo(index)
   }))
 
+  if (!medical_add_samples) notFound()
+
   return (
     <>
-      {medical_add_tests ? (
-        <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
@@ -339,51 +326,42 @@ const LabTest = () => {
                 cursor: 'pointer'
               }}
             >
-              Lab Tests
+              Lab Samples
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Lab Tests' sx={{ paddingX: 5 }} action={headerAction} />
+            <CardHeader title='Lab Samples' sx={{ paddingX: 5 }} action={headerAction} />
 
             <CommonTable
               indexedRows={indexedRows === undefined ? [] : indexedRows}
               total={total}
               columns={columns}
               paginationModel={paginationModel}
-              setPaginationModel={setPaginationModel}
               handleSortModel={handleSortModel}
+              setPaginationModel={setPaginationModel}
               loading={loading}
-              onCellClick={handleCellClick}
-              pageSizeOptions={[7, 10, 25, 50]}
-              searchValue={searchValue}
-              handleSearch={handleSearch}
+              onRowClick={handleCellClick}
               columnVisibilityModel={{
                 sl_no: false
               }}
-              externalTableStyle={{
-                paddingX: 5,
-                borderTopLeftRadius: '8px',
-                '& .MuiBox-root': {
-                  paddingX: 0
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
                 },
-                '.MuiDataGrid-main': {
-                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                  borderRadius: '8px'
-                },
-                '& .MuiDataGrid-footerContainer': {
-                  border: 'none !important'
-                },
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: (event: React.ChangeEvent<HTMLInputElement>) => handleSearch(event.target.value)
                 }
+              }}
+              externalTableStyle={{
+                paddingX: 5
               }}
             />
           </Card>
           {openDrawer && (
-            <AddLabTest
+            <AddSample
               addEventSidebarOpen={openDrawer}
               setOpenDrawer={setOpenDrawer}
               handleSubmitData={handleSubmitData}
@@ -393,7 +371,7 @@ const LabTest = () => {
             />
           )}
           {openDetailsDrawer && (
-            <TestDetails
+            <SampleDetails
               addEventSidebarOpen={openDetailsDrawer}
               setOpenDetailsDrawer={setOpenDetailsDrawer}
               editParams={editParams}
@@ -406,14 +384,10 @@ const LabTest = () => {
             onClose={() => setIsModalOpenDelete(false)}
             confirmLoading={btnLoader}
             onConfirm={confirmDeleteAction}
-            title='Are you sure you want to delete this lab test?'
+            title='Are you sure you want to delete this lab sample?'
           />
-        </>
-      ) : (
-        <Error404></Error404>
-      )}
     </>
   )
 }
 
-export default LabTest
+export default LabSamples

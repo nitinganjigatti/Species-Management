@@ -11,7 +11,7 @@ import { Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography } fr
 import Icon from 'src/@core/components/icon'
 
 import { AuthContext } from 'src/context/AuthContext'
-import Error404 from 'src/pages/404'
+import { notFound } from 'next/navigation'
 import AddMortalityReasons from 'src/views/pages/lab/mortality-reason'
 import { useTheme } from '@mui/material/styles'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -184,11 +184,11 @@ const MortalityReasonPage = () => {
     </div>
   )
 
+  if (!medical_add_mortality_reasons) notFound()
+
   return (
     <>
-      {medical_add_mortality_reasons ? (
-        <>
-          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
@@ -238,12 +238,6 @@ const MortalityReasonPage = () => {
               editParams={editParams}
             />
           )}
-        </>
-      ) : (
-        <>
-          <Error404></Error404>
-        </>
-      )}
     </>
   )
 }

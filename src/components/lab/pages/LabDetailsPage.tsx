@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { Breadcrumbs, Grid, Tab, Typography } from '@mui/material'
 import ShowLabCard from 'src/components/lab/lab-details/ShowLabCard'
@@ -6,15 +7,19 @@ import Site from 'src/components/lab/lab-details/Site'
 import Tests from 'src/components/lab/lab-details/Tests'
 import Users from 'src/components/lab/lab-details/Users'
 import { getLabDeatilsById } from 'src/lib/api/lab/addLab'
-import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import type { Lab, LabSampleWithTests } from 'src/types/lab'
 
-const LabDetails = () => {
+const LabDetailsPage = () => {
   const theme = useTheme()
   const router = useRouter()
-  const { id, page, q, pageSize } = router.query
+  const searchParams = useSearchParams()
+
+  const id = searchParams?.get('id')
+  const page = searchParams?.get('page')
+  const q = searchParams?.get('q')
+  const pageSize = searchParams?.get('pageSize')
 
   const [loader, setLoader] = useState(false)
   const [status, setStatus] = useState('site')
@@ -25,9 +30,9 @@ const LabDetails = () => {
     setStatus(newValue)
   }
 
-  const labDetailsById = async (labId: string | string[]) => {
+  const labDetailsById = async (labId: string) => {
     try {
-      const res = await getLabDeatilsById(String(labId))
+      const res = await getLabDeatilsById(labId)
       if (res) {
         setShowLabDetails((res?.data as Lab[])?.[0])
         setLabTests((res?.data as Lab[])?.[0]?.lab_details)
@@ -37,11 +42,20 @@ const LabDetails = () => {
   }
 
   useEffect(() => {
-    if (id != undefined) {
+    if (id) {
       setLoader(true)
       labDetailsById(id)
     }
   }, [id])
+
+  const handleBackToList = () => {
+    const sp = new URLSearchParams()
+    if (page) sp.set('page', page)
+    if (q) sp.set('q', q)
+    if (pageSize) sp.set('pageSize', pageSize)
+    const qs = sp.toString()
+    router.push(`/lab/lab-list${qs ? `?${qs}` : ''}`)
+  }
 
   return (
     <>
@@ -53,26 +67,10 @@ const LabDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Labs
             </Typography>
-            <Typography
-              sx={{ cursor: 'pointer' }}
-              color='inherit'
-              onClick={() =>
-                router.push({
-                  pathname: '/lab/lab-list',
-                  query: { page, q, pageSize }
-                })
-              }
-            >
+            <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={handleBackToList}>
               Labs list
             </Typography>
-            <Typography
-              sx={{
-                color: 'text.primary',
-                cursor: 'pointer'
-              }}
-            >
-              Lab details
-            </Typography>
+            <Typography sx={{ color: 'text.primary', cursor: 'pointer' }}>Lab details</Typography>
           </Breadcrumbs>
 
           <Grid container spacing={2}>
@@ -86,15 +84,14 @@ const LabDetails = () => {
                   <Tab value='tests' label='TESTS' />
                   <Tab value='users' label='USERS' />
                 </TabList>
-
                 <TabPanel value='site'>
-                  <Site labId={id} />
+                  <Site labId={id ?? undefined} />
                 </TabPanel>
                 <TabPanel value='tests'>
                   <Tests labTest={labTests} />
                 </TabPanel>
                 <TabPanel value='users'>
-                  <Users labId={id} />
+                  <Users labId={id ?? undefined} />
                 </TabPanel>
               </TabContext>
             </Grid>
@@ -105,4 +102,4 @@ const LabDetails = () => {
   )
 }
 
-export default LabDetails
+export default LabDetailsPage

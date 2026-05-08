@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 import type { MouseEvent, SyntheticEvent } from 'react'
-import Router from 'next/router'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, useParams } from 'next/navigation'
 
 import {
   Button,
@@ -128,8 +127,10 @@ const RequestDetails = () => {
   const authData = useContext(AuthContext) as any
   const searchParams = useSearchParams()
 
-  const { id, lab_id } = Router.query
-  const Selectedlab_id = searchParams?.get('lab_id')
+  const routeParams = useParams<{ id: string }>()
+  const id = routeParams?.id
+  const lab_id = searchParams?.get('lab_id')
+  const Selectedlab_id = lab_id
   const localLabData = authData?.userData?.modules?.lab_data?.lab
 
   const [fileViews, setFileViews] = useState<FileViews | undefined>(
