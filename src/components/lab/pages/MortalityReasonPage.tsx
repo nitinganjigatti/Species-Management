@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState, useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
@@ -26,6 +27,7 @@ const escapeRegExp = (value: string) => {
 const MortalityReasonPage = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext) as any
+  const { t } = useTranslation()
   const [openDrawer, setOpenDrawer] = useState(false)
   const [rows, setRows] = useState<MortalityReason[]>([])
   const editParamsInitialState: EditParams = { id: null, label: null }
@@ -130,7 +132,7 @@ const MortalityReasonPage = () => {
       minWidth: 30,
       sortable: false,
       field: 'Mortality Reasons',
-      headerName: 'Mortality Reasons',
+      headerName: t('lab_module.mortality_reasons'),
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
@@ -144,7 +146,7 @@ const MortalityReasonPage = () => {
       flex: 0.3,
       minWidth: 30,
       field: 'Description ',
-      headerName: 'Description ',
+      headerName: t('description'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -159,7 +161,7 @@ const MortalityReasonPage = () => {
       flex: 0.2,
       minWidth: 30,
       field: 'Action',
-      headerName: 'Action',
+      headerName: t('action'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <>
@@ -179,7 +181,7 @@ const MortalityReasonPage = () => {
     <div>
       <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
         <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
+        &nbsp; {t('add_new')}
       </Button>
     </div>
   )
@@ -190,7 +192,7 @@ const MortalityReasonPage = () => {
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Lab Master
+              {t('lab_module.lab_master')}
             </Typography>
             <Typography
               sx={{
@@ -198,12 +200,12 @@ const MortalityReasonPage = () => {
                 cursor: 'pointer'
               }}
             >
-              Mortality Reason
+              {t('lab_module.mortality_reason')}
             </Typography>
           </Breadcrumbs>
           <Card>
             <CardHeader
-              title={'Mortality Reason'}
+              title={t('lab_module.mortality_reason')}
               sx={{ paddingX: 5 }}
               action={headerAction !== undefined ? headerAction : null}
             />

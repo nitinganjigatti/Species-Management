@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, notFound } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 import { Box, Badge, Breadcrumbs, Tooltip, Typography, Button, Card, CardHeader, IconButton } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { debounce } from 'lodash'
 
 import { AuthContext } from 'src/context/AuthContext'
-import ErrorScreen from 'src/pages/Error'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -29,15 +29,18 @@ const LabListPage = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const authData = useContext(AuthContext) as any
+  const { t } = useTranslation()
 
   const [loader] = useState(false)
   const [storedData, setStoredData] = useState<unknown>()
-  const authData2 = useContext(AuthContext) as any
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
     setStoredData(Data ? JSON.parse(Data) : null)
   }, [])
+
+  const hasAccess =
+    (authData?.userData?.modules?.lab_data?.lab?.length ?? 0) > 0 || authData?.userData?.roles?.settings?.add_lab
 
   const handleEdit = async (e: React.MouseEvent, params: GridRenderCellParams) => {
     e.stopPropagation()
@@ -129,12 +132,14 @@ const LabListPage = () => {
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 
+  if (!hasAccess) notFound()
+
   const columns: GridColDef[] = [
     {
       flex: 0.3,
       minWidth: 250,
       field: 'lab_name',
-      headerName: 'LAB NAME',
+      headerName: t('lab_module.lab_name'),
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ width: '100%', display: 'flex' }}>
           <Tooltip title={params.row.lab_name || ''}>
@@ -154,7 +159,11 @@ const LabListPage = () => {
             </Typography>
           </Tooltip>
           {params.row.is_default === '1' ? (
-            <Badge sx={{ position: 'relative', right: 20, top: 10 }} color='success' badgeContent='Default' />
+            <Badge
+              sx={{ position: 'relative', right: 20, top: 10 }}
+              color='success'
+              badgeContent={t('lab_module.default')}
+            />
           ) : null}
         </Box>
       )
@@ -163,7 +172,7 @@ const LabListPage = () => {
       flex: 0.2,
       minWidth: 120,
       field: 'type',
-      headerName: 'Type',
+      headerName: t('type'),
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title={params.row?.type ? params.row?.type : '-'}>
           <Typography
@@ -188,7 +197,7 @@ const LabListPage = () => {
       flex: 0.4,
       minWidth: 160,
       field: 'address',
-      headerName: 'Address',
+      headerName: t('lab_module.address'),
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title={params.row?.address ? params.row?.address : '-'}>
           <Typography
@@ -207,7 +216,7 @@ const LabListPage = () => {
             minWidth: 70,
             field: 'Action',
             sortable: false,
-            headerName: 'Action',
+            headerName: t('action'),
             renderCell: (params: GridRenderCellParams) => (
               <IconButton size='small' onClick={e => handleEdit(e, params)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
@@ -233,7 +242,7 @@ const LabListPage = () => {
             router.push(`/lab/lab-list/add-Lab${qs ? `?${qs}` : ''}`)
           }}
         >
-          Add Lab
+          {t('lab_module.add_lab')}
         </Button>
       ) : null}
     </>
@@ -267,46 +276,40 @@ const LabListPage = () => {
 
   return (
     <>
-      {(authData?.userData?.modules?.lab_data?.lab?.length ?? 0) > 0 || authData?.userData?.roles?.settings?.add_lab ? (
-        <>
-          {loader ? (
-            <FallbackSpinner sx={{}} />
-          ) : (
-            <>
-              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                <Typography color='inherit'>Lab</Typography>
-                <Typography sx={{ color: 'text.primary' }}>Lab list</Typography>
-              </Breadcrumbs>
-              <Card sx={{ paddingX: 5 }}>
-                <CardHeader sx={{ paddingX: 0 }} title='Lab List' action={headerAction} />
-                <CommonTable
-                  indexedRows={indexedRows === undefined ? [] : indexedRows}
-                  total={total}
-                  columns={columns}
-                  paginationModel={paginationModel}
-                  setPaginationModel={handlePaginationModelChange}
-                  handleSortModel={handleSortModel}
-                  loading={loading}
-                  onCellClick={onCellClick}
-                  pageSizeOptions={[10, 25, 50]}
-                  searchValue={searchValue}
-                  handleSearch={handleSearch}
-                  externalTableStyle={{
-                    borderTopLeftRadius: '8px',
-                    '& .MuiBox-root': { paddingX: 0 },
-                    '.MuiDataGrid-main': {
-                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
-                      borderRadius: '8px'
-                    },
-                    '& .MuiDataGrid-footerContainer': { border: 'none !important' }
-                  }}
-                />
-              </Card>
-            </>
-          )}
-        </>
+      {loader ? (
+        <FallbackSpinner sx={{}} />
       ) : (
-        <ErrorScreen />
+        <>
+          <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+            <Typography color='inherit'>{t('lab_module.lab')}</Typography>
+            <Typography sx={{ color: 'text.primary' }}>{t('lab_module.labs_list')}</Typography>
+          </Breadcrumbs>
+          <Card sx={{ paddingX: 5 }}>
+            <CardHeader sx={{ paddingX: 0 }} title={t('lab_module.lab_list')} action={headerAction} />
+            <CommonTable
+              indexedRows={indexedRows === undefined ? [] : indexedRows}
+              total={total}
+              columns={columns}
+              paginationModel={paginationModel}
+              setPaginationModel={handlePaginationModelChange}
+              handleSortModel={handleSortModel}
+              loading={loading}
+              onCellClick={onCellClick}
+              pageSizeOptions={[10, 25, 50]}
+              searchValue={searchValue}
+              handleSearch={handleSearch}
+              externalTableStyle={{
+                borderTopLeftRadius: '8px',
+                '& .MuiBox-root': { paddingX: 0 },
+                '.MuiDataGrid-main': {
+                  border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                  borderRadius: '8px'
+                },
+                '& .MuiDataGrid-footerContainer': { border: 'none !important' }
+              }}
+            />
+          </Card>
+        </>
       )}
     </>
   )

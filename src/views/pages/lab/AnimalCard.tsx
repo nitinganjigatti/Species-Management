@@ -1,9 +1,11 @@
 import { Box, Typography, useTheme } from '@mui/material'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import type { AnimalCardProps } from 'src/types/lab'
 
 const AnimalCard = ({ animalDetails }: AnimalCardProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   return (
     <Box
@@ -95,7 +97,7 @@ const AnimalCard = ({ animalDetails }: AnimalCardProps) => {
               lineHeight: '19.36px'
             }}
           >
-            AID : {animalDetails?.animal_id}
+            {t('aid')} : {animalDetails?.animal_id}
           </Typography>
         )}
 
@@ -128,7 +130,7 @@ const AnimalCard = ({ animalDetails }: AnimalCardProps) => {
               lineHeight: '19.36px'
             }}
           >
-            Breed : {animalDetails?.breed_name}
+            {t('breed')} : {animalDetails?.breed_name}
           </Typography>
         )}
 
@@ -141,7 +143,7 @@ const AnimalCard = ({ animalDetails }: AnimalCardProps) => {
               lineHeight: '19.36px'
             }}
           >
-            Variant : {animalDetails?.morph_name}
+            {t('variant')} : {animalDetails?.morph_name}
           </Typography>
         )}
 
@@ -153,7 +155,7 @@ const AnimalCard = ({ animalDetails }: AnimalCardProps) => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          <span style={{ fontWeight: 600 }}> Encl: </span>
+          <span style={{ fontWeight: 600 }}> {t('encl')}: </span>
           {animalDetails?.user_enclosure_name}
         </Typography>
         <Typography
@@ -164,7 +166,7 @@ const AnimalCard = ({ animalDetails }: AnimalCardProps) => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          <span style={{ fontWeight: 600 }}>Sec: </span>
+          <span style={{ fontWeight: 600 }}>{t('sec')}: </span>
           {animalDetails?.section_name}
         </Typography>
         <Typography
@@ -175,7 +177,7 @@ const AnimalCard = ({ animalDetails }: AnimalCardProps) => {
             color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          <span style={{ fontWeight: 600 }}>Site: </span>
+          <span style={{ fontWeight: 600 }}>{t('site')}: </span>
           {animalDetails?.site_name}
         </Typography>
       </Box>

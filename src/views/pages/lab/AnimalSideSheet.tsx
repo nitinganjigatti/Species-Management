@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
@@ -6,7 +7,7 @@ import AnimalParentCard from 'src/views/utility/animalParentCard'
 import type { AnimalSideSheetProps } from 'src/types/lab'
 
 const AnimalSideSheet = ({ openAnimalSheet, setOpenAnimalSheet, request }: AnimalSideSheetProps) => {
-
+  const { t } = useTranslation()
   const [first, setfirst] = useState(0)
 
   useEffect(() => {
@@ -41,7 +42,7 @@ const AnimalSideSheet = ({ openAnimalSheet, setOpenAnimalSheet, request }: Anima
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
           <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
-          <Typography variant='h6'>Total animals - {first}</Typography>
+          <Typography variant='h6'>{t('total_animals')} - {first}</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>

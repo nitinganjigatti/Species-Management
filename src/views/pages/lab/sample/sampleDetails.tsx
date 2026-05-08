@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { LoadingButton } from '@mui/lab'
 import { Box, Drawer, IconButton, Typography, Button, CardContent } from '@mui/material'
 
@@ -20,6 +21,7 @@ interface SampleDetailData {
 
 const SampleDetails = (props: SampleDetailsProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const { addEventSidebarOpen, setOpenDetailsDrawer, setOpenDrawer, submitLoader, editParams, fetchTableData } = props
   const [sampleDetails, setSampleDetails] = useState<SampleDetailData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -101,7 +103,7 @@ const SampleDetails = (props: SampleDetailsProps) => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Typography variant='h6'>{editParams?.id !== null && 'Lab Sample Details'}</Typography>
+              <Typography variant='h6'>{editParams?.id !== null && t('lab_module.lab_sample_details')}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -139,7 +141,7 @@ const SampleDetails = (props: SampleDetailsProps) => {
                             color: 'text.secondary'
                           }}
                         >
-                          Test Name
+                          {t('lab_module.test_name')}
                         </Typography>
                         <Typography variant='h5' component='div'>
                           {sampleDetails.label}
@@ -154,7 +156,7 @@ const SampleDetails = (props: SampleDetailsProps) => {
                           mb: 2
                         }}
                       >
-                        No Lab Tests
+                        {t('lab_module.no_lab_tests')}
                       </Typography>
                       {sampleDetails?.lab_test_count}
                     </CardContent>
@@ -182,7 +184,7 @@ const SampleDetails = (props: SampleDetailsProps) => {
                   }}
                 >
                   <Button fullWidth onClick={handleDelete} size='large' type='reset' color='error' variant='outlined'>
-                    Delete
+                    {t('delete')}
                   </Button>
                   <LoadingButton
                     fullWidth
@@ -194,7 +196,7 @@ const SampleDetails = (props: SampleDetailsProps) => {
                     size='large'
                     loading={submitLoader}
                   >
-                    {editParams?.id !== null && `Edit`}
+                    {editParams?.id !== null && t('edit')}
                   </LoadingButton>
                 </Box>
               ) : null}
@@ -207,7 +209,7 @@ const SampleDetails = (props: SampleDetailsProps) => {
         onClose={() => setIsModalOpenDelete(false)}
         confirmLoading={btnLoader}
         onConfirm={confirmDeleteAction}
-        title='Are you sure you want to delete this lab sample?'
+        title={t('lab_module.confirm_delete_lab_sample')}
       />
     </>
   )

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Typography, Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { format } from 'date-fns'
@@ -7,11 +8,12 @@ import type { MedicalRecordNotesProps } from 'src/types/lab'
 
 const MedicalRecordNotes = ({ notes }: MedicalRecordNotesProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   if (!notes?.length) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
-        <Typography sx={{ color: theme.palette.customColors.antzNeturalBg }}>Empty Notes</Typography>
+        <Typography sx={{ color: theme.palette.customColors.antzNeturalBg }}>{t('lab_module.empty_notes')}</Typography>
       </Box>
     )
   }

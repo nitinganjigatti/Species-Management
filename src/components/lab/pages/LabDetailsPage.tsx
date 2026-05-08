@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { Breadcrumbs, Grid, Tab, Typography } from '@mui/material'
 import ShowLabCard from 'src/components/lab/lab-details/ShowLabCard'
@@ -15,6 +16,7 @@ const LabDetailsPage = () => {
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useTranslation()
 
   const id = searchParams?.get('id')
   const page = searchParams?.get('page')
@@ -65,12 +67,12 @@ const LabDetailsPage = () => {
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Labs
+              {t('lab_module.labs')}
             </Typography>
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={handleBackToList}>
-              Labs list
+              {t('lab_module.labs_list')}
             </Typography>
-            <Typography sx={{ color: 'text.primary', cursor: 'pointer' }}>Lab details</Typography>
+            <Typography sx={{ color: 'text.primary', cursor: 'pointer' }}>{t('lab_module.lab_details')}</Typography>
           </Breadcrumbs>
 
           <Grid container spacing={2}>
@@ -80,9 +82,9 @@ const LabDetailsPage = () => {
             <Grid size={{ md: 9 }}>
               <TabContext value={status}>
                 <TabList onChange={handleChange}>
-                  <Tab value='site' label='SITES' sx={{ ml: 5 }} />
-                  <Tab value='tests' label='TESTS' />
-                  <Tab value='users' label='USERS' />
+                  <Tab value='site' label={t('lab_module.sites')} sx={{ ml: 5 }} />
+                  <Tab value='tests' label={t('lab_module.tests')} />
+                  <Tab value='users' label={t('lab_module.users')} />
                 </TabList>
                 <TabPanel value='site'>
                   <Site labId={id ?? undefined} />

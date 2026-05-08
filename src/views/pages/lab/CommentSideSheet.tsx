@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Drawer, IconButton, Typography, TextField, Button, Box, Avatar } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import moment from 'moment'
@@ -19,6 +20,7 @@ interface CommentFormValues {
 }
 
 const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, api }: CommentSideSheetProps) => {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
 
@@ -43,7 +45,7 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
       if (res?.status) {
         setLoading(false)
         setOpenCommentSheet(false)
-        Toaster({ type: 'success', message: isEdit ? 'Notes updated successfully' : 'Notes added successfully' })
+        Toaster({ type: 'success', message: isEdit ? t('lab_module.notes_updated_successfully') : t('lab_module.notes_added_successfully') })
         api()
         setIsEdit(false)
       }
@@ -78,7 +80,7 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Icon icon='fluent:comment-note-24-regular' width='28' height='28' color='rgba(68, 84, 74, 1)' />
-          <Typography variant='h6'>Notes</Typography>
+          <Typography variant='h6'>{t('notes')}</Typography>
         </Box>
         <IconButton onClick={() => setOpenCommentSheet(false)}>
           <Icon icon='mdi:close' fontSize={20} />
@@ -135,7 +137,7 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
         ) : (
           <>
             <TextField
-              label='Add Notes'
+              label={t('lab_module.add_notes')}
               variant='outlined'
               fullWidth
               multiline
@@ -148,11 +150,11 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
               {isEdit && (
                 <Button variant='outlined' onClick={() => setIsEdit(false)} sx={{ minWidth: 120 }}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
               )}
               <LoadingButton loading={loading} type='submit' variant='contained' sx={{ minWidth: 120 }}>
-                {isEdit ? 'Update Notes' : 'Add Notes'}
+                {isEdit ? t('lab_module.update_notes') : t('lab_module.add_notes')}
               </LoadingButton>
             </Box>
           </>

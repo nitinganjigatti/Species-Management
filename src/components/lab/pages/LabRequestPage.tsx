@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 import {
   Box,
@@ -54,6 +55,7 @@ const LabRequestPage = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const authData = useContext(AuthContext) as any
+  const { t } = useTranslation()
 
   const [loader] = useState(false)
   const [selectLoader] = useState(false)
@@ -93,7 +95,7 @@ const LabRequestPage = () => {
     {
       width: 300,
       field: 'lab_test_id',
-      headerName: 'REQUEST ID',
+      headerName: t('lab_module.request_id'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', cursor: 'pointer', ml: 3 }}>
@@ -105,7 +107,7 @@ const LabRequestPage = () => {
       width: 200,
       sortable: false,
       field: 'site_name',
-      headerName: 'Site',
+      headerName: t('site'),
       renderCell: (params: GridRenderCellParams) => (
         <Typography
           variant='body2'
@@ -124,7 +126,7 @@ const LabRequestPage = () => {
       width: 150,
       field: 'created_at',
       sortable: false,
-      headerName: 'Date',
+      headerName: t('date'),
       renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {moment(params.row.created_at).format('DD MMM YYYY')}
@@ -134,7 +136,7 @@ const LabRequestPage = () => {
     {
       width: 150,
       field: 'total_test',
-      headerName: 'No. of Tests ',
+      headerName: t('lab_module.no_of_tests'),
       sortable: false,
       align: 'center',
       renderCell: (params: GridRenderCellParams) => (
@@ -155,7 +157,7 @@ const LabRequestPage = () => {
       width: 200,
       field: 'status',
       sortable: false,
-      headerName: 'Status',
+      headerName: t('status'),
       renderCell: (params: GridRenderCellParams) => (
         <Stack direction='row' spacing={2} sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
           {params.row.total_tests_pending > 0 && (
@@ -215,7 +217,7 @@ const LabRequestPage = () => {
     {
       width: 200,
       field: 'Reports',
-      headerName: 'Reports',
+      headerName: t('reports'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <>
@@ -404,12 +406,12 @@ const LabRequestPage = () => {
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Labs
+              {t('lab_module.labs')}
             </Typography>
-            <Typography sx={{ color: 'text.primary', cursor: 'pointer' }}>Requests list</Typography>
+            <Typography sx={{ color: 'text.primary', cursor: 'pointer' }}>{t('lab_module.requests_list')}</Typography>
           </Breadcrumbs>
           <Card key={String(selectedLab)}>
-            <CardHeader title={'Requests lists'} />
+            <CardHeader title={t('lab_module.requests_lists')} />
 
             <Stack
               direction={{ md: 'row', sm: 'row', sx: 'column' }}
@@ -420,12 +422,12 @@ const LabRequestPage = () => {
                   <CircularProgress color='success' />
                 ) : (
                   <FormControl fullWidth size='small'>
-                    <InputLabel id='lab-select-label'>Select Lab</InputLabel>
+                    <InputLabel id='lab-select-label'>{t('lab_module.select_lab')}</InputLabel>
                     <Select
                       labelId='lab-select-label'
                       id='lab-select'
                       value={selectedLab ?? ''}
-                      label='Select Lab'
+                      label={t('lab_module.select_lab')}
                       onChange={event => handleLabChange(event.target.value as number | string)}
                       sx={{ fontWeight: 'bold', borderRadius: '5px' }}
                       MenuProps={{ PaperProps: { sx: { maxHeight: 300, overflowY: 'auto' } } }}
@@ -457,7 +459,7 @@ const LabRequestPage = () => {
                 sx={{ gap: 2, display: 'flex', alignItems: 'center' }}
               >
                 <Typography>
-                  Total Requests -{' '}
+                  {t('lab_module.total_requests')} -{' '}
                   <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
                 <Box
@@ -470,7 +472,7 @@ const LabRequestPage = () => {
                   }}
                 >
                   <Typography sx={{ color: theme.palette.customColors.customDropdownColor, fontSize: '12px' }}>
-                    Pending Tests - {stats?.total_tests_pending}
+                    {t('lab_module.pending_tests')} - {stats?.total_tests_pending}
                   </Typography>
                 </Box>
                 <Box
@@ -483,7 +485,7 @@ const LabRequestPage = () => {
                   }}
                 >
                   <Typography sx={{ color: theme.palette.customColors.moderateSecondary, fontSize: '12px' }}>
-                    Tests in Progress - {stats?.total_tests_inprogress}
+                    {t('lab_module.tests_in_progress')} - {stats?.total_tests_inprogress}
                   </Typography>
                 </Box>
                 <Box
@@ -496,7 +498,7 @@ const LabRequestPage = () => {
                   }}
                 >
                   <Typography sx={{ color: theme.palette.primary.main, fontSize: '12px' }}>
-                    Completed Tests - {stats?.total_tests_completed}
+                    {t('lab_module.completed_tests')} - {stats?.total_tests_completed}
                   </Typography>
                 </Box>
               </Stack>
@@ -508,19 +510,19 @@ const LabRequestPage = () => {
               sx={{ alignItems: 'center', justifyContent: 'flex-end', m: 5 }}
             >
               <>
-                <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
+                <Typography sx={{ fontWeight: 'bold' }}>{t('status')} : </Typography>
               </>
               <Box sx={{ gap: 1, display: 'flex', alignItems: 'center' }}>
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.customDropdownColor} />
-                <Typography variant='subtitle1'>Pending</Typography>
+                <Typography variant='subtitle1'>{t('pending')}</Typography>
               </Box>
               <Box sx={{ gap: 1, display: 'flex', alignItems: 'center' }}>
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.moderateSecondary} />
-                <Typography variant='subtitle1'>In Progress</Typography>
+                <Typography variant='subtitle1'>{t('lab_module.in_progress')}</Typography>
               </Box>
               <Box sx={{ gap: 1, display: 'flex', alignItems: 'center' }}>
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.primary.main} />
-                <Typography variant='subtitle1'>Completed</Typography>
+                <Typography variant='subtitle1'>{t('completed')}</Typography>
               </Box>
             </Stack>
 

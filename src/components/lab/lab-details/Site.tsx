@@ -1,5 +1,6 @@
 import { Box, Card, CardHeader, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { GetLabSitesById } from 'src/lib/api/lab/labDetails'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { useTheme } from '@mui/material/styles'
@@ -8,13 +9,14 @@ import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 
 const Site = ({ labId }: SiteProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const columns: GridColDef[] = [
     {
       flex: 2.3,
       minWidth: 20,
       field: 'site',
-      headerName: 'SITES',
+      headerName: t('lab_module.sites'),
       filterable: false,
       renderCell: (params: GridRenderCellParams) => (
         <>
@@ -60,7 +62,7 @@ const Site = ({ labId }: SiteProps) => {
 
   return (
     <Card>
-      <CardHeader title='SITES' />
+      <CardHeader title={t('lab_module.sites')} />
       {rows?.length > 0 ? (
         <CommonTable
           indexedRows={indexedRows}
@@ -72,7 +74,7 @@ const Site = ({ labId }: SiteProps) => {
         />
       ) : (
         <Box sx={{ px: 4, pb: 3 }}>
-          <Typography variant='subtitle1'>No sites are associated with this lab yet.</Typography>
+          <Typography variant='subtitle1'>{t('lab_module.no_sites_associated')}</Typography>
         </Box>
       )}
     </Card>

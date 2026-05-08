@@ -1,4 +1,5 @@
 import { useCallback, useEffect, Fragment, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { Box, Drawer, FormControl, FormHelperText, IconButton, TextField, Typography } from '@mui/material'
@@ -26,6 +27,7 @@ const defaultValues: MortalityFormValues = {
 
 const AddMortalityReasons = (props: AddMortalityReasonsProps) => {
   const inputRef = useRef<HTMLInputElement>(null)
+  const { t } = useTranslation()
   const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {
@@ -87,7 +89,7 @@ const AddMortalityReasons = (props: AddMortalityReasonsProps) => {
     return (
       <Fragment>
         <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
-          {editParams?.id ? 'Update' : 'Add'}
+          {editParams?.id ? t('update') : t('add')}
         </LoadingButton>
       </Fragment>
     )
@@ -111,7 +113,7 @@ const AddMortalityReasons = (props: AddMortalityReasonsProps) => {
           }}
         >
           <Typography variant='h6'>
-            {editParams?.id !== null ? 'Edit Mortality Reason' : 'Add  Mortality Reason'}{' '}
+            {editParams?.id !== null ? t('lab_module.edit_mortality_reason') : t('lab_module.add_mortality_reason')}{' '}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton size='small' onClick={() => setOpenDrawer(false)} sx={{ color: 'text.primary' }}>
@@ -128,11 +130,11 @@ const AddMortalityReasons = (props: AddMortalityReasonsProps) => {
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
-                    label='Reason*'
+                    label={`${t('reason')}*`}
                     value={value}
                     inputRef={inputRef}
                     onChange={onChange}
-                    placeholder='Reason'
+                    placeholder={t('reason')}
                     error={Boolean(errors.name)}
                     name='name'
                   />

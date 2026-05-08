@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Card, CardHeader, Tooltip, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -12,6 +13,7 @@ interface IndexedLabUser extends LabUser {
 
 const Users = ({ labId }: UsersProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [total, setTotal] = useState(0)
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'users', sort: 'asc' }])
   const [rows, setRows] = useState<LabUser[]>([])
@@ -30,7 +32,7 @@ const Users = ({ labId }: UsersProps) => {
       flex: 2.3,
       minWidth: 20,
       field: 'id',
-      headerName: 'SL',
+      headerName: t('sl'),
       sortable: true,
       renderCell: (params: GridRenderCellParams) => (
         <>
@@ -44,7 +46,7 @@ const Users = ({ labId }: UsersProps) => {
       flex: 2.3,
       minWidth: 200,
       field: 'users',
-      headerName: 'Users',
+      headerName: t('lab_module.users'),
       sortable: true,
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title={params?.row?.user_full_name || ''}>
@@ -97,7 +99,7 @@ const Users = ({ labId }: UsersProps) => {
 
   return (
     <Card>
-      <CardHeader title='USERS' />
+      <CardHeader title={t('lab_module.users')} />
 
       <CommonTable
         indexedRows={indexedRows}

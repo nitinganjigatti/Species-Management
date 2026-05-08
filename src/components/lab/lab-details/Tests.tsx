@@ -6,6 +6,7 @@ import {
   Typography
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@mui/material/styles'
 import type { TestsProps, LabSampleWithTests, LabChildTest, LabParentTest } from 'src/types/lab'
 
@@ -17,6 +18,7 @@ interface FlatTest {
 
 const Tests = ({ labTest }: TestsProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState<FlatTest[]>([])
@@ -50,7 +52,7 @@ const Tests = ({ labTest }: TestsProps) => {
 
   return (
     <Card>
-      <CardHeader title='TESTS' />
+      <CardHeader title={t('lab_module.tests')} />
       <Box sx={{ px: 5, mb: 5 }}>
         {labTest?.map((list, index) => (
           <Box key={index} sx={{ display: 'flex', flexDirection: 'column' }}>

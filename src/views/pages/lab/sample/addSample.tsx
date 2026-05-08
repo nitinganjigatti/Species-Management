@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
@@ -32,6 +33,7 @@ const defaultValues: SampleFormValues = {
 
 const AddSample = (props: AddSampleProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
 
   const {
@@ -128,7 +130,7 @@ const AddSample = (props: AddSampleProps) => {
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <Typography variant='h6'>
-                {editParams?.id !== null ? `Edit Lab Sample Details` : `Add New Lab Sample`}
+                {editParams?.id !== null ? t('lab_module.edit_lab_sample_details') : t('lab_module.add_new_lab_sample')}
               </Typography>
             </Box>
 
@@ -160,10 +162,10 @@ const AddSample = (props: AddSampleProps) => {
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       inputRef={inputRef}
-                      label='Sample Name*'
+                      label={`${t('lab_module.sample_name')}*`}
                       value={value}
                       onChange={onChange}
-                      placeholder='Sample Name'
+                      placeholder={t('lab_module.sample_name')}
                       error={Boolean(errors.test_name)}
                       name='test_name'
                     />
@@ -201,10 +203,10 @@ const AddSample = (props: AddSampleProps) => {
                       variant='outlined'
                       disabled={submitLoader}
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                     <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
-                      {editParams?.id !== null ? `Update` : `Submit`}
+                      {editParams?.id !== null ? t('update') : t('submit')}
                     </LoadingButton>
                   </Box>
                 )}

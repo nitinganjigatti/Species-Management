@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react'
 import Image from 'next/image'
+import { useTranslation } from 'react-i18next'
 
 import { Box, Grid, Stack, Typography } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
@@ -32,6 +33,7 @@ const UploadReports = ({
   buttonText
 }: UploadReportsProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [submitting, setSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imgSrc, setImgSrc] = useState<string[]>([])
@@ -117,7 +119,7 @@ const UploadReports = ({
     if (restrictExecutiveFiles) {
       Array.from(files).forEach(file => {
         if (!allowedTypes.includes(file.type)) {
-          Toaster({ type: 'error', message: 'Executive files are not valid.' })
+          Toaster({ type: 'error', message: t('lab_module.executive_files_not_valid') })
 
           return
         }
@@ -173,7 +175,7 @@ const UploadReports = ({
     setSubmitting(true)
 
     if (!imgArr?.length) {
-      Toaster({ type: 'error', message: 'File is Required' })
+      Toaster({ type: 'error', message: t('lab_module.file_is_required') })
 
       setSubmitting(false)
     } else {
@@ -246,7 +248,7 @@ const UploadReports = ({
                     }}
                   >
                     <Image alt={'filename'} src={imageUploader} width={32} height={32} />
-                    <Typography>Drop your lab files here</Typography>
+                    <Typography>{t('lab_module.drop_lab_files_here')}</Typography>
                   </Box>
                 </Box>
               </Grid>
@@ -311,7 +313,7 @@ const UploadReports = ({
                   {imgArr?.length > 0 && (
                     <Box sx={{ marginLeft: 'auto', paddingRight: 2 }}>
                       <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
-                        {buttonText || 'Upload'}
+                        {buttonText || t('upload')}
                       </LoadingButton>
                     </Box>
                   )}

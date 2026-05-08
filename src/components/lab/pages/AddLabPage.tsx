@@ -2,6 +2,7 @@
 /* eslint-disable react/jsx-key */
 import React, { useState, useEffect, useRef, useContext } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 import {
   Grid,
@@ -67,6 +68,7 @@ const AddLabPage = () => {
   const authData = useContext(AuthContext) as any
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useTranslation()
 
   const id = searchParams?.get('id')
   const action = searchParams?.get('action')
@@ -656,17 +658,17 @@ const AddLabPage = () => {
           ) : (
             <>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                <Typography color='inherit'>Lab</Typography>
+                <Typography color='inherit'>{t('lab_module.lab')}</Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.push('/lab/lab-list')}>
-                  Lab list
+                  {t('lab_module.lab_list')}
                 </Typography>
-                <Typography sx={{ color: 'text.primary' }}>Add lab</Typography>
+                <Typography sx={{ color: 'text.primary' }}>{t('lab_module.add_lab')}</Typography>
               </Breadcrumbs>
               <Grid container spacing={6} className='match-height'>
                 <Grid size={{ xs: 12 }}>
                   <Card>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <CardHeader title={action === 'edit' ? 'Edit Lab' : 'Add New Lab'} />
+                      <CardHeader title={action === 'edit' ? t('lab_module.edit_lab') : t('lab_module.add_new_lab')} />
                     </Box>
                     <CardContent>
                       <form onSubmit={handleSubmit(onSubmit)}>
@@ -680,7 +682,7 @@ const AddLabPage = () => {
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
                                     value={value}
-                                    label='Lab Name*'
+                                    label={`${t('lab_module.lab_name')}*`}
                                     name='lab_name'
                                     error={Boolean(errors.lab_name)}
                                     onChange={onChange}
@@ -696,7 +698,7 @@ const AddLabPage = () => {
                           <Grid size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth sx={{ mt: 2 }}>
                               <InputLabel error={Boolean(errors?.type)} id='type'>
-                                Lab Type*
+                                {`${t('lab_module.lab_type')}*`}
                               </InputLabel>
                               <Controller
                                 name='type'
@@ -706,7 +708,7 @@ const AddLabPage = () => {
                                   <Select
                                     name='type'
                                     value={value}
-                                    label='Lab Type*'
+                                    label={`${t('lab_module.lab_type')}*`}
                                     onChange={e => {
                                       onChange(e.target.value)
                                       setLabType(e.target.value)
@@ -714,8 +716,8 @@ const AddLabPage = () => {
                                     error={Boolean(errors?.type)}
                                     labelId='type'
                                   >
-                                    <MenuItem value='internal'>Internal Lab</MenuItem>
-                                    <MenuItem value='external'>External Lab</MenuItem>
+                                    <MenuItem value='internal'>{t('lab_module.internal_lab')}</MenuItem>
+                                    <MenuItem value='external'>{t('lab_module.external_lab')}</MenuItem>
                                   </Select>
                                 )}
                               />
@@ -733,7 +735,7 @@ const AddLabPage = () => {
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
                                     value={value}
-                                    label='Lab Incharge Name*'
+                                    label={`${t('lab_module.lab_incharge_name')}*`}
                                     name='incharge_name'
                                     error={Boolean(errors.incharge_name)}
                                     onChange={onChange}
@@ -757,7 +759,7 @@ const AddLabPage = () => {
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
                                     value={value}
-                                    label='Lab Address*'
+                                    label={`${t('lab_module.lab_address')}*`}
                                     name='address'
                                     error={Boolean(errors.address)}
                                     onChange={onChange}
@@ -780,7 +782,7 @@ const AddLabPage = () => {
                                   <TextField
                                     type='number'
                                     value={value}
-                                    label='Lab Incharge Mobile Number*'
+                                    label={`${t('lab_module.lab_incharge_mobile')}*`}
                                     onChange={onChange}
                                     placeholder=''
                                     error={Boolean(errors?.lab_contact_number)}
@@ -805,7 +807,7 @@ const AddLabPage = () => {
                                   direction='row'
                                   sx={{ alignItems: 'center', display: 'flex', justifyContent: 'space-between', mt: 2 }}
                                 >
-                                  <Typography>Mark as default Lab</Typography>
+                                  <Typography>{t('lab_module.mark_as_default_lab')}</Typography>
                                   <FormControlLabel
                                     control={
                                       <Switch
@@ -844,7 +846,7 @@ const AddLabPage = () => {
                                     sx={{ color: 'white', alignItems: 'center', display: 'flex', p: 1 }}
                                   >
                                     <Icon icon='ic:baseline-add' fontSize={25} />
-                                    Add Lab Tests
+                                    {t('lab_module.add_lab_tests')}
                                   </Typography>
                                 </Box>
 
@@ -899,7 +901,7 @@ const AddLabPage = () => {
                               </div>
                               {labTestsEmpty ? (
                                 <Typography variant='subtitle1' sx={{ color: 'red', m: 2 }}>
-                                  Lab test is required
+                                  {t('lab_module.lab_test_required')}
                                 </Typography>
                               ) : null}
                             </Card>
@@ -922,7 +924,7 @@ const AddLabPage = () => {
                                     cursor: 'pointer'
                                   }}
                                 >
-                                  Set Current Location <Icon icon='ic:baseline-my-location' fontSize={25} />
+                                  {t('lab_module.set_current_location')} <Icon icon='ic:baseline-my-location' fontSize={25} />
                                 </Typography>
                               </Box>
                               <FormControl fullWidth>
@@ -972,7 +974,7 @@ const AddLabPage = () => {
 
                           <Grid size={{ xs: 12, sm: 12, md: 12 }}>
                             <Card>
-                              <CardHeader title='Add Lab Picture' />
+                              <CardHeader title={t('lab_module.add_lab_picture')} />
                               <CardContent>
                                 <Grid container>
                                   <Grid size={{ xs: 12, sm: 12, md: 12 }}>
@@ -998,7 +1000,7 @@ const AddLabPage = () => {
                                       }}
                                     >
                                       <Image alt={'filename'} src={imageUploader} width={50} height={50} />
-                                      <Typography>Drop your files here</Typography>
+                                      <Typography>{t('drop_files_here')}</Typography>
                                     </Box>
                                   </Grid>
                                   <Grid
@@ -1065,10 +1067,10 @@ const AddLabPage = () => {
                               loading={submitLoader}
                               variant='outlined'
                             >
-                              Cancel
+                              {t('cancel')}
                             </LoadingButton>
                             <LoadingButton loading={submitLoader} onClick={handleSubmitData} type='submit' variant='outlined'>
-                              Submit
+                              {t('submit')}
                             </LoadingButton>
                           </Box>
                         </Grid>
@@ -1092,7 +1094,7 @@ const AddLabPage = () => {
                 zIndex: 1
               }}
             >
-              <Typography variant='h6'>Add Lab Tests</Typography>
+              <Typography variant='h6'>{t('lab_module.add_lab_tests')}</Typography>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
                   <Icon icon='mdi:close' fontSize={20} />
@@ -1123,7 +1125,7 @@ const AddLabPage = () => {
                         </Typography>
                       </Tooltip>
                       <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Typography sx={{ alignItems: 'center', display: 'flex', fontSize: '15px' }}>Select All</Typography>
+                        <Typography sx={{ alignItems: 'center', display: 'flex', fontSize: '15px' }}>{t('select_all')}</Typography>
                         <Switch
                           checked={sample?.value}
                           onChange={e => handleSelectAllSwitch(sample?.sample_id, e.target.checked)}
@@ -1228,7 +1230,7 @@ const AddLabPage = () => {
               }}
             >
               <Button variant='contained' color='primary' onClick={hanldeAddLabTests} fullWidth sx={{ p: 3 }}>
-                Add Lab Tests
+                {t('lab_module.add_lab_tests')}
               </Button>
             </Box>
           </Drawer>

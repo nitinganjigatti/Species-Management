@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -49,6 +50,7 @@ const defaultValues: TestFormValues = {
 
 const AddTest = (props: AddTestProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
   const [subTests, setSubTests] = useState<string[]>([])
   const [sampleTypes, setSampleTypes] = useState<SampleOption[]>([])
@@ -276,7 +278,7 @@ const AddTest = (props: AddTestProps) => {
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <Typography variant='h6'>
-                {editParams?.id !== null ? `Edit Lab Test Details` : `Add New Lab Test`}
+                {editParams?.id !== null ? t('lab_module.edit_lab_test_details') : t('lab_module.add_new_lab_test')}
               </Typography>
             </Box>
 
@@ -308,11 +310,11 @@ const AddTest = (props: AddTestProps) => {
                   rules={{ required: true }}
                   render={({ field: { value, onChange } }) => (
                     <TextField
-                      label='Test Name*'
+                      label={`${t('lab_module.test_name')}*`}
                       inputRef={inputRef}
                       value={value}
                       onChange={onChange}
-                      placeholder='Test Name'
+                      placeholder={t('lab_module.test_name')}
                       error={Boolean(errors.test_name)}
                       name='test_name'
                     />
@@ -325,7 +327,7 @@ const AddTest = (props: AddTestProps) => {
 
               <Box>
                 <Typography variant='body1' sx={{ mb: 2 }}>
-                  Sample Types
+                  {t('lab_module.sample_types_label')}
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {selectedSampleIds?.map(sample => (
@@ -374,7 +376,7 @@ const AddTest = (props: AddTestProps) => {
                         <TextField
                           {...params}
                           variant='outlined'
-                          placeholder='Search Add Sample Type'
+                          placeholder={t('lab_module.search_add_sample_type')}
                           error={Boolean(errors.sample_ids)}
                           slotProps={{
                             input: {
@@ -403,7 +405,7 @@ const AddTest = (props: AddTestProps) => {
               </FormControl>
 
               <Box>
-                <label>Sub Tests</label>
+                <label>{t('lab_module.sub_tests_label')}</label>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
                   {subTests.map((test, index) => (
                     <>
@@ -433,7 +435,7 @@ const AddTest = (props: AddTestProps) => {
                     <TextField
                       {...field}
                       variant='outlined'
-                      placeholder='Enter Sub Test Type'
+                      placeholder={t('lab_module.enter_sub_test_type')}
                       slotProps={{
                         input: {
                           endAdornment: (
@@ -484,7 +486,7 @@ const AddTest = (props: AddTestProps) => {
 
               {deletedSubTests.length > 0 && (
                 <Box>
-                  <label>Deleted Tests</label>
+                  <label>{t('lab_module.deleted_tests')}</label>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
                     {deletedSubTests.map((test, index) => {
                       const testId = Object.keys(test)[0]
@@ -535,10 +537,10 @@ const AddTest = (props: AddTestProps) => {
                       disabled={submitLoader}
                       variant='outlined'
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                     <LoadingButton fullWidth variant='contained' type='submit' size='large' loading={submitLoader}>
-                      {editParams?.id !== null ? `Update` : `Submit`}
+                      {editParams?.id !== null ? t('update') : t('submit')}
                     </LoadingButton>
                   </Box>
                 )}

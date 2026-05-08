@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import type { MouseEvent, SyntheticEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Drawer,
   IconButton,
@@ -35,6 +36,7 @@ function AttachmentSheet({
   deleteAttachmentLoader
 }: AttachmentSheetProps) {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState<FileAttachment | null>(null)
   const [error, setError] = useState(false)
@@ -92,7 +94,7 @@ function AttachmentSheet({
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Icon icon='fluent:comment-note-24-regular' width='28' height='28' color='rgba(68, 84, 74, 1)' />
-          <Typography variant='h6'>Reports</Typography>
+          <Typography variant='h6'>{t('reports')}</Typography>
         </Box>
         <IconButton
           sx={{ position: 'absolute', left: '560px', top: 16, zIndex: 102 }}
@@ -360,7 +362,7 @@ function AttachmentSheet({
               fontWeight: 'bold'
             }}
           >
-            Delete File!
+            {t('lab_module.delete_file')}
           </Typography>
         </DialogTitle>
 
@@ -369,7 +371,7 @@ function AttachmentSheet({
             <DialogContent>
               <DialogContentText>
                 <Typography>
-                  Either upload the new report or change the test status to pending to delete this report.
+                  {t('lab_module.delete_file_error_msg')}
                 </Typography>
               </DialogContentText>
             </DialogContent>
@@ -384,7 +386,7 @@ function AttachmentSheet({
                 }}
                 variant='contained'
               >
-                OK
+                {t('ok')}
               </Button>
             </DialogActions>
           </>
@@ -392,7 +394,7 @@ function AttachmentSheet({
           <>
             <DialogContent>
               <DialogContentText>
-                Are you sure you want to delete{' '}
+                {t('are_you_sure_delete')}{' '}
                 <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
                   {selectedItem?.file_original_name}
                 </Typography>
@@ -408,10 +410,10 @@ function AttachmentSheet({
                 }}
                 variant='outlined'
               >
-                CANCEL
+                {t('cancel')}
               </LoadingButton>
               <LoadingButton loading={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
-                DELETE
+                {t('delete')}
               </LoadingButton>
             </DialogActions>
           </>

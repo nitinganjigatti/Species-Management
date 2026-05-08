@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import type { MouseEvent, SyntheticEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -31,6 +32,7 @@ const CommonMediaView = ({
   deleteAttachmentLoader
 }: CommonMediaViewProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState<FileAttachment | null>(null)
   const [error, setError] = useState(false)
@@ -337,7 +339,7 @@ const CommonMediaView = ({
               fontWeight: 'bold'
             }}
           >
-            Delete File!
+            {t('lab_module.delete_file')}
           </Typography>
         </DialogTitle>
 
@@ -346,7 +348,7 @@ const CommonMediaView = ({
             <DialogContent>
               <DialogContentText>
                 <Typography>
-                  Either upload the new report or change the test status to pending to delete this report.
+                  {t('lab_module.delete_file_error_msg')}
                 </Typography>
               </DialogContentText>
             </DialogContent>
@@ -356,7 +358,7 @@ const CommonMediaView = ({
                 onClick={() => closeConfirmDialoge()}
                 variant='contained'
               >
-                OK
+                {t('ok')}
               </Button>
             </DialogActions>
           </>
@@ -364,7 +366,7 @@ const CommonMediaView = ({
           <>
             <DialogContent>
               <DialogContentText>
-                Are you sure you want to delete{' '}
+                {t('are_you_sure_delete')}{' '}
                 <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
                   {selectedItem?.file_original_name}
                 </Typography>
@@ -380,10 +382,10 @@ const CommonMediaView = ({
                 }}
                 variant='outlined'
               >
-                CANCEL
+                {t('cancel')}
               </LoadingButton>
               <LoadingButton loading={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
-                DELETE
+                {t('delete')}
               </LoadingButton>
             </DialogActions>
           </>

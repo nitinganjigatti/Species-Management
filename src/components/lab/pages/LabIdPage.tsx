@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
 import type { MouseEvent, SyntheticEvent } from 'react'
 import { useRouter, useSearchParams, useParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 import {
   Button,
@@ -107,24 +108,26 @@ interface FetchDataParams {
   column: string
 }
 
-const statusData: StatusOption[] = [
-  { id: 'awaiting_sample', name: 'Awaiting Sample' },
-  { id: 'sample_received', name: 'Sample Received' },
-  { id: 'sample_rejected', name: 'Sample Rejected' },
-  { id: 'inprogress', name: 'In Progress' },
-  { id: 'completed', name: 'Completed' },
-  { id: 'completed_insufficient_samples', name: 'Completed - Insufficient Samples' },
-  { id: 'completed_positive', name: 'Completed - Positive' },
-  { id: 'completed_negative', name: 'Completed - Negative' },
-  { id: 'completed_detected', name: 'Completed - Detected' },
-  { id: 'completed_not_detected', name: 'Completed - Not Detected' },
-  { id: 'completed_inconclusive', name: 'Completed - Inconclusive' }
-]
 
 const RequestDetails = () => {
   const theme = useTheme()
   const router = useRouter()
   const authData = useContext(AuthContext) as any
+  const { t } = useTranslation()
+
+  const statusData: StatusOption[] = [
+    { id: 'awaiting_sample', name: t('lab_module.awaiting_sample') },
+    { id: 'sample_received', name: t('lab_module.sample_received') },
+    { id: 'sample_rejected', name: t('lab_module.sample_rejected') },
+    { id: 'inprogress', name: t('lab_module.in_progress') },
+    { id: 'completed', name: t('completed') },
+    { id: 'completed_insufficient_samples', name: t('lab_module.completed_insufficient_samples') },
+    { id: 'completed_positive', name: t('lab_module.completed_positive') },
+    { id: 'completed_negative', name: t('lab_module.completed_negative') },
+    { id: 'completed_detected', name: t('lab_module.completed_detected') },
+    { id: 'completed_not_detected', name: t('lab_module.completed_not_detected') },
+    { id: 'completed_inconclusive', name: t('lab_module.completed_inconclusive') }
+  ]
   const searchParams = useSearchParams()
 
   const routeParams = useParams<{ id: string }>()
@@ -211,7 +214,7 @@ const RequestDetails = () => {
         value === 'completed_insufficient_samples') &&
       !(image || document)
     ) {
-      Toaster({ type: 'error', message: 'Attach the report before completing the test' })
+      Toaster({ type: 'error', message: t('lab_module.attach_report_before_completing') })
       fetchRequestDetails(sort, searchValue)
 
       return
@@ -392,7 +395,7 @@ const RequestDetails = () => {
       width: 300,
       field: 'test_name',
       sortable: false,
-      headerName: 'Test Name',
+      headerName: t('lab_module.test_name'),
       renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           {params?.row?.test_name}
@@ -403,7 +406,7 @@ const RequestDetails = () => {
       width: 300,
       field: 'sample_name',
       sortable: false,
-      headerName: 'Sample',
+      headerName: t('lab_module.sample'),
       renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
           <span>{params.row.sample_name}</span>
@@ -414,7 +417,7 @@ const RequestDetails = () => {
       width: 300,
       field: 'status',
       sortable: false,
-      headerName: 'STATUS',
+      headerName: t('status'),
       align: 'center',
       renderCell: (params: GridRenderCellParams) => (
         <>
@@ -512,26 +515,26 @@ const RequestDetails = () => {
                   }}
                 >
                   {params.row.status === 'awaiting_sample'
-                    ? 'Awaiting sample'
+                    ? t('lab_module.awaiting_sample')
                     : params.row.status === 'sample_received'
-                      ? 'Sample received'
+                      ? t('lab_module.sample_received')
                       : params.row.status === 'sample_rejected'
-                        ? 'sample rejected'
+                        ? t('lab_module.sample_rejected')
                         : params.row.status === 'completed_positive'
-                          ? 'completed positive'
+                          ? t('lab_module.completed_positive')
                           : params.row.status === 'completed_negative'
-                            ? 'completed negative'
+                            ? t('lab_module.completed_negative')
                             : params.row.status === 'completed_detected'
-                              ? 'completed detected'
+                              ? t('lab_module.completed_detected')
                               : params.row.status === 'completed_not_detected'
-                                ? 'completed not detected'
+                                ? t('lab_module.completed_not_detected')
                                 : params.row.status === 'completed_inconclusive'
-                                  ? 'completed inconclusive'
+                                  ? t('lab_module.completed_inconclusive')
                                   : params.row.status === 'completed'
-                                    ? 'Completed'
+                                    ? t('completed')
                                     : params.row.status === 'completed_insufficient_samples'
-                                      ? 'Completed - Insufficient Samples'
-                                      : 'In Progress'}
+                                      ? t('lab_module.completed_insufficient_samples')
+                                      : t('lab_module.in_progress')}
                 </span>
               </Typography>
             )}
@@ -544,7 +547,7 @@ const RequestDetails = () => {
           {
             width: 300,
             field: 'References',
-            headerName: 'References',
+            headerName: t('lab_module.references'),
             sortable: false,
             renderCell: (params: GridRenderCellParams) => (
               <>
@@ -591,7 +594,7 @@ const RequestDetails = () => {
                     <>
                       {(permissions?.allow_full_access || permissions?.allow_upload_reports) && (
                         <Tooltip
-                          title='Upload'
+                          title={t('upload')}
                           arrow
                           placement='top-start'
                           sx={{
@@ -623,7 +626,7 @@ const RequestDetails = () => {
                     <>
                       {(permissions?.allow_full_access || permissions?.transfer_tests) &&
                         params.row.status.split(' ')[0] !== 'completed' && (
-                          <Tooltip title='Transfer' arrow placement='top-start'>
+                          <Tooltip title={t('transfer')} arrow placement='top-start'>
                             <IconButton
                               size='small'
                               sx={{
@@ -651,7 +654,7 @@ const RequestDetails = () => {
                     {(permissions?.allow_full_access ||
                       permissions?.perform_tests ||
                       permissions?.allow_upload_reports) && (
-                      <Tooltip title='Notes' arrow placement='top-start'>
+                      <Tooltip title={t('notes')} arrow placement='top-start'>
                         <IconButton
                           size='small'
                           sx={{
@@ -862,7 +865,7 @@ const RequestDetails = () => {
       !(image || document)
     ) {
       setHeaderStatus('awaiting_sample')
-      Toaster({ type: 'error', message: 'Attach the report before completing the test' })
+      Toaster({ type: 'error', message: t('lab_module.attach_report_before_completing') })
       fetchRequestDetails()
     } else {
       setHeaderStatus(value)
@@ -878,7 +881,7 @@ const RequestDetails = () => {
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Labs
+              {t('lab_module.labs')}
             </Typography>
             <Typography
               sx={{ cursor: 'pointer' }}
@@ -887,7 +890,7 @@ const RequestDetails = () => {
                 router.push('/lab/request')
               }
             >
-              Requests list
+              {t('lab_module.requests_list')}
             </Typography>
             <Typography
               sx={{
@@ -895,7 +898,7 @@ const RequestDetails = () => {
                 cursor: 'none'
               }}
             >
-              Lab request details
+              {t('lab_module.lab_request_details')}
             </Typography>
           </Breadcrumbs>
 
@@ -1018,7 +1021,7 @@ const RequestDetails = () => {
                 alignItems: 'center'
               }}
             >
-              <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Lab Tests </Typography>
+              <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>{t('lab_module.lab_tests')} </Typography>
               {(permissions?.transfer_tests === true ||
                 permissions?.perform_tests === true ||
                 permissions?.allow_upload_reports === true ||
@@ -1177,7 +1180,7 @@ const RequestDetails = () => {
               <Box sx={{ py: 5, px: 8 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
                   <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
-                  <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
+                  <Typography sx={{ fontSize: 20, fontWeight: 500 }}>{t('lab_module.lab_attachments')}</Typography>
                 </Box>
 
                 <Divider />
@@ -1231,7 +1234,7 @@ const RequestDetails = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
 
-                  <Typography sx={{ fontSize: '20px', py: 2, fontWeight: 500 }}> Medical Report Attachments</Typography>
+                  <Typography sx={{ fontSize: '20px', py: 2, fontWeight: 500 }}>{t('lab_module.medical_report_attachments')}</Typography>
                 </Box>
                 <Divider />
 
@@ -1270,7 +1273,7 @@ const RequestDetails = () => {
         <Box sx={{ py: 5, px: 7 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
             <Icon icon='gg:notes' width='24' height='24' />
-            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Medical Record Notes</Typography>
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>{t('lab_module.medical_record_notes')}</Typography>
           </Box>
 
           <Divider />
@@ -1291,7 +1294,7 @@ const RequestDetails = () => {
             }}
           >
             <Typography variant='h6' sx={{ ml: 3 }}>
-              Tests list
+              {t('lab_module.tests_list')}
             </Typography>
             <IconButton onClick={handleClose}>
               <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
@@ -1305,12 +1308,12 @@ const RequestDetails = () => {
                 }}
               >
                 <Typography variant='h6'>
-                  Request -{' '}
+                  {t('request')} -{' '}
                   <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
                 </Typography>
                 <Typography>{Utility.formatDate(item.created_at)}</Typography>
                 <Typography>
-                  Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
+                  {t('site')} - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
@@ -1322,11 +1325,11 @@ const RequestDetails = () => {
                   }}
                 >
                   <Typography>
-                    No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
+                    {t('lab_module.no_of_tests')} : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
                   </Typography>
                 </Box>
                 <Typography>
-                  Request By - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
+                  {t('lab_module.request_by')} - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
                 </Typography>
               </Box>
 
@@ -1339,9 +1342,9 @@ const RequestDetails = () => {
                   <Table>
                     <TableHead>
                       <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
-                        <TableCell>Test Name</TableCell>
-                        <TableCell>Lab Name</TableCell>
-                        <TableCell>Status</TableCell>
+                        <TableCell>{t('lab_module.test_name')}</TableCell>
+                        <TableCell>{t('lab_module.lab_name')}</TableCell>
+                        <TableCell>{t('status')}</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -1369,26 +1372,26 @@ const RequestDetails = () => {
                                 }}
                               >
                                 {data?.status === 'awaiting_sample'
-                                  ? 'Awaiting sample'
+                                  ? t('lab_module.awaiting_sample')
                                   : data?.status === 'sample_received'
-                                    ? 'Sample received'
+                                    ? t('lab_module.sample_received')
                                     : data?.status === 'sample_rejected'
-                                      ? 'sample rejected'
+                                      ? t('lab_module.sample_rejected')
                                       : data?.status === 'completed_positive'
-                                        ? 'completed positive'
+                                        ? t('lab_module.completed_positive')
                                         : data?.status === 'completed_negative'
-                                          ? 'completed negative'
+                                          ? t('lab_module.completed_negative')
                                           : data?.status === 'completed_detected'
-                                            ? 'completed detected'
+                                            ? t('lab_module.completed_detected')
                                             : data?.status === 'completed_not_detected'
-                                              ? 'completed not detected'
+                                              ? t('lab_module.completed_not_detected')
                                               : data?.status === 'completed_inconclusive'
-                                                ? 'completed inconclusive'
+                                                ? t('lab_module.completed_inconclusive')
                                                 : data?.status === 'completed'
-                                                  ? 'Completed'
+                                                  ? t('completed')
                                                   : data?.status === 'completed_insufficient_samples'
-                                                    ? 'Completed - Insufficient Samples'
-                                                    : 'In Progress'}
+                                                    ? t('lab_module.completed_insufficient_samples')
+                                                    : t('lab_module.in_progress')}
                               </span>
                             </Typography>
                           </TableCell>
@@ -1429,7 +1432,7 @@ const RequestDetails = () => {
                 <Typography
                   sx={{ fontSize: '20px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
                 >
-                  Lab Test Transfer
+                  {t('lab_module.lab_test_transfer')}
                 </Typography>
               </Box>
               <IconButton onClick={handleCloseTransfer}>
@@ -1450,7 +1453,7 @@ const RequestDetails = () => {
               }}
             >
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
-                <Typography sx={{ fontSize: '14px' }}>Request ID : </Typography>
+                <Typography sx={{ fontSize: '14px' }}>{t('lab_module.request_id')} : </Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
               </Box>
               <Box
@@ -1463,7 +1466,7 @@ const RequestDetails = () => {
               >
                 {selectedRowData?.length > 1 ? (
                   <>
-                    <Typography sx={{ fontSize: '14px' }}>No of Tests : </Typography>
+                    <Typography sx={{ fontSize: '14px' }}>{t('lab_module.no_of_tests')} : </Typography>
                     <Tooltip
                       title={
                         <Box>
@@ -1496,7 +1499,7 @@ const RequestDetails = () => {
                   </>
                 ) : (
                   <>
-                    <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
+                    <Typography sx={{ fontSize: '14px' }}>{t('lab_module.test_name')} : </Typography>
                     <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
                       {testName || '-'}
                     </Typography>
@@ -1513,7 +1516,7 @@ const RequestDetails = () => {
               >
                 {selectedRowData?.length > 1 ? (
                   <>
-                    <Typography sx={{ fontSize: '14px' }}>No of Samples : </Typography>
+                    <Typography sx={{ fontSize: '14px' }}>{t('lab_module.no_of_samples')} : </Typography>
                     <Tooltip
                       title={
                         <Box>
@@ -1547,7 +1550,7 @@ const RequestDetails = () => {
                   </>
                 ) : (
                   <>
-                    <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
+                    <Typography sx={{ fontSize: '14px' }}>{t('lab_module.sample_name')} : </Typography>
                     <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
                       {testSampleName ? testSampleName : '-'}
                     </Typography>
@@ -1555,7 +1558,7 @@ const RequestDetails = () => {
                 )}
               </Box>{' '}
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
-                <Typography sx={{ fontSize: '14px' }}>Site : </Typography>
+                <Typography sx={{ fontSize: '14px' }}>{t('site')} : </Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.site_name || '-'}</Typography>
               </Box>
             </Box>
@@ -1572,7 +1575,7 @@ const RequestDetails = () => {
                           <TextField
                             value={request[0]?.lab_name}
                             disabled
-                            label='Transfer From*'
+                            label={`${t('lab_module.transfer_from')}*`}
                             name='lab_name'
                             error={Boolean(errors.lab_name)}
                             onChange={onChange}
@@ -1589,7 +1592,7 @@ const RequestDetails = () => {
                   <Grid size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
-                        Transfer To
+                        {t('lab_module.transfer_to')}
                       </InputLabel>
                       <Controller
                         name='replaced_lab_id'
@@ -1599,7 +1602,7 @@ const RequestDetails = () => {
                           <Select
                             name='replaced_lab_id'
                             value={value}
-                            label='Transfer To*'
+                            label={`${t('lab_module.transfer_to')}*`}
                             onChange={e => {
                               onChange(e.target.value)
                             }}
@@ -1614,7 +1617,7 @@ const RequestDetails = () => {
                               ))
                             ) : (
                               <MenuItem disabled value=''>
-                                No labs to transfer
+                                {t('lab_module.no_labs_to_transfer')}
                               </MenuItem>
                             )}
                           </Select>
@@ -1634,11 +1637,11 @@ const RequestDetails = () => {
                         render={({ field: { value, onChange } }) => (
                           <TextField
                             value={value}
-                            label='Transfer Reason'
+                            label={t('lab_module.transfer_reason')}
                             name='transfer_reason'
                             error={Boolean(errors.transfer_reason)}
                             onChange={onChange}
-                            placeholder='Add transfer reason'
+                            placeholder={t('lab_module.add_transfer_reason')}
                           />
                         )}
                       />
@@ -1650,7 +1653,7 @@ const RequestDetails = () => {
                 </Grid>
                 {hasCompletedStatus && (
                   <Typography color='error' sx={{}}>
-                    This transfer cannot be processed because one or more selected tests have been marked as completed.
+                    {t('lab_module.transfer_cannot_be_processed')}
                   </Typography>
                 )}
 
@@ -1669,11 +1672,11 @@ const RequestDetails = () => {
                     size='large'
                     disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
-                    Cancel
+                    {t('cancel')}
                   </LoadingButton>
 
                   <LoadingButton onClick={handleSubmitData} type='submit' variant='contained' size='large'>
-                    CONFIRM
+                    {t('confirm')}
                   </LoadingButton>
                 </Box>
               </form>
@@ -1697,7 +1700,7 @@ const RequestDetails = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 5, mb: 2 }}>
               <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                 <Icon icon='lucide:upload' fontSize={25} color={theme.palette.customColors.OnSurfaceVariant} />
-                <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Upload</Typography>
+                <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>{t('upload')}</Typography>
               </Box>
 
               <IconButton onClick={() => setOpenUploader(false)} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -1714,7 +1717,7 @@ const RequestDetails = () => {
               handleCloseUploader={() => setOpenUploader(false)}
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
-              buttonText='Upload'
+              buttonText={t('upload')}
             />
           </DialogContent>
         </Dialog>
@@ -1731,7 +1734,7 @@ const RequestDetails = () => {
               bgcolor: theme.palette.customColors.displaybgPrimary
             }}
           >
-            <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>Reports</Typography>
+            <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>{t('reports')}</Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
               <IconButton onClick={() => setShowTestFile(false)}>
                 <Icon icon='ic:baseline-close' fontSize={25} color={'red'} />
@@ -1744,7 +1747,7 @@ const RequestDetails = () => {
                 <Box sx={{ px: 5 }}>
                   {testImage ? (
                     <Box>
-                      <Typography sx={{ fontSize: '18px', mb: 2 }}>Images</Typography>
+                      <Typography sx={{ fontSize: '18px', mb: 2 }}>{t('images')}</Typography>
                       <Box
                         sx={{
                           display: 'flex',
@@ -1767,7 +1770,7 @@ const RequestDetails = () => {
 
                   {testDoc ? (
                     <Box>
-                      <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
+                      <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>{t('document')}</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                         <CommonMediaView
                           allCompleted={allCompleted}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { LoadingButton } from '@mui/lab'
 import {
   Box,
@@ -42,6 +43,7 @@ interface TestDetailData {
 
 const TestDetails = (props: TestDetailsProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const { addEventSidebarOpen, setOpenDetailsDrawer, setOpenDrawer, submitLoader, editParams, fetchTableData } = props
   const [testDetails, setTestDetails] = useState<TestDetailData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -127,7 +129,7 @@ const TestDetails = (props: TestDetailsProps) => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Typography variant='h6'>{editParams?.id !== null && 'Lab Test Details'}</Typography>
+              <Typography variant='h6'>{editParams?.id !== null && t('lab_module.lab_test_details')}</Typography>
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -165,8 +167,8 @@ const TestDetails = (props: TestDetailsProps) => {
                             color: 'text.secondary'
                           }}
                         >
-                          Test Name
-                        </Typography>
+                          {t('lab_module.test_name')}
+</Typography>
                         <Typography variant='h5' component='div'>
                           {testDetails.label}
                         </Typography>
@@ -180,7 +182,7 @@ const TestDetails = (props: TestDetailsProps) => {
                           mb: 2
                         }}
                       >
-                        Sample Types
+                        {t('lab_module.sample_types_label')}
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mb: 6 }}>
                         {testDetails.sample_types?.map(type => (
@@ -207,7 +209,7 @@ const TestDetails = (props: TestDetailsProps) => {
                             mb: 2
                           }}
                         >
-                          Sub Tests
+                          {t('lab_module.sub_tests_label')}
                         </Typography>
                       )}
 
@@ -252,7 +254,7 @@ const TestDetails = (props: TestDetailsProps) => {
                   }}
                 >
                   <Button fullWidth onClick={handleDelete} size='large' type='reset' color='error' variant='outlined'>
-                    Delete
+                    {t('delete')}
                   </Button>
                   <LoadingButton
                     fullWidth
@@ -264,7 +266,7 @@ const TestDetails = (props: TestDetailsProps) => {
                     size='large'
                     loading={submitLoader}
                   >
-                    {editParams?.id !== null && `Edit`}
+                    {editParams?.id !== null && t('edit')}
                   </LoadingButton>
                 </Box>
               )}
@@ -277,7 +279,7 @@ const TestDetails = (props: TestDetailsProps) => {
         onClose={() => setIsModalOpenDelete(false)}
         confirmLoading={btnLoader}
         onConfirm={confirmDeleteAction}
-        title='Are you sure you want to delete this lab test?'
+        title={t('lab_module.confirm_delete_lab_test')}
       />
     </>
   )

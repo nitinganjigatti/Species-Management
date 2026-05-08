@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   Box,
@@ -52,6 +53,7 @@ const LabTest = () => {
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const authData = useContext(AuthContext) as any
+  const { t } = useTranslation()
 
   const medical_add_tests = authData?.userData?.permission?.user_settings?.medical_add_tests
 
@@ -185,7 +187,7 @@ const LabTest = () => {
       minWidth: 200,
       sortable: false,
       field: 'LAB TEST NAME',
-      headerName: 'LAB TEST NAME',
+      headerName: t('lab_module.lab_test_name'),
       renderCell: (params: GridRenderCellParams) => (
         <Tooltip title={params.row.label ? params.row.label : '-'}>
           <Typography
@@ -208,7 +210,7 @@ const LabTest = () => {
       flex: 0.3,
       minWidth: 180,
       field: 'NO OF SAMPLES TYPES',
-      headerName: 'NO OF SAMPLES TYPES',
+      headerName: t('lab_module.no_of_sample_types'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
@@ -220,7 +222,7 @@ const LabTest = () => {
       flex: 0.3,
       minWidth: 170,
       field: 'NO OF SUB TESTS ',
-      headerName: 'NO OF SUB TESTS ',
+      headerName: t('lab_module.no_of_sub_tests'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Typography noWrap variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
@@ -232,7 +234,7 @@ const LabTest = () => {
       flex: 0.4,
       minWidth: 200,
       field: 'user_name',
-      headerName: 'CREATED BY',
+      headerName: t('created_by'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -287,7 +289,7 @@ const LabTest = () => {
       flex: 0.2,
       minWidth: 100,
       field: 'Action',
-      headerName: 'Action',
+      headerName: t('action'),
       sortable: false,
       renderCell: (params: GridRenderCellParams) => (
         <>
@@ -312,7 +314,7 @@ const LabTest = () => {
     <div>
       <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
         <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
+        &nbsp; {t('add_new')}
       </Button>
     </div>
   )
@@ -331,7 +333,7 @@ const LabTest = () => {
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-              Lab Master
+              {t('lab_module.lab_master')}
             </Typography>
             <Typography
               sx={{
@@ -339,11 +341,11 @@ const LabTest = () => {
                 cursor: 'pointer'
               }}
             >
-              Lab Tests
+              {t('lab_module.lab_tests')}
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Lab Tests' sx={{ paddingX: 5 }} action={headerAction} />
+            <CardHeader title={t('lab_module.lab_tests')} sx={{ paddingX: 5 }} action={headerAction} />
 
             <CommonTable
               indexedRows={indexedRows === undefined ? [] : indexedRows}
@@ -406,7 +408,7 @@ const LabTest = () => {
             onClose={() => setIsModalOpenDelete(false)}
             confirmLoading={btnLoader}
             onConfirm={confirmDeleteAction}
-            title='Are you sure you want to delete this lab test?'
+            title={t('lab_module.confirm_delete_lab_test')}
           />
     </>
   )
