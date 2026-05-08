@@ -143,62 +143,6 @@ declare module 'src/views/utility/FilterButtonWithNotification' {
   export default FilterButtonWithNotification
 }
 
-declare module 'src/views/pages/hospital/utility/hospitalSnippets' {
-  import { FC, ReactNode } from 'react'
-
-  interface MedicalIdChipProps {
-    medId?: string | number
-    leftImage?: boolean
-    rightDot?: boolean
-    backgroundColor?: string
-    textColor?: string
-    dotColor?: string
-    fontSize?: string
-    fontWeight?: number
-    [key: string]: unknown
-  }
-
-  export const MedicalIdChip: FC<MedicalIdChipProps>
-
-  interface CreatedByProps {
-    profile_image?: string | null
-    user_name?: string | null
-    date?: string | null
-    text_color?: string | null
-    description?: string | null
-    role?: string | null
-    crby_width?: string | number | null
-    size?: string
-    show_time?: boolean
-    dateType?: string | null
-    [key: string]: unknown
-  }
-
-  export const CreatedBy: FC<CreatedByProps>
-
-  interface SpeciesInfoCardProps {
-    species?: {
-      default_icon?: string
-      common_name?: string
-      scientific_name?: string
-    }
-    edit?: boolean
-    [key: string]: unknown
-  }
-
-  export const SpeciesInfoCard: FC<SpeciesInfoCardProps>
-
-  interface PatientSummaryCardProps {
-    data?: Record<string, unknown>
-    size?: string
-    edit?: boolean
-    valueColor?: string
-    [key: string]: unknown
-  }
-
-  export const PatientSummaryCard: FC<PatientSummaryCardProps>
-}
-
 declare module 'src/views/pages/hospital/inpatient/ClinicalAssessmentCard' {
   import { FC } from 'react'
 

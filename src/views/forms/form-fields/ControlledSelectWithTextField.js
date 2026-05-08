@@ -73,6 +73,7 @@ const ControlledSelectWithTextField = ({
 
   inputProps = {}
 }) => {
+
   const getError = name => get(errors, name)?.message
   const errorText = getError(textFieldName) || getError(selectFieldName) || getError(secondSelectFieldName)
 
@@ -209,102 +210,35 @@ const ControlledSelectWithTextField = ({
               })
             }}
             endAdornment={
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box component='div' sx={{ display: 'flex', alignItems: 'center', gap: 1, pointerEvents: 'auto' }}>
                 {/* ---------- FIRST SELECT ---------- */}
-                <Controller
-                  name={selectFieldName}
-                  control={control}
-                  render={({ field: selectField }) => (
-                    <Select
-                      {...selectField}
-                      variant='standard'
-                      disableUnderline
-                      displayEmpty={showEmptyMenuItem}
-                      disabled={disabled || readOnly}
-                      sx={getSelectSx(selectWidth, minSelectWidth, maxSelectWidth)}
-                      MenuProps={{
-                        PaperProps: {
-                          sx: getMenuSx(menuItemWidth, minMenuItemWidth, maxMenuItemWidth)
-                        },
-                        anchorOrigin: {
-                          vertical: 'bottom',
-                          horizontal: 'right'
-                        },
-
-                        transformOrigin: {
-                          vertical: 'top',
-                          horizontal: 'right'
-                        }
-                      }}
-                      renderValue={value => renderValue(value, options, getOptionLabel, getOptionValue)}
-                    >
-                      {showEmptyMenuItem && (
-                        <MenuItem value='' disabled>
-                          <Typography noWrap>{emptyMenuItemLabel}</Typography>
-                        </MenuItem>
-                      )}
-
-                      {options?.map((opt, i) => (
-                        <MenuItem
-                          key={i}
-                          value={getOptionValue(opt)}
-                          disabled={isOptionDisabled(opt)}
-                          sx={{ whiteSpace: 'normal' }}
-                        >
-                          <Typography
-                            sx={{
-                              wordBreak: 'break-word',
-                              whiteSpace: 'normal',
-                              width: '100%'
-                            }}
-                          >
-                            {getOptionLabel(opt)}
-                          </Typography>
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-
-                {/* ---------- SEPARATOR ---------- */}
-                {secondSelectFieldName && (
-                  <Typography sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>{separator}</Typography>
-                )}
-
-                {/* ---------- SECOND SELECT ---------- */}
-                {secondSelectFieldName && (
+                <Box component='div' sx={{ pointerEvents: 'auto' }}>
                   <Controller
-                    name={secondSelectFieldName}
+                    name={selectFieldName}
                     control={control}
-                    render={({ field }) => (
+                    render={({ field: selectField }) => (
                       <Select
-                        {...field}
+                        {...selectField}
                         variant='standard'
                         disableUnderline
                         displayEmpty={showEmptyMenuItem}
                         disabled={disabled || readOnly}
-                        sx={{
-                          ...getSelectSx(secondSelectWidth, minSecondSelectWidth, maxSecondSelectWidth),
-                          ...secondSelectSx
-                        }}
+                        sx={getSelectSx(selectWidth, minSelectWidth, maxSelectWidth)}
                         MenuProps={{
                           PaperProps: {
-                            sx: {
-                              ...getMenuSx(secondMenuItemWidth, minSecondMenuItemWidth, maxSecondMenuItemWidth)
-                            }
+                            sx: getMenuSx(menuItemWidth, minMenuItemWidth, maxMenuItemWidth)
                           },
                           anchorOrigin: {
                             vertical: 'bottom',
                             horizontal: 'right'
                           },
+
                           transformOrigin: {
                             vertical: 'top',
                             horizontal: 'right'
                           }
                         }}
-                        renderValue={value =>
-                          renderValue(value, secondOptions, getSecondOptionLabel, getSecondOptionValue)
-                        }
+                        renderValue={value => renderValue(value, options, getOptionLabel, getOptionValue)}
                       >
                         {showEmptyMenuItem && (
                           <MenuItem value='' disabled>
@@ -312,11 +246,11 @@ const ControlledSelectWithTextField = ({
                           </MenuItem>
                         )}
 
-                        {secondOptions?.map((opt, i) => (
+                        {options?.map((opt, i) => (
                           <MenuItem
                             key={i}
-                            value={getSecondOptionValue(opt)}
-                            disabled={isSecondOptionDisabled(opt)}
+                            value={getOptionValue(opt)}
+                            disabled={isOptionDisabled(opt)}
                             sx={{ whiteSpace: 'normal' }}
                           >
                             <Typography
@@ -326,13 +260,84 @@ const ControlledSelectWithTextField = ({
                                 width: '100%'
                               }}
                             >
-                              {getSecondOptionLabel(opt)}
+                              {getOptionLabel(opt)}
                             </Typography>
                           </MenuItem>
                         ))}
                       </Select>
                     )}
                   />
+                </Box>
+
+                {/* ---------- SEPARATOR ---------- */}
+                {secondSelectFieldName && (
+                  <Typography sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap' }}>{separator}</Typography>
+                )}
+
+                {/* ---------- SECOND SELECT ---------- */}
+                {secondSelectFieldName && (
+                  <Box component='div' sx={{ pointerEvents: 'auto' }}>
+                    <Controller
+                      name={secondSelectFieldName}
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          {...field}
+                          variant='standard'
+                          disableUnderline
+                          displayEmpty={showEmptyMenuItem}
+                          disabled={disabled || readOnly}
+                          sx={{
+                            ...getSelectSx(secondSelectWidth, minSecondSelectWidth, maxSecondSelectWidth),
+                            ...secondSelectSx
+                          }}
+                          MenuProps={{
+                            PaperProps: {
+                              sx: {
+                                ...getMenuSx(secondMenuItemWidth, minSecondMenuItemWidth, maxSecondMenuItemWidth)
+                              }
+                            },
+                            anchorOrigin: {
+                              vertical: 'bottom',
+                              horizontal: 'right'
+                            },
+                            transformOrigin: {
+                              vertical: 'top',
+                              horizontal: 'right'
+                            }
+                          }}
+                          renderValue={value =>
+                            renderValue(value, secondOptions, getSecondOptionLabel, getSecondOptionValue)
+                          }
+                        >
+                          {showEmptyMenuItem && (
+                            <MenuItem value='' disabled>
+                              <Typography noWrap>{emptyMenuItemLabel}</Typography>
+                            </MenuItem>
+                          )}
+
+                          {secondOptions?.map((opt, i) => (
+                            <MenuItem
+                              key={i}
+                              value={getSecondOptionValue(opt)}
+                              disabled={isSecondOptionDisabled(opt)}
+                              sx={{ whiteSpace: 'normal' }}
+                            >
+                              <Typography
+                                sx={{
+                                  wordBreak: 'break-word',
+                                  whiteSpace: 'normal',
+                                  width: '100%'
+                                }}
+                              >
+                                {getSecondOptionLabel(opt)}
+                              </Typography>
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                  </Box>
                 )}
               </Box>
             }

@@ -1,3 +1,5 @@
+'use client'
+
 // ** Custom Menu Components
 import VerticalNavLink from './VerticalNavLink'
 import VerticalNavGroup from './VerticalNavGroup'

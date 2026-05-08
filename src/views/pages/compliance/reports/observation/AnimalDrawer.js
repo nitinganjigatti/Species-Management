@@ -583,7 +583,8 @@ const AnimalDrawer = ({
             minHeight: 0,
             '&::-webkit-scrollbar': { display: 'none' },
             scrollbarWidth: 'none',
-            '-ms-overflow-style': 'none',
+            // '-ms-overflow-style': 'none',
+             msOverflowStyle: 'none',  
             py: showAnimalFilter ? 1 : 4
           }}
         >

@@ -35,6 +35,15 @@ export const hasActiveChild = (item, currentURL) => {
   if (!children) {
     return false
   }
+
+  // Normalize path by removing trailing slashes (except for root path)
+  const normalizePath = (path) => {
+    if (!path) return path
+    return path === '/' ? '/' : path.replace(/\/$/, '')
+  }
+
+  const normalizedCurrentURL = normalizePath(currentURL)
+
   for (const child of children) {
     if (child.children) {
       if (hasActiveChild(child, currentURL)) {
@@ -44,13 +53,14 @@ export const hasActiveChild = (item, currentURL) => {
     const childPath = child.path
 
     // Check if the child has a link and is active
-    if (
-      child &&
-      childPath &&
-      currentURL &&
-      (childPath === currentURL || (currentURL.includes(childPath) && childPath !== '/'))
-    ) {
-      return true
+    if (child && childPath && normalizedCurrentURL) {
+      const normalizedChildPath = normalizePath(childPath)
+      if (
+        normalizedChildPath === normalizedCurrentURL ||
+        (normalizedCurrentURL.includes(normalizedChildPath) && normalizedChildPath !== '/')
+      ) {
+        return true
+      }
     }
   }
 

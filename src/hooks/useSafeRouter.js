@@ -16,13 +16,7 @@ export const useSafeRouter = () => {
     pageRouterInstance = useRouter()
 
     // Check if we're actually in Page Router context
-    // In App Router pages, useRouter() from next/router may return an object
-    // but with empty query and events undefined — detect this to avoid false positives
-    if (
-      pageRouterInstance &&
-      pageRouterInstance.pathname !== undefined &&
-      pageRouterInstance.events !== undefined
-    ) {
+    if (pageRouterInstance && pageRouterInstance.pathname !== undefined) {
       isPageRouter = true
     }
   } catch (e) {
@@ -45,15 +39,9 @@ export const useSafeRouter = () => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
     appPathname = usePathname()
     // eslint-disable-next-line react-hooks/rules-of-hooks
+    appSearchParams = useSearchParams()
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     appParams = useParams()
-
-    // useSearchParams may throw without a Suspense boundary — isolate it
-    try {
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      appSearchParams = useSearchParams()
-    } catch (_) {
-      appSearchParams = null
-    }
 
     if (appRouterInstance && appPathname !== null) {
       isAppRouter = true
@@ -63,36 +51,16 @@ export const useSafeRouter = () => {
     isAppRouter = false
   }
 
-  // Convert Page Router style URL objects to strings for App Router compatibility
-  const toUrlString = url => {
-    if (typeof url === 'string') return url
-    if (typeof url === 'object' && url !== null) {
-      let path = url.pathname || ''
-      const query = url.query
-      if (query) {
-        const qs = typeof query === 'string'
-          ? query
-          : Object.entries(query)
-              .filter(([, v]) => v !== undefined && v !== null && v !== '')
-              .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-              .join('&')
-        if (qs) path += `?${qs}`
-      }
-      return path
-    }
-    return String(url)
-  }
-
   const push = useCallback(
-    (url, as, options) => {
+    url => {
       if (isPageRouter && pageRouterInstance) {
-        pageRouterInstance.push(url, as, options)
+        pageRouterInstance.push(url)
       } else if (isAppRouter && appRouterInstance) {
-        appRouterInstance.push(toUrlString(url))
+        appRouterInstance.push(url)
       } else {
         // Fallback to window.location
         if (typeof window !== 'undefined') {
-          window.location.href = toUrlString(url)
+          window.location.href = url
         }
       }
     },
@@ -100,15 +68,15 @@ export const useSafeRouter = () => {
   )
 
   const replace = useCallback(
-    (url, as, options) => {
+    url => {
       if (isPageRouter && pageRouterInstance) {
-        pageRouterInstance.replace(url, as, options)
+        pageRouterInstance.replace(url)
       } else if (isAppRouter && appRouterInstance) {
-        appRouterInstance.replace(toUrlString(url))
+        appRouterInstance.replace(url)
       } else {
         // Fallback to window.location
         if (typeof window !== 'undefined') {
-          window.location.replace(toUrlString(url))
+          window.location.replace(url)
         }
       }
     },
@@ -132,22 +100,19 @@ export const useSafeRouter = () => {
     if (isPageRouter && pageRouterInstance) {
       return pageRouterInstance.query || {}
     }
-    if (isAppRouter) {
+    if (isAppRouter && appSearchParams) {
       const queryObj = {}
 
-      // Search params first
-      if (appSearchParams) {
-        appSearchParams.forEach((value, key) => {
-          queryObj[key] = value
+      // Include dynamic route params (e.g., [id]) so path matching works like page router
+      if (appParams) {
+        Object.keys(appParams).forEach(key => {
+          queryObj[key] = appParams[key]
         })
       }
 
-      // Path params (e.g. [id]) override search params — they define the current page
-      if (appParams) {
-        Object.entries(appParams).forEach(([key, value]) => {
-          queryObj[key] = value
-        })
-      }
+      appSearchParams.forEach((value, key) => {
+        queryObj[key] = value
+      })
 
       return queryObj
     }
@@ -172,7 +137,8 @@ export const useSafeRouter = () => {
       return pageRouterInstance.pathname || ''
     }
     if (isAppRouter && appPathname) {
-      return appPathname
+      // Strip trailing slash to match page router behavior (page router never includes trailing slash in pathname)
+      return appPathname !== '/' && appPathname.endsWith('/') ? appPathname.slice(0, -1) : appPathname
     }
     if (typeof window !== 'undefined') {
       return window.location.pathname
@@ -188,8 +154,10 @@ export const useSafeRouter = () => {
     }
     if (isAppRouter && appPathname) {
       const search = appSearchParams ? appSearchParams.toString() : ''
+      // Strip trailing slash to normalize path matching for handleURLQueries
+      const normalizedPath = appPathname !== '/' && appPathname.endsWith('/') ? appPathname.slice(0, -1) : appPathname
 
-      return appPathname + (search ? '?' + search : '')
+      return normalizedPath + (search ? '?' + search : '')
     }
     if (typeof window !== 'undefined') {
       return window.location.pathname + window.location.search
@@ -215,3 +183,4 @@ export const useSafeRouter = () => {
 }
 
 export default useSafeRouter
+ 

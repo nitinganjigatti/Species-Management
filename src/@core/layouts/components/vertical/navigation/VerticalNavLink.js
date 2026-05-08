@@ -1,5 +1,8 @@
+'use client'
+
 // ** Next Imports
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
@@ -68,6 +71,7 @@ const VerticalNavLink = ({
 }) => {
   // ** Hooks
   const router = useSafeRouter()
+  const pathname = usePathname()
 
   // ** Vars
   const { navCollapsed } = settings
@@ -81,13 +85,32 @@ const VerticalNavLink = ({
   //   }
   // }
   const isNavLinkActive = () => {
-    // Check activeWhen array first if it exists
-    if (item.activeWhen && Array.isArray(item.activeWhen)) {
-      return item.activeWhen.some(path => router.pathname === path || handleURLQueries(router, path))
+    // Use usePathname() directly for App Router - more reliable than useSafeRouter
+    const currentPath = pathname || router.pathname
+
+    // Normalize paths by removing trailing slashes for comparison
+    const normalizePathForComparison = (path) => {
+      if (!path) return path
+      return path === '/' ? '/' : path.replace(/\/$/, '')
     }
 
-    // Fall back to default behavior
-    return router.pathname === item.path || handleURLQueries(router, item.path)
+    const normalizedCurrentPath = normalizePathForComparison(currentPath)
+    const normalizedItemPath = normalizePathForComparison(item.path)
+
+    // Check activeWhen array first if it exists
+    if (item.activeWhen && Array.isArray(item.activeWhen)) {
+      return item.activeWhen.some(path => {
+        const normalizedPath = normalizePathForComparison(path)
+        return normalizedCurrentPath === normalizedPath || handleURLQueries(router, path)
+      })
+    }
+
+    // Fall back to default behavior - exact match, prefix match for nested/detail pages, or handleURLQueries
+    return (
+      normalizedCurrentPath === normalizedItemPath ||
+      normalizedCurrentPath.startsWith(normalizedItemPath + '/') ||
+      handleURLQueries(router, item.path)
+    )
   }
 
   return (

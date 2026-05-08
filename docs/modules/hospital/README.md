@@ -1,141 +1,154 @@
 # Hospital Module Documentation
 
 ## Overview
-The Hospital Module is a comprehensive patient and medical records management system within the Antz Web Dashboard. It provides healthcare professionals with tools to manage patient information, medical records, treatments, and associated media files.
+
+The Hospital Module is a comprehensive patient and medical records management system within the Antz Web Dashboard. It supports the full clinical workflow — admission, inpatient care, outpatient visits, discharge, follow-up, and mortality — plus hospital master data (rooms, beds, staff, surgery templates).
+
+As of April 2026, the entire module has been migrated from JavaScript to TypeScript. See [typescript-migration.md](./typescript-migration.md).
 
 ## Module Location
-- **Base Path**: `src/components/hospital/`
-- **API Path**: `src/lib/api/hospital/`
+
+| Layer | Path |
+|---|---|
+| App Router routes | `src/app/(module)/hospital/` |
+| Components | `src/components/hospital/` |
+| Presentational views | `src/views/pages/hospital/` |
+| API services | `src/lib/api/hospital/` |
+| Types | `src/types/hospital/` |
+| Redux slice | `src/store/slices/hospital/` |
+| Context | `src/context/HospitalContext.tsx` |
+| Navigation | `src/components/navigation/hospital/` |
+| Hooks | `src/hooks/useHospitalColorUtils.ts` |
+
+## Available Documentation
+
+| Doc | Purpose |
+|---|---|
+| [architecture.md](./architecture.md) | Routes, components, views, API endpoints, state shape |
+| [typescript-migration.md](./typescript-migration.md) | Record of the JS→TS migration (April 2026) |
+| [patient-media-tab.md](./patient-media-tab.md) | Deep dive on the patient media management feature |
+
+## Patient Workflow
+
+Every patient flows through one of six status tracks. Each track shares the same clinical-documentation pages (symptoms, clinical assessment, prescriptions, anesthesia, surgery record):
+
+```
+Incoming → Inpatient → Discharged → Follow-up
+                     ↘ Mortality
+               Outpatient (parallel — non-admission)
+```
 
 ## Features
 
 ### Patient Management
-- Patient details view
-- Medical record management
-- Patient history tracking
-- Animal/patient profile information
 
-### Media Management
-- **[Patient Media Tab](./patient-media-tab.md)** - Comprehensive media file management
-  - Upload and view patient-related media files
-  - Filter by media type, medical record, and feature
-  - Infinite scroll for large media collections
-  - Support for images, documents, videos, and audio files
+- **Incoming patients** — Pre-admission queue, fed by transfers from Housing module
+- **Inpatient admission** — Bed/room assignment, doctor allocation, admission form
+- **Outpatient registration** — Non-admission visits (check-up, emergency, etc.)
+- **Discharge workflows** — Three paths:
+  - Return-to-enclosure (Housing)
+  - Inter-hospital transfer
+  - Mortality
+- **Follow-up tracking** — Post-discharge clinical visits
+- **Mortality records** — Post-mortem documentation; cross-links to Necropsy module
 
-### Clinical Features
-The module integrates with various clinical features:
-- Surgery records
-- Discharge summaries
-- Mortality records
-- Clinical assessments
-- Symptoms tracking
-- Prescription management
-- Anesthesia records
-- Treatment plans
+### Clinical Documentation
 
-## Component Structure
+- **Symptoms** — Catalog-driven symptom entry with severity
+- **Clinical assessments** — Physical exam templates, differential diagnosis
+- **Diagnosis** — Confirmed and tentative diagnoses
+- **Clinical notes** — Free-form veterinary notes
+- **Patient media** — Images, documents, videos, audio attached to records ([see dedicated doc](./patient-media-tab.md))
+- **Anesthesia records** — Pre-anesthesia, vital monitoring, medications, gases, recovery/reversal
+- **Surgery records** — Template-based surgical documentation
+- **Treatment monitoring** — Custom parameter tracking with schedules
 
-```
-src/components/hospital/
-├── drawer/
-│   ├── MediaFilterContent.js          # Filter UI component
-│   └── PatientMediaFilterDrawer.js    # Media filter drawer
-├── inpatient/
-│   └── PatientMedia.js                # Main media management component
-└── PatientDetails/
-    └── PatientDetails.js              # Patient details container
-```
+### Prescriptions
 
-## API Structure
+- Scheduled dosing with time-slot management
+- Direct/past administration recording
+- Skip/stop medicine workflows
+- Multi-time-slot prescriptions
+- Side-effect warnings
+- Batch lookup and pharmacy integration
 
-```
-src/lib/api/hospital/
-└── inpatient.js                       # API functions for inpatient management
-    ├── getPatientMedia()              # Fetch patient media files
-    └── uploadPatientMedia()           # Upload media files
-```
+### Hospital Masters
 
-## Available Documentation
+- **Hospital master** — Hospital entity CRUD (permission-gated)
+- **Rooms & Beds** — Inventory, status tracking, occupancy analytics
+- **Surgery templates** — Reusable surgical procedure definitions
+- **Monitoring parameters** — Custom treatment monitoring fields
+- **Anesthesia assessment items** — Vital monitoring templates
+- **Doctors & Staff** — Chief doctor assignments, staff directory
 
-1. **[Patient Media Tab](./patient-media-tab.md)**
-   - Detailed documentation of the media management system
-   - Upload functionality
-   - Advanced filtering
-   - API integration
-   - Component architecture
+## Permissions
+
+| Permission Key | Path | Gates |
+|---|---|---|
+| `add_hospital` | `roles.settings.add_hospital` | Entire Hospital module + Hospital Master link |
+
+Checked in:
+- `src/app/(module)/hospital/layout.tsx` — gates the entire module
+- `src/components/navigation/hospital/index.tsx` — hides the "Hospital" master link when denied
+
+## Cross-Module Dependencies
+
+| Consumer | Imports From Hospital | Purpose |
+|---|---|---|
+| Housing | `src/lib/api/hospital/incomingPatient` | Hospital transfer from enclosure |
+| Necropsy | `src/lib/api/hospital/inpatient`, `inpatientDischarge` | Mortality-to-necropsy workflow |
+| Views (housing) | `src/views/pages/hospital/utility/TreatmentTypeRadioButtons` | Shared UI |
 
 ## Key Technologies
 
-- **React**: UI component library
-- **Material-UI (MUI)**: Component framework
-- **React Query**: Data fetching and caching
-- **React Hook Form**: Form management
-- **Lodash**: Utility functions
-- **React Dropzone**: File upload handling
+- **Next.js 16** (App Router with Turbopack dev)
+- **React 18**, **TypeScript 5**
+- **MUI v6+** (with Grid v2 API)
+- **Emotion** (CSS-in-JS)
+- **React Hook Form + Yup** (forms & validation)
+- **React Query v5** (server state)
+- **Redux Toolkit** (client state, generic slice pattern)
+- **Axios** (via `src/lib/api/utility` wrapper)
 
 ## Development Guidelines
 
-### Adding New Features
-1. Follow the existing folder structure
-2. Place components in appropriate subdirectories
-3. Create API functions in the relevant API file
-4. Document new features in this documentation folder
+### Folder Conventions
 
-### State Management
-- Use React Query for server state
-- Use local state (useState/useReducer) for UI state
-- Implement proper loading and error states
+- **Components** (`src/components/hospital/`) — business logic, API calls, state, handlers
+- **Views** (`src/views/pages/hospital/`) — pure presentational, props in / JSX out, no side effects
+- **Drawers/modals with their own API logic** live in `components/`, not `views/`
 
-### Error Handling
-- Use toast notifications for user feedback
-- Implement proper error boundaries
-- Provide meaningful error messages
+### Type Hygiene
 
-### Performance
-- Implement pagination for large datasets
-- Use memoization (useMemo, useCallback) appropriately
-- Lazy load components when possible
-- Optimize API calls with debouncing
+- Import domain types from `src/types/hospital`
+- Use `any` for heterogeneous backend payloads (patientData, animalData) — tight typing isn't worth the friction given evolving API schemas
+- Type form state with a local `FormValues` interface + `useForm<FormValues>`
+- Cast `yupResolver(schema) as any` to bypass Yup↔RHF generic friction
 
-## Testing
-- Write unit tests for utility functions
-- Integration tests for API calls
-- E2E tests for critical user flows
-- Test error scenarios and edge cases
+### API Conventions
 
-## Future Roadmap
+- All hospital API files live in `src/lib/api/hospital/`
+- Wrap axios via `axiosGet` / `axiosPost` / `axiosFormPost` from `src/lib/api/utility`
+- Wrap response access in try/catch; return `{ success: false, message }` on failure
+- Return type: `Promise<ApiResponse<T>>` or `Promise<any>` for heterogeneous responses
 
-### Planned Features
-- Enhanced patient dashboard
-- Real-time notifications
-- Advanced analytics and reporting
-- Mobile-responsive improvements
-- Offline support for critical features
+### Permission Gating
 
-### Media Management Enhancements
-- Bulk operations (download, delete)
-- Advanced search capabilities
-- File preview modal
-- Sorting options
-- File organization and tagging
+- Use `useAuth()` to read `authData.userData.roles.settings.<key>`
+- Apply at layout level (`layout.tsx`) rather than per-page
+- Reference the pattern in `src/app/(module)/necropsy/necropsy/layout.tsx`
 
-## Contributing
+### Theme Tokens
 
-When contributing to the Hospital Module:
-1. Follow the established code style
-2. Update documentation for new features
-3. Write tests for new functionality
-4. Ensure backward compatibility
-5. Review existing code for similar patterns
+Never hardcode colors — use `theme.palette.customColors.*`. Cast theme as `any` since the MUI Theme type doesn't include `customColors`:
+
+```tsx
+const theme: any = useTheme()
+<Box sx={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+```
 
 ## Related Documentation
 
-- [Patient Media Tab](./patient-media-tab.md) - Detailed media management documentation
-
-## Support
-
-For questions or issues related to the Hospital Module:
-- Review the documentation in this folder
-- Check the component source code
-- Consult the API documentation
-- Contact the development team
+- [Hospital Architecture](./architecture.md)
+- [TypeScript Migration Record](./typescript-migration.md)
+- [Patient Media Tab](./patient-media-tab.md)

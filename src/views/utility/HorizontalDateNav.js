@@ -216,8 +216,8 @@ const DateScrollArea = styled(Box)(({ theme }) => ({
   '&::-webkit-scrollbar': {
     display: 'none'
   },
-  '-ms-overflow-style': 'none',
-  'scrollbar-width': 'none'
+  msOverflowStyle: 'none',
+  scrollbarWidth: 'none'
 
   // [theme.breakpoints.up('md')]: {
   //   paddingLeft: 0,

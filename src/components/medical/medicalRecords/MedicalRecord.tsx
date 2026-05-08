@@ -20,9 +20,7 @@ import type { AnimalData, MedicalRow, FilterOptions, SortType, FilterDate, Pagin
 // import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
-import { toast } from 'react-hot-toast'
-import utility from 'src/utility'
-import { ExportButton } from 'src/views/utility/render-snippets'
+
 const MedicalRecords = () => {
   const theme: any = useTheme()
   const router = useRouter()
@@ -73,27 +71,28 @@ const MedicalRecords = () => {
     setAnimalLoader(true)
     try {
       const res = await getAnimalDetailsOverview({
-        animal_id: router.query.animal_id as any
+        animal_id: Number(router.query.animal_id)
       })
 
       if (res?.success) {
+        const data = res?.data as any
         setSelectedAnimals([
           {
-            animal_id: res?.data?.animal_details?.animal_id,
-            default_common_name: res?.data?.animal_details?.common_name,
-            scientific_name: res?.data?.animal_details?.scientific_name ?? res?.data?.animal_details?.complete_name,
-            user_enclosure_name: res?.data?.animal_details?.user_enclosure_name,
-            section_name: res?.data?.animal_details?.section_name,
-            site_name: res?.data?.animal_details?.site_name,
-            type: res?.data?.animal_details?.type,
-            sex: res?.data?.animal_details?.sex,
-            default_icon: res?.data?.animal_details?.default_icon,
-            total_animal: res?.data?.animal_details?.total_animal,
-            local_identifier_name: res?.data?.animal_details?.local_identifier_name,
-            local_identifier_value: res?.data?.animal_details?.local_identifier_value,
-            enclosure_id: res?.data?.animal_details?.enclosure_id,
-            section_id: res?.data?.animal_details?.section_id,
-            site_id: res?.data?.animal_details?.site_id
+            animal_id: Number(data?.animal_details?.animal_id),
+            default_common_name: data?.animal_details?.common_name,
+            scientific_name: data?.animal_details?.scientific_name ?? data?.animal_details?.complete_name,
+            user_enclosure_name: data?.animal_details?.user_enclosure_name,
+            section_name: data?.animal_details?.section_name,
+            site_name: data?.animal_details?.site_name,
+            type: data?.animal_details?.type,
+            sex: data?.animal_details?.sex,
+            default_icon: data?.animal_details?.default_icon,
+            total_animal: data?.animal_details?.total_animal,
+            local_identifier_name: data?.animal_details?.local_identifier_name,
+            local_identifier_value: data?.animal_details?.local_identifier_value,
+            enclosure_id: data?.animal_details?.enclosure_id,
+            section_id: data?.animal_details?.section_id,
+            site_id: data?.animal_details?.site_id
           }
         ])
       }
@@ -105,10 +104,10 @@ const MedicalRecords = () => {
   }
 
   useEffect(() => {
-    if (router.query.animal_id && selectedAnimals.length === 0) {
+    if ((router.query.animal_id as string) && selectedAnimals.length === 0) {
       fetchAnimal()
     }
-  }, [router.query.animal_id])
+  }, [router.query.animal_id as string])
 
   const updateRouterQuery = (query: Record<string, any>, shallow = true) => {
     router.push({ pathname: router.pathname, query }, undefined, { shallow })
@@ -474,26 +473,17 @@ const MedicalRecords = () => {
       sortable: false,
       headerName: '',
       renderCell: (params: any) => (
-        <Box
-          sx={{ pointerEvents: 'auto' }}
-          onMouseDown={e => {
-            e.stopPropagation()
-          }}
-        >
-          <ExportButton
-            bgcolor='transparent'
-            tooltip='Download Medical Record'
-            loading={downloadingRowId === params.row.id}
-            onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-              e.preventDefault()
-              e.stopPropagation()
-              handleRowDownload(params.row)
-            }}
-          />
-        </Box>
+        <IconButton onClick={() => handleRowDownload(params.row)} disabled={downloadingRowId === params.row.id}>
+          {downloadingRowId === params.row.id ? (
+            <CircularProgress size={20} />
+          ) : (
+            <Icon icon='mdi:download' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
+          )}
+        </IconButton>
       )
     }
   ]
+
   const handleRowDownload = async (row: MedicalRow) => {
     const params = {
       ...buildFilterParams(),
@@ -501,21 +491,11 @@ const MedicalRecords = () => {
     }
     try {
       setDownloadingRowId(row?.id)
-      const result = await getMedicalRecordReport(params)
-
-      if (result?.success) {
-        toast.success(result.message)
-        if (result?.data?.file_path) {
-          utility.downloadFileFromURLWithBlob(result.data.download_url)
-        }
-      } else {
-        toast.error(result?.message || 'Failed to download report')
-      }
-      // await downloadPDF({
-      //   apiCall: getMedicalRecordReport,
-      //   params,
-      //   fileName: `Medical_record_${row?.medical_record_code || row?.id}_${Date.now()}.pdf`
-      // })
+      await downloadPDF({
+        apiCall: getMedicalRecordReport,
+        params,
+        fileName: `Medical_record_${row?.medical_record_code || row?.id}_${Date.now()}.pdf`
+      })
     } catch (error) {
       console.error('Error downloading row report:', error)
     } finally {
@@ -544,17 +524,11 @@ const MedicalRecords = () => {
     const params = buildFilterParams()
     try {
       setIsDownloading(true)
-      const result = await getMedicalRecordReport(params)
-      if (result?.success) {
-        toast.success(result.message)
-      } else {
-        toast.error(result?.message || 'Failed to download report')
-      }
-      // await downloadPDF({
-      //   apiCall: getMedicalRecordReport,
-      //   params,
-      //   fileName: `Medical_records_${Date.now()}.pdf`
-      // })
+      await downloadPDF({
+        apiCall: getMedicalRecordReport,
+        params,
+        fileName: `Medical_records_${Date.now()}.pdf`
+      })
     } catch (error) {
       console.error('Error downloading report:', error)
     } finally {
@@ -698,17 +672,7 @@ const MedicalRecords = () => {
                   getRowHeight={() => 'auto'}
                   externalTableStyle={{
                     '& .MuiDataGrid-cell': {
-                      padding: 4,
-                      pointerEvents: 'auto'
-                    },
-                    '& .MuiDataGrid-cell[data-field="actions"]': {
-                      pointerEvents: 'auto !important',
-                      padding: '4px !important',
-                      position: 'relative',
-                      zIndex: 50
-                    },
-                    '& .MuiDataGrid-cell[data-field="actions"] *': {
-                      pointerEvents: 'auto !important'
+                      padding: 4
                     },
                     padding: 0,
                     margin: 0
