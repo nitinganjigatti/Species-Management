@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, Suspense } from 'react'
+import { ReactNode } from 'react'
 
 // ** Emotion Imports
 import { CacheProvider } from '@emotion/react'
@@ -46,9 +46,6 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { HospitalProvider } from 'src/context/HospitalContext'
 import { NecropsyProvider } from 'src/context/NecropsyContext'
 
-// Search Params Provider (isolates useSearchParams in its own Suspense boundary)
-import { SearchParamsInner } from 'src/context/SearchParamsContext'
-
 // Shared instances (same as Page Router)
 import { queryClient } from 'src/lib/shared/queryClient'
 import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
@@ -59,51 +56,47 @@ interface ProvidersProps {
 
 export function Providers({ children }: ProvidersProps) {
   return (
-    <Suspense fallback={null}>
-      <SearchParamsInner>
-        <QueryClientProvider client={queryClient}>
-          <Provider store={store}>
-            <CacheProvider value={clientSideEmotionCache}>
-              <HospitalProvider>
-                <NecropsyProvider>
-                  <PariveshProvider>
-                    <AnimalProvider>
-                      <PharmacyProvider>
-                        <DynamicStatesProvider>
-                          <EggProvider>
-                            <ForgotPasswordProvider>
-                              <AuthProvider>
-                                <SettingsProvider pageSettings={null}>
-                                  <SettingsConsumer>
-                                    {({ settings }) => {
-                                      return (
-                                        <ThemeComponent settings={settings}>
-                                          {children}
-                                          <ReactHotToast>
-                                            <Toaster
-                                              position={settings.toastPosition as any}
-                                              containerClassName='react-hot-toast-container'
-                                              toastOptions={{ className: 'react-hot-toast' }}
-                                            />
-                                          </ReactHotToast>
-                                        </ThemeComponent>
-                                      )
-                                    }}
-                                  </SettingsConsumer>
-                                </SettingsProvider>
-                              </AuthProvider>
-                            </ForgotPasswordProvider>
-                          </EggProvider>
-                        </DynamicStatesProvider>
-                      </PharmacyProvider>
-                    </AnimalProvider>
-                  </PariveshProvider>
-                </NecropsyProvider>
-              </HospitalProvider>
-            </CacheProvider>
-          </Provider>
-        </QueryClientProvider>
-      </SearchParamsInner>
-    </Suspense>
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <CacheProvider value={clientSideEmotionCache}>
+          <HospitalProvider>
+            <NecropsyProvider>
+              <PariveshProvider>
+                <AnimalProvider>
+                  <PharmacyProvider>
+                    <DynamicStatesProvider>
+                      <EggProvider>
+                        <ForgotPasswordProvider>
+                          <AuthProvider>
+                            <SettingsProvider pageSettings={null}>
+                              <SettingsConsumer>
+                                {({ settings }) => {
+                                  return (
+                                    <ThemeComponent settings={settings}>
+                                      {children}
+                                      <ReactHotToast>
+                                        <Toaster
+                                          position={settings.toastPosition as any}
+                                          containerClassName='react-hot-toast-container'
+                                          toastOptions={{ className: 'react-hot-toast' }}
+                                        />
+                                      </ReactHotToast>
+                                    </ThemeComponent>
+                                  )
+                                }}
+                              </SettingsConsumer>
+                            </SettingsProvider>
+                          </AuthProvider>
+                        </ForgotPasswordProvider>
+                      </EggProvider>
+                    </DynamicStatesProvider>
+                  </PharmacyProvider>
+                </AnimalProvider>
+              </PariveshProvider>
+            </NecropsyProvider>
+          </HospitalProvider>
+        </CacheProvider>
+      </Provider>
+    </QueryClientProvider>
   )
 }

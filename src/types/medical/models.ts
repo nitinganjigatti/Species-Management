@@ -62,8 +62,8 @@ export interface SortType {
 }
 
 export interface FilterDate {
-  startDate?: Date
-  endDate?: Date
+  startDate?: Date | null
+  endDate?: Date | null
 }
 
 export interface PaginationFilters {
