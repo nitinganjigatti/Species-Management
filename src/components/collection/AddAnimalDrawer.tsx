@@ -1,16 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   Autocomplete,
+  Avatar,
   Box,
-  Button,
   Card,
   Drawer,
   FormControl,
+  FormControlLabel,
   FormHelperText,
   Grid,
   IconButton,
   InputLabel,
   MenuItem,
+  Radio,
+  RadioGroup,
   Select,
   TextField,
   ToggleButton,
@@ -30,17 +33,20 @@ import moment from 'moment'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
+import { useAuth } from 'src/hooks/useAuth'
 import {
   createAnimal,
+  createGroupAnimal,
   getAccessionType,
   getAnimalGetconfigs,
   getAnimalOwnershipTerms,
   getMastersOrganization,
   getTaxonomyList
 } from 'src/lib/api/egg/egg/createAnimal'
+import SelectEnclosurePickerDrawer, { SelectedEnclosure } from './SelectEnclosurePickerDrawer'
 
 type EntryType = 'single' | 'batch' | 'group'
-type AgeUnit = 'days' | 'weeks' | 'months'
+type AgeUnit = 'days' | 'weeks' | 'months' | 'years'
 
 interface AddAnimalDrawerProps {
   open: boolean
@@ -50,10 +56,21 @@ interface AddAnimalDrawerProps {
 
 const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSuccess }) => {
   const theme = useTheme()
+  const auth = useAuth() as any
+  const zooId: number | undefined = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const [entryType, setEntryType] = useState<EntryType>('single')
   const [ageUnit, setAgeUnit] = useState<AgeUnit>('days')
   const [loader, setLoader] = useState(false)
+
+  // Controlled open state so the date pickers also open when the user clicks the
+  // text input (default MUI X behavior is calendar-icon-only).
+  const [accessionDateOpen, setAccessionDateOpen] = useState(false)
+  const [birthDateOpen, setBirthDateOpen] = useState(false)
+
+  // Enclosure picker drawer state — opens a bottom sheet with section→enclosure→subenclosure cascade.
+  const [enclosurePickerOpen, setEnclosurePickerOpen] = useState(false)
+  const [selectedEnclosure, setSelectedEnclosure] = useState<SelectedEnclosure | null>(null)
 
   // Master data
   const [taxonomyList, setTaxonomyList] = useState<any[]>([])
@@ -83,11 +100,17 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
   })
 
   const groupSchema = yup.object().shape({
-    totalCount: yup.number().required('Total count is required').min(1, 'Must be at least 1'),
+    totalCount: yup
+      .number()
+      .typeError('Total count must be a number')
+      .required('Total count is required')
+      .min(2, 'Group requires at least 2 animals'),
     accessionType: yup.string().required('Accession type is required'),
     accessionDate: yup.mixed().required('Accession date is required'),
     species: yup.string().required('Species / Taxonomy is required'),
-    enclosure: yup.string().required('Enclosure is required')
+    enclosure: yup.string().required('Enclosure is required'),
+    sexType: yup.string().required('Sex type is required'),
+    collectionType: yup.string().required('Collection type is required')
   })
 
   const getSchema = () => {
@@ -109,6 +132,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
     birthDate: null as any,
     age: '',
     localIdentifierType: '',
+    localId: '',
     // Batch fields
     maleCount: '',
     femaleCount: '',
@@ -122,6 +146,10 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
     control,
     handleSubmit,
     reset,
+    setValue,
+    getValues,
+    watch,
+    trigger,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -129,6 +157,46 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
     mode: 'onBlur',
     reValidateMode: 'onChange'
   })
+
+  // Show "Local ID" only after the user has chosen a "Local Identifier Type".
+  const watchedLocalIdentifierType = watch('localIdentifierType')
+
+  // ===== Birth Date ↔ Age + Unit bidirectional sync =====
+  // Birth date is the source of truth. Age+unit is derived from it.
+
+  const computeAgeFromBirthDate = (birthDate: any, unit: AgeUnit): string => {
+    if (!birthDate) return ''
+    const diff = dayjs().diff(dayjs(birthDate), unit)
+    return diff > 0 ? String(diff) : '0'
+  }
+
+  const computeBirthDateFromAge = (ageStr: string, unit: AgeUnit): any => {
+    const num = parseInt(ageStr, 10)
+    if (isNaN(num) || num < 0) return null
+    return dayjs().subtract(num, unit)
+  }
+
+  const handleBirthDateChange = (newDate: any, fieldOnChange: (v: any) => void) => {
+    fieldOnChange(newDate)
+    setValue('age', computeAgeFromBirthDate(newDate, ageUnit))
+  }
+
+  const handleAgeChange = (rawValue: string, fieldOnChange: (v: string) => void) => {
+    fieldOnChange(rawValue)
+    const newDate = computeBirthDateFromAge(rawValue, ageUnit)
+    if (newDate) setValue('birthDate', newDate)
+  }
+
+  const handleAgeUnitChange = (newUnit: AgeUnit | null) => {
+    if (!newUnit) return
+    setAgeUnit(newUnit)
+    // Re-express the existing birth date in the newly-selected unit so the displayed age
+    // stays consistent with the picked date instead of jumping to a different point in time.
+    const currentBirthDate = getValues('birthDate')
+    if (currentBirthDate) {
+      setValue('age', computeAgeFromBirthDate(currentBirthDate, newUnit))
+    }
+  }
 
   // Fetch master data
   useEffect(() => {
@@ -165,37 +233,86 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
   const onSubmit = async (values: any) => {
     try {
       setLoader(true)
+
+      // Group entry uses a different endpoint (`groupAnimal/create`) and a leaner payload —
+      // no section_id/site_id, no local identifiers, no parents, no form_type. `totalCount`
+      // is camelCase (backend contract). Branch early so single/batch path stays clean.
+      if (entryType === 'group') {
+        const groupPayload: any = {
+          accession_type: values.accessionType,
+          accession_date: moment(values.accessionDate?.$d || values.accessionDate).format('YYYY-MM-DD'),
+          taxonomy_id: values.species,
+          enclosure_id: selectedEnclosure?.enclosure_id ? String(selectedEnclosure.enclosure_id) : '',
+          organization_id: values.organisation,
+          from_institution: null,
+          ownership_term: values.ownershipTerm,
+          totalCount: String(values.totalCount),
+          sex: values.sexType,
+          collection_type: values.collectionType,
+          place_of_rescue: '',
+          rescue_type: null,
+          description: null,
+          zoo_id: zooId,
+          breed_id: null,
+          morph_id: null,
+          locality_id: null
+        }
+        const groupRes = await createGroupAnimal(groupPayload)
+        if (groupRes?.success) {
+          Toaster({ type: 'success', message: groupRes.message })
+          handleClose()
+          onSuccess?.()
+        } else {
+          Toaster({ type: 'error', message: groupRes?.message || 'Failed to create group of animals' })
+        }
+        return
+      }
+
+      // Single + Batch share the `animal/create` endpoint and shape.
+      // Optional fields (`local_id_type`, `local_id`) collapse to `null` when empty —
+      // sending `""` for these triggers backend validation errors in some entry types.
       const payload: any = {
-        form_type: entryType,
         accession_type: values.accessionType,
         accession_date: moment(values.accessionDate?.$d || values.accessionDate).format('YYYY-MM-DD'),
         taxonomy_id: values.species,
-        ownership_term: values.ownershipTerm,
+        enclosure_id: selectedEnclosure?.enclosure_id ? String(selectedEnclosure.enclosure_id) : '',
         organization_id: values.organisation,
+        from_institution: null,
+        ownership_term: values.ownershipTerm,
+        section_id: selectedEnclosure?.section_id ? String(selectedEnclosure.section_id) : '',
+        site_id: selectedEnclosure?.site_id ? String(selectedEnclosure.site_id) : '',
         collection_type: values.collectionType,
-        local_id_type: values.localIdentifierType
+        place_of_rescue: '',
+        rescue_type: null,
+        local_id_type: values.localIdentifierType || null,
+        local_id: values.localId || null,
+        breed_id: null,
+        morph_id: null,
+        locality_id: null,
+        description: null,
+        form_type: entryType,
+        zoo_id: zooId,
+        parent_female: '',
+        parent_male: ''
       }
+
+      // Birth date + age apply to both single and batch.
+      if (values.birthDate) {
+        payload.birth_date = moment(values.birthDate?.$d || values.birthDate).format('YYYY-MM-DD')
+      }
+      // Age is sent as a single concatenated string e.g. "2days" / "5months" — NOT separate age + age_unit.
+      if (values.age) payload.age = `${values.age}${ageUnit}`
 
       if (entryType === 'single') {
         payload.sex = values.sexType
-        if (values.birthDate) {
-          payload.birth_date = moment(values.birthDate?.$d || values.birthDate).format('YYYY-MM-DD')
-        }
-        if (values.age) {
-          payload.age = values.age
-          payload.age_unit = ageUnit
-        }
       }
 
       if (entryType === 'batch') {
-        payload.male = values.maleCount || 0
-        payload.female = values.femaleCount || 0
-        payload.undetermined = values.undeterminedCount || 0
-        payload.indeterminate = values.indeterminateCount || 0
-      }
-
-      if (entryType === 'group') {
-        payload.total_count = values.totalCount
+        // Counts are sent as strings (e.g. "1") to match the backend contract.
+        payload.male = String(values.maleCount || 0)
+        payload.female = String(values.femaleCount || 0)
+        payload.undetermined = String(values.undeterminedCount || 0)
+        payload.indeterminate = String(values.indeterminateCount || 0)
       }
 
       const res = await createAnimal(payload)
@@ -218,6 +335,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
     setEntryType('single')
     setDefaultSpecies(null)
     setAgeUnit('days')
+    setSelectedEnclosure(null)
     onClose()
   }
 
@@ -231,7 +349,12 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
     <Drawer
       anchor='right'
       open={open}
-      onClose={handleClose}
+      // Only close via the X button — ignore backdrop clicks and Escape so the user
+      // doesn't lose half-filled form data by tapping outside.
+      onClose={(_event, reason) => {
+        if (reason === 'backdropClick' || reason === 'escapeKeyDown') return
+        handleClose()
+      }}
       slotProps={{
         paper: {
           sx: { width: { xs: '100%', sm: 560 }, backgroundColor: theme.palette.customColors.Background }
@@ -271,65 +394,78 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
             >
               Choose Animal Entry Type
             </Typography>
-            <Box sx={{ display: 'flex', gap: 2, mb: 5 }}>
-              {(['single', 'batch', 'group'] as EntryType[]).map(type => (
-                <Box
-                  key={type}
-                  onClick={() => handleEntryTypeChange(type)}
-                  sx={{
-                    flex: 1,
-                    py: 1.5,
-                    px: 2,
-                    border: `1.5px solid ${
-                      entryType === type ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant
-                    }`,
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 1.5,
-                    cursor: 'pointer',
-                    backgroundColor: entryType === type ? theme.palette.customColors.Surface : 'transparent',
-                    transition: 'all 0.2s'
-                  }}
-                >
-                  <Typography
-                    sx={{
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      color:
-                        entryType === type ? theme.palette.primary.main : theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </Typography>
-                  <Box
-                    sx={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: '50%',
-                      border: `2px solid ${
-                        entryType === type ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant
-                      }`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    {entryType === type && (
-                      <Box
-                        sx={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: '50%',
-                          backgroundColor: theme.palette.primary.main
-                        }}
-                      />
-                    )}
-                  </Box>
-                </Box>
-              ))}
-            </Box>
+            <Card
+              variant='outlined'
+              sx={{
+                p: 4,
+                mb: 5,
+                borderRadius: '10px',
+                borderColor: theme.palette.customColors.SurfaceVariant,
+                backgroundColor: theme.palette.background.paper
+              }}
+            >
+              <RadioGroup
+                row
+                name='entry-type'
+                value={entryType}
+                onChange={(_, val) => handleEntryTypeChange(val as EntryType)}
+                sx={{ display: 'flex', gap: 2, width: '100%', flexWrap: 'nowrap' }}
+              >
+                {(['single', 'batch', 'group'] as EntryType[]).map(type => {
+                  const selected = entryType === type
+
+                  return (
+                    <FormControlLabel
+                      key={type}
+                      value={type}
+                      labelPlacement='start'
+                      control={
+                        <Radio
+                          disableRipple
+                          sx={{
+                            p: 0,
+                            color: theme.palette.customColors.OutlineVariant,
+                            '&.Mui-checked': { color: theme.palette.primary.main }
+                          }}
+                        />
+                      }
+                      label={
+                        <Typography
+                          variant='subtitle1'
+                          sx={{
+                            fontWeight: 600,
+                            color: selected
+                              ? theme.palette.primary.main
+                              : theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
+                          {type.charAt(0).toUpperCase() + type.slice(1)}
+                        </Typography>
+                      }
+                      sx={{
+                        flex: 1,
+                        m: 0,
+                        py: 3,
+                        px: 3,
+                        minHeight: 60,
+                        border: `1.5px solid ${
+                          selected ? theme.palette.primary.main : theme.palette.customColors.OutlineVariant
+                        }`,
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        cursor: 'pointer',
+                        backgroundColor: selected ? theme.palette.customColors.Surface : 'transparent',
+                        transition: 'all 0.2s',
+                        '& .MuiFormControlLabel-label': { display: 'flex' }
+                      }}
+                    />
+                  )
+                })}
+              </RadioGroup>
+            </Card>
 
             {/* Batch Count Section */}
             {entryType === 'batch' && (
@@ -425,13 +561,21 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                   <Controller
                     name='totalCount'
                     control={control}
-                    render={({ field }) => (
+                    render={({ field: { value, onChange, onBlur, ref } }) => (
                       <TextField
-                        {...field}
+                        ref={ref}
+                        value={value}
+                        onBlur={onBlur}
+                        // Validate on every keystroke so the "Group requires at least 2 animals"
+                        // message appears immediately — not only after blur/submit.
+                        onChange={e => {
+                          onChange(e)
+                          trigger('totalCount')
+                        }}
                         label='Total Count of animals'
                         type='number'
                         error={Boolean(errors.totalCount)}
-                        inputProps={{ min: 1 }}
+                        inputProps={{ min: 2 }}
                       />
                     )}
                   />
@@ -527,6 +671,22 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                         label='Accession Date'
                         maxDate={dayjs()}
                         sx={{ width: '100%' }}
+                        open={accessionDateOpen}
+                        onOpen={() => setAccessionDateOpen(true)}
+                        onClose={() => setAccessionDateOpen(false)}
+                        // MUI X v8 ships an "accessible field" by default (segmented spans).
+                        // Disable it to get back the legacy single-<input> structure that respects onClick.
+                        enableAccessibleFieldDOMStructure={false}
+                        slotProps={{
+                          textField: {
+                            onClick: () => setAccessionDateOpen(true),
+                            sx: { cursor: 'pointer', '& .MuiInputBase-root': { cursor: 'pointer' } },
+                            inputProps: {
+                              readOnly: true,
+                              style: { cursor: 'pointer' }
+                            }
+                          }
+                        }}
                       />
                     </LocalizationProvider>
                   )}
@@ -569,20 +729,94 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                 </FormControl>
               )}
 
-              {/* Select Enclosure */}
+              {/* Select Enclosure — opens a bottom-sheet picker with section→enclosure→subenclosure cascade.
+                  Two states: empty placeholder field that opens the picker, OR a selected-card with Encl/Sec/Site
+                  + a circular X to clear the selection (matches the mobile-design "selected enclosure" card). */}
               <FormControl fullWidth sx={{ mb: 4 }}>
-                <InputLabel>Select Enclosure</InputLabel>
-                <Controller
-                  name='enclosure'
-                  control={control}
-                  render={({ field }) => (
-                    <Select {...field} label='Select Enclosure' error={Boolean(errors.enclosure)}>
-                      {/* TODO: Populate with enclosure API data */}
-                      <MenuItem value=''>Select Enclosure</MenuItem>
-                    </Select>
-                  )}
-                />
-                {errors.enclosure && (
+                <Typography
+                  variant='subtitle2'
+                  sx={{ fontWeight: 600, mb: 2, color: theme.palette.customColors.OnSurfaceVariant }}
+                >
+                  Enclosure
+                </Typography>
+                {!selectedEnclosure ? (
+                  <Controller
+                    name='enclosure'
+                    control={control}
+                    render={() => (
+                      <TextField
+                        placeholder='Select Enclosure'
+                        onClick={() => setEnclosurePickerOpen(true)}
+                        error={Boolean(errors.enclosure)}
+                        slotProps={{
+                          input: {
+                            readOnly: true,
+                            endAdornment: <Icon icon='mdi:chevron-down' />
+                          }
+                        }}
+                        sx={{ cursor: 'pointer', '& .MuiInputBase-root': { cursor: 'pointer' } }}
+                      />
+                    )}
+                  />
+                ) : (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      p: 2,
+                      pr: 1.5,
+                      borderRadius: '8px',
+                      backgroundColor: theme.palette.customColors.Surface
+                    }}
+                  >
+                    <Avatar
+                      src={selectedEnclosure.enclosure_image || undefined}
+                      sx={{
+                        width: 48,
+                        height: 48,
+                        bgcolor: theme.palette.customColors.SurfaceVariant
+                      }}
+                    >
+                      <Icon icon='mdi:home-outline' />
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{ fontWeight: 700, color: theme.palette.customColors.OnSurfaceVariant }}
+                      >
+                        Encl: {selectedEnclosure.enclosure_name}
+                      </Typography>
+                      {selectedEnclosure.section_name && (
+                        <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                          Sec: {selectedEnclosure.section_name}
+                        </Typography>
+                      )}
+                      {selectedEnclosure.site_name && (
+                        <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
+                          Site: {selectedEnclosure.site_name}
+                        </Typography>
+                      )}
+                    </Box>
+                    <IconButton
+                      onClick={() => {
+                        setSelectedEnclosure(null)
+                        setValue('enclosure', '')
+                      }}
+                      sx={{
+                        border: `2px solid ${theme.palette.customColors.Tertiary}`,
+                        color: theme.palette.customColors.Tertiary,
+                        width: 32,
+                        height: 32,
+                        flexShrink: 0
+                      }}
+                      size='small'
+                    >
+                      <Icon icon='mdi:close' fontSize={18} />
+                    </IconButton>
+                  </Box>
+                )}
+                {errors.enclosure && !selectedEnclosure && (
                   <FormHelperText sx={{ color: 'error.main' }}>{errors.enclosure.message}</FormHelperText>
                 )}
               </FormControl>
@@ -659,10 +893,26 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                           <DatePicker
                             value={value}
-                            onChange={onChange}
+                            onChange={newDate => handleBirthDateChange(newDate, onChange)}
                             label='Birth Date'
                             maxDate={dayjs()}
                             sx={{ width: '100%' }}
+                            open={birthDateOpen}
+                            onOpen={() => setBirthDateOpen(true)}
+                            onClose={() => setBirthDateOpen(false)}
+                            // MUI X v8 ships an "accessible field" by default (segmented spans).
+                            // Disable it to get back the legacy single-<input> structure that respects onClick.
+                            enableAccessibleFieldDOMStructure={false}
+                            slotProps={{
+                              textField: {
+                                onClick: () => setBirthDateOpen(true),
+                                sx: { cursor: 'pointer', '& .MuiInputBase-root': { cursor: 'pointer' } },
+                                inputProps: {
+                                  readOnly: true,
+                                  style: { cursor: 'pointer' }
+                                }
+                              }
+                            }}
                           />
                         </LocalizationProvider>
                       )}
@@ -686,13 +936,14 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                     <Controller
                       name='age'
                       control={control}
-                      render={({ field }) => (
+                      render={({ field: { value, onChange } }) => (
                         <TextField
-                          {...field}
+                          value={value}
+                          onChange={e => handleAgeChange(e.target.value, onChange)}
                           label='Age'
                           type='number'
                           sx={{ width: 100, flexShrink: 0 }}
-                          slotProps={{ htmlInput: { min: 1 } }}
+                          slotProps={{ htmlInput: { min: 0 } }}
                         />
                       )}
                     />
@@ -700,7 +951,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                       fullWidth
                       value={ageUnit}
                       exclusive
-                      onChange={(_, val) => val && setAgeUnit(val)}
+                      onChange={(_, val) => handleAgeUnitChange(val)}
                       sx={{
                         '& .MuiToggleButton-root': {
                           textTransform: 'capitalize',
@@ -716,6 +967,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                       <ToggleButton value='days'>Days</ToggleButton>
                       <ToggleButton value='weeks'>Weeks</ToggleButton>
                       <ToggleButton value='months'>Months</ToggleButton>
+                      <ToggleButton value='years'>Years</ToggleButton>
                     </ToggleButtonGroup>
                   </Box>
                 </>
@@ -740,6 +992,21 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
                   />
                 </FormControl>
               )}
+
+              {/* Local ID (free-text value paired with Local Identifier Type).
+                  Only renders once the user has chosen a Local Identifier Type — pairing the two
+                  inputs visually so it's clear the ID belongs to the chosen type. */}
+              {(entryType === 'single' || entryType === 'batch') && Boolean(watchedLocalIdentifierType) && (
+                <FormControl fullWidth sx={{ mb: 4 }}>
+                  <Controller
+                    name='localId'
+                    control={control}
+                    render={({ field }) => (
+                      <TextField {...field} label='Local Identifier' placeholder='Enter Local Identifier' />
+                    )}
+                  />
+                </FormControl>
+              )}
             </Card>
           </form>
         </Box>
@@ -759,6 +1026,17 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
           </LoadingButton>
         </Box>
       </Box>
+
+      {/* Bottom-sheet enclosure picker — section → enclosure → sub-enclosure cascade */}
+      <SelectEnclosurePickerDrawer
+        open={enclosurePickerOpen}
+        onClose={() => setEnclosurePickerOpen(false)}
+        onSelect={enc => {
+          setSelectedEnclosure(enc)
+          setValue('enclosure', String(enc.enclosure_id))
+          setEnclosurePickerOpen(false)
+        }}
+      />
     </Drawer>
   )
 }
