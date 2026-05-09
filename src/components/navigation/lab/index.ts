@@ -41,7 +41,7 @@ const ComposeLabNavigation = ({ labRole }: LabNavigationProps): LabNavItem[] => 
     children: []
   }
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
 
   const addlabPermission = authData?.userData?.roles?.settings?.add_lab
   const labList = authData?.userData?.modules?.lab_data?.lab

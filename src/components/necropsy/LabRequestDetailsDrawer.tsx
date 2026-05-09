@@ -1,5 +1,18 @@
 import React, { useState, useEffect, useCallback, memo, FC } from 'react'
-import { Box, Drawer, IconButton, Typography, Skeleton, Tabs, Tab, Divider, Chip, Button, Alert, Tooltip } from '@mui/material'
+import {
+  Box,
+  Drawer,
+  IconButton,
+  Typography,
+  Skeleton,
+  Tabs,
+  Tab,
+  Divider,
+  Chip,
+  Button,
+  Alert,
+  Tooltip
+} from '@mui/material'
 import { useTheme, alpha, Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline'
@@ -175,7 +188,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
     try {
       const response = await getLabRequestDetails(requestGuid)
       if (response?.success) {
-        setLabDetails(response.data)
+        setLabDetails(response.data as LabDetails)
       } else {
         setError('Failed to load lab request details')
       }
@@ -193,7 +206,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
     try {
       const response = await getLabRequestSamples(requestGuid)
       if (response?.success) {
-        setSamples(response.data?.sampleDetails || [])
+        setSamples((response.data as any)?.sampleDetails || [])
       }
     } catch (err) {
       console.error('Error fetching samples:', err)
@@ -208,7 +221,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
     try {
       const response = await getLabRequestNotes(requestGuid)
       if (response?.success) {
-        setNotes(response.data || [])
+        setNotes((response.data as LabNote[]) || [])
       }
     } catch (err) {
       console.error('Error fetching notes:', err)
@@ -223,7 +236,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
     try {
       const response = await getLabRequestReports(requestGuid)
       if (response?.success) {
-        setReports(response.data || [])
+        setReports((response.data as LabReport[]) || [])
       }
     } catch (err) {
       console.error('Error fetching reports:', err)
@@ -236,7 +249,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
     if (!tCode) return
     setSubTestsLoading(true)
     try {
-      const response = await getLabSubTests(tCode)
+      const response = (await getLabSubTests(tCode)) as any
       let list: SubTest[] = []
       if (Array.isArray(response?.data)) {
         list = response.data
@@ -260,7 +273,7 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
     if (!requestGuid) return
     setSampleLogsLoading(true)
     try {
-      const response = await getLabSampleLogs(requestGuid)
+      const response = (await getLabSampleLogs(requestGuid)) as any
       if (response?.success && response?.data?.logList) {
         setSampleLogs(response.data.logList)
       } else {
@@ -842,7 +855,9 @@ const LabRequestDetailsDrawer: FC<LabRequestDetailsDrawerProps> = ({ open, onClo
                 mb: 0.5
               }}
             >
-              {rejected_lab ? t('necropsy_module.rejected_by_lab', { lab: rejected_lab }) : t('necropsy_module.rejected_by_lab_default')}
+              {rejected_lab
+                ? t('necropsy_module.rejected_by_lab', { lab: rejected_lab })
+                : t('necropsy_module.rejected_by_lab_default')}
             </Typography>
             {rejected_reason && (
               <Typography
