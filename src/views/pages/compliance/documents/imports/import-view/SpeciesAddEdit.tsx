@@ -17,7 +17,7 @@ import {
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ExportPermitDrawer from '../drawer/ExportPermitDrawer'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
-import Router, { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useTheme } from '@mui/material/styles'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
@@ -109,7 +109,7 @@ const SpeciesAddEdit = ({
   setStartDate
 }: SpeciesAddEditProps) => {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 

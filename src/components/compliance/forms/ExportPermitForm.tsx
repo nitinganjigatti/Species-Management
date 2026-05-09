@@ -6,7 +6,7 @@ import * as yup from 'yup'
 import ExportPermitDetails from './ExportPermitDetails'
 import ExportPermitAnimals from './ExportPermitAnimals'
 import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { addExport, getMastersData, updateExport } from 'src/lib/api/compliance/exports'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
@@ -174,7 +174,7 @@ export const exportPermitValidationSchema = yup.object().shape({
 })
 
 const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitFormProps) => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState<boolean>(false)
   const [speciesList, setSpeciesList] = useState<ExportSpeciesFormItem[]>([])
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
@@ -431,21 +431,9 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitF
 
         // Route to detail page
         if (!id) {
-          router.push({
-            pathname: '/compliance/documents/exports/AddEditExportPermit',
-            query: {
-              id: response?.data?.id,
-              type: 'add'
-            }
-          })
+          router.push(`/compliance/documents/exports/AddEditExportPermit?id=${response?.data?.id}&type=add`)
         } else {
-          router.push({
-            pathname: '/compliance/documents/exports/AddEditExportPermit',
-            query: {
-              id: id,
-              type: 'update'
-            }
-          })
+          router.push(`/compliance/documents/exports/AddEditExportPermit?id=${id}&type=update`)
         }
       } else {
         setSubmitLoader(false)

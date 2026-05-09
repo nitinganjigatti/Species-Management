@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { useTheme } from '@mui/material/styles'
 import DocumentUploadDrawer from './drawer/DocumentUploadDrawer'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import { addDocument, updateDocument } from 'src/lib/api/compliance/exports'
@@ -20,7 +20,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
   const [currentDocumentData, setCurrentDocumentData] = useState<ComplianceDocument | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [expanded, setExpanded] = useState<Id | null>(null)
-  const router = useRouter()
+  const router = useSafeRouter()
 
   const { id } = router.query
 
