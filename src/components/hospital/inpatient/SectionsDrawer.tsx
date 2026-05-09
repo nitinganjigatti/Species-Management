@@ -1,6 +1,16 @@
 'use client'
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Avatar } from '@mui/material'
+import {
+  Typography,
+  Box,
+  CircularProgress,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Avatar,
+  Chip,
+  Tooltip
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import debounce from 'lodash/debounce'
@@ -19,9 +29,23 @@ interface SectionsDrawerProps {
   data?: any
   onContinue?: (data: any) => void
   localSelections?: any[]
+  disabledIds?: any[]
+  showCount?: boolean
+  fetchFn?: (params: any) => Promise<any>
+  fetchParams?: Record<string, any>
 }
 
-const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: SectionsDrawerProps) => {
+const SectionsDrawer = ({
+  open,
+  onClose,
+  data,
+  onContinue,
+  localSelections,
+  disabledIds = [],
+  showCount = false,
+  fetchFn,
+  fetchParams
+}: SectionsDrawerProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
   const queryClient = useQueryClient()
@@ -50,23 +74,39 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
     isFetching,
     isFetchingNextPage
   } = useInfiniteQuery<any>({
-    queryKey: [data?.queryKey, data?.id, search, open],
+    queryKey: [data?.queryKey, data?.id, search, open, !!fetchFn],
     queryFn: async ({ pageParam = 1 }: any) => {
-      const res: any = await getAllSections({
-        ...data?.params,
-        page_no: pageParam,
-        limit: PAGE_SIZE,
-        search
-      })
+      let result: any[] = []
+      let total = 0
+
+      if (fetchFn) {
+        const res: any = await fetchFn({
+          ...(fetchParams || {}),
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          q: search
+        })
+        result = res?.data?.result || []
+        total = res?.data?.total_count || 0
+      } else {
+        const res: any = await getAllSections({
+          ...data?.params,
+          page_no: pageParam,
+          limit: PAGE_SIZE,
+          search
+        })
+        result = res?.data?.result || []
+        total = res?.data?.total_count || 0
+      }
 
       return {
-        result: res?.data?.result || [],
-        nextPage: res?.data?.result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
-        total: res?.data?.total_count || 0
+        result,
+        nextPage: result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total
       }
     },
     getNextPageParam: (lastPage: any) => lastPage.nextPage,
-    enabled: Boolean(open && !!data?.id && data?.queryKey),
+    enabled: Boolean(open && data?.queryKey && (fetchFn || !!data?.id)),
     initialPageParam: 1
   } as any)
 
@@ -134,27 +174,32 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
     })
   }
 
-  // Handle select all/deselect all
+  // Excludes disabled items from select all
+  const selectableList = useMemo(
+    () => list.filter((section: any) => !disabledIds.includes(section.section_id)),
+    [list, disabledIds]
+  )
+
   const handleSelectAll = () => {
     if (isAllSelected) {
       setSelectedSections([])
     } else {
-      setSelectedSections([...list])
+      setSelectedSections([...selectableList])
     }
     setIsAllSelected(!isAllSelected)
   }
 
   // Update select all state when selection changes
   useEffect(() => {
-    if (list.length > 0) {
-      const allSelected = list.every((section: any) =>
+    if (selectableList.length > 0) {
+      const allSelected = selectableList.every((section: any) =>
         selectedSections.some((selectedSection: any) => selectedSection.section_id === section.section_id)
       )
       setIsAllSelected(allSelected)
     } else {
       setIsAllSelected(false)
     }
-  }, [selectedSections, list])
+  }, [selectedSections, selectableList])
 
   // Handle continue button click
   const handleContinue = () => {
@@ -177,7 +222,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title={(t('hospital_module.sections') as string)}
+      title={t('hospital_module.sections') as string}
       icon='/images/housing/section-icon-colored.png'
       iconColor={theme.palette.primary.main}
     >
@@ -190,7 +235,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
             borderRadius: '8px',
             backgroundColor: theme.palette.common.white
           }}
-          placeholder={(t('hospital_module.search_for_a_section') as string)}
+          placeholder={t('hospital_module.search_for_a_section') as string}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -208,7 +253,7 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
                 indeterminate={selectedCount > 0 && !isAllSelected}
               />
             }
-            label={(t('hospital_module.select_all') as string)}
+            label={t('hospital_module.select_all') as string}
             sx={{ mr: 0 }}
           />
         )}
@@ -216,47 +261,87 @@ const SectionsDrawer = ({ open, onClose, data, onContinue, localSelections }: Se
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map((section: any) => {
-          // Check if section is selected by comparing section_id
-          const isSelected = selectedSections.some((selectedSection: any) => selectedSection.section_id === section.section_id)
+          const isSelected = selectedSections.some(
+            (selectedSection: any) => selectedSection.section_id === section.section_id
+          )
+          const isDisabled = disabledIds.includes(section.section_id)
 
           return (
             <Box
               key={section?.section_id}
               sx={{
                 display: 'flex',
+                alignItems: 'center',
                 gap: 2,
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 0.8,
-                bgcolor: theme.palette.common.white,
-                alignItems: 'center',
+                bgcolor: isDisabled ? theme.palette.action.disabledBackground : theme.palette.common.white,
                 justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                cursor: isDisabled ? 'default' : 'pointer',
+                transition: 'all 0.2s ease',
+                opacity: isDisabled ? 0.6 : 1,
+                ...(isSelected && {
+                  borderColor: theme.palette.success.main,
+                  backgroundColor: '#f8fff8'
+                })
               }}
             >
-              <Box sx={{ flex: 1 }}>
-                <Box
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    gap: 4,
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <CellInfo
-                    value={section?.section_name}
-                    imgUrl={section?.images?.[0]?.file}
-                    defaultImage='/images/housing/section-icon-colored.png'
-                    defaultImageAlt='section image'
-                    inchagename={section?.incharge_name || ''}
-                  />
+              {showCount ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+                  <Avatar
+                    src={
+                      section?.images?.[0]?.file || section?.default_icon || '/images/housing/section-icon-colored.png'
+                    }
+                    alt={section?.section_name}
+                    sx={{ width: 40, height: 40, borderRadius: 0.5 }}
+                  >
+                    {section?.section_name?.[0]}
+                  </Avatar>
+                  <Box>
+                    <Typography variant='subtitle1' sx={{ fontWeight: 500, textTransform: 'capitalize' }}>
+                      {section?.section_name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                        <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                          {`Enclosures ${section?.enclosure_count ?? 0}`}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ backgroundColor: theme.palette.customColors?.mdAntzNeutral, borderRadius: '4px' }}>
+                        <Typography sx={{ fontWeight: 500, fontSize: '12px', p: 1.5 }}>
+                          {`Animals ${section?.animal_count ?? 0}`}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
                 </Box>
-              </Box>
+              ) : (
+                <Box sx={{ flex: 1 }}>
+                  <Box
+                    sx={{
+                      width: '100%',
+                      display: 'flex',
+                      gap: 4,
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <CellInfo
+                      value={section?.section_name}
+                      imgUrl={section?.images?.[0]?.file || section?.default_icon}
+                      defaultImage='/images/housing/section-icon-colored.png'
+                      defaultImageAlt='section image'
+                      inchagename={section?.incharge_name || ''}
+                    />
+                  </Box>
+                </Box>
+              )}
               <Checkbox
-                checked={isSelected}
+                checked={isDisabled || isSelected}
+                disabled={isDisabled}
                 onChange={() => handleSectionSelect(section)}
+                onClick={(e: React.MouseEvent) => e.stopPropagation()}
                 sx={{
                   mt: 0.5,
                   color: '#37BD69',

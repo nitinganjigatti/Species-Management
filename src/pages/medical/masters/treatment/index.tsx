@@ -69,8 +69,8 @@ const Treatment: NextPage = () => {
   const router = useRouter()
   const authData = useContext(AuthContext)
 
-  const complaints_permission: boolean | undefined =
-    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
+  const complaints_permission: boolean | undefined = (authData as any)?.userData?.permission?.user_settings
+    ?.medical_add_complaints
 
   // State
   const [rows, setRows] = useState<TreatmentRow[]>([])
@@ -133,7 +133,7 @@ const Treatment: NextPage = () => {
         page: filters.page
       }
 
-      const res: ApiResponse = await getTreatmentMasterList(params)
+      const res = (await getTreatmentMasterList(params)) as ApiResponse
 
       if (res?.success && res?.data) {
         setRows(res?.data?.records || [])
@@ -226,7 +226,7 @@ const Treatment: NextPage = () => {
     try {
       setExportLoading(true)
 
-      const response: ApiResponse = await getTreatmentMasterList(params)
+      const response = (await getTreatmentMasterList(params)) as ApiResponse
       if (response?.success && response?.data?.download_url) {
         Utility.downloadFileFromURL(response.data.download_url)
       }
@@ -244,9 +244,9 @@ const Treatment: NextPage = () => {
 
       let response: ApiResponse
       if (editParams?.id !== null) {
-        response = await updateTreatmentMasters(payload)
+        response = (await updateTreatmentMasters(payload as Record<string, unknown>)) as ApiResponse
       } else {
-        response = await addTreatmentMasters(payload)
+        response = (await addTreatmentMasters(payload as Record<string, unknown>)) as ApiResponse
       }
 
       if (response?.success) {
@@ -366,58 +366,63 @@ const Treatment: NextPage = () => {
 
   return (
     <>
-    {complaints_permission ? (
-    <PageCardLayout title='Treatment' action={headerAction}>
-      <Grid container>
-        <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-            <MUISearch
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
+      {complaints_permission ? (
+        <PageCardLayout title='Treatment' action={headerAction}>
+          <Grid container>
+            <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  sx={{
+                    width: {
+                      xs: '100%',
+                      sm: '250px'
+                    }
+                  }}
+                  placeholder='Search...'
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                  onClear={handleSearchClear}
+                  value={searchValue}
+                />
+              </Grid>
+              <Grid>
+                <ExportButton
+                  onClick={handleExport}
+                  loading={loading || exportLoading}
+                  disabled={total === 0}
+                  bgcolor=''
+                />
+              </Grid>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <CommonTable
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                loading={loading}
+                searchValue={filters.q}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={handlePaginationModelChange}
+              />
+            </Grid>
+            <AddTreatmentMastersDrawer
+              drawerWidth={562}
+              addEventSidebarOpen={openDrawer}
+              handleSidebarClose={() => {
+                setOpenDrawer(false)
+                setResetForm(true)
               }}
-              placeholder='Search...'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              onClear={handleSearchClear}
-              value={searchValue}
+              editParams={editParams}
+              resetForm={resetForm}
+              handleSubmitData={handleSubmitData}
+              submitLoader={submitLoader}
             />
           </Grid>
-          <Grid>
-            <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} bgcolor='' />
-          </Grid>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <CommonTable
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            loading={loading}
-            searchValue={filters.q}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-            handleSortModel={handleSortModel}
-            setPaginationModel={handlePaginationModelChange}
-          />
-        </Grid>
-        <AddTreatmentMastersDrawer
-          drawerWidth={562}
-          addEventSidebarOpen={openDrawer}
-          handleSidebarClose={() => {
-            setOpenDrawer(false)
-            setResetForm(true)
-          }}
-          editParams={editParams}
-          resetForm={resetForm}
-          handleSubmitData={handleSubmitData}
-          submitLoader={submitLoader}
-        />
-      </Grid>
-    </PageCardLayout>
-    ) : (
-      <Error404 />
-    )}
+        </PageCardLayout>
+      ) : (
+        <Error404 />
+      )}
     </>
   )
 }

@@ -1,6 +1,16 @@
 'use client'
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress, Button, Checkbox, FormControlLabel, Icon, Avatar } from '@mui/material'
+import {
+  Typography,
+  Box,
+  CircularProgress,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  Icon,
+  Avatar,
+  Tooltip
+} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import debounce from 'lodash/debounce'
@@ -16,9 +26,10 @@ interface SitesDrawerProps {
   data?: any
   onContinue?: (data: any) => void
   localSelections?: any[]
+  disabledIds?: any[]
 }
 
-const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: SitesDrawerProps) => {
+const SitesDrawer = ({ open, onClose, data, onContinue, localSelections, disabledIds = [] }: SitesDrawerProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
   const queryClient = useQueryClient()
@@ -132,25 +143,31 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
     })
   }
 
-  // Handle select all/deselect all
+  // Excludes disabled items from select all
+  const selectableList = useMemo(
+    () => list.filter((site: any) => !disabledIds.includes(site.site_id)),
+    [list, disabledIds]
+  )
+
   const handleSelectAll = () => {
     if (isAllSelected) {
       setSelectedSites([])
     } else {
-      setSelectedSites([...list])
+      setSelectedSites([...selectableList])
     }
     setIsAllSelected(!isAllSelected)
   }
 
-  // Update select all state when selection changes
   useEffect(() => {
-    if (list.length > 0) {
-      const allSelected = list.every((site: any) => selectedSites.some((selectedSite: any) => selectedSite.site_id === site.site_id))
+    if (selectableList.length > 0) {
+      const allSelected = selectableList.every((site: any) =>
+        selectedSites.some((selectedSite: any) => selectedSite.site_id === site.site_id)
+      )
       setIsAllSelected(allSelected)
     } else {
       setIsAllSelected(false)
     }
-  }, [selectedSites, list])
+  }, [selectedSites, selectableList])
 
   // Handle continue button click
   const handleContinue = () => {
@@ -171,7 +188,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title={(t('hospital_module.sites') as string)}
+      title={t('hospital_module.sites') as string}
       icon='/images/housing/site-icon-colored.svg'
       iconColor={theme.palette.primary.main}
     >
@@ -184,7 +201,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
             borderRadius: '8px',
             backgroundColor: theme.palette.common.white
           }}
-          placeholder={(t('hospital_module.search_for_site') as string)}
+          placeholder={t('hospital_module.search_for_site') as string}
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
@@ -201,7 +218,7 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
                 indeterminate={selectedCount > 0 && !isAllSelected}
               />
             }
-            label={(t('hospital_module.select_all') as string)}
+            label={t('hospital_module.select_all') as string}
             sx={{ mr: 0 }}
           />
         )}
@@ -211,48 +228,66 @@ const SitesDrawer = ({ open, onClose, data, onContinue, localSelections }: Sites
         {list.map((site: any) => {
           // Check if site is selected by comparing site_id
           const isSelected = selectedSites.some((selectedSite: any) => selectedSite.site_id === site.site_id)
+          const isDisabled = disabledIds.includes(site.site_id)
 
           return (
             <Box
               key={site.site_id}
               sx={{
                 display: 'flex',
+                alignItems: 'center',
                 gap: 2,
                 p: 3,
                 border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 0.8,
-                bgcolor: theme.palette.common.white,
-                alignItems: 'center',
+                bgcolor: isDisabled ? theme.palette.action.disabledBackground : theme.palette.common.white,
                 justifyContent: 'space-between',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                cursor: isDisabled ? 'default' : 'pointer',
+                transition: 'all 0.2s ease',
+                opacity: isDisabled ? 0.6 : 1,
+                ...(isSelected && {
+                  borderColor: theme.palette.success.main,
+                  backgroundColor: '#f8fff8'
+                })
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Avatar
-                  src={site.site_image}
-                  alt={site.site_name}
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 0.5
-                  }}
-                />
-                <Box>
-                  <Typography variant='subtitle1' sx={{ fontWeight: 500, mb: 0.5 }}>
-                    {site.site_name}
-                  </Typography>
-                  {site.site_owner && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon {...({ icon: 'mdi:account-outline' } as any)} fontSize={16} color='textSecondary' />
-                      <Typography variant='body2' color='textSecondary'>
-                        {site.site_owner}
+              <Box
+                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}
+                onClick={() => handleSiteSelect(site)}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Avatar
+                    src={site.site_image}
+                    alt={site.site_name}
+                    sx={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 0.5
+                    }}
+                  />
+                  <Box sx={{ width: 400 }}>
+                    <Tooltip title={site.site_name}>
+                      <Typography variant='subtitle1' noWrap sx={{ fontWeight: 500, mb: 0.5 }}>
+                        {site.site_name}
                       </Typography>
-                    </Box>
-                  )}
+                    </Tooltip>
+                    {site.site_owner && (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Icon {...({ icon: 'mdi:account-outline' } as any)} fontSize={16} color='textSecondary' />
+                        <Typography variant='body2' color='textSecondary'>
+                          {site.site_owner}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
+                <Checkbox
+                  checked={isDisabled || isSelected}
+                  disabled={isDisabled}
+                  onChange={() => handleSiteSelect(site)}
+                  sx={{ mt: 0.5 }}
+                />
               </Box>
-              <Checkbox checked={isSelected} onChange={() => handleSiteSelect(site)} sx={{ mt: 0.5 }} />
             </Box>
           )
         })}
