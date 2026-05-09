@@ -658,6 +658,22 @@ declare module 'src/views/utility/DynamicBreadcrumbs' {
   export default DynamicBreadcrumbs
 }
 
+declare module 'react-select-country-list' {
+  interface CountryData {
+    label: string
+    value: string
+  }
+  interface CountryList {
+    getData: () => CountryData[]
+    getLabel: (value: string) => string
+    getValue: (label: string) => string
+    getValues: () => string[]
+    getLabels: () => string[]
+  }
+  function countryList(): CountryList
+  export default countryList
+}
+
 declare module 'src/views/pages/compliance/utility' {
   import { FC, ReactNode } from 'react'
   import { SxProps } from '@mui/material'
