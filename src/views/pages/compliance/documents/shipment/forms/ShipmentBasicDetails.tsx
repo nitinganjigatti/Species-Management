@@ -4,7 +4,7 @@ import BasicDetails from '../shipment-view/BasicDetails'
 import BasicDetailsAddEdit from '../shipment-view/BasicDetailsAddEdit'
 import Toaster from 'src/components/Toaster'
 import dayjs from 'dayjs'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import {
   addShipmentBasicDetails,
   getShipmentBasicDetails,
@@ -90,7 +90,7 @@ const ShipmentBasicDetails = React.forwardRef<{ handleSave: (status: string) => 
     const [fileNumberValue, setFileNumberValue] = useState<string>('')
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [loader, setLoader] = useState<boolean>(false)
-    const router = useRouter()
+    const router = useSafeRouter()
     const { id, action } = router.query
 
     useImperativeHandle(ref, () => ({

@@ -8,7 +8,7 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import { useTheme } from '@mui/material/styles'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import dayjs from 'dayjs'
 import type { DocumentUploadDrawerProps } from 'src/types/compliance'
 
@@ -57,7 +57,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
       document_file: null
     }
   })
-  const router = useRouter()
+  const router = useSafeRouter()
   const id = router.query.id
 
   const theme = useTheme()

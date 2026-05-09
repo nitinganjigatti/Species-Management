@@ -16,7 +16,7 @@ import {
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ExportPermitDrawer from '../drawer/ExportPermitDrawer'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
-import Router, { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import LinkedShipmentsDrawer from '../drawer/LinkedShipmentsDrawer'
@@ -189,7 +189,7 @@ const SpeciesAddEdit = ({
   loader
 }: SpeciesAddEditProps) => {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
   const handleFileUpload = (exportId: string | number, file: unknown) => {

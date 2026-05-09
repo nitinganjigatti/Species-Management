@@ -5,7 +5,7 @@ import { getExportListForImports } from 'src/lib/api/compliance/imports'
 import { createImportSpecies, getImportSpeciesData, updateImportSpecies } from 'src/lib/api/compliance/imports'
 import { getMastersData } from 'src/lib/api/compliance/exports'
 import { debounce } from 'lodash'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Toaster from 'src/components/Toaster'
 import * as yup from 'yup'
 import dayjs, { Dayjs } from 'dayjs'
@@ -76,7 +76,7 @@ const AnimalsData = ({
   setAirwaybillvalue,
   airwaybillvalue
 }: AnimalsDataProps) => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id, action } = router.query
   const [exportPermitDrawerOpen, setexportPermitDrawerOpen] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')

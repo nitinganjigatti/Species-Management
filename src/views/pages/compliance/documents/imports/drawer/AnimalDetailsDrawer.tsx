@@ -3,7 +3,7 @@ import { Typography, Box, Drawer, IconButton, Paper, Grid, Chip, Avatar, alpha }
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import type { ExportSpecies } from 'src/types/compliance'
 
 interface AnimalDetailsDrawerProps {
@@ -28,7 +28,7 @@ const AnimalDetailsDrawer = ({
   setSelectedSpeciesData
 }: AnimalDetailsDrawerProps) => {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
   const { action } = router.query
 
   const handleClick = () => {

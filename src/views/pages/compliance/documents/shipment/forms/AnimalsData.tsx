@@ -4,7 +4,7 @@ import SpeciesAddEdit from '../shipment-view/SpeciesAddEdit'
 import { getExportList } from 'src/lib/api/compliance/exports'
 import { createShipmentSpecies, getShipmentSpeciesData, updateShipmentSpecies } from 'src/lib/api/compliance/shipment'
 import { debounce } from 'lodash'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import Toaster from 'src/components/Toaster'
 import AddAnimalCountDrawer from '../drawer/AddAnimalCountDrawer'
 import { MastersData, Species } from 'src/types/compliance'
@@ -95,7 +95,7 @@ const AnimalsData = ({
   fetchLinkedDocuments,
   mastersData
 }: AnimalsDataProps) => {
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id, action, export: exportCount } = router.query
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState<boolean>(false)
   const [exportPermitDrawerOpen, setexportPermitDrawerOpen] = useState<boolean>(false)
