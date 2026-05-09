@@ -580,6 +580,27 @@ declare module 'geolocation' {
   export default geolocation
 }
 
+declare module 'src/views/utility/FallbackAvatar' {
+  import type React from 'react'
+  import type { SxProps, Theme } from '@mui/material'
+
+  interface FallbackAvatarProps {
+    src?: string
+    variant?: string
+    fallback?: string
+    alt?: string
+    size?: string | number
+    sx?: SxProps<Theme>
+    showSkeleton?: boolean
+    onLoad?: () => void
+    onError?: () => void
+    [key: string]: unknown
+  }
+
+  const FallbackAvatar: React.FC<FallbackAvatarProps>
+  export default FallbackAvatar
+}
+
 declare module 'src/views/utility/Layout/PageCardLayout' {
   import { FC, ReactNode } from 'react'
   import { SxProps } from '@mui/material'

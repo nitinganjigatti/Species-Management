@@ -108,7 +108,7 @@ const CreateMissingIncident: React.FC<CreateMissingIncidentProps> = ({
 }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const fileInputRef = useRef<HTMLInputElement>(null)
   const timeInputRef = useRef<HTMLInputElement>(null)
 
