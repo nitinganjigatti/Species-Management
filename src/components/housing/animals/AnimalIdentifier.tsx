@@ -557,53 +557,6 @@ const AnimalIdentifier: React.FC<AnimalIdentifierProps> = ({ animalId: propAnima
           >
             {t('animals_module.delete_identifier')}
           </MenuItem>
-        ) : (
-          // Show edit and delete options for active identifiers.
-          // Must be an array, not a Fragment — MUI Menu walks its children
-          // to find MenuItems and Fragments trip that traversal.
-          [
-            <MenuItem
-              key='edit'
-              onClick={() => {
-                setAddIdentifierDrawer(true)
-                if (selectedRow) {
-                  setIdentifierData({
-                    id: String(selectedRow.id),
-                    type: selectedRow.local_identifier_type_id
-                      ? String(selectedRow.local_identifier_type_id)
-                      : undefined,
-                    local_identifier_value: selectedRow.local_identifier_value,
-                    is_primary: selectedRow.is_primary ? String(selectedRow.is_primary) : undefined
-                  })
-                }
-                setMenuAnchorEl(null)
-              }}
-              sx={{
-                fontWeight: 500,
-                p: 3,
-                fontSize: '16px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {t('animals_module.edit_identifier')}
-            </MenuItem>,
-            <MenuItem
-              key='delete'
-              onClick={() => {
-                setOpenDeleteDialog(true)
-                setSelectedItemToDelete(selectedRow)
-                setMenuAnchorEl(null)
-              }}
-              sx={{
-                fontWeight: 500,
-                p: 3,
-                fontSize: '16px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {t('animals_module.delete_identifier')}
-            </MenuItem>
-          ]
         )}
       </Menu>
     </Box>
