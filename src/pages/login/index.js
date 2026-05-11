@@ -3,27 +3,15 @@ import { useEffect, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
-import Image from 'next/image'
 
 // ** MUI Components
-import Alert from '@mui/material/Alert'
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
-import Divider from '@mui/material/Divider'
-import Checkbox from '@mui/material/Checkbox'
-import TextField from '@mui/material/TextField'
-import InputLabel from '@mui/material/InputLabel'
-import IconButton from '@mui/material/IconButton'
-import CardContent from '@mui/material/CardContent'
 import Box from '@mui/material/Box'
 import FormControl from '@mui/material/FormControl'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import OutlinedInput from '@mui/material/OutlinedInput'
-import { styled, useTheme } from '@mui/material/styles'
-import MuiCard from '@mui/material/Card'
 import FormHelperText from '@mui/material/FormHelperText'
-import InputAdornment from '@mui/material/InputAdornment'
 import Typography from '@mui/material/Typography'
+import { styled } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -36,10 +24,7 @@ import toast from 'react-hot-toast'
 
 // ** Hooks
 import { useAuth } from 'src/hooks/useAuth'
-import { useSettings } from 'src/@core/hooks/useSettings'
-
-// ** Configs
-import themeConfig from 'src/configs/themeConfig'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** Layout Import
 import BlankLayout from 'src/@core/layouts/BlankLayout'
@@ -51,9 +36,13 @@ import CustomButton from 'src/components/login/CustomButton'
 import { describeGeofenceError } from 'src/lib/geofence/copy'
 import { getGeolocationPermission } from 'src/lib/geofence/permission'
 
-// ** Custom Components
+// ** WSO2 Auth Client + Flag + API
+import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
+import client from 'src/lib/auth/wso2Client'
+import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
+import { ssoLoginCheck } from 'src/lib/api/wso-login'
+import { write } from 'src/lib/windows/utils'
 
-// ** Styled Components
 const LinkStyled = styled(Link)(({ theme }) => ({
   textDecoration: 'none',
   color: `${theme.palette.customColors.OnSecondaryContainer} !important`,
@@ -61,26 +50,31 @@ const LinkStyled = styled(Link)(({ theme }) => ({
   fontWeight: 500
 }))
 
-const schema = yup.object().shape({
-  email: yup.string().required('Username/Email required').min(1),
+const emailSchema = yup.object().shape({
+  email: yup.string().required('Username/Email required').min(1)
+})
 
-  // password: yup.string().trim('Password required').required()
+const passwordSchema = yup.object().shape({
   password: yup.string().required('Password required')
 })
 
-const defaultValues = {
-  password: '',
-  email: ''
-}
+const legacySchema = yup.object().shape({
+  email: yup.string().required('Username/Email required').min(1),
+  password: yup.string().required('Password required')
+})
 
 const LoginPage = () => {
-  const [rememberMe, setRememberMe] = useState(true)
   const [loginError, setLoginError] = useState('')
-
-  // ** Hooks
+  const [ssoStep, setSsoStep] = useState('email') // 'email' | 'password'
+  const [ssoEmail, setSsoEmail] = useState('')
+  const [ssoLoading, setSsoLoading] = useState(false)
+  const [logoutReasonMsg, setLogoutReasonMsg] = useState('')
   const auth = useAuth()
-  const theme = useTheme()
-  const { settings } = useSettings()
+  const router = useSafeRouter()
+  const wso2 = isWso2AuthEnabled()
+
+  // Hook always runs; its result only gates behavior in WSO2 mode.
+  const { status } = useAntzAuth(client)
 
   // Geofence error lives in AuthContext so it survives GuestGuard fallback swaps.
   const geofenceError = auth.geofenceLoginError
@@ -144,33 +138,176 @@ const LoginPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ** Vars
-  const { skin } = settings
+  useEffect(() => {
+    if (router.query?.error) {
+      setLoginError(decodeURIComponent(router.query.error))
+    }
+  }, [router.query?.error])
 
-  const {
-    control,
-    setError,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    defaultValues,
+  // Wait for the package's silent-restore to land 'authenticated' before
+  // redirecting. The previous synchronous client.isAuthenticated() ran before
+  // restore completed, so a returning user briefly saw the login form.
+  useEffect(() => {
+    if (wso2 && status === 'authenticated') {
+      router.replace('/')
+    }
+  }, [wso2, status])
+
+  const emailForm = useForm({
+    defaultValues: { email: '' },
     mode: 'onBlur',
-    resolver: yupResolver(schema)
+    resolver: yupResolver(emailSchema)
   })
 
-  const onSubmit = async data => {
-    const { email, password } = data
+  const passwordForm = useForm({
+    defaultValues: { password: '' },
+    mode: 'onBlur',
+    resolver: yupResolver(passwordSchema)
+  })
+
+  const legacyForm = useForm({
+    defaultValues: { email: '', password: '' },
+    mode: 'onBlur',
+    resolver: yupResolver(legacySchema)
+  })
+
+  const redirectToWso2 = async email => {
+    try {
+      const userEmail = email || ssoEmail
+      const returnUrl = router.query?.returnUrl || '/'
+      sessionStorage.setItem('returnUrl', returnUrl)
+
+      await client.login({ loginHint: userEmail?.trim() })
+      // await client.login()
+    } catch (err) {
+      console.error('[Login] client.login() failed:', err)
+      setLoginError(err?.message || 'Failed to start SSO — check WSO2 client config')
+      setSsoLoading(false)
+    }
+  }
+
+  // Step 1 — email discovery
+  const handleSsoEmailSubmit = async ({ email }) => {
     setLoginError('')
+    setLogoutReasonMsg('')
+    localStorage.removeItem('logout_reason')
+    setSsoLoading(true)
+
+    const res = await ssoLoginCheck({ email })
+
+    // Scenario 3: user not in Antz (or suspended)
+    if (res?.success === false) {
+      setLoginError(res?.message || 'Login failed')
+      setSsoLoading(false)
+
+      return
+    }
+
+    const method = res?.data?.auth_method
+
+    // Scenario 1: user in both Antz + WSO2 → straight to WSO2 (keep spinner until redirect)
+    if (method === 'sso') {
+      setSsoEmail(email)
+      await redirectToWso2(email)
+
+      return
+    }
+
+    // Scenario 2: user in Antz but not WSO2 → reveal password field
+    if (method === 'password') {
+      setSsoEmail(email)
+      setSsoStep('password')
+      setSsoLoading(false)
+
+      return
+    }
+
+    setLoginError(res?.message || 'Unexpected response from server')
+    setSsoLoading(false)
+  }
+
+  // Step 2 — full auth (email + password) → backend provisions WSO2 user → redirect to WSO2
+  // Two possible success shapes from the backend:
+  //   a) Normal login:  { success: true, token, user: {...}, ... }
+  //      → store session directly, update AuthContext, navigate to dashboard
+  //   b) SSO provision: { success: true, message: "Proceed with SSO login" }
+  //      → redirect to WSO2 PKCE flow
+  const handleSsoPasswordSubmit = async ({ password }) => {
+    setLoginError('')
+    setLogoutReasonMsg('')
+    localStorage.removeItem('logout_reason')
+    setSsoLoading(true)
+    const res = await ssoLoginCheck({ email: ssoEmail, password })
+
+    if (res?.success === false) {
+      setLoginError(res?.message || 'Login failed')
+      setSsoLoading(false)
+
+      return
+    }
+
+    if (res?.token && res?.success) {
+      const u = res?.user || {}
+      const userData = {
+        email: u?.user_email,
+        fullName: u?.user_first_name,
+        lastName: u?.user_last_name,
+        role: 'admin',
+        id: u?.user_role_id || res?.roles?.role_id,
+        username: u?.user_name || u?.user_first_name
+      }
+      const roleName = res?.user?.role_name || res?.roles?.role_name
+      write('userDetails', res)
+      write('role', roleName)
+      write('userData', userData)
+      window.localStorage.setItem('accessToken', res?.token)
+      auth.setUser({ ...userData })
+      auth.setUserData({ ...res })
+
+      setSsoLoading(false)
+      const returnUrl = router?.query?.returnUrl || '/'
+      router.replace(returnUrl)
+
+      return
+    }
+
+    // SSO provision response — keep spinner active until WSO2 redirect
+    await redirectToWso2(ssoEmail)
+  }
+
+  const handleLegacySubmit = data => {
+    setLoginError('')
+    setLogoutReasonMsg('')
+    localStorage.removeItem('logout_reason')
     auth.clearGeofenceLoginError?.()
-    auth.login({ email, password, rememberMe }, err => {
-      // err is either a string (bad credentials) or { kind: 'geofence', ... } from AuthContext.
-      // The geofence path is also written to auth.geofenceLoginError in the context, which the
-      // modal reads — this callback only needs to handle non-geofence errors.
+    auth.login({ email: data.email, password: data.password, rememberMe: true }, err => {
       if (!err || typeof err !== 'object' || err.kind !== 'geofence') {
         setLoginError('Email or Password is invalid')
       }
     })
   }
+
+  const handleBackToEmail = () => {
+    setSsoStep('email')
+    setSsoEmail('')
+    setLoginError('')
+    passwordForm.reset()
+  }
+
+  useEffect(() => {
+    const reason = localStorage.getItem('logout_reason')
+    if (reason === 'session_expired') {
+      setLogoutReasonMsg('Your session has expired. Please sign in again.')
+    }
+    // Do NOT removeItem here — the key must survive intermediate client-side
+    // renders (AuthGuard race) and StrictMode double-mounts. Remove only when
+    // the user actually interacts (onChange / submit handlers below).
+  }, [])
+
+  // While WSO2 silent-restore is in flight, render nothing so a returning
+  // authenticated user doesn't see the login form flash before the redirect.
+  // Non-SSO mode skips this gate entirely (form renders immediately).
+  if (wso2 && (status === 'idle' || status === 'loading')) return null
 
   const geofenceCopy = geofenceError ? describeGeofenceError(geofenceError) : null
   const isError = geofenceCopy?.severity === 'error'
@@ -282,79 +419,168 @@ const LoginPage = () => {
           </>
         )}
       </Dialog>
-      <CommonCard
-        // bgImage='/images/frog_img.png'
-        // logoVantara='/images/login/Vantara_Logo_registered.svg'
-        // logoAntz
-        title='Login to your account'
-        subtitle=''
-      >
-        <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-          {loginError && (
-            <Typography
-              variant='body2'
-              sx={{
-                mb: 3,
-                color: 'error.main',
-                textAlign: 'center'
-              }}
-            >
-              {loginError}
-            </Typography>
-          )}
-          <FormControl fullWidth sx={{ mb: 3 }}>
-            <Controller
-              name='email'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange, onBlur } }) => (
-                <CustomInput
-                  type='email'
-                  name='email'
-                  label='Username/Email'
-                  placeholder='Enter username/email'
-                  value={value}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  autoComplete='email'
-                  error={!!errors.email}
-                />
-              )}
-            />
-            {errors.email && <FormHelperText sx={{ color: 'error.main', m: 0 }}>{errors.email.message}</FormHelperText>}
-          </FormControl>
 
-          <FormControl fullWidth sx={{ mb: 1 }}>
-            <Controller
-              name='password'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange, onBlur } }) => (
-                <CustomInput
-                  type={'password'}
-                  label='Password'
-                  placeholder='Enter password'
-                  name='password'
-                  value={value}
-                  onChange={onChange}
-                  onBlur={onBlur}
-                  autoComplete='current-password'
-                  error={!!errors.password}
-                />
+      <CommonCard title='Login to your account' subtitle=''>
+        {loginError && (
+          <Typography variant='body2' sx={{ mb: 3, color: 'error.main', textAlign: 'center' }}>
+            {loginError}
+          </Typography>
+        )}
+
+        {wso2 && ssoStep === 'email' && (
+          <form noValidate autoComplete='off' onSubmit={emailForm.handleSubmit(handleSsoEmailSubmit)}>
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <Controller
+                name='email'
+                control={emailForm.control}
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <CustomInput
+                    type='email'
+                    name='email'
+                    label='Username/Email'
+                    placeholder='Enter username/email'
+                    value={value}
+                    onChange={e => {
+                      onChange(e)
+                      setLogoutReasonMsg('')
+                      localStorage.removeItem('logout_reason')
+                    }}
+                    onBlur={onBlur}
+                    autoComplete='email'
+                    error={!!emailForm.formState.errors.email}
+                  />
+                )}
+              />
+              {emailForm.formState.errors.email && (
+                <FormHelperText sx={{ color: 'error.main', m: 0 }}>
+                  {emailForm.formState.errors.email.message}
+                </FormHelperText>
               )}
-            />
-            {errors.password && (
-              <FormHelperText sx={{ color: 'error.main', m: 0 }}>{errors.password.message}</FormHelperText>
+            </FormControl>
+            {logoutReasonMsg && (
+              <Typography variant='body2' sx={{ mb: 3, color: 'error.main', textAlign: 'center' }}>
+                {logoutReasonMsg}
+              </Typography>
             )}
-          </FormControl>
-          <Box sx={{ mb: 4 }}>
-            <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled>
-          </Box>
 
-          <CustomButton type='submit' fullWidth size='large' sx={{ mb: 4, mt: 3 }} loading={auth.loginLoading}>
-            Login
-          </CustomButton>
-        </form>
+            <CustomButton type='submit' fullWidth size='large' sx={{ mb: 4, mt: 3 }} loading={ssoLoading}>
+              Continue
+            </CustomButton>
+          </form>
+        )}
+
+        {wso2 && ssoStep === 'password' && (
+          <form noValidate autoComplete='off' onSubmit={passwordForm.handleSubmit(handleSsoPasswordSubmit)}>
+            <Typography variant='body2' sx={{ mb: 2, textAlign: 'center', color: 'text.secondary' }}>
+              {ssoEmail}
+            </Typography>
+
+            <FormControl fullWidth sx={{ mb: 1 }}>
+              <Controller
+                name='password'
+                control={passwordForm.control}
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <CustomInput
+                    type='password'
+                    name='password'
+                    label='Password'
+                    placeholder='Enter password'
+                    value={value}
+                    onChange={e => {
+                      onChange(e)
+                      setLogoutReasonMsg('')
+                      localStorage.removeItem('logout_reason')
+                    }}
+                    onBlur={onBlur}
+                    autoComplete='current-password'
+                    error={!!passwordForm.formState.errors.password}
+                  />
+                )}
+              />
+              {passwordForm.formState.errors.password && (
+                <FormHelperText sx={{ color: 'error.main', m: 0 }}>
+                  {passwordForm.formState.errors.password.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+
+            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography
+                variant='body2'
+                onClick={handleBackToEmail}
+                sx={{ cursor: 'pointer', color: 'customColors.OnSecondaryContainer', fontWeight: 500 }}
+              >
+                ← Change email
+              </Typography>
+              {/* <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled> */}
+            </Box>
+
+            <CustomButton type='submit' fullWidth size='large' sx={{ mb: 4, mt: 1 }} loading={ssoLoading}>
+              Continue
+            </CustomButton>
+          </form>
+        )}
+
+        {!wso2 && (
+          <form noValidate autoComplete='off' onSubmit={legacyForm.handleSubmit(handleLegacySubmit)}>
+            <FormControl fullWidth sx={{ mb: 3 }}>
+              <Controller
+                name='email'
+                control={legacyForm.control}
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <CustomInput
+                    type='email'
+                    name='email'
+                    label='Username/Email'
+                    placeholder='Enter username/email'
+                    value={value}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    autoComplete='email'
+                    error={!!legacyForm.formState.errors.email}
+                  />
+                )}
+              />
+              {legacyForm.formState.errors.email && (
+                <FormHelperText sx={{ color: 'error.main', m: 0 }}>
+                  {legacyForm.formState.errors.email.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+
+            <FormControl fullWidth sx={{ mb: 1 }}>
+              <Controller
+                name='password'
+                control={legacyForm.control}
+                render={({ field: { value, onChange, onBlur } }) => (
+                  <CustomInput
+                    type='password'
+                    label='Password'
+                    placeholder='Enter password'
+                    name='password'
+                    value={value}
+                    onChange={onChange}
+                    onBlur={onBlur}
+                    autoComplete='current-password'
+                    error={!!legacyForm.formState.errors.password}
+                  />
+                )}
+              />
+              {legacyForm.formState.errors.password && (
+                <FormHelperText sx={{ color: 'error.main', m: 0 }}>
+                  {legacyForm.formState.errors.password.message}
+                </FormHelperText>
+              )}
+            </FormControl>
+            <Box sx={{ mb: 4 }}>
+              <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled>
+            </Box>
+
+            <CustomButton type='submit' fullWidth size='large' sx={{ mb: 4, mt: 3 }} loading={auth.loginLoading}>
+              Login
+            </CustomButton>
+          </form>
+        )}
       </CommonCard>
     </Box>
   )
@@ -364,382 +590,3 @@ LoginPage.getLayout = page => <BlankLayout>{page}</BlankLayout>
 LoginPage.guestGuard = true
 
 export default LoginPage
-
-// // ** React Imports
-// import { useState } from 'react'
-
-// // ** Next Imports
-// import Link from 'next/link'
-
-// // ** MUI Components
-// import Alert from '@mui/material/Alert'
-// import Button from '@mui/material/Button'
-// import Divider from '@mui/material/Divider'
-// import Checkbox from '@mui/material/Checkbox'
-// import TextField from '@mui/material/TextField'
-// import InputLabel from '@mui/material/InputLabel'
-// import IconButton from '@mui/material/IconButton'
-// import CardContent from '@mui/material/CardContent'
-// import Box from '@mui/material/Box'
-// import FormControl from '@mui/material/FormControl'
-// import useMediaQuery from '@mui/material/useMediaQuery'
-// import OutlinedInput from '@mui/material/OutlinedInput'
-// import { styled, useTheme } from '@mui/material/styles'
-// import MuiCard from '@mui/material/Card'
-// import FormHelperText from '@mui/material/FormHelperText'
-// import InputAdornment from '@mui/material/InputAdornment'
-// import Typography from '@mui/material/Typography'
-// import MuiFormControlLabel from '@mui/material/FormControlLabel'
-
-// // ** Icon Imports
-// import Icon from 'src/@core/components/icon'
-
-// // ** Third Party Imports
-// import * as yup from 'yup'
-// import { useForm, Controller } from 'react-hook-form'
-// import { yupResolver } from '@hookform/resolvers/yup'
-
-// import Image from 'next/image'
-
-// // ** Hooks
-// import { useAuth } from 'src/hooks/useAuth'
-// import useBgColor from 'src/@core/hooks/useBgColor'
-// import { useSettings } from 'src/@core/hooks/useSettings'
-
-// // ** Configs
-// import themeConfig from 'src/configs/themeConfig'
-
-// // ** Layout Import
-// import BlankLayout from 'src/@core/layouts/BlankLayout'
-
-// // ** Demo Imports
-// import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
-
-// import PublicLogo from 'src/components/utility/publicLogo'
-
-// // ** Styled Components
-// const LoginIllustrationWrapper = styled(Box)(({ theme }) => ({
-//   padding: theme.spacing(20),
-//   paddingRight: '0 !important',
-//   [theme.breakpoints.down('lg')]: {
-//     padding: theme.spacing(10)
-//   }
-// }))
-
-// // ** Styled Components
-// const Card = styled(MuiCard)(({ theme }) => ({
-//   [theme.breakpoints.up('sm')]: { width: '25rem', textAlign: 'center', marginRight: '5%' }
-// }))
-
-// const LinkStyled = styled(Link)(({ theme }) => ({
-//   textDecoration: 'none',
-//   color: `${theme.palette.primary.main} !important`
-// }))
-
-// const FormControlLabel = styled(MuiFormControlLabel)(({ theme }) => ({
-//   '& .MuiFormControlLabel-label': {
-//     color: theme.palette.text.secondary
-//   }
-// }))
-
-// const LoginIllustration = styled('img')(({ theme }) => ({
-//   maxWidth: '48rem',
-//   [theme.breakpoints.down('xl')]: {
-//     maxWidth: '38rem'
-//   },
-//   [theme.breakpoints.down('lg')]: {
-//     maxWidth: '30rem'
-//   }
-// }))
-
-// const RightWrapper = styled(Box)(({ theme }) => ({
-//   width: '100%',
-//   [theme.breakpoints.up('md')]: {
-//     maxWidth: 400
-//   },
-//   [theme.breakpoints.up('lg')]: {
-//     maxWidth: 450
-//   }
-// }))
-
-// const BoxWrapper = styled(Box)(({ theme }) => ({
-//   width: '100%',
-//   [theme.breakpoints.down('md')]: {
-//     maxWidth: 400
-//   }
-// }))
-
-// const TypographyStyled = styled(Typography)(({ theme }) => ({
-//   fontWeight: 600,
-//   letterSpacing: '0.18px',
-//   marginBottom: theme.spacing(1.5),
-//   [theme.breakpoints.down('md')]: { marginTop: theme.spacing(8) }
-// }))
-
-// const schema = yup.object().shape({
-//   email: yup.string().required('Username/Email required').min(4),
-//   password: yup.string().trim('').required()
-// })
-
-// const defaultValues = {
-//   password: '',
-//   email: ''
-// }
-
-// const LoginPage = () => {
-//   const [rememberMe, setRememberMe] = useState(true)
-//   const [showPassword, setShowPassword] = useState(false)
-
-//   // ** Hooks
-//   const auth = useAuth()
-//   const theme = useTheme()
-//   const bgColors = useBgColor()
-//   const { settings } = useSettings()
-//   const hidden = useMediaQuery(theme.breakpoints.down('md'))
-
-//   // ** Vars
-//   const { skin } = settings
-
-//   const {
-//     control,
-//     setError,
-//     handleSubmit,
-//     formState: { errors }
-//   } = useForm({
-//     defaultValues,
-//     mode: 'onBlur',
-//     resolver: yupResolver(schema)
-//   })
-
-//   const onSubmit = data => {
-//     const { email, password } = data
-//     auth.login({ email, password, rememberMe }, () => {
-//       setError('email', {
-//         type: 'manual',
-//         message: 'Email or Password is invalid'
-//       })
-//     })
-//   }
-//   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
-
-//   return (
-//     <Box
-//       className=''
-//       sx={{
-//         height: '100vh',
-//         width: '100vw',
-//         display: 'flex',
-//         alignItems: 'center',
-//         justifyContent: 'flex-end',
-//         backgroundImage: 'url(/images/frog_img.png)',
-//         backgroundSize: 'cover',
-//         backgroundPosition: 'bottom',
-//         padding: '1.25rem'
-//       }}
-//     >
-//       <Card sx={{ background: 'transparent', border: '1px solid transparent', pt: 13 }}>
-//         <CardContent className='element' sx={{ p: theme => `${theme.spacing(10.5, 8, 8)} !important` }}>
-//           <RightWrapper sx={skin === 'bordered' && !hidden ? { borderLeft: `1px solid ${theme.palette.divider}` } : {}}>
-//             <Box
-//               sx={{
-//                 // p: 7,
-//                 height: '100%',
-//                 display: 'flex',
-//                 alignItems: 'center',
-//                 justifyContent: 'center',
-//                 backgroundColor: 'transparent'
-//               }}
-//             >
-//               <BoxWrapper>
-//                 <Box
-//                   sx={{
-//                     top: 30,
-//                     left: 40,
-//                     display: 'flex',
-//                     position: 'absolute',
-//                     alignItems: 'center',
-//                     justifyContent: 'center'
-//                   }}
-//                 >
-//                   {/* <PublicLogo /> */}
-//                 </Box>
-//                 <Box sx={{ mb: 6 }}>
-//                   <img src='/images/branding/Antz_logo_color.svg' />
-//                   <TypographyStyled variant='h5' sx={{ color: '#fff' }}>
-//                     <span style={{ color: '#37BD69' }}>Login</span> to your account
-//                   </TypographyStyled>
-//                   <Typography variant='body2' sx={{ color: '#fff', fontSize: '13px' }}>
-//                     Access exclusive features with ease
-//                   </Typography>
-//                 </Box>
-
-//                 <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
-//                   <FormControl fullWidth sx={{ mb: 4, mt: 4, borderColor: 'white' }}>
-//                     <Controller
-//                       name='email'
-//                       control={control}
-//                       rules={{ required: true }}
-//                       render={({ field: { value, onChange, onBlur } }) => (
-//                         <TextField
-//                           autoFocus
-//                           label='Username/Email'
-//                           value={value}
-//                           onBlur={onBlur}
-//                           onChange={onChange}
-//                           error={Boolean(errors.email)}
-//                           InputProps={{
-//                             style: { color: 'white', height: '50px' }
-//                           }}
-//                           InputLabelProps={{
-//                             style: { color: 'white' }
-//                           }}
-//                           sx={{
-//                             '& .MuiOutlinedInput-root': {
-//                               '& fieldset': {
-//                                 borderColor: 'white'
-//                               },
-//                               '&:hover fieldset': {
-//                                 borderColor: 'white'
-//                               },
-//                               '&.Mui-focused fieldset': {
-//                                 borderColor: 'white'
-//                               }
-//                             },
-//                             '& .MuiInputBase-input': {
-//                               color: 'white'
-//                             },
-//                             '& .MuiInputLabel-root': {
-//                               color: 'white'
-//                             },
-//                             '& .MuiFormHelperText-root': {
-//                               color: 'white'
-//                             },
-
-//                             '& .MuiInputBase-root:hover': {
-//                               borderColor: 'white'
-//                             },
-//                             '& .MuiOutlinedInput-notchedOutline': {
-//                               borderColor: 'white!important'
-//                             }
-//                           }}
-//                         />
-//                       )}
-//                     />
-//                     {errors.email && (
-//                       <FormHelperText sx={{ color: 'error.main' }}>{errors.email.message}</FormHelperText>
-//                     )}
-//                   </FormControl>
-//                   <FormControl fullWidth>
-//                     <InputLabel
-//                       htmlFor='auth-login-v2-password'
-//                       error={Boolean(errors.password)}
-//                       sx={{
-//                         color: 'white',
-//                         '&.Mui-focused': {
-//                           color: 'white'
-//                         },
-//                         '&.Mui-error': {
-//                           color: 'white'
-//                         }
-//                       }}
-//                     >
-//                       Password
-//                     </InputLabel>
-//                     <Controller
-//                       name='password'
-//                       control={control}
-//                       rules={{ required: true }}
-//                       render={({ field: { value, onChange, onBlur } }) => (
-//                         <OutlinedInput
-//                           value={value}
-//                           onBlur={onBlur}
-//                           label='Password'
-//                           onChange={onChange}
-//                           id='auth-login-v2-password'
-//                           error={Boolean(errors.password)}
-//                           type={showPassword ? 'text' : 'password'}
-//                           endAdornment={
-//                             <InputAdornment position='end'>
-//                               <IconButton
-//                                 edge='end'
-//                                 onMouseDown={e => e.preventDefault()}
-//                                 onClick={() => setShowPassword(!showPassword)}
-//                                 sx={{ color: 'white' }}
-//                               >
-//                                 <Icon icon={showPassword ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} fontSize={20} />
-//                               </IconButton>
-//                             </InputAdornment>
-//                           }
-//                           sx={{
-//                             height: '50px',
-//                             '& .MuiOutlinedInput-root': {
-//                               '& fieldset': {
-//                                 borderColor: 'white'
-//                               },
-//                               '&:hover fieldset': {
-//                                 borderColor: 'white'
-//                               },
-//                               '&.Mui-focused fieldset': {
-//                                 borderColor: 'white'
-//                               }
-//                             },
-//                             '& .MuiInputBase-input': {
-//                               color: 'white'
-//                             },
-//                             '& .MuiFormHelperText-root': {
-//                               color: 'white'
-//                             },
-//                             '& .MuiIconButton-root': {
-//                               color: 'white'
-//                             },
-//                             '& .MuiOutlinedInput-notchedOutline': {
-//                               borderColor: 'white!important'
-//                             }
-//                           }}
-//                         />
-//                       )}
-//                     />
-//                     {errors.password && (
-//                       <FormHelperText sx={{ color: 'error.main' }} id=''>
-//                         {errors.password.message}
-//                       </FormHelperText>
-//                     )}
-//                   </FormControl>
-//                   <Box
-//                     sx={{
-//                       mb: 4,
-//                       display: 'flex',
-//                       alignItems: 'center',
-//                       flexWrap: 'wrap',
-//                       justifyContent: 'space-between'
-//                     }}
-//                   >
-//                     {' '}
-//                     {/* <Typography
-//                       sx={{ marginLeft: 'auto', mt: 3, color: '#E4B819', textDecoration: 'underline', fontSize: 12 }}
-//                       variant='body2'
-//                       color='primary'
-//                     >
-//                       Forgot Password
-//                     </Typography> */}
-//                   </Box>
-
-//                   <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 5 }}>
-//                     Login
-//                   </Button>
-//                 </form>
-//               </BoxWrapper>
-//             </Box>
-//           </RightWrapper>
-//         </CardContent>
-//         <Typography sx={{ mt: 4, color: '#fff', fontSize: 11 }}>
-//           Copyright © 2024 Antz systmes. All Rights Reserved
-//         </Typography>
-//       </Card>
-//     </Box>
-//   )
-// }
-// LoginPage.getLayout = page => <BlankLayout>{page}</BlankLayout>
-// LoginPage.guestGuard = true
-
-// export default LoginPage
