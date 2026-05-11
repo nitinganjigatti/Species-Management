@@ -145,11 +145,7 @@ const AuthProvider = ({ children }) => {
         const path = router.pathname || ''
         if (!path.includes('login') && !path.includes('callback') && !path.includes('forgot-password')) {
           const asPath = router.asPath || ''
-          router.replace(
-            asPath && asPath !== '/'
-              ? { pathname: '/login', query: { returnUrl: asPath } }
-              : '/login'
-          )
+          router.replace(asPath && asPath !== '/' ? { pathname: '/login', query: { returnUrl: asPath } } : '/login')
         }
       }
     }
@@ -334,7 +330,7 @@ const AuthProvider = ({ children }) => {
         password: params?.password
       })
       setLoginLoading(false)
-
+      debugger
       // Only proceed when backend explicitly confirms success.
       if (data?.success !== true) {
         if (errorCallback) errorCallback(data?.message || 'Login failed')

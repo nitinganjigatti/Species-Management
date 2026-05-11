@@ -73,7 +73,6 @@ export async function resetPassword(params, temp_auth_token) {
 // prod because base_url switches to NEXT_PUBLIC_API_BASE_URL.
 export async function legacyLogin({ email, password }) {
   const body = { email, password }
-  // const cleanUrl = (url || '').replace(/^\/?api\//, '')
 
   try {
     const response = await axiosPost({ url: LEGACY_LOGIN, body })

@@ -52,13 +52,13 @@ module.exports = {
     ]
 
     // Proxy API calls to configured backend in development to avoid CORS
-    if (process.env.NODE_ENV === 'development') {
-      const backend = (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080/').replace(/\/$/, '')
-      rules.push({
-        source: '/api/:path*',
-        destination: `${backend}/api/:path*`
-      })
-    }
+    // if (process.env.NODE_ENV === 'development') {
+    //   const backend = (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080/').replace(/\/$/, '')
+    //   rules.push({
+    //     source: '/api/:path*',
+    //     destination: `${backend}/api/:path*`
+    //   })
+    // }
 
     return rules
   },

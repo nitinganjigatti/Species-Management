@@ -7,8 +7,8 @@ import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
 // WSO2 CORS fix: in dev, use relative '/api/' so next.config.js rewrite proxies
 // to NEXT_PUBLIC_BASE_URL (avoids CORS when backend is on a different origin,
 // e.g. Cloudflare tunnel). In production, use the absolute URL directly.
-// const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
-const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
+const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
+// const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 const ml_operations_base_url = `${process.env.NEXT_PUBLIC_ML_OPERATIONS_BASE_URL}`
 export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   const userDetails = await readAsync('userDetails')
