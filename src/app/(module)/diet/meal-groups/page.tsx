@@ -1110,7 +1110,7 @@ const MealGroup = () => {
           </Typography>
         </Box>
       ),
-      renderCell: params => (
+      renderCell: (params: any) => (
         <Tooltip title={params.row.drop_point_name || ''}>
           <Typography
             noWrap
