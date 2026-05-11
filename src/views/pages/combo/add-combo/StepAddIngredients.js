@@ -16,7 +16,7 @@ import { Divider, CardContent } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Toaster from 'src/components/Toaster'
-import Router from 'next/router'
+import { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import AddCutSize from '../../diet/cutSizes/addCutSizes'
 import { addCutSize, getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
@@ -100,6 +100,7 @@ const StepAddIngredients = ({
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  const router = useRouter()
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -270,7 +271,7 @@ const StepAddIngredients = ({
   }
 
   const cancelBack = () => {
-    Router.push('/diet/combo/')
+    router.push('/diet/combo/')
   }
 
   const handleImageUpload = imageData => {

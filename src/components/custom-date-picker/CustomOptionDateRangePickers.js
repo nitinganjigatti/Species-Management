@@ -436,7 +436,7 @@ const CustomOptionDateRangePickers = ({
         >
           <CalendarTodayIcon sx={{ color: 'white', fontSize: 24 }} />
         </Box>
-        <Typography
+        <Box
           sx={{
             color: 'customColors.OnSurfaceVariant',
             fontSize: '16px',
@@ -451,7 +451,7 @@ const CustomOptionDateRangePickers = ({
             </Box>
           </Box>
           <Box sx={{ display: { xs: 'block', md: 'inline' } }}>{selectedRange?.split(' - ').slice(1).join(' - ')}</Box>
-        </Typography>
+        </Box>
       </Box>
       <Menu
         id='date-range-menu'

@@ -14,7 +14,7 @@ import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import Drawer from '@mui/material/Drawer'
 import Icon from 'src/@core/components/icon'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import SwapIngredient from './swapIngredient'
@@ -149,7 +149,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' 
 
   const handleclickChange = (data, val) => {
     const path = mealType === 'combo' ? `/diet/combo/${data?.id}` : `/diet/recipe/${data?.id}`
-    Router.push({
+    router.push({
       pathname: path
     })
   }
@@ -270,7 +270,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' 
               </Drawer>
 
               <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
-                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <Grid  size={{ xs: 12, sm: 6, md: 4 }}>
                   <MUISearch
                     value={searchValue}
                     onChange={e => handleSearch(e.target.value)}
@@ -304,7 +304,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' 
   return (
     <>
       <Grid container spacing={6}>
-        <Grid item size={{ xs: 12 }}>
+        <Grid  size={{ xs: 12 }}>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}

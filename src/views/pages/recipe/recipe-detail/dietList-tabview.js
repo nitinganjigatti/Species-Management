@@ -17,7 +17,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router, { useRouter } from 'next/router'
+import { useRouter } from 'next/router'
 import { useTranslation } from 'react-i18next'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
@@ -133,7 +133,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   }
 
   const handlechangecheck = (data, val) => {
-    Router.push({
+    router.push({
       pathname: `/diet/diet/${data?.id}`,
       query: { source: val, recipeId: id }
     })
@@ -221,7 +221,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
                 </div>
               )  */}
               <Grid container sx={{ mt: 2, justifyContent: 'flex-start' }}>
-                <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
+                <Grid  size={{ xs: 12, sm: 6, md: 4 }}>
                   <MUISearch
                     value={searchValue}
                     onChange={e => handleSearch(e.target.value)}
@@ -255,7 +255,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   return (
     <>
       <Grid container spacing={6}>
-        <Grid item size={{ xs: 12 }}>
+        <Grid  size={{ xs: 12 }}>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}
