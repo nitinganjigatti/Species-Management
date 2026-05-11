@@ -1,5 +1,48 @@
 import { useMemo, useCallback } from 'react'
 
+const isUrlObject = url => url && typeof url === 'object' && ('pathname' in url || 'query' in url)
+
+const appendQueryParam = (params, key, value) => {
+  if (value === undefined || value === null) return
+
+  if (Array.isArray(value)) {
+    value.forEach(item => appendQueryParam(params, key, item))
+
+    return
+  }
+
+  params.append(key, String(value))
+}
+
+const getStringHref = url => {
+  if (!isUrlObject(url)) return String(url)
+
+  const pathname = url.pathname || ''
+  const query = url.query || {}
+  const params = new URLSearchParams()
+
+  Object.keys(query).forEach(key => appendQueryParam(params, key, query[key]))
+
+  const queryString = params.toString()
+
+  return queryString ? `${pathname}?${queryString}` : pathname
+}
+
+const getAppRouterOptions = options => {
+  if (!options || typeof options.scroll === 'undefined') return undefined
+
+  return { scroll: options.scroll }
+}
+
+const shouldNormalizeHospitalUrlObject = (url, currentPathname) => {
+  if (!isUrlObject(url)) return false
+
+  const targetPathname = url.pathname ? String(url.pathname) : ''
+  const currentPath = currentPathname ? String(currentPathname) : ''
+
+  return targetPathname.startsWith('/hospital') || currentPath.startsWith('/hospital')
+}
+
 /**
  * Safe router hook that works in both Page Router and App Router contexts.
  * Falls back to window.location for redirects if router is not available.
@@ -52,35 +95,39 @@ export const useSafeRouter = () => {
   }
 
   const push = useCallback(
-    url => {
+    (url, as, options) => {
       if (isPageRouter && pageRouterInstance) {
-        pageRouterInstance.push(url)
+        pageRouterInstance.push(url, as, options)
       } else if (isAppRouter && appRouterInstance) {
-        appRouterInstance.push(url)
+        const href = shouldNormalizeHospitalUrlObject(url, appPathname) ? getStringHref(url) : url
+
+        appRouterInstance.push(href, getAppRouterOptions(options))
       } else {
         // Fallback to window.location
         if (typeof window !== 'undefined') {
-          window.location.href = url
+          window.location.href = shouldNormalizeHospitalUrlObject(url, appPathname) ? getStringHref(url) : url
         }
       }
     },
-    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance]
+    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance, appPathname]
   )
 
   const replace = useCallback(
-    url => {
+    (url, as, options) => {
       if (isPageRouter && pageRouterInstance) {
-        pageRouterInstance.replace(url)
+        pageRouterInstance.replace(url, as, options)
       } else if (isAppRouter && appRouterInstance) {
-        appRouterInstance.replace(url)
+        const href = shouldNormalizeHospitalUrlObject(url, appPathname) ? getStringHref(url) : url
+
+        appRouterInstance.replace(href, getAppRouterOptions(options))
       } else {
         // Fallback to window.location
         if (typeof window !== 'undefined') {
-          window.location.replace(url)
+          window.location.replace(shouldNormalizeHospitalUrlObject(url, appPathname) ? getStringHref(url) : url)
         }
       }
     },
-    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance]
+    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance, appPathname]
   )
 
   const back = useCallback(() => {
