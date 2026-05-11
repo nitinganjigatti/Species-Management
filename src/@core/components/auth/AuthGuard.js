@@ -7,6 +7,11 @@ import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** Hooks Import
 import { useAuth } from 'src/hooks/useAuth'
+
+// ** WSO2 Auth Client + Flag
+import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
+import client from 'src/lib/auth/wso2Client'
+import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
 import { useGeofenceHeartbeat } from 'src/hooks/useGeofenceHeartbeat'
 import GeofenceLockBanner from 'src/components/geofence/GeofenceLockBanner'
 import Icon from 'src/@core/components/icon'
@@ -16,6 +21,12 @@ const AuthGuard = props => {
 
   const auth = useAuth()
   const router = useSafeRouter()
+  const wso2 = isWso2AuthEnabled()
+
+  // Always call the hook (React rules) — only read its result in WSO2 mode.
+  // Session expiry is handled by Wso2SessionWatcher via onSessionExpired /
+  // onDailyExpiryWarning callbacks — no status watching needed here.
+  const { status } = useAntzAuth(client)
 
   const isAuthed = !!auth.user
   const { state: heartbeatState, lastError: heartbeatError, recheck: heartbeatRecheck } = useGeofenceHeartbeat(isAuthed)
@@ -35,10 +46,22 @@ const AuthGuard = props => {
 
   useEffect(
     () => {
-      if (!router.isReady) {
-        return
-      }
-      if (auth.user === null && !window.localStorage.getItem('userData')) {
+      if (!router.isReady) return
+
+      // Wait for the package's silent-restore to finish before deciding.
+      if (wso2 && (status === 'idle' || status === 'loading')) return
+
+      // In WSO2 mode, ALL navigation to /login is handled elsewhere:
+      //   - initAuthWso2  → initial load with no tokens
+      //   - Wso2SessionWatcher.onSessionExpired → expired session
+      //   - handleLogout → wso2HookLogout → window.location.href → WSO2 redirect
+      // Redirecting here races with wso2HookLogout's window.location.href and
+      // causes the login page to mount twice (client-side nav + full page reload).
+      if (wso2) return
+
+      const hasSession = !!window.localStorage.getItem('userData')
+
+      if (auth.user === null && !hasSession) {
         if (router.asPath !== '/') {
           router.replace({
             pathname: '/login',
@@ -50,11 +73,21 @@ const AuthGuard = props => {
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [router.route]
+    [router.route, status]
   )
   if (auth.loading || auth.user === null) {
     return fallback
   }
+
+  // Hold the fallback while WSO2 silent-restore is in flight on FIRST load
+  // (idle / loading before we've ever been authenticated). Once we've been
+  // authenticated at least once, ignore subsequent 'loading' transitions —
+  // they happen during silent token refresh every ~110s and unmounting
+  // children would tear down all React Query observers and cause every
+  // dashboard API to refetch on remount.
+  const isInitialAuthLoading = wso2 && status === 'idle'
+  if (isInitialAuthLoading) return fallback
+  if (auth.loading || auth.user === null) return fallback
 
   // Two paths can lock the UI:
   //   1. session-restore verify failed → auth.geofenceLocked
@@ -93,10 +126,7 @@ const AuthGuard = props => {
           }}
         >
           <Icon icon='mdi:alert-outline' fontSize={18} />
-          <Typography
-            variant='body2'
-            sx={{ fontWeight: 600, color: '#fff', textAlign: 'center', lineHeight: 1.4 }}
-          >
+          <Typography variant='body2' sx={{ fontWeight: 600, color: '#fff', textAlign: 'center', lineHeight: 1.4 }}>
             You appear to be outside the facility. One more outside reading will lock your session.
           </Typography>
         </Box>
@@ -136,8 +166,8 @@ const AuthGuard = props => {
             Outside facility — last warning
           </Typography>
           <Typography variant='caption' sx={{ color: 'rgba(255,255,255,0.92)', display: 'block', lineHeight: 1.5 }}>
-            GPS readings indicate you are outside the geofenced area. One more outside reading will lock your
-            session. Walk back inside the facility to stay logged in.
+            GPS readings indicate you are outside the geofenced area. One more outside reading will lock your session.
+            Walk back inside the facility to stay logged in.
           </Typography>
         </Alert>
       </Snackbar>

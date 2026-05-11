@@ -8,6 +8,7 @@ import Icon from 'src/@core/components/icon'
 
 // ** Components
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
+// import SessionExpiryTimer from 'src/@core/layouts/components/shared-components/SessionExpiryTimer'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
 import SelectPharmacy from 'src/components/SelectPharmacy'
 import { usePathname } from 'next/navigation'

@@ -113,23 +113,23 @@ const App = props => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <Provider store={store}>
-          <CacheProvider value={emotionCache}>
-            <Head>
-              <title>{`${themeConfig.templateName}`}</title>
-              <meta name='description' content={`${themeConfig.templateName}`} />
-              <meta name='viewport' content='initial-scale=1, width=device-width' />
-            </Head>
-            <HospitalProvider>
-              <NecropsyProvider>
-                <PariveshProvider>
-                  <AnimalProvider>
-                    <PharmacyProvider>
-                      <DynamicStatesProvider>
-                        <EggProvider>
-                          <ForgotPasswordProvider>
-                            <AuthProvider>
+      <Provider store={store}>
+        <CacheProvider value={emotionCache}>
+          <Head>
+            <title>{`${themeConfig.templateName}`}</title>
+            <meta name='description' content={`${themeConfig.templateName}`} />
+            <meta name='viewport' content='initial-scale=1, width=device-width' />
+          </Head>
+          <HospitalProvider>
+            <NecropsyProvider>
+              <PariveshProvider>
+                <AnimalProvider>
+                  <PharmacyProvider>
+                    <DynamicStatesProvider>
+                      <EggProvider>
+                        <ForgotPasswordProvider>
+                          <AuthProvider>
+                            <LanguageProvider>
                               <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
                                 <SettingsConsumer>
                                   {({ settings }) => {
@@ -156,18 +156,18 @@ const App = props => {
                                   }}
                                 </SettingsConsumer>
                               </SettingsProvider>
-                            </AuthProvider>
-                          </ForgotPasswordProvider>
-                        </EggProvider>
-                      </DynamicStatesProvider>
-                    </PharmacyProvider>
-                  </AnimalProvider>
-                </PariveshProvider>
-              </NecropsyProvider>
-            </HospitalProvider>
-          </CacheProvider>
-        </Provider>
-      </LanguageProvider>
+                            </LanguageProvider>
+                          </AuthProvider>
+                        </ForgotPasswordProvider>
+                      </EggProvider>
+                    </DynamicStatesProvider>
+                  </PharmacyProvider>
+                </AnimalProvider>
+              </PariveshProvider>
+            </NecropsyProvider>
+          </HospitalProvider>
+        </CacheProvider>
+      </Provider>
     </QueryClientProvider>
   )
 }

@@ -7,6 +7,7 @@ const path = require('path')
 // Remove this if you're not using Fullcalendar features
 
 module.exports = {
+  transpilePackages: ['@antzsoft/wso2-auth-web'],
   trailingSlash: true,
   reactStrictMode: false,
   // Suppress Emotion SSR warnings for :first-child pseudo-class
@@ -50,13 +51,14 @@ module.exports = {
       }
     ]
 
-    // Proxy API calls to local backend in development to avoid CORS
-    if (process.env.NODE_ENV === 'development') {
-      rules.push({
-        source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*'
-      })
-    }
+    // Proxy API calls to configured backend in development to avoid CORS
+    // if (process.env.NODE_ENV === 'development') {
+    //   const backend = (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:8080/').replace(/\/$/, '')
+    //   rules.push({
+    //     source: '/api/:path*',
+    //     destination: `${backend}/api/:path*`
+    //   })
+    // }
 
     return rules
   },
