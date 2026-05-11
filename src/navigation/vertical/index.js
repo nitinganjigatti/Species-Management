@@ -21,6 +21,7 @@ import notesNavigation from 'src/components/navigation/notes'
 import animalsNavigation from 'src/components/navigation/animals'
 import componentLibraryNavigation from 'src/components/navigation/component-library'
 import vmsNavigation from 'src/components/navigation/vms'
+import collectionNavigation from 'src/components/navigation/collection'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -58,6 +59,8 @@ const ComposeNavigation = () => {
   const allowCarcassCollection = authData?.userData?.roles?.settings?.allow_carcass_collection
   const hasPermissionToAddNecropsyCenter = authData?.userData?.permission?.user_settings?.add_necropsy_center
   const medicalAccess = authData?.userData?.roles?.settings?.medical_records
+
+  const enableCollectionInWeb = authData?.userData?.roles?.settings?.enable_collection_in_web
 
   // console.log('labList', labList)
   const { selectedPharmacy } = usePharmacyContext()
@@ -152,6 +155,12 @@ const ComposeNavigation = () => {
   if (housingModule || housingModuleWeb) {
     const settingsNav = settingsNavigation({ userRole })
     navigationArray.push(...settingsNav)
+  }
+
+  // Collection module (App Router)
+  if (enableCollectionInWeb) {
+    const collectionNav = collectionNavigation()
+    navigationArray.push(...collectionNav)
   }
 
   // Component Library (Developer Tools)

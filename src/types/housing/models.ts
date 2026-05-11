@@ -223,11 +223,11 @@ export interface Animal {
   enclosure_id?: number
   enclosure_name?: string
   images?: AnimalImage[]
-  is_alive?: boolean
+  is_alive?: boolean | string
   is_deceased?: boolean
-  is_deleted?: string
-  animal_transfered?: string
-  is_necropsy?: boolean
+  is_deleted?: string | number
+  animal_transfered?: string | number
+  is_necropsy?: boolean | string | number
   created_at?: string
   updated_at?: string
 }
@@ -278,6 +278,27 @@ export interface AnimalOverview extends Animal {
   common_name?: string
   complete_name?: string
   vernacular_name?: string
+  breed_name?: string
+  morph_name?: string
+  life_stage_name?: string
+  accession_date?: string
+  birth_date?: string
+  age?: string
+  taxonomy_id?: string | number
+  contraception_status?: string
+  sexing_type?: string
+  master_collection_type?: string
+  organization_name?: string
+  ownership_terms_label?: string
+  is_alive?: boolean | string
+  in_transit?: string | number
+  animal_transfered?: string | number
+  institutes_label?: string
+  is_necropsy?: string | number
+  is_deleted?: string | number
+  is_egg_animal?: string | number
+  reproduction_type?: string
+  animal_qr_image?: string
 }
 
 // ==================== Species ====================

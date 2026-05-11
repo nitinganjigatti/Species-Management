@@ -20,6 +20,8 @@ interface AnimalParentCardProps {
   checkbox?: boolean | CheckboxProps
   onClick?: () => void
   sx?: SxProps<Theme>
+  onWeightClick?: (data: any) => void
+  showSexChip?: boolean
 }
 
 declare const AnimalParentCard: React.FC<AnimalParentCardProps>

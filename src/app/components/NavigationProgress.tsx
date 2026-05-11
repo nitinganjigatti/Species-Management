@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 // @ts-ignore
 import NProgress from 'nprogress'
@@ -8,13 +8,11 @@ import NProgress from 'nprogress'
 // Configure NProgress
 NProgress.configure({ showSpinner: false })
 
+// Note: avoid `useSearchParams()` here — it forces the surrounding subtree out of static rendering
+// and requires a Suspense boundary, which causes an Emotion SSR/CSR hydration mismatch in this app
+// (no useServerInsertedHTML registry is set up). Pathname changes are sufficient to drive NProgress.done().
 export default function NavigationProgress() {
   const pathname = usePathname()
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
 
   useEffect(() => {
     NProgress.done()

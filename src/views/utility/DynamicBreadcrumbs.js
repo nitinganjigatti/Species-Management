@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Breadcrumbs, Typography } from '@mui/material'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 
 const DynamicBreadcrumbs = ({
   pageItems,
