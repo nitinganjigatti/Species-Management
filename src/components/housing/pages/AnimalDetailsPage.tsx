@@ -399,7 +399,7 @@ const AnimalDetailsPage: React.FC<AnimalDetailsPageProps> = ({ id }) => {
           onAddNew={() => {}}
           showQr={true}
           onQrClick={handleQrClick}
-          image={data?.data?.animal_details?.banner_images[0]?.image_path}
+          image={data?.data?.animal_details?.banner_images?.[0]?.image_path}
           loading={loading}
         />
         <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>

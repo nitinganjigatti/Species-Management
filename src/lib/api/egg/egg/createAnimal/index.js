@@ -69,6 +69,26 @@ export async function createAnimal(params) {
   }
 }
 
+export async function createGroupAnimal(params) {
+  try {
+    const response = await axiosPost({
+      url: `groupAnimal/create`,
+      body: params
+    })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 export async function getTaxonomyList(params) {
   try {
     const response = await axiosPost({

@@ -1,0 +1,244 @@
+'use client'
+
+import { Box, Card, Tab, Tabs, Typography } from '@mui/material'
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
+import React, { useContext, useEffect, useState } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import { canAdd, canView } from 'src/utils/access'
+import InsightsCard from 'src/views/utility/insights/InsightsCard'
+import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import AddAnimalDrawer from 'src/components/collection/AddAnimalDrawer'
+import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
+
+// Tab Components
+import PopulationTab from 'src/components/collection/species-detail/PopulationTab'
+import SitesTab from 'src/components/collection/species-detail/SitesTab'
+import SectionsTab from 'src/components/collection/species-detail/SectionsTab'
+import EnclosuresTab from 'src/components/collection/species-detail/EnclosuresTab'
+import TaxonomyTab from 'src/components/collection/species-detail/TaxonomyTab'
+import MortalityTab from 'src/components/collection/species-detail/MortalityTab'
+import NecropsyTab from 'src/components/collection/species-detail/NecropsyTab'
+import DietTab from 'src/components/collection/species-detail/DietTab'
+
+interface TabConfigItem {
+  label: string
+  value: string
+  component: React.ComponentType<any>
+}
+
+const TAB_CONFIG: TabConfigItem[] = [
+  { label: 'Population', value: 'population', component: PopulationTab },
+  { label: 'Sites', value: 'sites', component: SitesTab },
+  { label: 'Sections', value: 'sections', component: SectionsTab },
+  { label: 'Enclosures', value: 'enclosures', component: EnclosuresTab },
+  // {
+  //   label: 'Medical',
+  //   value: 'medical',
+  //   component: () => (
+  //     <Box sx={{ py: 10, textAlign: 'center' }}>
+  //       <Typography color='text.secondary'>Medical tab — coming soon</Typography>
+  //     </Box>
+  //   )
+  // },
+  { label: 'Taxonomy', value: 'taxonomy', component: TaxonomyTab },
+  { label: 'Mortality', value: 'mortality', component: MortalityTab },
+  { label: 'Necropsy', value: 'necropsy', component: NecropsyTab },
+  { label: 'Diet', value: 'diet', component: DietTab }
+  // {
+  //   label: 'Media',
+  //   value: 'media',
+  //   component: () => (
+  //     <Box sx={{ py: 10, textAlign: 'center' }}>
+  //       <Typography color='text.secondary'>Media tab — coming soon</Typography>
+  //     </Box>
+  //   )
+  // }
+]
+
+const SpeciesDetail: React.FC = () => {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const params = useParams() as { id?: string }
+  const id = params.id
+  const authData = useContext(AuthContext) as any
+  const animalRecordsAccess = authData?.userData?.roles?.settings?.collection_animal_records
+  const animalRecordsLevel = authData?.userData?.roles?.settings?.collection_animal_record_access
+  const canViewAnimal = canView(animalRecordsAccess)
+  const canAddAnimal = canViewAnimal && canAdd(animalRecordsLevel)
+
+  const [selectedTab, setSelectedTab] = useState('population')
+  const [addAnimalDrawerOpen, setAddAnimalDrawerOpen] = useState(false)
+  const [insightsFilterDate, setInsightsFilterDate] = useState({ startDate: new Date(), endDate: new Date() })
+  const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState(false)
+  const [speciesDrawerTitle, setSpeciesDrawerTitle] = useState('')
+  const [speciesDrawerData, setSpeciesDrawerData] = useState<any>(null)
+
+  // TODO: Replace with real API call
+  const speciesData = {
+    common_name: 'Reverse Pebblenail',
+    scientific_name: 'Somatogyrus somatogyrus',
+    default_icon: '',
+    population: 234500,
+    natality: 94,
+    accession: 44,
+    external_transfer: 24,
+    mortality: 359,
+    animal_count: 1237
+  }
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
+    setSelectedTab(newValue)
+  }
+
+  // Sync tab with URL
+  useEffect(() => {
+    router.replace(`${pathname}?tab=${selectedTab}`, { scroll: false })
+  }, [selectedTab])
+
+  useEffect(() => {
+    const tab = searchParams?.get('tab')
+    if (tab) setSelectedTab(tab)
+  }, [searchParams])
+
+  const handleStatClick = (title: string, insightType: string) => {
+    setSpeciesDrawerTitle(title)
+    setSpeciesDrawerData({
+      queryKey: `species-detail-${insightType}-species`,
+      id: id,
+      name: speciesData.common_name,
+      params: { taxonomy_id: id, insight_type: insightType }
+    })
+    setSpeciesDrawerOpen(true)
+  }
+
+  // Banner data
+  const populationText = `Population till date - ${
+    speciesData.population >= 1000 ? (speciesData.population / 1000).toFixed(1) + 'K' : speciesData.population
+  }`
+
+  const insightsStatsData = [
+    {
+      value: speciesData.natality,
+      label: 'Natality',
+      imagePath: '/images/housing/animals.svg',
+      onClick: () => handleStatClick('Natality', 'natality')
+    },
+    {
+      value: speciesData.accession,
+      label: 'Accession',
+      imagePath: '/images/housing/species.svg',
+      onClick: () => handleStatClick('Accession', 'accession')
+    },
+    {
+      value: speciesData.external_transfer,
+      label: 'External transfer',
+      imagePath: '/images/housing/sections.svg',
+      onClick: () => handleStatClick('External transfer', 'external_transfer')
+    },
+    {
+      value: speciesData.mortality,
+      label: 'Mortality',
+      imagePath: '/images/housing/enclosures.svg',
+      onClick: () => handleStatClick('Mortality', 'mortality')
+    }
+  ]
+
+  const handleInsightsDateChange = (start: Date, end: Date) => {
+    setInsightsFilterDate({ startDate: start, endDate: end })
+  }
+
+  // Get selected tab component
+  const selectedTabConfig = TAB_CONFIG.find(tab => tab.value === selectedTab)
+  const SelectedComponent = selectedTabConfig?.component || (() => null)
+
+  return (
+    <>
+      <Box>
+        <DynamicBreadcrumbs sx={{ mb: 5 }} />
+
+        {/* Species Insights Banner */}
+        <InsightsCard
+          data={speciesData}
+          loading={false}
+          error={null as any}
+          isListingPage
+          titleLabel='Species'
+          pageTitle={speciesData.common_name}
+          subtitle={speciesData.scientific_name}
+          image=''
+          actions={{ onAddNew: canAddAnimal ? () => setAddAnimalDrawerOpen(true) : null }}
+          addNewTooltip='Add Animals'
+          addNewLabel='Add Animals'
+          onCallClick={null as any}
+          onMessageClick={null as any}
+          zooName=''
+          userName=''
+          description=''
+          userImage=''
+          populationText={populationText as any}
+          haveInsightsViewAccess
+          statsData={insightsStatsData as any}
+          onInsightsDateChange={handleInsightsDateChange as any}
+          insightsFilterDates={insightsFilterDate as any}
+        />
+
+        {/* Tabs + Content */}
+        {selectedTab === 'taxonomy' ? (
+          <>
+            <Card sx={{ mt: 6, p: { xs: 3, md: 5 }, pb: 0 }}>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
+                  {TAB_CONFIG.map(tab => (
+                    <Tab key={tab.value} label={tab.label} value={tab.value} />
+                  ))}
+                </Tabs>
+              </Box>
+            </Card>
+            <Box sx={{ mt: 6 }}>
+              <SelectedComponent
+                speciesId={id}
+                animalCount={speciesData.animal_count}
+                speciesName={speciesData.common_name}
+                scientificName={speciesData.scientific_name}
+              />
+            </Box>
+          </>
+        ) : (
+          <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
+            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
+              <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
+                {TAB_CONFIG.map(tab => (
+                  <Tab key={tab.value} label={tab.label} value={tab.value} />
+                ))}
+              </Tabs>
+            </Box>
+
+            <SelectedComponent
+              speciesId={id}
+              animalCount={speciesData.animal_count}
+              speciesName={speciesData.common_name}
+              scientificName={speciesData.scientific_name}
+            />
+          </Card>
+        )}
+      </Box>
+
+      {/* Add Animal Drawer */}
+      <AddAnimalDrawer open={addAnimalDrawerOpen} onClose={() => setAddAnimalDrawerOpen(false)} />
+
+      {/* Insights Species Drawer */}
+      <SpeciesDrawer
+        open={speciesDrawerOpen}
+        onClose={() => {
+          setSpeciesDrawerOpen(false)
+          setSpeciesDrawerData(null)
+        }}
+        data={speciesDrawerData}
+        title={speciesDrawerTitle}
+      />
+    </>
+  )
+}
+
+export default SpeciesDetail

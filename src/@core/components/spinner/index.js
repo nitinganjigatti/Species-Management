@@ -16,7 +16,7 @@ const FallbackSpinner = ({ sx }) => {
     }
   }, [])
   return (
-<Box
+    <Box
       // Layout via inline style so centering applies immediately on the SSR HTML —
       // before Emotion injects its CSS-in-JS classes. Avoids the "logo flashes at
       // top-left, then jumps to center" artifact on slow networks.
@@ -35,16 +35,19 @@ const FallbackSpinner = ({ sx }) => {
         zIndex: 9999
       }}
       sx={{
+        zIndex: 9999
+      }}
+      sx={{
         backgroundColor: 'background.default',
         ...sx
       }}
->
-<Image
+    >
+      <Image
         src={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? vantaraLogoAlt : logoAlt}
         height={60}
         alt='Antz Systems'
       />
-{/* <svg width={80} fill='none' height={44} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
+      {/* <svg width={80} fill='none' height={44} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
 <rect
           rx='25.1443'
           width='50.2886'
@@ -114,8 +117,8 @@ const FallbackSpinner = ({ sx }) => {
 </linearGradient>
 </defs>
 </svg> */}
-<CircularProgress disableShrink sx={{ mt: 6 }} />
-</Box>
+      <CircularProgress disableShrink sx={{ mt: 6 }} />
+    </Box>
   )
 }
 export default FallbackSpinner

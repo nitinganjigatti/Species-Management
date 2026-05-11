@@ -20,7 +20,9 @@ const HeaderCard = ({
   onQrClick,
   hasQrCode,
   addNewTooltip = 'Add new',
-  editTooltip = 'Edit'
+  addNewLabel = 'Add new',
+  editTooltip = 'Edit',
+  titleLabel = ''
 }) => {
   const theme = useTheme()
   const { t } = useTranslation()
@@ -36,6 +38,13 @@ const HeaderCard = ({
       }}
     >
       <Box>
+        {titleLabel && (
+          <Typography
+            sx={{ color: theme.palette.common.white, fontSize: '0.75rem', fontWeight: 400, opacity: 0.8, mb: 0.5 }}
+          >
+            {titleLabel}
+          </Typography>
+        )}
         {title && (
           <Typography sx={{ color: theme.palette.common.white, fontSize: '1.5rem', fontWeight: '600' }}>
             {title}
@@ -103,7 +112,7 @@ const HeaderCard = ({
                   whiteSpace: 'nowrap'
                 }}
               >
-                {t('add_new')}
+                {addNewLabel}
               </Typography>
               <IconButton
                 sx={{

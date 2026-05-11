@@ -31,7 +31,7 @@ interface FoundByUser {
 interface ReportFoundFormProps {
   reportFoundForm: boolean
   setReportFoundForm: (open: boolean) => void
-  animalId: string | string[] | undefined
+  animalId: string | number | string[] | undefined
 }
 
 interface FormValues {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import HeaderCard from './InsightsHeaderCard'
 import InfoStatCard from './InfoStatCard'
-import { alpha, Box, Button, Card, Grid, IconButton, Typography, Modal, Paper } from '@mui/material'
+import { alpha, Box, Button, Card, Grid, IconButton, Tooltip, Typography, Modal, Paper } from '@mui/material'
 import UserInfoCard from './UserInfoCard'
 import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
@@ -10,6 +10,7 @@ import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 import InsightsCardSkeleton from './InsightsCardSkeleton'
 import Icon from 'src/@core/components/icon'
 import { AddBoxOutlined, Close, Download } from '@mui/icons-material'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { useTranslation } from 'react-i18next'
 
 const InsightsCard = ({
@@ -33,7 +34,15 @@ const InsightsCard = ({
   entityName = '',
   entityId = '',
   addNewTooltip = 'Add new',
-  editTooltip = 'Edit'
+  addNewLabel = 'Add new',
+  editTooltip = 'Edit',
+  summaryStats = [],
+  insightsTitle = '',
+  insightsDate = '',
+  onInsightsDateChange = undefined,
+  insightsFilterDates = undefined,
+  titleLabel = '',
+  populationText = ''
 }) => {
   const theme = useTheme()
   const { t } = useTranslation()
@@ -108,7 +117,9 @@ const InsightsCard = ({
           hasQrCode={!!qrCodeImage}
           onQrClick={() => setQrModalOpen(true)}
           addNewTooltip={addNewTooltip}
+          addNewLabel={addNewLabel}
           editTooltip={editTooltip}
+          titleLabel={titleLabel}
         />
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
@@ -143,6 +154,66 @@ const InsightsCard = ({
             </Box>
           </Box>
         )}
+        {/* Summary Stats Row */}
+        {Array.isArray(summaryStats) && summaryStats.length > 0 && (
+          <Box sx={{ mt: 4, display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+            {summaryStats.map((stat, index) => {
+              const formatNum = val => {
+                if (val == null) return '0'
+                if (typeof val === 'string') return val
+                if (val >= 1_000_000_000) return (val / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B'
+                if (val >= 1_000_000) return (val / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
+                if (val >= 1_000) return (val / 1_000).toFixed(1).replace(/\.0$/, '') + 'K'
+
+                return String(val)
+              }
+
+              return (
+                <Box
+                  key={index}
+                  sx={{
+                    py: { xs: 1.5, sm: 2 },
+                    px: { xs: 2.5, sm: 3.5 },
+                    borderRadius: 1,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.3),
+                    backdropFilter: 'blur(0.5rem)',
+                    WebkitBackdropFilter: 'blur(0.5rem)',
+                    border: `1px solid ${alpha(theme.palette.common.white, 0.15)}`,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
+                    gap: 1.5,
+                    cursor: stat.onClick ? 'pointer' : 'default'
+                  }}
+                  onClick={stat.onClick}
+                >
+                  <Tooltip title={stat.value?.toLocaleString?.() ?? stat.value ?? ''} arrow placement='top'>
+                    <Typography
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: { xs: '1.25rem', sm: '1.75rem' },
+                        color: theme.palette.common.white,
+                        lineHeight: 1
+                      }}
+                    >
+                      {formatNum(stat.value)}
+                    </Typography>
+                  </Tooltip>
+                  <Typography
+                    sx={{
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                      color: alpha(theme.palette.common.white, 0.85),
+                      lineHeight: 1.2
+                    }}
+                  >
+                    {stat.label}
+                  </Typography>
+                </Box>
+              )
+            })}
+          </Box>
+        )}
+
         {haveInsightsViewAccess && Array.isArray(statsData) && statsData.length > 0 && (
           <Box
             sx={{
@@ -155,6 +226,58 @@ const InsightsCard = ({
               WebkitBackdropFilter: 'blur(0.5rem)'
             }}
           >
+            {/* Insights Header: populationText or insightsTitle + Date */}
+            {(populationText || insightsTitle || insightsDate || onInsightsDateChange) && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: { xs: 'flex-start', sm: 'center' },
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  mb: 3,
+                  gap: { xs: 2, sm: 3 },
+                  p: { xs: 2, sm: 2 }
+                }}
+              >
+                {/* Left side: populationText or insightsTitle */}
+                {populationText ? (
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: theme.palette.common.white }}>
+                    {populationText}
+                  </Typography>
+                ) : insightsTitle ? (
+                  <Typography
+                    sx={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: theme.palette.common.white,
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    {insightsTitle}
+                  </Typography>
+                ) : null}
+
+                {/* Right side: Date picker or static date */}
+                {onInsightsDateChange && (
+                  <Box sx={{ width: { xs: '100%', sm: 'auto' }, maxWidth: { xs: '100%', sm: 420 }, flexShrink: 0 }}>
+                    <CommonDateRangePickers filterDates={insightsFilterDates} onChange={onInsightsDateChange} />
+                  </Box>
+                )}
+                {!onInsightsDateChange && insightsDate && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Icon
+                      icon='mdi:calendar-outline'
+                      fontSize={16}
+                      style={{ color: alpha(theme.palette.common.white, 0.8).toString() }}
+                    />
+                    <Typography sx={{ fontSize: '0.75rem', color: alpha(theme.palette.common.white, 0.8) }}>
+                      {insightsDate}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            )}
+
             <Grid container spacing={3} justifyContent='flex-start'>
               {statsData.map((item, index) => {
                 const length = statsData.length
@@ -182,6 +305,9 @@ const InsightsCard = ({
                       value={item.value}
                       label={item.label}
                       onClick={item.onClick}
+                      dotColor={item.dotColor}
+                      iconName={item.iconName}
+                      iconColor={item.iconColor}
                     />
                   </Grid>
                 )

@@ -336,3 +336,39 @@ export async function assignAssessmentTemplate(
 
   return response?.data
 }
+
+// ==================== Assessment Group (Batch Grid) API ====================
+
+export interface GetAssessmentGroupParams {
+  taxonomy_id: number | string
+  assessment_type: Array<number | string>
+  page?: number
+  limit?: number
+  // Filters — each is a list of IDs / values that the backend accepts as repeated query params.
+  site_id?: Array<number | string>
+  gender?: Array<string>
+  life_stage_id?: Array<number | string>
+}
+
+/**
+ * Get the animal × assessment_type matrix for the batch assessment grid.
+ * Backend endpoint: GET /v1/assessment/group
+ * Response shape is loose — callers should parse defensively.
+ */
+export async function getAssessmentGroup(params: GetAssessmentGroupParams): Promise<any> {
+  // Repeated query params (`assessment_type[]=4&assessment_type[]=6`) — axios encodes these via the
+  // bracketed key. Skip empty arrays so we don't send `&site_id[]=` for unset filters.
+  const flatParams: Record<string, unknown> = {
+    taxonomy_id: params.taxonomy_id,
+    page: params.page ?? 1,
+    limit: params.limit ?? 5,
+    'assessment_type[]': params.assessment_type
+  }
+  if (params.site_id?.length) flatParams['site_id[]'] = params.site_id
+  if (params.gender?.length) flatParams['gender[]'] = params.gender
+  if (params.life_stage_id?.length) flatParams['life_stage_id[]'] = params.life_stage_id
+
+  const response = await axiosGet({ url: 'v1/assessment/group', params: flatParams })
+
+  return response?.data
+}

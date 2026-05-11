@@ -4,6 +4,39 @@ import { useTheme } from '@mui/material/styles'
 import React from 'react'
 import AnimalCard from './AnimalCard'
 import { MedicalIdChip } from 'src/views/pages/hospital/utility/hospitalSnippets'
+import StatChip from 'src/views/utility/StatChip'
+
+// Map an API sex value to the chip styling used in the species listing table
+const getSexChipStyle = (sex, theme) => {
+  switch (sex) {
+    case 'male':
+      return {
+        label: 'M',
+        bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
+        color: theme.palette.customColors.addPrimary
+      }
+    case 'female':
+      return {
+        label: 'F',
+        bgcolor: `${theme.palette.customColors.Tertiary}4D`,
+        color: theme.palette.customColors.Tertiary
+      }
+    case 'undetermined':
+      return {
+        label: 'UD',
+        bgcolor: theme.palette.customColors.SurfaceVariant,
+        color: theme.palette.customColors.Error
+      }
+    case 'indeterminate':
+      return {
+        label: 'ID',
+        bgcolor: theme.palette.customColors.displaybgSecondary,
+        color: theme.palette.customColors.OnSecondaryContainer
+      }
+    default:
+      return null
+  }
+}
 
 const AnimalParentCard = ({
   data,
@@ -15,9 +48,13 @@ const AnimalParentCard = ({
   checkbox = false,
   onClick,
   sx,
-  onWeightClick
+  onWeightClick,
+  // Render the animal's sex (M / F / UD / ID) chip on the right. Off by default to avoid
+  // changing other callers; the population drilldown drawer opts in.
+  showSexChip = false
 }) => {
   const theme = useTheme()
+  const sexChip = showSexChip ? getSexChipStyle(data?.sex, theme) : null
   const interactive = Boolean(radio) || Boolean(checkbox) || Boolean(onClick)
   const isChecked = radio?.checked || checkbox?.checked
 
@@ -79,6 +116,12 @@ const AnimalParentCard = ({
           <AnimalCard data={data} size={size} animal={animal} onWeightClick={onWeightClick} />
 
           {/* Right-aligned status chips */}
+
+          {sexChip && (
+            <Box>
+              <StatChip value={sexChip.label} bgcolor={sexChip.bgcolor} color={sexChip.color} />
+            </Box>
+          )}
 
           {data?.in_transit === '1' ? (
             <Box>

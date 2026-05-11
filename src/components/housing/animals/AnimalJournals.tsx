@@ -64,10 +64,15 @@ interface ModuleFilterItem {
   module?: string // Original module value from API (for sending back to API)
 }
 
-const AnimalJournals: React.FC = () => {
+interface AnimalJournalsProps {
+  animalId?: number | string
+}
+
+const AnimalJournals: React.FC<AnimalJournalsProps> = ({ animalId: propAnimalId }) => {
   const theme = useTheme() as any
   const router = useSafeRouter()
   const { id } = router.query
+  const id_resolved = propAnimalId != null ? String(propAnimalId) : (Array.isArray(id) ? id[0] : id)
   const authData = useContext(AuthContext)
   const { t } = useTranslation()
 
@@ -124,7 +129,7 @@ const AnimalJournals: React.FC = () => {
 
   // Fetch journal modules (for horizontal filter chips)
   const fetchJournalModules = async (): Promise<void> => {
-    const animalId = Array.isArray(id) ? id[0] : id
+    const animalId = id_resolved
     if (!animalId) return
 
     try {
@@ -157,7 +162,7 @@ const AnimalJournals: React.FC = () => {
       moduleFilter?: ModuleFilterItem
     }
   ): Promise<void> => {
-    const animalId = Array.isArray(id) ? id[0] : id
+    const animalId = id_resolved
     if (!animalId) return
 
     // Use passed filters or fall back to current state
@@ -211,16 +216,16 @@ const AnimalJournals: React.FC = () => {
 
   // Initial load - fetch modules and users
   useEffect(() => {
-    if (id) {
+    if (id_resolved) {
       fetchJournalModules()
       getUsers()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, authData])
+  }, [id_resolved, authData])
 
   // Fetch journal logs on initial load and when filters change
   useEffect(() => {
-    if (id) {
+    if (id_resolved) {
       setPage(1)
       // Pass current filter values directly to avoid closure issues
       fetchAnimalJournalLogs(1, true, {
@@ -230,7 +235,7 @@ const AnimalJournals: React.FC = () => {
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, dateRange, selectedModule, selectedUsers])
+  }, [id_resolved, dateRange, selectedModule, selectedUsers])
 
   // Handle module selection
   const handleModuleSelect = (module: ModuleFilterItem): void => {
