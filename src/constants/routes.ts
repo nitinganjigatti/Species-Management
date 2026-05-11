@@ -16,6 +16,7 @@ export const ROUTES = {
     ) =>
       `/collection/species/${speciesId}/necropsy/${necropsyId}${
         mortalityId ? `?mortality_id=${mortalityId}` : ''
-      }`
+      }`,
+    batchAssessment: (speciesId: string | number) => `/collection/species/${speciesId}/batch-assessment`
   }
 } as const

@@ -588,6 +588,8 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
           />
           <Button
             variant='contained'
+            disabled={!speciesId}
+            onClick={() => speciesId && router.push(ROUTES.collection.batchAssessment(speciesId))}
             sx={{
               textTransform: 'uppercase',
               borderRadius: '4px',
