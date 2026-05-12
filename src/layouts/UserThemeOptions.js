@@ -73,6 +73,7 @@ const UserThemeOptions = () => {
 
         // *** name required
 
+        atnzS: '#7A8684',
         secondaryBg: '#7A8684',
         secondaryBg70: '#dae7df',
         mdAntzNeutral: '#0000000D',

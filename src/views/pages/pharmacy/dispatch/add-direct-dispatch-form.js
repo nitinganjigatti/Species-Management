@@ -539,7 +539,10 @@ export const AddItemsForm = ({
                         color: 'customColors.OnPrimary'
                       }}
                     >
-                      Unit Price - {Utility.formatAmountToReadableDigit(watch('unit_price'))}
+                      Unit Price -{' '}
+                      {watch('unit_price') == null || watch('unit_price') == '0'
+                        ? Utility.formatAmountToReadableDigit('0')
+                        : Utility.formatAmountToReadableDigit(watch('unit_price'))}
                     </Typography>
                   </Box>
                 </Box>

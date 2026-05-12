@@ -2,6 +2,7 @@
 import { createContext, useEffect, useState } from 'react'
 import { read, readAsync, write } from '../lib/windows/utils'
 import { callRefreshToken } from 'src/lib/api/auth'
+import { verifyGeofence } from 'src/lib/api/geofence'
 
 import { usePharmacyContext } from './PharmacyContext'
 import { usePariveshContext } from './PariveshContext'
@@ -9,16 +10,22 @@ import { usePariveshContext } from './PariveshContext'
 // ** Next Import - Use safe router for both Page Router and App Router compatibility
 import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
-// ** Axios
-import axios from 'axios'
-
 // ** Config
 import authConfig from 'src/configs/auth'
+
+// ** WSO2 Auth Client
+import client from 'src/lib/auth/wso2Client'
+import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
+import { hydrateBackendSession } from 'src/lib/auth/wso2Hydrate'
+import Wso2SessionWatcher from 'src/components/wso-auth/Wso2SessionWatcher'
+
 import i18n from 'src/configs/i18n'
 import { useQueryClient } from '@tanstack/react-query'
 import { useHospital } from './HospitalContext'
 import { useLanguage } from './LanguageContext'
 import { getDeviceInfo, setLastLoggedUser, saveDeviceId } from 'src/utility/deviceInfo'
+import { legacyLogin } from 'src/lib/api/login'
+import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 // const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
@@ -39,13 +46,20 @@ const defaultProvider = {
 const AuthContext = createContext(defaultProvider)
 
 const AuthProvider = ({ children }) => {
-  // const dispatch = useDispatch()
-
   // ** States
   const [user, setUser] = useState(defaultProvider.user)
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
   const [loginLoading, setLoginLoading] = useState(defaultProvider.loginLoading)
+  // Geofence soft-lock: token is still valid, but the user isn't physically inside the fence.
+  // AuthGuard renders the lock banner; on successful re-verify the flag clears and the user
+  // continues without re-authenticating.
+  const [geofenceLocked, setGeofenceLocked] = useState(false)
+  const [geofenceLockReason, setGeofenceLockReason] = useState(null)
+
+  // Geofence rejection at login time. Survives the GuestGuard fallback swap that happens
+  // when setUser briefly goes truthy then back to null during the verify→logOutUser flow.
+  const [geofenceLoginError, setGeofenceLoginError] = useState(null)
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
   const { updateSelectedHospital, updateHospitalStats } = useHospital()
@@ -53,108 +67,152 @@ const AuthProvider = ({ children }) => {
 
   const queryClient = useQueryClient()
 
+  // Package hook's logout — flips status/user/accessToken in the package's
+  // React state AND calls client.logout() (revoke + /oidc/logout + _clearTokens).
+  // Used in handleLogout below for full package state cleanup.
+  const { logout: wso2HookLogout } = useAntzAuth(client)
+
   // ** Hooks
   const router = useSafeRouter()
+
+  // WSO2 session/auto-logout is handled by <Wso2SessionWatcher /> mounted
+  // inside AuthGuard — it only runs after the user is authenticated, so
+  // useAntzAuth sees tokens on mount and its proactive refresh timer actually
+  // starts (mirrors the sample-nextjs-client-antz-auth dashboard pattern).
+
+  const reconcilePharmacy = async resData => {
+    const options = resData?.modules?.pharmacy_data?.pharmacy
+    const storedPharmacy = await readAsync('selectedStore')
+
+    const foundStored = () => {
+      if (options?.length > 0 && storedPharmacy !== undefined && storedPharmacy !== null) {
+        return options.some(item => item?.id === storedPharmacy?.id)
+      }
+
+      return false
+    }
+
+    const findSelectedPharmacy = () => {
+      let foundPharmacy = ''
+      if (options?.length > 0 && storedPharmacy !== undefined && storedPharmacy !== null) {
+        foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
+      }
+
+      const areArraysEqual = JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
+
+      if (areArraysEqual === false) {
+        write('selectedStore', foundPharmacy)
+        setSelectedPharmacy(foundPharmacy)
+      }
+    }
+
+    findSelectedPharmacy()
+    if (storedPharmacy === '' || foundStored() === false) {
+      if (options?.length > 0) {
+        write('selectedStore', options[0])
+        setSelectedPharmacy(options[0])
+      } else {
+        localStorage.removeItem('selectedStore')
+      }
+    } else {
+      setSelectedPharmacy(await readAsync('selectedStore'))
+    }
+  }
+
   useEffect(() => {
-    const initAuth = async () => {
-      //   const storedToken = window.localStorage.getItem(authConfig.storageTokenKeyName)
-      //   if (storedToken) {
-      //     setLoading(true)
-      //     await axios
-      //       .get(authConfig.meEndpoint, {
-      //         headers: {
-      //           Authorization: storedToken
-      //         }
-      //       })
-      //       .then(async response => {
-      //         setLoading(false)
-      //         setUser({ ...response.data.userData })
-      //       })
-      //       .catch(() => {
-      //         localStorage.removeItem('userData')
-      //         localStorage.removeItem('refreshToken')
-      //         localStorage.removeItem('accessToken')
-      //         setUser(null)
-      //         setLoading(false)
-      //         if (authConfig.onTokenExpiration === 'logout' && !router.pathname.includes('login')) {
-      //           router.replace('/login')
-      //         }
-      //       })
-      //   } else {
-      //     setLoading(false)
-      //   }
-      // }
-      // initAuth()
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    const initAuthWso2 = async () => {
+      if (client.isAuthenticated()) {
+        // SSO equivalent of legacy callRefreshToken: always re-bootstrap on
+        // page refresh so the backend Antz JWT in userDetails.token is fresh
+        // and the user payload reflects current backend state (roles, modules,
+        // etc. may have changed since last load).
+        try {
+          const { userData: userObj, resData } = await hydrateBackendSession()
+          await reconcilePharmacy(resData)
+          setUser({ ...userObj })
+          setUserData({ ...resData })
+          setLoading(false)
+        } catch (err) {
+          console.error('SSO refresh: hydrate failed:', err)
+          clearLocalState()
+          setLoading(false)
+          // Terminate the WSO2 session too, otherwise the next /authorize
+          // silently re-auths and the bootstrap loops forever. wso2HookLogout
+          // delegates to client.logout() which does revoke + _clearTokens +
+          // browser-redirect to /oidc/logout?id_token_hint=...
+          try {
+            await wso2HookLogout()
+            // router.push('/login', {
+            //   query: { returnUrl: router.asPath, message: 'Your session has expired. Please log in again.' }
+            // })
+          } catch (e) {
+            console.error('wso2 hook logout failed during hydrate-failure cleanup:', e)
+            router.replace('/login')
+          }
+
+          return
+        }
+      } else {
+        setLoading(false)
+        const path = router.pathname || ''
+        if (!path.includes('login') && !path.includes('callback') && !path.includes('forgot-password')) {
+          const asPath = router.asPath || ''
+          router.replace(asPath && asPath !== '/' ? { pathname: '/login', query: { returnUrl: asPath } } : '/login')
+        }
+      }
+    }
+
+    const initAuthLegacy = async () => {
       const storedToken = window.localStorage.getItem(authConfig?.storageTokenKeyName)
       if (storedToken) {
-        // setLoading(true)
         const userObj = read('userData')
         if (userObj) {
           try {
             const resData = await callRefreshToken()
             setLoading(false)
             if (resData.token) {
-              const options = resData?.modules?.pharmacy_data?.pharmacy
-              const storedPharmacy = await readAsync('selectedStore')
+              await reconcilePharmacy(resData)
 
-              const foundStored = () => {
-                if (options?.length > 0 && storedPharmacy !== undefined) {
-                  return options.some(item => item?.id === storedPharmacy?.id)
-                }
-
-                return false
-              }
-
-              const findSelectedPharmacy = () => {
-                let foundPharmacy = ''
-                if (options?.length > 0 && storedPharmacy !== undefined) {
-                  foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
-                }
-
-                const areArraysEqual =
-                  JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
-
-                if (areArraysEqual === false) {
-                  write('selectedStore', foundPharmacy)
-                  setSelectedPharmacy(foundPharmacy)
-                }
-              }
-
-              findSelectedPharmacy()
-              if (storedPharmacy === '' || foundStored() === false) {
-                if (options?.length > 0) {
-                  write('selectedStore', options[0])
-
-                  setSelectedPharmacy(options[0])
-                } else {
-                  localStorage.removeItem('selectedStore')
-                }
-              } else {
-                setSelectedPharmacy(await readAsync('selectedStore'))
-
-                // findSelectedPharmacy()
-              }
-
-              const userData = {
+              const nextUser = {
                 email: resData?.user?.user_email,
                 fullName: resData?.user?.user_first_name,
                 lastName: resData?.user?.user_last_name,
                 role: 'admin',
                 id: resData?.roles?.role_id,
-
-                // role: resData.roles.role_name,
                 username: resData?.user?.user_first_name
               }
               write('userDetails', resData)
               write('role', resData?.roles?.role_name)
-              write('userData', userData)
+              write('userData', nextUser)
 
-              setUser({ ...userData })
+              setUser({ ...nextUser })
               setUserData({ ...resData })
 
               // Fetch API translations now that user is authenticated
               loadLanguage(i18n.language || 'en-IN')
+
+              // Re-verify geofence on session restore. Token is valid, so we don't
+              // log the user out — we soft-lock the UI via the AuthGuard. The user can
+              // walk back inside and tap "Recheck location" to dismiss the lock without
+              // re-authenticating. Verify runs in the background; failure flips the flag.
+              try {
+                const verifyRes = await verifyGeofence()
+                if (verifyRes?.success === false) {
+                  setGeofenceLockReason({
+                    code: verifyRes?.error || 'geofence_failed',
+                    message: verifyRes?.message || 'Geofence check failed',
+                    data: verifyRes?.data || {}
+                  })
+                  setGeofenceLocked(true)
+                }
+              } catch (e) {
+                setGeofenceLockReason({
+                  code: e?.code || 'gps_error',
+                  message: e?.message || 'Could not verify your location',
+                  data: {}
+                })
+                setGeofenceLocked(true)
+              }
             } else {
               logOutUser()
               router.replace('/login')
@@ -176,7 +234,13 @@ const AuthProvider = ({ children }) => {
         router.replace('/login')
       }
     }
-    initAuth()
+
+    if (isWso2AuthEnabled()) {
+      initAuthWso2()
+    } else {
+      initAuthLegacy()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     const handleSessionExpired = () => {
       localStorage.setItem('session_expired', 'true')
@@ -190,24 +254,22 @@ const AuthProvider = ({ children }) => {
     }
   }, [])
 
-  const logOutUser = async () => {
-    // localStorage.removeItem('userData')
-    // localStorage.removeItem('userDetails')
-    // localStorage.removeItem('refreshToken')
-    // localStorage.removeItem('accessToken')
-    // localStorage.removeItem('provider')
-    // localStorage.removeItem('selectedStore')
-    // localStorage.removeItem('selectedParivesh')
+  const clearLocalState = () => {
+    setUser(null)
+    setUserData(null)
+    setSelectedPharmacy('')
+    setSelectedParivesh('')
+    setOrganizationList([])
+    updateSelectedHospital(null)
+    updateHospitalStats(null)
+  }
 
-    // 1. Cancel all ongoing queries FIRST and clear the cache (prevents race conditions)
+  const logOutUser = async () => {
     await queryClient.cancelQueries()
     queryClient.clear()
-
-    // 2. Clear ALL TanStack Query cache (queries + mutations) -> Fallback
     queryClient.getQueryCache().clear()
     queryClient.getMutationCache().clear()
 
-    // 3. Clear localStorage and sessionStorage (preserve device data)
     let deviceId
     try {
       deviceId = read('antz_device_id')
@@ -220,146 +282,153 @@ const AuthProvider = ({ children }) => {
     if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
     sessionStorage.clear()
 
-    // 4. Clear all state
-    setUser(null)
-    setUserData(null)
-    setSelectedPharmacy('')
-    setSelectedParivesh('')
-    setOrganizationList([])
+    clearLocalState()
     setLoading(false)
-    updateSelectedHospital(null)
-    updateHospitalStats(null)
+    window.localStorage.clear()
 
-    // 5. Remove the specific auth token (optional, but good for consistency)
     window.localStorage.removeItem(authConfig.storageTokenKeyName)
-
-    // 6. Reset language to default (mirrors mobile app logout behavior)
     await resetLanguage()
   }
 
-  const handleLogin = async (params, errorCallback) => {
-    // dispatch(fetchData(params))
+  const handleLoginWso2 = async email => {
+    const returnUrl = router.query?.returnUrl || '/'
+    sessionStorage.setItem('returnUrl', returnUrl)
+    await client.login({ loginHint: email })
+    // await client.login()
+  }
+
+  // TEMPORARY: original handleLoginLegacy commented out due to CORS errors
+  // when calling base_url directly. Replaced by handleLoginLegacyProxy below
+  // which routes through legacyLogin against a same-origin relative path
+  // (proxied via the next.config.js /api/* rewrite). Restore once CORS is fixed.
+  // const handleLoginLegacy = async (params, errorCallback) => {
+  //   setLoginLoading(true)
+  //   const url = `${base_url}v1/auth/login`
+  //
+  //   let deviceDetails = {}
+  //   try {
+  //     deviceDetails = await getDeviceInfo(params?.email)
+  //   } catch (err) {
+  //     console.error('Failed to get device info:', err)
+  //   }
+  //
+  //   const loginParams = { ...params }
+  //   console.log('device details for login:', deviceDetails)
+  //
+  //   axios
+  //     .post(url, loginParams)
+  //     .then(async response => {
+  //       setLoginLoading(false)
+  //
+  //       if (
+  //         response?.data?.message !== 'Invalid Username/Email or Password' &&
+  //         response?.data?.message !== 'This Account Has Been Suspended !!' &&
+  //         response?.data?.success !== false
+  //       ) {
+  //         window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
+  //         const returnUrl = router.query.returnUrl
+  //         const resData = response?.data
+  //         write('userDetails', resData)
+  //
+  //         const nextUser = {
+  //           email: resData?.user?.user_email,
+  //           fullName: resData?.user?.user_first_name,
+  //           lastName: resData?.user?.user_last_name,
+  //           role: 'admin',
+  //           id: resData?.roles?.role_id,
+  //           username: resData?.user?.user_first_name
+  //         }
+  //         write('role', resData?.roles?.role_name)
+  //         write('userData', nextUser)
+  //         setUserData({ ...resData })
+  //         setUser({ ...nextUser })
+  //
+  //         await Promise.all([saveDeviceId(), setLastLoggedUser(resData?.user?.user_id, resData?.user?.user_email)])
+  //
+  //         await reconcilePharmacy(resData)
+  //
+  //         const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+  //         router.replace(redirectURL)
+  //       } else {
+  //         if (errorCallback) errorCallback(response?.data?.message)
+  //       }
+  //     })
+  //     .catch(err => {
+  //       setLoginLoading(false)
+  //       if (errorCallback) errorCallback(err)
+  //     })
+  // }
+
+  const handleLoginLegacy = async (params, errorCallback) => {
     setLoginLoading(true)
 
-    const url = `${base_url}v1/auth/login`
-
-    // Get device details for login tracking
     let deviceDetails = {}
     try {
       deviceDetails = await getDeviceInfo(params?.email)
     } catch (err) {
       console.error('Failed to get device info:', err)
     }
-
-    const loginParams = {
-      ...params
-      // device_details: deviceDetails
-    }
     console.log('device details for login:', deviceDetails)
-    axios
-      .post(url, loginParams)
-      .then(async response => {
-        setLoginLoading(false)
 
-        if (
-          response?.data?.message !== 'Invalid Username/Email or Password' &&
-          response?.data?.message !== 'This Account Has Been Suspended !!' &&
-          response?.data?.success !== false
-        ) {
-          console.log('login response', response?.data)
-          window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
-          const returnUrl = router.query.returnUrl
+    // Same-origin path — proxied to NEXT_PUBLIC_BASE_URL via next.config.js
+    // rewrite (/api/:path* → ${backend}/api/:path*). Avoids CORS in dev.
 
-          // setUser({ ...response.data.data.providerProfile })
-          const resData = response?.data
-          write('userDetails', resData)
-
-          const userData = {
-            email: resData?.user?.user_email,
-            fullName: resData?.user?.user_first_name,
-            lastName: resData?.user?.user_last_name,
-            role: 'admin',
-            id: resData?.roles?.role_id,
-
-            // role: resData.roles.role_name,
-            username: resData?.user?.user_first_name
-          }
-          write('role', resData?.roles?.role_name)
-          write('userData', userData)
-          setUserData({ ...resData })
-          setUser({ ...userData })
-
-          // Fetch API translations now that user is authenticated
-          loadLanguage(i18n.language || 'en-IN')
-
-          // Save device ID (plain text hash) and last logged user (encrypted) ONLY after successful login
-          await Promise.all([saveDeviceId(), setLastLoggedUser(resData?.user?.user_id, resData?.user?.user_email)])
-
-          // ******** Pharmcy
-          const options = resData?.modules?.pharmacy_data?.pharmacy
-          const storedPharmacy = await readAsync('selectedStore')
-
-          const foundStored = () => {
-            if (options?.length > 0 && storedPharmacy !== undefined && storedPharmacy !== null) {
-              return options.some(item => item?.id === storedPharmacy?.id)
-            }
-
-            return false
-          }
-
-          const findSelectedPharmacy = () => {
-            let foundPharmacy = ''
-            if (options?.length > 0 && storedPharmacy !== undefined && storedPharmacy !== null) {
-              foundPharmacy = options.find(item => item.id === storedPharmacy?.id)
-            }
-
-            const areArraysEqual =
-              JSON.stringify(foundPharmacy?.permission) === JSON.stringify(storedPharmacy?.permission)
-
-            if (areArraysEqual === false) {
-              write('selectedStore', foundPharmacy)
-              setSelectedPharmacy(foundPharmacy)
-            }
-          }
-          findSelectedPharmacy()
-          if (storedPharmacy === '' || foundStored() === false) {
-            if (options?.length > 0) {
-              write('selectedStore', options[0])
-
-              setSelectedPharmacy(options[0])
-            } else {
-              localStorage.removeItem('selectedStore')
-            }
-          } else {
-            setSelectedPharmacy(storedPharmacy)
-          }
-
-          /*********pharmacy */
-          const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
-          router.replace(redirectURL)
-        } else {
-          if (errorCallback) errorCallback(response?.data?.message)
-        }
+    try {
+      const data = await legacyLogin({
+        email: params?.email,
+        password: params?.password
       })
-      .catch(err => {
-        setLoginLoading(false)
-        if (errorCallback) errorCallback(err)
-      })
+      setLoginLoading(false)
+      debugger
+      // Only proceed when backend explicitly confirms success.
+      if (data?.success !== true) {
+        if (errorCallback) errorCallback(data?.message || 'Login failed')
+
+        return
+      }
+
+      window.localStorage.setItem(authConfig?.storageTokenKeyName, data?.token)
+      const returnUrl = router.query.returnUrl
+      write('userDetails', data)
+
+      const nextUser = {
+        email: data?.user?.user_email,
+        fullName: data?.user?.user_first_name,
+        lastName: data?.user?.user_last_name,
+        role: 'admin',
+        id: data?.roles?.role_id,
+        username: data?.user?.user_first_name
+      }
+      write('role', data?.roles?.role_name)
+      write('userData', nextUser)
+      setUserData({ ...data })
+      setUser({ ...nextUser })
+
+      await Promise.all([saveDeviceId(), setLastLoggedUser(data?.user?.user_id, data?.user?.user_email)])
+      await reconcilePharmacy(data)
+
+      loadLanguage(i18n.language || 'en-IN')
+
+      const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
+      router.replace(redirectURL)
+    } catch (err) {
+      setLoginLoading(false)
+      if (errorCallback) errorCallback(err)
+    }
+  }
+
+  const handleLogin = (params, errorCallback) => {
+    if (isWso2AuthEnabled()) {
+      return handleLoginWso2(params?.email.trim())
+    }
+
+    return handleLoginLegacy(params, errorCallback)
   }
 
   const handleLogout = async () => {
-    try {
-      // 1. Cancel all ongoing queries FIRST and clear the cache (prevents race conditions)
-      await queryClient.cancelQueries()
-      queryClient.clear()
+    // debugger
 
-      // 2. Clear ALL TanStack Query cache (queries + mutations)
-      queryClient.getQueryCache().clear()
-      queryClient.getMutationCache().clear()
-
-      // 3. Clear localStorage and sessionStorage
-      // Preserve device_id (plain text hash) and last_logged_user (encrypted)
-      // Cookie fallback survives localStorage.clear() automatically
+    const preserveDeviceInfo = () => {
       let deviceId
       try {
         deviceId = read('antz_device_id')
@@ -367,27 +436,72 @@ const AuthProvider = ({ children }) => {
         deviceId = localStorage.getItem('antz_device_id')
       }
       const lastLoggedUser = localStorage.getItem('antz_last_logged_user')
+      const logoutReason = localStorage.getItem('logout_reason')
       localStorage.clear()
       if (deviceId) write('antz_device_id', deviceId)
       if (lastLoggedUser) localStorage.setItem('antz_last_logged_user', lastLoggedUser)
+      if (logoutReason) localStorage.setItem('logout_reason', logoutReason)
+    }
+
+    // WSO2 mode: package 1.2.7+ handles the full sign-out chain inside
+    // client.logout() (revoke → _clearTokens → browser GET /oidc/logout
+    // with id_token_hint → redirect to postLogoutRedirectUri). We just
+    // do app-specific cleanup first and then hand off.
+    if (isWso2AuthEnabled()) {
+      // Clear React/cache state. None of these touch antz_auth_* tokens.
+      try {
+        await queryClient.cancelQueries()
+        queryClient.clear()
+        queryClient.getQueryCache().clear()
+        queryClient.getMutationCache().clear()
+        clearLocalState()
+        await resetLanguage()
+      } catch (e) {
+        console.warn('Local cleanup before WSO2 logout failed:', e)
+      }
+
+      // Explicit removal of ONLY app-specific localStorage keys. We must NOT
+      // call localStorage.clear() here — that would wipe antz_auth_refresh_token
+      // and antz_auth_id_token before the package's logout can read them, and
+      // the package would silently skip both the revoke POST and the GET
+      // /oidc/logout navigation. antz_device_id and antz_last_logged_user are
+      // intentionally not in this list, so they're preserved by default.
+      try {
+        ;['accessToken', 'role', 'selectedParivesh', 'selectedStore', 'userData', 'userDetails'].forEach(k =>
+          localStorage.removeItem(k)
+        )
+      } catch {}
+
       sessionStorage.clear()
 
-      // 4. Clear all state
-      setUser(null)
-      setUserData(null)
-      setSelectedPharmacy('')
-      setSelectedParivesh('')
-      setOrganizationList([])
-      updateSelectedHospital(null)
-      updateHospitalStats(null)
+      // Hand off to the package — reads antz_auth_* (still present), revokes
+      // the refresh token, clears antz_auth_* keys via _clearTokens(), then
+      // browser-navigates to GET /oidc/logout?id_token_hint=... which actually
+      // kills commonAuthId on WSO2.
+      try {
+        await wso2HookLogout()
+      } catch (e) {
+        console.warn('wso2 hook logout error (non-fatal):', e)
+        window.location.href = '/login'
+      }
 
-      // 5. Remove the specific auth token (optional, but good for consistency)
-      window.localStorage.removeItem(authConfig.storageTokenKeyName)
+      return
+    }
 
-      // 6. Reset language to default (mirrors mobile app logout behavior)
+    try {
+      await queryClient.cancelQueries()
+      queryClient.clear()
+      queryClient.getQueryCache().clear()
+      queryClient.getMutationCache().clear()
+
+      preserveDeviceInfo()
+      sessionStorage.clear()
+
+      clearLocalState()
+
       await resetLanguage()
 
-      // 7. Navigate to login
+      window.localStorage.removeItem(authConfig.storageTokenKeyName)
       router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
@@ -410,6 +524,26 @@ const AuthProvider = ({ children }) => {
     }
   }
 
+  // Re-run geofence verify (called from the lock banner's "Recheck location" button).
+  // Throws on GPS errors so the banner can show a localized message; otherwise updates
+  // the lock state silently and returns the verify response.
+  const recheckGeofence = async () => {
+    const verifyRes = await verifyGeofence()
+    if (verifyRes?.success === false) {
+      setGeofenceLockReason({
+        code: verifyRes?.error || 'geofence_failed',
+        message: verifyRes?.message || 'Geofence check failed',
+        data: verifyRes?.data || {}
+      })
+      setGeofenceLocked(true)
+    } else {
+      setGeofenceLockReason(null)
+      setGeofenceLocked(false)
+    }
+
+    return verifyRes
+  }
+
   const values = {
     user,
     userData,
@@ -420,10 +554,21 @@ const AuthProvider = ({ children }) => {
     setLoading,
     setLoginLoading,
     login: handleLogin,
-    logout: handleLogout
+    logout: handleLogout,
+    geofenceLocked,
+    geofenceLockReason,
+    recheckGeofence,
+    geofenceLoginError,
+    setGeofenceLoginError,
+    clearGeofenceLoginError: () => setGeofenceLoginError(null)
   }
 
-  return <AuthContext.Provider value={values}>{children}</AuthContext.Provider>
+  return (
+    <AuthContext.Provider value={values}>
+      {isWso2AuthEnabled() && <Wso2SessionWatcher />}
+      {children}
+    </AuthContext.Provider>
+  )
 }
 
 export { AuthContext, AuthProvider }

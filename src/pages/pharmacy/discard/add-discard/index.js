@@ -772,7 +772,7 @@ const AddDiscardProducts = () => {
                     {totalQty ? totalQty : '0'}
                   </Typography>
                 </Typography>
-                <Typography
+                {/* <Typography
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
@@ -780,7 +780,7 @@ const AddDiscardProducts = () => {
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                     {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
-                </Typography>
+                </Typography> */}
               </Stack>
             </Grid>
 

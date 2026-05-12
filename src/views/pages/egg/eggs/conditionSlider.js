@@ -403,8 +403,6 @@ const ConditionSlider = ({
           egg_attachment: imgArr,
           is_necropsy_needed: values?.necropsy_Btn
         }
-
-        // console.log('payload 3 :>> ', payload)
       } else if (Number(getValues('current_state')) === 4) {
         payload = {
           egg_id: eggId,
@@ -686,6 +684,16 @@ const ConditionSlider = ({
       }
     }
   }, [eggDetails])
+
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === 'hatched_date' && value?.hatched_date) {
+        setValue('birthDate', value.hatched_date)
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [watch])
 
   useEffect(() => {
     getAccessionTypeFunc()

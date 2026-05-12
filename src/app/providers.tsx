@@ -58,18 +58,18 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <Provider store={store}>
-          <CacheProvider value={clientSideEmotionCache}>
-            <HospitalProvider>
-              <NecropsyProvider>
-                <PariveshProvider>
-                  <AnimalProvider>
-                    <PharmacyProvider>
-                      <DynamicStatesProvider>
-                        <EggProvider>
-                          <ForgotPasswordProvider>
-                            <AuthProvider>
+      <Provider store={store}>
+        <CacheProvider value={clientSideEmotionCache}>
+          <HospitalProvider>
+            <NecropsyProvider>
+              <PariveshProvider>
+                <AnimalProvider>
+                  <PharmacyProvider>
+                    <DynamicStatesProvider>
+                      <EggProvider>
+                        <ForgotPasswordProvider>
+                          <AuthProvider>
+                            <LanguageProvider>
                               <SettingsProvider pageSettings={null}>
                                 <SettingsConsumer>
                                   {({ settings }) => {
@@ -91,18 +91,18 @@ export function Providers({ children }: ProvidersProps) {
                                   }}
                                 </SettingsConsumer>
                               </SettingsProvider>
-                            </AuthProvider>
-                          </ForgotPasswordProvider>
-                        </EggProvider>
-                      </DynamicStatesProvider>
-                    </PharmacyProvider>
-                  </AnimalProvider>
-                </PariveshProvider>
-              </NecropsyProvider>
-            </HospitalProvider>
-          </CacheProvider>
-        </Provider>
-      </LanguageProvider>
+                            </LanguageProvider>
+                          </AuthProvider>
+                        </ForgotPasswordProvider>
+                      </EggProvider>
+                    </DynamicStatesProvider>
+                  </PharmacyProvider>
+                </AnimalProvider>
+              </PariveshProvider>
+            </NecropsyProvider>
+          </HospitalProvider>
+        </CacheProvider>
+      </Provider>
     </QueryClientProvider>
   )
 }

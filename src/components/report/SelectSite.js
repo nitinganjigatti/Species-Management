@@ -192,7 +192,9 @@ const SelectSites = ({
             <Button
               size='small'
               sx={{
-                color: areAllFilteredSelected ? theme.palette.primary.main : theme.palette.customColors.onSurfaceVariant,
+                color: areAllFilteredSelected
+                  ? theme.palette.primary.main
+                  : theme.palette.customColors.onSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',

@@ -17,6 +17,7 @@ import { debounce } from 'lodash'
 import { IndexedMortalityRow } from 'src/types/housing'
 import { GridCellParams, GridSortModel, GridRowParams } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from 'src/hooks/useAuth'
 
 interface FilterDate {
   startDate?: Date
@@ -53,6 +54,9 @@ const MortalityListing: React.FC = () => {
   const theme = useTheme() as Theme
   const router = useSafeRouter()
   const { id } = router.query
+
+  const auth = useAuth()
+  const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   const [downloading, setDownloading] = useState<boolean>(false)
   const [inputValue, setInputValue] = useState<string>('')
@@ -333,7 +337,7 @@ const MortalityListing: React.FC = () => {
     <>
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
-          <ListingHeader title={t('navigation.mortality')} totalCount={total} />
+          <ListingHeader title={t('navigation.mortality')} totalCount={insightsViewAccess ? total : 0} />
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <CommonDateRangePickers
               filterDates={filterDate}

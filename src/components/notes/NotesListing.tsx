@@ -17,7 +17,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import NotesDetailsDrawer from './NotesDetailsDrawer'
 import NotesListingFilterDrawer from './NotesListingFilterDrawer'
 import { NoteItem } from 'src/types/notes'
-
+import SessionGuard from '../SessionGuard'
 interface Filters {
   'Note Type': string[]
   Priority: string[]

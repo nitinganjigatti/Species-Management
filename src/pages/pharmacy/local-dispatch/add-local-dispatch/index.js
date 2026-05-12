@@ -904,7 +904,7 @@ const AddLocalDispatch = () => {
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
-                  Total Dispatch Value:{' '}
+                  Total Dispatch Value: {console.log('totalDispatchValue', totalDispatchValue)}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                     {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>

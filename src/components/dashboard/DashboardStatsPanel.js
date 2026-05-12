@@ -65,7 +65,7 @@ const DashboardStatsPanel = ({ stats }) => {
   return (
     <>
       <Grid container spacing={3}>
-        {stats.map(({ key, value, label, bgColor, icon }) => (
+        {stats?.map(({ key, value, label, bgColor, icon }) => (
           <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 2 }} key={key}>
             <StatCard icon={icon || iconMap[key]} value={value} label={label} bgColor={bgColor || bgColors[key]} />
           </Grid>

@@ -136,7 +136,7 @@ const Media = () => {
         for (const file of acceptedFiles) {
           const payload = {
             user_id: userId,
-            user_attachment: [file]
+            user_attachment: file
           }
 
           // Call your upload API function with formData

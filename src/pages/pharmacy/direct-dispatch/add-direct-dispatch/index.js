@@ -848,7 +848,12 @@ const AddDirectDispatch = () => {
                 >
                   Total Dispatch Value:{' '}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
+                    {totalDispatchValue == null ||
+                    totalDispatchValue == '0' ||
+                    isNaN(totalDispatchValue) ||
+                    totalDispatchValue == 0
+                      ? Utility.formatAmountToReadableDigit('0')
+                      : Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography>
               </Stack>
@@ -961,7 +966,12 @@ const AddDirectDispatch = () => {
                                   {el.request_item_qty}
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
-                                  {Utility.formatAmountToReadableDigit(el.unit_price)}
+                                  {el.unit_price == null ||
+                                  el.unit_price == '0' ||
+                                  isNaN(el.unit_price) ||
+                                  el.unit_price == 0
+                                    ? Utility.formatAmountToReadableDigit('0')
+                                    : Utility.formatAmountToReadableDigit(el.unit_price)}
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
