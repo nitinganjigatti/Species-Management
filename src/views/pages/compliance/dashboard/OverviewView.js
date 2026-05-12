@@ -73,7 +73,7 @@ const OverviewView = ({
           title='Animals tracked'
           stats={String(stats?.animal_count ?? 0)}
           icon={<Icon icon='mdi:paw' />}
-          color='customColors.Tertiary'
+          color={tokens.Tertiary}
           bg={tokens.BgTeritary}
         />
       </Box>
