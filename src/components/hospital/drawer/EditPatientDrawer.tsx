@@ -90,9 +90,13 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
   // Calculate min and max date for validation
   const getMinMaxDate = () => {
     let minDate: any = null
-    const maxDate = dayjs() // Current date/time
+    let maxDate: any = dayjs() // Current date/time
 
-    if (patientData?.transfer_created_at) {
+    if (patientData?.created_from_web == 1 && patientData?.admitted_at) {
+      const localAdmittedAt = Utility.convertUTCToLocal(patientData.admitted_at)
+      const admittedDate = dayjs(localAdmittedAt, 'YYYY-MM-DD HH:mm:ss')
+      minDate = admittedDate.subtract(3, 'day')
+    } else if (patientData?.transfer_created_at) {
       const localMinDateTime = Utility.convertUTCToLocal(patientData.transfer_created_at)
       minDate = dayjs(localMinDateTime, 'YYYY-MM-DD HH:mm:ss')
     }
@@ -599,7 +603,6 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
               fullWidth
               minDate={minDateTime}
               maxDate={maxDateTime}
-              disabled={patientData?.created_from_web == 1}
             />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -613,7 +616,6 @@ const EditPatientDrawer = ({ open, onClose, patientData, refetch }: EditPatientD
               errors={errors}
               sx={{ borderRadius: 1, background: theme.palette.customColors.Surface }}
               fullWidth
-              disabled={patientData?.created_from_web == 1}
             />
           </Box>
           {/* <Box
