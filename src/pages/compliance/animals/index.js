@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/router'
+import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
 import { Avatar, Box, Typography } from '@mui/material'
 import { getComplianceAnimals } from 'src/lib/api/compliance/dashboard'
@@ -9,6 +10,8 @@ const FILTER_KEYS = ['org_id', 'site_id', 'compliance_species_id']
 
 const ComplianceAnimalsPage = () => {
   const router = useRouter()
+  const theme = useTheme()
+  const tokens = theme.palette.customColors
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 20 })
   const [searchValue, setSearchValue] = useState('')
   const [filters, setFilters] = useState({})
@@ -63,8 +66,8 @@ const ComplianceAnimalsPage = () => {
   const renderAnimalCell = params => {
     const a = params.row
     const initials = (a.compliance_common_name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-    const genderBg = a.sex === 'male' ? '#AFEFEB' : a.sex === 'female' ? '#FFD3D3' : '#DDEBE9'
-    const genderFg = a.sex === 'male' ? '#1F415B' : a.sex === 'female' ? '#4A0415' : '#E93353'
+    const genderBg = a.sex === 'male' ? tokens.SecondaryContainer : a.sex === 'female' ? tokens.AntzTertiary : tokens.displaybgSecondary
+    const genderFg = a.sex === 'male' ? tokens.OnSecondaryContainer : a.sex === 'female' ? tokens.rusticRed : tokens.Error
     const genderLabel = a.sex === 'male' ? '♂' : a.sex === 'female' ? '♀' : '?'
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
