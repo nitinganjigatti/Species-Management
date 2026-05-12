@@ -322,6 +322,7 @@ const IngredientDetail = () => {
                                 IngredientName={IngredientsDetailsval.ingredient_name}
                                 onTotalChange={setRecipeListTotal}
                                 mealType='recipe'
+                                ingredientId={id}
                               />
                             </TabPanel>
                             <TabPanel value='4'>
@@ -329,11 +330,12 @@ const IngredientDetail = () => {
                                 IngredientName={IngredientsDetailsval.ingredient_name}
                                 onTotalChange={setComboListTotal}
                                 mealType='combo'
+                                ingredientId={id}
                               />
                             </TabPanel>
                             <TabPanel value='3'>
                               {/* @ts-ignore */}
-                              <IngredientDetialDietListTabview onTotalChange={setDietListTotal} />
+                              <IngredientDetialDietListTabview onTotalChange={setDietListTotal} ingredientId={id} />
                             </TabPanel>
                           </TabContext>
                         </Grid>

@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getDietListonIngredientDtl } from 'src/lib/api/diet/getIngredients'
@@ -17,14 +19,12 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router, { useRouter } from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
-const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange }) => {
+const IngredientDetialDietListTabview = ({ IngredientName, onTotalChange, ingredientId }) => {
   const [loader, setLoader] = useState(false)
-  const router = useRouter()
-  const { id } = router.query
+  const id = ingredientId
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [sort, setSort] = useState('desc')

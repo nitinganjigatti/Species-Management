@@ -7,6 +7,7 @@ import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@mui/material/styles'
+import { DataGrid } from '@mui/x-data-grid'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {

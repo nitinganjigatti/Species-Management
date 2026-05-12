@@ -1,5 +1,39 @@
-<<<<<<< HEAD
 import { useMemo, useCallback } from 'react'
+
+const isUrlObject = url => url && typeof url === 'object' && ('pathname' in url || 'query' in url)
+
+const appendQueryParam = (params, key, value) => {
+  if (value === undefined || value === null) return
+
+  if (Array.isArray(value)) {
+    value.forEach(item => appendQueryParam(params, key, item))
+
+    return
+  }
+
+  params.append(key, String(value))
+}
+
+const getStringHref = url => {
+  if (!isUrlObject(url)) return String(url)
+
+  const pathname = url.pathname || ''
+  const query = url.query || {}
+  const params = new URLSearchParams()
+
+  Object.keys(query).forEach(key => appendQueryParam(params, key, query[key]))
+
+  const queryString = params.toString()
+
+  return queryString ? `${pathname}?${queryString}` : pathname
+}
+
+const getAppRouterOptions = options => {
+  if (!options || typeof options.scroll === 'undefined') return undefined
+
+  return { scroll: options.scroll }
+}
+
 
 /**
  * Safe router hook that works in both Page Router and App Router contexts.
@@ -53,15 +87,17 @@ export const useSafeRouter = () => {
   }
 
   const push = useCallback(
-    url => {
+    (url, as, options) => {
       if (isPageRouter && pageRouterInstance) {
-        pageRouterInstance.push(url)
+        pageRouterInstance.push(url, as, options)
       } else if (isAppRouter && appRouterInstance) {
-        appRouterInstance.push(url)
+        const href = isUrlObject(url) ? getStringHref(url) : url
+
+        appRouterInstance.push(href, getAppRouterOptions(options))
       } else {
         // Fallback to window.location
         if (typeof window !== 'undefined') {
-          window.location.href = url
+          window.location.href = isUrlObject(url) ? getStringHref(url) : url
         }
       }
     },
@@ -69,15 +105,17 @@ export const useSafeRouter = () => {
   )
 
   const replace = useCallback(
-    url => {
+    (url, as, options) => {
       if (isPageRouter && pageRouterInstance) {
-        pageRouterInstance.replace(url)
+        pageRouterInstance.replace(url, as, options)
       } else if (isAppRouter && appRouterInstance) {
-        appRouterInstance.replace(url)
+        const href = isUrlObject(url) ? getStringHref(url) : url
+
+        appRouterInstance.replace(href, getAppRouterOptions(options))
       } else {
         // Fallback to window.location
         if (typeof window !== 'undefined') {
-          window.location.replace(url)
+          window.location.replace(isUrlObject(url) ? getStringHref(url) : url)
         }
       }
     },
@@ -159,131 +197,13 @@ export const useSafeRouter = () => {
       const normalizedPath = appPathname !== '/' && appPathname.endsWith('/') ? appPathname.slice(0, -1) : appPathname
 
       return normalizedPath + (search ? '?' + search : '')
-=======
-'use client'
-
-import { useMemo, useCallback, useEffect, useState } from 'react'
-import { useRouter as useAppRouter, usePathname } from 'next/navigation'
-import { useSafeSearchParams } from 'src/context/SearchParamsContext'
-
-/**
-* Safe router hook for App Router with Pages Router API compatibility.
-* Provides both new App Router and old Pages Router interfaces.
-*/
-export const useSafeRouter = () => {
-  const appRouterInstance = useAppRouter()
-  const appPathname = usePathname()
-  const appSearchParams = useSafeSearchParams()
-  const [isReady, setIsReady] = useState(false)
-
-  useEffect(() => {
-    setIsReady(true)
-  }, [])
-
-  const push = useCallback(
-    (url) => {
-      // Support both Pages Router object format and string format
-      let target = url
-
-      if (typeof url === 'object' && url !== null) {
-        // Pages Router format: { pathname: string, query?: object }
-        let pathname = url.pathname || ''
-        if (url.query && typeof url.query === 'object') {
-          const queryStr = new URLSearchParams(url.query).toString()
-          target = pathname + (queryStr ? `?${queryStr}` : '')
-        } else if (typeof url.query === 'string') {
-          target = pathname + (url.query ? `?${url.query}` : '')
-        } else {
-          target = pathname
-        }
-      }
-
-      if (appRouterInstance) {
-        appRouterInstance.push(target)
-      } else if (typeof window !== 'undefined') {
-        window.location.href = target
-      }
-    },
-    [appRouterInstance]
-  )
-
-  const replace = useCallback(
-    (url) => {
-      let target = url
-
-      if (typeof url === 'object' && url !== null) {
-        let pathname = url.pathname || ''
-        if (url.query && typeof url.query === 'object') {
-          const queryStr = new URLSearchParams(url.query).toString()
-          target = pathname + (queryStr ? `?${queryStr}` : '')
-        } else if (typeof url.query === 'string') {
-          target = pathname + (url.query ? `?${url.query}` : '')
-        } else {
-          target = pathname
-        }
-      }
-
-      if (appRouterInstance) {
-        appRouterInstance.replace(target)
-      } else if (typeof window !== 'undefined') {
-        window.location.replace(target)
-      }
-    },
-    [appRouterInstance]
-  )
-
-  const back = useCallback(() => {
-    if (appRouterInstance) {
-      appRouterInstance.back()
-    } else if (typeof window !== 'undefined') {
-      window.history.back()
-    }
-  }, [appRouterInstance])
-
-  // Build query object from search params only
-  // Dynamic route params ([id]) should be obtained via useParams() hook directly in components
-  const query = useMemo(() => {
-    const queryObj = {}
-
-    // Add search parameters from URL
-    if (appSearchParams) {
-      appSearchParams.forEach((value, key) => {
-        queryObj[key] = value
-      })
-    }
-
-    // Fallback: parse from window.location if no search params
-    if (typeof window !== 'undefined' && Object.keys(queryObj).length === 0) {
-      const params = new URLSearchParams(window.location.search)
-      params.forEach((value, key) => {
-        queryObj[key] = value
-      })
-    }
-
-    return queryObj
-  }, [appSearchParams])
-
-  // Current pathname
-  const pathname = appPathname || (typeof window !== 'undefined' ? window.location.pathname : '')
-
-  // Full path with query string (like Pages Router asPath)
-  const asPath = useMemo(() => {
-    if (appPathname) {
-      const search = appSearchParams ? appSearchParams.toString() : ''
-      return appPathname + (search ? '?' + search : '')
->>>>>>> diet-dev-approuter
     }
     if (typeof window !== 'undefined') {
       return window.location.pathname + window.location.search
     }
-<<<<<<< HEAD
 
     return ''
   }, [isPageRouter, pageRouterInstance, isAppRouter, appPathname, appSearchParams])
-=======
-    return ''
-  }, [appPathname, appSearchParams])
->>>>>>> diet-dev-approuter
 
   return useMemo(
     () => ({
@@ -293,24 +213,12 @@ export const useSafeRouter = () => {
       query,
       pathname,
       asPath,
-<<<<<<< HEAD
       isReady: true,
       isPageRouter,
       isAppRouter
     }),
     [push, replace, back, query, pathname, asPath, isPageRouter, isAppRouter]
-=======
-      isReady,
-      isPageRouter: false,
-      isAppRouter: true
-    }),
-    [push, replace, back, query, pathname, asPath, isReady]
->>>>>>> diet-dev-approuter
   )
 }
 
 export default useSafeRouter
-<<<<<<< HEAD
- 
-=======
->>>>>>> diet-dev-approuter

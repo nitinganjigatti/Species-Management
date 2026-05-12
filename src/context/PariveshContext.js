@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react'
 import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies'
+import wso2Client from 'src/lib/auth/wso2Client'
+import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
 
 const PariveshContext = createContext()
 
@@ -18,11 +20,16 @@ return null // Fallback for non-browser environments
 
   const fetchOrgData = useCallback(async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken')
-
-      // Handle case where accessToken is not available
+      let accessToken
+      if (isWso2AuthEnabled()) {
+        if (!wso2Client.isAuthenticated()) {
+          return
+        }
+        accessToken = await wso2Client.getAccessToken()
+      } else {
+        accessToken = localStorage.getItem('accessToken')
+      }
       if (!accessToken) {
-        // console.error('Access token not found.')
         return
       }
 

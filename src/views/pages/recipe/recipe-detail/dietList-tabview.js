@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getDietListonRecipeDtl } from 'src/lib/api/diet/getIngredients'
@@ -17,16 +19,16 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 
-const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
+const DietListTabview = ({ IngredientName, onTotalChange, type, recipeId }) => {
   const [loader, setLoader] = useState(false)
   const { t } = useTranslation()
   const router = useRouter()
-  const { id } = router.query
+  const id = recipeId
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [sort, setSort] = useState('desc')
@@ -133,10 +135,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   }
 
   const handlechangecheck = (data, val) => {
-    router.push({
-      pathname: `/diet/diet/${data?.id}`,
-      query: { source: val, recipeId: id }
-    })
+    router.push(`/diet/diet/${data?.id}?source=${val}&recipeId=${id}`)
   }
 
   const columns = [

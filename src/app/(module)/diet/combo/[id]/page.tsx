@@ -345,6 +345,7 @@ const RecipeDetail = () => {
                               IngredientName={IngredientsDetailsval.ingredient_name}
                               onTotalChange={setDietListTotal}
                               type='combo'
+                              comboId={id}
                             />
                           </TabPanel>
                         </TabContext>

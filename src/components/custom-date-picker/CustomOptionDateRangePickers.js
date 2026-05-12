@@ -1,3 +1,5 @@
+'use client'
+
 import { forwardRef, useEffect, useState } from 'react'
 import {
   Box,
@@ -21,7 +23,6 @@ import { addDays, addMonths, format, subDays, subMonths } from 'date-fns'
 import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
-import { useRouter } from 'next/router'
 import CustomDateRangePicker from './CustomDateRangePicker'
 import SingleDatePicker from '../SingleDatePicker'
 
@@ -94,7 +95,6 @@ const CustomOptionDateRangePickers = ({
   customText = ''
 }) => {
   const theme = useTheme()
-  const router = useRouter()
   const today = new Date()
   const [anchorEl, setAnchorEl] = useState(null)
   const [customDialogOpen, setCustomDialogOpen] = useState(false)

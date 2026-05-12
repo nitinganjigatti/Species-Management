@@ -1,3 +1,5 @@
+'use client'
+
 // ** React Imports
 import { useEffect, useState } from 'react'
 
@@ -10,7 +12,7 @@ import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
 import { Divider, CardContent, FormHelperText, CircularProgress } from '@mui/material'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
 import { useForm } from 'react-hook-form'
 import * as yup from 'yup'

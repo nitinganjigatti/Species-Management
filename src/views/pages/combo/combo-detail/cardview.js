@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Grid,
   CardContent,
@@ -13,8 +15,7 @@ import {
 import { React, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'

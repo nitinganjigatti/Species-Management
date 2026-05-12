@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 
 // ** MUI Components
@@ -16,7 +18,7 @@ import { Divider, CardContent } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import Toaster from 'src/components/Toaster'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import Icon from 'src/@core/components/icon'
 import AddCutSize from '../../diet/cutSizes/addCutSizes'
 import { addCutSize, getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'

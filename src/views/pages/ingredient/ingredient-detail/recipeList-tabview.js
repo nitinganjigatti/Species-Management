@@ -1,3 +1,5 @@
+'use client'
+
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { getRecipeListonIngredientDtl } from 'src/lib/api/diet/getIngredients'
@@ -14,15 +16,15 @@ import Chip from '@mui/material/Chip'
 import Grid from '@mui/material/Grid'
 import Drawer from '@mui/material/Drawer'
 import Icon from 'src/@core/components/icon'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import SwapIngredient from './swapIngredient'
 
-const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' }) => {
+const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe', ingredientId }) => {
   const [loader, setLoader] = useState(false)
   const router = useRouter()
-  const { id } = router.query
+  const id = ingredientId
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
@@ -149,9 +151,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange, mealType = 'recipe' 
 
   const handleclickChange = (data, val) => {
     const path = mealType === 'combo' ? `/diet/combo/${data?.id}` : `/diet/recipe/${data?.id}`
-    router.push({
-      pathname: path
-    })
+    router.push(path)
   }
 
   const columns = [

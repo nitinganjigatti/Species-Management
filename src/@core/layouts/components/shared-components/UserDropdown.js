@@ -21,6 +21,9 @@ import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 import { AuthContext } from 'src/context/AuthContext'
 
+// ** WSO2 Auth Flag
+import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
+
 // ** i18n
 import { useTranslation } from 'react-i18next'
 
@@ -82,6 +85,11 @@ const UserDropdown = props => {
 
   const handleLogout = () => {
     logout()
+    handleDropdownClose()
+  }
+
+  const handleChangePassword = () => {
+    router.push('/change-password')
     handleDropdownClose()
   }
 
@@ -189,6 +197,15 @@ const UserDropdown = props => {
           </Box>
         </MenuItem>
         <Divider /> */}
+        {isWso2AuthEnabled() && (
+          <MenuItem
+            onClick={handleChangePassword}
+            sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
+          >
+            <Icon icon='mdi:lock-reset' />
+            {t('change_password', 'Change Password')}
+          </MenuItem>
+        )}
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
