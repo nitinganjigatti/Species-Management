@@ -35,6 +35,7 @@ interface DietAttachment {
 
 interface AnimalDietProps {
   animalDetails: AnimalOverview & { taxonomyId?: string | number; taxonomy_id?: string | number }
+  animalId?: number | string
 }
 
 const GreenSwitch = styled(Switch)(({ theme }) => ({
@@ -74,14 +75,14 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
   }
 }))
 
-const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
+const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails, animalId: propAnimalId }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
   const router = useSafeRouter()
   const { id: animalid } = router.query
 
-  const [selectedTab, setSelectedTab] = useState<'active' | 'inactive'>('active') // or 'inactive'
-  const [animalId, setAnimalId] = useState<string | string[] | undefined | null>(animalid) // or 'inactive'
+  const [selectedTab, setSelectedTab] = useState<'active' | 'inactive'>('active')
+  const [animalId, setAnimalId] = useState<string | string[] | undefined | null>(propAnimalId != null ? String(propAnimalId) : animalid)
 
   const [dietListLoader, setDietListLoader] = useState<boolean>(false)
   const [activeDietData, setActiveDietData] = useState<DietAttachment[]>([])
@@ -349,14 +350,20 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                     {diet.dietitian_name && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {diet.dietitian_by_profile ? (
-                          <Avatar
-                            src={diet.dietitian_by_profile}
-                            sx={{ width: 20, height: 20 }}
-                          />
+                          <Avatar src={diet.dietitian_by_profile} sx={{ width: 20, height: 20 }} />
                         ) : (
-                          <Icon icon='mdi:account-circle' width={20} height={20} color={theme.palette.customColors?.neutralSecondary} />
+                          <Icon
+                            icon='mdi:account-circle'
+                            width={20}
+                            height={20}
+                            color={theme.palette.customColors?.neutralSecondary}
+                          />
                         )}
-                        <Tooltip title={`${diet.dietitian_name} • ${diet.dietitian_role_name || t('animals_module.dietitian')}`}>
+                        <Tooltip
+                          title={`${diet.dietitian_name} • ${
+                            diet.dietitian_role_name || t('animals_module.dietitian')
+                          }`}
+                        >
                           <Typography
                             sx={{
                               fontSize: 14,
@@ -385,7 +392,11 @@ const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails }) => {
                       color: theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
                     }}
                   >
-                    {diet.attached_by ? t('animals_module.added_by') : diet.detached_by ? t('animals_module.detached_by') : ''}
+                    {diet.attached_by
+                      ? t('animals_module.added_by')
+                      : diet.detached_by
+                      ? t('animals_module.detached_by')
+                      : ''}
                   </Typography>
                   <UserAvatarDetails
                     profile_image={diet.dietitian_by_profile || diet.attached_by_profile}

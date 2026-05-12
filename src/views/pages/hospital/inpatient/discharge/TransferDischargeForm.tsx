@@ -148,7 +148,15 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
     (med: any) => {
       dispatch(updateState({ key: 'transfer_medicines', value: transferMedicines }))
 
-      router.push(`/hospital/inpatient/${id}/schedule-prescription?animal_id=${patientData?.animal_detail?.animal_id}&medical_record_id=${patientData?.medical_record_id}&discharge_tab=TransferHospital&edit_id=${med.id}`)
+      const params = new URLSearchParams({
+        tab: 'discharge',
+        animal_id: String(patientData?.animal_detail?.animal_id || ''),
+        medical_record_id: String(patientData?.medical_record_id || ''),
+        discharge_tab: 'TransferHospital',
+        edit_id: String(med.id || '')
+      })
+
+      router.push(`/hospital/inpatient/${id}/schedule-prescription?${params.toString()}`)
     },
     [router, id, patientData, dispatch, transferMedicines]
   )
@@ -360,15 +368,14 @@ const TransferDischargeForm = (props: TransferDischargeFormProps) => {
                 <Button
                   variant='contained'
                   onClick={() => {
-                    router.push({
-                      pathname: `/hospital/inpatient/${id}/schedule-prescription`,
-                      query: {
-                        ...router.query,
-                        animal_id: patientData?.animal_detail?.animal_id,
-                        medical_record_id: patientData.medical_record_id,
-                        discharge_tab: 'TransferHospital'
-                      }
+                    const params = new URLSearchParams({
+                      tab: 'discharge',
+                      animal_id: String(patientData?.animal_detail?.animal_id || ''),
+                      medical_record_id: String(patientData.medical_record_id || ''),
+                      discharge_tab: 'TransferHospital'
                     })
+
+                    router.push(`/hospital/inpatient/${id}/schedule-prescription?${params.toString()}`)
                   }}
                 >
                   {t('hospital_module.add_new_prescription')}

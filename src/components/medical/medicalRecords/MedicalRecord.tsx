@@ -706,7 +706,7 @@ const MedicalRecords = () => {
             showFilterAndSort
             handleFilterClick={() => setOpenFilterDrawer(true)}
             handleSortClick={() => setIsSortBottomSheetOpen(true)}
-            filters={selectedOptions}
+            filters={selectedOptions as any}
             sortType={currentSort}
             filterCount={filterCount}
             multiSelect={true}

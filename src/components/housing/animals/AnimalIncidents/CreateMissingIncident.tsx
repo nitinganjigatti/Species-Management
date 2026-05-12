@@ -54,7 +54,7 @@ interface IncidentDetail {
 interface CreateMissingIncidentProps {
   animalIncidentForm: boolean
   setAnimalIncidentForm: (open: boolean) => void
-  animalId: string | string[] | undefined
+  animalId: string | number | string[] | undefined
   isEdit: boolean
   editData: IncidentDetail | null
   fetchAnimalIncidents: () => void

@@ -392,9 +392,9 @@ const AnimalsListing = () => {
         const params = {}
         const response = await getAnimalFilterList({ params })
         if (response?.success) {
-          setHorizontalNavList(response?.data)
-          if (response?.data?.length > 0) {
-            setActiveTab(response.data[0].type)
+          setHorizontalNavList(response?.data as any)
+          if ((response?.data as any)?.length > 0) {
+            setActiveTab((response.data as any)[0].type)
           }
         }
       } catch (error) {

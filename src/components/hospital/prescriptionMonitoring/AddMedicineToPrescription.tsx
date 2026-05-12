@@ -1944,7 +1944,7 @@ export default function AddMedicineToPrescription({ from, params }: AddMedicineT
           : [newMedicine, ...existing]
 
         dispatch(updateState({ key: tempKey, value: updatedList }))
-        router.replace(`/hospital/inpatient/${id}/?tab=discharge&discharge_tab=${discharge_tab}`)
+        router.replace(`/hospital/inpatient/${id}/?tab=discharge&discharge_tab=${discharge_tab}#medications-section`)
 
         return
       } else if (fromPage === 'editPrescription') {

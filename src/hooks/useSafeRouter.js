@@ -34,6 +34,14 @@ const getAppRouterOptions = options => {
   return { scroll: options.scroll }
 }
 
+const shouldNormalizeHospitalUrlObject = (url, currentPathname) => {
+  if (!isUrlObject(url)) return false
+
+  const targetPathname = url.pathname ? String(url.pathname) : ''
+  const currentPath = currentPathname ? String(currentPathname) : ''
+
+  return targetPathname.startsWith('/hospital') || currentPath.startsWith('/hospital')
+}
 
 /**
  * Safe router hook that works in both Page Router and App Router contexts.
@@ -101,7 +109,7 @@ export const useSafeRouter = () => {
         }
       }
     },
-    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance]
+    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance, appPathname]
   )
 
   const replace = useCallback(
@@ -119,7 +127,7 @@ export const useSafeRouter = () => {
         }
       }
     },
-    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance]
+    [isPageRouter, pageRouterInstance, isAppRouter, appRouterInstance, appPathname]
   )
 
   const back = useCallback(() => {

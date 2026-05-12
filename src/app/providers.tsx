@@ -18,7 +18,7 @@ import 'prismjs/components/prism-tsx'
 import 'src/iconify-bundle/icons-bundle-react'
 
 // ** Navigation Progress for App Router
-import NavigationProgress from './components/NavigationProgress'
+// import NavigationProgress from './components/NavigationProgress'
 
 // ** Component Imports
 import ThemeComponent from 'src/@core/theme/ThemeComponent'
@@ -75,7 +75,9 @@ export function Providers({ children }: ProvidersProps) {
                                   {({ settings }) => {
                                     return (
                                       <ThemeComponent settings={settings}>
-                                        {/* <NavigationProgress /> */}
+                                        {/* <Suspense fallback={null}>
+                                          <NavigationProgress />
+                                        </Suspense> */}
                                         {children}
                                         <ReactHotToast>
                                           <Toaster

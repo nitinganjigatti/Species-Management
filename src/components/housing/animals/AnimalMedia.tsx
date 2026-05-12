@@ -20,9 +20,14 @@ interface MediaPageResult {
   total: number
 }
 
-const AnimalMedia: React.FC = () => {
+interface AnimalMediaProps {
+  animalId?: number | string
+}
+
+const AnimalMedia: React.FC<AnimalMediaProps> = ({ animalId: propAnimalId }) => {
   const router = useSafeRouter()
   const { id } = router.query
+  const resolvedId = propAnimalId != null ? String(propAnimalId) : Array.isArray(id) ? id[0] : id
   const { t } = useTranslation()
 
   const [activeTab, setActiveTab] = useState<string>('image')
@@ -48,9 +53,9 @@ const AnimalMedia: React.FC = () => {
     InfiniteData<MediaPageResult>,
     [string, string | string[] | undefined, string, string]
   >({
-    queryKey: ['animal-media', id, activeTab, search],
+    queryKey: ['animal-media', resolvedId, activeTab, search],
     queryFn: async ({ pageParam = 1 }) => {
-      const animalId = Array.isArray(id) ? id[0] : id
+      const animalId = resolvedId
 
       const res = await getAnimalMedia({
         animal_id: Number(animalId),
@@ -66,22 +71,20 @@ const AnimalMedia: React.FC = () => {
       const mediaItems: Media[] = Array.isArray(rawData)
         ? (rawData as Media[])
         : Array.isArray((rawData as { result?: Media[] })?.result)
-          ? (rawData as { result: Media[] }).result
-          : []
+        ? (rawData as { result: Media[] }).result
+        : []
       const totalCount =
-        (res as { total_count?: number })?.total_count ??
-        (rawData as { total_count?: number })?.total_count ??
-        0
+        (res as { total_count?: number })?.total_count ?? (rawData as { total_count?: number })?.total_count ?? 0
 
       return {
         result: mediaItems,
         nextPage: mediaItems.length === PAGE_SIZE ? (pageParam as number) + 1 : undefined,
-        total: totalCount
+        total: (res as any)?.total_count || totalCount
       }
     },
     getNextPageParam: (lastPage: MediaPageResult) => lastPage.nextPage,
     initialPageParam: 1,
-    enabled: !!id
+    enabled: !!resolvedId
   })
 
   const media = useMemo(() => data?.pages.flatMap((page: MediaPageResult) => page.result) || [], [data])
@@ -200,7 +203,7 @@ const AnimalMedia: React.FC = () => {
         <Box sx={{ mt: 6 }}>
           <Grid container spacing={6}>
             {media.map((file: Media) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.media_id}>
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={(file as any).id || (file as any).media_id}>
                 <MediaCard media={file} isBorderedCard={true} />
               </Grid>
             ))}
@@ -236,7 +239,7 @@ const AnimalMedia: React.FC = () => {
         open={addMediaDrawerOpen}
         onClose={() => setAddMediaDrawerOpen(false)}
         refType='animal'
-        refId={id as string}
+        refId={resolvedId as string}
         onSuccess={() => refetch()}
       />
     </>

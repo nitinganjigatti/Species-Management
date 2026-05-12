@@ -1,0 +1,213 @@
+import React, { useEffect, useState } from 'react'
+import { Card, CardContent, Typography, Grid, Box, Button } from '@mui/material'
+import { ChevronRight } from '@mui/icons-material'
+import AddAnimalsDrawer from '../drawer/AddAnimalsDrawer'
+import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
+import { getExportAnimalList } from 'src/lib/api/compliance/shipment'
+
+interface SelectedExportData {
+  export: unknown[]
+  others: unknown[]
+}
+
+interface DraftData {
+  export: unknown[]
+  others: unknown[]
+}
+
+interface ExportCardProps {
+  exportId: string | number
+  exportNumber?: string
+  exporter?: string
+  species?: number
+  animals?: number
+  exporterCountry?: string
+  onExportCardSelect: (data: SelectedExportData) => void
+  shipment_count?: number
+  shipments?: unknown[]
+  selectedExportData: SelectedExportData
+  setSelectedExportData: React.Dispatch<React.SetStateAction<SelectedExportData>>
+  setexportPermitDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>
+  draftData: DraftData
+  setDraftData: React.Dispatch<React.SetStateAction<DraftData>>
+  setSearchValue: React.Dispatch<React.SetStateAction<string>>
+  shipmentId?: string | number
+  sx?: Record<string, unknown>
+}
+
+const ExportCard = ({
+  exportId,
+  exportNumber,
+  exporter,
+  species,
+  animals,
+  exporterCountry,
+  onExportCardSelect,
+  shipment_count,
+  shipments,
+  selectedExportData,
+  setSelectedExportData,
+  setexportPermitDrawerOpen,
+  draftData,
+  setDraftData,
+  setSearchValue,
+  shipmentId
+}: ExportCardProps) => {
+  const { t } = useTranslation()
+  const theme = useTheme()
+  const [addAnimalsDrawerOpen, setAddAnimalsDrawerOpen] = useState<boolean>(false)
+  const [exportID, setexportID] = useState<string | number>('')
+  const [exportAnimalData, setexportAnimalData] = useState<unknown[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const handleClickAnimals = (val: string | number) => {
+    setAddAnimalsDrawerOpen(true)
+    setexportID(val)
+    setDraftData(JSON.parse(JSON.stringify(selectedExportData)))
+  }
+
+  const fetchExportAnimalData = async () => {
+    try {
+      setLoading(true)
+      if (exportID) {
+        const response = await getExportAnimalList(exportID, shipmentId as string | number)
+        console.log(response, 'response')
+        setLoading(false)
+        setexportAnimalData(response.data as unknown as unknown[])
+      } else {
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error('Error fetching species data:', error)
+    }
+  }
+
+  useEffect(() => {
+    if (addAnimalsDrawerOpen) {
+      fetchExportAnimalData()
+    }
+  }, [addAnimalsDrawerOpen])
+
+  return (
+    <>
+      <Card
+        sx={{
+          display: 'flex',
+          alignItems: 'stretch',
+          justifyContent: 'space-between',
+          mb: 4,
+          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+          borderRadius: '8px',
+          backgroundColor: theme.palette.common.white,
+          boxShadow: 'none',
+          minHeight: '120px',
+          cursor: 'pointer'
+        }}
+        onClick={() => handleClickAnimals(exportId)}
+        onKeyDown={event => {
+          if (event.target !== event.currentTarget) return
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault()
+            handleClickAnimals(exportId)
+          }
+        }}
+        tabIndex={0}
+        role='button'
+      >
+        <CardContent sx={{ flex: 1, px: 4, py: 4 }}>
+          <Typography
+            variant='subtitle2'
+            color={theme.palette.customColors.secondaryBg}
+            fontWeight='400'
+            sx={{ mb: 1 }}
+          >
+            {t('compliance_module.export_id_label')}{' '}
+            <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
+              {exportNumber}
+            </span>
+          </Typography>
+          <Typography variant='body2' color={theme.palette.customColors.secondaryBg} fontWeight='400' sx={{ mb: 3 }}>
+            {t('compliance_module.exporter')} :{' '}
+            <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
+              {exporter},{exporterCountry}
+            </span>
+          </Typography>
+          <Grid container spacing={2} sx={{ mt: 1 }}>
+            <Grid>
+              <Button
+                size='small'
+                sx={{
+                  backgroundColor: theme.palette.customColors.lightBg,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  textTransform: 'none',
+                  borderRadius: '26px',
+                  minWidth: '80px',
+                  boxShadow: 'none',
+                  px: 4,
+                  fontWeight: 400,
+                  fontSize: '14px'
+                }}
+              >
+                {t('species')} <Typography sx={{ fontWeight: 600, fontSize: '14px', pl: 1 }}>{species}</Typography>
+              </Button>
+            </Grid>
+            <Grid>
+              <Button
+                size='small'
+                sx={{
+                  backgroundColor: theme.palette.customColors.lightBg,
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  textTransform: 'none',
+                  borderRadius: '26px',
+                  minWidth: '80px',
+                  boxShadow: 'none',
+                  px: 4,
+                  fontWeight: 400,
+                  fontSize: '14px'
+                }}
+              >
+                {t('animals')} <Typography sx={{ fontWeight: 600, fontSize: '14px', pl: 1 }}> {animals}</Typography>
+              </Button>
+            </Grid>
+          </Grid>
+        </CardContent>
+
+        <Box
+          sx={{
+            background: theme.palette.customColors.Surface,
+
+            //height: '117px',
+            width: '45px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}
+        >
+          <ChevronRight sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px' }} />
+        </Box>
+      </Card>
+      <AddAnimalsDrawer
+        open={addAnimalsDrawerOpen}
+        onClose={() => setAddAnimalsDrawerOpen(false)}
+        title={t('compliance_module.add_animals')}
+        exportAnimalData={exportAnimalData as unknown as Parameters<typeof AddAnimalsDrawer>[0]['exportAnimalData']}
+        exportID={exportID}
+        onExportCardSelect={onExportCardSelect}
+        selectedExportData={selectedExportData}
+        setSelectedExportData={setSelectedExportData}
+        exportNumber={exportNumber || ''}
+        loading={loading}
+        shipment_count={shipment_count}
+        shipments={shipments}
+        setDraftData={setDraftData as any}
+        draftData={draftData as any}
+        setexportPermitDrawerOpen={setexportPermitDrawerOpen}
+        setSearchValue={setSearchValue}
+      />
+    </>
+  )
+}
+
+export default ExportCard

@@ -67,7 +67,7 @@ export interface AddEnclosurePayload {
   section_id?: number | string | null
   site_id?: number
   parent_enclosure_id?: number | null
-  enclosure_parent_id?: string | number
+  enclosure_parent_id?: string | number | null
   enclosure_type_id?: number
   enclosure_type?: string | number
   description?: string
