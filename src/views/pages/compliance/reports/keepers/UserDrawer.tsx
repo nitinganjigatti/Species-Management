@@ -25,6 +25,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 import type { UserListing } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface UserDrawerProps {
   open: boolean
@@ -46,9 +47,10 @@ const UserDrawer = ({
   title,
   roleFilter = 'all_users',
   queryKey = 'user-keeper-Report',
-  headerText = 'Select the Keeper',
-  footerText = 'generate keeper’s Diary REPORT'
+  headerText,
+  footerText
 }: UserDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const PAGE_SIZE = 10
   const [loading, setLoading] = useState<boolean>(false)
@@ -81,7 +83,7 @@ const UserDrawer = ({
         role_key: roleFilter
       }
 
-      const res = await getUserListing(params) as any
+      const res = (await getUserListing(params)) as any
 
       return {
         users: res?.data?.result || [],
@@ -178,7 +180,7 @@ const UserDrawer = ({
                 size='large'
                 loading={loading}
               >
-                {footerText}
+                {footerText || t('compliance_module.generate_keeper_diary_report')}
               </LoadingButton>
             </Box>
           </>
@@ -212,7 +214,7 @@ const UserDrawer = ({
               ml: 2
             }}
           >
-            {headerText}
+            {headerText || t('compliance_module.select_the_keeper')}
           </Typography>
           <IconButton onClick={onClose}>
             <Icon icon='mdi:close' />
@@ -294,7 +296,7 @@ const UserDrawer = ({
 
             {!hasNextPage && list.length === 0 && (
               <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-                No user found
+                {t('compliance_module.no_user_found')}
               </Typography>
             )}
           </Box>

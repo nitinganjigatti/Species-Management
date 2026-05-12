@@ -3,6 +3,7 @@ import { Card, CardContent, Typography, Grid, Box, Button } from '@mui/material'
 import { ChevronRight } from '@mui/icons-material'
 import AddAnimalsDrawer from '../drawer/AddAnimalsDrawer'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { getExportAnimalList } from 'src/lib/api/compliance/shipment'
 
 interface SelectedExportData {
@@ -53,6 +54,7 @@ const ExportCard = ({
   setSearchValue,
   shipmentId
 }: ExportCardProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [addAnimalsDrawerOpen, setAddAnimalsDrawerOpen] = useState<boolean>(false)
   const [exportID, setexportID] = useState<string | number>('')
@@ -120,13 +122,13 @@ const ExportCard = ({
             fontWeight='400'
             sx={{ mb: 1 }}
           >
-            Export ID :{' '}
+            {t('compliance_module.export_id_label')}{' '}
             <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
               {exportNumber}
             </span>
           </Typography>
           <Typography variant='body2' color={theme.palette.customColors.secondaryBg} fontWeight='400' sx={{ mb: 3 }}>
-            Exporter :{' '}
+            {t('compliance_module.exporter')} :{' '}
             <span style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
               {exporter},{exporterCountry}
             </span>
@@ -147,7 +149,7 @@ const ExportCard = ({
                   fontSize: '14px'
                 }}
               >
-                Species <Typography sx={{ fontWeight: 600, fontSize: '14px', pl: 1 }}>{species}</Typography>
+                {t('species')} <Typography sx={{ fontWeight: 600, fontSize: '14px', pl: 1 }}>{species}</Typography>
               </Button>
             </Grid>
             <Grid>
@@ -165,7 +167,7 @@ const ExportCard = ({
                   fontSize: '14px'
                 }}
               >
-                Animals <Typography sx={{ fontWeight: 600, fontSize: '14px', pl: 1 }}> {animals}</Typography>
+                {t('animals')} <Typography sx={{ fontWeight: 600, fontSize: '14px', pl: 1 }}> {animals}</Typography>
               </Button>
             </Grid>
           </Grid>
@@ -189,7 +191,7 @@ const ExportCard = ({
       <AddAnimalsDrawer
         open={addAnimalsDrawerOpen}
         onClose={() => setAddAnimalsDrawerOpen(false)}
-        title='Add Animals'
+        title={t('compliance_module.add_animals')}
         exportAnimalData={exportAnimalData as unknown as Parameters<typeof AddAnimalsDrawer>[0]['exportAnimalData']}
         exportID={exportID}
         onExportCardSelect={onExportCardSelect}

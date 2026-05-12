@@ -1,16 +1,18 @@
-import React, { useEffect, useImperativeHandle, useState } from 'react'
+import React, { useEffect, useImperativeHandle, useMemo, useState } from 'react'
 import * as yup from 'yup'
 import BasicDetails from '../shipment-view/BasicDetails'
 import BasicDetailsAddEdit from '../shipment-view/BasicDetailsAddEdit'
 import Toaster from 'src/components/Toaster'
 import dayjs from 'dayjs'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   addShipmentBasicDetails,
   getShipmentBasicDetails,
   updateShipmentBasicDetails
 } from 'src/lib/api/compliance/shipment'
 import { MastersData } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 
 interface LinkedDocumentsData {
   exports_count?: number
@@ -33,39 +35,43 @@ interface ShipmentBasicDetailsProps {
   exportCount: number
 }
 
-const validationSchema = yup.object({
-  airwaybillvalue: yup.string().required('Airway bill number is required'),
+const getValidationSchema = (t: TFunction) =>
+  yup.object({
+    airwaybillvalue: yup.string().required(t('compliance_module.airway_bill_number_is_required')),
 
-  // .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
-  //   const strippedValue = value.replace(/\s/g, '')
-  //   return /^\d{11}$/.test(strippedValue)
-  // }),
-  fileNumberValue: yup.string().required('File Number is required'),
-  startDate: yup.date().nullable().required('Shipment date is required'),
-  uploadedFile: yup
-    .mixed()
-    .required('File is required')
-    .test('fileType', 'Unsupported file format', value => {
-      if (!value) return true
+    // .test('valid-awb', 'Enter a valid 11-digit airway bill number', value => {
+    //   const strippedValue = value.replace(/\s/g, '')
+    //   return /^\d{11}$/.test(strippedValue)
+    // }),
+    fileNumberValue: yup.string().required(t('compliance_module.file_number_is_required')),
+    startDate: yup.date().nullable().required(t('compliance_module.shipment_date_is_required')),
+    uploadedFile: yup
+      .mixed()
+      .required(t('compliance_module.file_is_required'))
+      .test('fileType', t('compliance_module.unsupported_file_format'), value => {
+        if (!value) return true
 
-      if ((value as File).type) {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/x-png', 'application/pdf']
+        if ((value as File).type) {
+          const allowedTypes = ['image/jpeg', 'image/png', 'image/x-png', 'application/pdf']
 
-return allowedTypes.includes((value as File).type)
-      }
+          return allowedTypes.includes((value as File).type)
+        }
 
-      if ((value as Record<string, unknown>).file_original_name) {
-        const ext = ((value as Record<string, unknown>).file_original_name as string).split('.').pop()!.toLowerCase()
-        const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf']
+        if ((value as Record<string, unknown>).file_original_name) {
+          const ext = ((value as Record<string, unknown>).file_original_name as string).split('.').pop()!.toLowerCase()
+          const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf']
 
-return allowedExtensions.includes(ext)
-      }
+          return allowedExtensions.includes(ext)
+        }
 
-      return false
-    })
-})
+        return false
+      })
+  })
 
-const ShipmentBasicDetails = React.forwardRef<{ handleSave: (status: string) => Promise<boolean | undefined> }, ShipmentBasicDetailsProps>(
+const ShipmentBasicDetails = React.forwardRef<
+  { handleSave: (status: string) => Promise<boolean | undefined> },
+  ShipmentBasicDetailsProps
+>(
   (
     {
       onEditClick,
@@ -84,14 +90,18 @@ const ShipmentBasicDetails = React.forwardRef<{ handleSave: (status: string) => 
     },
     ref
   ) => {
+    const { t } = useTranslation()
+    const validationSchema = useMemo(() => getValidationSchema(t), [t])
     const [startDate, setStartDate] = useState<string | null>(null)
     const [uploadedFile, setUploadedFile] = useState<File | Record<string, unknown> | null>(null)
     const [transportType, setTransportType] = useState<string>('airCargo')
     const [fileNumberValue, setFileNumberValue] = useState<string>('')
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [loader, setLoader] = useState<boolean>(false)
-    const router = useSafeRouter()
-    const { id, action } = router.query
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    const id = searchParams?.get('id')
+    const action = searchParams?.get('action')
 
     useImperativeHandle(ref, () => ({
       handleSave: (newStatus: string) => handleSave(newStatus)
@@ -105,7 +115,7 @@ const ShipmentBasicDetails = React.forwardRef<{ handleSave: (status: string) => 
         )
         setErrors({})
 
-return true
+        return true
       } catch (validationErrors) {
         const yupError = validationErrors as yup.ValidationError
         const formattedErrors: Record<string, string> = {}
@@ -114,7 +124,7 @@ return true
         })
         setErrors(formattedErrors)
 
-return false
+        return false
       }
     }
 
@@ -142,22 +152,25 @@ return false
     const fetchbasicDetails = async () => {
       try {
         setLoader(true)
-        const response = await getShipmentBasicDetails(id as string | number, mastersData?.document_type_id as string | number)
+        const response = await getShipmentBasicDetails(
+          id as string | number,
+          mastersData?.document_type_id as string | number
+        )
         if (response?.success) {
           setLoader(false)
-          setAirwaybillvalue(response?.data?.shipment_number as string ?? '')
-          setStartDate(response?.data?.shipment_date ? response?.data?.shipment_date as string : null)
-          setTransportType(response?.data?.transport_type as string ?? '')
-          setFileNumberValue(response?.data?.file_number as string ?? '')
-          setUploadedFile((response?.data?.documents as unknown[])?.[0] as Record<string, unknown> ?? null)
-          setStatus(response?.data?.shipment_state as string ?? '')
+          setAirwaybillvalue((response?.data?.shipment_number as string) ?? '')
+          setStartDate(response?.data?.shipment_date ? (response?.data?.shipment_date as string) : null)
+          setTransportType((response?.data?.transport_type as string) ?? '')
+          setFileNumberValue((response?.data?.file_number as string) ?? '')
+          setUploadedFile(((response?.data?.documents as unknown[])?.[0] as Record<string, unknown>) ?? null)
+          setStatus((response?.data?.shipment_state as string) ?? '')
         } else {
           setLoader(false)
           Toaster({ type: 'error', message: response?.message })
         }
       } catch (e) {
         setLoader(false)
-        Toaster({ type: 'error', message: 'Error fetching shipment basic details' })
+        Toaster({ type: 'error', message: t('compliance_module.error_fetching_shipment_basic_details') })
       }
     }
 
@@ -167,7 +180,10 @@ return false
       if (typeof statusToSave === 'string') {
         saveStatus = statusToSave
       } else if (statusToSave && typeof statusToSave === 'object') {
-        if ((statusToSave as React.SyntheticEvent).target && typeof ((statusToSave as React.ChangeEvent<HTMLInputElement>).target as HTMLInputElement).value === 'string') {
+        if (
+          (statusToSave as React.SyntheticEvent).target &&
+          typeof ((statusToSave as React.ChangeEvent<HTMLInputElement>).target as HTMLInputElement).value === 'string'
+        ) {
           saveStatus = status
         } else {
           saveStatus = status
@@ -214,20 +230,20 @@ return false
               setExpanded(['animals-details'])
             }
 
-return true
+            return true
 
             //saveStatus === 'completed' ? router.push(`/compliance/documents/shipments`) : ''
           } else {
             setLoader(false)
             Toaster({ type: 'error', message: response?.message })
 
-return false
+            return false
           }
         } catch (e) {
           setLoader(false)
           Toaster({ type: 'error', message: JSON.stringify(e) })
 
-return false
+          return false
         }
       }
     }

@@ -18,6 +18,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
 import { GridColDef, GridSortModel } from '@mui/x-data-grid'
 import { TradeContextType } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface EditParams {
   id: string | null
@@ -28,6 +29,7 @@ interface EditParams {
 }
 
 const DocumentTypes = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
@@ -49,7 +51,8 @@ const DocumentTypes = () => {
   const [contextLoading, setContextLoading] = useState<boolean>(false)
 
   const complianceModuleAccessContext = useContext(AuthContext)
-  const complianceModuleAccess = (complianceModuleAccessContext?.userData as any)?.roles?.settings?.compliance_module || ''
+  const complianceModuleAccess =
+    (complianceModuleAccessContext?.userData as any)?.roles?.settings?.compliance_module || ''
 
   const hasAddAccess =
     complianceModuleAccess === 'ADD' || complianceModuleAccess === 'EDIT' || complianceModuleAccess === 'DELETE'
@@ -102,7 +105,7 @@ const DocumentTypes = () => {
       flex: 0.07,
       width: 40,
       field: 'uid',
-      headerName: 'SL No',
+      headerName: t('compliance_module.sl_no'),
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
@@ -114,7 +117,7 @@ const DocumentTypes = () => {
       flex: 0.4,
       minWidth: 20,
       field: 'name',
-      headerName: 'Name',
+      headerName: t('name'),
       sortable: false,
       renderCell: params => (
         <Typography
@@ -135,11 +138,11 @@ const DocumentTypes = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'active',
-      headerName: 'Status',
+      headerName: t('status'),
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
+          {params.row.active === '1' ? t('active') : t('inactive')}
         </Typography>
       )
     }
@@ -150,7 +153,7 @@ const DocumentTypes = () => {
     flex: 0.2,
     minWidth: 20,
     field: 'action',
-    headerName: 'Action',
+    headerName: t('action'),
     sortable: false,
     renderCell: params => (
       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right', px: 2 }}>
@@ -166,7 +169,14 @@ const DocumentTypes = () => {
   const columns = baseColumns
 
   // Conditionally show Add button based on access permissions
-  const headerAction = <AddButton title='Add Document Type' action={addEventSidebarOpen} disabled={false} styles={{}} />
+  const headerAction = (
+    <AddButton
+      title={t('compliance_module.add_document_type')}
+      action={addEventSidebarOpen}
+      disabled={false}
+      styles={{}}
+    />
+  )
 
   const fetchTableData = useCallback(
     async (sort: string, q: string, column: string) => {
@@ -181,10 +191,12 @@ const DocumentTypes = () => {
         const res = await getDocumentTypeList(params)
         const startingIndex = paginationModel.page * paginationModel.pageSize
 
-        const listWithId = ((res.data?.records || []) as Record<string, unknown>[]).map((el: Record<string, unknown>, i: number) => ({
-          ...el,
-          uid: startingIndex + i + 1
-        }))
+        const listWithId = ((res.data?.records || []) as Record<string, unknown>[]).map(
+          (el: Record<string, unknown>, i: number) => ({
+            ...el,
+            uid: startingIndex + i + 1
+          })
+        )
         setTotal(parseInt(String(res?.data?.total || 0)))
         setRows(listWithId)
         setLoading(false)
@@ -259,12 +271,16 @@ const DocumentTypes = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Masters</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('documents')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>{t('compliance_module.masters')}</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Document Types</Typography>}
+          title={
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>
+              {t('compliance_module.document_types')}
+            </Typography>
+          }
           action={headerAction}
           sx={{ px: 5, display: 'flex', flexWrap: 'wrap', gap: 2 }}
         />

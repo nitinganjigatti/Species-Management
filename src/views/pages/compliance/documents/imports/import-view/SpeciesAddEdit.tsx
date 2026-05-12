@@ -17,8 +17,8 @@ import {
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ExportPermitDrawer from '../drawer/ExportPermitDrawer'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFileUploader'
@@ -108,9 +108,8 @@ const SpeciesAddEdit = ({
   startDate,
   setStartDate
 }: SpeciesAddEditProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
-  const router = useSafeRouter()
-
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
   const handleAirwaybillChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,13 +165,13 @@ const SpeciesAddEdit = ({
           pb: '15px'
         }}
       >
-        1. Import Permit Details
+        {`1. ${t('compliance_module.import_permit_details')}`}
       </Typography>
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 6 }}>
           <TextField
             fullWidth
-            label='Enter Certificate ID*'
+            label={`${t('compliance_module.enter_certificate_id')}*`}
             variant='outlined'
             value={airwaybillvalue}
             onChange={handleAirwaybillChange}
@@ -188,7 +187,7 @@ const SpeciesAddEdit = ({
         <Grid size={{ xs: 12, md: 6 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
-              label='Date of Issue*'
+              label={`${t('compliance_module.date_of_issue')}*`}
               value={startDate ? dayjs(startDate as string) : null}
               onChange={handleDateChange as any}
               maxDate={dayjs(new Date())}
@@ -213,7 +212,11 @@ const SpeciesAddEdit = ({
 
       <Grid container spacing={2} sx={{ mt: 2 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <FileUpload name='(AWB) Airway Bill' onFileUpload={handleFileUpload} file={uploadedFile} />
+          <FileUpload
+            name={t('compliance_module.awb_airway_bill')}
+            onFileUpload={handleFileUpload}
+            file={uploadedFile}
+          />
           {errors.uploadedFile && (
             <Typography
               sx={{ color: theme.palette.customColors.errorText, fontSize: '12px', fontWeight: '400', mt: 1 }}
@@ -234,7 +237,7 @@ const SpeciesAddEdit = ({
             pb: '15px'
           }}
         >
-          2. Export Permit
+          {`2. ${t('compliance_module.export_permit')}`}
         </Typography>
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
           <Typography
@@ -244,7 +247,7 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Species count: <strong>{totalSpeciesCount > 0 ? totalSpeciesCount : '0'}</strong>
+            {t('compliance_module.species_count')}: <strong>{totalSpeciesCount > 0 ? totalSpeciesCount : '0'}</strong>
           </Typography>
           <Typography
             sx={{
@@ -253,7 +256,7 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Animal count: <strong>{totalAnimals}</strong>
+            {t('compliance_module.animal_count')}: <strong>{totalAnimals}</strong>
           </Typography>
         </Box>
 
@@ -294,7 +297,7 @@ const SpeciesAddEdit = ({
                               fontSize: '20px'
                             }}
                           >
-                            Export ID : {all.export_number}
+                            {t('compliance_module.export_id_label')} {all.export_number}
                           </Typography>
                         </Box>
 
@@ -324,7 +327,7 @@ const SpeciesAddEdit = ({
                         {/* Exporter Section */}
                         <Box sx={{ width: '45%' }}>
                           <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: '400' }}>
-                            Exporter
+                            {t('compliance_module.exporter')}
                           </Typography>
                           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: '500' }}>
                             {all?.exporter_name || 'N/A'}, {all.exporting_country || 'N/A'}
@@ -337,7 +340,7 @@ const SpeciesAddEdit = ({
                         {/* Importer Section */}
                         <Box sx={{ width: '45%' }}>
                           <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: '400' }}>
-                            Importer
+                            {t('compliance_module.importer')}
                           </Typography>
                           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
                             {all?.importer_name || 'N/A'}
@@ -373,7 +376,7 @@ const SpeciesAddEdit = ({
                               fontWeight: 500
                             }}
                           >
-                            {all?.species?.length} Species • {totalAnimals} Animals
+                            {all?.species?.length} {t('species')} • {totalAnimals} {t('animals')}
                           </Typography>
                         </Box>
 
@@ -393,7 +396,6 @@ const SpeciesAddEdit = ({
                               key={idx}
                               display='flex'
                               justifyContent='space-between'
-
                               // py={2}
                               sx={{
                                 borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -434,7 +436,7 @@ const SpeciesAddEdit = ({
                                     mr: 2
                                   }}
                                 >
-                                  Count :{' '}
+                                  {t('count')} :{' '}
                                   {Number(speciesdata.male_count) +
                                     Number(speciesdata.female_count) +
                                     Number(speciesdata.undeterminate_count)}
@@ -491,7 +493,8 @@ const SpeciesAddEdit = ({
           </>
         ) : (
           <Alert severity={errors?.selectedExportData ? 'error' : 'info'} sx={{ my: 4 }}>
-            {errors?.selectedExportData || 'At least one species must be selected.'}
+            {errors?.selectedExportData ||
+              t('compliance_module.at_least_one_species_must_be_selected_to_proceed_with_the_form_submission')}
           </Alert>
         )}
 
@@ -523,7 +526,7 @@ const SpeciesAddEdit = ({
               }
             }}
           >
-            Add Export Permit
+            {t('compliance_module.add_export_permit')}
           </Button>
         </Box>
 
@@ -539,8 +542,10 @@ const SpeciesAddEdit = ({
           scrollContainerRef={scrollContainerRef}
           isLoading={isLoading}
           selectedExportData={selectedExportData}
-          setSelectedExportData={setSelectedExportData as React.Dispatch<React.SetStateAction<{ export: ExportPermit[] }>>}
-          title='Add Export Permit'
+          setSelectedExportData={
+            setSelectedExportData as React.Dispatch<React.SetStateAction<{ export: ExportPermit[] }>>
+          }
+          title={t('compliance_module.add_export_permit')}
           setDraftData={setDraftData}
           draftData={draftData}
           loader={loader}
@@ -556,13 +561,13 @@ const SpeciesAddEdit = ({
           setanimalCountDrawerOpen={setanimalCountDrawerOpen}
           setCurrentSpeciesId={setCurrentSpeciesId}
           setSelectedSpeciesData={setSelectedSpeciesData}
-          title='Animal Details'
+          title={t('compliance_module.animal_details')}
         />
       </Box>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
         <Button variant='outlined' onClick={onCancel}>
-          Reset
+          {t('reset')}
         </Button>
         <Button
           variant='contained'
@@ -577,7 +582,7 @@ const SpeciesAddEdit = ({
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            Save Details
+            {t('save_details')}
             {loading && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
           </span>
         </Button>

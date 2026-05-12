@@ -37,6 +37,7 @@ import { getDiaryReportList, getObservationMasterType, getUserListing } from 'sr
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { GridColDef } from '@mui/x-data-grid'
 import { UserListing } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface ObservationOption {
   id: string
@@ -50,6 +51,7 @@ interface FilterDates {
 }
 
 const BiologistDiaryReport = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -308,7 +310,7 @@ const BiologistDiaryReport = () => {
     {
       minWidth: 80,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       sortable: false,
       align: 'left',
       headerAlign: 'left',
@@ -339,21 +341,21 @@ const BiologistDiaryReport = () => {
     {
       minWidth: 400,
       field: 'animal_name',
-      headerName: 'Entity',
+      headerName: t('compliance_module.entity'),
       sortable: false,
       renderCell: params => <AnimalView data={params.row} />
     },
     {
       minWidth: 250,
       field: 'observation',
-      headerName: 'OBSERVATION',
+      headerName: t('compliance_module.observation'),
       sortable: false,
       renderCell: params => <ObservationView data={params.row} />
     },
     {
       minWidth: 350,
       field: 'details',
-      headerName: 'DETAILS',
+      headerName: t('details'),
       sortable: false,
       renderCell: params => {
         const text = params.row.details ? params.row.details : '-'
@@ -393,7 +395,7 @@ const BiologistDiaryReport = () => {
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
-      Biologist's Diary Report
+      {t('compliance_module.biologist_diary_report')}
     </Typography>
   )
 
@@ -485,7 +487,7 @@ const BiologistDiaryReport = () => {
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label='Observation Type'
+                    label={t('compliance_module.observation_type')}
                     placeholder='Search & Select'
                     sx={{
                       width: '100%',
@@ -578,7 +580,7 @@ const BiologistDiaryReport = () => {
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label='Sub-Observation Types'
+                    label={t('compliance_module.sub_observation_types')}
                     placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
                     sx={{
                       width: '100%',
@@ -663,9 +665,9 @@ const BiologistDiaryReport = () => {
         <Card sx={{ p: 6 }}>
           <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
           <ReportCard
-            subtitle='No Biologist selected'
-            description='Select any biologist to view report'
-            buttonText='SELECT BIOLOGIST'
+            subtitle={t('compliance_module.no_biologist_selected')}
+            description={t('compliance_module.select_any_biologist_to_view_report')}
+            buttonText={t('compliance_module.select_biologist')}
             addHandler={eventHandler}
           />
         </Card>
@@ -679,7 +681,7 @@ const BiologistDiaryReport = () => {
           placeholder='Search by Biologist name'
           queryKey='user-biologist-Report'
           headerText='Select the Biologist'
-          footerText='generate biologist Diary REPORT'
+          footerText={t('compliance_module.generate_biologist_diary_report')}
         />
       )}
     </>

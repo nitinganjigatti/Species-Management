@@ -34,6 +34,7 @@ import Search from 'src/views/utility/Search'
 
 import { getComplianceDailyReport, getObservationMasterType } from 'src/lib/api/compliance/reports'
 import { GridColDef } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface SiteData {
   site_id: string
@@ -65,6 +66,7 @@ interface FetchDailyReportParams {
 }
 
 const DailyReport = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const authData = useContext(AuthContext)
 
@@ -115,7 +117,7 @@ const DailyReport = () => {
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
-      Daily Report
+      {t('compliance_module.daily_report')}
     </Typography>
   )
 
@@ -185,84 +187,87 @@ const DailyReport = () => {
   }, [selectedItems, siteData])
 
   // -------- API: Fetch & Transform --------
-  const transformApiToRows = useCallback((apiData: Record<string, unknown>, baseIndex = 0): Record<string, unknown>[] => {
-    const items = Array.isArray(apiData?.observationData) ? apiData.observationData : []
-    const rows: Record<string, unknown>[] = []
-    let counter = baseIndex
+  const transformApiToRows = useCallback(
+    (apiData: Record<string, unknown>, baseIndex = 0): Record<string, unknown>[] => {
+      const items = Array.isArray(apiData?.observationData) ? apiData.observationData : []
+      const rows: Record<string, unknown>[] = []
+      let counter = baseIndex
 
-    for (const block of items) {
-      const {
-        ref_type,
-        sex,
-        ref_id,
-        animal_id,
-        taxonomy,
-        scientific_name,
-        enclosure,
-        section,
-        site,
-        date,
-        common_name,
-        default_icon,
-        local_identifier_name,
-        local_identifier_value
-      } = block as Record<string, unknown>
-
-      const detailsArr = Array.isArray((block as Record<string, unknown>).observation_details)
-        ? (block as Record<string, unknown>).observation_details as Record<string, unknown>[]
-        : []
-
-      for (const d of detailsArr) {
-        counter += 1
-        const childItems = Array.isArray((d as Record<string, unknown>).child_observation)
-          ? (d as Record<string, unknown>).child_observation as unknown[]
-          : []
-        const childLabels = childItems
-          .map((item: unknown) => {
-            if (typeof item === 'string' || typeof item === 'number') return String(item)
-            const itemObj = item as Record<string, unknown>
-
-            return itemObj?.type_name || itemObj?.name || itemObj?.label || itemObj?.key || ''
-          })
-          .filter(Boolean) as string[]
-        const child = childLabels.length ? childLabels.join('• ') : ''
-
-        const dObj = d as Record<string, unknown>
-        const blockObj = block as Record<string, unknown>
-        const reporterName = dObj.created_by || blockObj?.created_by || ''
-        const reportedAt = dObj.created_at || blockObj?.created_at || ''
-
-        rows.push({
-          id: dObj.observation_id || `${ref_type}-${ref_id}-${counter}`,
-          sl_no: String(counter).padStart(2, '0'),
-          date: dObj.date_ || date || '',
-          animal_id: animal_id || '',
-          scientific_name: scientific_name || '',
-          common_name: common_name || '',
-          section_name: section || '',
-          user_enclosure_name: enclosure || '',
-          section: section || '',
-          enclosure: enclosure || '',
-          site: site || '',
+      for (const block of items) {
+        const {
+          ref_type,
+          sex,
+          ref_id,
+          animal_id,
+          taxonomy,
+          scientific_name,
+          enclosure,
+          section,
+          site,
+          date,
+          common_name,
           default_icon,
-          local_identifier_name: local_identifier_name || '',
-          local_identifier_value: local_identifier_value || '',
-          taxonomy: taxonomy || null,
-          observation_type: dObj.master_enrichment_type || '',
-          observation_details: child || '',
-          observation_details_list: childLabels,
-          observation: dObj.details || dObj.observation || '',
-          site_name: site || '',
-          sex: sex || '',
-          ref_type: ref_type || (animal_id ? 'animal' : ''),
-          created_by: reporterName,
-          created_at: reportedAt
-        })
-      }
-    }
+          local_identifier_name,
+          local_identifier_value
+        } = block as Record<string, unknown>
 
-    return rows
-  }, [])
+        const detailsArr = Array.isArray((block as Record<string, unknown>).observation_details)
+          ? ((block as Record<string, unknown>).observation_details as Record<string, unknown>[])
+          : []
+
+        for (const d of detailsArr) {
+          counter += 1
+          const childItems = Array.isArray((d as Record<string, unknown>).child_observation)
+            ? ((d as Record<string, unknown>).child_observation as unknown[])
+            : []
+          const childLabels = childItems
+            .map((item: unknown) => {
+              if (typeof item === 'string' || typeof item === 'number') return String(item)
+              const itemObj = item as Record<string, unknown>
+
+              return itemObj?.type_name || itemObj?.name || itemObj?.label || itemObj?.key || ''
+            })
+            .filter(Boolean) as string[]
+          const child = childLabels.length ? childLabels.join('• ') : ''
+
+          const dObj = d as Record<string, unknown>
+          const blockObj = block as Record<string, unknown>
+          const reporterName = dObj.created_by || blockObj?.created_by || ''
+          const reportedAt = dObj.created_at || blockObj?.created_at || ''
+
+          rows.push({
+            id: dObj.observation_id || `${ref_type}-${ref_id}-${counter}`,
+            sl_no: String(counter).padStart(2, '0'),
+            date: dObj.date_ || date || '',
+            animal_id: animal_id || '',
+            scientific_name: scientific_name || '',
+            common_name: common_name || '',
+            section_name: section || '',
+            user_enclosure_name: enclosure || '',
+            section: section || '',
+            enclosure: enclosure || '',
+            site: site || '',
+            default_icon,
+            local_identifier_name: local_identifier_name || '',
+            local_identifier_value: local_identifier_value || '',
+            taxonomy: taxonomy || null,
+            observation_type: dObj.master_enrichment_type || '',
+            observation_details: child || '',
+            observation_details_list: childLabels,
+            observation: dObj.details || dObj.observation || '',
+            site_name: site || '',
+            sex: sex || '',
+            ref_type: ref_type || (animal_id ? 'animal' : ''),
+            created_by: reporterName,
+            created_at: reportedAt
+          })
+        }
+      }
+
+      return rows
+    },
+    []
+  )
 
   // Fetch nursery list with debouncing
   const fetchObservationMasterType = useCallback(async () => {
@@ -399,7 +404,7 @@ const DailyReport = () => {
       }
       setLoading(true)
       try {
-        const res = await getComplianceDailyReport(params) as any
+        const res = (await getComplianceDailyReport(params)) as any
         const payload = res?.data?.data || res?.data || res
         const rows = transformApiToRows(payload, baseIndex)
         const totalCount = Number(res?.data?.data?.total_count ?? 0)
@@ -489,7 +494,7 @@ const DailyReport = () => {
     {
       width: 80,
       field: 'sl_no',
-      headerName: 'Sl.NO.',
+      headerName: t('compliance_module.sl_no'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -512,7 +517,7 @@ const DailyReport = () => {
     {
       width: 120,
       field: 'date',
-      headerName: 'DATE',
+      headerName: t('date'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -534,7 +539,7 @@ const DailyReport = () => {
       minWidth: 300,
       width: 400,
       field: 'animal_name',
-      headerName: 'Entity',
+      headerName: t('compliance_module.entity'),
       sortable: false,
       renderCell: params => <AnimalView data={params.row} />
     },
@@ -542,7 +547,7 @@ const DailyReport = () => {
       minWidth: 250,
       width: 300,
       field: 'observation_type',
-      headerName: 'OBSERVATION TYPE',
+      headerName: t('compliance_module.observation_type'),
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', py: 2 }}>
@@ -574,7 +579,7 @@ const DailyReport = () => {
       minWidth: 370,
       width: 500,
       field: 'observation',
-      headerName: 'Treatment',
+      headerName: t('compliance_module.treatment'),
       sortable: false,
       renderCell: params => (
         <Typography
@@ -593,7 +598,7 @@ const DailyReport = () => {
     {
       width: 170,
       field: 'created_by',
-      headerName: 'REPORTED BY',
+      headerName: t('compliance_module.reported_by'),
       sortable: false,
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -682,10 +687,8 @@ const DailyReport = () => {
                   textOverflow: 'ellipsis'
                 }}
               >
-                {selectedSiteIds.length > 1 ? 'Sites' : 'Site'}:{' '}
-                <span style={{ fontWeight: 500 }}>
-                  {selectedSiteLabel}
-                </span>
+                {selectedSiteIds.length > 1 ? t('sites') : t('site')}:{' '}
+                <span style={{ fontWeight: 500 }}>{selectedSiteLabel}</span>
                 {selectedSiteExtraCount !== null && selectedSiteExtraNames.length > 0 && (
                   <Tooltip title={selectedSiteExtraNames.join(', ')} arrow placement='top'>
                     <Typography
@@ -745,7 +748,9 @@ const DailyReport = () => {
                   loading={observationListLoader}
                   options={observationList?.length > 0 ? observationList : []}
                   getOptionLabel={(option: ObservationOption) => option.type_name}
-                  isOptionEqualToValue={(option: ObservationOption, value: ObservationOption) => option?.id === value?.id}
+                  isOptionEqualToValue={(option: ObservationOption, value: ObservationOption) =>
+                    option?.id === value?.id
+                  }
                   onChange={(e, val) => {
                     setDefaultObservationType(val ?? null)
                     const options = Array.isArray(val?.child_observation) ? val.child_observation : []
@@ -767,7 +772,7 @@ const DailyReport = () => {
                   renderInput={params => (
                     <TextField
                       {...params}
-                      label='Observation Type'
+                      label={t('compliance_module.observation_type')}
                       placeholder='Search & Select'
                       sx={{
                         width: '100%',
@@ -818,7 +823,9 @@ const DailyReport = () => {
                   loading={observationListLoader}
                   options={subObservationOptions}
                   getOptionLabel={(option: ObservationOption) => option.type_name}
-                  isOptionEqualToValue={(option: ObservationOption, value: ObservationOption) => option?.id === value?.id}
+                  isOptionEqualToValue={(option: ObservationOption, value: ObservationOption) =>
+                    option?.id === value?.id
+                  }
                   renderOption={(props, option, { selected }) => (
                     <li {...props}>
                       <Checkbox
@@ -867,7 +874,7 @@ const DailyReport = () => {
                   renderInput={params => (
                     <TextField
                       {...params}
-                      label='Sub-Observation Types'
+                      label={t('compliance_module.sub_observation_types')}
                       placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
                       sx={{
                         width: '100%',
@@ -950,9 +957,9 @@ const DailyReport = () => {
           <Card sx={{ p: 6 }}>
             <CardHeader title={title} sx={{ p: 0, pb: 4 }} />
             <ReportCard
-              subtitle='No Site selected'
-              description='Select any site to view its daily report'
-              buttonText='SELECT SITE'
+              subtitle={t('compliance_module.no_site_selected')}
+              description={t('compliance_module.select_any_site_to_view_daily_report')}
+              buttonText={t('compliance_module.select_site_and_report_type')}
               addHandler={() => setOpenFilterDrawer(true)}
             />
           </Card>

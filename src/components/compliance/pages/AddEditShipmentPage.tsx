@@ -15,8 +15,10 @@ import { getLinkedDocumentsShipments } from 'src/lib/api/compliance/shipment'
 import { useTheme } from '@mui/material/styles'
 import LinkedDocuments from 'src/views/pages/compliance/documents/shipment/forms/LinkedDocuments'
 import { DocumentType, MastersData } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const AddEditShipment = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const id = searchParams?.get('id')
@@ -86,10 +88,10 @@ const AddEditShipment = () => {
         setDocumentList((res.data?.items || []) as DocumentType[])
         setTotalCount(res.data?.total || 0)
       } else {
-        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+        Toaster({ type: 'error', message: res.message || t('compliance_module.failed_to_fetch_export_details') })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'Error fetching export details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_export_details') })
     } finally {
       setIsFetching(false)
     }
@@ -125,7 +127,7 @@ const AddEditShipment = () => {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (e) {
-      Toaster({ type: 'error', message: 'Error fetching shipment basic details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_shipment_basic_details') })
     }
   }
 
@@ -136,10 +138,11 @@ const AddEditShipment = () => {
 
   // Accordion toggle handler
   const handleAccordionChange = (panelId: string) => {
-    setExpanded(prev =>
-      prev.includes(panelId)
-        ? prev?.filter(p => p !== panelId) // Close if open
-        : [...prev, panelId] // Open if closed
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev?.filter(p => p !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
     )
   }
 
@@ -163,16 +166,16 @@ const AddEditShipment = () => {
     <>
       <Box sx={{ mb: 2 }}>
         <Breadcrumbs aria-label='breadcrumb'>
-          <Typography>Shipment Documents</Typography>
+          <Typography>{t('compliance_module.shipment_documents')}</Typography>
           <Typography onClick={() => router.push('/compliance/documents/shipments')} sx={{ cursor: 'pointer' }}>
-            Shipments
+            {t('compliance_module.shipments')}
           </Typography>
           <Typography color='text.primary'>
             {action === 'edit'
-              ? 'Edit Shipment Permit'
+              ? t('compliance_module.edit_shipment_permit')
               : action === 'details'
-              ? 'Shipment Details'
-              : 'New Shipment Permit'}
+              ? t('compliance_module.shipment_details')
+              : t('compliance_module.new_shipment_permit')}
           </Typography>
         </Breadcrumbs>
       </Box>
@@ -192,10 +195,10 @@ const AddEditShipment = () => {
           <CardHeader
             title={
               action === 'edit'
-                ? 'Edit Shipment Permit'
+                ? t('compliance_module.edit_shipment_permit')
                 : action === 'details'
-                ? 'Shipment Details'
-                : 'New Shipment Permit'
+                ? t('compliance_module.shipment_details')
+                : t('compliance_module.new_shipment_permit')
             }
             slotProps={{
               title: {
@@ -208,7 +211,9 @@ const AddEditShipment = () => {
 
         {/* Right section: Status and dropdown */}
         <Box display='flex' alignItems='center' gap={2}>
-          <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>Status:</Typography>
+          <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {t('status')}:
+          </Typography>
           {action === 'details' ? (
             <Typography
               sx={{
@@ -224,7 +229,7 @@ const AddEditShipment = () => {
                 display: 'inline-block'
               }}
             >
-              {status === 'draft' ? 'Draft' : 'Completed'}
+              {status === 'draft' ? t('compliance_module.draft') : t('completed')}
             </Typography>
           ) : (
             <Select
@@ -241,8 +246,8 @@ const AddEditShipment = () => {
                 color: theme.palette.common.black
               }}
             >
-              <MenuItem value='draft'>Draft</MenuItem>
-              <MenuItem value='completed'>Completed</MenuItem>
+              <MenuItem value='draft'>{t('compliance_module.draft')}</MenuItem>
+              <MenuItem value='completed'>{t('completed')}</MenuItem>
             </Select>
           )}
         </Box>
@@ -255,7 +260,7 @@ const AddEditShipment = () => {
         docsCount={(!isBasicEditable && !expanded.includes('permit-details') && id ? `ID: ${rawValue}` : null) as any}
         title={
           <Typography sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}>
-            Basic Details
+            {t('compliance_module.basic_details')}
           </Typography>
         }
         expanded={expanded.includes('permit-details')}
@@ -294,25 +299,31 @@ const AddEditShipment = () => {
           docsCount={
             !isAnimalsEditable && !expanded.includes('animals-details') && (totalAnimals || totalSpecies) ? (
               <Typography component='span' sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-                <strong>{totalSpecies}</strong> Species&nbsp;|&nbsp;
-                <strong>{totalAnimals}</strong> Animals
+                <strong>{totalSpecies}</strong> {t('compliance_module.species')}&nbsp;|&nbsp;
+                <strong>{totalAnimals}</strong> {t('animals')}
               </Typography>
-            ) : (null as any)
+            ) : (
+              (null as any)
+            )
           }
           title={
             <Typography
               sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
             >
-              Animals
+              {t('animals')}
             </Typography>
           }
           expanded={expanded.includes('animals-details')}
           onChange={handleAccordionChange}
-          editable={!!(showEditAnimals &&
-            expanded.includes('animals-details') &&
-            id &&
-            action === 'details' &&
-            Number(exportCount) > 0)}
+          editable={
+            !!(
+              showEditAnimals &&
+              expanded.includes('animals-details') &&
+              id &&
+              action === 'details' &&
+              Number(exportCount) > 0
+            )
+          }
           handleEditClick={() => {
             setExpanded(['animals - details'])
             animalsEditRef.current?.()
@@ -344,7 +355,7 @@ const AddEditShipment = () => {
             <Typography
               sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
             >
-              Travel & customs Documents
+              {t('compliance_module.travel_and_customs_documents')}
             </Typography>
           }
           docsCount={(totalCount ? `${uploadedFileCount}/${totalCount}` : null) as any}
@@ -371,7 +382,7 @@ const AddEditShipment = () => {
               <Typography
                 sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}
               >
-                Please save form details to add supporting documents
+                {t('compliance_module.please_save_form_details_to_add_supporting_documents')}
               </Typography>
             </Box>
           ) : (
@@ -379,14 +390,14 @@ const AddEditShipment = () => {
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
                 <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
                   <Tab
-                    label={`Completed${
+                    label={`${t('completed')}${
                       activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
                     }`}
                     value='completed'
                     sx={{ mr: 4 }}
                   />
                   <Tab
-                    label={`Pending${
+                    label={`${t('pending')}${
                       activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
                     }`}
                     value='pending'
@@ -405,14 +416,15 @@ const AddEditShipment = () => {
         </CustomAccordion>
       )}
 
-      {id && ((linkedDocumentsData?.exports as unknown[])?.length || (linkedDocumentsData?.imports as unknown[])?.length) ? (
+      {id &&
+      ((linkedDocumentsData?.exports as unknown[])?.length || (linkedDocumentsData?.imports as unknown[])?.length) ? (
         <CustomAccordion
           id='linked-documents'
           title={
             <Typography
               sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
             >
-              Linked Documents
+              {t('compliance_module.linked_documents')}
             </Typography>
           }
           expanded={expanded.includes('linked-documents')}
@@ -422,8 +434,9 @@ const AddEditShipment = () => {
           docsCount={
             (linkedDocumentsData?.exports_count || linkedDocumentsData?.imports_count ? (
               <Typography component='span' sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-                <strong>{linkedDocumentsData?.exports_count as number}</strong> Exports&nbsp;|&nbsp;
-                <strong>{linkedDocumentsData?.imports_count as number}</strong> Imports
+                <strong>{linkedDocumentsData?.exports_count as number}</strong> {t('compliance_module.exports')}
+                &nbsp;|&nbsp;
+                <strong>{linkedDocumentsData?.imports_count as number}</strong> {t('compliance_module.imports')}
               </Typography>
             ) : null) as any
           }

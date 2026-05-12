@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Typography, Box, Drawer, IconButton, Avatar, Checkbox, Button, alpha } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import CloseIcon from '@mui/icons-material/Close'
 import Toaster from 'src/components/Toaster'
 
@@ -62,6 +63,7 @@ const SelectAnimalsDrawer = ({
   commonNameValue,
   initialSelectedAnimals = []
 }: SelectAnimalsDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [selectedAnimals, setSelectedAnimals] = useState<AnimalItem[]>(initialSelectedAnimals)
 
@@ -100,7 +102,7 @@ const SelectAnimalsDrawer = ({
       if (counts.male > 0 && Number(foundSpeciesData.male_count || 0) === 0) {
         Toaster({
           type: 'error',
-          message: 'Cannot select male animals (count is 0)'
+          message: t('compliance_module.cannot_select_male_animals_count_is_0')
         })
 
         return false
@@ -108,7 +110,7 @@ const SelectAnimalsDrawer = ({
       if (counts.female > 0 && Number(foundSpeciesData.female_count || 0) === 0) {
         Toaster({
           type: 'error',
-          message: 'Cannot select female animals (count is 0)'
+          message: t('compliance_module.cannot_select_female_animals_count_is_0')
         })
 
         return false
@@ -116,7 +118,7 @@ const SelectAnimalsDrawer = ({
       if (counts.undeterminate > 0 && Number(foundSpeciesData.undeterminate_count || 0) === 0) {
         Toaster({
           type: 'error',
-          message: 'Cannot select unknown animals (count is 0)'
+          message: t('compliance_module.cannot_select_unknown_animals_count_is_0')
         })
 
         return false
@@ -125,7 +127,9 @@ const SelectAnimalsDrawer = ({
       if (counts.male > Number(foundSpeciesData.male_count || 0)) {
         Toaster({
           type: 'error',
-          message: `Cannot select more than ${foundSpeciesData.male_count} male animals`
+          message: t('compliance_module.cannot_select_more_than_male_animals', {
+            count: Number(foundSpeciesData.male_count)
+          })
         })
 
         return false
@@ -133,7 +137,9 @@ const SelectAnimalsDrawer = ({
       if (counts.female > Number(foundSpeciesData.female_count || 0)) {
         Toaster({
           type: 'error',
-          message: `Cannot select more than ${foundSpeciesData.female_count} female animals`
+          message: t('compliance_module.cannot_select_more_than_female_animals', {
+            count: Number(foundSpeciesData.female_count)
+          })
         })
 
         return false
@@ -141,7 +147,9 @@ const SelectAnimalsDrawer = ({
       if (counts.undeterminate > Number(foundSpeciesData.undeterminate_count || 0)) {
         Toaster({
           type: 'error',
-          message: `Cannot select more than ${foundSpeciesData.undeterminate_count} unknown animals`
+          message: t('compliance_module.cannot_select_more_than_unknown_animals', {
+            count: Number(foundSpeciesData.undeterminate_count)
+          })
         })
 
         return false
@@ -206,7 +214,7 @@ const SelectAnimalsDrawer = ({
                 fontSize: '16px'
               }}
             >
-              Export ID : {exportNumber}
+              {t('compliance_module.export_id_label')} {exportNumber}
               {/* {data.exportId} */}
             </Typography>
 
@@ -217,7 +225,7 @@ const SelectAnimalsDrawer = ({
                 fontSize: '16px'
               }}
             >
-              <span style={{ fontSize: '14px', fontWeight: 400 }}>Species : </span>
+              <span style={{ fontSize: '14px', fontWeight: 400 }}>{t('compliance_module.species_label')} </span>
               {commonNameValue ? commonNameValue : 'N/A'}
             </Typography>
           </Box>
@@ -238,7 +246,7 @@ const SelectAnimalsDrawer = ({
             <Typography
               sx={{ pt: 3, fontWeight: 500, fontSize: '18px', color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Animals with identifier ({animalLists.length})
+              {t('compliance_module.animals_with_identifier')} ({animalLists.length})
             </Typography>
             {animalLists?.length > 0 ? (
               animalLists.map(animal => {
@@ -308,7 +316,7 @@ const SelectAnimalsDrawer = ({
                       <Typography
                         sx={{ fontWeight: '400', color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
                       >
-                        Species :{' '}
+                        {t('compliance_module.species_label')}{' '}
                         <span
                           style={{
                             color: theme.palette.customColors.OnSurfaceVariant,
@@ -373,7 +381,7 @@ const SelectAnimalsDrawer = ({
                   fontWeight: '500'
                 }}
               >
-                No Animals to show
+                {t('compliance_module.no_animals_to_show')}
               </Typography>
             )}
           </Box>
@@ -398,7 +406,7 @@ const SelectAnimalsDrawer = ({
             onClick={handleSelect}
             disabled={initialSelectedAnimals.length === 0 && selectedAnimals.length === 0}
           >
-            Select Animals
+            {t('compliance_module.select_animals')}
           </Button>
         </Box>
       </Box>

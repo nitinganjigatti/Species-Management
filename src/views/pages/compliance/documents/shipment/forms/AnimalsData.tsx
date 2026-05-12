@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import SpeciesDetailsContainer from '../shipment-view/SpeciesDetails'
 import SpeciesAddEdit from '../shipment-view/SpeciesAddEdit'
 import { getExportList } from 'src/lib/api/compliance/exports'
 import { createShipmentSpecies, getShipmentSpeciesData, updateShipmentSpecies } from 'src/lib/api/compliance/shipment'
 import { debounce } from 'lodash'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Toaster from 'src/components/Toaster'
 import AddAnimalCountDrawer from '../drawer/AddAnimalCountDrawer'
 import { MastersData, Species } from 'src/types/compliance'
@@ -95,8 +96,12 @@ const AnimalsData = ({
   fetchLinkedDocuments,
   mastersData
 }: AnimalsDataProps) => {
-  const router = useSafeRouter()
-  const { id, action, export: exportCount } = router.query
+  const { t } = useTranslation()
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const id = searchParams?.get('id')
+  const action = searchParams?.get('action')
+  const exportCount = searchParams?.get('export')
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState<boolean>(false)
   const [exportPermitDrawerOpen, setexportPermitDrawerOpen] = useState<boolean>(false)
   const [linkedShipmentsDrawerOpen, setLinkedShipmentsDrawerOpen] = useState<boolean>(false)
@@ -110,7 +115,9 @@ const AnimalsData = ({
 
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [currentSpeciesId, setCurrentSpeciesId] = useState<string | number | null>(null)
-  const [selectedSpeciesData, setSelectedSpeciesData] = useState<Species & { common_name?: string; scientific_name?: string; default_icon?: string }>({})
+  const [selectedSpeciesData, setSelectedSpeciesData] = useState<
+    Species & { common_name?: string; scientific_name?: string; default_icon?: string }
+  >({})
   const [animalCountDrawerOpen, setanimalCountDrawerOpen] = useState<boolean>(false)
   const [speciesList, setSpeciesList] = useState<SpeciesItem[]>([])
   const [draftData, setDraftData] = useState<DraftData>({ export: [], others: [] })
@@ -221,7 +228,9 @@ const AnimalsData = ({
 
         const response = await getExportList(params)
         if (response?.success) {
-          setexportsList(reset ? (response.data?.records ?? []) : (prev: unknown[]) => [...prev, ...(response.data?.records ?? [])])
+          setexportsList(
+            reset ? response.data?.records ?? [] : (prev: unknown[]) => [...prev, ...(response.data?.records ?? [])]
+          )
           setexportsTotalCount(response.data?.total_count ?? 0)
           setPaginationModel(prev => ({
             ...prev,
@@ -260,16 +269,18 @@ const AnimalsData = ({
       .filter(species => !speciesList.some(existing => existing.species.tsn_id === species.tsn_id))
       .map(species => {
         setCurrentSpeciesId(species.tsn_id ?? null)
-        setSelectedSpeciesData(species as Species & { common_name?: string; scientific_name?: string; default_icon?: string })
+        setSelectedSpeciesData(
+          species as Species & { common_name?: string; scientific_name?: string; default_icon?: string }
+        )
 
-return {
+        return {
           id: species.tsn_id as string | number,
           species: {
             id: species.tsn_id,
             tsn_id: species.tsn_id,
             taxonomy_id: species.taxonomy_id || species.tsn_id,
             common_name: species.common_name,
-            scientific_name: species.scientific_name || (species as Record<string, unknown>).complete_name as string,
+            scientific_name: species.scientific_name || ((species as Record<string, unknown>).complete_name as string),
             default_icon: species.default_icon,
             male_count: 0,
             female_count: 0,
@@ -323,7 +334,7 @@ return {
         }
       }
 
-return species
+      return species
     })
 
     setSpeciesList(updatedSpeciesList)
@@ -468,7 +479,10 @@ return species
         }))
 
         const speciesList = (others as OtherItem[]).flatMap(item =>
-          (Array.isArray((item as Record<string, unknown>).species) ? (item as Record<string, unknown>).species as SpeciesData[] : []).map(spec => ({
+          (Array.isArray((item as Record<string, unknown>).species)
+            ? ((item as Record<string, unknown>).species as SpeciesData[])
+            : []
+          ).map(spec => ({
             id: spec.taxonomy_id || '',
             species: {
               id: spec.taxonomy_id || '',
@@ -633,7 +647,7 @@ return species
         mastersData={mastersData}
         setSpeciesList={setSpeciesList as any}
         onClose={handleClose}
-        title='Add Animals'
+        title={t('compliance_module.add_animals')}
         onDone={handleAnimalDataSave}
         currentSpeciesId={currentSpeciesId}
         selectedExportData={selectedExportData as any}

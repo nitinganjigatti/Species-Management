@@ -8,8 +8,15 @@ import Utility from 'src/utility'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import SupportingDocuments from '../SupportingDocuments'
 import type { SpeciesExportDocumentDrawerProps } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
-const SpeciesExportDocumentDrawer = ({ open, onClose, shipmentId, shipmentNumber }: SpeciesExportDocumentDrawerProps) => {
+const SpeciesExportDocumentDrawer = ({
+  open,
+  onClose,
+  shipmentId,
+  shipmentNumber
+}: SpeciesExportDocumentDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const PAGE_SIZE = 10
 
@@ -17,14 +24,20 @@ const SpeciesExportDocumentDrawer = ({ open, onClose, shipmentId, shipmentNumber
 
   type PageType = { result: any[]; nextPage: number | undefined; total: number }
 
-  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery<PageType, Error, InfiniteData<PageType>, QueryKey, number>({
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery<
+    PageType,
+    Error,
+    InfiniteData<PageType>,
+    QueryKey,
+    number
+  >({
     queryKey: ['species-export-linked-documents', shipmentId, open],
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await getDocumentTypeList({
+      const res = (await getDocumentTypeList({
         id: shipmentId,
         type: 'shipment',
         status: 'completed'
-      }) as any
+      })) as any
 
       return {
         result: res?.data?.items || [],
@@ -87,7 +100,9 @@ const SpeciesExportDocumentDrawer = ({ open, onClose, shipmentId, shipmentNumber
           }}
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>{`Documents List - ${shipmentNumber}`}</Typography>
+            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>{`${t(
+              'compliance_module.documents_list'
+            )} - ${shipmentNumber}`}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
@@ -138,13 +153,13 @@ const SpeciesExportDocumentDrawer = ({ open, onClose, shipmentId, shipmentNumber
 
             {!isFetching && list.length === 0 && (
               <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-                No document found
+                {t('compliance_module.no_document_found')}
               </Typography>
             )}
 
             {!hasNextPage && list.length > 0 && (
               <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                No more documents to load
+                {t('compliance_module.no_more_documents_to_load')}
               </Typography>
             )}
           </Box>

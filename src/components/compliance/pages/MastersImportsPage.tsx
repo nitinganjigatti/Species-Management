@@ -37,6 +37,7 @@ import Search from 'src/views/utility/Search'
 import { AuthContext } from 'src/context/AuthContext'
 import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
 import AddImportSlider from 'src/views/pages/compliance/documents/masters/AddImportSlider'
+import { useTranslation } from 'react-i18next'
 import { GridColDef, GridSortModel } from '@mui/x-data-grid'
 import { TradeContextType } from 'src/types/compliance'
 
@@ -47,6 +48,7 @@ interface EditParams {
 }
 
 const Imports = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [deletePop, setDeletePop] = useState<boolean>(false)
@@ -69,7 +71,8 @@ const Imports = () => {
   const [contextLoading, setContextLoading] = useState<boolean>(false)
 
   const complianceModuleAccessContext = useContext(AuthContext)
-  const complianceModuleAccess = (complianceModuleAccessContext?.userData as any)?.roles?.settings?.compliance_module || ''
+  const complianceModuleAccess =
+    (complianceModuleAccessContext?.userData as any)?.roles?.settings?.compliance_module || ''
 
   const hasAddAccess =
     complianceModuleAccess === 'ADD' || complianceModuleAccess === 'EDIT' || complianceModuleAccess === 'DELETE'
@@ -137,7 +140,7 @@ const Imports = () => {
         Toaster({ type: 'error', message: response?.message || 'Something went wrong' })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'Failed to delete trade party. Please try again.' })
+      Toaster({ type: 'error', message: t('compliance_module.failed_to_delete_trade_party_please_try_again') })
       console.error('Deletion error:', error)
     } finally {
       setSubmitLoader(false)
@@ -150,7 +153,7 @@ const Imports = () => {
       flex: 0.07,
       width: 40,
       field: 'uid',
-      headerName: 'SL No',
+      headerName: t('compliance_module.sl_no'),
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
@@ -162,7 +165,7 @@ const Imports = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'name',
-      headerName: 'Name',
+      headerName: t('name'),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -182,10 +185,10 @@ const Imports = () => {
       flex: 0.2,
       minWidth: 20,
       field: 'active',
-      headerName: 'Status',
+      headerName: t('status'),
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
+          {params.row.active === '1' ? t('active') : t('inactive')}
         </Typography>
       )
     }
@@ -196,7 +199,7 @@ const Imports = () => {
     flex: 0.2,
     minWidth: 20,
     field: 'action',
-    headerName: 'Action',
+    headerName: t('action'),
     sortable: false,
     renderCell: params => (
       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right', px: 2 }}>
@@ -217,7 +220,7 @@ const Imports = () => {
   const columns = baseColumns
 
   // Conditionally show Add button based on access permissions
-  const headerAction = <AddButton title='Add  New' action={addEventSidebarOpen} disabled={false} styles={{}} />
+  const headerAction = <AddButton title={t('add_new')} action={addEventSidebarOpen} disabled={false} styles={{}} />
 
   const fetchTableData = useCallback(
     async (sort: string, q: string, column: string) => {
@@ -235,10 +238,12 @@ const Imports = () => {
         const res = await getMasterImports(params)
         const startingIndex = paginationModel.page * paginationModel.pageSize
 
-        const listWithId = ((res.data?.data || []) as Record<string, unknown>[]).map((el: Record<string, unknown>, i: number) => ({
-          ...el,
-          uid: startingIndex + i + 1
-        }))
+        const listWithId = ((res.data?.data || []) as Record<string, unknown>[]).map(
+          (el: Record<string, unknown>, i: number) => ({
+            ...el,
+            uid: startingIndex + i + 1
+          })
+        )
         setTotal(parseInt(String(res?.data?.total || 0)))
         setRows(listWithId)
         setLoading(false)
@@ -308,13 +313,15 @@ const Imports = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Compliance</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>masters</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Importer</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('compliance_module.compliance')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('compliance_module.masters')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>{t('compliance_module.importer')}</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Importer</Typography>}
+          title={
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>{t('compliance_module.importer')}</Typography>
+          }
           action={headerAction}
           sx={{ px: 5, display: 'flex', flexWrap: 'wrap', gap: 2 }}
         />
@@ -357,14 +364,14 @@ const Imports = () => {
       )}
 
       <Dialog open={deletePop} onClose={() => setDeletePop(false)}>
-        <DialogTitle>Confirm Deletion</DialogTitle>
-        <DialogContent>Are you sure you want to remove trade party?</DialogContent>
+        <DialogTitle>{t('compliance_module.confirm_deletion')}</DialogTitle>
+        <DialogContent>{t('compliance_module.are_you_sure_you_want_to_remove_trade_party')}</DialogContent>
         <DialogActions>
           <Button onClick={() => setDeletePop(false)} color='primary'>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={confirmDeletion} color='error' variant='contained'>
-            Delete
+            {t('delete')}
           </Button>
         </DialogActions>
       </Dialog>

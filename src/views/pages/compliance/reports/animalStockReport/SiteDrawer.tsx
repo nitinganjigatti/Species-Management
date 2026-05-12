@@ -18,6 +18,7 @@ import { useTheme } from '@mui/material/styles'
 
 import Icon from 'src/@core/components/icon'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
+import { useTranslation } from 'react-i18next'
 
 interface SiteOption {
   id: string | number
@@ -35,6 +36,7 @@ interface SiteDrawerProps {
 }
 
 const SiteDrawer = ({ open, onClose, sites = [], selectedSiteId, onSelect }: SiteDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [searchValue, setSearchValue] = useState<string>('')
   const [internalSelection, setInternalSelection] = useState<string | number | null>(selectedSiteId ?? null)
@@ -100,7 +102,7 @@ const SiteDrawer = ({ open, onClose, sites = [], selectedSiteId, onSelect }: Sit
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Select Site
+            {t('compliance_module.select_site')}
           </Typography>
           <IconButton onClick={onClose} size='small'>
             <Icon icon='mdi:close' fontSize={24} />
@@ -111,7 +113,7 @@ const SiteDrawer = ({ open, onClose, sites = [], selectedSiteId, onSelect }: Sit
             fullWidth
             value={searchValue}
             onChange={event => setSearchValue(event.target.value)}
-            placeholder='Search'
+            placeholder={t('search')}
             variant='outlined'
             size='small'
             InputProps={{
@@ -151,7 +153,7 @@ const SiteDrawer = ({ open, onClose, sites = [], selectedSiteId, onSelect }: Sit
               mb: 2
             }}
           >
-            All sites ({sites.length})
+            {t('compliance_module.all_sites')} ({sites.length})
           </Typography>
           <Box
             sx={{
@@ -213,7 +215,7 @@ const SiteDrawer = ({ open, onClose, sites = [], selectedSiteId, onSelect }: Sit
               })}
               {filteredSites.length === 0 && (
                 <Typography sx={{ textAlign: 'center', py: 10, color: theme.palette.customColors.onSurfaceVariant }}>
-                  No sites found
+                  {t('compliance_module.no_sites_found')}
                 </Typography>
               )}
             </List>
@@ -238,7 +240,7 @@ const SiteDrawer = ({ open, onClose, sites = [], selectedSiteId, onSelect }: Sit
             onClick={handleConfirmSelection}
             sx={{ borderRadius: '8px', height: '58px' }}
           >
-            SELECT SITE
+            {t('compliance_module.select_site')}
           </Button>
         </Box>
       </Box>

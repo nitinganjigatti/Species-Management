@@ -1,6 +1,7 @@
 import React from 'react'
 import { Typography, Box, Drawer, IconButton, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Search from 'src/views/utility/Search'
 import CloseIcon from '@mui/icons-material/Close'
 import ExportCard from '../shipment-view/AddExportPermitCard'
@@ -68,12 +69,12 @@ const ExportPermitDrawer = ({
   setSearchValue,
   shipmentId
 }: ExportPermitDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >
@@ -112,13 +113,13 @@ const ExportPermitDrawer = ({
               borderRadius: '8px',
               backgroundColor: theme.palette.common.white
             }}
-            placeholder='Search for Export ID'
+            placeholder={t('compliance_module.search_for_export_id')}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
           />
 
           <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>
-            Exports {exportsTotalCount ? `(${exportsTotalCount})` : ''}
+            {t('compliance_module.exports')} {exportsTotalCount ? `(${exportsTotalCount})` : ''}
           </Typography>
 
           <Box
@@ -178,7 +179,7 @@ const ExportPermitDrawer = ({
                     fontWeight: '500'
                   }}
                 >
-                  No Exports to show
+                  {t('compliance_module.no_exports_to_show')}
                 </Typography>
               )}
             </Box>

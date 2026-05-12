@@ -13,8 +13,10 @@ import { useMemo } from 'react'
 import type { ExportPermitDetailsProps } from 'src/types/compliance'
 import type { SelectOption } from 'src/types/compliance'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [exportersOptions, setExportersOptions] = useState<SelectOption[]>([])
   const [importersOptions, setImportersOptions] = useState<SelectOption[]>([])
@@ -31,7 +33,10 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
       }
       const res = await getMasterImports(params)
       if (res) {
-        const exportersOptions: SelectOption[] = (res?.data?.data || []).map((item: any) => ({ label: item.name ?? '', value: item.id ?? '' }))
+        const exportersOptions: SelectOption[] = (res?.data?.data || []).map((item: any) => ({
+          label: item.name ?? '',
+          value: item.id ?? ''
+        }))
         setExportersOptions(exportersOptions)
       }
     } catch (e) {
@@ -49,7 +54,10 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
       }
       const res = await getMasterImports(params)
       if (res) {
-        const importersOptions: SelectOption[] = (res?.data?.data || []).map((item: any) => ({ label: item.name ?? '', value: item.id ?? '' }))
+        const importersOptions: SelectOption[] = (res?.data?.data || []).map((item: any) => ({
+          label: item.name ?? '',
+          value: item.id ?? ''
+        }))
         setImportersOptions(importersOptions)
       }
     } catch (e) {
@@ -81,14 +89,14 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
   return (
     <Box>
       <Typography variant='h6' gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
-        1. Export Permit Details
+        1. {t('compliance_module.export_permit_details')}
       </Typography>
 
       <Grid container spacing={4}>
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledTextField
             name='export_number'
-            label='Enter Certificate ID*'
+            label={`${t('compliance_module.enter_certificate_id')}*`}
             control={control}
             errors={errors}
             required
@@ -99,7 +107,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledDatePicker
             name='issued_date'
-            label='Date of Issue*'
+            label={`${t('compliance_module.date_of_issue')}*`}
             maxDate={dayjs(new Date())}
             control={control}
             errors={errors}
@@ -110,7 +118,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledDatePicker
             name='valid_until'
-            label='Last day of validity*'
+            label={`${t('compliance_module.last_day_of_validity')}*`}
             control={control}
             errors={errors}
             required
@@ -121,7 +129,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='origin_country'
-            label='Country of origin*'
+            label={`${t('compliance_module.country_of_origin')}*`}
             control={control}
             errors={errors}
             options={countryOptions}
@@ -135,7 +143,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='exporter_name'
-            label='Exporter name*'
+            label={`${t('compliance_module.exporter_name')}*`}
             control={control}
             errors={errors}
             options={exportersOptions}
@@ -152,7 +160,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='exporting_country'
-            label='Exporting Country*'
+            label={`${t('compliance_module.exporting_country')}*`}
             control={control}
             errors={errors}
             options={countryOptions}
@@ -166,7 +174,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledAutocomplete
             name='importer_name'
-            label='Importer name*'
+            label={`${t('compliance_module.importer_name')}*`}
             control={control}
             errors={errors}
             options={importersOptions}
@@ -183,7 +191,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 6 }}>
           <ControlledTextField
             name='export_purpose'
-            label='Purpose of transfer*'
+            label={`${t('compliance_module.purpose_of_transfer')}*`}
             control={control}
             errors={errors}
             required
@@ -194,7 +202,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }: ExportPermitDetailsPro
         <Grid size={{ xs: 12, md: 3 }}>
           <ControlledFileUpload
             name='certificate_file'
-            label='Upload Permit'
+            label={t('compliance_module.upload_permit')}
             control={control}
             errors={errors}
             color={theme.palette.primary.main}

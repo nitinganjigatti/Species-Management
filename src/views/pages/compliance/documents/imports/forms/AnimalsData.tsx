@@ -5,7 +5,7 @@ import { getExportListForImports } from 'src/lib/api/compliance/imports'
 import { createImportSpecies, getImportSpeciesData, updateImportSpecies } from 'src/lib/api/compliance/imports'
 import { getMastersData } from 'src/lib/api/compliance/exports'
 import { debounce } from 'lodash'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Toaster from 'src/components/Toaster'
 import * as yup from 'yup'
 import dayjs, { Dayjs } from 'dayjs'
@@ -50,7 +50,7 @@ const validationSchema = yup.object({
       if ((value as File).type) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/x-png', 'application/pdf']
 
-return allowedTypes.includes((value as File).type)
+        return allowedTypes.includes((value as File).type)
       }
 
       // If it's an existing uploaded file (edit mode)
@@ -58,7 +58,7 @@ return allowedTypes.includes((value as File).type)
         const ext = (value as { file_original_name: string }).file_original_name.split('.').pop()!.toLowerCase()
         const allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf']
 
-return allowedExtensions.includes(ext)
+        return allowedExtensions.includes(ext)
       }
 
       return false
@@ -76,8 +76,10 @@ const AnimalsData = ({
   setAirwaybillvalue,
   airwaybillvalue
 }: AnimalsDataProps) => {
-  const router = useSafeRouter()
-  const { id, action } = router.query
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const id = searchParams?.get('id')
+  const action = searchParams?.get('action')
   const [exportPermitDrawerOpen, setexportPermitDrawerOpen] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
   const [paginationModel, setPaginationModel] = useState<PaginationModel>({ page: 1, pageSize: 10 })
@@ -97,7 +99,9 @@ const AnimalsData = ({
   const [animalDetailsDrawerOpen, setanimalDetailsDrawerOpen] = useState<boolean>(false)
   const [detailtype, setDetailType] = useState<string>('')
   const [startDate, setStartDate] = useState<string | Date | Dayjs | null>(null)
-  const [uploadedFile, setUploadedFile] = useState<File | { name?: string; file_original_name?: string; [key: string]: unknown } | null>(null)
+  const [uploadedFile, setUploadedFile] = useState<
+    File | { name?: string; file_original_name?: string; [key: string]: unknown } | null
+  >(null)
   const [errors, setErrors] = useState<Record<string, string | null | undefined>>({})
 
   const handleRemoveExportDataAtIndex = (exportIdToRemove: unknown) => {
@@ -168,7 +172,7 @@ const AnimalsData = ({
 
         const response = await getExportListForImports(params)
         if (response?.success) {
-          setexportsList(reset ? (response.data?.records || []) : prev => [...prev, ...(response.data?.records || [])])
+          setexportsList(reset ? response.data?.records || [] : prev => [...prev, ...(response.data?.records || [])])
           setexportsTotalCount((response.data as any)?.total || response.data?.total_count || 0)
           setPaginationModel(prev => ({
             ...prev,
@@ -231,12 +235,12 @@ const AnimalsData = ({
           selectedExportData: 'At least one species must be selected'
         }))
 
-return { isValid: false, firstError: 'selectedExportData' }
+        return { isValid: false, firstError: 'selectedExportData' }
       }
 
       setErrors({})
 
-return { isValid: true }
+      return { isValid: true }
     } catch (validationErrors: unknown) {
       const formattedErrors: Record<string, string> = {}
       let firstErrorPath: string | null = null
@@ -254,7 +258,7 @@ return { isValid: true }
       }
       setErrors(formattedErrors)
 
-return { isValid: false, firstError: firstErrorPath }
+      return { isValid: false, firstError: firstErrorPath }
     }
   }
 
@@ -270,7 +274,7 @@ return { isValid: false, firstError: firstErrorPath }
 
       scrollToFirstError()
 
-return
+      return
     }
 
     setLoading(true)

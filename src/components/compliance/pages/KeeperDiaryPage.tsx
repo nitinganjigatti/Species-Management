@@ -35,6 +35,7 @@ import { getDiaryReportList, getObservationMasterType, getUserListing } from 'sr
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { GridColDef } from '@mui/x-data-grid'
 import { UserListing } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface ObservationOption {
   id: string
@@ -48,6 +49,7 @@ interface FilterDates {
 }
 
 const KeeperDiaryReport = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -300,7 +302,7 @@ const KeeperDiaryReport = () => {
     {
       width: 100,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       sortable: false,
       align: 'left',
       headerAlign: 'left',
@@ -319,7 +321,7 @@ const KeeperDiaryReport = () => {
     },
     {
       field: 'animal_name',
-      headerName: 'Entity',
+      headerName: t('compliance_module.entity'),
       flex: 2,
       minWidth: 400,
       sortable: false,
@@ -331,7 +333,7 @@ const KeeperDiaryReport = () => {
     },
     {
       field: 'ObservationType',
-      headerName: 'Observation Type',
+      headerName: t('compliance_module.observation_type'),
       flex: 1,
       sortable: false,
       minWidth: 250,
@@ -348,7 +350,7 @@ const KeeperDiaryReport = () => {
     },
     {
       field: 'details',
-      headerName: 'Details',
+      headerName: t('details'),
       sortable: false,
       flex: 2,
       minWidth: 350,
@@ -378,7 +380,7 @@ const KeeperDiaryReport = () => {
     },
     {
       field: 'sex',
-      headerName: 'Sex',
+      headerName: t('compliance_module.sex'),
       sortable: false,
       flex: 0.5,
       minWidth: 160,
@@ -397,7 +399,7 @@ const KeeperDiaryReport = () => {
     },
     {
       field: 'taxonomy',
-      headerName: 'Taxonomy',
+      headerName: t('compliance_module.taxonomy'),
       sortable: false,
       flex: 1,
       minWidth: 160,
@@ -420,7 +422,7 @@ const KeeperDiaryReport = () => {
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
-      Keeper's Diary Report
+      {t('compliance_module.keeper_diary_report')}
     </Typography>
   )
 
@@ -512,7 +514,7 @@ const KeeperDiaryReport = () => {
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label='Observation Type'
+                    label={t('compliance_module.observation_type')}
                     placeholder='Search & Select'
                     sx={{
                       width: '100%',
@@ -612,7 +614,7 @@ const KeeperDiaryReport = () => {
                 renderInput={params => (
                   <TextField
                     {...params}
-                    label='Sub-Observation Types'
+                    label={t('compliance_module.sub_observation_types')}
                     placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
                     sx={{
                       width: '100%',
@@ -697,9 +699,9 @@ const KeeperDiaryReport = () => {
         <Card sx={{ p: 6 }}>
           <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
           <ReportCard
-            subtitle='No Keeper selected'
-            description=' Select any keeper to view report'
-            buttonText='SELECT KEEPER'
+            subtitle={t('compliance_module.no_keeper_selected')}
+            description={t('compliance_module.select_any_keeper_to_view_report')}
+            buttonText={t('compliance_module.select_keeper')}
             addHandler={eventHandler}
           />
         </Card>
@@ -711,7 +713,7 @@ const KeeperDiaryReport = () => {
           onClose={handleClose}
           setUserDetail={handleUserSelect}
           placeholder='Search by Keeper name'
-          title='Keepers'
+          title={t('compliance_module.keepers')}
         />
       )}
     </>

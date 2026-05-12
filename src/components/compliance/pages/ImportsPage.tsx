@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useEffect } from 'react'
 import { Badge, Box, Breadcrumbs, Button, Card, CardHeader, Grid, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/navigation'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
@@ -28,6 +29,7 @@ interface FilterDate {
 }
 
 const ImportsPage = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const [rows, setRows] = useState<Record<string, unknown>[]>([])
   const [total, setTotal] = useState<number>(0)
@@ -109,7 +111,7 @@ const ImportsPage = () => {
       )
       setTotal((res.data as any)?.count || res.data?.total_count || 0)
     } catch (error) {
-      Toaster({ type: 'error', message: 'Failed to fetch export permits' })
+      Toaster({ type: 'error', message: t('compliance_module.failed_to_fetch_export_permits') })
     }
     setLoading(false)
   }, [searchValue, paginationModel, sortModel, filterDate, selectedOptions])
@@ -149,13 +151,13 @@ const ImportsPage = () => {
       const fileUrl = res?.data
       if (fileUrl) {
         Utility.downloadFileFromURL(fileUrl, `Imports Report`)
-        Toaster({ type: 'success', message: res?.message || 'Report downloaded successfully!' })
+        Toaster({ type: 'success', message: res?.message || t('compliance_module.failed_to_download_the_report') })
       } else {
-        Toaster({ type: 'error', message: 'File URL not found in response' })
+        Toaster({ type: 'error', message: t('compliance_module.file_url_not_found_in_response') })
       }
     } catch (error) {
       console.error('Error exporting report:', error)
-      Toaster({ type: 'error', message: 'Failed to download the report' })
+      Toaster({ type: 'error', message: t('compliance_module.failed_to_download_the_report') })
     } finally {
       setExportLoading(false)
     }
@@ -187,7 +189,7 @@ const ImportsPage = () => {
       flex: 0.01,
       minWidth: 100,
       field: 'uid',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {params.value}
@@ -198,7 +200,7 @@ const ImportsPage = () => {
       flex: 0.12,
       minWidth: 300,
       field: 'import_number',
-      headerName: 'Import ID',
+      headerName: t('compliance_module.import_id'),
       renderCell: params => {
         return (
           <Typography
@@ -217,7 +219,7 @@ const ImportsPage = () => {
       flex: 0.15,
       minWidth: 150,
       field: 'import_date',
-      headerName: 'Issued',
+      headerName: t('compliance_module.issued'),
       renderCell: params => (
         <Typography sx={{ px: 0, width: '100%' }}>
           {moment(params?.value, 'YYYY-MM-DD', true).isValid() ? moment(params?.value).format('DD MMM YYYY') : '-'}
@@ -228,7 +230,7 @@ const ImportsPage = () => {
       flex: 0.08,
       minWidth: 100,
       field: 'exports_count',
-      headerName: 'EXPORTS',
+      headerName: t('compliance_module.exports'),
       renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
     },
 
@@ -236,28 +238,28 @@ const ImportsPage = () => {
       flex: 0.08,
       minWidth: 100,
       field: 'species_count',
-      headerName: 'SPECIES',
+      headerName: t('compliance_module.species'),
       renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.08,
       minWidth: 100,
       field: 'animals_count',
-      headerName: 'ANIMALS',
+      headerName: t('animals'),
       renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 120,
       field: 'documents_count',
-      headerName: 'DOCUMENTS',
+      headerName: t('documents'),
       renderCell: params => <Typography sx={{ width: '100%', pl: 4 }}>{params.value}</Typography>
     },
     {
       flex: 0.3,
       minWidth: 180,
       field: 'created_by_user_name',
-      headerName: 'Created By',
+      headerName: t('created_by'),
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.created_by_user_name ? (
@@ -274,7 +276,7 @@ const ImportsPage = () => {
       flex: 0.3,
       minWidth: 180,
       field: 'updated_by_user_name',
-      headerName: 'Updated By',
+      headerName: t('updated_by'),
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.updated_by_user_name ? (
@@ -294,15 +296,19 @@ const ImportsPage = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Imports</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('documents')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>{t('compliance_module.imports')}</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Import Documents</Typography>}
+          title={
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>
+              {t('compliance_module.import_documents')}
+            </Typography>
+          }
           action={
             <AddButtonContained
-              title='Add New'
+              title={t('add_new')}
               action={() => router.push('/compliance/documents/imports/AddEditImport')}
               disabled={false}
               styles={{}}
@@ -333,7 +339,12 @@ const ImportsPage = () => {
                   onChange={(s: string, e: string) => setFilterDate({ startDate: s, endDate: e })}
                 />
               </Box>
-              <ExportButton loading={exportLoading} tooltip='Download Report' onClick={handleExport} bgcolor={undefined} />
+              <ExportButton
+                loading={exportLoading}
+                tooltip='Download Report'
+                onClick={handleExport}
+                bgcolor={undefined}
+              />
               <Button
                 variant='outlined'
                 sx={{
@@ -357,7 +368,7 @@ const ImportsPage = () => {
                 }
                 onClick={handleFilterDrawerOpen}
               >
-                Filter
+                {t('filter')}
               </Button>
             </Box>
           </Box>

@@ -6,7 +6,7 @@ import * as yup from 'yup'
 import ExportPermitDetails from './ExportPermitDetails'
 import ExportPermitAnimals from './ExportPermitAnimals'
 import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { addExport, getMastersData, updateExport } from 'src/lib/api/compliance/exports'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
@@ -14,167 +14,183 @@ import { LoadingButton } from '@mui/lab'
 import countryList from 'react-select-country-list'
 import { useMemo } from 'react'
 import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
-import type { ExportPermitFormProps, ExportPermitFormValues, ExportSpeciesFormItem, SelectOption, Species, Id } from 'src/types/compliance'
+import type {
+  ExportPermitFormProps,
+  ExportPermitFormValues,
+  ExportSpeciesFormItem,
+  SelectOption,
+  Species,
+  Id
+} from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 
-export const exportPermitValidationSchema = yup.object().shape({
-  export_number: yup.string().required('Export number is required'),
+export const getExportPermitValidationSchema = (t: TFunction) =>
+  yup.object().shape({
+    export_number: yup.string().required(t('compliance_module.export_number_is_required')),
 
-  issued_date: yup.date().required('Issued date is required'),
+    issued_date: yup.date().required(t('compliance_module.issued_date_is_required')),
 
-  valid_until: yup
-    .date()
-    .typeError('Must be a valid date')
-    .required('Last date of validity is required')
-    .min(yup.ref('issued_date'), 'Valid until date must be after issued date'),
+    valid_until: yup
+      .date()
+      .typeError(t('compliance_module.please_enter_a_valid_date'))
+      .required(t('compliance_module.last_date_of_validity_is_required'))
+      .min(yup.ref('issued_date'), t('compliance_module.valid_until_date_must_be_after_issued_date')),
 
-  origin_country: yup
-    .object()
-    .shape({
-      label: yup.string().required('Origin country is required'),
-      value: yup.string().required('Origin country is required')
-    })
-    .required('Origin country is required'),
-
-  exporting_country: yup
-    .object()
-    .shape({
-      label: yup.string().required('Exporting country is required'),
-      value: yup.string().required('Exporting country is required')
-    })
-    .required('Exporting country is required'),
-
-  importer_name: yup
-    .object()
-    .shape({
-      label: yup.string().required('Importer name is required'),
-      value: yup.string().required('Importer name is required')
-    })
-    .required('Importer name is required'),
-
-  exporter_name: yup
-    .object()
-    .shape({
-      label: yup.string().required('Exporter name is required'),
-      value: yup.string().required('Exporter name is required')
-    })
-    .required('Exporter name is required'),
-
-  export_purpose: yup.string().required('Export purpose is required').min(1, 'Export purpose is required'),
-
-  // certificate_file: yup
-  //   .mixed()
-  //   .required('File is required')
-  //   .test('fileType', 'Unsupported file format', value => {
-  //     if (!value) return true
-
-  //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
-  //   }),
-
-  // certificate_file: yup
-  //   .mixed()
-  //   .nullable()
-  //   .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
-  //     if (!value) return true // File is optional
-
-  //     // If it's a File object (new upload)
-  //     if (value instanceof File) {
-  //       const allowedTypes = [
-  //         // 'application/pdf',
-  //         'image/jpeg',
-  //         'image/png',
-  //         'application/msword',
-  //         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-  //       ]
-
-  //       return allowedTypes.includes(value.type)
-  //     }
-
-  //     // If it's an existing file object (from edit)
-  //     if (value.name) {
-  //       const extension = value.name.split('.').pop().toLowerCase()
-  //       const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
-
-  //       return allowedExtensions.includes(extension)
-  //     }
-
-  //     return true
-  //   }),
-  speciesList: yup
-    .array()
-    .min(1, 'At least one species must be selected')
-    .required('At least one species must be selected')
-    .of(
-      yup.object().shape({
-        species: yup.object().required(),
-        appendix: yup
-          .object()
-          .shape({
-            label: yup.string().required('Appendix is required'),
-            value: yup.string().required('Appendix is required')
-          })
-          .required('Appendix is required'),
-        male_count: yup
-          .number()
-          .transform((value, originalValue) => (originalValue === '' ? 0 : value))
-          .min(0, 'Must be 0 or more')
-          .required(),
-        female_count: yup
-          .number()
-          .transform((value, originalValue) => (originalValue === '' ? 0 : value))
-          .min(0, 'Must be 0 or more')
-          .required(),
-        undeterminate_count: yup
-          .number()
-          .transform((value, originalValue) => (originalValue === '' ? 0 : value))
-          .min(0, 'Must be 0 or more')
-          .required(),
-        total_count: yup.number().min(1, 'Total count must be at least 1').required(),
-        animalDetails: yup
-          .array()
-          .of(
-            yup.object().shape({
-              gender: yup
-                .object()
-                .shape({
-                  label: yup.string().required('Gender is required'),
-                  value: yup.string().required('Gender is required')
-                })
-                .required('Gender is required'),
-
-              // identifier_type: yup
-              //   .object()
-              //   .shape({
-              //     label: yup.string().required('Identifier type is required'),
-              //     value: yup.string().required('Identifier type is required')
-              //   })
-              //   .required('Identifier type is required')
-
-              // identifier_value: yup.string().required('Identifier value is required')
-
-              // animal_type: yup.string().required('Animal type is required'),
-              // animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
-            })
-          )
-          .test(
-            'count-match',
-            'Total animal details count must less than or equals to the sum of male, female and undetermined counts',
-            function (animalDetails) {
-              const { male_count = 0, female_count = 0, undeterminate_count = 0 } = this.parent
-              const totalCount = male_count + female_count + undeterminate_count
-              console.log('totalCount', totalCount)
-
-              const animalDetailsCount =
-                animalDetails?.reduce((sum, detail) => sum + (parseInt((detail as any).animal_count) || 0), 0) || 0
-
-              return animalDetailsCount <= totalCount
-            }
-          )
+    origin_country: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.origin_country_is_required')),
+        value: yup.string().required(t('compliance_module.origin_country_is_required'))
       })
-    )
-})
+      .required(t('compliance_module.origin_country_is_required')),
+
+    exporting_country: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.exporting_country_is_required')),
+        value: yup.string().required(t('compliance_module.exporting_country_is_required'))
+      })
+      .required(t('compliance_module.exporting_country_is_required')),
+
+    importer_name: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.importer_name_is_required')),
+        value: yup.string().required(t('compliance_module.importer_name_is_required'))
+      })
+      .required(t('compliance_module.importer_name_is_required')),
+
+    exporter_name: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.exporter_name_is_required')),
+        value: yup.string().required(t('compliance_module.exporter_name_is_required'))
+      })
+      .required(t('compliance_module.exporter_name_is_required')),
+
+    export_purpose: yup
+      .string()
+      .required(t('compliance_module.export_purpose_is_required'))
+      .min(1, t('compliance_module.export_purpose_is_required')),
+
+    // certificate_file: yup
+    //   .mixed()
+    //   .required('File is required')
+    //   .test('fileType', 'Unsupported file format', value => {
+    //     if (!value) return true
+
+    //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
+    //   }),
+
+    // certificate_file: yup
+    //   .mixed()
+    //   .nullable()
+    //   .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
+    //     if (!value) return true // File is optional
+
+    //     // If it's a File object (new upload)
+    //     if (value instanceof File) {
+    //       const allowedTypes = [
+    //         // 'application/pdf',
+    //         'image/jpeg',
+    //         'image/png',
+    //         'application/msword',
+    //         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    //       ]
+
+    //       return allowedTypes.includes(value.type)
+    //     }
+
+    //     // If it's an existing file object (from edit)
+    //     if (value.name) {
+    //       const extension = value.name.split('.').pop().toLowerCase()
+    //       const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
+
+    //       return allowedExtensions.includes(extension)
+    //     }
+
+    //     return true
+    //   }),
+    speciesList: yup
+      .array()
+      .min(1, t('compliance_module.at_least_one_species_must_be_selected_to_proceed_with_the_form_submission'))
+      .required(t('compliance_module.at_least_one_species_must_be_selected_to_proceed_with_the_form_submission'))
+      .of(
+        yup.object().shape({
+          species: yup.object().required(),
+          appendix: yup
+            .object()
+            .shape({
+              label: yup.string().required(t('compliance_module.appendix_is_required')),
+              value: yup.string().required(t('compliance_module.appendix_is_required'))
+            })
+            .required(t('compliance_module.appendix_is_required')),
+          male_count: yup
+            .number()
+            .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+            .min(0, t('compliance_module.must_be_0_or_more'))
+            .required(),
+          female_count: yup
+            .number()
+            .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+            .min(0, t('compliance_module.must_be_0_or_more'))
+            .required(),
+          undeterminate_count: yup
+            .number()
+            .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+            .min(0, t('compliance_module.must_be_0_or_more'))
+            .required(),
+          total_count: yup.number().min(1, t('compliance_module.total_count_must_be_at_least_1')).required(),
+          animalDetails: yup
+            .array()
+            .of(
+              yup.object().shape({
+                gender: yup
+                  .object()
+                  .shape({
+                    label: yup.string().required(t('compliance_module.gender_is_required')),
+                    value: yup.string().required(t('compliance_module.gender_is_required'))
+                  })
+                  .required(t('compliance_module.gender_is_required'))
+
+                // identifier_type: yup
+                //   .object()
+                //   .shape({
+                //     label: yup.string().required('Identifier type is required'),
+                //     value: yup.string().required('Identifier type is required')
+                //   })
+                //   .required('Identifier type is required')
+
+                // identifier_value: yup.string().required('Identifier value is required')
+
+                // animal_type: yup.string().required('Animal type is required'),
+                // animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
+              })
+            )
+            .test(
+              'count-match',
+              t('compliance_module.total_animal_details_count_must_not_exceed_gender_counts'),
+              function (animalDetails) {
+                const { male_count = 0, female_count = 0, undeterminate_count = 0 } = this.parent
+                const totalCount = male_count + female_count + undeterminate_count
+                console.log('totalCount', totalCount)
+
+                const animalDetailsCount =
+                  animalDetails?.reduce((sum, detail) => sum + (parseInt((detail as any).animal_count) || 0), 0) || 0
+
+                return animalDetailsCount <= totalCount
+              }
+            )
+        })
+      )
+  })
 
 const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitFormProps) => {
-  const router = useSafeRouter()
+  const { t } = useTranslation()
+  const exportPermitValidationSchema = useMemo(() => getExportPermitValidationSchema(t), [t])
+
+  const router = useRouter()
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState<boolean>(false)
   const [speciesList, setSpeciesList] = useState<ExportSpeciesFormItem[]>([])
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
@@ -288,38 +304,40 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitF
       )
 
       // Transform species data
-      const transformedSpeciesList: ExportSpeciesFormItem[] = ((exportData.species || []) as any[]).map((species: any) => ({
-        id: species.id,
-        tsn_id: species.id,
-        species: {
+      const transformedSpeciesList: ExportSpeciesFormItem[] = ((exportData.species || []) as any[]).map(
+        (species: any) => ({
           id: species.id,
-          tsn_id: species.taxonomy_id,
-          common_name: species.common_name,
-          export_species_id: species.id,
-          scientific_name: species.scientific_name
-        },
-        male_count: parseInt(String(species.male_count)) || 0,
-        female_count: parseInt(String(species.female_count)) || 0,
-        undeterminate_count: parseInt(String(species.undeterminate_count)) || 0,
-        total_count: parseInt(String(species.total_count)) || 0,
-        appendix: { label: species.appendix, value: species.appendix },
-        animalDetails: (species.animals || []).map((animal: any) => ({
-          id: animal.id,
-          export_animal_id: animal?.id,
-          export_species_id: animal?.export_species_id,
-          animal_type: animal.animal_type,
-          animal_count: parseInt(String(animal.animal_count)) || 0,
-          gender: {
-            label: animal.gender ? animal.gender.charAt(0).toUpperCase() + animal.gender.slice(1) : '',
-            value: animal.gender
+          tsn_id: species.id,
+          species: {
+            id: species.id,
+            tsn_id: species.taxonomy_id,
+            common_name: species.common_name,
+            export_species_id: species.id,
+            scientific_name: species.scientific_name
           },
-          identifier_type: {
-            label: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || '',
-            value: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || null
-          },
-          identifier_value: animal.identifier_value
-        }))
-      }))
+          male_count: parseInt(String(species.male_count)) || 0,
+          female_count: parseInt(String(species.female_count)) || 0,
+          undeterminate_count: parseInt(String(species.undeterminate_count)) || 0,
+          total_count: parseInt(String(species.total_count)) || 0,
+          appendix: { label: species.appendix, value: species.appendix },
+          animalDetails: (species.animals || []).map((animal: any) => ({
+            id: animal.id,
+            export_animal_id: animal?.id,
+            export_species_id: animal?.export_species_id,
+            animal_type: animal.animal_type,
+            animal_count: parseInt(String(animal.animal_count)) || 0,
+            gender: {
+              label: animal.gender ? animal.gender.charAt(0).toUpperCase() + animal.gender.slice(1) : '',
+              value: animal.gender
+            },
+            identifier_type: {
+              label: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || '',
+              value: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || null
+            },
+            identifier_value: animal.identifier_value
+          }))
+        })
+      )
 
       setSpeciesList(transformedSpeciesList)
       setValue('speciesList', transformedSpeciesList)
@@ -517,7 +535,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitF
         onClose={() => setSpeciesDrawerOpen(false)}
         onSelect={handleSpeciesSelect}
         selectedSpecies={speciesList?.map(item => item.species)}
-        title='Select Species'
+        title={t('compliance_module.select_species')}
         data={{
           queryKey: 'export-permit-species',
           id: 'species-list',
@@ -527,7 +545,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitF
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
         <Button variant='outlined' type='reset' disabled={disableSaveButton}>
-          Reset
+          {t('reset')}
         </Button>
         <LoadingButton
           type='submit'
@@ -537,7 +555,7 @@ const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitF
           sx={{ py: 3, width: '8rem' }}
           fullWidth
         >
-          {id ? 'Update' : 'Save'}
+          {id ? t('update') : t('save')}
         </LoadingButton>
       </Box>
     </Box>

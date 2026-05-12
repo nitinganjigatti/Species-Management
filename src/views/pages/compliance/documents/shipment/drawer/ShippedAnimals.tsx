@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Typography, Box, Drawer, IconButton, Paper, Chip, Avatar, Button, Divider, alpha } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import CloseIcon from '@mui/icons-material/Close'
 import AnimalIdentifiers from '../shipment-view/AnimalsIdentifier'
 
@@ -44,27 +45,31 @@ interface ShippedAnimalsDrawerProps {
 }
 
 const SpeciesDetails = ({ selectedExportData }: SpeciesDetailsProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
-
 
   // Flatten all species from all exports
   //const allSpecies = selectedExportData?.export?.flatMap(exportItem => exportItem.species || []) || []
   const allSpecies: SpeciesData[] = [
     ...(selectedExportData?.export?.flatMap(exportItem => exportItem.species || []) || []),
     ...(selectedExportData?.others?.flatMap(otherItem => {
-      const specArr = Array.isArray(otherItem.species) ? otherItem.species : otherItem.species ? [otherItem.species] : []
+      const specArr = Array.isArray(otherItem.species)
+        ? otherItem.species
+        : otherItem.species
+        ? [otherItem.species]
+        : []
 
-return specArr
+      return specArr
     }) || [])
   ]
 
-return (
+  return (
     <Box>
       <Typography
         fontWeight={500}
         sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', mb: 3, mt: 4 }}
       >
-        Species ({allSpecies?.length})
+        {t('species')} ({allSpecies?.length})
       </Typography>
 
       {allSpecies?.map((species, index) => (
@@ -118,8 +123,8 @@ return (
                     (Number(species?.female_count) || 0) +
                     (Number(species?.undeterminate_count) || 0) ===
                   1
-                    ? 'Animal'
-                    : 'Animals'}
+                    ? t('animal')
+                    : t('animals')}
                 </span>
               </Typography>
             </Box>
@@ -170,10 +175,11 @@ return (
 }
 
 const ShippedAnimalsDrawer = ({ open, onClose, title, identifiers, selectedExportData }: ShippedAnimalsDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [tab, setTab] = useState<number>(0)
 
-return (
+  return (
     <Drawer open={open} anchor='right'>
       <Box
         sx={{
@@ -217,7 +223,7 @@ return (
                 }
               }}
             >
-              Species Details
+              {t('compliance_module.species_details')}
             </Button>
             <Button
               variant={tab === 1 ? 'contained' : 'text'}
@@ -236,7 +242,7 @@ return (
                 }
               }}
             >
-              Animals with Identifier
+              {t('compliance_module.animals_with_identifier')}
             </Button>
           </Box>
 

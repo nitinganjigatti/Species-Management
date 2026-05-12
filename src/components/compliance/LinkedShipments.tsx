@@ -5,8 +5,10 @@ import ShippedAnimalsDrawer from 'src/components/compliance/drawer/ShippedAnimal
 import Utility from 'src/utility'
 import type { LinkedShipmentsProps } from 'src/types/compliance'
 import type { Shipment } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedExportData }: LinkedShipmentsProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null)
@@ -38,7 +40,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
         }}
       >
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
-          No Linked Shipments
+          {t('compliance_module.no_linked_shipments')}
         </Typography>
       </Box>
     )
@@ -49,7 +51,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
       <Typography
         sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1.25rem', mb: 6 }}
       >
-        Total Shipped: {totalShipped}/{totalAllowed} Animals
+        {t('compliance_module.total_shipped')}: {totalShipped}/{totalAllowed} {t('animals')}
       </Typography>
       {shipments.map((shipment, index) => (
         <Box
@@ -75,7 +77,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
           >
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1, fontSize: '0.875rem' }}>
-                Shipment ID
+                {t('compliance_module.shipment_id')}
               </Typography>
               <Typography
                 sx={{
@@ -99,7 +101,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1, fontSize: '0.875rem' }}>
-                Shipment Date
+                {t('compliance_module.shipment_date')}
               </Typography>
               <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
                 {Utility.formatDisplayDate(shipment?.shipment_date) || ''}
@@ -120,7 +122,8 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
             }}
           >
             <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.Antz_Minor_Medium }}>
-              Shipped Animals: {shipment?.total_shipped_animals || shipment?.total_animals} / {totalAllowed}
+              {t('compliance_module.shipped_animals')}: {shipment?.total_shipped_animals || shipment?.total_animals} /{' '}
+              {totalAllowed}
             </Typography>
             {shipment?.file_original_name && shipment?.file_path && (
               <a
@@ -171,7 +174,9 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
                     justifyContent: 'flex-start'
                   }}
                 >
-                  <span>Count: {specie?.total_count || 0}</span>
+                  <span>
+                    {t('count')}: {specie?.total_count || 0}
+                  </span>
                   {specie?.male_count ? (
                     <Chip
                       label={`M - ${specie?.male_count}`}
@@ -224,7 +229,7 @@ const LinkedShipments = ({ shipments = [], totalShipped, totalAllowed, selectedE
         selectedExportData={selectedExportData}
       />
     </Box>
-  );
+  )
 }
 
 export default LinkedShipments

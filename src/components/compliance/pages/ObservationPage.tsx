@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import {
   Autocomplete,
   Box,
@@ -62,6 +63,7 @@ interface ObservationOption {
 }
 
 const ObservationReport = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -97,8 +99,7 @@ const ObservationReport = () => {
   const [animalLoader, setAnimalLoader] = useState<boolean>(false)
 
   const [filterDates, setFilterDates] = useState<{ startDate: string; endDate: string }>({
-    startDate:
-      searchParams?.get('startDate') || Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+    startDate: searchParams?.get('startDate') || Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: searchParams?.get('endDate') || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
@@ -181,7 +182,7 @@ const ObservationReport = () => {
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
-      Observation Report
+      {t('compliance_module.observation_report')}
     </Typography>
   )
 
@@ -265,7 +266,7 @@ const ObservationReport = () => {
     {
       width: 90,
       field: 'id',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -288,7 +289,7 @@ const ObservationReport = () => {
       minWidth: 20,
       width: 160,
       field: 'date',
-      headerName: 'DATE',
+      headerName: t('date'),
       sortable: false,
       renderCell: params => (
         <Typography
@@ -308,7 +309,7 @@ const ObservationReport = () => {
       minWidth: 20,
       width: 300,
       field: 'master_enrichment_type',
-      headerName: 'Observation Type',
+      headerName: t('compliance_module.observation_type'),
       sortable: false,
       renderCell: params => (
         <>
@@ -325,7 +326,7 @@ const ObservationReport = () => {
       minWidth: 20,
       width: 350,
       field: 'details',
-      headerName: 'Details',
+      headerName: t('details'),
       sortable: false,
       renderCell: params => (
         <>
@@ -355,7 +356,7 @@ const ObservationReport = () => {
       minWidth: 250,
       field: 'reported_by',
       sortable: false,
-      headerName: 'Reported By ',
+      headerName: t('compliance_module.reported_by'),
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -531,12 +532,8 @@ const ObservationReport = () => {
                         const itemObj = item as Record<string, unknown>
 
                         return {
-                          id: String(
-                            itemObj?.id ?? itemObj?.value ?? itemObj?.key ?? itemObj?.type_name ?? ''
-                          ),
-                          type_name: String(
-                            itemObj?.type_name || itemObj?.name || itemObj?.label || itemObj?.key || ''
-                          )
+                          id: String(itemObj?.id ?? itemObj?.value ?? itemObj?.key ?? itemObj?.type_name ?? ''),
+                          type_name: String(itemObj?.type_name || itemObj?.name || itemObj?.label || itemObj?.key || '')
                         }
                       })
                       .filter((item: ObservationOption) => item.type_name)
@@ -549,7 +546,7 @@ const ObservationReport = () => {
                   renderInput={params => (
                     <TextField
                       {...params}
-                      label='Observation Type'
+                      label={t('compliance_module.observation_type')}
                       placeholder='Search & Select'
                       sx={{
                         width: '100%',
@@ -644,7 +641,7 @@ const ObservationReport = () => {
                   renderInput={params => (
                     <TextField
                       {...params}
-                      label='Sub-Observation Types'
+                      label={t('compliance_module.sub_observation_types')}
                       placeholder={selectedSubObservations.length ? '' : 'Search & Select'}
                       sx={{
                         width: '100%',
@@ -736,9 +733,9 @@ const ObservationReport = () => {
           <Card sx={{ p: 6 }}>
             <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
             <ReportCard
-              subtitle='No Animal Selected'
-              description='Select any animal to view its observation report'
-              buttonText='SELECT ANIMAL'
+              subtitle={t('compliance_module.no_animal_selected_title')}
+              description={t('compliance_module.select_any_animal_to_view_observation_report')}
+              buttonText={t('compliance_module.select_animal')}
               addHandler={reportCardEventHandler}
             />
           </Card>

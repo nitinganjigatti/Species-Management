@@ -7,6 +7,7 @@ import DocumentTypeForm, { useDocumentTypeForm } from './DocumentTypeForm'
 import { useEffect } from 'react'
 import { useTheme } from '@mui/material/styles'
 import type { TradeContextType, Id } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface DocumentTypeFormValues {
   name: string
@@ -50,6 +51,7 @@ const AddEditDocumentType = ({
     reset
   } = useDocumentTypeForm(defaultValues)
 
+  const { t } = useTranslation()
   const theme = useTheme()
 
   useEffect(() => {
@@ -81,7 +83,9 @@ const AddEditDocumentType = ({
         className='sidebar-header'
         sx={{ p: 4, display: 'flex', justifyContent: 'space-between', bgcolor: theme.palette.customColors.Background }}
       >
-        <Typography variant='h6'>{editId ? 'Edit Document Type' : 'Add Document Type'}</Typography>
+        <Typography variant='h6'>
+          {editId ? t('compliance_module.edit_document_type') : t('compliance_module.add_document_type')}
+        </Typography>
         <IconButton size='small' onClick={handleClose}>
           <Icon icon='mdi:close' />
         </IconButton>

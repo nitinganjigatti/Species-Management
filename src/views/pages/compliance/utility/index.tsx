@@ -2,6 +2,7 @@ import { useTheme } from '@emotion/react'
 import { CircularProgress, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import type { DownloadReportProps } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 export const DownloadReport = ({
   isDownloading,
@@ -13,6 +14,7 @@ export const DownloadReport = ({
   imgAlt = 'download icon',
   imgStyle
 }: DownloadReportProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   return (
@@ -22,7 +24,7 @@ export const DownloadReport = ({
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <CircularProgress size={24} />
             <Typography sx={{ ml: 2, color: (theme as any).palette.primary.dark, fontSize: '16px' }}>
-              {customDownloadingText}
+              {customDownloadingText || t('compliance_module.preparing_download')}
             </Typography>
           </Box>
         ) : (
@@ -38,7 +40,7 @@ export const DownloadReport = ({
               cursor: 'pointer'
             }}
           >
-            {customeMainText}
+            {customeMainText || t('compliance_module.download_report')}
             <img src={imgSrc} alt={imgAlt} style={{ marginLeft: 8, width: 24, height: 24, ...imgStyle }} />
           </Typography>
         )}

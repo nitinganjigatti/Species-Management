@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import Icon from 'src/@core/components/icon'
 import type { ExportPermit } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface DraftData {
   export: ExportPermit[]
@@ -18,13 +19,18 @@ interface SelectedExportDrawerProps {
   setDraftData: React.Dispatch<React.SetStateAction<DraftData>>
 }
 
-const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, draftData, setDraftData }: SelectedExportDrawerProps) => {
+const SelectedExportDrawer = ({
+  selectedSidebarOpen,
+  setSelectedSidebarOpen,
+  draftData,
+  setDraftData
+}: SelectedExportDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   return (
     <Drawer
       open={selectedSidebarOpen}
-
       //onClose={() => setSelectedSidebarOpen(false)}
       anchor='right'
       sx={{
@@ -52,7 +58,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
       >
         <Box display='flex' justifyContent='space-between' alignItems='center' mb={4}>
           <Typography sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-            Selected Exports ({draftData?.export?.length})
+            {t('compliance_module.selected_exports')} ({draftData?.export?.length})
           </Typography>
           <IconButton onClick={() => setSelectedSidebarOpen(false)}>
             <CloseIcon />
@@ -97,7 +103,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
                 <Typography
                   sx={{ fontWeight: 400, mb: 0.5, color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
                 >
-                  Export ID :{' '}
+                  {t('compliance_module.export_id_label')}{' '}
                   <Box
                     component='span'
                     fontWeight='500'
@@ -109,7 +115,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
                 <Typography
                   sx={{ fontWeight: 400, mb: 0.5, color: theme.palette.customColors.secondaryBg, fontSize: '14px' }}
                 >
-                  Exporter :{' '}
+                  {t('compliance_module.exporter')} :{' '}
                   <Box
                     component='span'
                     fontWeight='500'
@@ -132,7 +138,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Species {item.species?.length || 0}
+                    {t('species')} {item.species?.length || 0}
                   </Box>
                   <Box
                     sx={{
@@ -146,7 +152,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Animals {item.species?.reduce((sum, s) => sum + Number(s.total_count || 0), 0)}
+                    {t('animals')} {item.species?.reduce((sum, s) => sum + Number(s.total_count || 0), 0)}
                   </Box>
                 </Box>
               </Box>
@@ -161,7 +167,7 @@ const SelectedExportDrawer = ({ selectedSidebarOpen, setSelectedSidebarOpen, dra
                 fontWeight: '500'
               }}
             >
-              No Exports to show
+              {t('compliance_module.no_exports_to_show')}
             </Typography>
           )}
         </Box>

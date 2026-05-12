@@ -14,6 +14,7 @@ import TuneRoundedIcon from '@mui/icons-material/TuneRounded'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
 import Toaster from 'src/components/Toaster'
+import { useTranslation } from 'react-i18next'
 import { GridColDef, GridSortModel } from '@mui/x-data-grid'
 
 interface SpeciesFilters {
@@ -32,6 +33,7 @@ interface SelectedOptions {
 }
 
 const Species = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -180,7 +182,7 @@ const Species = () => {
     {
       width: 100,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       align: 'left',
       headerAlign: 'left',
       sortable: false,
@@ -209,7 +211,7 @@ const Species = () => {
     },
     {
       field: 'common_name',
-      headerName: 'SPECIES',
+      headerName: t('compliance_module.species'),
       width: 350,
       align: 'left',
       headerAlign: 'left',
@@ -230,7 +232,7 @@ const Species = () => {
     },
     {
       field: 'total_shipments',
-      headerName: 'SHIPMENTS',
+      headerName: t('compliance_module.shipments'),
       width: 200,
       align: 'left',
       headerAlign: 'left',
@@ -250,7 +252,7 @@ const Species = () => {
     },
     {
       field: 'total_exports',
-      headerName: 'EXPORTS',
+      headerName: t('compliance_module.exports'),
       width: 200,
       align: 'left',
       headerAlign: 'left',
@@ -270,7 +272,7 @@ const Species = () => {
     },
     {
       field: 'total_animals_permitted',
-      headerName: 'PERMITTED ANIMALS',
+      headerName: t('compliance_module.permitted_animals'),
       width: 200,
       align: 'left',
       headerAlign: 'left',
@@ -290,7 +292,7 @@ const Species = () => {
     },
     {
       field: 'total_animals_received',
-      headerName: 'RECEIVED ANIMALS',
+      headerName: t('compliance_module.received_animals'),
       width: 200,
       align: 'left',
       headerAlign: 'left',
@@ -343,7 +345,7 @@ const Species = () => {
 
   const headerTitle = (
     <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.customTextColorGray2 }}>
-      Species
+      {t('compliance_module.species')}
     </Typography>
   )
 
@@ -354,17 +356,25 @@ const Species = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Compliance</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Species</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('compliance_module.compliance')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('compliance_module.species')}</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader title={headerTitle} />
         <CardContent>
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Search value={searchValue} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)} />
+              <Search
+                value={searchValue}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+              />
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 2 }}>
-                <ExportButton loading={exportLoading} tooltip='Download Report' onClick={handleExport} bgcolor={undefined} />
+                <ExportButton
+                  loading={exportLoading}
+                  tooltip='Download Report'
+                  onClick={handleExport}
+                  bgcolor={undefined}
+                />
                 <Button
                   variant='outlined'
                   sx={{
@@ -388,7 +398,7 @@ const Species = () => {
                   }
                   onClick={() => setOpenFilter(true)}
                 >
-                  Filter
+                  {t('filter')}
                 </Button>
               </Box>
             </Box>

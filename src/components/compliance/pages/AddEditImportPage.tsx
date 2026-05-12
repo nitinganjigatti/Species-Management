@@ -13,8 +13,10 @@ import { getLinkedDocumentsImports } from 'src/lib/api/compliance/imports'
 import { useTheme } from '@mui/material/styles'
 import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import { DocumentType } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const AddEditImport = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const id = searchParams?.get('id')
@@ -58,10 +60,10 @@ const AddEditImport = () => {
         setDocumentList((res.data?.items || []) as DocumentType[])
         setTotalCount(res.data?.total || 0)
       } else {
-        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+        Toaster({ type: 'error', message: res.message || t('compliance_module.failed_to_fetch_export_details') })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'Error fetching export details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_export_details') })
     } finally {
       setIsFetching(false)
     }
@@ -99,7 +101,7 @@ const AddEditImport = () => {
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (e) {
-      Toaster({ type: 'error', message: 'Error fetching shipment basic details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_shipment_basic_details') })
     }
   }
 
@@ -107,10 +109,11 @@ const AddEditImport = () => {
 
   // Accordion toggle handler
   const handleAccordionChange = (panelId: string) => {
-    setExpanded(prev =>
-      prev.includes(panelId)
-        ? prev?.filter(p => p !== panelId) // Close if open
-        : [...prev, panelId] // Open if closed
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev?.filter(p => p !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
     )
   }
 
@@ -118,12 +121,16 @@ const AddEditImport = () => {
     <>
       <Box sx={{ mb: 2 }}>
         <Breadcrumbs aria-label='breadcrumb'>
-          <Typography>Import Documents</Typography>
+          <Typography>{t('compliance_module.import_documents')}</Typography>
           <Typography onClick={() => router.push('/compliance/documents/imports')} sx={{ cursor: 'pointer' }}>
-            Import
+            {t('compliance_module.import')}
           </Typography>
           <Typography color='text.primary'>
-            {action === 'edit' ? 'Edit Import ' : action === 'details' ? 'Import Details' : 'New Import'}
+            {action === 'edit'
+              ? t('compliance_module.edit_import')
+              : action === 'details'
+              ? t('compliance_module.import_details')
+              : t('compliance_module.new_import')}
           </Typography>
         </Breadcrumbs>
       </Box>
@@ -142,7 +149,11 @@ const AddEditImport = () => {
           />
           <CardHeader
             title={
-              action === 'edit' ? 'Edit Import Permit' : action === 'details' ? 'Import Details' : 'CITES Import Permit'
+              action === 'edit'
+                ? t('compliance_module.edit_import_permit')
+                : action === 'details'
+                ? t('compliance_module.import_details')
+                : t('compliance_module.cites_import_permit')
             }
             slotProps={{
               title: {
@@ -159,14 +170,16 @@ const AddEditImport = () => {
         docsCount={
           !isAnimalsEditable && !expanded.includes('animals-details') && (totalAnimals || totalSpecies) ? (
             <Typography component='span' sx={{ fontWeight: 400, color: theme.palette.customColors.OnSurfaceVariant }}>
-              <strong>{totalSpecies}</strong> Species&nbsp;|&nbsp;
-              <strong>{totalAnimals}</strong> Animals
+              <strong>{totalSpecies}</strong> {t('compliance_module.species')}&nbsp;|&nbsp;
+              <strong>{totalAnimals}</strong> {t('animals')}
             </Typography>
-          ) : (null as any)
+          ) : (
+            (null as any)
+          )
         }
         title={
           <Typography sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}>
-            Details
+            {t('details')}
           </Typography>
         }
         expanded={expanded.includes('animals-details')}
@@ -199,7 +212,7 @@ const AddEditImport = () => {
             <Typography
               sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnPrimaryContainer }}
             >
-              Supporting Documents
+              {t('compliance_module.supporting_documents')}
             </Typography>
           }
           docsCount={(totalCount ? `${uploadedFileCount}/${totalCount}` : null) as any}
@@ -226,7 +239,7 @@ const AddEditImport = () => {
               <Typography
                 sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}
               >
-                Please save form details to add supporting documents
+                {t('compliance_module.please_save_form_details_to_add_supporting_documents')}
               </Typography>
             </Box>
           ) : (
@@ -234,14 +247,14 @@ const AddEditImport = () => {
               <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
                 <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
                   <Tab
-                    label={`Completed${
+                    label={`${t('completed')}${
                       activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
                     }`}
                     value='completed'
                     sx={{ mr: 4 }}
                   />
                   <Tab
-                    label={`Pending${
+                    label={`${t('pending')}${
                       activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
                     }`}
                     value='pending'
@@ -263,7 +276,7 @@ const AddEditImport = () => {
       {id ? (
         <CustomAccordion
           id='linked-shipments'
-          title={`Linked Shipments - ${totalLinkedShipments}`}
+          title={`${t('compliance_module.linked_shipments')} - ${totalLinkedShipments}`}
           expanded={expanded.includes('linked-shipments')}
           onChange={handleAccordionChange}
           editable={false}

@@ -1,6 +1,7 @@
 import { useTheme } from '@mui/material'
 import { debounce } from 'lodash'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import countryList from 'react-select-country-list'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
@@ -16,6 +17,7 @@ const SpeciesShipmentFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }: SpeciesShipmentFilterDrawerProps) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState<string>('Exporting country')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
@@ -37,6 +39,16 @@ const SpeciesShipmentFilterDrawer = ({
 
   const leftMenu = ['Exporting country', 'Exporter', 'Importer', 'Documents']
 
+  const filterLabels = useMemo(
+    () => ({
+      'Exporting country': t('compliance_module.exporting_country'),
+      Exporter: t('compliance_module.exporter'),
+      Importer: t('compliance_module.importer'),
+      Documents: t('compliance_module.documents')
+    }),
+    [t]
+  )
+
   const theme = useTheme()
   const countryListOptions = useMemo(() => countryList().getData(), [])
 
@@ -57,7 +69,7 @@ const SpeciesShipmentFilterDrawer = ({
           case 'Exporter':
             params = { type: 'exporter' }
             if (query) params.q = query
-            const exportersRes = await getMasterImports(params) as any
+            const exportersRes = (await getMasterImports(params)) as any
             data = exportersRes.success
               ? exportersRes?.data?.data?.map((item: any) => ({
                   label: item.name,
@@ -69,7 +81,7 @@ const SpeciesShipmentFilterDrawer = ({
           case 'Importer':
             params = { type: 'importer' }
             if (query) params.q = query
-            const importersRes = await getMasterImports(params) as any
+            const importersRes = (await getMasterImports(params)) as any
             data = importersRes.success
               ? importersRes?.data?.data?.map((item: any) => ({
                   label: item.name,
@@ -83,7 +95,7 @@ const SpeciesShipmentFilterDrawer = ({
               status: 1
             }
             if (query) params.q = query
-            const documentsRes = await getDocumentTypeList(params) as any
+            const documentsRes = (await getDocumentTypeList(params)) as any
             data = documentsRes.success
               ? documentsRes?.data?.records.map((item: any) => ({
                   label: item.name,
@@ -104,7 +116,9 @@ const SpeciesShipmentFilterDrawer = ({
         console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
         Toaster({
           type: 'error',
-          message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+          message: query
+            ? t('compliance_module.failed_to_search_filter_options')
+            : t('compliance_module.failed_to_load_filter_options')
         })
       } finally {
         setSearchLoading(false)
@@ -142,11 +156,16 @@ const SpeciesShipmentFilterDrawer = ({
       // Just to show how it works with already existing data is used. If not required remove this
       // For locally available data (countries), filter immediately
       if (menuName === 'Exporting country') {
-        const filteredData = countryListOptions.filter((item: any) => item.label.toLowerCase().includes(query.toLowerCase()))
-        setMenuData(prev => ({
-          ...prev,
-          [menuName]: query ? filteredData : countryListOptions
-        }) as any)
+        const filteredData = countryListOptions.filter((item: any) =>
+          item.label.toLowerCase().includes(query.toLowerCase())
+        )
+        setMenuData(
+          prev =>
+            ({
+              ...prev,
+              [menuName]: query ? filteredData : countryListOptions
+            } as any)
+        )
 
         return
       }
@@ -240,6 +259,7 @@ const SpeciesShipmentFilterDrawer = ({
         onApply={applyFilters}
         onClearAll={handleClearAll}
         filterLists={leftMenu}
+        filterLabels={filterLabels}
         selectedOptions={selectedOptions}
         isSubmitting={onSubmitLoading}
         selectedItem={selectedMenu}
@@ -256,7 +276,7 @@ const SpeciesShipmentFilterDrawer = ({
             items={menuData['Exporting country']}
             isAllSelected={isAllSelected('Exporting country')}
             searchLoading={searchLoading}
-            placeholder='Search countries...'
+            placeholder={`${t('compliance_module.search_countries')}...`}
           />
         )}
 
@@ -271,7 +291,7 @@ const SpeciesShipmentFilterDrawer = ({
             items={menuData['Exporter']}
             isAllSelected={isAllSelected('Exporter')}
             searchLoading={searchLoading}
-            placeholder='Search exporters...'
+            placeholder={`${t('compliance_module.search_exporters')}...`}
           />
         )}
         {selectedMenu === 'Importer' && (
@@ -285,7 +305,7 @@ const SpeciesShipmentFilterDrawer = ({
             items={menuData['Importer']}
             isAllSelected={isAllSelected('Importer')}
             searchLoading={searchLoading}
-            placeholder='Search importers...'
+            placeholder={`${t('compliance_module.search_importers')}...`}
           />
         )}
         {selectedMenu === 'Documents' && (
@@ -299,7 +319,7 @@ const SpeciesShipmentFilterDrawer = ({
             items={menuData['Documents']}
             isAllSelected={isAllSelected('Documents')}
             searchLoading={searchLoading}
-            placeholder='Search documents...'
+            placeholder={`${t('compliance_module.search_documents')}...`}
           />
         )}
       </CustomFilterDrawer>

@@ -21,6 +21,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import Icon from 'src/@core/components/icon'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getSectionsList } from 'src/lib/api/diet/dietList'
+import { useTranslation } from 'react-i18next'
 
 interface SectionRecord {
   section_id: string | number
@@ -59,6 +60,7 @@ const SingleSelectSectionList = ({
   tempSelectedItems,
   openFilterDrawer
 }: SingleSelectSectionListProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [loading, setLoading] = useState<boolean>(false)
   const [pageNo, setPageNo] = useState<number>(1)
@@ -186,10 +188,10 @@ const SingleSelectSectionList = ({
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Choose Section
+              {t('compliance_module.choose_section')}
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Select a section from the list below
+              {t('compliance_module.select_section_from_list')}
             </Typography>
           </Box>
           <IconButton
@@ -207,7 +209,7 @@ const SingleSelectSectionList = ({
         <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
           <TextField
             fullWidth
-            placeholder='Search'
+            placeholder={t('search')}
             variant='outlined'
             size='small'
             value={searchTerm}
@@ -248,7 +250,11 @@ const SingleSelectSectionList = ({
             {/* {loading ? '' : `Selected ${selectedSectionId ? 1 : 0}/${sectionsData?.length}`} */}
             {loading
               ? ''
-              : `${sectionsData?.length > 1 ? 'Total Sections' : 'Total Section'} : ${sectionsData?.length}`}
+              : `${
+                  sectionsData?.length > 1
+                    ? t('compliance_module.total_sections')
+                    : t('compliance_module.total_section')
+                } : ${sectionsData?.length}`}
           </Typography>
         </Box>
 
@@ -338,7 +344,7 @@ const SingleSelectSectionList = ({
                   )
                 })
             ) : (
-              <Typography sx={{ textAlign: 'center', mt: 15 }}>No Section's found</Typography>
+              <Typography sx={{ textAlign: 'center', mt: 15 }}>{t('compliance_module.no_sections_found')}</Typography>
             )
           ) : (
             <CardContent>
@@ -377,7 +383,7 @@ const SingleSelectSectionList = ({
             }}
             disabled={!selectedSectionId}
           >
-            CONTINUE
+            {t('continue')}
           </Button>
         </Box>
       </Box>

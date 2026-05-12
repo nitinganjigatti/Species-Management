@@ -15,6 +15,7 @@ import FileUpload from 'src/views/forms/form-elements/file-uploader/ComplianceFi
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import dayjs, { Dayjs } from 'dayjs'
 
@@ -52,6 +53,7 @@ const BasicDetailsAddEdit = ({
   errors,
   setErrors
 }: BasicDetailsAddEditProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   const handleAirwaybillChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -105,9 +107,9 @@ const BasicDetailsAddEdit = ({
               }}
               disabled
             >
-              <MenuItem value='airCargo'>Air Cargo</MenuItem>
-              <MenuItem value='airCargo1'>Air Cargo 1</MenuItem>
-              <MenuItem value='airCargo2'>Air Cargo 2</MenuItem>
+              <MenuItem value='airCargo'>{t('compliance_module.air_cargo')}</MenuItem>
+              <MenuItem value='airCargo1'>{`${t('compliance_module.air_cargo')} 1`}</MenuItem>
+              <MenuItem value='airCargo2'>{`${t('compliance_module.air_cargo')} 2`}</MenuItem>
             </Select>
           </FormControl>
         </Grid>
@@ -116,7 +118,7 @@ const BasicDetailsAddEdit = ({
           <Grid container spacing={3}>
             <TextField
               fullWidth
-              label='Enter 11 digit (AWB) airway bill no.*'
+              label={`${t('compliance_module.awb_airway_bill_no')}*`}
               variant='outlined'
               value={airwaybillvalue}
               onChange={handleAirwaybillChange}
@@ -135,7 +137,7 @@ const BasicDetailsAddEdit = ({
         <Grid size={{ xs: 12, md: 6 }} sx={{ ml: 0 }}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
-              label='Shipment Date*'
+              label={`${t('compliance_module.shipment_date')}*`}
               value={startDate ? dayjs(startDate) : null}
               onChange={handleDateChange as any}
               maxDate={dayjs(new Date())}
@@ -163,7 +165,7 @@ const BasicDetailsAddEdit = ({
           <Grid container spacing={3}>
             <TextField
               fullWidth
-              label='Enter File Number*'
+              label={`${t('compliance_module.enter_file_number')}*`}
               variant='outlined'
               value={fileNumberValue}
               onChange={handleFileNmbChange}
@@ -181,7 +183,7 @@ const BasicDetailsAddEdit = ({
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <FileUpload
-            name='(AWB) Airway Bill'
+            name={t('compliance_module.awb_airway_bill')}
             onFileUpload={handleFileUpload}
             file={uploadedFile ? uploadedFile : null}
           />
@@ -206,7 +208,7 @@ const BasicDetailsAddEdit = ({
             setErrors({})
           }}
         >
-          Reset
+          {t('reset')}
         </Button>
         <Button
           variant='contained'
@@ -223,7 +225,7 @@ const BasicDetailsAddEdit = ({
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            Save
+            {t('save')}
             {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
           </span>
         </Button>

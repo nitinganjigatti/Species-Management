@@ -21,6 +21,7 @@ import { getAllEnclosures, getAllSections, getAllSites, getAllSpeciesList, getMa
 import SelectSites from 'src/components/report/SelectSite'
 import SelectSectionList from 'src/components/diet/SelectSectionList'
 import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
+import { useTranslation } from 'react-i18next'
 
 const MENU = {
   ORGANIZATIONS: 'Organizations',
@@ -40,21 +41,6 @@ interface FilterOption {
   value: string
   image?: string
 }
-
-const GENDER_OPTIONS: FilterOption[] = [
-  { label: 'Male', value: 'male' },
-  { label: 'Female', value: 'female' },
-  { label: 'Undetermined', value: 'undetermined' },
-  { label: 'Indeterminate', value: 'indeterminate' }
-]
-
-const AGE_OPTIONS: FilterOption[] = [
-  { label: '0 - 1 year', value: '0-1' },
-  { label: '1 - 5 years', value: '1-5' },
-  { label: '5 - 10 years', value: '5-10' },
-  { label: '10 - 20 years', value: '10-20' },
-  { label: '20+ years', value: '20-plus' }
-]
 
 const SELECT_ALL_ENABLED = new Set<MenuKey>([
   MENU.ORGANIZATIONS,
@@ -158,6 +144,32 @@ const AnimalFilterDrawer = ({
   setFilterCount,
   initialSelectedOptions
 }: AnimalFilterDrawerProps) => {
+  const { t } = useTranslation()
+
+  const GENDER_OPTIONS: FilterOption[] = [
+    { label: t('compliance_module.male'), value: 'male' },
+    { label: t('compliance_module.female'), value: 'female' },
+    { label: t('compliance_module.undetermined'), value: 'undetermined' },
+    { label: t('compliance_module.indeterminate'), value: 'indeterminate' }
+  ]
+
+  const AGE_OPTIONS: FilterOption[] = [
+    { label: t('compliance_module.age_0_1_year'), value: '0-1' },
+    { label: t('compliance_module.age_1_5_years'), value: '1-5' },
+    { label: t('compliance_module.age_5_10_years'), value: '5-10' },
+    { label: t('compliance_module.age_10_20_years'), value: '10-20' },
+    { label: t('compliance_module.age_20_plus_years'), value: '20-plus' }
+  ]
+
+  const filterLabels: Record<string, string> = {
+    [MENU.ORGANIZATIONS]: t('compliance_module.organizations'),
+    [MENU.LOCATION]: t('compliance_module.location'),
+    [MENU.SPECIES]: t('compliance_module.species'),
+    [MENU.GENDER]: t('compliance_module.gender'),
+    [MENU.AGE]: t('compliance_module.age'),
+    [MENU.MORTALITY]: t('compliance_module.mortality')
+  }
+
   const [selectedMenu, setSelectedMenu] = useState<MenuKey>(MENU.ORGANIZATIONS)
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
@@ -245,7 +257,7 @@ const AnimalFilterDrawer = ({
 
   const fetchSites = useCallback(async () => {
     try {
-      const res = await getAllSites({ page_no: 1, limit: 100 }) as any
+      const res = (await getAllSites({ page_no: 1, limit: 100 })) as any
       const sites: any[] = res?.data?.result || []
       setSiteData(
         sites.map((site: any) => ({
@@ -262,7 +274,7 @@ const AnimalFilterDrawer = ({
   const fetchSectionsForSite = useCallback(async (siteId: string | number) => {
     if (!siteId) return
     try {
-      const res = await getAllSections({ site_id: siteId as number, page_no: 1, limit: 100 }) as any
+      const res = (await getAllSections({ site_id: siteId as number, page_no: 1, limit: 100 })) as any
       setSectionsData((res?.data?.result || []) as SectionRecord[])
     } catch (error) {
       console.error('Failed to load sections', error)
@@ -273,7 +285,7 @@ const AnimalFilterDrawer = ({
   const fetchEnclosuresForSection = useCallback(async (sectionId: string | number) => {
     if (!sectionId) return
     try {
-      const res = await getAllEnclosures({ section_id: sectionId as number, page_no: 1, limit: 100 }) as any
+      const res = (await getAllEnclosures({ section_id: sectionId as number, page_no: 1, limit: 100 })) as any
       setEnclosuresData((res?.data?.result || []) as unknown as EnclosureRecord[])
     } catch (error) {
       console.error('Failed to load enclosures', error)
@@ -341,11 +353,7 @@ const AnimalFilterDrawer = ({
           const res = await getMastersOrganization(params)
           items = (res || []).map((org: Record<string, unknown>) => ({
             label: (org?.organization_name || org?.name || 'Unnamed organization') as string,
-            value: org?.id
-              ? String(org.id)
-              : org?.organization_id
-              ? String(org.organization_id)
-              : (org?.name as string)
+            value: org?.id ? String(org.id) : org?.organization_id ? String(org.organization_id) : (org?.name as string)
           }))
           break
         }
@@ -702,6 +710,7 @@ const AnimalFilterDrawer = ({
       onApply={applyFilters}
       onClearAll={handleClearAll}
       filterLists={MENU_ORDER}
+      filterLabels={filterLabels}
       selectedOptions={selectedOptions}
       isSubmitting={onSubmitLoading}
       selectedItem={selectedMenu}
@@ -718,14 +727,14 @@ const AnimalFilterDrawer = ({
           items={menuData[MENU.ORGANIZATIONS]}
           isAllSelected={isAllSelected(MENU.ORGANIZATIONS)}
           searchLoading={searchLoading}
-          placeholder='Search organizations...'
+          placeholder={t('compliance_module.search_organizations')}
           enableSelectAll
         />
       )}
 
       {selectedMenu === MENU.LOCATION && (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {renderLocationCard('Select Site', locationSelections.Site, getSiteName, {
+          {renderLocationCard(t('compliance_module.select_site'), locationSelections.Site, getSiteName, {
             locked: locationSelections.Section.length > 0 || locationSelections.Enclosure.length > 0,
             onRemove: handleRemoveSite,
             onClick: () => setSiteDrawerOpen(true),
@@ -733,7 +742,7 @@ const AnimalFilterDrawer = ({
           })}
 
           {locationSelections.Site.length === 1 &&
-            renderLocationCard('Select Sections', locationSelections.Section, getSectionName, {
+            renderLocationCard(t('compliance_module.select_sections'), locationSelections.Section, getSectionName, {
               locked: locationSelections.Enclosure.length > 0,
               disabled: locationSelections.Site.length !== 1,
               onRemove: handleRemoveSection,
@@ -742,13 +751,18 @@ const AnimalFilterDrawer = ({
             })}
 
           {locationSelections.Section.length === 1 &&
-            renderLocationCard('Select Enclosures', locationSelections.Enclosure, getEnclosureName, {
-              locked: false,
-              disabled: locationSelections.Section.length !== 1,
-              onRemove: handleRemoveEnclosure,
-              onClick: () => setEnclosureDrawerOpen(true),
-              collapseKey: 'enclosure'
-            })}
+            renderLocationCard(
+              t('compliance_module.select_enclosures'),
+              locationSelections.Enclosure,
+              getEnclosureName,
+              {
+                locked: false,
+                disabled: locationSelections.Section.length !== 1,
+                onRemove: handleRemoveEnclosure,
+                onClick: () => setEnclosureDrawerOpen(true),
+                collapseKey: 'enclosure'
+              }
+            )}
         </Box>
       )}
 
@@ -763,7 +777,7 @@ const AnimalFilterDrawer = ({
           items={menuData[MENU.SPECIES]}
           isAllSelected={isAllSelected(MENU.SPECIES)}
           searchLoading={searchLoading}
-          placeholder='Search species...'
+          placeholder={t('compliance_module.search_species_placeholder')}
           enableSelectAll
         />
       )}
@@ -779,7 +793,7 @@ const AnimalFilterDrawer = ({
           items={menuData[MENU.GENDER]}
           isAllSelected={isAllSelected(MENU.GENDER)}
           searchLoading={searchLoading}
-          placeholder='Search gender...'
+          placeholder={t('compliance_module.search_gender')}
           enableSelectAll
         />
       )}
@@ -795,7 +809,7 @@ const AnimalFilterDrawer = ({
           items={menuData[MENU.AGE]}
           isAllSelected={isAllSelected(MENU.AGE)}
           searchLoading={searchLoading}
-          placeholder='Search age ranges...'
+          placeholder={t('compliance_module.search_age_ranges')}
           enableSelectAll
         />
       )}
@@ -811,7 +825,7 @@ const AnimalFilterDrawer = ({
           items={menuData[MENU.MORTALITY]}
           isAllSelected={isAllSelected(MENU.MORTALITY)}
           searchLoading={searchLoading}
-          placeholder='Search mortality reasons...'
+          placeholder={t('compliance_module.search_mortality_reasons')}
           enableSelectAll
         />
       )}

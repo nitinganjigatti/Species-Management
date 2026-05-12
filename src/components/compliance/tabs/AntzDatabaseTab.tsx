@@ -10,12 +10,14 @@ import type { InfiniteData } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
 import type { AntzDatabaseTabProps } from 'src/types/compliance'
 import type { Species } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 type SpeciesPage = { result: Species[]; nextPage: number | undefined; total: number }
 
 const PAGE_SIZE = 10
 
 const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }: AntzDatabaseTabProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   const [localSearch, setLocalSearch] = useState<string>('')
@@ -48,13 +50,12 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }: A
         q: search
       })
 
-      const items: Species[] =
-        (res?.data?.data || []).map((item: any) => ({
-          ...item,
-          tsn_id: item.taxonomy_id,
-          id: item.taxonomy_id,
-          isFromAntzDatabase: true
-        }))
+      const items: Species[] = (res?.data?.data || []).map((item: any) => ({
+        ...item,
+        tsn_id: item.taxonomy_id,
+        id: item.taxonomy_id,
+        isFromAntzDatabase: true
+      }))
 
       return {
         result: items,
@@ -117,14 +118,16 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }: A
           borderRadius: '8px',
           backgroundColor: theme.palette.common.white
         }}
-        placeholder='Search for species'
+        placeholder={t('compliance_module.search_for_species')}
         value={localSearch}
         onChange={handleSearchChange}
         onClear={handleSearchClear}
         backgroundColor={theme.palette.common.white}
       />
 
-      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>Species {total ? `(${total})` : ''}</Typography>
+      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>
+        {t('species')} {total ? `(${total})` : ''}
+      </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
         {filteredList.map(species => (
@@ -151,13 +154,13 @@ const AntzDatabaseTab = ({ data, selectedItems, onToggle, prevSelectedItems }: A
 
         {!isFetching && filteredList.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No species found
+            {t('compliance_module.no_species_found')}
           </Typography>
         )}
 
         {!hasNextPage && filteredList.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more species to load
+            {t('compliance_module.no_more_species_to_load')}
           </Typography>
         )}
       </Box>

@@ -16,9 +16,9 @@ import {
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import ExportPermitDrawer from '../drawer/ExportPermitDrawer'
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import LinkedShipmentsDrawer from '../drawer/LinkedShipmentsDrawer'
 import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
 import AddAnimalsDrawer from '../drawer/AddAnimalsDrawer'
@@ -130,7 +130,9 @@ interface SpeciesAddEditProps {
   detailtype: string
   setanimalCountDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>
   setCurrentSpeciesId: React.Dispatch<React.SetStateAction<string | number | null>>
-  setSelectedSpeciesData: React.Dispatch<React.SetStateAction<Species & { common_name?: string; scientific_name?: string; default_icon?: string }>>
+  setSelectedSpeciesData: React.Dispatch<
+    React.SetStateAction<Species & { common_name?: string; scientific_name?: string; default_icon?: string }>
+  >
   setSearchValue: React.Dispatch<React.SetStateAction<string>>
   setLoading: React.Dispatch<React.SetStateAction<boolean>>
   shipmentId: string | number
@@ -188,8 +190,8 @@ const SpeciesAddEdit = ({
   loading,
   loader
 }: SpeciesAddEditProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
-  const router = useSafeRouter()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
   const handleFileUpload = (exportId: string | number, file: unknown) => {
@@ -315,7 +317,7 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Species : <strong>{speciesCount > 0 ? speciesCount : '0'}</strong>
+            {t('species')} : <strong>{speciesCount > 0 ? speciesCount : '0'}</strong>
           </Typography>
           <Typography
             sx={{
@@ -324,7 +326,7 @@ const SpeciesAddEdit = ({
               fontWeight: 500
             }}
           >
-            Animals : <strong>{animalsCount > 0 ? animalsCount : '0'}</strong>
+            {t('animals')} : <strong>{animalsCount > 0 ? animalsCount : '0'}</strong>
           </Typography>
         </Box>
 
@@ -363,7 +365,7 @@ const SpeciesAddEdit = ({
                               fontSize: '20px'
                             }}
                           >
-                            Export ID : {all.export_number}
+                            {t('compliance_module.export_id_label')} {all.export_number}
                           </Typography>
                           <Typography
                             color={theme.palette.primary.dark}
@@ -386,10 +388,12 @@ const SpeciesAddEdit = ({
                               }
                             }}
                           >
-                            {`This export ID is part of ${all.linked_shipments_count ?? all.shipment_count ?? 0} `}
-                            {`${
-                              (all.linked_shipments_count ?? all.shipment_count ?? 0) === 1 ? 'shipment' : 'shipments'
-                            }`}
+                            {`${t('compliance_module.this_export_id_is_part_of')} ${
+                              all.linked_shipments_count ?? all.shipment_count ?? 0
+                            } `}
+                            {(all.linked_shipments_count ?? all.shipment_count ?? 0) === 1
+                              ? t('compliance_module.shipment')
+                              : t('compliance_module.shipments')}
 
                             <ChevronRightIcon sx={{ fontSize: '22px' }} />
                           </Typography>
@@ -397,7 +401,7 @@ const SpeciesAddEdit = ({
                         <Box display='flex' alignItems='center' gap={1} key={`export-${all.export_id}`}>
                           <UploadDocument
                             key={`uploader-${all.export_id}`}
-                            name='Upload Export Permit'
+                            name={t('compliance_module.upload_export_permit')}
                             onFileUpload={(file: unknown) => handleFileUpload(all.export_id, file)}
                             file={all.attachment ? all.attachment : null}
                           />
@@ -434,7 +438,7 @@ const SpeciesAddEdit = ({
                               fontWeight: 500
                             }}
                           >
-                            {all?.species?.length} Species • {totalAnimals} Animals
+                            {all?.species?.length} {t('species')} • {totalAnimals} {t('animals')}
                           </Typography>
 
                           <Typography
@@ -457,7 +461,7 @@ const SpeciesAddEdit = ({
                               }}
                               icon='bx:pencil'
                             />
-                            Edit Selection
+                            {t('compliance_module.edit_selection')}
                           </Typography>
                         </Box>
 
@@ -476,7 +480,6 @@ const SpeciesAddEdit = ({
                               key={idx}
                               display='flex'
                               justifyContent='space-between'
-
                               // py={2}
                               sx={{
                                 borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -517,7 +520,7 @@ const SpeciesAddEdit = ({
                                     mr: 2
                                   }}
                                 >
-                                  Count :{' '}
+                                  {t('count')} :{' '}
                                   {Number(speciesdata.male_count) +
                                     Number(speciesdata.female_count) +
                                     Number(speciesdata.undeterminate_count)}
@@ -588,7 +591,7 @@ const SpeciesAddEdit = ({
                       <Typography
                         sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '20px' }}
                       >
-                        Other Animals (
+                        {t('compliance_module.other_animals')} (
                         {selectedExportData.others.reduce((sum, item) => {
                           const s = (item as OtherItem).species || {}
 
@@ -600,7 +603,7 @@ const SpeciesAddEdit = ({
                                 (parseInt(String((s as SpeciesData).undeterminate_count)) || 0))
                           )
                         }, 0)}{' '}
-                        Animals)
+                        {t('animals')})
                       </Typography>
                     </Box>
                   </Box>
@@ -668,7 +671,7 @@ const SpeciesAddEdit = ({
                                   mr: 2
                                 }}
                               >
-                                Count : {totalAnimals}
+                                {t('count')} : {totalAnimals}
                               </Typography>
                               <Chip
                                 label={`M - ${species?.male_count || 0}`}
@@ -747,7 +750,7 @@ const SpeciesAddEdit = ({
           </>
         ) : (
           <Alert severity='info' sx={{ my: 4 }}>
-            At least one species must be selected.
+            {t('compliance_module.at_least_one_species_must_be_selected_to_proceed_with_the_form_submission')}
           </Alert>
         )}
 
@@ -779,7 +782,7 @@ const SpeciesAddEdit = ({
               }
             }}
           >
-            Add From Export Permit
+            {t('compliance_module.add_from_export_permit')}
           </Button>
           <Button
             variant='outlined'
@@ -799,7 +802,7 @@ const SpeciesAddEdit = ({
               }
             }}
           >
-            Add Animals
+            {t('compliance_module.add_animals')}
           </Button>
         </Box>
 
@@ -809,7 +812,6 @@ const SpeciesAddEdit = ({
             setexportPermitDrawerOpen(false)
             setSearchValue('')
           }}
-
           //onSelect={handleSpeciesSelect}
           handleSearch={handleSearch}
           exportsList={exportsList as any}
@@ -820,7 +822,7 @@ const SpeciesAddEdit = ({
           onExportCardSelect={onExportCardSelect as any}
           selectedExportData={selectedExportData as any}
           setSelectedExportData={setSelectedExportData as any}
-          title='Add Export Permit'
+          title={t('compliance_module.add_export_permit')}
           setDraftData={setDraftData as any}
           draftData={draftData as any}
           loader={loader ?? false}
@@ -832,7 +834,7 @@ const SpeciesAddEdit = ({
         <AddAnimalsDrawer
           open={addAnimalsDrawerOpen}
           onClose={() => setAddAnimalsDrawerOpen(false)}
-          title='Add Animals'
+          title={t('compliance_module.add_animals')}
           exportAnimalData={exportAnimalData as unknown as Parameters<typeof AddAnimalsDrawer>[0]['exportAnimalData']}
           exportID={exportID}
           onExportCardSelect={onExportCardSelect as any}
@@ -849,8 +851,10 @@ const SpeciesAddEdit = ({
         <LinkedShipmentsDrawer
           open={linkedShipmentsDrawerOpen}
           onClose={() => setLinkedShipmentsDrawerOpen(false)}
-          linkedShipmentsData={(linkedShipmentsData || []) as Parameters<typeof LinkedShipmentsDrawer>[0]['linkedShipmentsData']}
-          title='Linked Shipments'
+          linkedShipmentsData={
+            (linkedShipmentsData || []) as Parameters<typeof LinkedShipmentsDrawer>[0]['linkedShipmentsData']
+          }
+          title={t('compliance_module.linked_shipments')}
         />
         <AnimalDetailsDrawer
           open={animalDetailsDrawerOpen}
@@ -859,15 +863,17 @@ const SpeciesAddEdit = ({
           detailtype={detailtype}
           setanimalCountDrawerOpen={setanimalCountDrawerOpen}
           setCurrentSpeciesId={setCurrentSpeciesId}
-          setSelectedSpeciesData={setSelectedSpeciesData as Parameters<typeof AnimalDetailsDrawer>[0]['setSelectedSpeciesData']}
-          title='Animal Details'
+          setSelectedSpeciesData={
+            setSelectedSpeciesData as Parameters<typeof AnimalDetailsDrawer>[0]['setSelectedSpeciesData']
+          }
+          title={t('compliance_module.animal_details')}
         />
         <SpeciesDrawer
           open={speciesDrawerOpen}
           onClose={() => setSpeciesDrawerOpen(false)}
           onSelect={handleSpeciesSelect}
           selectedSpecies={speciesList.map(item => item.species) as any}
-          title='Select Species'
+          title={t('compliance_module.select_species')}
           data={{
             queryKey: 'export-permit-species',
             id: 'species-list',
@@ -878,7 +884,7 @@ const SpeciesAddEdit = ({
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
         <Button variant='outlined' onClick={onCancel}>
-          Reset
+          {t('reset')}
         </Button>
         <Button
           variant='contained'
@@ -897,7 +903,7 @@ const SpeciesAddEdit = ({
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            Save Details
+            {t('save_details')}
             {loading && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
           </span>
         </Button>

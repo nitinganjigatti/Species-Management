@@ -6,6 +6,7 @@ import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
 import countryList from 'react-select-country-list'
 import { useTheme } from '@mui/material/styles'
 import { useAuth } from 'src/hooks/useAuth'
+import { useTranslation } from 'react-i18next'
 
 interface AnimalItem {
   id?: string | number
@@ -97,6 +98,7 @@ const SpeciesDetailsContainer = ({
   detailtype,
   setDetailType
 }: SpeciesDetailsContainerProps) => {
+  const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState<boolean>(false)
   const [shippedAnimalsDrawerOpen, setshippedAnimalsDrawerOpen] = useState<boolean>(false)
   const countryListOptions = useMemo(() => countryList().getData(), [])
@@ -148,7 +150,7 @@ const SpeciesDetailsContainer = ({
         <Typography
           sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500, mr: 2 }}
         >
-          Count : {species?.total_count || 0}
+          {t('count')} : {species?.total_count || 0}
         </Typography>
         <Chip
           label={`M - ${species?.male_count || 0}`}
@@ -232,9 +234,9 @@ const SpeciesDetailsContainer = ({
                   fontSize: '14px'
                 }}
               >
-                Other Animals
+                {t('compliance_module.other_animals')}
               </Box>{' '}
-              ({totalAnimals} Animals)
+              ({totalAnimals} {t('animals')})
             </Typography>
           </Box>
 
@@ -343,15 +345,13 @@ const SpeciesDetailsContainer = ({
                   window.open(`/compliance/documents/exports/${data?.export_id}/?id=${data?.export_id}`, '_blank')
                 }}
               >
-                Export ID :{' '}
+                {t('compliance_module.export_id_label')}{' '}
                 <strong>
                   {' '}
                   <span>{data.export_number}</span>
                 </strong>
               </Box>{' '}
-              ({data.total_species} Species) ({totalAnimals}{' '}
-              {totalAnimals === 1 ? 'Animal' : 'Animals'}) • Importer name :{' '}
-              <strong>{data?.importer_name || 'N/A'} </strong> • Country Of origin :{' '}
+              ({data.total_species} {t('species')}) ({totalAnimals} {totalAnimals === 1 ? t('animal') : t('animals')}) • {t('compliance_module.importer_name')} : <strong>{data?.importer_name || 'N/A'} </strong> • {t('compliance_module.country_of_origin')} :{' '}
               <strong>
                 {countryListOptions.find(country => country.value === data?.origin_country)?.label || 'N/A'}
               </strong>
@@ -428,7 +428,7 @@ const SpeciesDetailsContainer = ({
             sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
             onClick={handleShippedClick}
           >
-            {totalSpecies} Species • {totalAnimals} Animals
+            {totalSpecies} {t('species')} • {totalAnimals} {t('animals')}
             <ChevronRightIcon sx={{ fontSize: '22px', color: theme.palette.primary.main }} />
           </Typography>
 
@@ -444,7 +444,7 @@ const SpeciesDetailsContainer = ({
               cursor: 'pointer'
             }}
           >
-            {collapsed ? 'Expand' : 'Collapse'}
+            {collapsed ? t('compliance_module.expand') : t('compliance_module.collapse')}
             {collapsed ? <img src='/icons/expand.svg' width='24px' /> : <img src='/icons/collapse.svg' width='24px' />}
           </Typography>
         </Box>
@@ -466,7 +466,7 @@ const SpeciesDetailsContainer = ({
         open={shippedAnimalsDrawerOpen}
         onClose={() => setshippedAnimalsDrawerOpen(false)}
         selectedExportData={selectedExportData}
-        title='Shipped Animals'
+        title={t('compliance_module.shipped_animals')}
       />
       <AnimalDetailsDrawer
         open={animalDetailsDrawerOpen}
@@ -476,7 +476,7 @@ const SpeciesDetailsContainer = ({
         setanimalCountDrawerOpen={setanimalCountDrawerOpen}
         setCurrentSpeciesId={() => {}}
         setSelectedSpeciesData={() => {}}
-        title='Animal Details'
+        title={t('compliance_module.animal_details')}
       />
     </>
   )

@@ -7,6 +7,7 @@ import SelectableSpeciesCard from 'src/views/pages/compliance/documents/exports/
 import { useTheme, alpha } from '@mui/material/styles'
 import type { ExportPermitAnimalsProps } from 'src/types/compliance'
 import type { ExportSpeciesFormItem } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const ExportPermitAnimals = ({
   control,
@@ -22,6 +23,7 @@ const ExportPermitAnimals = ({
   setValue
 }: ExportPermitAnimalsProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   // Calculate totals
   const totalSpeciesCount = speciesList.length
@@ -116,7 +118,7 @@ const ExportPermitAnimals = ({
 
   const handleRemoveAnimal = (speciesIndex: number, animalId: string | number) => {
     const species = speciesList[speciesIndex]
-    const updatedAnimalDetails = species.animalDetails.filter((animal) => animal.id != animalId)
+    const updatedAnimalDetails = species.animalDetails.filter(animal => animal.id != animalId)
 
     const updatedSpecies = {
       ...species,
@@ -148,7 +150,7 @@ const ExportPermitAnimals = ({
   return (
     <Box sx={{ mt: 8 }}>
       <Typography variant='h6' gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
-        2. Animals
+        2. {t('animals')}
       </Typography>
 
       <Box sx={{ display: 'flex', gap: 6, mb: 4 }}>
@@ -156,13 +158,13 @@ const ExportPermitAnimals = ({
           variant='body2'
           sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1.25rem', fontWeight: 500 }}
         >
-          Species count: <strong>{totalSpeciesCount}</strong>
+          {t('compliance_module.species_count')}: <strong>{totalSpeciesCount}</strong>
         </Typography>
         <Typography
           variant='body2'
           sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1.25rem', fontWeight: 500 }}
         >
-          Animal count: <strong>{totalAnimalCount}</strong>
+          {t('necropsy_module.animal_count')}: <strong>{totalAnimalCount}</strong>
         </Typography>
       </Box>
 
@@ -221,14 +223,14 @@ const ExportPermitAnimals = ({
                     mb: 4
                   }}
                 >
-                  Cites Details & Animal Count
+                  {t('compliance_module.cites_details_and_animal_count')}
                 </Typography>
 
                 <Grid container spacing={4} sx={{ mb: 2 }}>
                   <Grid size={{ xs: 12, md: 4.5 }}>
                     <ControlledAutocomplete
                       name={`speciesList.${speciesIndex}.appendix`}
-                      label='Select Appendix*'
+                      label={`${t('compliance_module.select_appendix')} *`}
                       control={control}
                       errors={errors}
                       options={appendixOptions}
@@ -242,7 +244,7 @@ const ExportPermitAnimals = ({
                   <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.male_count`}
-                      label='# Male'
+                      label={`# ${t('male')}`}
                       type='number'
                       control={control}
                       errors={errors}
@@ -254,7 +256,7 @@ const ExportPermitAnimals = ({
                   <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.female_count`}
-                      label='# Female'
+                      label={`# ${t('female')}`}
                       type='number'
                       control={control}
                       errors={errors}
@@ -266,11 +268,13 @@ const ExportPermitAnimals = ({
                   <Grid size={{ xs: 12, md: 2.5 }}>
                     <ControlledTextField
                       name={`speciesList.${speciesIndex}.undeterminate_count`}
-                      label='# Unknown'
+                      label={`# ${t('animals_module.unknown')}`}
                       type='number'
                       control={control}
                       errors={errors}
-                      onChangeOverride={(e: any) => handleCountChange(speciesIndex, 'undeterminate_count', e.target.value)}
+                      onChangeOverride={(e: any) =>
+                        handleCountChange(speciesIndex, 'undeterminate_count', e.target.value)
+                      }
                       inputProps={{ min: 0 }}
                       sx={{ backgroundColor: theme.palette.common.white }}
                     />
@@ -280,8 +284,9 @@ const ExportPermitAnimals = ({
                 {/* Count Mismatch Warning */}
                 {!isValidCount && (
                   <Alert severity='error' sx={{ mb: 2, mt: 4 }}>
-                    Animal count should be greater than or equal to 0, and gender counts must not exceed their specified
-                    limits
+                    {t(
+                      'compliance_module.animal_count_should_be_greater_than_or_equal_to_0_and_gender_counts_must_not_exceed_their_specified_limits'
+                    )}
                   </Alert>
                 )}
 
@@ -298,7 +303,7 @@ const ExportPermitAnimals = ({
                       fontSize: '1rem'
                     }}
                   >
-                    Animal Details
+                    {t('animals_module.animal_details')}
                   </Typography>
                   <Button
                     startIcon={<AddIcon />}
@@ -308,7 +313,7 @@ const ExportPermitAnimals = ({
                       speciesItem.animalDetails.length >= (speciesItem.total_count ?? 0)
                     }
                   >
-                    Add Animal
+                    {t('add_animal')}
                   </Button>
                 </Box>
 
@@ -316,7 +321,9 @@ const ExportPermitAnimals = ({
                 {speciesItem.animalDetails.map((detail, animalIndex) => {
                   const filteredGenderOptions = genderOptions
                     .map(option => {
-                      const genderKey = (option.value === 'unknown' ? 'undetermined' : option.value) as keyof typeof availableCounts
+                      const genderKey = (
+                        option.value === 'unknown' ? 'undetermined' : option.value
+                      ) as keyof typeof availableCounts
                       const countLeft = availableCounts[genderKey]
 
                       return {
@@ -334,7 +341,7 @@ const ExportPermitAnimals = ({
                         <Grid size={{ xs: 12, md: 4 }}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].gender`}
-                            label='Gender*'
+                            label={`${t('gender')}*`}
                             control={control}
                             errors={errors}
                             options={filteredGenderOptions}
@@ -343,14 +350,17 @@ const ExportPermitAnimals = ({
                             onChangeOverride={(value: any) =>
                               handleAnimalDetailChange(speciesIndex, animalIndex, 'gender', value)
                             }
-                            formHelperTextBackgroundColor={alpha(theme.palette.customColors.displaybgPrimary || '', 0.4)}
+                            formHelperTextBackgroundColor={alpha(
+                              theme.palette.customColors.displaybgPrimary || '',
+                              0.4
+                            )}
                             sx={{ backgroundColor: theme.palette.common.white }}
                           />
                         </Grid>
                         <Grid size={{ xs: 12, md: 4 }}>
                           <ControlledAutocomplete
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_type`}
-                            label='Identifier Type'
+                            label={t('compliance_module.identifier_type')}
                             control={control}
                             errors={errors}
                             options={identifierOptions}
@@ -359,14 +369,17 @@ const ExportPermitAnimals = ({
                             onChangeOverride={(value: any) =>
                               handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_type', value)
                             }
-                            formHelperTextBackgroundColor={alpha(theme.palette.customColors.displaybgPrimary || '', 0.4)}
+                            formHelperTextBackgroundColor={alpha(
+                              theme.palette.customColors.displaybgPrimary || '',
+                              0.4
+                            )}
                             sx={{ backgroundColor: theme.palette.common.white }}
                           />
                         </Grid>
                         <Grid size={{ xs: 12, md: 3 }}>
                           <ControlledTextField
                             name={`speciesList[${speciesIndex}].animalDetails[${animalIndex}].identifier_value`}
-                            label='Identifier Value'
+                            label={t('compliance_module.identifier_value')}
                             control={control}
                             errors={errors}
                             onChangeOverride={(e: any) =>
@@ -423,13 +436,13 @@ const ExportPermitAnimals = ({
             }
           }}
         >
-          Add Species
+          {t('compliance_module.add_species')}
         </Button>
       </Box>
 
       {speciesList.length === 0 && (
         <Alert severity='info' sx={{ my: 4 }}>
-          At least one species must be selected to proceed with the form submission.
+          {t('compliance_module.at_least_one_species_must_be_selected_to_proceed_with_the_form_submission')}
         </Alert>
       )}
     </Box>

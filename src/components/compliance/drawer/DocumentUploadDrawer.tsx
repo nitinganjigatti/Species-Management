@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { Drawer, Box, Typography, Button, CircularProgress, IconButton } from '@mui/material'
 import { Close as CloseIcon } from '@mui/icons-material'
 import { useForm } from 'react-hook-form'
@@ -8,40 +8,53 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
 import { useTheme } from '@mui/material/styles'
 import ControlledFileUpload from 'src/views/forms/form-fields/ControlledFileUpload'
-import useSafeRouter from 'src/hooks/useSafeRouter'
 import dayjs from 'dayjs'
 import type { DocumentUploadDrawerProps } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 
-// Validation Schema
-const documentSchema = yup.object().shape({
-  issued_date: yup.date().required('Issued Date is required').typeError('Please enter a valid date'),
-  reference_number: yup
-    .string()
-    .required('Reference Number is required')
-    .max(50, 'Reference number must be less than 50 characters'),
-  document_file: yup
-    .mixed()
-    .required('File is required')
-    .test('fileRequired', 'File is required', function (value) {
-      if (!this.parent.documentData && !value) return false
+const getDocumentSchema = (t: TFunction) =>
+  yup.object().shape({
+    issued_date: yup
+      .date()
+      .required(t('compliance_module.issued_date_is_required'))
+      .typeError(t('compliance_module.please_enter_a_valid_date')),
+    reference_number: yup
+      .string()
+      .required(t('compliance_module.reference_number_is_required'))
+      .max(50, t('compliance_module.reference_number_must_be_less_than_50_characters')),
+    document_file: yup
+      .mixed()
+      .required(t('compliance_module.file_is_required'))
+      .test('fileRequired', t('compliance_module.file_is_required'), function (value) {
+        if (!this.parent.documentData && !value) return false
 
-      return true
-    })
-    .test('fileType', 'Unsupported file format', value => {
-      if (!value) return true
-      const supportedFormats = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
-      const extension = ((value as File).name.split('.').pop() || '').toLowerCase()
+        return true
+      })
+      .test('fileType', t('compliance_module.unsupported_file_format'), value => {
+        if (!value) return true
+        const supportedFormats = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png']
+        const extension = ((value as File).name.split('.').pop() || '').toLowerCase()
 
-      return supportedFormats.includes(extension)
-    })
-})
+        return supportedFormats.includes(extension)
+      })
+  })
 
 interface DocumentUploadDrawerExtendedProps extends DocumentUploadDrawerProps {
   onAddEdit?: (formData: Record<string, unknown>) => void
   isLoading?: boolean
 }
 
-const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoading }: DocumentUploadDrawerExtendedProps) => {
+const DocumentUploadDrawer = ({
+  open,
+  onClose,
+  documentData,
+  onAddEdit,
+  isLoading
+}: DocumentUploadDrawerExtendedProps) => {
+  const { t } = useTranslation()
+  const documentSchema = useMemo(() => getDocumentSchema(t), [t])
+
   const {
     control,
     handleSubmit,
@@ -57,8 +70,6 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
       document_file: null
     }
   })
-  const router = useSafeRouter()
-  const id = router.query.id
 
   const theme = useTheme()
   const fileValue = watch('document_file')
@@ -135,12 +146,12 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
           }}
         >
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '1.25rem' }}>
-            Document Details
+            {t('compliance_module.document_details')}
           </Typography>
 
           <ControlledDatePicker
             name='issued_date'
-            label='Issued Date*'
+            label={`${t('compliance_module.issued_date')}*`}
             maxDate={dayjs(new Date())}
             control={control}
             errors={errors}
@@ -149,7 +160,7 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
           <Box>
             <ControlledTextField
               name='reference_number'
-              label='Reference Number*'
+              label={`${t('compliance_module.reference_number')}*`}
               control={control}
               errors={errors}
               fullWidth
@@ -157,11 +168,11 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
           </Box>
 
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '1.25rem' }}>
-            Upload Document
+            {t('compliance_module.upload_document')}
           </Typography>
           <ControlledFileUpload
             name='document_file'
-            label={(fileValue as { name?: string })?.name || 'Select File*'}
+            label={(fileValue as { name?: string })?.name || `${t('compliance_module.select_file')}*`}
             control={control}
             errors={errors}
             color={theme.palette.customColors.OnSurface}
@@ -182,7 +193,13 @@ const DocumentUploadDrawer = ({ open, onClose, documentData, onAddEdit, isLoadin
         }}
       >
         <Button type='submit' variant='contained' disabled={isLoading} fullWidth onClick={handleSubmit(onSubmit)}>
-          {isLoading ? <CircularProgress size={24} /> : documentData?.file_path ? 'Update Document' : 'Add Document'}
+          {isLoading ? (
+            <CircularProgress size={24} />
+          ) : documentData?.file_path ? (
+            `${t('compliance_module.update_document')}`
+          ) : (
+            `${t('compliance_module.add_document')}`
+          )}
         </Button>
       </Box>
     </Drawer>

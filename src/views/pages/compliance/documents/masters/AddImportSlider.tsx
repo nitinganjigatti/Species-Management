@@ -4,6 +4,7 @@ import { useTheme } from '@emotion/react'
 import NewForm, { useTradePartiesForm } from './NewForm'
 import { useEffect } from 'react'
 import type { TradeContextType, Id } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface NewFormValues {
   name: string
@@ -44,6 +45,7 @@ const AddImportSlider = ({
     formState: { errors },
     reset
   } = useTradePartiesForm(defaultValues)
+  const { t } = useTranslation()
   const theme = useTheme()
 
   useEffect(() => {
@@ -62,7 +64,6 @@ const AddImportSlider = ({
     }
     await handleSubmitData(payload, editId)
   }
-
 
   return (
     <>
@@ -83,7 +84,7 @@ const AddImportSlider = ({
             bgcolor: (theme as any).palette.customColors.Background
           }}
         >
-          <Typography variant='h6'>{editId ? `Update ${name}` : `Add ${name}`}</Typography>
+          <Typography variant='h6'>{editId ? `${t('update')} ${name}` : `${t('add')} ${name}`}</Typography>
           <IconButton size='small' onClick={handleClose}>
             <Icon icon='mdi:close' />
           </IconButton>

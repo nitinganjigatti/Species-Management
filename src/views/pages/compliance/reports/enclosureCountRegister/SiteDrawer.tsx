@@ -20,11 +20,7 @@ import SingleSelectSectionList from './SingleSelectSectionList'
 // import SingleSelectEnclosureList from './SingleSelectEnclosureList'
 import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
 import SelectSites from 'src/components/report/SelectSite'
-
-const reportTypeArray = [
-  { name: 'Individual Animal-wise', key: 'individual' },
-  { name: 'Species-wise', key: 'species' }
-]
+import { useTranslation } from 'react-i18next'
 
 interface SiteRecord {
   site_id: string | number
@@ -109,7 +105,13 @@ const SiteDrawer = ({
   enclosuresData,
   setEnclosuresData
 }: SiteDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
+
+  const reportTypeArray = [
+    { name: t('compliance_module.individual_animal_wise'), key: 'individual' },
+    { name: t('compliance_module.species_wise'), key: 'species' }
+  ]
 
   const [collapsed, setCollapsed] = useState<boolean>(true)
 
@@ -288,7 +290,7 @@ const SiteDrawer = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>{t('filter')}</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -394,7 +396,7 @@ const SiteDrawer = ({
                 <>
                   <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
                     <CardHeader
-                      title='Select Site'
+                      title={t('compliance_module.select_site')}
                       onClick={() => {
                         setSiteListDrawer(true)
                       }}
@@ -465,7 +467,7 @@ const SiteDrawer = ({
                       }}
                     >
                       <CardHeader
-                        title='Select Sections'
+                        title={t('compliance_module.select_sections')}
                         onClick={() => {
                           setOpenSectionListDrawer(true)
                         }}
@@ -533,7 +535,7 @@ const SiteDrawer = ({
                       }}
                     >
                       <CardHeader
-                        title='Select Enclosures'
+                        title={t('compliance_module.select_enclosures')}
                         onClick={() => {
                           setOpenEnclosureListDrawer(true)
                         }}
@@ -667,7 +669,7 @@ const SiteDrawer = ({
             handleCancelAll()
           }}
         >
-          CANCEL ALL
+          {t('cancel_all')}
         </LoadingButton>
         <LoadingButton
           sx={{ flex: 1 }}
@@ -676,7 +678,7 @@ const SiteDrawer = ({
           onClick={handleApplyFilter}
           disabled={!canGenerate}
         >
-          generate
+          {t('compliance_module.generate')}
         </LoadingButton>
       </Box>
 

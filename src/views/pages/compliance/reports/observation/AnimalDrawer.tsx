@@ -22,6 +22,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
+import { useTranslation } from 'react-i18next'
 
 const PAGE_SIZE = 10
 
@@ -89,7 +90,7 @@ const AnimalDrawer = ({
   onClose,
   from = '',
   handleAnimalClick,
-  btnText = 'GENERATE OBSERVATION REPORT',
+  btnText,
   showAnimalFilter = true,
   showFilterAndSort = false,
   handleFilterClick = () => {},
@@ -104,6 +105,7 @@ const AnimalDrawer = ({
   type = 'single',
   disabledIds = []
 }: AnimalDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -225,7 +227,7 @@ const AnimalDrawer = ({
 
       // Single API call for all modules
       const params = { ...baseParams, ...moduleParams }
-      const res = await getNewAnimalListWithFilters(params) as any
+      const res = (await getNewAnimalListWithFilters(params)) as any
 
       return {
         animals: res?.data || [],
@@ -235,7 +237,7 @@ const AnimalDrawer = ({
     },
     getNextPageParam: (lastPage: any) => lastPage.nextPage,
     gcTime: 0,
-    staleTime: 0,
+    staleTime: 0
   })
 
   const clearAnimalQuery = () => {
@@ -337,9 +339,7 @@ const AnimalDrawer = ({
 
   const isAllSelected =
     selectableList.length > 0 &&
-    selectableList.every((animal: AnimalItem) =>
-      internalMultiSelected.some(a => a.animal_id === animal.animal_id)
-    )
+    selectableList.every((animal: AnimalItem) => internalMultiSelected.some(a => a.animal_id === animal.animal_id))
 
   const handleSelectAll = () => {
     if (isAllSelected) {
@@ -404,7 +404,7 @@ const AnimalDrawer = ({
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Select the Animal
+            {t('compliance_module.select_the_animal')}
           </Typography>
           <IconButton
             onClick={() => {
@@ -431,7 +431,7 @@ const AnimalDrawer = ({
           <Grid size={{ xs: 12, sm: showFilterAndSort ? 10 : 12 }}>
             <Search
               width='100%'
-              placeholder='Search animal by AID or identifier'
+              placeholder={t('compliance_module.search_animal_by_aid_or_identifier')}
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
@@ -449,7 +449,7 @@ const AnimalDrawer = ({
                 />
               </Grid>
               <Grid size={{ xs: 1, sm: 1 }}>
-                <Tooltip title='Sort' placement='bottom'>
+                <Tooltip title={t('sort')} placement='bottom'>
                   <Box
                     sx={{
                       display: 'flex',
@@ -561,7 +561,7 @@ const AnimalDrawer = ({
             '&::-webkit-scrollbar': { display: 'none' },
             scrollbarWidth: 'none',
             // '-ms-overflow-style': 'none',
-             msOverflowStyle: 'none',
+            msOverflowStyle: 'none',
             py: showAnimalFilter ? 1 : 4
           }}
         >
@@ -602,7 +602,7 @@ const AnimalDrawer = ({
                       color: theme.palette.text.secondary
                     }}
                   >
-                    Select All
+                    {t('compliance_module.select_all')}
                   </Typography>
                 </Box>
               )}
@@ -658,7 +658,7 @@ const AnimalDrawer = ({
               )}
               {!hasNextPage && list.length > 0 && (
                 <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                  No more species to load
+                  {t('compliance_module.no_more_species_to_load')}
                 </Typography>
               )}
             </>
@@ -688,8 +688,10 @@ const AnimalDrawer = ({
             sx={{ p: 3, fontWeight: 600 }}
           >
             {multiSelect && internalMultiSelected.length > 0
-              ? `${btnText} (${isSelectAllUsed && total > 0 ? total : internalMultiSelected.length})`
-              : btnText}
+              ? `${btnText || t('compliance_module.generate_observation_report')} (${
+                  isSelectAllUsed && total > 0 ? total : internalMultiSelected.length
+                })`
+              : btnText || t('compliance_module.generate_observation_report')}
           </Button>
         </Box>
       )}
