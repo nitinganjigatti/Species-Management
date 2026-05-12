@@ -1,14 +1,16 @@
 'use client'
 
-import { Box, Card, Tab, Tabs, Typography } from '@mui/material'
+import { Box, Card, Tab, Tabs } from '@mui/material'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { AuthContext } from 'src/context/AuthContext'
 import { canAdd, canView } from 'src/utils/access'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import AddAnimalDrawer from 'src/components/collection/AddAnimalDrawer'
 import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
+import { getSpeciesTaxonomyHierarchy } from 'src/lib/api/collection/species'
 
 // Tab Components
 import PopulationTab from 'src/components/collection/species-detail/PopulationTab'
@@ -74,18 +76,37 @@ const SpeciesDetail: React.FC = () => {
   const [speciesDrawerTitle, setSpeciesDrawerTitle] = useState('')
   const [speciesDrawerData, setSpeciesDrawerData] = useState<any>(null)
 
-  // TODO: Replace with real API call
-  const speciesData = {
-    common_name: 'Reverse Pebblenail',
-    scientific_name: 'Somatogyrus somatogyrus',
-    default_icon: '',
-    population: 234500,
-    natality: 94,
-    accession: 44,
-    external_transfer: 24,
-    mortality: 359,
-    animal_count: 1237
-  }
+  // Header info (name, scientific name) — derived from the taxonomy hierarchy endpoint, which is
+  // the only existing per-species GET keyed by taxonomy_id.
+  //
+  // TODO: Once backend ships a dedicated `species-detail/{taxonomy_id}` endpoint, replace this with
+  // it so we also get default_icon, animal_count, and the 4 insight stats from one call. For now
+  // the stats stay 0 — better than fabricated numbers.
+  const { data: hierarchyResponse, isLoading: speciesLoading } = useQuery({
+    queryKey: ['species-detail-header', id],
+    queryFn: () => getSpeciesTaxonomyHierarchy({ species_id: id as string }),
+    enabled: Boolean(id)
+  })
+
+  const speciesData = useMemo(() => {
+    const items = hierarchyResponse?.data || []
+    // The species row is keyed by `rank_name === 'Species'`; fall back to matching `tsn` against the
+    // route id so a backend rename of the rank label doesn't silently leave us with an empty header.
+    const speciesItem =
+      items.find(i => i?.rank_name === 'Species') || items.find(i => String(i?.tsn) === String(id))
+
+    return {
+      common_name: speciesItem?.common_name || speciesItem?.complete_name || '',
+      scientific_name: speciesItem?.complete_name || '',
+      default_icon: '',
+      population: 0,
+      natality: 0,
+      accession: 0,
+      external_transfer: 0,
+      mortality: 0,
+      animal_count: 0
+    }
+  }, [hierarchyResponse, id])
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: string) => {
     setSelectedTab(newValue)
@@ -160,7 +181,7 @@ const SpeciesDetail: React.FC = () => {
         {/* Species Insights Banner */}
         <InsightsCard
           data={speciesData}
-          loading={false}
+          loading={speciesLoading}
           error={null as any}
           isListingPage
           titleLabel='Species'
