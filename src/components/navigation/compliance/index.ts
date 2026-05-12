@@ -138,7 +138,26 @@ const composeComplianceNavigation = (): ComplianceNavItem[] => {
     // animalHistoryReport
   )
 
-  const complianceNavigation: ComplianceNavItem[] = [complianceTitle, documentsParent]
+  const dashboard: ComplianceNavItem = {
+    title: 'Dashboard',
+    path: '/compliance/dashboard',
+    icon: 'mdi:view-dashboard-outline',
+    activeWhen: [
+      '/compliance/dashboard',
+      '/compliance/dashboard/orgs',
+      '/compliance/dashboard/sites',
+      '/compliance/dashboard/species'
+    ]
+  }
+
+  const animals: ComplianceNavItem = {
+    title: 'Animals',
+    path: '/compliance/animals',
+    icon: 'mdi:paw',
+    activeWhen: ['/compliance/animals']
+  }
+
+  const complianceNavigation: ComplianceNavItem[] = [complianceTitle, dashboard, animals, documentsParent]
 
   return complianceNavigation
 }
