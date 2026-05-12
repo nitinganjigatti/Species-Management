@@ -26,7 +26,7 @@ import {
   Chip
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
-import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import {
@@ -489,25 +489,12 @@ const MealGroup = () => {
     }
   }
 
-  const lastEnclosureKeyRef = useRef('')
-  const lastSiteKeyRef = useRef('')
-  const lastGroupNamesKeyRef = useRef('')
-  const speciesFetchedRef = useRef(false)
-
   useEffect(() => {
-    if (!selectedOption) return
-    const key = [
-      selectedOption,
-      status,
-      paginationModel.page,
-      paginationModel.pageSize,
-      status === 'mealgroup' ? '' : selectedSection,
-      status === 'mealgroup' ? '' : selectedSpecies,
-      status === 'mealgroup' ? '' : selectedGroup
-    ].join('|')
-    if (lastEnclosureKeyRef.current === key) return
-    lastEnclosureKeyRef.current = key
     fetchEnclosure()
+    fetchSiteStats()
+    fetchSectionList()
+    fetchSpeciesList()
+    fetchMealGroupNames()
     updateUrlParams({
       status: status,
       site_id: selectedOption,
@@ -854,7 +841,7 @@ const MealGroup = () => {
   const groupcolumns = [
     {
       flex: 0.4,
-      minWidth: 240,
+      width: 40,
       sortable: false,
       field: 'group_name',
       headerName: t('diet_module.meal_group_name'),
@@ -949,7 +936,7 @@ const MealGroup = () => {
     },
     {
       flex: 0.2,
-      minWidth: 130,
+      width: 20,
       field: 'enclosure_count',
       type: 'number',
       sortable: false,
@@ -996,7 +983,7 @@ const MealGroup = () => {
     },
     {
       flex: 0.15,
-      minWidth: 110,
+      width: 10,
       field: 'species_count',
       sortable: false,
       type: 'number',
@@ -1043,7 +1030,7 @@ const MealGroup = () => {
     },
     {
       flex: 0.15,
-      minWidth: 110,
+      width: 20,
       field: 'animal_count',
       headerName: t('navigation.animals'),
       sortable: false,
@@ -1088,51 +1075,7 @@ const MealGroup = () => {
       )
     },
     {
-      flex: 0.35,
-      minWidth: 180,
-      field: 'drop_point_name',
-      sortable: false,
-      headerAlign: 'left',
-      align: 'left',
-      renderHeader: () => (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'start', gap: 1 }}>
-          <Typography
-            variant='subtitle2'
-            sx={{
-              fontWeight: 600,
-              fontSize: '12px',
-              fontFamily: 'Inter',
-              color: theme.palette.customColors.OnSurfaceVariant,
-              textTransform: 'uppercase'
-            }}
-          >
-            {t('diet_module.drop_point_name')}
-          </Typography>
-        </Box>
-      ),
-      renderCell: (params: any) => (
-        <Tooltip title={params.row.drop_point_name || ''}>
-          <Typography
-            noWrap
-            variant='body2'
-            sx={{
-              fontSize: '16px',
-              fontWeight: 400,
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '100%'
-            }}
-          >
-            {params.row.drop_point_name || '-'}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
       flex: 1,
-      minWidth: 420,
       field: 'actions',
       sortable: false,
       headerAlign: 'right',
@@ -1179,10 +1122,9 @@ const MealGroup = () => {
                 borderRadius: '4px',
                 height: '36px',
                 fontSize: '12px',
-                whiteSpace: 'nowrap'
+                minWidth: '140px'
               }}
               variant='outlined'
-              size='small'
               onClick={e => handleRemoveDropPoint(e, params.row)}
             >
               {t('diet_module.remove_drop_point')}
@@ -1194,12 +1136,12 @@ const MealGroup = () => {
                 borderColor: theme.palette.primary.main,
                 color: theme.palette.primary.main,
                 borderRadius: '4px',
+
+                // minWidth: '120px',
                 height: '36px',
-                fontSize: '12px',
-                whiteSpace: 'nowrap'
+                fontSize: '12px'
               }}
               variant='outlined'
-              size='small'
               onClick={e => handleEnclosureEvent(e, params.row.id)}
             >
               {t('add')} {t('navigation.enclosure')}
