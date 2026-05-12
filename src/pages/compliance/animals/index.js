@@ -3,7 +3,12 @@ import { useRouter } from 'next/router'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
 import { Avatar, Box, Typography } from '@mui/material'
-import { getComplianceAnimals } from 'src/lib/api/compliance/dashboard'
+import {
+  getComplianceAnimals,
+  getOrgDetail,
+  getSiteDetail,
+  getSpeciesDetail
+} from 'src/lib/api/compliance/dashboard'
 import AnimalsListingView from 'src/views/pages/compliance/dashboard/AnimalsListingView'
 
 const FILTER_KEYS = ['org_id', 'site_id', 'compliance_species_id']
@@ -43,13 +48,46 @@ const ComplianceAnimalsPage = () => {
     [data]
   )
 
+  const { data: orgLabel } = useQuery({
+    queryKey: ['compliance-org-detail', filters.org_id],
+    queryFn: () => getOrgDetail(filters.org_id),
+    enabled: Boolean(filters.org_id)
+  })
+
+  const { data: siteLabel } = useQuery({
+    queryKey: ['compliance-site-detail', filters.site_id],
+    queryFn: () => getSiteDetail(filters.site_id),
+    enabled: Boolean(filters.site_id)
+  })
+
+  const { data: speciesLabel } = useQuery({
+    queryKey: ['compliance-species-detail', filters.compliance_species_id],
+    queryFn: () => getSpeciesDetail(filters.compliance_species_id),
+    enabled: Boolean(filters.compliance_species_id)
+  })
+
   const activeChips = useMemo(() => {
     const chips = []
-    if (filters.org_id) chips.push({ key: 'org_id', label: `Org: ${filters.org_id}` })
-    if (filters.site_id) chips.push({ key: 'site_id', label: `Site: ${filters.site_id}` })
-    if (filters.compliance_species_id) chips.push({ key: 'compliance_species_id', label: `Species: ${filters.compliance_species_id}` })
+    if (filters.org_id) {
+      chips.push({
+        key: 'org_id',
+        label: `Org: ${orgLabel?.data?.organization_name ?? filters.org_id}`
+      })
+    }
+    if (filters.site_id) {
+      chips.push({
+        key: 'site_id',
+        label: `Site: ${siteLabel?.data?.site_name ?? filters.site_id}`
+      })
+    }
+    if (filters.compliance_species_id) {
+      chips.push({
+        key: 'compliance_species_id',
+        label: `Species: ${speciesLabel?.data?.compliance_common_name ?? filters.compliance_species_id}`
+      })
+    }
     return chips
-  }, [filters])
+  }, [filters, orgLabel, siteLabel, speciesLabel])
 
   const handleRemoveChip = key => {
     const { [key]: _, ...next } = filters
