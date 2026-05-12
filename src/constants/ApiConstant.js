@@ -1072,3 +1072,10 @@ export const REQUEST_DEPARTMENTS = 'v1/request/departments'
 export const REQUEST_DEPARTMENT = 'v1/request/department'
 export const REQUEST_DEPARTMENT_USERS = 'v1/request/department/users'
 export const REQUEST_LIST = 'v1/request/list'
+
+// Compliance Dashboard
+export const GET_COMPLIANCE_DASHBOARD_OVERALL = 'v1/compliance/dashboard/overall'
+export const GET_COMPLIANCE_DASHBOARD_ORGS = 'v1/compliance/dashboard/orgs'
+export const GET_COMPLIANCE_DASHBOARD_SITES = 'v1/compliance/dashboard/sites'
+export const GET_COMPLIANCE_DASHBOARD_SPECIES = 'v1/compliance/dashboard/species'
+export const GET_COMPLIANCE_ANIMALS = 'v1/compliance/animals'
