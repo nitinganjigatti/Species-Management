@@ -104,7 +104,7 @@ const ComplianceAnimalsPage = () => {
       field: 'birth_date',
       headerName: 'Born',
       flex: 1,
-      valueFormatter: ({ value }) => (value ? new Date(value).toLocaleDateString() : '—')
+      valueFormatter: value => (value ? new Date(value).toLocaleDateString() : '—')
     }
   ]
 
