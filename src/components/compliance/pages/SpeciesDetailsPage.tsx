@@ -450,7 +450,7 @@ const SpeciesDetails = () => {
         isSpeciesDetails={true}
         isAnimalDetailsPage={false}
         isSpeciesListing={false}
-        onAddNew={() => {}}
+        onAddNew={undefined}
         onQrClick={() => {}}
         showQr={false}
         headerDetails={{

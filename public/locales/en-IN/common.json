@@ -2351,7 +2351,6 @@
     "error_fetching_export_details": "Error fetching export details",
     "error_fetching_linked_import": "Error fetching Linked Import",
     "error_fetching_masters_data": "Error fetching masters data",
-    "error_fetching_shipment_basic_details": "Error fetching shipment basic details",
     "expand": "Expand",
     "expiry": "Expiry",
     "export_documents": "Export Documents",
@@ -2553,7 +2552,12 @@
     "upload_permit": "Upload Permit",
     "this_export_id_is_part_of": "This export ID is part of",
     "valid_until_date_must_be_after_issued_date": "Valid until date must be after issued date",
-    "weight": "Weight"
+    "weight": "Weight",
+    "documents_added": "Documents added",
+    "no_file_available_to_view": "No file available to view",
+    "antx_database": "Antz Database",
+    "search_for_species": "Search for species",
+    "document_name": "Document Name"
   },
   "parivesh_module": {
     "parivesh": "Parivesh",

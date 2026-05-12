@@ -71,9 +71,7 @@ const AddEditImport = () => {
 
   const uploadedFileCount = documentList?.filter(doc => (doc as any).file_path).length || 0
 
-  const handleAddEditSuccess = (data: Record<string, unknown>) => {
-    const updatedList = documentList.map(item => (item.id === data.id ? { ...item, ...data } : item))
-    setDocumentList(updatedList as DocumentType[])
+  const handleAddEditSuccess = () => {
     fetchDocumentTypeList()
     setActiveTab('completed')
   }
