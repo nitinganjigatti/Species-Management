@@ -14,8 +14,7 @@ const AnimalsListingView = ({
   onClearAll,
   loading,
   onRowClick,
-  onExportClick,
-  rowHeight
+  onExportClick
 }) => (
   <Box>
     <Stack direction='row' justifyContent='space-between' alignItems='flex-start' mb={4} flexWrap='wrap' gap={2}>
@@ -62,7 +61,6 @@ const AnimalsListingView = ({
         handleSearch={handleSearch}
         loading={loading}
         onRowClick={onRowClick}
-        rowHeight={rowHeight}
       />
     </Card>
   </Box>
