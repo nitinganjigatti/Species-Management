@@ -2,8 +2,9 @@
 
 import { Box, Card, Tab, Tabs } from '@mui/material'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import { getAnimalDetailsOverview } from 'src/lib/api/housing'
@@ -30,22 +31,27 @@ interface TabConfigItem {
   component: React.ComponentType<any>
 }
 
-const allTabConfig: TabConfigItem[] = [
-  { label: 'Overview', value: 'overview', component: AnimalOverview },
-  { label: 'Medical', value: 'medical', component: AnimalMedical },
-  { label: 'Incidents', value: 'incidents', component: AnimalIncidents },
-  { label: 'Diet', value: 'diet', component: AnimalDiet },
-  { label: 'Assessments', value: 'assessments', component: AnimalAssessment },
-  { label: 'Journal', value: 'journal', component: AnimalJournals },
-  { label: 'History', value: 'history', component: AnimalHistory },
-  { label: 'Notes', value: 'notes', component: NotesListing },
-  { label: 'Identifier', value: 'identifier', component: AnimalIdentifier },
-  { label: 'Media', value: 'media', component: AnimalMedia }
-]
-
 const CollectionAnimalDetail: React.FC = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const pathname = usePathname()
+
+  // Built inside the component so `t()` is in scope; memoised so identity is stable across renders.
+  const allTabConfig = useMemo<TabConfigItem[]>(
+    () => [
+      { label: t('species_module.tab_overview'), value: 'overview', component: AnimalOverview },
+      { label: t('species_module.tab_medical'), value: 'medical', component: AnimalMedical },
+      { label: t('species_module.tab_incidents'), value: 'incidents', component: AnimalIncidents },
+      { label: t('species_module.tab_diet'), value: 'diet', component: AnimalDiet },
+      { label: t('species_module.tab_assessments'), value: 'assessments', component: AnimalAssessment },
+      { label: t('species_module.tab_journal'), value: 'journal', component: AnimalJournals },
+      { label: t('species_module.tab_history'), value: 'history', component: AnimalHistory },
+      { label: t('species_module.tab_notes'), value: 'notes', component: NotesListing },
+      { label: t('species_module.tab_identifier'), value: 'identifier', component: AnimalIdentifier },
+      { label: t('species_module.tab_media'), value: 'media', component: AnimalMedia }
+    ],
+    [t]
+  )
   const searchParams = useSearchParams()
   const params = useParams() as { id?: string; animalId?: string }
   const speciesId = params.id
@@ -137,8 +143,8 @@ const CollectionAnimalDetail: React.FC = () => {
       <DynamicBreadcrumbs
         sx={{ mb: 5 }}
         pageItems={[
-          { title: 'Collection', href: ROUTES.collection.species },
-          { title: 'Species', href: ROUTES.collection.species },
+          { title: t('species_module.collection'), href: ROUTES.collection.species },
+          { title: t('species_module.species'), href: ROUTES.collection.species },
           {
             // Species name (e.g. "Lion") reads better than the raw taxonomy id ("135694").
             // Falls back to the id while the overview query is in flight so the segment isn't empty.
@@ -148,7 +154,9 @@ const CollectionAnimalDetail: React.FC = () => {
           {
             // Animal-specific identifier so the last segment doesn't duplicate the species name above.
             // Prefer the local id the user assigned (e.g. tag / marking); fall back to "AID: <id>".
-            title: animalDetails?.localIdentifier || (animalDetails?.aid ? `AID: ${animalDetails.aid}` : ''),
+            title:
+              animalDetails?.localIdentifier ||
+              (animalDetails?.aid ? `${t('species_module.aid')}: ${animalDetails.aid}` : ''),
             href: '#',
             active: true
           }

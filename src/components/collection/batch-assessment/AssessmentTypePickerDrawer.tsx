@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Button,
@@ -47,6 +48,8 @@ const AssessmentTypePickerDrawer: React.FC<AssessmentTypePickerDrawerProps> = ({
   onConfirm,
   refType = 'animal'
 }) => {
+  // Aliased to `tr` because the map callback below uses `t` as the assessment-type item.
+  const { t: tr } = useTranslation()
   const theme = useTheme() as any
 
   const [selectedIds, setSelectedIds] = useState<number[]>([])
@@ -194,7 +197,7 @@ const AssessmentTypePickerDrawer: React.FC<AssessmentTypePickerDrawerProps> = ({
               noWrap
               sx={{ fontWeight: 600, color: theme.palette.customColors?.OnSurfaceVariant }}
             >
-              Search Assessment Type
+              {tr('species_module.search_assessment_type_title')}
             </Typography>
           </Box>
           <IconButton size='small' onClick={onClose}>
@@ -212,7 +215,7 @@ const AssessmentTypePickerDrawer: React.FC<AssessmentTypePickerDrawerProps> = ({
             width='100%'
             textFielsSX={{ height: 56 }}
             inputStyle={{ padding: '14px 12px', fontSize: '1rem' }}
-            placeholder='Search assessment type'
+            placeholder={tr('species_module.search_assessment_type_placeholder')}
             value={searchInput}
             onClear={() => {
               setSearchInput('')
@@ -233,7 +236,7 @@ const AssessmentTypePickerDrawer: React.FC<AssessmentTypePickerDrawerProps> = ({
             </Box>
           ) : (
             <Stack direction='row' spacing={1.5} sx={{ flexWrap: 'nowrap', width: 'max-content' }}>
-              {[{ assessment_category_id: ALL_CATEGORY_ID, label: 'All' }, ...categories].map(cat => {
+              {[{ assessment_category_id: ALL_CATEGORY_ID, label: tr('species_module.all_categories') }, ...categories].map(cat => {
                 const id = cat.assessment_category_id
                 const selected = catId === id
 
@@ -275,7 +278,7 @@ const AssessmentTypePickerDrawer: React.FC<AssessmentTypePickerDrawerProps> = ({
             </Box>
           ) : types.length === 0 ? (
             <Typography sx={{ textAlign: 'center', py: 6, color: theme.palette.text.secondary }}>
-              No assessment types found
+              {tr('species_module.no_assessment_types_found')}
             </Typography>
           ) : (
             types.map(t => {
@@ -360,7 +363,7 @@ const AssessmentTypePickerDrawer: React.FC<AssessmentTypePickerDrawerProps> = ({
           </Typography>
           {showAddButton && (
             <Button variant='contained' size='large' disabled={!isDirty} onClick={handleAdd}>
-              {selectedIds.length > 0 ? `Add (${selectedIds.length})` : 'Add'}
+              {selectedIds.length > 0 ? `${tr('species_module.add_btn')} (${selectedIds.length})` : tr('species_module.add_btn')}
             </Button>
           )}
         </Box>

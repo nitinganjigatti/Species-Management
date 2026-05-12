@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from 'react'
 import { Avatar, Box, Card, Button, IconButton, Switch, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import Icon from 'src/@core/components/icon'
 import Search from 'src/views/utility/Search'
@@ -46,6 +47,7 @@ const DietTab: React.FC<DietTabProps> = ({
   scientificName = '',
   speciesImage = ''
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [searchValue, setSearchValue] = useState('')
   const [dietUploadOpen, setDietUploadOpen] = useState(false)
@@ -79,13 +81,13 @@ const DietTab: React.FC<DietTabProps> = ({
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 4 }}>
         <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-          Diet Attached ({activeCount})
+          {t('species_module.diet_attached_header')} ({activeCount})
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Search
             borderRadius='4px'
             width='200px'
-            placeholder='Search'
+            placeholder={t('search')}
             value={searchValue}
             onClear={() => handleSearch('')}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -96,15 +98,15 @@ const DietTab: React.FC<DietTabProps> = ({
             onClick={() => setDietUploadOpen(true)}
             sx={{ textTransform: 'uppercase', borderRadius: '4px', fontWeight: 600, whiteSpace: 'nowrap' }}
           >
-            Upload
+            {t('species_module.upload')}
           </Button>
         </Box>
       </Box>
 
       {isLoading ? (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>Loading...</Typography>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>{t('species_module.loading')}</Typography>
       ) : filteredAttachments.length === 0 ? (
-        <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>No diet attachments found.</Typography>
+        <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>{t('species_module.no_diet_attachments')}</Typography>
       ) : (
         filteredAttachments.map((item: DietAttachment) => (
           <Card key={item.attachment_id} sx={{ mb: 4, border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
@@ -152,7 +154,7 @@ const DietTab: React.FC<DietTabProps> = ({
             {/* Notes */}
             {item.notes && (
               <Box sx={{ mx: 4, mb: 4, p: 3, backgroundColor: theme.palette.customColors.antzNotes, borderRadius: 1, borderLeft: `3px solid ${theme.palette.customColors.antzNotes80}` }}>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', mb: 0.5, color: theme.palette.customColors.OnSurfaceVariant }}>Notes</Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.85rem', mb: 0.5, color: theme.palette.customColors.OnSurfaceVariant }}>{t('species_module.notes_label')}</Typography>
                 <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.6 }}>
                   {item.notes}
                 </Typography>

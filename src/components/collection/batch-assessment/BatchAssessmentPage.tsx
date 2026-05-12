@@ -5,6 +5,7 @@ import { Box, Button, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getMeasurementUnits } from 'src/lib/api/assessment'
 import AssessmentTypePickerDrawer from './AssessmentTypePickerDrawer'
@@ -39,6 +40,7 @@ const parsePage = (raw: string | null | undefined): number => {
 }
 
 const BatchAssessmentPage: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
   const pathname = usePathname()
@@ -139,7 +141,7 @@ const BatchAssessmentPage: React.FC = () => {
             <Icon icon='mdi:arrow-left' />
           </IconButton>
           <Typography variant='h5' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Species Assessment
+            {t('species_module.species_assessment_header')}
           </Typography>
         </Box>
         {selectedTypeIds.length > 0 && (
@@ -184,7 +186,7 @@ const BatchAssessmentPage: React.FC = () => {
               onClick={() => setPickerOpen(true)}
               sx={{ borderRadius: '8px' }}
             >
-              Parameter
+              {t('species_module.parameter_btn')}
             </Button>
           </Box>
         )}
@@ -203,10 +205,10 @@ const BatchAssessmentPage: React.FC = () => {
           }}
         >
           <Typography variant='subtitle1' sx={{ mb: 3, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Pick assessment types to begin
+            {t('species_module.pick_assessment_types')}
           </Typography>
           <Button variant='contained' onClick={() => setPickerOpen(true)}>
-            Pick Types
+            {t('species_module.pick_types_btn')}
           </Button>
         </Box>
       ) : (

@@ -1,24 +1,14 @@
 'use client'
 
 import { useTheme } from '@mui/material/styles'
-import {
-  Avatar,
-  Box,
-  Button,
-  Card,
-  FormControl,
-  IconButton,
-  MenuItem,
-  Select,
-  Tooltip,
-  Typography
-} from '@mui/material'
+import { Box, Button, Card, FormControl, MenuItem, Select, Typography } from '@mui/material'
 import { GridRenderCellParams } from '@mui/x-data-grid'
 import { useRouter } from 'next/navigation'
 import React, { useCallback, useContext, useMemo, useState } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import { canAdd, canView } from 'src/utils/access'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import moment from 'moment'
 import toast from 'react-hot-toast'
@@ -69,8 +59,10 @@ const mapSpeciesReportRow = (item: any, index: number) => ({
 })
 
 const CollectionSpecies = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const authData = useContext(AuthContext) as any
   const animalRecordsAccess = authData?.userData?.roles?.settings?.collection_animal_records
   const animalRecordsLevel = authData?.userData?.roles?.settings?.collection_animal_record_access
@@ -80,7 +72,6 @@ const CollectionSpecies = () => {
   const [searchValue, setSearchValue] = useState('')
   const [filters, setFilters] = useState({ page: 1, limit: 10, q: '' })
   const [speciesFilter, setSpeciesFilter] = useState('all')
-  const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
   const [insightsFilterDate, setInsightsFilterDate] = useState({
     startDate: moment().subtract(6, 'months').toDate(),
     endDate: new Date()
@@ -172,7 +163,6 @@ const CollectionSpecies = () => {
   }
   const handleInsightsDateChange = (start: Date, end: Date) => {
     setInsightsFilterDate({ startDate: start, endDate: end })
-    // TODO: Refetch insights data based on date range
   }
 
   const debouncedSearch = useMemo(
@@ -227,10 +217,10 @@ const CollectionSpecies = () => {
         link.click()
         document.body.removeChild(link)
       } else {
-        toast.error('Could not generate report')
+        toast.error(t('species_module.could_not_generate_report'))
       }
     } catch {
-      toast.error('Error connecting to the server')
+      toast.error(t('species_module.error_connecting_server'))
     } finally {
       setIsDownloading(false)
     }
@@ -241,7 +231,7 @@ const CollectionSpecies = () => {
       width: 60,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('species_module.col_no'),
       renderCell: (params: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.sl_no}
@@ -253,7 +243,7 @@ const CollectionSpecies = () => {
       flex: 1,
       sortable: false,
       field: 'species_name',
-      headerName: 'SPECIES',
+      headerName: t('species_module.col_species'),
       renderCell: (params: GridRenderCellParams) => (
         <SpeciesCard
           species={{
@@ -268,7 +258,7 @@ const CollectionSpecies = () => {
       width: 120,
       sortable: false,
       field: 'population',
-      headerName: 'POPULATION',
+      headerName: t('species_module.col_population'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{
@@ -315,7 +305,7 @@ const CollectionSpecies = () => {
       width: 100,
       sortable: false,
       field: 'male',
-      headerName: 'MALE',
+      headerName: t('species_module.col_male'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -333,7 +323,7 @@ const CollectionSpecies = () => {
       width: 100,
       sortable: false,
       field: 'female',
-      headerName: 'FEMALE',
+      headerName: t('species_module.col_female'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -351,7 +341,7 @@ const CollectionSpecies = () => {
       width: 140,
       sortable: false,
       field: 'undetermined',
-      headerName: 'UNDETERMINED',
+      headerName: t('species_module.col_undetermined'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -369,7 +359,7 @@ const CollectionSpecies = () => {
       width: 120,
       sortable: false,
       field: 'identified',
-      headerName: 'IDENTIFIED',
+      headerName: t('species_module.col_identified'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -387,7 +377,7 @@ const CollectionSpecies = () => {
       width: 110,
       sortable: false,
       field: 'class_name',
-      headerName: 'CLASS',
+      headerName: t('species_module.col_class'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -403,7 +393,7 @@ const CollectionSpecies = () => {
       width: 130,
       sortable: false,
       field: 'order_name',
-      headerName: 'ORDER',
+      headerName: t('species_module.col_order'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -419,7 +409,7 @@ const CollectionSpecies = () => {
       width: 140,
       sortable: false,
       field: 'family',
-      headerName: 'FAMILY',
+      headerName: t('species_module.col_family'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -435,7 +425,7 @@ const CollectionSpecies = () => {
       width: 120,
       sortable: false,
       field: 'genus',
-      headerName: 'GENUS',
+      headerName: t('species_module.col_genus'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -451,7 +441,7 @@ const CollectionSpecies = () => {
       width: 160,
       sortable: false,
       field: 'site',
-      headerName: 'SITES',
+      headerName: t('species_module.col_sites'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -467,7 +457,7 @@ const CollectionSpecies = () => {
       width: 180,
       sortable: false,
       field: 'section',
-      headerName: 'SECTIONS',
+      headerName: t('species_module.col_sections'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -483,7 +473,7 @@ const CollectionSpecies = () => {
       width: 200,
       sortable: false,
       field: 'enclosure',
-      headerName: 'ENCLOSURES',
+      headerName: t('species_module.col_enclosures'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -499,7 +489,7 @@ const CollectionSpecies = () => {
       width: 180,
       sortable: false,
       field: 'organisation',
-      headerName: 'ORGANISATION',
+      headerName: t('species_module.col_organisation'),
       renderCell: (params: GridRenderCellParams) => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -522,8 +512,8 @@ const CollectionSpecies = () => {
 
   // Banner data — driven by /v2/collection/insights
   const bannerSummaryStats = [
-    { value: insights.speciesCount, label: 'Species' },
-    { value: insights.population, label: 'Population' }
+    { value: insights.speciesCount, label: t('species_module.species') },
+    { value: insights.population, label: t('species_module.population') }
   ]
 
   // InsightsCard statsData (uses imagePath icons — same pattern as cluster/site pages)
@@ -531,28 +521,28 @@ const CollectionSpecies = () => {
   const insightsStatsData = [
     {
       value: insights.birthCount,
-      label: 'Natality',
+      label: t('species_module.natality'),
       imagePath: '/images/collection/natality.svg',
-      onClick: () => handleStatClick('Natality', 'natality', '/images/collection/natality.svg')
+      onClick: () => handleStatClick(t('species_module.natality'), 'natality', '/images/collection/natality.svg')
     },
     {
       value: insights.totalAccession,
-      label: 'Accession',
+      label: t('species_module.accession'),
       imagePath: '/images/collection/accession.svg',
-      onClick: () => handleStatClick('Accession', 'accession', '/images/collection/accession.svg')
+      onClick: () => handleStatClick(t('species_module.accession'), 'accession', '/images/collection/accession.svg')
     },
     {
       value: 0,
-      label: 'External transfer',
+      label: t('species_module.external_transfer'),
       imagePath: '/images/collection/external_transfer.svg',
       onClick: () =>
-        handleStatClick('External transfer', 'external_transfer', '/images/collection/external_transfer.svg')
+        handleStatClick(t('species_module.external_transfer'), 'external_transfer', '/images/collection/external_transfer.svg')
     },
     {
       value: insights.mortalityCount,
-      label: 'Mortality',
+      label: t('species_module.mortality'),
       imagePath: '/images/collection/mortality.svg',
-      onClick: () => handleStatClick('Mortality', 'mortality', '/images/collection/mortality.svg')
+      onClick: () => handleStatClick(t('species_module.mortality'), 'mortality', '/images/collection/mortality.svg')
     }
   ]
 
@@ -568,11 +558,11 @@ const CollectionSpecies = () => {
             loading={isInsightsLoading}
             error={null}
             isListingPage
-            pageTitle='All Species'
+            pageTitle={t('species_module.all_species')}
             image='/images/housing/testInDev.jpg'
             actions={{ onAddNew: canAddAnimal ? () => setAddAnimalDrawerOpen(true) : null }}
-            addNewTooltip='Add Animals'
-            addNewLabel='Add Animals'
+            addNewTooltip={t('species_module.add_animals')}
+            addNewLabel={t('species_module.add_animals')}
             onCallClick={null}
             onMessageClick={null}
             zooName=''
@@ -583,7 +573,7 @@ const CollectionSpecies = () => {
             summaryStats={bannerSummaryStats as any}
             haveInsightsViewAccess
             statsData={insightsStatsData as any}
-            insightsTitle='Population Insights'
+            insightsTitle={t('species_module.population_insights')}
             onInsightsDateChange={handleInsightsDateChange as any}
             insightsFilterDates={insightsFilterDate as any}
           />
@@ -606,7 +596,7 @@ const CollectionSpecies = () => {
               }}
             >
               <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-                Species List ({totalCount.toLocaleString()})
+                {t('species_module.species_list')} ({totalCount.toLocaleString()})
               </Typography>
               <Button
                 variant='text'
@@ -626,7 +616,7 @@ const CollectionSpecies = () => {
                   fontSize: '0.875rem'
                 }}
               >
-                {isDownloading ? 'Preparing…' : 'Download'}
+                {isDownloading ? t('species_module.preparing') : t('download')}
               </Button>
             </Box>
 
@@ -646,7 +636,7 @@ const CollectionSpecies = () => {
               <Search
                 borderRadius='4px'
                 width='220px'
-                placeholder='Search'
+                placeholder={t('search')}
                 value={searchValue}
                 onClear={handleSearchClear}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
@@ -684,51 +674,10 @@ const CollectionSpecies = () => {
 
                 {/* Filter Button */}
                 <FilterButtonWithNotification
-                  label='Filter'
+                  label={t('filter')}
                   onClick={() => setFilterDrawerOpen(true)}
                   appliedFiltersCount={filterCount || undefined}
                 />
-
-                {/* View Toggle */}
-                {/* <Box
-                  sx={{
-                    display: 'flex',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '4px',
-                    overflow: 'hidden'
-                  }}
-                >
-                  <Tooltip title='Card View' arrow>
-                    <IconButton
-                      size='small'
-                      onClick={() => setViewMode('card')}
-                      sx={{
-                        borderRadius: 0,
-                        px: 1.5,
-                        backgroundColor:
-                          viewMode === 'card' ? theme.palette.customColors.Surface : 'transparent',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
-                    >
-                      <Icon icon='mdi:view-grid-outline' fontSize={20} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title='List View' arrow>
-                    <IconButton
-                      size='small'
-                      onClick={() => setViewMode('table')}
-                      sx={{
-                        borderRadius: 0,
-                        px: 1.5,
-                        backgroundColor:
-                          viewMode === 'table' ? theme.palette.customColors.Surface : 'transparent',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
-                    >
-                      <Icon icon='mdi:view-list-outline' fontSize={20} />
-                    </IconButton>
-                  </Tooltip>
-                </Box> */}
               </Box>
             </Box>
 
@@ -809,7 +758,10 @@ const CollectionSpecies = () => {
         open={addAnimalDrawerOpen}
         onClose={() => setAddAnimalDrawerOpen(false)}
         onSuccess={() => {
-          // TODO: Refetch species list after animal is added
+          // Refresh the listing table + banner totals so the new animal shows up immediately
+          // without forcing the user to reload the page.
+          queryClient.invalidateQueries({ queryKey: ['collection-species-report'] })
+          queryClient.invalidateQueries({ queryKey: ['collection-insights'] })
         }}
       />
 
@@ -825,7 +777,7 @@ const CollectionSpecies = () => {
           totalCount={animalTotalCount}
           defaultImage='/images/housing/species-icon-colored.svg'
           objectFit='contain'
-          title='Population'
+          title={t('species_module.population')}
         />
       )}
 

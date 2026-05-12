@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Box, Card, FormControl, MenuItem, Select, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import dynamic from 'next/dynamic'
 
 const ReactApexcharts = dynamic(() => import('src/@core/components/react-apexcharts'), { ssr: false })
@@ -17,6 +18,7 @@ const hardcodedWeightData = [
 ]
 
 const AnimalWeightCard: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [period, setPeriod] = useState('monthly')
 
@@ -67,7 +69,7 @@ const AnimalWeightCard: React.FC = () => {
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography sx={{ fontWeight: 600, fontSize: '1.1rem', color: theme.palette.customColors.OnSurfaceVariant }}>
-          Animal Weight
+          {t('species_module.animal_weight_header')}
         </Typography>
         <FormControl size='small' sx={{ minWidth: 120 }}>
           <Select
@@ -80,9 +82,9 @@ const AnimalWeightCard: React.FC = () => {
               '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.customColors.OutlineVariant }
             }}
           >
-            <MenuItem value='monthly'>Monthly</MenuItem>
-            <MenuItem value='weekly'>Weekly</MenuItem>
-            <MenuItem value='yearly'>Yearly</MenuItem>
+            <MenuItem value='monthly'>{t('species_module.monthly')}</MenuItem>
+            <MenuItem value='weekly'>{t('species_module.weekly')}</MenuItem>
+            <MenuItem value='yearly'>{t('species_module.yearly')}</MenuItem>
           </Select>
         </FormControl>
       </Box>
@@ -98,17 +100,17 @@ const AnimalWeightCard: React.FC = () => {
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-            <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>Weight</Typography>
+            <Typography sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>{t('species_module.weight_label')}</Typography>
             <Box sx={{ display: 'flex', gap: 3 }}>
               <Typography variant='caption' sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: theme.palette.primary.main }} />{' '}
-                Actual Weight
+                {t('species_module.actual_weight')}
               </Typography>
               <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                X - Record No
+                {t('species_module.x_record_no')}
               </Typography>
               <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                Y - Weight (kg)
+                {t('species_module.y_weight_kg')}
               </Typography>
             </Box>
           </Box>
@@ -129,16 +131,16 @@ const AnimalWeightCard: React.FC = () => {
             }}
           >
             <Typography variant='caption' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-              MONTH
+              {t('species_module.col_month')}
             </Typography>
             <Typography variant='caption' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-              DATE
+              {t('species_module.col_date')}
             </Typography>
             <Typography
               variant='caption'
               sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, textAlign: 'right' }}
             >
-              WEIGHT
+              {t('species_module.col_weight')}
             </Typography>
           </Box>
 

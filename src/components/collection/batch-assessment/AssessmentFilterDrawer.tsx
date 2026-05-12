@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Box, Checkbox, CircularProgress, Divider, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import { getAnimalMaster } from 'src/lib/api/egg/egg/createAnimal'
 import { getAllSites } from 'src/lib/api/housing/site'
@@ -46,6 +47,7 @@ const AssessmentFilterDrawer: React.FC<AssessmentFilterDrawerProps> = ({
   initialFilters,
   onApply
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
 
   const [selectedMenu, setSelectedMenu] = useState<keyof SelectedOptions>(FILTER_MENUS[0])
@@ -172,7 +174,7 @@ const AssessmentFilterDrawer: React.FC<AssessmentFilterDrawerProps> = ({
               onChange={() => toggleSelectAll(menu)}
               disabled={isLoading || items.length === 0}
             />
-            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>Select All</Typography>
+            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>{t('species_module.select_all')}</Typography>
           </Box>
           <Divider sx={{ mb: 3 }} />
 
@@ -207,7 +209,7 @@ const AssessmentFilterDrawer: React.FC<AssessmentFilterDrawerProps> = ({
     )
   }
 
-  const filterTitle = totalCount > 0 ? `Filter - ${totalCount}` : 'Filter'
+  const filterTitle = totalCount > 0 ? `${t('filter')} - ${totalCount}` : t('filter')
 
   // CustomFilterDrawer reads `selectedOptions[menuName].length` for badge counts on the left nav.
   return (

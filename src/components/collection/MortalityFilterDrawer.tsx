@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Checkbox, Divider, IconButton, Avatar } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
@@ -98,6 +99,7 @@ const MortalityFilterDrawer: React.FC<MortalityFilterDrawerProps> = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [selectedMenu, setSelectedMenu] = useState(FILTER_MENUS[0])
   const [searchQuery, setSearchQuery] = useState('')
@@ -302,7 +304,7 @@ const MortalityFilterDrawer: React.FC<MortalityFilterDrawerProps> = ({
               indeterminate={current.length > 0 && !allSelected}
               onChange={() => handleSelectAll(menuName)}
             />
-            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>Select All</Typography>
+            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>{t('species_module.select_all')}</Typography>
           </Box>
           <Divider sx={{ mb: 3 }} />
           <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column' }}>
@@ -345,7 +347,7 @@ const MortalityFilterDrawer: React.FC<MortalityFilterDrawerProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 4, px: 5, flexShrink: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Icon icon='mdi:home-outline' fontSize={24} />
-            <Typography sx={{ fontSize: '1.125rem', fontWeight: 500 }}>Choose Site</Typography>
+            <Typography sx={{ fontSize: '1.125rem', fontWeight: 500 }}>{t('species_module.choose_site')}</Typography>
           </Box>
           <IconButton size='small' onClick={() => setSubDrawerOpen(false)}>
             <Icon icon='mdi:close' />
@@ -407,7 +409,7 @@ const MortalityFilterDrawer: React.FC<MortalityFilterDrawerProps> = ({
             onClick={handleSubDrawerContinue}
             sx={{ backgroundColor: theme.palette.primary.main, color: theme.palette.common.white, px: 5, py: 1.5, borderRadius: '4px', cursor: 'pointer', fontWeight: 600, fontSize: '0.875rem' }}
           >
-            CONTINUE
+            {t('species_module.continue_btn')}
           </Box>
         </Box>
       </Box>
@@ -418,7 +420,7 @@ const MortalityFilterDrawer: React.FC<MortalityFilterDrawerProps> = ({
     <CustomFilterDrawer
       open={open}
       onClose={onClose}
-      title={localFilterCount > 0 ? `Filter - ${localFilterCount}` : 'Filter'}
+      title={localFilterCount > 0 ? `${t('filter')} - ${localFilterCount}` : t('filter')}
       onApply={applyFilters}
       onClearAll={handleClearAll}
       filterLists={FILTER_MENUS}

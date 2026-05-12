@@ -3,6 +3,7 @@ import { Avatar, Box, Button, FormControl, MenuItem, Select, Typography } from '
 import { useTheme } from '@mui/material/styles'
 import { GridRenderCellParams } from '@mui/x-data-grid'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
@@ -36,27 +37,28 @@ const formatDiedOn = (iso?: string) => {
   return `${datePart} • ${timePart}`
 }
 
-const titleCase = (s?: string | null): string => {
-  if (!s) return '-'
-
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+interface RowLabels {
+  aaid: string
+  b: string
+  m: string
 }
 
-const mapMortalityRow = (item: MortalitySpeciesItem, slNo: number) => ({
+const mapMortalityRow = (item: MortalitySpeciesItem, slNo: number, labels: RowLabels) => ({
   id: `${item.mortality_id}_${slNo}`,
   sl_no: slNo,
-  animal_id: item.animal_id ? `AAID : ${item.animal_id}` : '-',
+  animal_id: item.animal_id ? `${labels.aaid} : ${item.animal_id}` : '-',
   uid: '-',
   animal_name: item.local_identifier_value || item.common_name || '-',
   scientific_name: item.scientific_name || '',
   gender: (item.type || '').toLowerCase() === 'group' ? 'G' : GENDER_LABELS[(item.sex || '').toLowerCase()] || '-',
-  breed: item.breed_name ? `B - ${item.breed_name}` : 'B - -',
-  morph: item.morph_name ? `M - ${item.morph_name}` : 'M - -',
+  breed: item.breed_name ? `${labels.b} - ${item.breed_name}` : `${labels.b} - -`,
+  morph: item.morph_name ? `${labels.m} - ${item.morph_name}` : `${labels.m} - -`,
   died_on: formatDiedOn(item.discovered_date),
   cause_of_death: item.reason_name || '-',
-  approval_status: titleCase(item.mortality_status || item.status),
-  necropsy_performed: item.necropsy_performed ? 'Yes' : 'No',
-  necropsy_report: item.necropsy_performed ? 'Available' : '-',
+  // Keep raw uppercase backend status so the cell renderer can pick a colour; the visible
+  // string is resolved via t() at render time.
+  approval_status_raw: String(item.mortality_status || item.status || '').toUpperCase(),
+  necropsy_performed_raw: Boolean(item.necropsy_performed),
   section: item.section_name || '-',
   reported_by: item.reported_by || '-',
   enclosure: item.user_enclosure_name || '-',
@@ -65,6 +67,7 @@ const mapMortalityRow = (item: MortalitySpeciesItem, slNo: number) => ({
 })
 
 const MortalityTab: React.FC<MortalityTabProps> = ({ speciesId }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [searchValue, setSearchValue] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -102,56 +105,94 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ speciesId }) => {
   const totalCount = Number(mortalityResponse?.total_count) || 0
   const getSlNo = (index: number): number => (filters.page - 1) * filters.limit + index + 1
 
-  const mortalityRows = useMemo(
-    () => (mortalityResponse?.result || []).map((item, index) => mapMortalityRow(item, getSlNo(index))),
-    [mortalityResponse, filters.page, filters.limit]
+  const rowLabels = useMemo<RowLabels>(
+    () => ({
+      aaid: t('species_module.label_aaid'),
+      b: t('species_module.label_b'),
+      m: t('species_module.label_m_short')
+    }),
+    [t]
   )
+
+  const mortalityRows = useMemo(
+    () => (mortalityResponse?.result || []).map((item, index) => mapMortalityRow(item, getSlNo(index), rowLabels)),
+    [mortalityResponse, filters.page, filters.limit, rowLabels]
+  )
+
+  // Translated display strings for the raw status keys kept on each row.
+  const approvalStatusLabel = (raw: string) => {
+    if (raw === 'APPROVED') return t('species_module.approved')
+    if (raw === 'PENDING') return t('species_module.pending')
+    if (raw === 'REJECTED') return t('species_module.rejected')
+
+    return '-'
+  }
 
   const handlePaginationModelChange = (model: { page: number; pageSize: number }) => {
     setFilters(prev => ({ ...prev, page: model.page + 1, limit: model.pageSize }))
   }
 
-  const columns = [
-    { width: 50, sortable: false, field: 'sl_no', headerName: 'NO', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.sl_no}</Typography> },
-    { minWidth: 180, sortable: false, field: 'animal_id', headerName: 'ANIMAL ID', renderCell: (p: GridRenderCellParams) => (
-      <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} />
-    )},
-    { width: 200, sortable: false, field: 'animal_name', headerName: 'ANIMAL NAME', renderCell: (p: GridRenderCellParams) => (
-      <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.4 }} title={p.row.animal_name}>
-          {p.row.animal_name || '-'}
-        </Typography>
-        {p.row.scientific_name && (
-          <Typography variant='caption' sx={{ fontStyle: 'italic', color: theme.palette.customColors.neutralSecondary, lineHeight: 1.4 }} title={p.row.scientific_name}>
-            {p.row.scientific_name}
+  const columns = useMemo(
+    () => [
+      { width: 50, sortable: false, field: 'sl_no', headerName: t('species_module.col_no'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.sl_no}</Typography> },
+      { minWidth: 180, sortable: false, field: 'animal_id', headerName: t('species_module.col_animal_id'), renderCell: (p: GridRenderCellParams) => (
+        <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} />
+      )},
+      { width: 200, sortable: false, field: 'animal_name', headerName: t('species_module.col_animal_name'), renderCell: (p: GridRenderCellParams) => (
+        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.4 }} title={p.row.animal_name}>
+            {p.row.animal_name || '-'}
           </Typography>
-        )}
-      </Box>
-    )},
-    { width: 90, sortable: false, field: 'gender', headerName: 'GENDER', renderCell: (p: GridRenderCellParams) => {
-      const g = p.row.gender
-      const bg = g === 'M' ? `${theme.palette.customColors.SecondaryContainer}80`
-        : g === 'F' ? `${theme.palette.customColors.Tertiary}4D`
-        : g === 'G' ? theme.palette.customColors.addPrimary
-        : theme.palette.customColors.SurfaceVariant
-      const tc = g === 'M' ? theme.palette.customColors.addPrimary
-        : g === 'F' ? theme.palette.customColors.Tertiary
-        : g === 'G' ? theme.palette.common.white
-        : theme.palette.customColors.Error
+          {p.row.scientific_name && (
+            <Typography variant='caption' sx={{ fontStyle: 'italic', color: theme.palette.customColors.neutralSecondary, lineHeight: 1.4 }} title={p.row.scientific_name}>
+              {p.row.scientific_name}
+            </Typography>
+          )}
+        </Box>
+      )},
+      { width: 90, sortable: false, field: 'gender', headerName: t('species_module.col_gender'), renderCell: (p: GridRenderCellParams) => {
+        const g = p.row.gender
+        const bg = g === 'M' ? `${theme.palette.customColors.SecondaryContainer}80`
+          : g === 'F' ? `${theme.palette.customColors.Tertiary}4D`
+          : g === 'G' ? theme.palette.customColors.addPrimary
+          : theme.palette.customColors.SurfaceVariant
+        const tc = g === 'M' ? theme.palette.customColors.addPrimary
+          : g === 'F' ? theme.palette.customColors.Tertiary
+          : g === 'G' ? theme.palette.common.white
+          : theme.palette.customColors.Error
 
-      return <StatChip value={g} bgcolor={bg} color={tc} />
-    }},
-    { width: 160, sortable: false, field: 'breed', headerName: 'BREED & MORPH', renderCell: (p: GridRenderCellParams) => (<Box><Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '0.8rem' }}>{p.row.breed}</Typography><Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>{p.row.morph}</Typography></Box>) },
-    { width: 180, sortable: false, field: 'died_on', headerName: 'DIED ON', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.died_on}</Typography> },
-    { width: 140, sortable: false, field: 'cause_of_death', headerName: 'CAUSE OF DEATH', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.cause_of_death}</Typography> },
-    { width: 150, sortable: false, field: 'approval_status', headerName: 'APPROVAL STATUS', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ fontWeight: 500, color: p.row.approval_status === 'Approved' ? theme.palette.primary.dark : p.row.approval_status === 'Pending' ? theme.palette.customColors.Tertiary : theme.palette.customColors.neutralSecondary }}>{p.row.approval_status}</Typography> },
-    { width: 160, sortable: false, field: 'necropsy_performed', headerName: 'NECROPSY PERFORMED', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ fontWeight: 500, color: p.row.necropsy_performed === 'Yes' ? theme.palette.customColors.addPrimary : theme.palette.customColors.neutralSecondary }}>{p.row.necropsy_performed}</Typography> },
-    { width: 160, sortable: false, field: 'necropsy_report', headerName: 'NECROPSY REPORT', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ fontWeight: 500, color: p.row.necropsy_report === 'Available' ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary }}>{p.row.necropsy_report}</Typography> },
-    { width: 180, sortable: false, field: 'section', headerName: 'SECTION', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.section}</Typography> },
-    { width: 150, sortable: false, field: 'reported_by', headerName: 'REPORTED BY', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.reported_by}</Typography> },
-    { width: 180, sortable: false, field: 'enclosure', headerName: 'ENCLOSURE', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.enclosure}</Typography> },
-    { width: 150, sortable: false, field: 'site', headerName: 'SITE', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.site}</Typography> }
-  ]
+        return <StatChip value={g} bgcolor={bg} color={tc} />
+      }},
+      { width: 160, sortable: false, field: 'breed', headerName: t('species_module.col_breed_morph'), renderCell: (p: GridRenderCellParams) => (<Box><Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '0.8rem' }}>{p.row.breed}</Typography><Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>{p.row.morph}</Typography></Box>) },
+      { width: 180, sortable: false, field: 'died_on', headerName: t('species_module.col_died_on'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.died_on}</Typography> },
+      { width: 140, sortable: false, field: 'cause_of_death', headerName: t('species_module.col_cause_of_death'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.cause_of_death}</Typography> },
+      { width: 150, sortable: false, field: 'approval_status', headerName: t('species_module.col_approval_status'), renderCell: (p: GridRenderCellParams) => {
+        const raw = p.row.approval_status_raw
+        const color = raw === 'APPROVED' ? theme.palette.primary.dark
+          : raw === 'PENDING' ? theme.palette.customColors.Tertiary
+          : theme.palette.customColors.neutralSecondary
+
+        return <Typography variant='body2' sx={{ fontWeight: 500, color }}>{approvalStatusLabel(raw)}</Typography>
+      } },
+      { width: 160, sortable: false, field: 'necropsy_performed', headerName: t('species_module.col_necropsy_performed'), renderCell: (p: GridRenderCellParams) => {
+        const done = p.row.necropsy_performed_raw
+        const color = done ? theme.palette.customColors.addPrimary : theme.palette.customColors.neutralSecondary
+
+        return <Typography variant='body2' sx={{ fontWeight: 500, color }}>{done ? t('species_module.yes') : t('species_module.no')}</Typography>
+      } },
+      { width: 160, sortable: false, field: 'necropsy_report', headerName: t('species_module.col_necropsy_report'), renderCell: (p: GridRenderCellParams) => {
+        const done = p.row.necropsy_performed_raw
+        const color = done ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+
+        return <Typography variant='body2' sx={{ fontWeight: 500, color }}>{done ? t('species_module.available') : '-'}</Typography>
+      } },
+      { width: 180, sortable: false, field: 'section', headerName: t('species_module.col_section'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.section}</Typography> },
+      { width: 150, sortable: false, field: 'reported_by', headerName: t('species_module.col_reported_by'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.reported_by}</Typography> },
+      { width: 180, sortable: false, field: 'enclosure', headerName: t('species_module.col_enclosure'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.enclosure}</Typography> },
+      { width: 150, sortable: false, field: 'site', headerName: t('species_module.col_site'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.site}</Typography> }
+    ],
+    [t, theme]
+  )
 
   const stickyStyles = {
     '& .MuiDataGrid-cell': { py: 2.5, px: 3, display: 'flex', alignItems: 'center' },
@@ -167,8 +208,8 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ speciesId }) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 4 }}>
-        <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>Mortality ({totalCount})</Typography>
-        <Button variant='text' onClick={() => {}} endIcon={<Icon icon='solar:download-square-linear' />} sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500, textTransform: 'none', fontSize: '0.875rem' }}>Download</Button>
+        <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>{t('species_module.mortality_count_header')} ({totalCount})</Typography>
+        <Button variant='text' onClick={() => {}} endIcon={<Icon icon='solar:download-square-linear' />} sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500, textTransform: 'none', fontSize: '0.875rem' }}>{t('download')}</Button>
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, mb: 4, gap: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -178,14 +219,14 @@ const MortalityTab: React.FC<MortalityTabProps> = ({ speciesId }) => {
               onChange={e => setFilters(prev => ({ ...prev, status: e.target.value as string, page: 1 }))}
               sx={{ borderRadius: '4px', fontSize: '0.875rem', color: theme.palette.customColors.OnSurfaceVariant, '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.customColors.OutlineVariant } }}
             >
-              <MenuItem value='APPROVED'>Approved</MenuItem>
-              <MenuItem value='PENDING'>Pending</MenuItem>
-              <MenuItem value='REJECTED'>Rejected</MenuItem>
+              <MenuItem value='APPROVED'>{t('species_module.approved')}</MenuItem>
+              <MenuItem value='PENDING'>{t('species_module.pending')}</MenuItem>
+              <MenuItem value='REJECTED'>{t('species_module.rejected')}</MenuItem>
             </Select>
           </FormControl>
-          <Search borderRadius='4px' width='180px' placeholder='Search' value={searchValue} onClear={() => handleSearch('')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)} />
+          <Search borderRadius='4px' width='180px' placeholder={t('search')} value={searchValue} onClear={() => handleSearch('')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)} />
         </Box>
-        <FilterButtonWithNotification label='Filter' onClick={() => setFilterOpen(true)} appliedFiltersCount={filterCount || undefined} sx={{ height: 36 }} />
+        <FilterButtonWithNotification label={t('filter')} onClick={() => setFilterOpen(true)} appliedFiltersCount={filterCount || undefined} sx={{ height: 36 }} />
       </Box>
       <CommonTable
         columns={columns}

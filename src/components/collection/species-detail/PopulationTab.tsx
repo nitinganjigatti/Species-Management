@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles'
 import { GridRenderCellParams } from '@mui/x-data-grid'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import toast from 'react-hot-toast'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -33,12 +34,12 @@ const GENDER_LABELS: Record<string, string> = {
   indeterminate: 'ID'
 }
 
-const formatBirthDate = (iso?: string) => {
+const formatBirthDate = (iso: string | undefined, dobLabel: string) => {
   if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
 
-  return `DOB : ${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
+  return `${dobLabel} : ${d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}`
 }
 
 const buildIdentifiers = (item: any): Array<{ label: string; value: string }> => {
@@ -58,17 +59,24 @@ const buildIdentifiers = (item: any): Array<{ label: string; value: string }> =>
   return identifiers
 }
 
-const mapAnimalRow = (item: any, index: number, slNo: number) => ({
+interface RowLabels {
+  aaid: string
+  dob: string
+  breed: string
+  morph: string
+}
+
+const mapAnimalRow = (item: any, index: number, slNo: number, labels: RowLabels) => ({
   id: `${index}_${item?.animal_id ?? 'row'}`,
   sl_no: slNo,
-  animal_id: item?.animal_id ? `AAID : ${item.animal_id}` : '-',
+  animal_id: item?.animal_id ? `${labels.aaid} : ${item.animal_id}` : '-',
   uid: '-', // TODO: API does not return UAID separately yet
   identifiers: buildIdentifiers(item),
   common_name: item?.common_name || '',
   scientific_name: item?.scientific_name || '',
   gender: GENDER_LABELS[String(item?.gender || '').toLowerCase()] || '-',
   age: item?.age || '-',
-  birth_date: formatBirthDate(item?.birth_date),
+  birth_date: formatBirthDate(item?.birth_date, labels.dob),
   current_weight: item?.weight || '-',
   current_weight_change: '-', // TODO: API does not return weight change %
   current_weight_date: '-', // TODO: API does not return weight recorded date
@@ -76,8 +84,8 @@ const mapAnimalRow = (item: any, index: number, slNo: number) => ({
   previous_weight_change: '-',
   previous_weight_date: '-',
   life_stage: '-', // TODO: API does not return life stage
-  breed: item?.breed_name ? `Breed : ${item.breed_name}` : 'Breed : -',
-  morph: item?.morph_name ? `Morph : ${item.morph_name}` : 'Morph : -',
+  breed: item?.breed_name ? `${labels.breed} : ${item.breed_name}` : `${labels.breed} : -`,
+  morph: item?.morph_name ? `${labels.morph} : ${item.morph_name}` : `${labels.morph} : -`,
   active_complaints: '00', // TODO: API does not return active medical counts
   active_diagnosis: '00',
   active_prescriptions: '00',
@@ -90,6 +98,7 @@ const mapAnimalRow = (item: any, index: number, slNo: number) => ({
 })
 
 const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 1237 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
@@ -158,12 +167,22 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
   const totalCount = Number(animalsResponse?.data?.total_animal ?? animalsResponse?.data?.total_count) || 0
   const getSlNo = (index: number): number => (filters.page - 1) * filters.limit + index + 1
 
+  const rowLabels = useMemo<RowLabels>(
+    () => ({
+      aaid: t('species_module.label_aaid'),
+      dob: t('species_module.label_dob'),
+      breed: t('species_module.label_breed'),
+      morph: t('species_module.label_morph')
+    }),
+    [t]
+  )
+
   const animals = useMemo(
     () =>
       (animalsResponse?.data?.animal_list || []).map((item: any, index: number) =>
-        mapAnimalRow(item, index, getSlNo(index))
+        mapAnimalRow(item, index, getSlNo(index), rowLabels)
       ),
-    [animalsResponse, filters.page, filters.limit]
+    [animalsResponse, filters.page, filters.limit, rowLabels]
   )
 
   const handlePaginationModelChange = (model: { page: number; pageSize: number }) => {
@@ -201,20 +220,21 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
         link.click()
         document.body.removeChild(link)
       } else {
-        toast.error('Could not generate report')
+        toast.error(t('species_module.could_not_generate_report'))
       }
     } catch {
-      toast.error('Error connecting to the server')
+      toast.error(t('species_module.error_connecting_server'))
     } finally {
       setIsDownloading(false)
     }
   }
-  const columns = [
+  const columns = useMemo(
+    () => [
     {
       width: 50,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('species_module.col_no'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.sl_no}
@@ -225,7 +245,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       minWidth: 220,
       sortable: false,
       field: 'animal_id',
-      headerName: 'ANIMAL ID',
+      headerName: t('species_module.col_animal_id'),
       renderCell: (p: GridRenderCellParams) => (
         <Box
           sx={{ cursor: 'pointer', width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}
@@ -243,7 +263,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 180,
       sortable: false,
       field: 'identifiers',
-      headerName: 'IDENTIFIER TYPE',
+      headerName: t('species_module.col_identifier_type'),
       renderCell: (p: GridRenderCellParams) => {
         const items = (p.row.identifiers || []) as Array<{ label: string; value: string }>
         if (items.length === 0) {
@@ -276,7 +296,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 200,
       sortable: false,
       field: 'common_name',
-      headerName: 'ANIMAL NAME',
+      headerName: t('species_module.col_animal_name'),
       renderCell: (p: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Typography
@@ -306,7 +326,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 90,
       sortable: false,
       field: 'gender',
-      headerName: 'GENDER',
+      headerName: t('species_module.col_gender'),
       renderCell: (p: GridRenderCellParams) => {
         const g = p.row.gender
         const bg =
@@ -332,7 +352,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 160,
       sortable: false,
       field: 'age',
-      headerName: 'AGE & BIRTH DATE',
+      headerName: t('species_module.col_age_birth_date'),
       renderCell: (p: GridRenderCellParams) => (
         <Box>
           <Typography variant='body2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -348,7 +368,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 150,
       sortable: false,
       field: 'current_weight',
-      headerName: 'CURRENT WEIGHT',
+      headerName: t('species_module.col_current_weight'),
       renderCell: (p: GridRenderCellParams) => (
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -369,7 +389,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 160,
       sortable: false,
       field: 'previous_weight',
-      headerName: 'PREVIOUS WEIGHT',
+      headerName: t('species_module.col_previous_weight'),
       renderCell: (p: GridRenderCellParams) => (
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -390,7 +410,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 100,
       sortable: false,
       field: 'life_stage',
-      headerName: 'LIFE STAGE',
+      headerName: t('species_module.col_life_stage'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.life_stage}
@@ -401,7 +421,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 180,
       sortable: false,
       field: 'breed',
-      headerName: 'BREED & MORPH',
+      headerName: t('species_module.col_breed_morph'),
       renderCell: (p: GridRenderCellParams) => (
         <Box>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '0.8rem' }}>
@@ -417,7 +437,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 140,
       sortable: false,
       field: 'active_complaints',
-      headerName: 'ACTIVE COMPLAINTS',
+      headerName: t('species_module.col_active_complaints'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
           {p.row.active_complaints}
@@ -428,7 +448,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 140,
       sortable: false,
       field: 'active_diagnosis',
-      headerName: 'ACTIVE DIAGNOSIS',
+      headerName: t('species_module.col_active_diagnosis'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
           {p.row.active_diagnosis}
@@ -439,7 +459,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 160,
       sortable: false,
       field: 'active_prescriptions',
-      headerName: 'ACTIVE PRESCRIPTIONS',
+      headerName: t('species_module.col_active_prescriptions'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
           {p.row.active_prescriptions}
@@ -450,7 +470,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 150,
       sortable: false,
       field: 'active_medicines',
-      headerName: 'ACTIVE MEDICINES',
+      headerName: t('species_module.col_active_medicines'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500 }}>
           {p.row.active_medicines}
@@ -461,7 +481,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 120,
       sortable: false,
       field: 'enclosure',
-      headerName: 'ENCLOSURES',
+      headerName: t('species_module.col_enclosures'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.enclosure}
@@ -472,7 +492,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 200,
       sortable: false,
       field: 'section',
-      headerName: 'SECTION',
+      headerName: t('species_module.col_section'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.section}
@@ -483,14 +503,16 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
       width: 180,
       sortable: false,
       field: 'site',
-      headerName: 'SITE',
+      headerName: t('species_module.col_site'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.site}
         </Typography>
       )
     }
-  ]
+  ],
+    [t, theme, router, speciesId]
+  )
 
   const stickyStyles = {
     '& .MuiDataGrid-cell': { py: 2.5, px: 3, display: 'flex', alignItems: 'center' },
@@ -536,7 +558,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
         sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 4 }}
       >
         <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-          Animals ({(totalCount || animalCount || 0).toLocaleString()})
+          {t('species_module.animals_count_header')} ({(totalCount || animalCount || 0).toLocaleString()})
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} onClick={() => {}}>
           <Button
@@ -557,7 +579,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
               fontSize: '0.875rem'
             }}
           >
-            {isDownloading ? 'Preparing…' : 'Download'}
+            {isDownloading ? t('species_module.preparing') : t('download')}
           </Button>
         </Box>
       </Box>
@@ -574,14 +596,14 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
         <Search
           borderRadius='4px'
           width='220px'
-          placeholder='Search'
+          placeholder={t('search')}
           value={searchValue}
           onClear={() => handleSearch('')}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
         />
         <Box sx={{ display: 'flex', alignItems: 'stretch', gap: 2 }}>
           <FilterButtonWithNotification
-            label='Filter'
+            label={t('filter')}
             onClick={() => setFilterOpen(true)}
             appliedFiltersCount={filterCount || undefined}
             sx={{ height: 36 }}
@@ -600,7 +622,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
               whiteSpace: 'nowrap'
             }}
           >
-            Batch Assessment
+            {t('species_module.batch_assessment')}
           </Button>
         </Box>
       </Box>
@@ -608,7 +630,7 @@ const PopulationTab: React.FC<PopulationTabProps> = ({ speciesId, animalCount = 
         <Typography
           sx={{ mb: 3, fontSize: '0.875rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
         >
-          Results ({totalCount.toLocaleString()})
+          {t('species_module.results_count_header')} ({totalCount.toLocaleString()})
         </Typography>
       )}
       <CommonTable

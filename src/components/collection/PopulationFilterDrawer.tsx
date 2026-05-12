@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Avatar,
   Box,
@@ -118,6 +119,7 @@ const PopulationFilterDrawer: React.FC<PopulationFilterDrawerProps> = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [selectedMenu, setSelectedMenu] = useState(FILTER_MENUS[0])
   const [searchQuery, setSearchQuery] = useState('')
@@ -310,7 +312,11 @@ const PopulationFilterDrawer: React.FC<PopulationFilterDrawerProps> = ({
   }
 
   const subDrawerTitle =
-    subDrawerType === 'sites' ? 'Choose Site' : subDrawerType === 'sections' ? 'Choose Section' : 'Choose Enclosure'
+    subDrawerType === 'sites'
+      ? t('species_module.choose_site')
+      : subDrawerType === 'sections'
+      ? t('species_module.choose_section')
+      : t('species_module.choose_enclosure')
 
   // Render selected chips with remove button
   const renderSelectedChips = (key: 'sites' | 'sections' | 'enclosures') => {
@@ -550,7 +556,7 @@ const PopulationFilterDrawer: React.FC<PopulationFilterDrawerProps> = ({
             onClick={handleSubDrawerContinue}
             sx={{ textTransform: 'uppercase', borderRadius: '4px', px: 5 }}
           >
-            Continue
+            {t('species_module.continue_btn_lower')}
           </Button>
         </Box>
       </Box>
@@ -586,7 +592,7 @@ const PopulationFilterDrawer: React.FC<PopulationFilterDrawerProps> = ({
               indeterminate={current.length > 0 && !allSelected}
               onChange={() => handleSelectAll(menuName)}
             />
-            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>Select All</Typography>
+            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>{t('species_module.select_all')}</Typography>
           </Box>
           <Divider sx={{ mb: 3 }} />
 
@@ -617,7 +623,7 @@ const PopulationFilterDrawer: React.FC<PopulationFilterDrawerProps> = ({
     )
   }
 
-  const filterTitle = localFilterCount > 0 ? `Filter - ${localFilterCount}` : 'Filter'
+  const filterTitle = localFilterCount > 0 ? `${t('filter')} - ${localFilterCount}` : t('filter')
 
   return (
     <CustomFilterDrawer

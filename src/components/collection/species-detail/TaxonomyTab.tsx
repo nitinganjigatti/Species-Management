@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import { Box, Card, CircularProgress, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { getSpeciesTaxonomyHierarchy, SpeciesTaxonomyHierarchyItem } from 'src/lib/api/collection/species'
 
 interface TaxonomyTabProps {
@@ -11,7 +12,21 @@ interface TaxonomyTabProps {
 const RANK_ORDER = ['Class', 'Order', 'Family', 'Genus', 'Species']
 
 const TaxonomyTab: React.FC<TaxonomyTabProps> = ({ speciesId }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
+
+  // Rank labels are translated; backend still keys by English rank_name ('Class', 'Order', ...)
+  // so we map: backend key → translated display string.
+  const rankLabels: Record<string, string> = useMemo(
+    () => ({
+      Class: t('species_module.col_class'),
+      Order: t('species_module.col_order'),
+      Family: t('species_module.col_family'),
+      Genus: t('species_module.col_genus'),
+      Species: t('species_module.col_species')
+    }),
+    [t]
+  )
 
   const rankMeta = useMemo<Record<string, { icon: string; color: string }>>(
     () => ({
@@ -42,19 +57,19 @@ const TaxonomyTab: React.FC<TaxonomyTabProps> = ({ speciesId }) => {
       const meta = rankMeta[rank] || { icon: 'mdi:dots-horizontal', color: theme.palette.customColors.Outline }
 
       return {
-        level: rank.toUpperCase(),
+        level: rankLabels[rank] || rank.toUpperCase(),
         name: item.complete_name || '-',
         scientific: item.common_name || item.complete_name || '-',
         icon: meta.icon,
         color: meta.color
       }
     })
-  }, [hierarchyResponse, rankMeta, theme])
+  }, [hierarchyResponse, rankMeta, theme, rankLabels])
 
   return (
     <Box>
       <Typography variant='h6' sx={{ fontWeight: 600, mb: 6, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Species Taxonomy
+        {t('species_module.species_taxonomy_title')}
       </Typography>
 
       {isLoading ? (
@@ -63,7 +78,7 @@ const TaxonomyTab: React.FC<TaxonomyTabProps> = ({ speciesId }) => {
         </Box>
       ) : taxonomyLevels.length === 0 ? (
         <Typography sx={{ textAlign: 'center', py: 10, color: theme.palette.customColors.neutralSecondary }}>
-          No taxonomy data available
+          {t('species_module.no_taxonomy_data')}
         </Typography>
       ) : (
         <Box

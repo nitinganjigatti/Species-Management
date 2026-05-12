@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import moment from 'moment'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
 import Icon from 'src/@core/components/icon'
@@ -81,6 +82,7 @@ const formatAttachmentTime = (iso?: string) => {
 }
 
 const NecropsyDetail: React.FC = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const { id, necropsyId } = useParams() as { id?: string; necropsyId?: string }
   const searchParams = useSearchParams()
@@ -197,14 +199,18 @@ const NecropsyDetail: React.FC = () => {
       <DynamicBreadcrumbs
         sx={{ mb: 5 }}
         pageItems={[
-          //  { title: 'Collection', href: '/collection/species' },
-          // { title: 'Species', href: '/collection/species' },
-          // { title: id || '', href: `/collection/species/${id}` },
-          // { title: 'Necropsy', href: `/collection/species/${id}?tab=necropsy` },
-          { title: 'Collection', href: ROUTES.collection.species },
-          { title: 'Species', href: ROUTES.collection.species },
-          { title: id || '', href: id ? ROUTES.collection.speciesDetail(id) : '#' },
-          { title: 'Necropsy', href: id ? `${ROUTES.collection.speciesDetail(id)}?tab=necropsy` : '#' },
+          { title: t('species_module.collection'), href: ROUTES.collection.species },
+          { title: t('species_module.species'), href: ROUTES.collection.species },
+          {
+            // Species name (e.g. "Lion") reads better than the raw taxonomy id ("135694").
+            // Falls back to the id while the underlying queries are still in flight so the segment isn't empty.
+            title: speciesCommonName !== '-' ? speciesCommonName : id || '',
+            href: id ? ROUTES.collection.speciesDetail(id) : '#'
+          },
+          {
+            title: t('species_module.tab_necropsy'),
+            href: id ? `${ROUTES.collection.speciesDetail(id)}?tab=necropsy` : '#'
+          },
           { title: necropsyCode, href: '#', active: true }
         ]}
       />
@@ -230,7 +236,7 @@ const NecropsyDetail: React.FC = () => {
               fontSize: { xs: '1rem', sm: '1.25rem' }
             }}
           >
-            Necropsy ID - {necropsyCode}
+            {t('species_module.necropsy_id_label')} - {necropsyCode}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2, sm: 3 }, flexWrap: 'wrap' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -248,7 +254,7 @@ const NecropsyDetail: React.FC = () => {
                   {completedByName}
                 </Typography>
                 <Typography variant='caption' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                  Completed on {formatCommentDate(completedDate) || '-'}
+                  {t('species_module.completed_on')} {formatCommentDate(completedDate) || '-'}
                 </Typography>
               </Box>
             </Box>
@@ -265,7 +271,7 @@ const NecropsyDetail: React.FC = () => {
                 fontSize: '0.875rem'
               }}
             >
-              Download report
+              {t('species_module.download_report')}
             </Button>
           </Box>
         </Box>
@@ -303,12 +309,12 @@ const NecropsyDetail: React.FC = () => {
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', px: 4, py: 3 }}>
             {[
-              { label: 'Animal Id', value: animalIdValue ? `AAID : ${animalIdValue}` : '-' },
-              { label: 'Breed', value: breed },
-              { label: 'Variant', value: morph },
-              { label: 'Age', value: ageDisplay },
-              { label: 'Weight', value: weightDisplay },
-              { label: 'Site', value: siteName }
+              { label: t('species_module.detail_animal_id'), value: animalIdValue ? `${t('species_module.label_aaid')} : ${animalIdValue}` : '-' },
+              { label: t('species_module.detail_breed'), value: breed },
+              { label: t('species_module.detail_variant'), value: morph },
+              { label: t('species_module.detail_age'), value: ageDisplay },
+              { label: t('species_module.detail_weight'), value: weightDisplay },
+              { label: t('species_module.detail_site'), value: siteName }
             ].map((item, i) => (
               <Box
                 key={i}
@@ -344,13 +350,13 @@ const NecropsyDetail: React.FC = () => {
           border: `1px solid ${theme.palette.customColors.SurfaceVariant}`
         }}
       >
-        <SectionLabel italic>Time and Date of Carcass Submission (at PM room )</SectionLabel>
+        <SectionLabel italic>{t('species_module.carcass_submission_label')}</SectionLabel>
         <SectionText>{carcassSubmissionDateTime}</SectionText>
 
-        <SectionLabel>General Description</SectionLabel>
+        <SectionLabel>{t('species_module.general_description')}</SectionLabel>
         <SectionText>{generalDescription}</SectionText>
 
-        <SectionLabel>Short History of Illness</SectionLabel>
+        <SectionLabel>{t('species_module.short_history_of_illness')}</SectionLabel>
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.7 }}>
           {historyOfIllness || '-'}
         </Typography>
@@ -361,7 +367,7 @@ const NecropsyDetail: React.FC = () => {
         <Typography
           sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 4, color: theme.palette.customColors.OnSurfaceVariant }}
         >
-          Organ-wise Description of Lesions
+          {t('species_module.organ_wise_description')}
         </Typography>
         {organLesions.map((organ, idx) => (
           <Box key={idx} sx={{ mb: 5 }}>
@@ -410,7 +416,7 @@ const NecropsyDetail: React.FC = () => {
         <Typography
           sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 4, color: theme.palette.customColors.OnSurfaceVariant }}
         >
-          Lab Request Details
+          {t('species_module.lab_request_details')}
         </Typography>
         {FEATURE_LAB_REQUESTS ? null : (
           <Box
@@ -425,7 +431,7 @@ const NecropsyDetail: React.FC = () => {
           >
             <Icon icon='mdi:flask-empty-outline' fontSize={32} color={theme.palette.customColors.Outline} />
             <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-              No lab requests available
+              {t('species_module.no_lab_requests')}
             </Typography>
           </Box>
         )}
@@ -436,7 +442,7 @@ const NecropsyDetail: React.FC = () => {
         <Typography
           sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 4, color: theme.palette.customColors.OnSurfaceVariant }}
         >
-          Attachments
+          {t('species_module.attachments_title')}
         </Typography>
         {attachments.length === 0 ? (
           <Box
@@ -451,7 +457,7 @@ const NecropsyDetail: React.FC = () => {
           >
             <Icon icon='mdi:paperclip' fontSize={32} color={theme.palette.customColors.Outline} />
             <Typography variant='body2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-              No attachments available
+              {t('species_module.no_attachments')}
             </Typography>
           </Box>
         ) : (
@@ -549,24 +555,24 @@ const NecropsyDetail: React.FC = () => {
 
       {/* ===== DEATH DETAILS ===== */}
       <Card sx={{ p: { xs: 3, sm: 5 }, mb: 5, border: `1px solid ${theme.palette.customColors.SurfaceVariant}` }}>
-        <SectionLabel italic>Time and Date of Death</SectionLabel>
+        <SectionLabel italic>{t('species_module.time_and_date_of_death')}</SectionLabel>
         <SectionText>{dateOfDeathFormatted}</SectionText>
 
-        <SectionLabel>Place of Death</SectionLabel>
+        <SectionLabel>{t('species_module.place_of_death')}</SectionLabel>
         <SectionText>{placeOfDeath}</SectionText>
 
-        <SectionLabel>Suspected cause of death</SectionLabel>
+        <SectionLabel>{t('species_module.suspected_cause_of_death')}</SectionLabel>
         <SectionText>{suspectedCause}</SectionText>
 
         <Divider sx={{ my: 3 }} />
 
-        <SectionLabel>Opinion (Cause of death)</SectionLabel>
+        <SectionLabel>{t('species_module.opinion_cause_of_death')}</SectionLabel>
         <SectionText>{opinion}</SectionText>
 
-        <SectionLabel>Disposal Method</SectionLabel>
+        <SectionLabel>{t('species_module.disposal_method')}</SectionLabel>
         <SectionText>{disposalMethod}</SectionText>
 
-        <SectionLabel>Confirmed Cause of Death (as per necropsy)</SectionLabel>
+        <SectionLabel>{t('species_module.confirmed_cause_of_death')}</SectionLabel>
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, lineHeight: 1.7 }}>
           {confirmedCause}
         </Typography>
@@ -578,7 +584,7 @@ const NecropsyDetail: React.FC = () => {
           <Typography
             sx={{ fontWeight: 600, fontSize: '1.1rem', mb: 4, color: theme.palette.customColors.OnSurfaceVariant }}
           >
-            Activity Log
+            {t('species_module.activity_log')}
           </Typography>
           {timeline.map((item, idx) => (
             <Box
@@ -626,7 +632,7 @@ const NecropsyDetail: React.FC = () => {
         <Typography
           sx={{ fontWeight: 700, fontSize: '0.9rem', mb: 1, color: theme.palette.customColors.OnSurfaceVariant }}
         >
-          Notes
+          {t('species_module.notes_label')}
         </Typography>
         <Typography
           variant='body2'

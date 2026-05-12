@@ -1,4 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Box, Typography, Checkbox, Divider } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
@@ -82,6 +83,7 @@ const SpeciesFilterDrawer: React.FC<SpeciesFilterDrawerProps> = ({
   setFilterCount,
   initialSelectedOptions
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [selectedMenu, setSelectedMenu] = useState<string>('Gender')
   const [searchQuery, setSearchQuery] = useState('')
@@ -212,7 +214,7 @@ const SpeciesFilterDrawer: React.FC<SpeciesFilterDrawerProps> = ({
               indeterminate={selectedOptions[key].length > 0 && !allSelected}
               onChange={() => handleSelectAll(selectedMenu)}
             />
-            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>Select All</Typography>
+            <Typography sx={{ fontSize: '16px', color: theme.palette.customColors.Outline }}>{t('species_module.select_all')}</Typography>
           </Box>
           <Divider sx={{ mb: 3 }} />
 
@@ -241,7 +243,7 @@ const SpeciesFilterDrawer: React.FC<SpeciesFilterDrawerProps> = ({
     )
   }
 
-  const filterTitle = localFilterCount > 0 ? `Filter - ${localFilterCount}` : 'Filter'
+  const filterTitle = localFilterCount > 0 ? `${t('filter')} - ${localFilterCount}` : t('filter')
 
   return (
     <CustomFilterDrawer

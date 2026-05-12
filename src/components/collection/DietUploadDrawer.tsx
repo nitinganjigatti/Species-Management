@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import { LoadingButton } from '@mui/lab'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
@@ -47,6 +48,7 @@ const DietUploadDrawer: React.FC<DietUploadDrawerProps> = ({
   scientificName = 'Trichoglossus moluccanus',
   speciesImage = ''
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
 
   const {
@@ -63,11 +65,11 @@ const DietUploadDrawer: React.FC<DietUploadDrawerProps> = ({
   const onSubmit = async (values: any) => {
     try {
       // TODO: API call to upload diet
-      Toaster({ type: 'success', message: 'Diet uploaded successfully' })
+      Toaster({ type: 'success', message: t('species_module.diet_uploaded_success') })
       handleClose()
       onSuccess?.()
     } catch {
-      Toaster({ type: 'error', message: 'Failed to upload diet' })
+      Toaster({ type: 'error', message: t('species_module.failed_to_upload_diet') })
     }
   }
 
@@ -140,7 +142,7 @@ const DietUploadDrawer: React.FC<DietUploadDrawerProps> = ({
 
               {/* Upload diet — using ControlledFileUpload */}
               <Typography sx={{ fontWeight: 600, mb: 2, color: theme.palette.customColors.OnSurfaceVariant }}>
-                Upload diet
+                {t('species_module.upload_diet_section')}
               </Typography>
               <ControlledFileUpload
                 name='dietFile'
@@ -166,7 +168,7 @@ const DietUploadDrawer: React.FC<DietUploadDrawerProps> = ({
             disabled={!isValid}
             sx={{ borderRadius: '8px', textTransform: 'uppercase' }}
           >
-            Submit
+            {t('species_module.submit')}
           </LoadingButton>
         </Box>
       </Box>

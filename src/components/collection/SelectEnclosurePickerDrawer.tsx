@@ -1,4 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Avatar,
   Box,
@@ -98,6 +99,7 @@ const pickSiteName = (record: Record<string, unknown> | null | undefined): strin
 }
 
 const SelectEnclosurePickerDrawer: React.FC<SelectEnclosurePickerDrawerProps> = ({ open, onClose, onSelect }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const authData = useContext(AuthContext) as any
   const zooId: number | undefined = authData?.userData?.user?.zoos?.[0]?.zoo_id
@@ -319,7 +321,7 @@ const SelectEnclosurePickerDrawer: React.FC<SelectEnclosurePickerDrawerProps> = 
             width='100%'
             textFielsSX={{ height: 56 }}
             inputStyle={{ padding: '14px 12px', fontSize: '1rem' }}
-            placeholder={isSectionLevel ? 'Search Section' : 'Search Enclosure'}
+            placeholder={isSectionLevel ? t('species_module.search_section') : t('species_module.search_enclosure')}
             value={localSearch}
             onClear={() => {
               setLocalSearch('')
@@ -341,7 +343,7 @@ const SelectEnclosurePickerDrawer: React.FC<SelectEnclosurePickerDrawerProps> = 
           ) : isSectionLevel ? (
             sections.length === 0 ? (
               <Typography sx={{ textAlign: 'center', py: 6, color: theme.palette.text.secondary }}>
-                No sections found
+                {t('species_module.no_sections_found')}
               </Typography>
             ) : (
               sections.map(s => (
@@ -401,7 +403,7 @@ const SelectEnclosurePickerDrawer: React.FC<SelectEnclosurePickerDrawerProps> = 
             )
           ) : enclosures.length === 0 ? (
             <Typography sx={{ textAlign: 'center', py: 6, color: theme.palette.text.secondary }}>
-              No enclosures found
+              {t('species_module.no_enclosures_found')}
             </Typography>
           ) : (
             enclosures.map(e => {

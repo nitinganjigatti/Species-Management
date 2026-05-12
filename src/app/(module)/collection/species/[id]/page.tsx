@@ -4,6 +4,7 @@ import { Box, Card, Tab, Tabs } from '@mui/material'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { AuthContext } from 'src/context/AuthContext'
 import { canAdd, canView } from 'src/utils/access'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -28,36 +29,8 @@ interface TabConfigItem {
   component: React.ComponentType<any>
 }
 
-const TAB_CONFIG: TabConfigItem[] = [
-  { label: 'Population', value: 'population', component: PopulationTab },
-  { label: 'Sites', value: 'sites', component: SitesTab },
-  { label: 'Sections', value: 'sections', component: SectionsTab },
-  { label: 'Enclosures', value: 'enclosures', component: EnclosuresTab },
-  // {
-  //   label: 'Medical',
-  //   value: 'medical',
-  //   component: () => (
-  //     <Box sx={{ py: 10, textAlign: 'center' }}>
-  //       <Typography color='text.secondary'>Medical tab — coming soon</Typography>
-  //     </Box>
-  //   )
-  // },
-  { label: 'Taxonomy', value: 'taxonomy', component: TaxonomyTab },
-  { label: 'Mortality', value: 'mortality', component: MortalityTab },
-  { label: 'Necropsy', value: 'necropsy', component: NecropsyTab },
-  { label: 'Diet', value: 'diet', component: DietTab }
-  // {
-  //   label: 'Media',
-  //   value: 'media',
-  //   component: () => (
-  //     <Box sx={{ py: 10, textAlign: 'center' }}>
-  //       <Typography color='text.secondary'>Media tab — coming soon</Typography>
-  //     </Box>
-  //   )
-  // }
-]
-
 const SpeciesDetail: React.FC = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -68,6 +41,22 @@ const SpeciesDetail: React.FC = () => {
   const animalRecordsLevel = authData?.userData?.roles?.settings?.collection_animal_record_access
   const canViewAnimal = canView(animalRecordsAccess)
   const canAddAnimal = canViewAnimal && canAdd(animalRecordsLevel)
+
+  // Built inside the component so `t()` is in scope; memoised so the array identity is stable
+  // across renders that don't change the locale. Label is the already-resolved string the Tab renders.
+  const tabConfig: TabConfigItem[] = useMemo(
+    () => [
+      { label: t('species_module.tab_population'), value: 'population', component: PopulationTab },
+      { label: t('species_module.tab_sites'), value: 'sites', component: SitesTab },
+      { label: t('species_module.tab_sections'), value: 'sections', component: SectionsTab },
+      { label: t('species_module.tab_enclosures'), value: 'enclosures', component: EnclosuresTab },
+      { label: t('species_module.tab_taxonomy'), value: 'taxonomy', component: TaxonomyTab },
+      { label: t('species_module.tab_mortality'), value: 'mortality', component: MortalityTab },
+      { label: t('species_module.tab_necropsy'), value: 'necropsy', component: NecropsyTab },
+      { label: t('species_module.tab_diet'), value: 'diet', component: DietTab }
+    ],
+    [t]
+  )
 
   const [selectedTab, setSelectedTab] = useState('population')
   const [addAnimalDrawerOpen, setAddAnimalDrawerOpen] = useState(false)
@@ -134,34 +123,34 @@ const SpeciesDetail: React.FC = () => {
   }
 
   // Banner data
-  const populationText = `Population till date - ${
-    speciesData.population >= 1000 ? (speciesData.population / 1000).toFixed(1) + 'K' : speciesData.population
-  }`
+  const populationCount =
+    speciesData.population >= 1000 ? (speciesData.population / 1000).toFixed(1) + 'K' : String(speciesData.population)
+  const populationText = `${t('species_module.population_till_date')} - ${populationCount}`
 
   const insightsStatsData = [
     {
       value: speciesData.natality,
-      label: 'Natality',
+      label: t('species_module.natality'),
       imagePath: '/images/housing/animals.svg',
-      onClick: () => handleStatClick('Natality', 'natality')
+      onClick: () => handleStatClick(t('species_module.natality'), 'natality')
     },
     {
       value: speciesData.accession,
-      label: 'Accession',
+      label: t('species_module.accession'),
       imagePath: '/images/housing/species.svg',
-      onClick: () => handleStatClick('Accession', 'accession')
+      onClick: () => handleStatClick(t('species_module.accession'), 'accession')
     },
     {
       value: speciesData.external_transfer,
-      label: 'External transfer',
+      label: t('species_module.external_transfer'),
       imagePath: '/images/housing/sections.svg',
-      onClick: () => handleStatClick('External transfer', 'external_transfer')
+      onClick: () => handleStatClick(t('species_module.external_transfer'), 'external_transfer')
     },
     {
       value: speciesData.mortality,
-      label: 'Mortality',
+      label: t('species_module.mortality'),
       imagePath: '/images/housing/enclosures.svg',
-      onClick: () => handleStatClick('Mortality', 'mortality')
+      onClick: () => handleStatClick(t('species_module.mortality'), 'mortality')
     }
   ]
 
@@ -170,7 +159,7 @@ const SpeciesDetail: React.FC = () => {
   }
 
   // Get selected tab component
-  const selectedTabConfig = TAB_CONFIG.find(tab => tab.value === selectedTab)
+  const selectedTabConfig = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selectedTabConfig?.component || (() => null)
 
   return (
@@ -178,7 +167,7 @@ const SpeciesDetail: React.FC = () => {
       <Box>
         <DynamicBreadcrumbs
           sx={{ mb: 5 }}
-          lastBreadcrumbLabel={speciesData.common_name || (speciesLoading ? 'Loading…' : '')}
+          lastBreadcrumbLabel={speciesData.common_name || (speciesLoading ? t('species_module.loading') : '')}
         />
 
         {/* Species Insights Banner */}
@@ -187,13 +176,13 @@ const SpeciesDetail: React.FC = () => {
           loading={speciesLoading}
           error={null as any}
           isListingPage
-          titleLabel='Species'
+          titleLabel={t('species_module.species')}
           pageTitle={speciesData.common_name}
           subtitle={speciesData.scientific_name}
           image=''
           actions={{ onAddNew: canAddAnimal ? () => setAddAnimalDrawerOpen(true) : null }}
-          addNewTooltip='Add Animals'
-          addNewLabel='Add Animals'
+          addNewTooltip={t('species_module.add_animals')}
+          addNewLabel={t('species_module.add_animals')}
           onCallClick={null as any}
           onMessageClick={null as any}
           zooName=''
@@ -213,7 +202,7 @@ const SpeciesDetail: React.FC = () => {
             <Card sx={{ mt: 6, p: { xs: 3, md: 5 }, pb: 0 }}>
               <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-                  {TAB_CONFIG.map(tab => (
+                  {tabConfig.map(tab => (
                     <Tab key={tab.value} label={tab.label} value={tab.value} />
                   ))}
                 </Tabs>
@@ -232,7 +221,7 @@ const SpeciesDetail: React.FC = () => {
           <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
               <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-                {TAB_CONFIG.map(tab => (
+                {tabConfig.map(tab => (
                   <Tab key={tab.value} label={tab.label} value={tab.value} />
                 ))}
               </Tabs>

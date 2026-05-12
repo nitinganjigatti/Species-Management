@@ -3,6 +3,7 @@ import { Avatar, Box, Button, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { GridRenderCellParams } from '@mui/x-data-grid'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
@@ -37,6 +38,7 @@ const mapSectionRow = (item: SpeciesWiseSectionItem, slNo: number) => ({
 })
 
 const SectionsTab: React.FC<SectionsTabProps> = ({ speciesId }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const [searchValue, setSearchValue] = useState('')
   const [drawerType, setDrawerType] = useState<string | null>(null)
@@ -103,15 +105,18 @@ const SectionsTab: React.FC<SectionsTabProps> = ({ speciesId }) => {
     </Box>
   )
 
-  const columns = [
-    { width: 50, sortable: false, field: 'sl_no', headerName: 'NO', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.sl_no}</Typography> },
-    { minWidth: 200, flex: 1, sortable: false, field: 'section_name', headerName: 'SECTION NAME', renderCell: (p: GridRenderCellParams) => (
-      <LocationNameCard name={p.row.section_name} image={p.row.image} icon='mdi:view-grid-outline' />
-    )},
-    { width: 110, sortable: false, field: 'animals', headerName: 'ANIMALS', renderCell: (p: GridRenderCellParams) => clickableCell(p.row, p.row.animals?.toLocaleString(), 'animals', 'section-animals-drawer') },
-    { width: 130, sortable: false, field: 'enclosures', headerName: 'ENCLOSURES', renderCell: (p: GridRenderCellParams) => clickableCell(p.row, p.row.enclosures, 'enclosures', 'section-enclosures-drawer') },
-    { minWidth: 200, flex: 1, sortable: false, field: 'site', headerName: 'SITE', renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.site}</Typography> }
-  ]
+  const columns = useMemo(
+    () => [
+      { width: 50, sortable: false, field: 'sl_no', headerName: t('species_module.col_no'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.sl_no}</Typography> },
+      { minWidth: 200, flex: 1, sortable: false, field: 'section_name', headerName: t('species_module.col_section_name'), renderCell: (p: GridRenderCellParams) => (
+        <LocationNameCard name={p.row.section_name} image={p.row.image} icon='mdi:view-grid-outline' />
+      )},
+      { width: 110, sortable: false, field: 'animals', headerName: t('species_module.col_animals'), renderCell: (p: GridRenderCellParams) => clickableCell(p.row, p.row.animals?.toLocaleString(), 'animals', 'section-animals-drawer') },
+      { width: 130, sortable: false, field: 'enclosures', headerName: t('species_module.col_enclosures'), renderCell: (p: GridRenderCellParams) => clickableCell(p.row, p.row.enclosures, 'enclosures', 'section-enclosures-drawer') },
+      { minWidth: 200, flex: 1, sortable: false, field: 'site', headerName: t('species_module.col_site'), renderCell: (p: GridRenderCellParams) => <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{p.row.site}</Typography> }
+    ],
+    [t, theme, speciesId]
+  )
 
   const stickyStyles = {
     '& .MuiDataGrid-cell': { py: 2.5, px: 3, display: 'flex', alignItems: 'center' },
@@ -127,12 +132,12 @@ const SectionsTab: React.FC<SectionsTabProps> = ({ speciesId }) => {
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 4 }}>
-        <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>Sections ({totalCount})</Typography>
-        <Button variant='text' onClick={() => {}} endIcon={<Icon icon='solar:download-square-linear' />} sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500, textTransform: 'none', fontSize: '0.875rem' }}>Download</Button>
+        <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>{t('species_module.sections_count_header')} ({totalCount})</Typography>
+        <Button variant='text' onClick={() => {}} endIcon={<Icon icon='solar:download-square-linear' />} sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500, textTransform: 'none', fontSize: '0.875rem' }}>{t('download')}</Button>
       </Box>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, mb: 4, gap: 2 }}>
-        <Search borderRadius='4px' width='220px' placeholder='Search' value={searchValue} onClear={() => handleSearch('')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)} />
-        <FilterButtonWithNotification label='Filter' onClick={() => {}} sx={{ height: 36 }} />
+        <Search borderRadius='4px' width='220px' placeholder={t('search')} value={searchValue} onClear={() => handleSearch('')} onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)} />
+        <FilterButtonWithNotification label={t('filter')} onClick={() => {}} sx={{ height: 36 }} />
       </Box>
       <CommonTable
         columns={columns}

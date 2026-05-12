@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Autocomplete,
   Avatar,
@@ -55,6 +56,7 @@ interface AddAnimalDrawerProps {
 }
 
 const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSuccess }) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const auth = useAuth() as any
   const zooId: number | undefined = auth?.userData?.user?.zoos?.[0]?.zoo_id
@@ -263,7 +265,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
           handleClose()
           onSuccess?.()
         } else {
-          Toaster({ type: 'error', message: groupRes?.message || 'Failed to create group of animals' })
+          Toaster({ type: 'error', message: groupRes?.message || t('species_module.failed_to_create_group') })
         }
         return
       }
@@ -321,10 +323,10 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
         handleClose()
         onSuccess?.()
       } else {
-        Toaster({ type: 'error', message: res?.message || 'Failed to create animal' })
+        Toaster({ type: 'error', message: res?.message || t('species_module.failed_to_create_animal') })
       }
     } catch (error) {
-      Toaster({ type: 'error', message: 'An error occurred while creating animal' })
+      Toaster({ type: 'error', message: t('species_module.error_creating_animal') })
     } finally {
       setLoader(false)
     }
@@ -376,7 +378,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Icon icon='mdi:paw-outline' fontSize={28} />
             <Typography variant='h6' sx={{ fontWeight: 600 }}>
-              Add Animal
+              {t('species_module.add_animal_header')}
             </Typography>
           </Box>
           <IconButton onClick={handleClose}>
@@ -392,7 +394,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
               variant='subtitle2'
               sx={{ fontWeight: 600, mb: 3, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Choose Animal Entry Type
+              {t('species_module.choose_animal_entry_type')}
             </Typography>
             <Card
               variant='outlined'
@@ -1022,7 +1024,7 @@ const AddAnimalDrawer: React.FC<AddAnimalDrawerProps> = ({ open, onClose, onSucc
             form='add-animal-form'
             sx={{ borderRadius: '8px', textTransform: 'uppercase' }}
           >
-            Submit
+            {t('species_module.submit')}
           </LoadingButton>
         </Box>
       </Box>

@@ -2,6 +2,7 @@ import React, { useMemo, useEffect, useRef } from 'react'
 import { Avatar, Box, Skeleton, TablePagination, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import Icon from 'src/@core/components/icon'
 import SplitPaneGrid from 'src/components/common/SplitPaneGrid'
@@ -209,6 +210,7 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
   selectedCell,
   onCellClick
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
 
   const siteIds = filters?.siteIds ?? []
@@ -283,7 +285,7 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
       }}
     >
       <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Animal {rangeStart}-{rangeEnd} / {totalAnimals}
+        {t('species_module.corner_animal_range')} {rangeStart}-{rangeEnd} / {totalAnimals}
       </Typography>
     </Box>
   )
@@ -382,21 +384,21 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Count <strong>{animal.total_animal}</strong>
+              {t('species_module.count_badge')} <strong>{animal.total_animal}</strong>
             </Box>
           )}
           <Typography
             variant='caption'
             sx={{ display: 'block', color: theme.palette.customColors.neutralSecondary, mt: 0.5 }}
           >
-            Encl : {animal.user_enclosure_name || animal.enclosure_name || '-'}
+            {t('species_module.encl_label')} : {animal.user_enclosure_name || animal.enclosure_name || '-'}
           </Typography>
           <Typography variant='caption' sx={{ display: 'block', color: theme.palette.customColors.neutralSecondary }}>
-            Site : {animal.site_name || '-'}
+            {t('species_module.site_label')} : {animal.site_name || '-'}
           </Typography>
           {computedAge ? (
             <Typography variant='caption' sx={{ display: 'block', color: theme.palette.customColors.neutralSecondary }}>
-              Age : {computedAge}
+              {t('species_module.age_label')} : {computedAge}
             </Typography>
           ) : null}
         </Box>
@@ -523,7 +525,7 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
                 fontWeight: 500
               }}
             >
-              Add Entry
+              {t('species_module.add_entry_cell')}
             </Typography>
           </>
         ) : (
@@ -579,7 +581,7 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
       <SplitPaneGrid<AnimalRow, TypeColumn>
         rows={displayAnimals}
         columns={columns}
-        emptyText='No animals'
+        emptyText={t('species_module.no_animals')}
         getRowKey={a => String(a.animal_id)}
         getColumnKey={c => c.id}
         leftColumnWidth={LEFT_COL_WIDTH}

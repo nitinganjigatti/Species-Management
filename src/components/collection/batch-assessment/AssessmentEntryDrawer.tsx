@@ -14,6 +14,7 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
@@ -82,6 +83,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
   onSaved,
   onNavigate
 }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const auth = useAuth() as any
   const queryClient = useQueryClient()
@@ -246,7 +248,8 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
       const ok = (res as any)?.success
       if (ok) {
         toast.success(
-          (res as any)?.message || (isEditing ? 'Successfully Updated' : 'Successfully Added')
+          (res as any)?.message ||
+            (isEditing ? t('species_module.successfully_updated') : t('species_module.successfully_added'))
         )
         // Refresh the grid so the cell flips from "Add Entry" to the new value.
         queryClient.invalidateQueries({ queryKey: ['assessment-group'] })
@@ -254,12 +257,18 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
         onClose()
       } else {
         toast.error(
-          (res as any)?.message || (isEditing ? 'Failed to update entry' : 'Failed to save entry')
+          (res as any)?.message ||
+            (isEditing
+              ? t('species_module.failed_to_update_entry')
+              : t('species_module.failed_to_save_entry'))
         )
       }
     },
     onError: (err: any) => {
-      toast.error(err?.message || (isEditing ? 'Failed to update entry' : 'Failed to save entry'))
+      toast.error(
+        err?.message ||
+          (isEditing ? t('species_module.failed_to_update_entry') : t('species_module.failed_to_save_entry'))
+      )
     }
   })
 
@@ -313,7 +322,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
               variant='h6'
               sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              {column?.name || (isEditing ? 'Edit Entry' : 'Add New Entry')}
+              {column?.name || (isEditing ? t('species_module.edit_entry') : t('species_module.add_new_entry'))}
             </Typography>
           </Box>
           <IconButton size='small' onClick={onClose}>
@@ -458,7 +467,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
                 <TextField
                   fullWidth
                   type='number'
-                  label='Enter Value'
+                  label={t('species_module.enter_value')}
                   value={value}
                   onChange={e => setValue(e.target.value)}
                 />
@@ -470,7 +479,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
                 <TextField
                   sx={{ flex: 2 }}
                   type='number'
-                  label='Enter Value'
+                  label={t('species_module.enter_value')}
                   value={value}
                   onChange={e => setValue(e.target.value)}
                 />
@@ -480,7 +489,12 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
                   value={unitId}
                   onChange={e => setUnitId(String(e.target.value))}
                   renderValue={selected => {
-                    if (!selected) return <span style={{ color: theme.palette.customColors.Outline }}>Select unit</span>
+                    if (!selected)
+                      return (
+                        <span style={{ color: theme.palette.customColors.Outline }}>
+                          {t('species_module.select_unit')}
+                        </span>
+                      )
                     const u = filteredUnits.find(x => x.id === String(selected))
 
                     return u ? `${u.name} (${u.abbr})` : String(selected)
@@ -488,10 +502,10 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
                 >
                   {unitsQuery.isLoading ? (
                     <MenuItem disabled>
-                      <CircularProgress size={16} sx={{ mr: 1 }} /> Loading…
+                      <CircularProgress size={16} sx={{ mr: 1 }} /> {t('species_module.loading')}
                     </MenuItem>
                   ) : filteredUnits.length === 0 ? (
-                    <MenuItem disabled>No units available</MenuItem>
+                    <MenuItem disabled>{t('species_module.no_units_available')}</MenuItem>
                   ) : (
                     filteredUnits.map(u => (
                       <MenuItem key={u.id} value={u.id}>
@@ -512,14 +526,18 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
                   onChange={e => setValue(String(e.target.value))}
                   renderValue={selected => {
                     if (!selected)
-                      return <span style={{ color: theme.palette.customColors.Outline }}>Select value</span>
+                      return (
+                        <span style={{ color: theme.palette.customColors.Outline }}>
+                          {t('species_module.select_value')}
+                        </span>
+                      )
                     const opt = dropdownOptions.find(o => o.id === String(selected))
 
                     return opt ? opt.label : String(selected)
                   }}
                 >
                   {dropdownOptions.length === 0 ? (
-                    <MenuItem disabled>No options</MenuItem>
+                    <MenuItem disabled>{t('species_module.no_options')}</MenuItem>
                   ) : (
                     dropdownOptions.map(o => (
                       <MenuItem key={o.id} value={o.id}>
@@ -535,7 +553,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
               <Box sx={{ mb: 3 }}>
                 <TextField
                   fullWidth
-                  label='Enter Text'
+                  label={t('species_module.enter_text')}
                   value={value}
                   onChange={e => setValue(e.target.value)}
                 />
@@ -546,7 +564,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
               fullWidth
               multiline
               minRows={3}
-              label='Add notes if any'
+              label={t('species_module.add_notes_optional')}
               value={comments}
               onChange={e => setComments(e.target.value)}
             />
@@ -565,7 +583,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
           }}
         >
           <Button fullWidth variant='outlined' size='large' onClick={onClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <LoadingButton
             fullWidth
@@ -575,7 +593,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
             disabled={!canSave}
             onClick={() => saveMutation.mutate()}
           >
-            {isEditing ? 'Update Entry' : 'Add Entry'}
+            {isEditing ? t('species_module.update_entry') : t('species_module.add_entry')}
           </LoadingButton>
         </Box>
       </Box>

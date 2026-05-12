@@ -4,6 +4,7 @@ import { useTheme } from '@mui/material/styles'
 import { GridRenderCellParams } from '@mui/x-data-grid'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { debounce } from 'lodash'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
@@ -39,10 +40,16 @@ const titleCase = (s?: string | null): string => {
   return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
 }
 
-const mapNecropsyRow = (item: NecropsySpeciesItem, slNo: number) => ({
+interface RowLabels {
+  aaid: string
+  b: string
+  m: string
+}
+
+const mapNecropsyRow = (item: NecropsySpeciesItem, slNo: number, labels: RowLabels) => ({
   id: `${item.mortality_id}_${slNo}`,
   sl_no: slNo,
-  animal_id: item.animal_id ? `AAID : ${item.animal_id}` : '-',
+  animal_id: item.animal_id ? `${labels.aaid} : ${item.animal_id}` : '-',
   uid:
     item.local_identifier_value && item.local_identifier_name
       ? `${item.local_identifier_name} : ${item.local_identifier_value}`
@@ -50,8 +57,8 @@ const mapNecropsyRow = (item: NecropsySpeciesItem, slNo: number) => ({
   animal_name: item.local_identifier_value || item.common_name || '-',
   scientific_name: item.scientific_name || '',
   gender: (item.type || '').toLowerCase() === 'group' ? 'G' : GENDER_LABELS[(item.sex || '').toLowerCase()] || '-',
-  breed: item.breed_name ? `B - ${item.breed_name}` : 'B - -',
-  morph: item.morph_name ? `M - ${item.morph_name}` : 'M - -',
+  breed: item.breed_name ? `${labels.b} - ${item.breed_name}` : `${labels.b} - -`,
+  morph: item.morph_name ? `${labels.m} - ${item.morph_name}` : `${labels.m} - -`,
   cause_of_death: titleCase(item.cause),
   necropsy_id: item.necropsy_id || null,
   mortality_id: item.mortality_id,
@@ -67,6 +74,7 @@ const mapNecropsyRow = (item: NecropsySpeciesItem, slNo: number) => ({
 })
 
 const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
+  const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
@@ -100,21 +108,31 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
   const totalCount = Number(necropsyResponse?.total_count) || 0
   const getSlNo = (index: number): number => (filters.page - 1) * filters.limit + index + 1
 
+  const rowLabels = useMemo<RowLabels>(
+    () => ({
+      aaid: t('species_module.label_aaid'),
+      b: t('species_module.label_b'),
+      m: t('species_module.label_m_short')
+    }),
+    [t]
+  )
+
   const necropsyRows = useMemo(
-    () => (necropsyResponse?.result || []).map((item, index) => mapNecropsyRow(item, getSlNo(index))),
-    [necropsyResponse, filters.page, filters.limit]
+    () => (necropsyResponse?.result || []).map((item, index) => mapNecropsyRow(item, getSlNo(index), rowLabels)),
+    [necropsyResponse, filters.page, filters.limit, rowLabels]
   )
 
   const handlePaginationModelChange = (model: { page: number; pageSize: number }) => {
     setFilters(prev => ({ ...prev, page: model.page + 1, limit: model.pageSize }))
   }
 
-  const columns = [
+  const columns = useMemo(
+    () => [
     {
       width: 50,
       sortable: false,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: t('species_module.col_no'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.sl_no}
@@ -125,7 +143,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       minWidth: 180,
       sortable: false,
       field: 'animal_id',
-      headerName: 'ANIMAL ID',
+      headerName: t('species_module.col_animal_id'),
       renderCell: (p: GridRenderCellParams) => (
         <AnimalIdCard animalId={p.row.animal_id} uid={p.row.uid} image={p.row.image} />
       )
@@ -134,7 +152,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 200,
       sortable: false,
       field: 'animal_name',
-      headerName: 'ANIMAL NAME',
+      headerName: t('species_module.col_animal_name'),
       renderCell: (p: GridRenderCellParams) => (
         <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
           <Typography
@@ -158,7 +176,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 90,
       sortable: false,
       field: 'gender',
-      headerName: 'GENDER',
+      headerName: t('species_module.col_gender'),
       renderCell: (p: GridRenderCellParams) => {
         const g = p.row.gender
         const bg =
@@ -185,7 +203,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 160,
       sortable: false,
       field: 'breed',
-      headerName: 'BREED & MORPH',
+      headerName: t('species_module.col_breed_morph'),
       renderCell: (p: GridRenderCellParams) => (
         <Box>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '0.8rem' }}>
@@ -201,7 +219,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 140,
       sortable: false,
       field: 'cause_of_death',
-      headerName: 'CAUSE OF DEATH',
+      headerName: t('species_module.col_cause_of_death'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.cause_of_death}
@@ -212,7 +230,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 140,
       sortable: false,
       field: 'necropsy_id',
-      headerName: 'NECROPSY ID',
+      headerName: t('species_module.col_necropsy_id'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.necropsy_id || '-'}
@@ -223,18 +241,18 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 160,
       sortable: false,
       field: 'necropsy_report',
-      headerName: 'NECROPSY REPORT',
+      headerName: t('species_module.col_necropsy_report'),
       renderCell: (p: GridRenderCellParams) =>
         p.row.necropsy_id ? (
           <Typography variant='body2' sx={{ fontWeight: 500, color: theme.palette.customColors.OnSurface }}>
-            YES
+            {t('species_module.yes_uppercase')}
           </Typography>
         ) : (
           <Typography
             variant='body2'
             sx={{ fontWeight: 500, color: theme.palette.customColors.addPrimary, cursor: 'pointer' }}
           >
-            Attach File
+            {t('species_module.attach_file')}
           </Typography>
         )
     },
@@ -242,7 +260,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 150,
       sortable: false,
       field: 'reported_by',
-      headerName: 'REPORTED BY',
+      headerName: t('species_module.col_reported_by'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.reported_by}
@@ -253,7 +271,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 160,
       sortable: false,
       field: 'completed_by',
-      headerName: 'COMPLETED BY',
+      headerName: t('species_module.col_completed_by'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.completed_by || '-'}
@@ -264,7 +282,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 180,
       sortable: false,
       field: 'enclosure',
-      headerName: 'ENCLOSURE',
+      headerName: t('species_module.col_enclosure'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.enclosure}
@@ -275,14 +293,16 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
       width: 150,
       sortable: false,
       field: 'site',
-      headerName: 'SITE',
+      headerName: t('species_module.col_site'),
       renderCell: (p: GridRenderCellParams) => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
           {p.row.site}
         </Typography>
       )
     }
-  ]
+  ],
+    [t, theme]
+  )
 
   const stickyStyles = {
     '& .MuiDataGrid-cell': { py: 2.5, px: 3, display: 'flex', alignItems: 'center' },
@@ -328,7 +348,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
         sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2, mb: 4 }}
       >
         <Typography variant='h6' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-          Necropsy ({totalCount})
+          {t('species_module.necropsy_count_header')} ({totalCount})
         </Typography>
         <Button
           variant='text'
@@ -341,7 +361,7 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
             fontSize: '0.875rem'
           }}
         >
-          Download
+          {t('download')}
         </Button>
       </Box>
       <Box
@@ -366,21 +386,21 @@ const NecropsyTab: React.FC<NecropsyTabProps> = ({ speciesId }) => {
                 '& .MuiOutlinedInput-notchedOutline': { borderColor: theme.palette.customColors.OutlineVariant }
               }}
             >
-              <MenuItem value='PENDING'>Pending</MenuItem>
-              <MenuItem value='DRAFT'>Draft</MenuItem>
-              <MenuItem value='COMPLETED'>Completed</MenuItem>
+              <MenuItem value='PENDING'>{t('species_module.pending')}</MenuItem>
+              <MenuItem value='DRAFT'>{t('species_module.draft')}</MenuItem>
+              <MenuItem value='COMPLETED'>{t('species_module.completed')}</MenuItem>
             </Select>
           </FormControl>
           <Search
             borderRadius='4px'
             width='180px'
-            placeholder='Search'
+            placeholder={t('search')}
             value={searchValue}
             onClear={() => handleSearch('')}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
           />
         </Box>
-        <FilterButtonWithNotification label='Filter' onClick={() => {}} sx={{ height: 36 }} />
+        <FilterButtonWithNotification label={t('filter')} onClick={() => {}} sx={{ height: 36 }} />
       </Box>
       <CommonTable
         columns={columns}
