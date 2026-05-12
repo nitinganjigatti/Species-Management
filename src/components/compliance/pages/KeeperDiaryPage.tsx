@@ -256,12 +256,17 @@ const KeeperDiaryReport = () => {
   }
 
   const downloadKeeperDiaryReport = async () => {
+    const childObservationIds = selectedSubObservations
+      .map(item => item?.id)
+      .filter(item => item !== undefined && item !== null && item !== '')
     const params: Record<string, unknown> = {
       user_id: userDetail?.user_id || userIdParam,
       q: searchValue,
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-      report_type: 'pdf'
+      report_type: 'pdf',
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id }),
+      ...(childObservationIds.length && { child_observation_ids: childObservationIds })
     }
     try {
       setIsDownloading(true)

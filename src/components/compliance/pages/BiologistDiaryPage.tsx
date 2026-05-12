@@ -263,13 +263,18 @@ const BiologistDiaryReport = () => {
   }
 
   const handleDownloadReport = async () => {
+    const childObservationIds = selectedSubObservations
+      .map(item => item?.id)
+      .filter(item => item !== undefined && item !== null && item !== '')
     const params = {
       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
       user_id: userDetail?.user_id || userIdParam,
       report_type: 'pdf',
       type: 'biologist',
-      ...(searchValue && { q: searchValue })
+      ...(searchValue && { q: searchValue }),
+      ...(defaultObservationType?.id && { observation_type: defaultObservationType?.id }),
+      ...(childObservationIds.length && { child_observation_ids: childObservationIds })
     }
     try {
       setIsDownloading(true)
