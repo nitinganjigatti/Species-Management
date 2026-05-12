@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import {
   Box,
   Button,
@@ -25,7 +25,7 @@ dayjs.extend(utc)
 import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
-import { addAssessmentEntry, getMeasurementUnits } from 'src/lib/api/assessment'
+import { addAssessmentEntry, getMeasurementUnits, updateAssessmentEntry } from 'src/lib/api/assessment'
 import type { AnimalRow, AssessmentEntry, TypeColumn } from './AssessmentGrid'
 
 // ============== Helpers =================
@@ -115,6 +115,18 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
   const responseType = (entry?.response_type as string) || 'numeric_value'
   const measurementType = (entry?.measurement_type as string) || ''
 
+  // Options for numeric_scale / list types. The /assessment/group response ships these inline on
+  // each entry as `defaultValues` (camelCase) — same shape the hospital module gets from its
+  // dedicated get-assessment-details call, so no extra request is needed here.
+  const dropdownOptions = useMemo(() => {
+    const raw = (entry as any)?.defaultValues ?? (entry as any)?.default_values
+    if (!Array.isArray(raw)) return [] as { id: string; label: string }[]
+
+    return raw
+      .map((o: any) => ({ id: String(o?.id ?? o?.value ?? ''), label: String(o?.label ?? o?.name ?? '') }))
+      .filter(o => o.id && o.label)
+  }, [entry])
+
   // Seed form fields from the existing entry (edit) or defaults (add) every time focus changes.
   useEffect(() => {
     if (!open || !entry) {
@@ -172,9 +184,18 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
     return allUnits.filter(u => u.measurement_type === measurementType)
   }, [allUnits, measurementType])
 
-  const showUnitField = filteredUnits.length > 0 && (responseType === 'numeric_value' || measurementType)
+  // For numeric_value types with a measurement_type, the unit select MUST be present even when the
+  // /measurement-units call is loading or returns empty — otherwise the form would silently let the
+  // user submit a unit-required value with `assessment_unit_id=""` and the backend would reject it
+  // (or store bad data). The Select itself handles the loading/empty states internally.
+  const showUnitField = responseType === 'numeric_value' && measurementType.trim() !== ''
 
-  // Save mutation — POST /v1/assessment/animal/add/{animal_id}
+  // Distinguishes edit (PATCH-style POST to /update) from add (POST to /add). Drives the endpoint
+  // choice, the submit-button label, and the success/error toast copy.
+  const isEditing = Number((entry as any)?.has_assessment) === 1
+
+  // Save mutation — routes to /add for new cells, /update for existing entries.
+  // Using /add for an existing cell would create a duplicate row instead of overwriting it.
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!animal || !column || !date || !time) throw new Error('Missing data')
@@ -187,41 +208,58 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
 
       const user = auth?.userData?.user ?? {}
 
-      return addAssessmentEntry(animal.animal_id, {
+      const basePayload: any = {
         assessment_type_id: String(column.id),
         assessment_value: value,
         comments: comments || '',
         recorded_date_time: formatLocal(recorded),
         assessment_unit_id: unitId || '',
         // Extra fields the API expects but aren't in AddAssessmentPayload's TS shape.
-        ...({
-          type: responseType,
-          animal_id: String(animal.animal_id),
-          birth_date: (animal.birth_date as string) || '',
-          has_assessment: Number((entry as any)?.has_assessment) === 1 ? 1 : 0,
-          utcTime: formatUtc(recorded),
-          created_by_user: {
-            user_id: Number(user?.user_id ?? user?.id ?? 0),
-            user_name: String(user?.user_name ?? user?.name ?? ''),
-            email: String(user?.email ?? ''),
-            profile_pic: String(user?.profile_pic ?? '')
-          }
-        } as any)
-      } as any)
+        type: responseType,
+        animal_id: String(animal.animal_id),
+        birth_date: (animal.birth_date as string) || '',
+        has_assessment: isEditing ? 1 : 0,
+        utcTime: formatUtc(recorded),
+        created_by_user: {
+          user_id: Number(user?.user_id ?? user?.id ?? 0),
+          user_name: String(user?.user_name ?? user?.name ?? ''),
+          email: String(user?.email ?? ''),
+          profile_pic: String(user?.profile_pic ?? '')
+        }
+      }
+
+      if (isEditing) {
+        // entry.assessment_id is the existing row's PK ("46683" in the sample response).
+        // Fall back to add if it's missing — the alternative is a hard failure with no way out.
+        const existingId = String((entry as any)?.assessment_id ?? '')
+        if (existingId) {
+          return updateAssessmentEntry(animal.animal_id, {
+            ...basePayload,
+            animal_assessment_id: existingId
+          } as any)
+        }
+      }
+
+      return addAssessmentEntry(animal.animal_id, basePayload as any)
     },
     onSuccess: res => {
-      if (res?.success) {
-        toast.success(res?.message || 'Successfully Added')
+      const ok = (res as any)?.success
+      if (ok) {
+        toast.success(
+          (res as any)?.message || (isEditing ? 'Successfully Updated' : 'Successfully Added')
+        )
         // Refresh the grid so the cell flips from "Add Entry" to the new value.
         queryClient.invalidateQueries({ queryKey: ['assessment-group'] })
         onSaved?.()
         onClose()
       } else {
-        toast.error(res?.message || 'Failed to save entry')
+        toast.error(
+          (res as any)?.message || (isEditing ? 'Failed to update entry' : 'Failed to save entry')
+        )
       }
     },
     onError: (err: any) => {
-      toast.error(err?.message || 'Failed to save entry')
+      toast.error(err?.message || (isEditing ? 'Failed to update entry' : 'Failed to save entry'))
     }
   })
 
@@ -275,7 +313,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
               variant='h6'
               sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}
             >
-              Add New Entry
+              {column?.name || (isEditing ? 'Edit Entry' : 'Add New Entry')}
             </Typography>
           </Box>
           <IconButton size='small' onClick={onClose}>
@@ -413,16 +451,31 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
               />
             </Box>
 
-            <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-              <TextField
-                fullWidth
-                label='Enter Value'
-                value={value}
-                onChange={e => setValue(e.target.value)}
-              />
-              {showUnitField && (
-                <Select
+            {/* Value input is shaped by the type's response_type — same branching as the hospital
+                AddParameterDataEntry drawer so a vet seeing both modules gets identical affordances. */}
+            {responseType === 'numeric_value' && measurementType.trim() === '' && (
+              <Box sx={{ mb: 3 }}>
+                <TextField
                   fullWidth
+                  type='number'
+                  label='Enter Value'
+                  value={value}
+                  onChange={e => setValue(e.target.value)}
+                />
+              </Box>
+            )}
+
+            {responseType === 'numeric_value' && measurementType.trim() !== '' && (
+              <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+                <TextField
+                  sx={{ flex: 2 }}
+                  type='number'
+                  label='Enter Value'
+                  value={value}
+                  onChange={e => setValue(e.target.value)}
+                />
+                <Select
+                  sx={{ flex: 1 }}
                   displayEmpty
                   value={unitId}
                   onChange={e => setUnitId(String(e.target.value))}
@@ -437,6 +490,8 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
                     <MenuItem disabled>
                       <CircularProgress size={16} sx={{ mr: 1 }} /> Loading…
                     </MenuItem>
+                  ) : filteredUnits.length === 0 ? (
+                    <MenuItem disabled>No units available</MenuItem>
                   ) : (
                     filteredUnits.map(u => (
                       <MenuItem key={u.id} value={u.id}>
@@ -445,8 +500,47 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
                     ))
                   )}
                 </Select>
-              )}
-            </Box>
+              </Box>
+            )}
+
+            {(responseType === 'numeric_scale' || responseType === 'list') && (
+              <Box sx={{ mb: 3 }}>
+                <Select
+                  fullWidth
+                  displayEmpty
+                  value={value}
+                  onChange={e => setValue(String(e.target.value))}
+                  renderValue={selected => {
+                    if (!selected)
+                      return <span style={{ color: theme.palette.customColors.Outline }}>Select value</span>
+                    const opt = dropdownOptions.find(o => o.id === String(selected))
+
+                    return opt ? opt.label : String(selected)
+                  }}
+                >
+                  {dropdownOptions.length === 0 ? (
+                    <MenuItem disabled>No options</MenuItem>
+                  ) : (
+                    dropdownOptions.map(o => (
+                      <MenuItem key={o.id} value={o.id}>
+                        {o.label}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </Box>
+            )}
+
+            {responseType === 'text' && (
+              <Box sx={{ mb: 3 }}>
+                <TextField
+                  fullWidth
+                  label='Enter Text'
+                  value={value}
+                  onChange={e => setValue(e.target.value)}
+                />
+              </Box>
+            )}
 
             <TextField
               fullWidth
@@ -481,7 +575,7 @@ const AssessmentEntryDrawer: React.FC<AssessmentEntryDrawerProps> = ({
             disabled={!canSave}
             onClick={() => saveMutation.mutate()}
           >
-            Add Entry
+            {isEditing ? 'Update Entry' : 'Add Entry'}
           </LoadingButton>
         </Box>
       </Box>
