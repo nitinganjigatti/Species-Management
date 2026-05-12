@@ -3,8 +3,9 @@ import { Typography, Box, Drawer, IconButton, Paper, Grid, Chip, Avatar, alpha }
 import { useTheme } from '@mui/material/styles'
 import CloseIcon from '@mui/icons-material/Close'
 import Icon from 'src/@core/components/icon'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useSearchParams } from 'next/navigation'
 import type { ExportSpecies } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface AnimalDetailsDrawerProps {
   open: boolean
@@ -27,9 +28,10 @@ const AnimalDetailsDrawer = ({
   setCurrentSpeciesId,
   setSelectedSpeciesData
 }: AnimalDetailsDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
-  const router = useSafeRouter()
-  const { action } = router.query
+  const searchParams = useSearchParams()
+  const action = searchParams?.get('action')
 
   const handleClick = () => {
     setanimalCountDrawerOpen?.(true)
@@ -40,7 +42,6 @@ const AnimalDetailsDrawer = ({
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >
@@ -82,7 +83,7 @@ const AnimalDetailsDrawer = ({
                   }}
                   icon='bx:pencil'
                 />
-                Edit Selection
+                {t('compliance_module.edit_selection')}
               </Typography>
             ) : (
               ''
@@ -103,7 +104,7 @@ const AnimalDetailsDrawer = ({
               mb: 4
             }}
           >
-            Species
+            {t('species')}
           </Typography>
 
           <Paper
@@ -118,7 +119,7 @@ const AnimalDetailsDrawer = ({
             <Grid container spacing={2}>
               <Grid size={{ xs: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
-                  Common Name
+                  {t('common_name')}
                 </Typography>
                 <Typography
                   fontWeight={500}
@@ -129,7 +130,7 @@ const AnimalDetailsDrawer = ({
               </Grid>
               <Grid size={{ xs: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
-                  Scientific Name
+                  {t('scientific_name')}
                 </Typography>
                 <Typography
                   fontWeight={500}
@@ -151,21 +152,23 @@ const AnimalDetailsDrawer = ({
               </Grid>
               <Grid size={{ xs: 6 }} sx={{ mt: 3 }}>
                 <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
-                  Animal count
+                  {t('compliance_module.animal_count_label')}
                 </Typography>
                 <Typography
                   fontWeight={500}
                   sx={{ mt: 0.5, color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
                 >
                   {(animalDetails as any)?.total_count ||
-                    (animalDetails?.male_count ?? 0) + (animalDetails?.female_count ?? 0) + (animalDetails?.undeterminate_count ?? 0) ||
+                    (animalDetails?.male_count ?? 0) +
+                      (animalDetails?.female_count ?? 0) +
+                      (animalDetails?.undeterminate_count ?? 0) ||
                     '-'}
                 </Typography>
               </Grid>
 
               <Grid size={{ xs: 12 }} sx={{ mt: 3 }}>
                 <Typography sx={{ color: theme.palette.customColors.secondaryBg, fontWeight: 400, fontSize: '16px' }}>
-                  Gender & Count
+                  {t('compliance_module.gender_count')}
                 </Typography>
                 <Box display='flex' gap={1} sx={{ mt: 1 }}>
                   <Chip
@@ -222,7 +225,7 @@ const AnimalDetailsDrawer = ({
               mt: 4
             }}
           >
-            Animals with identifier ( {animalDetails?.animals?.length || 0} )
+            {t('compliance_module.animals_with_identifier')} ( {animalDetails?.animals?.length || 0} )
           </Typography>
           <Box
             sx={{
@@ -288,7 +291,7 @@ const AnimalDetailsDrawer = ({
                         mb: 0.5
                       }}
                     >
-                      Species :{' '}
+                      {t('compliance_module.species_label')}{' '}
                       <span
                         style={{
                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -328,7 +331,7 @@ const AnimalDetailsDrawer = ({
                   fontWeight: '500'
                 }}
               >
-                No Animals to show
+                {t('compliance_module.no_animals_to_show')}
               </Typography>
             )}
           </Box>

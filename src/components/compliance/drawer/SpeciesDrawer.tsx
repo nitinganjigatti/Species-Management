@@ -7,8 +7,10 @@ import AntzDatabaseTab from 'src/components/compliance/tabs/AntzDatabaseTab'
 import NewSpeciesTab from 'src/components/compliance/tabs/NewSpeciesTab'
 import type { SpeciesDrawerProps } from 'src/types/compliance'
 import type { Species } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
-const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], title = 'Select Species' }: SpeciesDrawerProps) => {
+const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], title }: SpeciesDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [activeTab, setActiveTab] = useState<number>(0)
   const [prevSelectedItems, setPrevSelectedItems] = useState<Species[]>([])
@@ -60,7 +62,9 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
         {/* Header */}
         <Box sx={{ px: 5, pt: 4, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>
+              {title || t('compliance_module.select_species')}
+            </Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -109,8 +113,8 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
               }
             }}
           >
-            <Tab label='Antz Database' />
-            <Tab label='Custom Species' />
+            <Tab label={t('compliance_module.antx_database')} />
+            <Tab label={t('compliance_module.custom_species')} />
           </Tabs>
         </Box>
 
@@ -173,7 +177,7 @@ const SpeciesDrawer = ({ open, onClose, data, onSelect, selectedSpecies = [], ti
           }}
         >
           <Button fullWidth variant='contained' onClick={() => handleDone()} disabled={totalSelectedCount === 0}>
-            Done ({totalSelectedCount})
+            {t('done')} ({totalSelectedCount})
           </Button>
         </Box>
       </Box>

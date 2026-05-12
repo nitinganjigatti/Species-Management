@@ -29,6 +29,7 @@ import AnimalInsightsCard from 'src/views/utility/insights/AnimalInsightsCard'
 import { DownloadReport } from 'src/views/pages/compliance/utility'
 import SpeciesExportDrawer from 'src/components/compliance/drawer/SpeciesExportDrawer'
 import SpeciesExportDocumentDrawer from 'src/components/compliance/drawer/SpeciesExportDocumentDrawer'
+import { useTranslation } from 'react-i18next'
 import { GridColDef, GridSortModel } from '@mui/x-data-grid'
 
 interface SpeciesFilters {
@@ -57,6 +58,7 @@ interface SelectedRow {
 }
 
 const SpeciesDetails = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
   const params = useParams()
@@ -150,23 +152,23 @@ const SpeciesDetails = () => {
 
   const statsData = [
     {
-      label: 'Permitted Animals',
+      label: t('compliance_module.permitted_animals'),
       value: (speciesStats?.total_animals_permitted as number) || 0
     },
     {
-      label: 'Received Animals',
+      label: t('compliance_module.received_animals'),
       value: (speciesStats?.total_animals_received as number) || 0
     },
     {
-      label: 'Shipments',
+      label: t('compliance_module.shipments'),
       value: (speciesStats?.total_shipments as number) || 0
     },
     {
-      label: 'Exports',
+      label: t('compliance_module.exports'),
       value: (speciesStats?.total_exports as number) || 0
     },
     {
-      label: 'Imports',
+      label: t('compliance_module.imports'),
       value: (speciesStats?.total_imports as number) || 0
     }
   ]
@@ -247,7 +249,7 @@ const SpeciesDetails = () => {
     {
       minWidth: 100,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       align: 'left',
       headerAlign: 'left',
       sortable: false,
@@ -277,7 +279,7 @@ const SpeciesDetails = () => {
     {
       minWidth: 220,
       field: 'shipment_number',
-      headerName: 'SHIPMENT ID',
+      headerName: t('compliance_module.shipment_id'),
       sortable: true,
       align: 'left',
       headerAlign: 'left',
@@ -297,7 +299,7 @@ const SpeciesDetails = () => {
     {
       minWidth: 200,
       field: 'shipment_date',
-      headerName: 'SHIPMENT DATE',
+      headerName: t('compliance_module.shipment_date'),
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>
           {Utility.formatDisplayDate(params.row.shipment_date as string)}
@@ -307,7 +309,7 @@ const SpeciesDetails = () => {
     {
       minWidth: 180,
       field: 'total_exports',
-      headerName: 'EXPORTS',
+      headerName: t('compliance_module.exports'),
       align: 'left',
       headerAlign: 'left',
       sortable: true,
@@ -329,7 +331,7 @@ const SpeciesDetails = () => {
     {
       minWidth: 180,
       field: 'total_animals',
-      headerName: 'ANIMALS',
+      headerName: t('animals'),
       align: 'left',
       headerAlign: 'left',
       sortable: true,
@@ -351,7 +353,7 @@ const SpeciesDetails = () => {
     {
       minWidth: 180,
       field: 'total_documents',
-      headerName: 'DOCUMENTS',
+      headerName: t('documents'),
       align: 'left',
       headerAlign: 'left',
       sortable: true,
@@ -406,7 +408,7 @@ const SpeciesDetails = () => {
 
   const headerTitle = (
     <Typography sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.customTextColorGray2 }}>
-      Animal Shipment
+      {t('compliance_module.animal_shipment')}
     </Typography>
   )
 
@@ -435,11 +437,11 @@ const SpeciesDetails = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Compliance</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('compliance_module.compliance')}</Typography>
         <Typography onClick={() => router.back()} sx={{ cursor: 'pointer', color: 'inherit' }}>
-          Species
+          {t('compliance_module.species')}
         </Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Species Details</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('compliance_module.species_details')}</Typography>
       </Breadcrumbs>
       <AnimalInsightsCard
         image={speciesStats?.default_icon as string}
@@ -506,7 +508,7 @@ const SpeciesDetails = () => {
                 }
                 onClick={() => setOpenFilter(true)}
               >
-                Filter
+                {t('filter')}
               </Button>
             </Box>
           </Box>

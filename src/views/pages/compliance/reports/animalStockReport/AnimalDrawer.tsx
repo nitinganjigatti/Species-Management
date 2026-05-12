@@ -11,6 +11,7 @@ import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/api/compliance/reports'
 import NoDataFound from 'src/views/utility/NoDataFound'
+import { useTranslation } from 'react-i18next'
 
 const PAGE_SIZE = 10
 
@@ -44,13 +45,8 @@ interface AnimalDrawerProps {
   showAnimalFilter?: boolean
 }
 
-const AnimalDrawer = ({
-  open,
-  onClose,
-  handleAnimalClick,
-  btnText = 'GENERATE ANIMAL STOCK REPORT',
-  showAnimalFilter = true
-}: AnimalDrawerProps) => {
+const AnimalDrawer = ({ open, onClose, handleAnimalClick, btnText, showAnimalFilter = true }: AnimalDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -103,7 +99,7 @@ const AnimalDrawer = ({
         type: activeTab,
         end_date: formatDate(new Date())
       }
-      const res = await getAnimalListForObservationReport(params) as any
+      const res = (await getAnimalListForObservationReport(params)) as any
 
       return {
         animals: res?.data?.animals || [],
@@ -217,7 +213,7 @@ const AnimalDrawer = ({
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Select the Animal
+            {t('compliance_module.select_the_animal')}
           </Typography>
           <IconButton
             onClick={() => {
@@ -243,7 +239,7 @@ const AnimalDrawer = ({
           <Grid size={{ xs: 12, sm: 12 }}>
             <Search
               width='100%'
-              placeholder='Search by Animal name, AID or Identifier'
+              placeholder={t('compliance_module.search_by_animal_name_aid_or_identifier')}
               value={localSearch}
               onChange={handleSearchChange}
               onClear={handleSearchClear}
@@ -393,7 +389,7 @@ const AnimalDrawer = ({
               )}
               {!hasNextPage && list.length > 0 && (
                 <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                  No more species to load
+                  {t('compliance_module.no_more_species_to_load')}
                 </Typography>
               )}
             </>
@@ -422,7 +418,7 @@ const AnimalDrawer = ({
             onClick={onGenerateClick}
             sx={{ p: 3, fontWeight: 600 }}
           >
-            {btnText}
+            {btnText || t('compliance_module.generate_animal_stock_report')}
           </Button>
         </Box>
       )}

@@ -1,4 +1,16 @@
-import { alpha, Box, Chip, Drawer, Grid, IconButton, Skeleton, styled, Typography, useTheme, type Theme } from '@mui/material'
+import {
+  alpha,
+  Box,
+  Chip,
+  Drawer,
+  Grid,
+  IconButton,
+  Skeleton,
+  styled,
+  Typography,
+  useTheme,
+  type Theme
+} from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { getSpeciesShipmentDetails } from 'src/lib/api/compliance/species'
@@ -7,6 +19,7 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import type { SpeciesShipmentDetailsDrawerProps } from 'src/types/compliance'
 import type { SpeciesShipmentDetail } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface StyledTypographyProps {
   fontSize?: string | number
@@ -40,7 +53,7 @@ const getGenderChipProps = (gender: string | undefined, theme: Theme) => {
 
 const SpeciesShipmentDetailsDrawer = ({ open, onClose, speciesId, shipmentId }: SpeciesShipmentDetailsDrawerProps) => {
   const theme = useTheme()
-
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<boolean>(false)
   const [data, setData] = useState<SpeciesShipmentDetail | null>(null)
 
@@ -48,12 +61,14 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, speciesId, shipmentId }: 
     const getSpeciesDetails = async () => {
       setLoading(true)
       try {
-        await (getSpeciesShipmentDetails({ speciesId: speciesId!, shipmentId: shipmentId! }) as Promise<any>).then(res => {
-          if (res?.success === true) {
-            setData(res?.data)
-            setLoading(false)
+        await (getSpeciesShipmentDetails({ speciesId: speciesId!, shipmentId: shipmentId! }) as Promise<any>).then(
+          res => {
+            if (res?.success === true) {
+              setData(res?.data)
+              setLoading(false)
+            }
           }
-        })
+        )
       } catch (error) {
         console.error('Cannot fetch shipment details', error)
         setLoading(false)
@@ -138,7 +153,9 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, speciesId, shipmentId }: 
           }}
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Shipment Details</Typography>
+            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
+              {t('compliance_module.shipment_details')}
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
@@ -203,35 +220,35 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, speciesId, shipmentId }: 
               ) : (
                 <Grid container spacing={2} rowSpacing={4}>
                   <StyledGrid size={{ xs: 12, sm: 6 }}>
-                    <StyledTypography>Shipment ID</StyledTypography>
+                    <StyledTypography>{t('compliance_module.shipment_id')}</StyledTypography>
                     <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurface}>
                       {data?.shipment_number}
                     </StyledTypography>
                   </StyledGrid>
                   <StyledGrid size={{ xs: 12, sm: 6 }}>
-                    <StyledTypography>Date of Issue</StyledTypography>
+                    <StyledTypography>{t('compliance_module.date_of_issue')}</StyledTypography>
                     <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
                       {Utility.formatDisplayDate(data?.issued_date)}
                     </StyledTypography>
                   </StyledGrid>
                   <StyledGrid size={{ xs: 12, sm: 6 }}>
-                    <StyledTypography>Animal Count</StyledTypography>
+                    <StyledTypography>{t('necropsy_module.animal_count')}</StyledTypography>
                     <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
                       {data?.total_animals}
                     </StyledTypography>
                   </StyledGrid>
                   <StyledGrid size={{ xs: 12, sm: 6 }}>
-                    <StyledTypography>Gender & Count</StyledTypography>
+                    <StyledTypography>{t('compliance_module.gender_count')}</StyledTypography>
                     {genderCount()}
                   </StyledGrid>
                   <StyledGrid size={{ xs: 12, sm: 6 }}>
-                    <StyledTypography>Imports</StyledTypography>
+                    <StyledTypography>{t('compliance_module.imports')}</StyledTypography>
                     <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
                       {data?.total_imports}
                     </StyledTypography>
                   </StyledGrid>
                   <StyledGrid size={{ xs: 12, sm: 6 }}>
-                    <StyledTypography>Exports</StyledTypography>
+                    <StyledTypography>{t('compliance_module.exports')}</StyledTypography>
                     <StyledTypography fontWeight={500} color={theme.palette.customColors.OnSurfaceVariant}>
                       {data?.total_exports}
                     </StyledTypography>
@@ -242,7 +259,8 @@ const SpeciesShipmentDetailsDrawer = ({ open, onClose, speciesId, shipmentId }: 
           </Box>
           <Box sx={{ mt: 6, display: 'flex', flexDirection: 'column', gap: 4, mb: 5 }}>
             <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-              Animals with identifier {(data?.animals?.length ?? 0) > 0 ? `(${data?.animals?.length})` : ''}
+              {t('compliance_module.animals_with_identifier')}{' '}
+              {(data?.animals?.length ?? 0) > 0 ? `(${data?.animals?.length})` : ''}
             </Typography>
             <Box
               sx={{

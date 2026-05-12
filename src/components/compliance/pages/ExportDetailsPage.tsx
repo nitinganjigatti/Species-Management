@@ -21,8 +21,10 @@ import LinkedShipments from 'src/components/compliance/LinkedShipments'
 import SupportingDocuments from 'src/components/compliance/SupportingDocuments'
 import countryList from 'react-select-country-list'
 import { DocumentType, ExportPermit } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const ExportPermitDetails = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const params = useParams()
   const id = params?.id as string
@@ -58,10 +60,11 @@ const ExportPermitDetails = () => {
 
   // Accordion toggle handler
   const handleAccordionChange = (panelId: string) => {
-    setExpanded(prev =>
-      prev.includes(panelId)
-        ? prev.filter(p => p !== panelId) // Close if open
-        : [...prev, panelId] // Open if closed
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev.filter(p => p !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
     )
   }
 
@@ -79,11 +82,11 @@ const ExportPermitDetails = () => {
         setDocumentList((res.data?.items || []) as DocumentType[])
         setTotalCount(res.data?.total || 0)
       } else {
-        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+        Toaster({ type: 'error', message: res.message || t('compliance_module.failed_to_fetch_export_details') })
       }
     } catch (error) {
       console.error('Error fetching export details:', error)
-      Toaster({ type: 'error', message: 'Error fetching export details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_export_details') })
     } finally {
       setIsFetching(false)
     }
@@ -97,7 +100,7 @@ const ExportPermitDetails = () => {
       }
     } catch (error) {
       console.error('Error fetching masters data:', error)
-      Toaster({ type: 'error', message: 'Error fetching masters data' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_masters_data') })
     }
 
     return null
@@ -116,23 +119,23 @@ const ExportPermitDetails = () => {
         setExportData({
           ...res.data,
           origin_country: res?.data?.origin_country
-            ? countryListOptions.find((country: { value: string }) => country.value === res?.data?.origin_country)?.label
+            ? countryListOptions.find((country: { value: string }) => country.value === res?.data?.origin_country)
+                ?.label
             : '-',
           exporting_country: res?.data?.exporting_country
-            ? countryListOptions.find(
-                (country: { value: string }) => country.value === res?.data?.exporting_country
-              )?.label
+            ? countryListOptions.find((country: { value: string }) => country.value === res?.data?.exporting_country)
+                ?.label
             : '-'
         })
         if (id && !documentList.length) fetchDocumentTypeList()
         fetchLinkedShipmentsDetails()
         fetchLinkedImportsDetails()
       } else {
-        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+        Toaster({ type: 'error', message: res.message || t('compliance_module.failed_to_fetch_export_details') })
       }
     } catch (error) {
       console.error('Error fetching export details:', error)
-      Toaster({ type: 'error', message: 'Error fetching export details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_export_details') })
     } finally {
       setLoading(false)
     }
@@ -148,11 +151,11 @@ const ExportPermitDetails = () => {
         setLinkedShipments((res.data as any)?.records || [])
         setLinkedShipmentsData(res.data as any)
       } else {
-        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+        Toaster({ type: 'error', message: res.message || t('compliance_module.failed_to_fetch_export_details') })
       }
     } catch (error) {
       console.error('Error fetching export details:', error)
-      Toaster({ type: 'error', message: 'Error fetching export details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_export_details') })
     } finally {
       setLoading(false)
     }
@@ -166,11 +169,11 @@ const ExportPermitDetails = () => {
         setTotalLinkedImports((res.data as any)?.total_imports || 0)
         setLinkedImports((res.data as any)?.records || [])
       } else {
-        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+        Toaster({ type: 'error', message: res.message || t('compliance_module.failed_to_fetch_export_details') })
       }
     } catch (error) {
       console.error('Error fetching export details:', error)
-      Toaster({ type: 'error', message: 'Error fetching Linked Import' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_linked_import') })
     } finally {
       setLoading(false)
     }
@@ -203,27 +206,29 @@ const ExportPermitDetails = () => {
     <>
       <Box sx={{ mb: 5 }}>
         <Breadcrumbs aria-label='breadcrumb'>
-          <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
+          <Typography sx={{ color: 'inherit' }}>{t('compliance_module.compliance')}</Typography>
           <Typography
             sx={{ cursor: 'pointer', color: 'inherit' }}
             onClick={() => router.push('/compliance/documents/exports')}
           >
-            CITES Export Permit
+            {t('compliance_module.cites_export_permit')}
           </Typography>
-          <Typography sx={{ color: 'text.primary' }}>{exportData.export_number || 'Export Permit'}</Typography>
+          <Typography sx={{ color: 'text.primary' }}>
+            {exportData.export_number || t('compliance_module.export_permit')}
+          </Typography>
         </Breadcrumbs>
       </Box>
 
       <CardHeader
         title={
-          <Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>{`CITES Export Permit - ${
-            exportData.export_number || 'No ID'
-          }`}</Typography>
+          <Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>{`${t(
+            'compliance_module.cites_export_permit'
+          )} - ${exportData.export_number || t('compliance_module.no_id')}`}</Typography>
         }
       />
       <CustomAccordion
         id='permit-details'
-        title='Details'
+        title={t('details')}
         expanded={expanded.includes('permit-details')}
         shouldScrollToTop={false}
         onChange={handleAccordionChange}
@@ -249,7 +254,7 @@ const ExportPermitDetails = () => {
       {documentList?.length ? (
         <CustomAccordion
           id='supporting-documents'
-          title='Supporting Documents'
+          title={t('compliance_module.supporting_documents')}
           docsCount={`${uploadedFileCount}/${totalCount}` as any}
           expanded={expanded.includes('supporting-documents')}
           onChange={handleAccordionChange}
@@ -261,14 +266,14 @@ const ExportPermitDetails = () => {
             <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 8 }}>
               <Tabs value={activeTab} onChange={handleTabChange} aria-label='supporting documents tabs'>
                 <Tab
-                  label={`Completed${
+                  label={`${t('completed')}${
                     activeTab === 'completed' && documentList.length > 0 ? ` (${documentList.length})` : ''
                   }`}
                   value='completed'
                   sx={{ mr: 4 }}
                 />
                 <Tab
-                  label={`Pending${
+                  label={`${t('pending')}${
                     activeTab === 'pending' && documentList.length > 0 ? ` (${documentList.length})` : ''
                   }`}
                   value='pending'
@@ -287,7 +292,7 @@ const ExportPermitDetails = () => {
       ) : null}
       <CustomAccordion
         id='linked-imports'
-        title={`Linked Imports - ${totalLinkedImports}`}
+        title={`${t('compliance_module.linked_imports')} - ${totalLinkedImports}`}
         expanded={expanded.includes('linked-imports')}
         onChange={handleAccordionChange}
         editable={false}
@@ -299,7 +304,7 @@ const ExportPermitDetails = () => {
 
       <CustomAccordion
         id='linked-shipments'
-        title={`Linked Shipments - ${totalLinkedShipments}`}
+        title={`${t('compliance_module.linked_shipments')} - ${totalLinkedShipments}`}
         expanded={expanded.includes('linked-shipments')}
         onChange={handleAccordionChange}
         editable={false}

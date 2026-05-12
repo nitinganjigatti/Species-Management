@@ -19,6 +19,7 @@ import FiltersDrawer from 'src/components/compliance/drawer/FiltersDrawer'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { format, subMonths } from 'date-fns'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
+import { useTranslation } from 'react-i18next'
 import { GridColDef, GridSortModel } from '@mui/x-data-grid'
 import { FilterSelectedOptions } from 'src/types/compliance'
 
@@ -28,6 +29,7 @@ interface FilterDate {
 }
 
 const ShipmentPage = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const [rows, setRows] = useState<Record<string, unknown>[]>([])
   const [total, setTotal] = useState<number>(0)
@@ -112,7 +114,7 @@ const ShipmentPage = () => {
       setTotal((res.data as any)?.total || res.data?.total_count || 0)
     } catch (error) {
       console.error('Error fetching export permits:', error)
-      Toaster({ type: 'error', message: 'Failed to fetch export permits' })
+      Toaster({ type: 'error', message: t('compliance_module.failed_to_fetch_export_permits') })
     }
     setLoading(false)
   }, [searchValue, paginationModel, sortModel, filterDate, selectedOptions])
@@ -151,13 +153,13 @@ const ShipmentPage = () => {
       const fileUrl = res?.data
       if (fileUrl) {
         Utility.downloadFileFromURL(fileUrl, `Shipments Report`)
-        Toaster({ type: 'success', message: res?.message || 'Report downloaded successfully!' })
+        Toaster({ type: 'success', message: res?.message || t('compliance_module.failed_to_download_the_report') })
       } else {
-        Toaster({ type: 'error', message: 'File URL not found in response' })
+        Toaster({ type: 'error', message: t('compliance_module.file_url_not_found_in_response') })
       }
     } catch (error) {
       console.error('Error exporting report:', error)
-      Toaster({ type: 'error', message: 'Failed to download the report' })
+      Toaster({ type: 'error', message: t('compliance_module.failed_to_download_the_report') })
     } finally {
       setExportLoading(false)
     }
@@ -191,7 +193,7 @@ const ShipmentPage = () => {
       flex: 0.01,
       minWidth: 100,
       field: 'uid',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {params.value}
@@ -202,7 +204,7 @@ const ShipmentPage = () => {
       flex: 0.12,
       minWidth: 300,
       field: 'shipment_number',
-      headerName: 'Shipment ID',
+      headerName: t('compliance_module.shipment_id'),
       renderCell: params => {
         return (
           <Typography
@@ -247,7 +249,7 @@ const ShipmentPage = () => {
       flex: 0.15,
       minWidth: 150,
       field: 'shipment_date',
-      headerName: 'Shipment Date',
+      headerName: t('compliance_module.shipment_date'),
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>
           {moment(params?.value, 'YYYY-MM-DD', true).isValid() ? moment(params?.value).format('DD MMM YYYY') : '-'}
@@ -258,7 +260,7 @@ const ShipmentPage = () => {
       flex: 0.15,
       minWidth: 200,
       field: 'file_number',
-      headerName: 'File Number',
+      headerName: t('compliance_module.file_number'),
       renderCell: params => (
         <Typography
           sx={{
@@ -277,7 +279,7 @@ const ShipmentPage = () => {
       flex: 0.08,
       minWidth: 100,
       field: 'export_count',
-      headerName: 'EXPORTS',
+      headerName: t('compliance_module.exports'),
       renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
     },
 
@@ -285,28 +287,28 @@ const ShipmentPage = () => {
       flex: 0.08,
       minWidth: 100,
       field: 'species_count',
-      headerName: 'SPECIES',
+      headerName: t('compliance_module.species'),
       renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.08,
       minWidth: 100,
       field: 'animal_counts',
-      headerName: 'ANIMALS',
+      headerName: t('animals'),
       renderCell: params => <Typography sx={{ px: 3, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 120,
       field: 'documents_count',
-      headerName: 'DOCUMENTS',
+      headerName: t('documents'),
       renderCell: params => <Typography sx={{ px: 3, width: '100%', pl: 3 }}>{params.value}</Typography>
     },
     {
       flex: 0.3,
       minWidth: 180,
       field: 'created_by_user_name',
-      headerName: 'Created By',
+      headerName: t('created_by'),
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.created_by_user_name ? (
@@ -325,7 +327,7 @@ const ShipmentPage = () => {
       flex: 0.3,
       minWidth: 180,
       field: 'updated_by_user_name',
-      headerName: 'Updated By',
+      headerName: t('updated_by'),
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.updated_by_user_name ? (
@@ -345,12 +347,12 @@ const ShipmentPage = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Shipments</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('documents')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>{t('compliance_module.shipments')}</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Shipment Documents'
+          title={t('compliance_module.shipment_documents')}
           slotProps={{
             title: {
               sx: { fontSize: '1.5rem !important', fontWeight: 'bold' }
@@ -358,7 +360,7 @@ const ShipmentPage = () => {
           }}
           action={
             <AddButtonContained
-              title='Add New'
+              title={t('add_new')}
               action={() => router.push('/compliance/documents/shipments/AddEditShipment')}
               disabled={false}
               styles={{}}
@@ -389,7 +391,12 @@ const ShipmentPage = () => {
                   onChange={(s: string, e: string) => setFilterDate({ startDate: s, endDate: e })}
                 />
               </Box>
-              <ExportButton loading={exportLoading} tooltip='Download Report' onClick={handleExport} bgcolor={undefined} />
+              <ExportButton
+                loading={exportLoading}
+                tooltip='Download Report'
+                onClick={handleExport}
+                bgcolor={undefined}
+              />
               <Button
                 variant='outlined'
                 sx={{
@@ -413,7 +420,7 @@ const ShipmentPage = () => {
                 }
                 onClick={handleFilterDrawerOpen}
               >
-                Filter
+                {t('filter')}
               </Button>
             </Box>
           </Box>

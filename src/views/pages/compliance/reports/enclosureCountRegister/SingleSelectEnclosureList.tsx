@@ -22,6 +22,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import Icon from 'src/@core/components/icon'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import { getEnclosureList } from 'src/lib/api/diet/dietList'
+import { useTranslation } from 'react-i18next'
 
 interface EnclosureRecord {
   enclosure_id: string | number
@@ -58,6 +59,7 @@ const SingleSelectEnclosureList = ({
   selectedEnclosures,
   setSelectedEnclosures
 }: SingleSelectEnclosureListProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [loading, setLoading] = useState<boolean>(false)
   const [pageNo, setPageNo] = useState<number>(1)
@@ -183,10 +185,10 @@ const SingleSelectEnclosureList = ({
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Choose Enclosure
+              {t('compliance_module.choose_enclosure')}
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-              Select an enclosure from the list below
+              {t('compliance_module.select_enclosure_from_list')}
             </Typography>
           </Box>
           <IconButton
@@ -204,7 +206,7 @@ const SingleSelectEnclosureList = ({
         <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
           <TextField
             fullWidth
-            placeholder='Search'
+            placeholder={t('search')}
             variant='outlined'
             size='small'
             value={searchTerm}
@@ -331,7 +333,7 @@ const SingleSelectEnclosureList = ({
                   )
                 })
             ) : (
-              <Typography sx={{ textAlign: 'center', mt: 15 }}>No Enclosures found</Typography>
+              <Typography sx={{ textAlign: 'center', mt: 15 }}>{t('compliance_module.no_enclosures_found')}</Typography>
             )
           ) : (
             <CardContent>
@@ -370,7 +372,7 @@ const SingleSelectEnclosureList = ({
             }}
             disabled={!selectedEnclosureId}
           >
-            CONTINUE
+            {t('continue')}
           </Button>
         </Box>
       </Box>

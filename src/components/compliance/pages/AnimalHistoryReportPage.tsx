@@ -18,6 +18,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import ObservationCard from 'src/views/utility/ObservationCard'
 import Search from 'src/views/utility/Search'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 interface SelectedAnimal {
   animal_id?: string | number
@@ -57,6 +58,7 @@ interface FilterDates {
 }
 
 const AnimalHistoryReport = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -95,8 +97,7 @@ const AnimalHistoryReport = () => {
   const [animalLoader, setAnimalLoader] = useState<boolean>(false)
 
   const [filterDates, setFilterDates] = useState<FilterDates>({
-    startDate:
-      searchParams?.get('startDate') || Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
+    startDate: searchParams?.get('startDate') || Utility.formatDate(format(subMonths(new Date(), 6), 'dd MMM, yyyy')),
     endDate: searchParams?.get('endDate') || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
@@ -154,7 +155,7 @@ const AnimalHistoryReport = () => {
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
-      Animal History Report
+      {t('compliance_module.animal_history_report')}
     </Typography>
   )
 
@@ -295,25 +296,40 @@ const AnimalHistoryReport = () => {
   const animalImage = selectedAnimal?.default_icon || '/images/branding/Antz_logomark_h_color.svg'
 
   const summaryFields = [
-    { label: 'Animal ID', value: selectedAnimal?.animal_id || 'N/A' },
-    { label: 'Common Name', value: selectedAnimal?.default_common_name || selectedAnimal?.common_name || 'N/A' },
-    { label: 'Scientific Name', value: selectedAnimal?.scientific_name || 'N/A' },
-    { label: 'Sex', value: selectedAnimal?.sex || 'N/A' },
-    { label: 'Age', value: selectedAnimal?.age || selectedAnimal?.age_text || 'Not available' },
-    { label: 'Weight', value: selectedAnimal?.weight ?? 'Not available' },
-    { label: 'Date of birth', value: selectedAnimal?.date_of_birth || selectedAnimal?.dob || 'Not available' },
-    { label: 'Collection Type', value: selectedAnimal?.collection_type || selectedAnimal?.type || 'Not available' },
-    { label: 'Microchip No', value: selectedAnimal?.microchip_no || 'Not available' },
-    { label: 'Section', value: selectedAnimal?.section_name || 'Not available' },
-    { label: 'Site', value: selectedAnimal?.site_name || 'Not available' },
-    { label: 'Enclosure', value: selectedAnimal?.user_enclosure_name || 'Not available' }
+    { label: t('compliance_module.animal_id'), value: selectedAnimal?.animal_id || 'N/A' },
+    { label: t('common_name'), value: selectedAnimal?.default_common_name || selectedAnimal?.common_name || 'N/A' },
+    { label: t('scientific_name'), value: selectedAnimal?.scientific_name || 'N/A' },
+    { label: t('compliance_module.sex'), value: selectedAnimal?.sex || 'N/A' },
+    { label: t('compliance_module.age'), value: selectedAnimal?.age || selectedAnimal?.age_text || 'Not available' },
+    { label: t('compliance_module.weight'), value: selectedAnimal?.weight ?? 'Not available' },
+    {
+      label: t('compliance_module.date_of_birth'),
+      value: selectedAnimal?.date_of_birth || selectedAnimal?.dob || 'Not available'
+    },
+    {
+      label: t('compliance_module.collection_type'),
+      value: selectedAnimal?.collection_type || selectedAnimal?.type || 'Not available'
+    },
+    { label: t('compliance_module.microchip_no'), value: selectedAnimal?.microchip_no || 'Not available' },
+    { label: t('section'), value: selectedAnimal?.section_name || 'Not available' },
+    { label: t('site'), value: selectedAnimal?.site_name || 'Not available' },
+    { label: t('enclosure'), value: selectedAnimal?.user_enclosure_name || 'Not available' }
   ]
 
   const studbookDetails = [
-    { label: 'National Studbook No', value: selectedAnimal?.national_studbook_no || 'NSB-56789' },
-    { label: 'Sire Name & National Studbook No', value: selectedAnimal?.sire_studbook_no || 'Leo (NSB-12345)' },
-    { label: 'International Studbook No', value: selectedAnimal?.international_studbook_no || 'ISB-23456' },
-    { label: 'Dam Name & National Studbook No', value: selectedAnimal?.dam_studbook_no || 'Luna (NSB-54321)' }
+    { label: t('compliance_module.national_studbook_no'), value: selectedAnimal?.national_studbook_no || 'NSB-56789' },
+    {
+      label: t('compliance_module.sire_name_and_national_studbook_no'),
+      value: selectedAnimal?.sire_studbook_no || 'Leo (NSB-12345)'
+    },
+    {
+      label: t('compliance_module.international_studbook_no'),
+      value: selectedAnimal?.international_studbook_no || 'ISB-23456'
+    },
+    {
+      label: t('compliance_module.dam_name_and_national_studbook_no'),
+      value: selectedAnimal?.dam_studbook_no || 'Luna (NSB-54321)'
+    }
   ]
 
   const healthDetails = {
@@ -328,8 +344,8 @@ const AnimalHistoryReport = () => {
   }
 
   const deathDetails = [
-    { label: 'Date of death', value: selectedAnimal?.date_of_death || '12 Jun 2025' },
-    { label: 'Disposal Method', value: selectedAnimal?.disposal_method || 'Burial' }
+    { label: t('compliance_module.date_of_death'), value: selectedAnimal?.date_of_death || '12 Jun 2025' },
+    { label: t('compliance_module.disposal_method'), value: selectedAnimal?.disposal_method || 'Burial' }
   ]
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -370,7 +386,7 @@ const AnimalHistoryReport = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Animal Details
+                {t('compliance_module.animal_details')}
               </Typography>
               <Box
                 sx={{
@@ -507,7 +523,7 @@ const AnimalHistoryReport = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Studbook Details
+                    {t('compliance_module.studbook_details')}
                   </Typography>
                   <Grid container spacing={3}>
                     {studbookDetails.map(detail => (
@@ -575,7 +591,7 @@ const AnimalHistoryReport = () => {
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Health Details
+                      {t('compliance_module.health_details')}
                     </Typography>
                     <Box
                       sx={{
@@ -602,7 +618,7 @@ const AnimalHistoryReport = () => {
                       <Typography
                         sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                       >
-                        Physical health check-up details
+                        {t('compliance_module.physical_health_checkup_details')}
                       </Typography>
                       <Box
                         component='ul'
@@ -623,7 +639,7 @@ const AnimalHistoryReport = () => {
                       <Typography
                         sx={{ fontSize: '16px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                       >
-                        Genetic health check-up details
+                        {t('compliance_module.genetic_health_checkup_details')}
                       </Typography>
                       <Box
                         component='ul'
@@ -671,7 +687,7 @@ const AnimalHistoryReport = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Death Details
+                    {t('compliance_module.death_details')}
                   </Typography>
                   <Grid container spacing={3}>
                     {deathDetails.map(detail => (
@@ -724,9 +740,9 @@ const AnimalHistoryReport = () => {
           <Card sx={{ p: 6 }}>
             <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
             <ReportCard
-              subtitle='No animal selected'
-              description='Select any animal to view its history report'
-              buttonText='SELECT ANIMAL'
+              subtitle={t('compliance_module.no_animal_selected')}
+              description={t('compliance_module.select_any_animal_to_view_its_history_report')}
+              buttonText={t('compliance_module.select_animal')}
               addHandler={reportCardEventHandler}
             />
           </Card>

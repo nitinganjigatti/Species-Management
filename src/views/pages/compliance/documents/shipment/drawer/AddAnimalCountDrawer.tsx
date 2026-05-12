@@ -13,6 +13,7 @@ import {
   Avatar
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
 import Toaster from 'src/components/Toaster'
@@ -113,14 +114,25 @@ interface AddAnimalCountDrawerProps {
   setanimalDetailsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-const AnimalForm = ({ index, data, onChange, onRemove, setSpeciesList, speciesList, mastersData, counts, animals }: AnimalFormProps) => {
+const AnimalForm = ({
+  index,
+  data,
+  onChange,
+  onRemove,
+  setSpeciesList,
+  speciesList,
+  mastersData,
+  counts,
+  animals
+}: AnimalFormProps) => {
+  const { t } = useTranslation()
   const rawGenders = mastersData?.genders?.flat() || []
 
   const getValidGender = (gender: string | string[] | undefined): string => {
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
 
-return 'unknown'
+    return 'unknown'
   }
 
   const normalizedGenders = rawGenders.map(getValidGender)
@@ -129,7 +141,7 @@ return 'unknown'
     const g = getValidGender(animal.gender)
     if (i !== index && g) acc[g] = (acc[g] || 0) + 1
 
-return acc
+    return acc
   }, {})
 
   // Filter available genders based on counts
@@ -147,7 +159,7 @@ return acc
   return (
     <Paper elevation={1} sx={{ p: 3, mb: 4, position: 'relative' }}>
       <Typography fontWeight={500} mb={5}>
-        Animal Details
+        {t('compliance_module.animal_details')}
       </Typography>
       <IconButton onClick={() => onRemove(index)} sx={{ position: 'absolute', top: 10, right: 10 }}>
         <CloseIcon />
@@ -161,10 +173,10 @@ return acc
             displayEmpty
             renderValue={selected => {
               if (!selected) {
-                return <span style={{ color: '#9e9e9e' }}>Gender*</span>
+                return <span style={{ color: '#9e9e9e' }}>{`${t('compliance_module.gender')}*`}</span>
               }
 
-return selected.charAt(0).toUpperCase() + selected.slice(1)
+              return selected.charAt(0).toUpperCase() + selected.slice(1)
             }}
           >
             {availableGenders.map(gender => (
@@ -185,10 +197,10 @@ return selected.charAt(0).toUpperCase() + selected.slice(1)
             displayEmpty
             renderValue={selected => {
               if (!selected) {
-                return <span style={{ color: '#9e9e9e' }}>Select Identifier Type*</span>
+                return <span style={{ color: '#9e9e9e' }}>{`${t('compliance_module.select_identifier_type')}*`}</span>
               }
 
-return (selected as string).charAt(0).toUpperCase() + (selected as string).slice(1)
+              return (selected as string).charAt(0).toUpperCase() + (selected as string).slice(1)
             }}
           >
             {mastersData.identifier_type?.map(idType => (
@@ -201,7 +213,7 @@ return (selected as string).charAt(0).toUpperCase() + (selected as string).slice
         <Grid size={{ xs: 12 }}>
           <TextField
             fullWidth
-            label='Identifier Details*'
+            label={`${t('compliance_module.identifier_details')}*`}
             value={data.identifier}
             onChange={e => onChange(index, 'identifier', e.target.value)}
           />
@@ -224,8 +236,8 @@ const AddanimalCountDrawer = ({
   mastersData,
   setanimalDetailsDrawerOpen
 }: AddAnimalCountDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
-
 
   // Find the current species data
   const currentSpecies =
@@ -304,7 +316,7 @@ const AddanimalCountDrawer = ({
     ) {
       setAnimals(prev => [...prev, { gender: '', identifierType: '', identifier: '' }])
     } else {
-      alert('Animal limit reached for each gender')
+      Toaster({ type: 'error', message: t('compliance_module.animal_limit_reached_for_each_gender') })
     }
   }
 
@@ -312,7 +324,7 @@ const AddanimalCountDrawer = ({
     if (typeof gender === 'string') return gender.toLowerCase()
     if (Array.isArray(gender) && gender.length > 0) return gender[0].toLowerCase()
 
-return 'unknown'
+    return 'unknown'
   }
 
   const handleChange = (index: number, field: string, value: string) => {
@@ -323,7 +335,7 @@ return 'unknown'
         [field]: value
       }
 
-return updated
+      return updated
     })
   }
 
@@ -351,7 +363,7 @@ return updated
         type: 'error',
 
         //message: `Animal details count for male gender (${genderTotals.male}) must be ≤ male count entered (${genderCounts.male_count})`
-        message: `The entered count does not match the selected animals. Please update to proceed`
+        message: t('compliance_module.entered_count_does_not_match_selected_animals')
       })
     }
 
@@ -360,7 +372,7 @@ return updated
         type: 'error',
 
         // message: `Animal details count for female gender (${genderTotals.female}) must be ≤ female count entered (${genderCounts.female_count})`
-        message: `The entered count does not match the selected animals. Please update to proceed`
+        message: t('compliance_module.entered_count_does_not_match_selected_animals')
       })
     }
 
@@ -369,7 +381,7 @@ return updated
         type: 'error',
 
         // message: `Animal details count for unknown gender (${genderTotals.unknown}) must be ≤ unknown count entered (${genderCounts.undeterminate_count})`
-        message: `The entered count does not match the selected animals. Please update to proceed`
+        message: t('compliance_module.entered_count_does_not_match_selected_animals')
       })
     }
 
@@ -378,7 +390,7 @@ return updated
     if (hasInvalidAnimal) {
       return Toaster({
         type: 'error',
-        message: 'All animal fields (gender, identifier type, identifier) are required.'
+        message: t('compliance_module.all_animal_fields_are_required')
       })
     }
 
@@ -397,7 +409,6 @@ return updated
   return (
     <Drawer
       open={open}
-
       //onClose={onClose}
       anchor='right'
     >
@@ -454,18 +465,18 @@ return updated
         <Box sx={{ px: 5, overflowY: 'auto', flexGrow: 1, height: '100vh' }}>
           {/* Total Animal Count */}
           <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant} sx={{ mb: 2, mt: 4 }}>
-            Total Animal Count
+            {t('compliance_module.total_animal_count')}
           </Typography>
           <Paper elevation={1} sx={{ p: 3, mb: 4 }}>
             <Typography fontWeight={500} mb={2}>
-              Gender Wise Count
+              {t('compliance_module.gender_wise_count')}
             </Typography>
             <Grid container spacing={2} sx={{ mt: 2, mb: 2 }}>
               <Grid size={{ xs: 4 }}>
                 <TextField
                   fullWidth
                   type='number'
-                  label='# Male'
+                  label={t('compliance_module.male_hash')}
                   value={counts.male}
                   onWheel={e => (e.target as HTMLInputElement).blur()}
                   onChange={e => {
@@ -484,7 +495,7 @@ return updated
                 <TextField
                   fullWidth
                   type='number'
-                  label='# Female'
+                  label={t('compliance_module.female_hash')}
                   value={counts.female}
                   onWheel={e => (e.target as HTMLInputElement).blur()}
                   onChange={e => {
@@ -503,7 +514,7 @@ return updated
                 <TextField
                   fullWidth
                   type='number'
-                  label='# Unknown'
+                  label={t('compliance_module.unknown_hash')}
                   value={counts.unknown}
                   onWheel={e => (e.target as HTMLInputElement).blur()}
                   onChange={e => {
@@ -523,7 +534,7 @@ return updated
 
           <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
             <Typography fontWeight={600} color={theme.palette.customColors.OnSurfaceVariant}>
-              Animals with identifier
+              {t('compliance_module.animals_with_identifier')}
             </Typography>
             <Button
               variant='text'
@@ -532,7 +543,7 @@ return updated
               onClick={handleAddAnimal}
               disabled={!canAddAnimal}
             >
-              Add Animal
+              {t('add_animal')}
             </Button>
           </Box>
 
@@ -561,7 +572,7 @@ return updated
                 fontWeight: '500'
               }}
             >
-              No Data Available
+              {t('no_data_available')}
             </Typography>
           )}
         </Box>
@@ -585,7 +596,7 @@ return updated
             disabled={!counts.male && !counts.female && !counts.unknown}
             onClick={handleSelectAnimals}
           >
-            Select Animals
+            {t('compliance_module.select_animals')}
           </Button>
         </Box>
       </Box>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { Box, Button, Card, CardHeader, IconButton, Typography } from '@mui/material'
 import React, { useMemo, useState, useCallback, useContext, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -324,7 +325,7 @@ const createMetricGroup = (
   }))
 })
 
-const createColumns = (theme: Record<string, unknown>) => {
+const createColumns = (theme: Record<string, unknown>, t: (key: string) => string) => {
   const numberCell = createNumberCell(theme)
 
   return [
@@ -332,35 +333,38 @@ const createColumns = (theme: Record<string, unknown>) => {
       id: 'species',
       field: 'species.primary',
       width: 280,
-      headerName: 'Species Name',
+      headerName: t('compliance_module.species_name'),
       pinned: 'left',
       sortable: false,
       headerAlign: 'left',
       textAlign: 'left',
       renderCell: ({ row }: { row: StockRow }) => (
         <SpeciesCard
-          species={{
-            default_icon: row?.speciesCard?.default_icon || row?.species?.image || SPECIES_IMAGE,
-            common_name: row?.speciesCard?.common_name || row?.species?.primary,
-            scientific_name: row?.speciesCard?.scientific_name || row?.species?.secondary,
-            primary_identifier_type: row?.speciesCard?.primary_identifier_type || 'Species ID',
-            primary_identifier_value:
-              row?.speciesCard?.primary_identifier_value ||
-              (typeof row?.id === 'string' ? row.id.toUpperCase() : row?.id ?? 'STOCK-ID')
-          } as any}
+          species={
+            {
+              default_icon: row?.speciesCard?.default_icon || row?.species?.image || SPECIES_IMAGE,
+              common_name: row?.speciesCard?.common_name || row?.species?.primary,
+              scientific_name: row?.speciesCard?.scientific_name || row?.species?.secondary,
+              primary_identifier_type: row?.speciesCard?.primary_identifier_type || 'Species ID',
+              primary_identifier_value:
+                row?.speciesCard?.primary_identifier_value ||
+                (typeof row?.id === 'string' ? row.id.toUpperCase() : row?.id ?? 'STOCK-ID')
+            } as any
+          }
         />
       )
     },
-    createMetricGroup('openingStock', 'Opening Stock', numberCell),
-    createMetricGroup('births', 'Births', numberCell),
-    createMetricGroup('acquisitions', 'Acquisitions', numberCell),
-    createMetricGroup('disposals', 'Disposals', numberCell),
-    createMetricGroup('deaths', 'Deaths', numberCell),
-    createMetricGroup('closingStock', 'Closing Stock', numberCell)
+    createMetricGroup('openingStock', t('compliance_module.opening_stock'), numberCell),
+    createMetricGroup('births', t('compliance_module.births'), numberCell),
+    createMetricGroup('acquisitions', t('compliance_module.acquisitions'), numberCell),
+    createMetricGroup('disposals', t('compliance_module.disposals'), numberCell),
+    createMetricGroup('deaths', t('compliance_module.deaths'), numberCell),
+    createMetricGroup('closingStock', t('compliance_module.closing_stock'), numberCell)
   ]
 }
 
 const AnimalStockReport = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const authData = useContext(AuthContext)
 
@@ -441,7 +445,7 @@ const AnimalStockReport = () => {
     })
   }, [rows, searchValue, selectedSite])
 
-  const columns = useMemo(() => createColumns(theme as unknown as Record<string, unknown>), [theme])
+  const columns = useMemo(() => createColumns(theme as unknown as Record<string, unknown>, t), [theme, t])
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(event.target.value)
@@ -487,7 +491,7 @@ const AnimalStockReport = () => {
         color: (theme as any).palette.customColors.OnSurfaceVariant
       }}
     >
-      Animal Stock Report
+      {t('compliance_module.animal_stock_report')}
     </Typography>
   )
 
@@ -547,7 +551,7 @@ const AnimalStockReport = () => {
                           .customColors.OnSurfaceVariant
                       }}
                     >
-                      Site
+                      {t('site')}
                     </Typography>
                     <Typography
                       sx={{
@@ -626,9 +630,9 @@ const AnimalStockReport = () => {
         ) : (
           <Box sx={{ p: 6 }}>
             <ReportCard
-              subtitle='No Site Selected'
-              description='Select any site to view its Animal Stock report'
-              buttonText='SELECT SITE'
+              subtitle={t('compliance_module.no_site_selected')}
+              description={t('compliance_module.select_any_site_to_view_animal_stock_report')}
+              buttonText={t('compliance_module.select_site')}
               addHandler={() => setIsSiteDrawerOpen(true)}
             />
           </Box>

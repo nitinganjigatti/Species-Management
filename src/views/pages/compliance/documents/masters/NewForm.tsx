@@ -18,6 +18,7 @@ import { LoadingButton } from '@mui/lab'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { useTheme, alpha } from '@mui/material/styles'
 import type { TradeContextType } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface NewFormValues {
   name: string
@@ -64,6 +65,7 @@ const NewForm = ({
   tradeContextTypes = [],
   contextLoading = false
 }: NewFormProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   return (
@@ -255,7 +257,7 @@ const NewForm = ({
               }
             }}
           >
-            Select Form Type
+            {t('compliance_module.select_form_type')}
           </FormLabel>
 
           <Box
@@ -314,7 +316,7 @@ const NewForm = ({
                               fontSize: '14px'
                             }}
                           >
-                            {option.charAt(0).toUpperCase() + option.slice(1)}
+                            {t(`compliance_module.${option}`)}
                           </Box>
                         }
                         sx={{
@@ -348,8 +350,8 @@ const NewForm = ({
             control={control}
             render={({ field }) => (
               <RadioGroup row {...field}>
-                <FormControlLabel value='1' control={<Radio />} label='Active' />
-                <FormControlLabel value='0' control={<Radio />} label='Inactive' />
+                <FormControlLabel value='1' control={<Radio />} label={t('active')} />
+                <FormControlLabel value='0' control={<Radio />} label={t('inactive')} />
               </RadioGroup>
             )}
           />
@@ -370,7 +372,7 @@ const NewForm = ({
         }}
       >
         <LoadingButton type='submit' variant='contained' loading={submitLoader} sx={{ py: 3 }} fullWidth>
-          {isEdit ? 'Update' : 'Add '}
+          {isEdit ? t('update') : t('add')}
         </LoadingButton>
       </Box>
     </Box>

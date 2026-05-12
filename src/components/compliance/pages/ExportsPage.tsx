@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { Card, CardHeader, Grid, Box, Breadcrumbs, Typography, Tooltip, Button, Badge } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import Search from 'src/views/utility/Search'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { debounce } from 'lodash'
@@ -28,6 +29,7 @@ interface FilterDate {
 }
 
 const CitesExportPermitIndex = () => {
+  const { t } = useTranslation()
   const router = useRouter()
 
   // Table and main data states
@@ -106,7 +108,7 @@ const CitesExportPermitIndex = () => {
       setTotal((res.data as any)?.total || res.data?.total_count || 0)
     } catch (error) {
       console.error('Error fetching export permits:', error)
-      Toaster({ type: 'error', message: 'Failed to fetch export permits' })
+      Toaster({ type: 'error', message: t('compliance_module.failed_to_fetch_export_permits') })
     }
     setLoading(false)
   }, [searchValue, paginationModel, sortModel, filterDate, selectedOptions])
@@ -147,13 +149,13 @@ const CitesExportPermitIndex = () => {
       const fileUrl = res?.data
       if (fileUrl) {
         Utility.downloadFileFromURL(fileUrl, `Exports Report`)
-        Toaster({ type: 'success', message: res?.message || 'Report downloaded successfully!' })
+        Toaster({ type: 'success', message: res?.message || t('compliance_module.failed_to_download_the_report') })
       } else {
-        Toaster({ type: 'error', message: 'File URL not found in response' })
+        Toaster({ type: 'error', message: t('compliance_module.file_url_not_found_in_response') })
       }
     } catch (error) {
       console.error('Error exporting report:', error)
-      Toaster({ type: 'error', message: 'Failed to download the report' })
+      Toaster({ type: 'error', message: t('compliance_module.failed_to_download_the_report') })
     } finally {
       setExportLoading(false)
     }
@@ -191,7 +193,7 @@ const CitesExportPermitIndex = () => {
       flex: 0.01,
       minWidth: 100,
       field: 'uid',
-      headerName: 'SL.NO',
+      headerName: t('compliance_module.sl_no'),
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {params.value}
@@ -202,7 +204,7 @@ const CitesExportPermitIndex = () => {
       flex: 0.12,
       minWidth: 150,
       field: 'export_number',
-      headerName: 'Export ID',
+      headerName: t('compliance_module.export_id'),
       renderCell: params => (
         <Tooltip title={params.value || ''}>
           <Typography
@@ -224,7 +226,7 @@ const CitesExportPermitIndex = () => {
       flex: 0.15,
       minWidth: 180,
       field: 'exporter_name',
-      headerName: 'EXPORTER',
+      headerName: t('compliance_module.exporter'),
       renderCell: params => (
         <Tooltip title={params.value || ''}>
           <Typography
@@ -246,9 +248,11 @@ const CitesExportPermitIndex = () => {
       flex: 0.15,
       minWidth: 180,
       field: 'exporting_country',
-      headerName: 'EXPORTING COUNTRY',
+      headerName: t('compliance_module.exporting_country'),
       renderCell: params => (
-        <Tooltip title={countryListOptions.find((country: { value: string }) => country.value === params.value)?.label || ''}>
+        <Tooltip
+          title={countryListOptions.find((country: { value: string }) => country.value === params.value)?.label || ''}
+        >
           <Typography
             sx={{
               px: 2,
@@ -268,9 +272,11 @@ const CitesExportPermitIndex = () => {
       flex: 0.15,
       minWidth: 180,
       field: 'origin_country',
-      headerName: 'COUNTRY OF ORIGIN',
+      headerName: t('compliance_module.country_of_origin'),
       renderCell: params => (
-        <Tooltip title={countryListOptions.find((country: { value: string }) => country.value === params.value)?.label || ''}>
+        <Tooltip
+          title={countryListOptions.find((country: { value: string }) => country.value === params.value)?.label || ''}
+        >
           <Typography
             sx={{
               px: 2,
@@ -290,35 +296,35 @@ const CitesExportPermitIndex = () => {
       flex: 0.08,
       minWidth: 100,
       field: 'species_count',
-      headerName: 'SPECIES',
+      headerName: t('compliance_module.species'),
       renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.08,
       minWidth: 100,
       field: 'animal_count',
-      headerName: 'ANIMALS',
+      headerName: t('animals'),
       renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 120,
       field: 'documents_count',
-      headerName: 'DOCUMENTS',
+      headerName: t('documents'),
       renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 120,
       field: 'shipment_count',
-      headerName: 'SHIPMENTS',
+      headerName: t('compliance_module.shipments'),
       renderCell: params => <Typography sx={{ px: 2, width: '100%' }}>{params.value}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 120,
       field: 'valid_until',
-      headerName: 'EXPIRY',
+      headerName: t('compliance_module.expiry'),
       renderCell: params => (
         <Typography sx={{ px: 2, width: '100%' }}>{Utility.formatDisplayDate(params.value)}</Typography>
       )
@@ -327,7 +333,7 @@ const CitesExportPermitIndex = () => {
       flex: 0.3,
       minWidth: 180,
       field: 'created_by_user_name',
-      headerName: 'Created By',
+      headerName: t('created_by'),
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.created_by_user_name ? (
@@ -346,7 +352,7 @@ const CitesExportPermitIndex = () => {
       flex: 0.3,
       minWidth: 180,
       field: 'updated_by_user_name',
-      headerName: 'Updated By',
+      headerName: t('updated_by'),
       renderCell: params => (
         <Box sx={{ px: 2 }}>
           {params.row.updated_by_user_name ? (
@@ -366,16 +372,22 @@ const CitesExportPermitIndex = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ color: 'inherit' }}>Compliance</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>CITES Export Permit</Typography>
+        <Typography sx={{ color: 'inherit' }}>{t('compliance_module.compliance')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>
+          {t('compliance_module.cites_export_permit')}
+        </Typography>
       </Breadcrumbs>
 
       <Card>
         <CardHeader
-          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Export Documents</Typography>}
+          title={
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>
+              {t('compliance_module.export_documents')}
+            </Typography>
+          }
           action={
             <AddButtonContained
-              title='ADD NEW'
+              title={t('add_new')}
               action={() => router.push('/compliance/documents/exports/AddEditExportPermit')}
               disabled={false}
               styles={{}}
@@ -407,7 +419,12 @@ const CitesExportPermitIndex = () => {
                   onChange={(s: string, e: string) => setFilterDate({ startDate: s, endDate: e })}
                 />
               </Box>
-              <ExportButton loading={exportLoading} tooltip='Download Report' onClick={handleExport} bgcolor={undefined} />
+              <ExportButton
+                loading={exportLoading}
+                tooltip='Download Report'
+                onClick={handleExport}
+                bgcolor={undefined}
+              />
               <Button
                 variant='outlined'
                 sx={{
@@ -431,7 +448,7 @@ const CitesExportPermitIndex = () => {
                 }
                 onClick={handleFilterDrawerOpen}
               >
-                Filter
+                {t('filter')}
               </Button>
             </Box>
           </Box>

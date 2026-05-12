@@ -3,6 +3,7 @@ import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 import PdfFileCard from 'src/views/pages/compliance/documents/exports/PdfFileCard'
 import type { ExportPermit } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface ExportPermitDetailsContentProps {
   exportData: ExportPermit
@@ -10,6 +11,7 @@ interface ExportPermitDetailsContentProps {
 }
 
 const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetailsContentProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   if (loading) {
@@ -47,7 +49,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           }}
         >
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Certificate ID
+            {t('compliance_module.certificate_id')}
           </Typography>
           <Typography
             sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient, mb: 4 }}
@@ -56,7 +58,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           </Typography>
 
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Exporting Country
+            {t('compliance_module.exporting_country')}
           </Typography>
           <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}>
             {exportData.exporting_country || '-'}
@@ -70,7 +72,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           }}
         >
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Date Of Issue
+            {t('compliance_module.date_of_issue')}
           </Typography>
           <Typography
             sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient, mb: 4 }}
@@ -79,7 +81,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           </Typography>
 
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Exporter Name
+            {t('compliance_module.exporter_name')}
           </Typography>
           <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}>
             {exportData.exporter_name || '-'}
@@ -93,7 +95,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           }}
         >
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Last Day Of Validity
+            {t('compliance_module.last_day_of_validity')}
           </Typography>
           <Typography
             sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient, mb: 4 }}
@@ -102,7 +104,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           </Typography>
 
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Importer
+            {t('compliance_module.importer')}
           </Typography>
           <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}>
             {exportData.importer_name || '-'}
@@ -116,7 +118,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           }}
         >
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Country Of Origin
+            {t('compliance_module.country_of_origin')}
           </Typography>
           <Typography
             sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient, mb: 4 }}
@@ -125,7 +127,7 @@ const ExportPermitDetailsContent = ({ exportData, loading }: ExportPermitDetails
           </Typography>
 
           <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1rem', mb: 1 }}>
-            Purpose Of Transfer
+            {t('compliance_module.purpose_of_transfer')}
           </Typography>
           <Typography sx={{ fontWeight: 500, fontSize: '1rem', color: theme.palette.customColors.OnSurfaceVarient }}>
             {exportData.export_purpose || '-'}

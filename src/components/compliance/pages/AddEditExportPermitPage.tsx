@@ -12,8 +12,10 @@ import { getDocumentTypeList, getExportDetails, getMastersData } from 'src/lib/a
 import Toaster from 'src/components/Toaster'
 import { useTheme } from '@mui/material/styles'
 import { DocumentType, ExportPermit, Id } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const AddEditExportPermit = () => {
+  const { t } = useTranslation()
   const router = useRouter()
   const searchParams = useSearchParams()
   const id = searchParams?.get('id')
@@ -43,10 +45,11 @@ const AddEditExportPermit = () => {
 
   // Accordion toggle handler
   const handleAccordionChange = (panelId: string) => {
-    setExpanded(prev =>
-      prev.includes(panelId)
-        ? prev.filter(p => p !== panelId) // Close if open
-        : [...prev, panelId] // Open if closed
+    setExpanded(
+      prev =>
+        prev.includes(panelId)
+          ? prev.filter(p => p !== panelId) // Close if open
+          : [...prev, panelId] // Open if closed
     )
   }
 
@@ -60,7 +63,7 @@ const AddEditExportPermit = () => {
       }
     } catch (error) {
       console.error('Error fetching masters data:', error)
-      Toaster({ type: 'error', message: 'Error fetching masters data' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_masters_data') })
     }
 
     return null
@@ -109,11 +112,11 @@ const AddEditExportPermit = () => {
         setDocumentList((res.data?.items || []) as DocumentType[])
         setTotalCount(res.data?.total || 0)
       } else {
-        Toaster({ type: 'error', message: res.message || 'Failed to fetch export details' })
+        Toaster({ type: 'error', message: res.message || t('compliance_module.failed_to_fetch_export_details') })
       }
     } catch (error) {
       console.error('Error fetching export details:', error)
-      Toaster({ type: 'error', message: 'Error fetching export details' })
+      Toaster({ type: 'error', message: t('compliance_module.error_fetching_export_details') })
     } finally {
       setIsFetching(false)
     }
@@ -130,21 +133,29 @@ const AddEditExportPermit = () => {
       <Box sx={{ mb: 5 }}>
         <Breadcrumbs aria-label='breadcrumb'>
           <Typography onClick={() => router.push('/compliance')} sx={{ cursor: 'pointer' }}>
-            Compliance
+            {t('compliance_module.compliance')}
           </Typography>
           <Typography onClick={() => router.push('/compliance/documents/exports')} sx={{ cursor: 'pointer' }}>
-            CITES Export Permit
+            {t('compliance_module.cites_export_permit')}
           </Typography>
-          <Typography color='text.primary'>{isEdit ? 'Edit Export Permit' : 'New Export Permit'}</Typography>
+          <Typography color='text.primary'>
+            {isEdit ? t('compliance_module.edit_cites_export_permit') : t('compliance_module.new_export_permit')}
+          </Typography>
         </Breadcrumbs>
       </Box>
 
-      <CardHeader title={isEdit ? 'Edit CITES Export Permit' : 'CITES Export Permit'} />
+      <CardHeader
+        title={
+          isEdit
+            ? `${t('compliance_module.edit_cites_export_permit')}`
+            : `${t('compliance_module.cites_export_permit')}`
+        }
+      />
 
       {/* PERMIT DETAILS SECTION */}
       <CustomAccordion
         id='permit-details'
-        title='Details'
+        title={t('details')}
         expanded={expanded.includes('permit-details')}
         onChange={handleAccordionChange}
         shouldScrollToTop={false}
@@ -152,11 +163,16 @@ const AddEditExportPermit = () => {
         handleEditClick={() => {}}
         type='export'
       >
-        <ExportPermitForm id={id as string | undefined} exportData={exportData} isLoading={loading} onSubmit={(exportId?: Id) => handleFormSubmit(exportId as string)} />
+        <ExportPermitForm
+          id={id as string | undefined}
+          exportData={exportData}
+          isLoading={loading}
+          onSubmit={(exportId?: Id) => handleFormSubmit(exportId as string)}
+        />
       </CustomAccordion>
       <CustomAccordion
         id='supporting-documents'
-        title='Supporting Documents'
+        title={t('compliance_module.supporting_documents')}
         docsCount={(totalCount ? `${uploadedFileCount}/${totalCount}` : null) as any}
         expanded={expanded.includes('supporting-documents')}
         onChange={handleAccordionChange}
@@ -180,7 +196,7 @@ const AddEditExportPermit = () => {
             }}
           >
             <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
-              Please save form details to add supporting documents
+              {t('compliance_module.please_save_form_details_to_add_supporting_documents')}
             </Typography>
           </Box>
         ) : (

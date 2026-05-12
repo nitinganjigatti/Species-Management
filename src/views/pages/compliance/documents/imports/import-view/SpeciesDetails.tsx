@@ -17,6 +17,7 @@ import IconButton from '@mui/material/IconButton'
 import moment from 'moment'
 import { useAuth } from 'src/hooks/useAuth'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import AnimalDetailsDrawer from '../drawer/AnimalDetailsDrawer'
 import type { ExportPermit, ExportSpecies } from 'src/types/compliance'
 
@@ -64,6 +65,7 @@ const SpeciesDetailsContainer = ({
   airwaybillvalue,
   loader
 }: SpeciesDetailsContainerProps) => {
+  const { t } = useTranslation()
   const [collapsed, setCollapsed] = useState<boolean>(false)
   const auth = useAuth() as any
   const theme = useTheme()
@@ -106,11 +108,9 @@ const SpeciesDetailsContainer = ({
 
   const SpeciesRow = ({ species, type }: SpeciesRowProps) => (
     <Box
-
       //key={idx}
       display='flex'
       justifyContent='space-between'
-
       // py={2}
       sx={{
         borderBottom: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
@@ -142,7 +142,7 @@ const SpeciesDetailsContainer = ({
         <Typography
           sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500, mr: 2 }}
         >
-          Count : {species?.total_count || 0}
+          {t('count')} : {species?.total_count || 0}
         </Typography>
         <Chip
           label={`M - ${species?.male_count || 0}`}
@@ -222,9 +222,10 @@ const SpeciesDetailsContainer = ({
                   window.open(`/compliance/documents/exports/${data.id}/?id=${data.id}`, '_blank')
                 }}
               >
-                Export ID : <span>{data.export_number}</span>
+                {t('compliance_module.export_id_label')} <span>{data.export_number}</span>
               </Box>{' '}
-              ({(data as any).total_species} Species) ({totalAnimals} {totalAnimals === 1 ? 'Animal' : 'Animals'})
+              ({(data as any).total_species} {t('species')}) ({totalAnimals}{' '}
+              {totalAnimals === 1 ? t('animal') : t('animals')})
             </Typography>
           </Box>
 
@@ -270,7 +271,7 @@ const SpeciesDetailsContainer = ({
               {/* Shipment ID */}
               <Grid size={{ xs: 6, md: 4 }}>
                 <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
-                  Certificate ID
+                  {t('compliance_module.certificate_id')}
                 </Typography>
                 <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
                   {airwaybillvalue}
@@ -280,7 +281,7 @@ const SpeciesDetailsContainer = ({
               {/* Date Of Issue */}
               <Grid size={{ xs: 6, md: 4 }}>
                 <Typography fontWeight='400' color={theme.palette.customColors.secondaryBg} fontSize='16px'>
-                  Date Of Issue
+                  {t('compliance_module.date_of_issue')}
                 </Typography>
                 <Typography color={theme.palette.customColors.OnSurfaceVariant} sx={{ pt: 1 }}>
                   {startDate ? moment(startDate).format('DD MMM YYYY') : '-'}
@@ -355,7 +356,7 @@ const SpeciesDetailsContainer = ({
                 fontWeight={500}
                 sx={{ display: 'inline-flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
               >
-                {totalSpecies} Species • {totalAnimals} Animals
+                {totalSpecies} {t('species')} • {totalAnimals} {t('animals')}
               </Typography>
 
               <Typography
@@ -370,7 +371,7 @@ const SpeciesDetailsContainer = ({
                   cursor: 'pointer'
                 }}
               >
-                {collapsed ? 'Expand' : 'Collapse'}
+                {collapsed ? t('compliance_module.expand') : t('compliance_module.collapse')}
                 {collapsed ? (
                   <img src='/icons/expand.svg' width='24px' />
                 ) : (
@@ -403,7 +404,7 @@ const SpeciesDetailsContainer = ({
         animalDetails={animalDetails}
         detailtype={detailtype}
         setanimalCountDrawerOpen={setanimalCountDrawerOpen}
-        title='Animal Details'
+        title={t('compliance_module.animal_details')}
       />
     </>
   )

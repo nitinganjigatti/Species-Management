@@ -4,9 +4,11 @@ import CloseIcon from '@mui/icons-material/Close'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 import type { AnimalDetailDrawerProps } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const AnimalDetailDrawer = ({ open, onClose, specie }: AnimalDetailDrawerProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   if (!specie) return null
 
@@ -24,7 +26,9 @@ const AnimalDetailDrawer = ({ open, onClose, specie }: AnimalDetailDrawerProps) 
         {/* Header */}
         <Box sx={{ px: 4, pt: 3, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>Animal Details</Typography>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>
+              {t('compliance_module.animal_details')}
+            </Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -42,7 +46,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }: AnimalDetailDrawerProps) 
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Species
+            {t('species')}
           </Typography>
           <Box
             sx={{
@@ -56,37 +60,43 @@ const AnimalDetailDrawer = ({ open, onClose, specie }: AnimalDetailDrawerProps) 
           >
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Common Name</Typography>
-                {specie?.common_name && <Tooltip title={specie?.common_name} arrow>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      wordBreak: 'break-word',
-                      maxWidth: '100%'
-                    }}
-                  >
-                    {specie?.common_name || '-'}
-                  </Typography>
-                </Tooltip>}
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
+                  {t('common_name')}
+                </Typography>
+                {specie?.common_name && (
+                  <Tooltip title={specie?.common_name} arrow>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        wordBreak: 'break-word',
+                        maxWidth: '100%'
+                      }}
+                    >
+                      {specie?.common_name || '-'}
+                    </Typography>
+                  </Tooltip>
+                )}
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
-                  Scientific Name
+                  {t('scientific_name')}
                 </Typography>
                 <Typography sx={{ fontWeight: 500 }}>{specie.scientific_name || '-'}</Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>CITES</Typography>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
+                  {t('compliance_module.cites')}
+                </Typography>
                 <Typography sx={{ fontWeight: 500 }}>{specie.appendix || '-'}</Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
-                  Total Animals
+                  {t('total_animals')}
                 </Typography>
                 <Typography sx={{ fontWeight: 500 }}>{specie.total_count || '-'}</Typography>
               </Grid>
@@ -94,7 +104,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }: AnimalDetailDrawerProps) 
 
             <Box sx={{ mt: 2 }}>
               <Typography variant='subtitle1' sx={{ mb: 1 }}>
-                Gender & Count
+                {t('compliance_module.gender_count')}
               </Typography>
               <Box
                 sx={{
@@ -155,7 +165,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }: AnimalDetailDrawerProps) 
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Animals ({specie?.animals?.length})
+              {t('animals')} ({specie?.animals?.length})
             </Typography>
           ) : null}
 
@@ -216,7 +226,7 @@ const AnimalDetailDrawer = ({ open, onClose, specie }: AnimalDetailDrawerProps) 
                     <Box
                       sx={{ fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
                     >
-                      Species:{' '}
+                      {t('species')}:{' '}
                       {specie?.common_name && (
                         <Tooltip title={specie?.common_name} arrow>
                           <Typography

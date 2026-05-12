@@ -5,8 +5,10 @@ import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 import type { ShippedAnimalsDrawerProps } from 'src/types/compliance'
 import type { ShipmentAnimal } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedAnimalsDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
@@ -28,7 +30,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
         <Box sx={{ px: isMobile ? 3 : 4, pt: isMobile ? 2 : 3, pb: isMobile ? 1.5 : 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
             <Typography sx={{ fontSize: isMobile ? '1.125rem' : '1.5rem', fontWeight: 500 }}>
-              Shipped Animals
+              {t('compliance_module.shipped_animals')}
             </Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
@@ -47,7 +49,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Shipment
+            {t('navigation.shipments')}
           </Typography>
           <Box
             sx={{
@@ -60,14 +62,16 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
           >
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Shipment ID:</Typography>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
+                  {t('compliance_module.shipment_id')}:
+                </Typography>
                 <Typography sx={{ color: theme.palette.customColors.OnSurface, fontWeight: 500, fontSize: '1rem' }}>
                   {shipment?.shipment_number || String(shipment?.shipment_id || '').replace(/\s+/g, '') || ''}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
-                  Date of Issue:
+                  {t('compliance_module.date_of_issue')}:
                 </Typography>
                 <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
                   {Utility.formatDisplayDate(shipment?.shipment_date)}
@@ -85,7 +89,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Species
+            {t('species')}
           </Typography>
           <Box
             sx={{
@@ -99,24 +103,28 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
           >
             <Grid container spacing={4}>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>Species Name</Typography>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
+                  {t('compliance_module.species_name')}
+                </Typography>
                 <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.common_name || '-'}</Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
-                  Scientific Name
+                  {t('scientific_name')}
                 </Typography>
                 <Typography sx={{ fontWeight: 500 }}>
                   {shipment?.species?.[specieIndex]?.scientific_name || '-'}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
-                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>CITES</Typography>
+                <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
+                  {t('compliance_module.cites')}
+                </Typography>
                 <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.appendix || '-'}</Typography>
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Typography sx={{ color: theme.palette.customColors.neutralSecondary, mb: 1 }}>
-                  Total Animals
+                  {t('total_animals')}
                 </Typography>
                 <Typography sx={{ fontWeight: 500 }}>{shipment?.species?.[specieIndex]?.total_count}</Typography>
               </Grid>
@@ -124,7 +132,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
 
             <Box sx={{ mt: 2 }}>
               <Typography variant='subtitle1' sx={{ mb: 1 }}>
-                Gender & Count
+                {t('compliance_module.gender_count')}
               </Typography>
               <Box
                 sx={{
@@ -185,7 +193,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Animals with identifier{' '}
+              {t('compliance_module.animals_with_identifier')}{' '}
               {`${
                 shipment?.species?.[specieIndex]?.animals.length
                   ? `(${shipment?.species?.[specieIndex]?.animals.length})`
@@ -248,7 +256,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
                   </Box>
                   <Box>
                     <Box sx={{ fontSize: '0.875rem' }}>
-                      Species:{' '}
+                      {t('species')}:{' '}
                       <Typography
                         component='span'
                         sx={{
@@ -281,7 +289,7 @@ const ShippedAnimalsDrawer = ({ open, onClose, shipment, specieIndex }: ShippedA
         </Box>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default ShippedAnimalsDrawer

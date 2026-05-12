@@ -2,8 +2,10 @@ import React from 'react'
 import { Box, Typography, Grid, useTheme, alpha } from '@mui/material'
 import Utility from 'src/utility'
 import type { LinkedImportsProps } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const LinkedImports = ({ imports = [] }: LinkedImportsProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   if (!imports.length) {
@@ -21,7 +23,7 @@ const LinkedImports = ({ imports = [] }: LinkedImportsProps) => {
         }}
       >
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
-          No Linked Imports
+          {t('compliance_module.no_linked_imports')}
         </Typography>
       </Box>
     )
@@ -43,7 +45,7 @@ const LinkedImports = ({ imports = [] }: LinkedImportsProps) => {
           <Grid container spacing={2} alignItems='center'>
             <Grid size={{ xs: 12, sm: 5, md: 4 }}>
               <Typography variant='subtitle2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                Certificate ID
+                {t('compliance_module.certificate_id')}
               </Typography>
               <Typography
                 variant='body1'
@@ -68,7 +70,7 @@ const LinkedImports = ({ imports = [] }: LinkedImportsProps) => {
             <Grid size={{ xs: 12, sm: 4, md: 4 }}>
               <Box sx={{ width: '100%' }}>
                 <Typography variant='subtitle2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                  Date Of Issue
+                  {t('compliance_module.date_of_issue')}
                 </Typography>
                 <Typography
                   variant='body1'
@@ -82,7 +84,7 @@ const LinkedImports = ({ imports = [] }: LinkedImportsProps) => {
             <Grid size={{ xs: 12, sm: 3, md: 4 }}>
               <Box>
                 <Typography variant='subtitle2' sx={{ color: theme.palette.customColors.neutralSecondary }}>
-                  Linked Exports
+                  {t('compliance_module.linked_exports')}
                 </Typography>
                 <Typography
                   variant='body1'

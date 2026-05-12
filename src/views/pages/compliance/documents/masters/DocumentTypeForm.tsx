@@ -18,6 +18,7 @@ import { LoadingButton } from '@mui/lab'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import { useTheme, alpha } from '@mui/material/styles'
 import type { TradeContextType, Id } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 interface DocumentTypeFormValues {
   name: string
@@ -69,6 +70,7 @@ const DocumentTypeForm = ({
   tradeContextTypes = [],
   contextLoading = false
 }: DocumentTypeFormProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   return (
@@ -83,7 +85,6 @@ const DocumentTypeForm = ({
         position: 'relative'
       }}
     >
-
       <Box sx={{ flex: 1, overflowY: 'auto', p: 4, display: 'flex', flexDirection: 'column', gap: 8 }}>
         <Box
           sx={{
@@ -93,7 +94,13 @@ const DocumentTypeForm = ({
             bgcolor: theme.palette.common.white
           }}
         >
-          <ControlledTextField name='name' label='Document Name*' control={control} errors={errors} required />
+          <ControlledTextField
+            name='name'
+            label={`${t('compliance_module.document_name')}*`}
+            control={control}
+            errors={errors}
+            required
+          />
         </Box>
 
         {/* <ControlledTextField
@@ -120,7 +127,7 @@ const DocumentTypeForm = ({
               }
             }}
           >
-            Select Form Type
+            {t('compliance_module.select_form_type')}
           </FormLabel>
           {contextLoading ? (
             <Box
@@ -193,7 +200,9 @@ const DocumentTypeForm = ({
                           </Box>
                         }
                         sx={{
-                          border: `1px solid ${field.value?.includes(opt.id as Id) ? theme.palette.primary.main : '#D0D5DD'}`,
+                          border: `1px solid ${
+                            field.value?.includes(opt.id as Id) ? theme.palette.primary.main : '#D0D5DD'
+                          }`,
                           m: 1.7,
                           borderRadius: '4px',
                           p: 2,
@@ -229,7 +238,7 @@ const DocumentTypeForm = ({
               }
             }}
           >
-            Status
+            {t('status')}
           </FormLabel>
           <Box
             sx={{
@@ -245,8 +254,8 @@ const DocumentTypeForm = ({
               control={control}
               render={({ field }) => (
                 <RadioGroup row {...field}>
-                  <FormControlLabel value='1' control={<Radio />} label='Active' />
-                  <FormControlLabel value='0' control={<Radio />} label='Inactive' />
+                  <FormControlLabel value='1' control={<Radio />} label={t('active')} />
+                  <FormControlLabel value='0' control={<Radio />} label={t('inactive')} />
                 </RadioGroup>
               )}
             />
@@ -261,8 +270,8 @@ const DocumentTypeForm = ({
             control={control}
             render={({ field }) => (
               <RadioGroup row {...field}>
-                <FormControlLabel value='1' control={<Radio />} label='Active' />
-                <FormControlLabel value='0' control={<Radio />} label='Inactive' />
+                <FormControlLabel value='1' control={<Radio />} label={t('active')} />
+                <FormControlLabel value='0' control={<Radio />} label={t('inactive')} />
               </RadioGroup>
             )}
           />
@@ -283,7 +292,7 @@ const DocumentTypeForm = ({
         }}
       >
         <LoadingButton type='submit' variant='contained' loading={submitLoader} sx={{ py: 3 }} fullWidth>
-          {isEdit ? 'Update Document' : 'Add Document'}
+          {isEdit ? t('compliance_module.update_document') : t('compliance_module.add_document')}
         </LoadingButton>
       </Box>
     </Box>

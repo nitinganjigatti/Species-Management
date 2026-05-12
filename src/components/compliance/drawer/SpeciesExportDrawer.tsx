@@ -17,8 +17,17 @@ import { getShipmentSpeciesData } from 'src/lib/api/compliance/shipment'
 import { getSpeciesDetailsShipmentExports } from 'src/lib/api/compliance/species'
 import SpeciesShipmentExpandableCard from 'src/views/pages/compliance/documents/shipment/shipment-view/SpeciesShipmentExpandableCard'
 import type { SpeciesExportDrawerProps } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
-const SpeciesExportDrawer = ({ open, onClose, shipmentId, shipmentNumber, type, speciesId }: SpeciesExportDrawerProps) => {
+const SpeciesExportDrawer = ({
+  open,
+  onClose,
+  shipmentId,
+  shipmentNumber,
+  type,
+  speciesId
+}: SpeciesExportDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
 
   const [loading, setLoading] = useState<boolean>(false)
@@ -36,7 +45,9 @@ const SpeciesExportDrawer = ({ open, onClose, shipmentId, shipmentNumber, type, 
             }
           })
         } else if (type === 'total_exports') {
-          await (getSpeciesDetailsShipmentExports({ speciesId: speciesId!, shipmentId: shipmentId! }) as Promise<any>).then(res => {
+          await (
+            getSpeciesDetailsShipmentExports({ speciesId: speciesId!, shipmentId: shipmentId! }) as Promise<any>
+          ).then(res => {
             if (res?.success === true) {
               setData(res?.data)
               setLoading(false)
@@ -79,7 +90,9 @@ const SpeciesExportDrawer = ({ open, onClose, shipmentId, shipmentNumber, type, 
           }}
         >
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>{`Export List - ${shipmentNumber}`}</Typography>
+            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
+              {`${t('compliance_module.export_list')} - ${shipmentNumber}`}
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>

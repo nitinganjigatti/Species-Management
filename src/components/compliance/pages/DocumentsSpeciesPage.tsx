@@ -10,6 +10,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import { GridColDef, GridSortModel } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface SpeciesRecord {
   id: number
@@ -42,6 +43,7 @@ const addSpecies = async (data: unknown) => ({ success: true, message: 'Species 
 const updateSpecies = async (id: unknown, data: unknown) => ({ success: true, message: 'Species updated' })
 
 const SpeciesPage = () => {
+  const { t } = useTranslation()
   const { userData } = useContext(AuthContext)
   const canEdit = (userData as any)?.roles?.settings?.species_module === 'EDIT'
 
@@ -90,12 +92,12 @@ const SpeciesPage = () => {
   const columns: GridColDef[] = [
     {
       field: 'uid',
-      headerName: 'No',
+      headerName: t('compliance_module.sl_no'),
       flex: 0.1
     },
     {
       field: 'species',
-      headerName: 'Species',
+      headerName: t('compliance_module.species'),
       flex: 0.3,
       renderCell: ({ row }) => (
         <Box>
@@ -106,13 +108,13 @@ const SpeciesPage = () => {
         </Box>
       )
     },
-    { field: 'shipments', headerName: 'Shipments', flex: 0.15 },
-    { field: 'exports', headerName: 'Exports', flex: 0.15 },
-    { field: 'permitted_animals', headerName: 'Permitted Animals', flex: 0.2 },
-    { field: 'received_animals', headerName: 'Received Animals', flex: 0.2 },
+    { field: 'shipments', headerName: t('compliance_module.shipments'), flex: 0.15 },
+    { field: 'exports', headerName: t('compliance_module.exports'), flex: 0.15 },
+    { field: 'permitted_animals', headerName: t('compliance_module.permitted_animals'), flex: 0.2 },
+    { field: 'received_animals', headerName: t('compliance_module.received_animals'), flex: 0.2 },
     {
       field: 'action',
-      headerName: 'Actions',
+      headerName: t('actions'),
       flex: 0.1,
       sortable: false,
       renderCell: () =>
@@ -144,16 +146,16 @@ const SpeciesPage = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Species</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('documents')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>{t('species')}</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>Species</Typography>}
+          title={<Typography sx={{ fontSize: '1.5rem', fontWeight: 'medium' }}>{t('species')}</Typography>}
           sx={{ px: 5 }}
           action={
             <AddButtonContained
-              title='ADD NEW'
+              title={t('add_new')}
               action={() => {
                 // Replace with drawer opening logic
                 console.log('Open add species drawer')
@@ -187,8 +189,7 @@ const SpeciesPage = () => {
                 startIcon={<FilterListIcon />}
                 endIcon={<Badge badgeContent={filterCount} color='primary' invisible={filterCount === 0} />}
                 sx={{
-                  border: (theme: any) =>
-                    `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  border: (theme: any) => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   height: '40px',
                   color: 'customColors.OnSurfaceVariant',
@@ -196,7 +197,7 @@ const SpeciesPage = () => {
                 }}
                 onClick={handleFilterDrawer}
               >
-                Filter
+                {t('filter')}
               </Button>
             </Box>
           </Grid>

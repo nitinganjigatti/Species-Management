@@ -10,6 +10,7 @@ import { getAnimalFilterList, getAnimalListForObservationReport } from 'src/lib/
 import NoDataFound from 'src/views/utility/NoDataFound'
 import AnimalFilterDrawer from './AnimalFilterDrawer'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 const PAGE_SIZE = 10
 
@@ -114,13 +115,8 @@ const buildFilterParams = (filters: FilterValues | null): FilterParams => {
   return params
 }
 
-const AnimalDrawer = ({
-  open,
-  onClose,
-  handleAnimalClick,
-  btnText = 'GENERATE ANIMAL HISTORY REPORT',
-  showAnimalFilter = true
-}: AnimalDrawerProps) => {
+const AnimalDrawer = ({ open, onClose, handleAnimalClick, btnText, showAnimalFilter = true }: AnimalDrawerProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -180,7 +176,7 @@ const AnimalDrawer = ({
         end_date: formatDate(new Date()),
         ...filterParams
       }
-      const res = await getAnimalListForObservationReport(params) as any
+      const res = (await getAnimalListForObservationReport(params)) as any
 
       return {
         animals: res?.data?.animals || [],
@@ -303,7 +299,7 @@ const AnimalDrawer = ({
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Select the Animal
+              {t('compliance_module.select_the_animal')}
             </Typography>
             <IconButton
               onClick={() => {
@@ -326,7 +322,7 @@ const AnimalDrawer = ({
             }}
           >
             <Search
-              placeholder='Search by Animal name, AID or Identifier'
+              placeholder={t('compliance_module.search_by_animal_name_aid_or_identifier')}
               value={localSearch}
               onChange={handleSearchChange}
               fullWidth
@@ -494,7 +490,7 @@ const AnimalDrawer = ({
                 )}
                 {!hasNextPage && list.length > 0 && (
                   <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-                    No more species to load
+                    {t('compliance_module.no_more_species_to_load')}
                   </Typography>
                 )}
               </>
@@ -523,7 +519,7 @@ const AnimalDrawer = ({
               onClick={onGenerateClick}
               sx={{ p: 3, fontWeight: 600 }}
             >
-              {btnText}
+              {btnText || t('compliance_module.generate_animal_history_report')}
             </Button>
           </Box>
         )}

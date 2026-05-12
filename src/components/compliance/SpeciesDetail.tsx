@@ -4,8 +4,10 @@ import { ChevronRight as ChevronRightIcon } from '@mui/icons-material'
 import AnimalDetailDrawer from 'src/components/compliance/drawer/AnimalDetailDrawer'
 import type { SpeciesDetailProps } from 'src/types/compliance'
 import type { ExportSpecies } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const SpeciesDetail = ({ species = [], speciesCount, animalsCount }: SpeciesDetailProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [selectedSpecie, setSelectedSpecie] = useState<ExportSpecies | null>(null)
@@ -36,7 +38,7 @@ const SpeciesDetail = ({ species = [], speciesCount, animalsCount }: SpeciesDeta
         }}
       >
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontWeight: 500, fontSize: '1rem' }}>
-          No Species Found
+          {t('compliance_module.no_species_found')}
         </Typography>
       </Box>
     )
@@ -66,7 +68,7 @@ const SpeciesDetail = ({ species = [], speciesCount, animalsCount }: SpeciesDeta
           }}
         >
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-            {speciesCount} Species
+            {speciesCount} {t('species')}
           </Typography>
           <Typography
             component='span'
@@ -78,7 +80,7 @@ const SpeciesDetail = ({ species = [], speciesCount, animalsCount }: SpeciesDeta
             }}
           />
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-            {animalsCount} Animal
+            {animalsCount} {t('compliance_module.animal')}
           </Typography>
         </Box>
 
@@ -105,19 +107,21 @@ const SpeciesDetail = ({ species = [], speciesCount, animalsCount }: SpeciesDeta
               onClick={() => handleOpenDrawer(specie)}
             >
               <Box sx={{ flex: 1.8, minWidth: 0 }}>
-                {specie?.common_name && <Tooltip title={specie?.common_name} arrow>
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: 'block'
-                    }}
-                  >
-                    {specie?.common_name || '-'}
-                  </Typography>
-                </Tooltip>}
+                {specie?.common_name && (
+                  <Tooltip title={specie?.common_name} arrow>
+                    <Typography
+                      sx={{
+                        fontWeight: 500,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        display: 'block'
+                      }}
+                    >
+                      {specie?.common_name || '-'}
+                    </Typography>
+                  </Tooltip>
+                )}
                 <Typography
                   sx={{ fontStyle: 'italic', fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis' }}
                 >
@@ -137,7 +141,9 @@ const SpeciesDetail = ({ species = [], speciesCount, animalsCount }: SpeciesDeta
                   justifyContent: 'flex-start'
                 }}
               >
-                <span>Count: {specie.total_count}</span>
+                <span>
+                  {t('count')}: {specie.total_count}
+                </span>
                 {specie.male_count ? (
                   <Chip
                     label={`M - ${specie.male_count}`}

@@ -10,13 +10,18 @@ import debounce from 'lodash/debounce'
 import Toaster from 'src/components/Toaster'
 import type { NewSpeciesTabProps } from 'src/types/compliance'
 import type { Species } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const PAGE_SIZE = 10
 
 const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecies }: NewSpeciesTabProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const [showForm, setShowForm] = useState<boolean>(false)
-  const [formData, setFormData] = useState<{ commonName: string; scientificName: string }>({ commonName: '', scientificName: '' })
+  const [formData, setFormData] = useState<{ commonName: string; scientificName: string }>({
+    commonName: '',
+    scientificName: ''
+  })
   const [list, setList] = useState<Species[]>([])
   const [total, setTotal] = useState<number>(0)
   const [page, setPage] = useState<number>(1)
@@ -47,12 +52,11 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
         q: searchQuery
       })
 
-      const newItems: Species[] =
-        ((res?.data as any)?.records || []).map((item: any) => ({
-          ...item,
-          tsn_id: item?.taxonomy_id ?? undefined,
-          id: item?.id ?? undefined
-        }))
+      const newItems: Species[] = ((res?.data as any)?.records || []).map((item: any) => ({
+        ...item,
+        tsn_id: item?.taxonomy_id ?? undefined,
+        id: item?.id ?? undefined
+      }))
       const totalCount = (res?.data as any)?.total || 0
 
       setTotal(totalCount)
@@ -133,7 +137,7 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
             '&:hover': { backgroundColor: theme.palette.customColors.OnPrimaryContainer }
           }}
         >
-          Add New Species
+          {t('compliance_module.add_new_species')}
         </Button>
       ) : (
         <Box
@@ -149,7 +153,7 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
             <Typography
               sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '1.25rem', fontWeight: 500 }}
             >
-              Add New Species
+              {t('compliance_module.add_new_species')}
             </Typography>
             <IconButton onClick={handleCancel}>
               <CloseIcon />
@@ -158,20 +162,20 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <TextField
-              label='Common Name'
+              label={t('compliance_module.common_name')}
               variant='outlined'
               fullWidth
               value={formData.commonName}
               onChange={e => setFormData(prev => ({ ...prev, commonName: e.target.value }))}
-              placeholder='Enter common name'
+              placeholder={t('compliance_module.enter_common_name')}
             />
             <TextField
-              label='Scientific Name'
+              label={t('compliance_module.scientific_name')}
               variant='outlined'
               fullWidth
               value={formData.scientificName}
               onChange={e => setFormData(prev => ({ ...prev, scientificName: e.target.value }))}
-              placeholder='Enter scientific name'
+              placeholder={t('compliance_module.enter_scientific_name')}
             />
             <Button
               variant='contained'
@@ -196,10 +200,10 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
                       marginLeft: '-12px'
                     }}
                   />
-                  <span style={{ opacity: 0 }}>Save & Select</span>
+                  <span style={{ opacity: 0 }}>{t('compliance_module.save_and_select')}</span>
                 </>
               ) : (
-                'Save & Select'
+                t('compliance_module.save_and_select')
               )}
             </Button>
           </Box>
@@ -214,7 +218,7 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
           borderRadius: '8px',
           backgroundColor: theme.palette.common.white
         }}
-        placeholder='Search custom species'
+        placeholder={t('compliance_module.search_custom_species')}
         value={localSearch}
         onChange={e => {
           const value = e.target.value
@@ -228,7 +232,9 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
         backgroundColor={theme.palette.common.white}
       />
 
-      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>Species {total ? `(${total})` : ''}</Typography>
+      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, my: 4 }}>
+        {t('species')} {total ? `(${total})` : ''}
+      </Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
         {filteredList.map(species => (
@@ -255,13 +261,13 @@ const NewSpeciesTab = ({ selectedItems, onToggle, prevSelectedItems, onAddSpecie
 
         {!isLoading && filteredList.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No custom species found
+            {t('compliance_module.no_custom_species_found')}
           </Typography>
         )}
 
         {!hasMore && filteredList.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more species to load
+            {t('compliance_module.no_more_species_to_load')}
           </Typography>
         )}
       </Box>

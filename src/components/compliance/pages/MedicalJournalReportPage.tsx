@@ -1,6 +1,7 @@
 'use client'
 
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import { Box, Card, CardHeader, CircularProgress, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
@@ -276,6 +277,7 @@ const STATIC_MEDICAL_JOURNAL_ROWS = (() => {
 })()
 
 const MedicalJournalReport = () => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -372,7 +374,7 @@ const MedicalJournalReport = () => {
         color: theme.palette.customColors.OnSurfaceVariant
       }}
     >
-      Medical Journal Report
+      {t('compliance_module.medical_journal_report')}
     </Typography>
   )
 
@@ -969,7 +971,7 @@ const MedicalJournalReport = () => {
     {
       width: 90,
       field: 'sl_no',
-      headerName: 'S NO.',
+      headerName: t('compliance_module.sl_no'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -989,7 +991,7 @@ const MedicalJournalReport = () => {
     {
       width: 200,
       field: 'medical_id',
-      headerName: 'MEDICAL ID',
+      headerName: t('compliance_module.medical_id'),
       sortable: false,
       renderCell: params => renderMedicalIdCell(params.row)
     },
@@ -997,7 +999,7 @@ const MedicalJournalReport = () => {
       flex: 1.2,
       minWidth: 420,
       field: 'treatments',
-      headerName: 'TREATMENTS & OBSERVATIONS',
+      headerName: t('compliance_module.treatments_and_observations'),
       sortable: false,
       renderCell: params => renderTreatmentCell(params.row)
     },
@@ -1005,7 +1007,7 @@ const MedicalJournalReport = () => {
       flex: 0.8,
       minWidth: 260,
       field: 'notes',
-      headerName: 'NOTES',
+      headerName: t('notes'),
       sortable: false,
       renderCell: params => renderNotesCell(params.row)
     }
@@ -1168,9 +1170,9 @@ const MedicalJournalReport = () => {
           <Card sx={{ p: 6 }}>
             <CardHeader title={title} sx={{ pt: 0, pb: 4 }} />
             <ReportCard
-              subtitle='No animal selected'
-              description='Select any animal to view its medical journal report'
-              buttonText='SELECT ANIMAL'
+              subtitle={t('compliance_module.no_animal_selected')}
+              description={t('compliance_module.select_any_animal_to_view_medical_journal_report')}
+              buttonText={t('compliance_module.select_animal')}
               addHandler={reportCardEventHandler}
             />
           </Card>

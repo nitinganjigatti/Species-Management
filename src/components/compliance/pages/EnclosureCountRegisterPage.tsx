@@ -18,6 +18,7 @@ import AnimalCard from 'src/views/utility/AnimalCard'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { GridColDef } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface SiteData {
   site_id: string
@@ -50,6 +51,7 @@ type EmotionTheme = {
 }
 
 const EnclosureCountRegister = () => {
+  const { t } = useTranslation()
   const theme = useTheme() as EmotionTheme
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -215,7 +217,7 @@ const EnclosureCountRegister = () => {
     ;(async () => {
       try {
         setLoading(true)
-        const res = await getEnclosureCountRegister(params) as any
+        const res = (await getEnclosureCountRegister(params)) as any
         if (canceled) return
         if (res?.success) {
           const animals = res?.data?.animals || res?.data?.records || []
@@ -295,10 +297,10 @@ const EnclosureCountRegister = () => {
   }, [fetchKey])
 
   const pageTitle = !registerStats
-    ? 'Enclosure Count Register'
+    ? t('compliance_module.enclosure_count_register')
     : selectedItems?.reportType === 'individual'
-    ? 'Animal count register'
-    : 'Species-wise animal count register'
+    ? t('compliance_module.animal_count_register')
+    : t('compliance_module.species_wise_animal_count_register')
 
   const title = (
     <Typography
@@ -317,7 +319,7 @@ const EnclosureCountRegister = () => {
       minWidth: 250,
       width: 300,
       field: 'speciesName',
-      headerName: 'SPECIES NAME',
+      headerName: t('compliance_module.species_name'),
       sortable: false,
       renderCell: params => <SpeciesCard species={params.row} />
     },
@@ -325,7 +327,7 @@ const EnclosureCountRegister = () => {
       minWidth: 200,
       width: 250,
       field: 'enclosureName',
-      headerName: 'ENCLOSURE NAME',
+      headerName: t('compliance_module.enclosure_name'),
       sortable: false,
       renderCell: params => (
         <Tooltip
@@ -367,7 +369,7 @@ const EnclosureCountRegister = () => {
       minWidth: 80,
       width: 100,
       field: 'male',
-      headerName: 'MALE',
+      headerName: t('male'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -410,7 +412,7 @@ const EnclosureCountRegister = () => {
       minWidth: 80,
       width: 100,
       field: 'female',
-      headerName: 'FEMALE',
+      headerName: t('female'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -453,7 +455,7 @@ const EnclosureCountRegister = () => {
       minWidth: 80,
       width: 100,
       field: 'others',
-      headerName: 'OTHERS',
+      headerName: t('compliance_module.others'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -496,7 +498,7 @@ const EnclosureCountRegister = () => {
       minWidth: 80,
       width: 100,
       field: 'total',
-      headerName: 'TOTAL',
+      headerName: t('total'),
       sortable: false,
       align: 'center',
       headerAlign: 'center',
@@ -541,7 +543,7 @@ const EnclosureCountRegister = () => {
     {
       width: 320,
       field: 'animal_name',
-      headerName: 'ANIMAL NAME',
+      headerName: t('compliance_module.animal_name'),
       sortable: false,
       renderCell: params => (
         <Box sx={{ py: 2 }}>
@@ -552,7 +554,7 @@ const EnclosureCountRegister = () => {
     {
       width: 200,
       field: 'enclosureName',
-      headerName: 'ENCLOSURE NAME',
+      headerName: t('compliance_module.enclosure_name'),
       sortable: false,
       renderCell: params => (
         <Tooltip
@@ -592,7 +594,7 @@ const EnclosureCountRegister = () => {
     {
       width: 150,
       field: 'gender',
-      headerName: 'GENDER',
+      headerName: t('gender'),
       sortable: false,
       align: 'left',
       headerAlign: 'left',
@@ -744,7 +746,7 @@ const EnclosureCountRegister = () => {
     : registerStats?.site_name
     ? [registerStats.site_name as string]
     : []
-  const siteLabelPrefix = siteNamesList.length > 1 ? 'Sites' : 'Site'
+  const siteLabelPrefix = siteNamesList.length > 1 ? t('sites') : t('site')
 
   const enclosureNamesList = Array.isArray(registerStats?.enclosure_name)
     ? (registerStats!.enclosure_name as string[]).filter(Boolean)
@@ -752,7 +754,7 @@ const EnclosureCountRegister = () => {
     ? [registerStats.enclosure_name as string]
     : []
   const hasEnclosureNames = enclosureNamesList.length > 0
-  const enclosureLabelPrefix = enclosureNamesList.length > 1 ? 'Enclosures' : 'Enclosure'
+  const enclosureLabelPrefix = enclosureNamesList.length > 1 ? t('compliance_module.enclosures') : t('enclosure')
 
   const headerAction = (
     <Box sx={{ display: 'flex', gap: '24px' }}>
@@ -901,7 +903,7 @@ const EnclosureCountRegister = () => {
                       fontFamily: 'Inter'
                     }}
                   >
-                    {registerStats?.section_name ? 'Section' : 'Total Section Count'}:{' '}
+                    {registerStats?.section_name ? t('section') : t('compliance_module.total_section_count')}:{' '}
                     <span style={{ fontWeight: 500 }}>
                       {registerStats?.section_name || registerStats?.total_sections || '-'}
                     </span>
@@ -945,7 +947,7 @@ const EnclosureCountRegister = () => {
                         fontFamily: 'Inter'
                       }}
                     >
-                      Total Enclosure Count:{' '}
+                      {t('compliance_module.total_enclosure_count')}:{' '}
                       <span style={{ fontWeight: 500 }}>{registerStats?.total_enclosures || '-'}</span>
                     </Typography>
                   )}
@@ -961,14 +963,16 @@ const EnclosureCountRegister = () => {
               paginationModel={paginationModel}
               setPaginationModel={setPaginationModel}
               searchValue={searchValue}
-              onPaginationModelChange={((model: any) => {
-                setPaginationModel(model)
-                const p = new URLSearchParams(searchParams?.toString())
-                p.set('page', String(model.page + 1))
-                p.set('pageSize', String(model.pageSize))
-                p.set('searchValue', searchValue)
-                router.replace(`${pathname}?${p.toString()}`)
-              }) as any}
+              onPaginationModelChange={
+                ((model: any) => {
+                  setPaginationModel(model)
+                  const p = new URLSearchParams(searchParams?.toString())
+                  p.set('page', String(model.page + 1))
+                  p.set('pageSize', String(model.pageSize))
+                  p.set('searchValue', searchValue)
+                  router.replace(`${pathname}?${p.toString()}`)
+                }) as any
+              }
               sx={{}}
               style={{}}
               tableContainerStyle={{}}
@@ -984,9 +988,9 @@ const EnclosureCountRegister = () => {
           <Card sx={{ p: 6 }}>
             <CardHeader title={title} sx={{ p: 0, pb: 4 }} />
             <ReportCard
-              subtitle='No Site selected'
-              description='Select any Site to view its report'
-              buttonText='SELECT SITE & REPORT TYPE'
+              subtitle={t('compliance_module.no_site_selected')}
+              description={t('compliance_module.select_any_site_to_view_report')}
+              buttonText={t('compliance_module.select_site_and_report_type')}
               addHandler={reportCardEventHandler}
             />
           </Card>

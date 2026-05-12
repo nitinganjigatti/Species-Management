@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import { useTheme } from '@mui/material/styles'
 import DocumentUploadDrawer from './drawer/DocumentUploadDrawer'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams, useSearchParams } from 'next/navigation'
 import dayjs from 'dayjs'
 import Toaster from 'src/components/Toaster'
 import { addDocument, updateDocument } from 'src/lib/api/compliance/exports'
@@ -13,16 +13,24 @@ import Utility from 'src/utility'
 import type { SupportingDocumentsProps } from 'src/types/compliance'
 import type { ComplianceDocument } from 'src/types/compliance'
 import type { Id } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
-const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSuccess, type }: SupportingDocumentsProps) => {
+const SupportingDocuments = ({
+  isFetching,
+  documentList,
+  totalCount,
+  onAddEditSuccess,
+  type
+}: SupportingDocumentsProps) => {
+  const { t } = useTranslation()
   const [drawerOpen, setDrawerOpen] = useState<boolean>(false)
   const [currentDocumentType, setCurrentDocumentType] = useState<string | null>(null)
   const [currentDocumentData, setCurrentDocumentData] = useState<ComplianceDocument | null>(null)
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [expanded, setExpanded] = useState<Id | null>(null)
-  const router = useSafeRouter()
-
-  const { id } = router.query
+  const params = useParams()
+  const searchParams = useSearchParams()
+  const id = (params?.id as string) || searchParams?.get('id')
 
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
@@ -98,7 +106,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
     if (document?.file_path) {
       window.open(document.file_path, '_blank', 'noopener,noreferrer')
     } else {
-      Toaster({ type: 'error', message: 'No file available to view' })
+      Toaster({ type: 'error', message: t('compliance_module.no_file_available_to_view') })
     }
   }
 
@@ -106,7 +114,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
     <Box sx={{ mt: 2 }}>
       {documentList?.length ? (
         <Typography variant='h6' sx={{ mb: 2, fontWeight: 'bold', fontSize: isMobile ? '1rem' : '1.25rem' }}>
-          {completedCount}/{totalCount} Documents added
+          {completedCount}/{totalCount} {t('compliance_module.documents_added')}
         </Typography>
       ) : null}
 
@@ -172,10 +180,12 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                         <Collapse in={isExpanded}>
                           <Box sx={{ py: 1 }}>
                             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                              Issued Date: {Utility.formatDisplayDate(document.issued_date) || 'Not specified'}
+                              {t('compliance_module.issued_date')}:{' '}
+                              {Utility.formatDisplayDate(document.issued_date) || t('compliance_module.not_specified')}
                             </Typography>
                             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                              Reference Number: {(document.reference_number as string) || 'Not specified'}
+                              {t('compliance_module.reference_number')}:{' '}
+                              {(document.reference_number as string) || t('compliance_module.not_specified')}
                             </Typography>
                           </Box>
                         </Collapse>
@@ -241,7 +251,7 @@ const SupportingDocuments = ({ isFetching, documentList, totalCount, onAddEditSu
                       style={{ marginRight: '15px', marginLeft: '15px' }}
                     />
                     <Typography sx={{ color: theme.palette.primary.main, fontWeight: 400 }}>
-                      Upload Document
+                      {t('compliance_module.upload_document')}
                     </Typography>
                   </Box>
                 </Box>

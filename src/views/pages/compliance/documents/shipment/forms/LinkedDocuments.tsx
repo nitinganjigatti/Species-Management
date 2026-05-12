@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Typography, Box, List, ListItem, ListItemText, ListItemIcon, Collapse } from '@mui/material'
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 
 interface DocumentItem {
   document_type_name?: string
@@ -35,10 +36,11 @@ interface LinkedDocumentsProps {
 }
 
 const SectionBlock = ({ title, type, data }: SectionBlockProps) => {
+  const { t } = useTranslation()
   const [expanded, setExpanded] = useState<boolean>(false)
   const theme = useTheme()
 
-return (
+  return (
     <Box
       sx={{
         border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -66,7 +68,7 @@ return (
         {data?.length > 0 && (
           <Box display='flex' alignItems='center' gap={1}>
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#16825D', mr: 2 }}>
-              {expanded ? 'Collapse' : 'Expand'}
+              {expanded ? t('compliance_module.collapse') : t('compliance_module.expand')}
             </Typography>
             <img src={expanded ? '/icons/collapse.svg' : '/icons/expand.svg'} alt='toggle' width='24px' height='24px' />
           </Box>

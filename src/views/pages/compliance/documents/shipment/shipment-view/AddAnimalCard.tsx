@@ -3,6 +3,7 @@ import { Box, Typography, TextField, Button, Grid, useMediaQuery, CircularProgre
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import SelectAnimalsDrawer from '../drawer/SelectAnimalsDrawer'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Toaster from 'src/components/Toaster'
 
 interface AnimalItem {
@@ -102,6 +103,7 @@ const AnimalCardLayout = ({
   setDraftData,
   setexportPermitDrawerOpen
 }: AnimalCardLayoutProps) => {
+  const { t } = useTranslation()
   const theme = useTheme()
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [selectAnimalsDrawerOpen, setselectAnimalsDrawerOpen] = useState<boolean>(false)
@@ -133,7 +135,10 @@ const AnimalCardLayout = ({
     setCommonNameValue(name)
   }
 
-  const currentExport: ExportEntry = draftData?.export?.find(exp => exp.export_id === exportID) || { export_id: exportID, species: [] }
+  const currentExport: ExportEntry = draftData?.export?.find(exp => exp.export_id === exportID) || {
+    export_id: exportID,
+    species: []
+  }
 
   const findSpeciesIndex = (speciesId: string): number => {
     return currentExport?.species?.findIndex(s => s.master_species_id === speciesId)
@@ -260,7 +265,7 @@ const AnimalCardLayout = ({
     if (validatedExports.length === 0) {
       Toaster({
         type: 'error',
-        message: 'Please complete at least one export entry'
+        message: t('compliance_module.please_complete_at_least_one_export_entry')
       })
 
       return
@@ -344,7 +349,8 @@ const AnimalCardLayout = ({
                       fontSize: '16px'
                     }}
                   >
-                    {`${card.total_balance_animal}/${card.total_count}`} animals available for shipment
+                    {`${card.total_balance_animal}/${card.total_count}`}{' '}
+                    {t('compliance_module.animals_available_for_shipment')}
                   </Typography>
 
                   <Box
@@ -360,7 +366,7 @@ const AnimalCardLayout = ({
                         variant='subtitle2'
                         sx={{ fontWeight: '400', color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px' }}
                       >
-                        Animals part of shipment:
+                        {t('compliance_module.animals_part_of_shipment')}:
                       </Typography>
                       <Typography
                         variant='subtitle2'
@@ -392,7 +398,8 @@ const AnimalCardLayout = ({
                             fontWeight: 400
                           }}
                         >
-                          Male <span style={{ fontWeight: '500' }}>({card.total_balance_male_animal})</span>
+                          {t('compliance_module.male')}{' '}
+                          <span style={{ fontWeight: '500' }}>({card.total_balance_male_animal})</span>
                         </Typography>
                         <TextField
                           size='small'
@@ -441,7 +448,8 @@ const AnimalCardLayout = ({
                             fontWeight: 400
                           }}
                         >
-                          Female <span style={{ fontWeight: '500' }}>({card.total_balance_female_animal})</span>
+                          {t('compliance_module.female')}{' '}
+                          <span style={{ fontWeight: '500' }}>({card.total_balance_female_animal})</span>
                         </Typography>
                         <TextField
                           size='small'
@@ -489,7 +497,7 @@ const AnimalCardLayout = ({
                             marginBottom: '4px'
                           }}
                         >
-                          Unknown ({card.total_balance_undeterminate_animal})
+                          {t('compliance_module.unknown')} ({card.total_balance_undeterminate_animal})
                         </Typography>
                         <TextField
                           size='small'
@@ -550,10 +558,15 @@ const AnimalCardLayout = ({
                             cursor: 'pointer'
                           }}
                           onClick={() =>
-                            handleSelectAnimalsClick(card.animals || [], index, card.master_species_id, card.common_name || '')
+                            handleSelectAnimalsClick(
+                              card.animals || [],
+                              index,
+                              card.master_species_id,
+                              card.common_name || ''
+                            )
                           }
                         >
-                          Select from list
+                          {t('compliance_module.select_from_list')}
                           <ChevronRightIcon sx={{ fontSize: '22px', marginLeft: '4px' }} />
                         </Typography>
                         <Typography
@@ -563,7 +576,7 @@ const AnimalCardLayout = ({
                             fontSize: '16px'
                           }}
                         >
-                          {selectedCounts[card.master_species_id] || 0} Selected
+                          {selectedCounts[card.master_species_id] || 0} {t('selected')}
                         </Typography>
                       </Grid>
                     )}
@@ -582,7 +595,7 @@ const AnimalCardLayout = ({
                 fontWeight: '500'
               }}
             >
-              No Species to show
+              {t('compliance_module.no_species_to_show')}
             </Typography>
           )}
         </Box>
@@ -605,7 +618,7 @@ const AnimalCardLayout = ({
           }}
         >
           <Button fullWidth variant='contained' onClick={handleDone} disabled={isDoneDisabled()}>
-            Add
+            {t('add')}
           </Button>
         </Box>
       )}
@@ -615,7 +628,7 @@ const AnimalCardLayout = ({
         onClose={() => setselectAnimalsDrawerOpen(false)}
         animalLists={animalLists}
         exportNumber={exportNumber}
-        title='Select Animals'
+        title={t('compliance_module.select_animals')}
         speciesId={speciesId}
         speciesData={currentExport.species.find(s => s.master_species_id === speciesId) || {}}
         onSelectAnimals={selected => handleAnimalsSelected(speciesId, selected)}

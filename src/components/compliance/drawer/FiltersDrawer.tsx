@@ -8,6 +8,7 @@ import { debounce } from 'lodash'
 import CustomFilterDrawer from 'src/components/drawers/CustomFilterDrawer'
 import FilterContent from 'src/components/drawers/FilterContent'
 import type { FiltersDrawerProps, FilterSelectedOptions, FilterMenuData } from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
 
 const FiltersDrawer = ({
   openFilterDrawer,
@@ -18,6 +19,7 @@ const FiltersDrawer = ({
   initialSelectedOptions,
   contextId // Don't include contextId in props. As I was having this requirement for API call I used it here
 }: FiltersDrawerProps) => {
+  const { t } = useTranslation()
   const [selectedMenu, setSelectedMenu] = useState<string>('Species') // Change state value to select default menu item
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchLoading, setSearchLoading] = useState<boolean>(false)
@@ -43,6 +45,17 @@ const FiltersDrawer = ({
 
   const leftMenu = ['Species', 'Exporting country', 'Exporter', 'Importer', 'Documents'] // Change Items as per your requirement
 
+  const filterLabels = useMemo(
+    () => ({
+      Species: t('compliance_module.species'),
+      'Exporting country': t('compliance_module.exporting_country'),
+      Exporter: t('compliance_module.exporter'),
+      Importer: t('compliance_module.importer'),
+      Documents: t('compliance_module.documents')
+    }),
+    [t]
+  )
+
   const theme = useTheme()
   const countryListOptions = useMemo(() => countryList().getData(), []) // Just to show how it works with already existing data is used. If not requirement remove this
 
@@ -57,7 +70,7 @@ const FiltersDrawer = ({
         switch (menuName) {
           case 'Species':
             params = query ? { q: query } : {}
-            const speciesRes = await getSpeciesList(params) as any
+            const speciesRes = (await getSpeciesList(params)) as any
             data = speciesRes.success
               ? speciesRes?.data?.data?.map((item: any) => ({
                   label: item?.common_name || item?.scientific_name || '',
@@ -76,7 +89,7 @@ const FiltersDrawer = ({
           case 'Exporter':
             params = { type: 'exporter' }
             if (query) params.q = query
-            const exportersRes = await getMasterImports(params) as any
+            const exportersRes = (await getMasterImports(params)) as any
             data = exportersRes.success
               ? exportersRes?.data?.data?.map((item: any) => ({
                   label: item.name,
@@ -88,7 +101,7 @@ const FiltersDrawer = ({
           case 'Importer':
             params = { type: 'importer' }
             if (query) params.q = query
-            const importersRes = await getMasterImports(params) as any
+            const importersRes = (await getMasterImports(params)) as any
             data = importersRes.success
               ? importersRes?.data?.data?.map((item: any) => ({
                   label: item.name,
@@ -103,7 +116,7 @@ const FiltersDrawer = ({
               status: 1
             }
             if (query) params.q = query
-            const documentsRes = await getDocumentTypeList(params) as any
+            const documentsRes = (await getDocumentTypeList(params)) as any
             data = documentsRes.success
               ? documentsRes?.data?.records.map((item: any) => ({
                   label: item.name,
@@ -124,7 +137,9 @@ const FiltersDrawer = ({
         console.error(`Error ${query ? 'searching' : 'fetching'} ${menuName}:`, error)
         Toaster({
           type: 'error',
-          message: `Failed to ${query ? 'search' : 'load'} ${menuName} options`
+          message: query
+            ? t('compliance_module.failed_to_search_filter_options')
+            : t('compliance_module.failed_to_load_filter_options')
         })
       } finally {
         setSearchLoading(false)
@@ -163,11 +178,16 @@ const FiltersDrawer = ({
       // Just to show how it works with already existing data is used. If not required remove this
       // For locally available data (countries), filter immediately
       if (menuName === 'Exporting country') {
-        const filteredData = countryListOptions.filter((item: any) => item.label.toLowerCase().includes(query.toLowerCase()))
-        setMenuData(prev => ({
-          ...prev,
-          [menuName]: query ? filteredData : countryListOptions
-        }) as any)
+        const filteredData = countryListOptions.filter((item: any) =>
+          item.label.toLowerCase().includes(query.toLowerCase())
+        )
+        setMenuData(
+          prev =>
+            ({
+              ...prev,
+              [menuName]: query ? filteredData : countryListOptions
+            } as any)
+        )
 
         return
       }
@@ -260,13 +280,14 @@ const FiltersDrawer = ({
       onApply={applyFilters}
       onClearAll={handleClearAll}
       filterLists={leftMenu}
+      filterLabels={filterLabels}
       selectedOptions={selectedOptions}
       isSubmitting={onSubmitLoading}
       selectedItem={selectedMenu}
       onSelectItem={handleMenuClick}
     >
       {selectedMenu === 'Species' && ( // Change state keys as per your requirement
-        (<FilterContent
+        <FilterContent
           menuName='Species'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Species')}
@@ -276,11 +297,11 @@ const FiltersDrawer = ({
           items={menuData['Species']}
           isAllSelected={isAllSelected('Species')}
           searchLoading={searchLoading}
-          placeholder='Search species...'
-        />)
+          placeholder={t('compliance_module.search_species')}
+        />
       )}
       {selectedMenu === 'Exporting country' && ( // Change state keys as per your requirement
-        (<FilterContent
+        <FilterContent
           menuName='Exporting country'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Exporting country')}
@@ -290,11 +311,11 @@ const FiltersDrawer = ({
           items={menuData['Exporting country']}
           isAllSelected={isAllSelected('Exporting country')}
           searchLoading={searchLoading}
-          placeholder='Search countries...'
-        />)
+          placeholder={`${t('compliance_module.search_countries')}...`}
+        />
       )}
       {selectedMenu === 'Exporter' && ( // Change state keys as per your requirement
-        (<FilterContent
+        <FilterContent
           menuName='Exporter'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Exporter')}
@@ -304,11 +325,11 @@ const FiltersDrawer = ({
           items={menuData['Exporter']}
           isAllSelected={isAllSelected('Exporter')}
           searchLoading={searchLoading}
-          placeholder='Search exporters...'
-        />)
+          placeholder={`${t('compliance_module.search_exporters')}...`}
+        />
       )}
       {selectedMenu === 'Importer' && ( // Change state keys as per your requirement
-        (<FilterContent
+        <FilterContent
           menuName='Importer'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Importer')}
@@ -318,11 +339,11 @@ const FiltersDrawer = ({
           items={menuData['Importer']}
           isAllSelected={isAllSelected('Importer')}
           searchLoading={searchLoading}
-          placeholder='Search importers...'
-        />)
+          placeholder={`${t('compliance_module.search_importers')}...`}
+        />
       )}
       {selectedMenu === 'Documents' && ( // Change state keys as per your requirement
-        (<FilterContent
+        <FilterContent
           menuName='Documents'
           searchQuery={searchQuery}
           onSearch={query => handleSearch(query, 'Documents')}
@@ -332,11 +353,11 @@ const FiltersDrawer = ({
           items={menuData['Documents']}
           isAllSelected={isAllSelected('Documents')}
           searchLoading={searchLoading}
-          placeholder='Search documents...'
-        />)
+          placeholder={`${t('compliance_module.search_documents')}...`}
+        />
       )}
     </CustomFilterDrawer>
-  );
+  )
 }
 
 export default FiltersDrawer

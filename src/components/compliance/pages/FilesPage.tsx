@@ -10,6 +10,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import { GridColDef, GridSortModel } from '@mui/x-data-grid'
+import { useTranslation } from 'react-i18next'
 
 interface FileRecord {
   id: number
@@ -36,6 +37,7 @@ const addFile = async (data: unknown) => ({ success: true, message: 'File added'
 const updateFile = async (id: unknown, data: unknown) => ({ success: true, message: 'File updated' })
 
 const FilesPage = () => {
+  const { t } = useTranslation()
   const { userData } = useContext(AuthContext)
   const canEdit = (userData as any)?.roles?.settings?.file_module === 'EDIT'
 
@@ -82,12 +84,12 @@ const FilesPage = () => {
   const handleSearch = (val: string) => debouncedSearch(val)
 
   const columns: GridColDef[] = [
-    { field: 'name', headerName: 'File Name', flex: 0.4 },
-    { field: 'shipments', headerName: 'Shipments', flex: 0.2 },
-    { field: 'created_on', headerName: 'Created On', flex: 0.25 },
+    { field: 'name', headerName: t('compliance_module.file_name'), flex: 0.4 },
+    { field: 'shipments', headerName: t('compliance_module.shipments'), flex: 0.2 },
+    { field: 'created_on', headerName: t('created_on'), flex: 0.25 },
     {
       field: 'action',
-      headerName: 'Actions',
+      headerName: t('actions'),
       flex: 0.15,
       sortable: false,
       renderCell: () =>
@@ -119,16 +121,16 @@ const FilesPage = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
-        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Files</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>{t('documents')}</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>{t('compliance_module.files')}</Typography>
       </Breadcrumbs>
       <Card>
         <CardHeader
-          title='Files'
+          title={t('compliance_module.files')}
           sx={{ px: 5 }}
           action={
             <AddButtonContained
-              title='ADD NEW'
+              title={t('add_new')}
               action={() => {
                 // Replace with drawer opening logic
                 console.log('Open add file drawer')
@@ -162,8 +164,7 @@ const FilesPage = () => {
                 startIcon={<FilterListIcon />}
                 endIcon={<Badge badgeContent={filterCount} color='primary' invisible={filterCount === 0} />}
                 sx={{
-                  border: (theme: any) =>
-                    `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  border: (theme: any) => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   height: '40px',
                   color: 'customColors.OnSurfaceVariant',
@@ -171,7 +172,7 @@ const FilesPage = () => {
                 }}
                 onClick={handleFilterDrawer}
               >
-                Filter
+                {t('filter')}
               </Button>
             </Box>
           </Grid>
