@@ -137,16 +137,21 @@ const CollectionAnimalDetail: React.FC = () => {
       <DynamicBreadcrumbs
         sx={{ mb: 5 }}
         pageItems={[
-          //   { title: 'Collection', href: '/collection/species' },
-          // { title: 'Species', href: '/collection/species' },
-          // { title: speciesId || '', href: `/collection/species/${speciesId}?tab=population` },
           { title: 'Collection', href: ROUTES.collection.species },
           { title: 'Species', href: ROUTES.collection.species },
           {
-            title: speciesId || '',
+            // Species name (e.g. "Lion") reads better than the raw taxonomy id ("135694").
+            // Falls back to the id while the overview query is in flight so the segment isn't empty.
+            title: animalDetails?.commonName || speciesId || '',
             href: speciesId ? `${ROUTES.collection.speciesDetail(speciesId)}?tab=population` : '#'
           },
-          { title: animalDetails?.commonName || '', href: '#', active: true }
+          {
+            // Animal-specific identifier so the last segment doesn't duplicate the species name above.
+            // Prefer the local id the user assigned (e.g. tag / marking); fall back to "AID: <id>".
+            title: animalDetails?.localIdentifier || (animalDetails?.aid ? `AID: ${animalDetails.aid}` : ''),
+            href: '#',
+            active: true
+          }
         ]}
       />
 

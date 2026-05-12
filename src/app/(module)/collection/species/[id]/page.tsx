@@ -176,7 +176,10 @@ const SpeciesDetail: React.FC = () => {
   return (
     <>
       <Box>
-        <DynamicBreadcrumbs sx={{ mb: 5 }} />
+        <DynamicBreadcrumbs
+          sx={{ mb: 5 }}
+          lastBreadcrumbLabel={speciesData.common_name || (speciesLoading ? 'Loading…' : '')}
+        />
 
         {/* Species Insights Banner */}
         <InsightsCard
