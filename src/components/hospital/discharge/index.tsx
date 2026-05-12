@@ -797,7 +797,17 @@ const InpatientDischarge = ({ patientData, refetchPatient }: InpatientDischargeP
     let timeoutId: ReturnType<typeof setTimeout> | null = null
 
     const handleNavigation = (url: string) => {
-      if (!String(url).includes('schedule-prescription')) {
+      const newUrl = String(url ?? '')
+
+      // Skip same-page URL state mutations (e.g., clearing the hash after scroll)
+      try {
+        const resolved = new URL(newUrl, window.location.href)
+        if (resolved.pathname === window.location.pathname) return
+      } catch {
+        return
+      }
+
+      if (!newUrl.includes('schedule-prescription')) {
         timeoutId = setTimeout(() => clearEnclosureData(), 0)
       }
     }
