@@ -37,7 +37,7 @@ const EntityDetailView = ({
 
   return (
     <Box>
-      <Breadcrumbs sx={{ mb: 1, fontSize: 13 }}>
+      <Breadcrumbs sx={{ mb: 1 }}>
         {breadcrumb.map((crumb, i) =>
           crumb.href ? (
             <Link key={i} href={crumb.href} underline='hover' sx={{ color: 'customColors.neutralSecondary' }}>
