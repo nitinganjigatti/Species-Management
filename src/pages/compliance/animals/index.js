@@ -63,7 +63,7 @@ const ComplianceAnimalsPage = () => {
   const renderAnimalCell = params => {
     const a = params.row
     const initials = (a.compliance_common_name || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
-    const genderBg = a.sex === 'male' ? 'customColors.PrimaryContainer' : a.sex === 'female' ? '#FFD3D3' : '#DDEBE9'
+    const genderBg = a.sex === 'male' ? '#AFEFEB' : a.sex === 'female' ? '#FFD3D3' : '#DDEBE9'
     const genderFg = a.sex === 'male' ? '#1F415B' : a.sex === 'female' ? '#4A0415' : '#E93353'
     const genderLabel = a.sex === 'male' ? '♂' : a.sex === 'female' ? '♀' : '?'
     return (
