@@ -5,7 +5,7 @@
 // Unified login endpoint — discovery (email only) + full auth (email + password).
 // export const SSO_LOGIN_CHECK = 'v2/auth/user/login' renamed  '/v2/auth/login'
 
-export const SSO_LOGIN_CHECK = '/v2/auth/login'
+export const SSO_LOGIN_CHECK = 'v2/auth/login'
 
 // Bootstrap the Antz session from a valid WSO2 access token after callback.
 // export const WSO_SESSION = 'v2/auth/session' renamed  '/v1/auth/session'

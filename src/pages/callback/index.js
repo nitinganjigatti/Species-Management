@@ -21,11 +21,14 @@ import Spinner from 'src/@core/components/spinner'
 import client from 'src/lib/auth/wso2Client'
 import { hydrateBackendSession } from 'src/lib/auth/wso2Hydrate'
 import { useAuth } from 'src/hooks/useAuth'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { readAsync } from 'src/lib/windows/utils'
 import toast from 'react-hot-toast'
 
 const CallbackPage = () => {
   const router = useSafeRouter()
   const auth = useAuth()
+  const { setSelectedPharmacy } = usePharmacyContext()
   const [error, setError] = useState(null)
 
   // React 18 Strict Mode mounts effects twice in dev — and OAuth authorization
@@ -94,6 +97,13 @@ const CallbackPage = () => {
       // they're forced to re-auth (and we don't loop on the next visit).
       try {
         const { userData, resData } = await hydrateBackendSession()
+        // Sync pharmacy context BEFORE setting user — nav renders immediately
+        // after setUser and reads selectedPharmacy from context. Without this,
+        // reconcilePharmacyStorage (called inside hydrateBackendSession) only
+        // writes localStorage but never updates the React context, so the nav
+        // renders with empty selectedPharmacy and shows only master items.
+        const storedPharmacy = await readAsync('selectedStore')
+        if (storedPharmacy) setSelectedPharmacy(storedPharmacy)
         if (auth?.setUser) auth.setUser({ ...userData })
         if (auth?.setUserData) auth.setUserData({ ...resData })
         console.info('[callback] hydrate ok, auth.user set:', userData?.email)

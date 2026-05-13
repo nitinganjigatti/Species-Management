@@ -1,5 +1,5 @@
 // ** React Imports
-import { use, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -167,8 +167,8 @@ const LoginPage = () => {
     setLogoutReasonMsg('')
     localStorage.removeItem('logout_reason')
     setSsoLoading(true)
-    const res = await ssoLoginCheck({ email: ssoEmail, password })
 
+    const res = await ssoLoginCheck({ email: ssoEmail, password })
     if (res?.success === false) {
       setLoginError(res?.message || 'Login failed')
       setSsoLoading(false)
