@@ -1,19 +1,26 @@
-import React from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, CircularProgress, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 // SplitPaneGrid — a generic two-pane matrix layout:
 //
 //   ┌──────────────┬──────────────────────────────────────┐
-//   │ corner       │  col header  │  col header  │  ...   │ ← sticky header row
+//   │ corner       │  col header  │  col header  │  ...   │ ← sticky header strip
 //   ├──────────────┼──────────────┼──────────────┼────────┤
 //   │ row header   │   cell       │   cell       │  ...   │
 //   │ row header   │   cell       │   cell       │  ...   │
 //   └──────────────┴──────────────────────────────────────┘
 //
 // The left column is fixed; the right side scrolls horizontally when columns overflow.
-// Both panes share row heights (via grid-auto-rows + gap), so rows on the left and right stay aligned.
-// The component is data-agnostic — callers supply rows, columns, and three render functions.
+//
+// Layout note — header strip and body strip are *separate* flex rows, not one big grid. This
+// matters for sticky positioning: the body's right pane needs `overflow-x: auto` for horizontal
+// scrolling, and per the CSS Overflow spec that coerces `overflow-y` to `auto` too, turning the
+// pane into a vertical scroll container. Anything `position: sticky` inside that container pins
+// against the pane (which doesn't scroll vertically) instead of the viewport — so column headers
+// nested inside would silently fail to stick. Separating the strips puts column headers under
+// an overflow:hidden parent that mirrors the body's horizontal scroll via a scroll listener,
+// while leaving the corner + column header strip free to stick against the viewport.
 
 export interface SplitPaneGridProps<R, C> {
   rows: R[]
@@ -47,6 +54,17 @@ export interface SplitPaneGridProps<R, C> {
   stickyHeader?: boolean
   maxBodyHeight?: number | string
 
+  // When true, the corner + column header row uses `position: fixed` instead of `position: sticky`.
+  // Use this when an ancestor in the layout creates a scroll container (e.g. `overflow: hidden`)
+  // that traps sticky — fixed pins to the viewport unconditionally, ignoring overflow ancestors.
+  // The component measures its own outer container to keep left/width aligned with the in-flow
+  // position; a spacer below the fixed bar reserves its height so the body doesn't shift up.
+  fixedHeader?: boolean
+
+  // Offset (px) applied to the header's `top`. Used by both stickyHeader and fixedHeader modes
+  // to clear elements above (layout AppBar + any fixed page title bar).
+  stickyTopOffset?: number | string
+
   // States
   loading?: boolean
   empty?: React.ReactNode
@@ -73,21 +91,79 @@ const SplitPaneGrid = <R, C>({
   emptyText = 'No data',
   scrollRef,
   stickyHeader = false,
-  maxBodyHeight
+  maxBodyHeight,
+  fixedHeader = false,
+  stickyTopOffset = 0
 }: SplitPaneGridProps<R, C>) => {
   const theme = useTheme() as any
 
-  // Sticky-header mode pins the corner + column-header row to the top of the nearest scroll
-  // ancestor (the page viewport, unless `maxBodyHeight` constrains it to a fixed scroll area).
-  // Disabled by default so existing callers get the same flow layout they used to.
-  //
-  // Row-header stickiness during horizontal scroll is inherent to the layout: the left pane is a
-  // separate flex item from the right scroll pane, so row headers never move while the right pane
-  // scrolls horizontally. No extra CSS needed.
-  const stickyHeaderSx = stickyHeader
+  // Body pane is the horizontal scroll source. The caller can pass its own ref (AssessmentGrid
+  // uses it for programmatic column scroll), otherwise we hold one locally.
+  const internalBodyRef = useRef<HTMLDivElement>(null)
+  const bodyScrollRef = scrollRef ?? internalBodyRef
+
+  // Header pane mirrors the body's horizontal scroll. `overflow-x: hidden` prevents the user from
+  // scrolling it directly — the body is the source of truth.
+  const headerScrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const body = bodyScrollRef.current
+    const header = headerScrollRef.current
+    if (!body || !header) return
+    const onScroll = () => {
+      header.scrollLeft = body.scrollLeft
+    }
+    body.addEventListener('scroll', onScroll, { passive: true })
+
+    return () => body.removeEventListener('scroll', onScroll)
+  }, [bodyScrollRef])
+
+  // Fixed-header mode: measure the outer container so the position:fixed bar can mirror its
+  // left/width. Updates on resize and on sidebar collapse (ResizeObserver picks up the width
+  // change). The header's own height is also measured so we can render a spacer that reserves
+  // its slot in flow.
+  const outerRef = useRef<HTMLDivElement>(null)
+  const headerBarRef = useRef<HTMLDivElement>(null)
+  const [outerRect, setOuterRect] = useState({ left: 0, width: 0 })
+  const [headerBarHeight, setHeaderBarHeight] = useState(headerHeight)
+
+  useLayoutEffect(() => {
+    if (!fixedHeader) return
+    const outer = outerRef.current
+    if (!outer) return
+    const update = () => {
+      const r = outer.getBoundingClientRect()
+      setOuterRect({ left: r.left, width: r.width })
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(outer)
+    window.addEventListener('resize', update)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [fixedHeader])
+
+  useLayoutEffect(() => {
+    if (!fixedHeader) return
+    const bar = headerBarRef.current
+    if (!bar) return
+    const update = () => setHeaderBarHeight(bar.getBoundingClientRect().height)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(bar)
+
+    return () => ro.disconnect()
+  }, [fixedHeader])
+
+  // Sticky mode (legacy): pins via position:sticky. Fails when an ancestor like
+  // VerticalLayoutWrapper has `overflow: hidden`, which is why fixedHeader exists.
+  const stickyStripSx = stickyHeader && !fixedHeader
     ? {
         position: 'sticky' as const,
-        top: 0,
+        top: stickyTopOffset,
         zIndex: 5,
         backgroundColor: theme.palette.background.default
       }
@@ -124,26 +200,75 @@ const SplitPaneGrid = <R, C>({
   const rowKey = (r: R, i: number) => getRowKey?.(r, i) ?? i
   const colKey = (c: C, i: number) => getColumnKey?.(c, i) ?? i
 
-  // Use a single explicit row template so both panes (left fixed + right grid) share row tracks.
-  // First track is the header (headerHeight); the remaining N tracks are body rows (rowHeight each).
-  const rowsTemplate = `${headerHeight}px repeat(${rows.length}, ${rowHeight}px)`
+  const columnsTemplate = `repeat(${columns.length}, ${columnWidth}px)`
+  const bodyRowsTemplate = `repeat(${rows.length}, ${rowHeight}px)`
+
+  // Fixed mode positions the header strip out of flow. Left/width track the outer container so
+  // the bar stays aligned with the in-flow content (including when the sidebar collapses).
+  const fixedStripSx = fixedHeader
+    ? {
+        position: 'fixed' as const,
+        top: stickyTopOffset,
+        left: outerRect.left,
+        width: outerRect.width,
+        zIndex: 5,
+        backgroundColor: theme.palette.background.default
+      }
+    : undefined
 
   return (
-    <Box>
+    <Box ref={outerRef}>
       {topBar}
+
+      {/* Header strip — corner + column headers. In `fixedHeader` mode the strip is taken out of
+          flow (position:fixed) and a spacer below reserves its height. In `stickyHeader` mode the
+          strip stays in flow with position:sticky. Either way, the strip lives outside the body's
+          overflow:auto container so the column headers align with the corner as one row. */}
+      <Box
+        ref={headerBarRef}
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          ...(fixedHeader ? fixedStripSx : { mb: gap, ...(stickyStripSx ?? {}) })
+        }}
+      >
+        <Box sx={{ width: leftColumnWidth, flexShrink: 0, height: headerHeight, mr: gap }}>
+          {renderCornerHeader?.() ?? null}
+        </Box>
+        <Box ref={headerScrollRef} sx={{ flex: 1, overflowX: 'hidden', minWidth: 0 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: columnsTemplate,
+              height: headerHeight,
+              columnGap: gap,
+              width: 'max-content'
+            }}
+          >
+            {columns.map((col, cIdx) => (
+              <Box key={`hdr-${String(colKey(col, cIdx))}`}>{renderColumnHeader(col, cIdx)}</Box>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+
+      {/* Spacer for the fixed header — reserves headerBarHeight + the gap that would have been
+          applied via `mb` if the strip were in flow. */}
+      {fixedHeader && <Box sx={{ height: headerBarHeight, mb: gap }} />}
+
+      {/* Body strip — row headers (fixed left) + body cells (horizontally scrollable right).
+          Row tracks are defined per pane but use the same template so left and right rows align. */}
       <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%', ...(scrollAreaSx ?? {}) }}>
-        {/* Left fixed column: corner + per-row headers. Same row template + gap as the right grid → aligned. */}
         <Box
           sx={{
             width: leftColumnWidth,
             flexShrink: 0,
             display: 'grid',
-            gridTemplateRows: rowsTemplate,
+            gridTemplateRows: bodyRowsTemplate,
             rowGap: gap,
             mr: gap
           }}
         >
-          <Box sx={stickyHeaderSx}>{renderCornerHeader?.() ?? null}</Box>
           {rows.map((row, rIdx) => (
             <Box key={rowKey(row, rIdx)} sx={{ minHeight: 0, overflow: 'hidden' }}>
               {renderRowHeader(row, rIdx)}
@@ -151,25 +276,16 @@ const SplitPaneGrid = <R, C>({
           ))}
         </Box>
 
-        {/* Right scrollable area — horizontal overflow when columns exceed viewport. */}
-        <Box ref={scrollRef} sx={{ flex: 1, overflowX: 'auto', minWidth: 0 }}>
+        <Box ref={bodyScrollRef} sx={{ flex: 1, overflowX: 'auto', minWidth: 0 }}>
           <Box
             sx={{
               display: 'grid',
-              gridTemplateColumns: `repeat(${columns.length}, ${columnWidth}px)`,
-              gridTemplateRows: rowsTemplate,
+              gridTemplateColumns: columnsTemplate,
+              gridTemplateRows: bodyRowsTemplate,
               gap,
               width: 'max-content'
             }}
           >
-            {/* Header row */}
-            {columns.map((col, cIdx) => (
-              <Box key={`hdr-${String(colKey(col, cIdx))}`} sx={stickyHeaderSx}>
-                {renderColumnHeader(col, cIdx)}
-              </Box>
-            ))}
-
-            {/* Body cells — row-major */}
             {rows.flatMap((row, rIdx) =>
               columns.map((col, cIdx) => (
                 <Box

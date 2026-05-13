@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Box, Button, IconButton, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation'
@@ -60,6 +60,50 @@ const BatchAssessmentPage: React.FC = () => {
 
   const [pickerOpen, setPickerOpen] = useState(false)
   const [filterOpen, setFilterOpen] = useState(false)
+
+  // Fixed-header positioning. The layout's VerticalLayoutWrapper has `overflow-x: hidden` which
+  // makes it a scroll container and breaks `position: sticky` for descendants — so we use
+  // `position: fixed` instead. Fixed pins to the viewport unconditionally, but we have to
+  // measure two things ourselves:
+  //   1. contentRect — the page's content area left/width, so the fixed bar stays aligned with
+  //      the in-flow content and shifts when the sidebar collapses.
+  //   2. titleBarHeight — so the spacer below reserves the right slot in flow, and so the grid's
+  //      fixed header strip can be offset to sit right under BackTitleBar.
+  const APPBAR_HEIGHT = 64
+  const contentRectRef = useRef<HTMLDivElement>(null)
+  const titleBarRef = useRef<HTMLDivElement>(null)
+  const [contentRect, setContentRect] = useState({ left: 0, width: 0 })
+  const [titleBarHeight, setTitleBarHeight] = useState(0)
+
+  useLayoutEffect(() => {
+    const el = contentRectRef.current
+    if (!el) return
+    const update = () => {
+      const r = el.getBoundingClientRect()
+      setContentRect({ left: r.left, width: r.width })
+    }
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    window.addEventListener('resize', update)
+
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  useLayoutEffect(() => {
+    const el = titleBarRef.current
+    if (!el) return
+    const update = () => setTitleBarHeight(el.getBoundingClientRect().height)
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+
+    return () => ro.disconnect()
+  }, [])
+  const gridStickyOffset = APPBAR_HEIGHT + titleBarHeight
 
   // Entry drawer state — populated when the user clicks a cell in the grid.
   const [entryDrawer, setEntryDrawer] = useState<{
@@ -124,11 +168,22 @@ const BatchAssessmentPage: React.FC = () => {
   }
 
   return (
-    <Box>
-      <BackTitleBar
-        title={t('species_module.species_assessment_header')}
-        onBack={() => router.back()}
-        actions={
+    <Box ref={contentRectRef}>
+      <Box
+        sx={{
+          position: 'fixed',
+          top: APPBAR_HEIGHT,
+          left: contentRect.left,
+          width: contentRect.width,
+          zIndex: 10,
+          backgroundColor: theme.palette.background.default
+        }}
+      >
+        <Box ref={titleBarRef}>
+        <BackTitleBar
+          title={t('species_module.species_assessment_header')}
+          onBack={() => router.back()}
+          actions={
           selectedTypeIds.length > 0 ? (
             <>
               <IconButton
@@ -176,7 +231,12 @@ const BatchAssessmentPage: React.FC = () => {
             </>
           ) : null
         }
-      />
+        />
+        </Box>
+      </Box>
+
+      {/* Spacer to reserve the flow-space the fixed BackTitleBar would have taken. */}
+      <Box sx={{ height: titleBarHeight }} />
 
       {selectedTypeIds.length === 0 ? (
         <Box
@@ -204,6 +264,7 @@ const BatchAssessmentPage: React.FC = () => {
           filters={filters}
           page={page}
           onPageChange={handlePageChange}
+          stickyTopOffset={gridStickyOffset}
           selectedCell={
             entryDrawer
               ? { animalId: entryDrawer.animals[entryDrawer.animalIndex]?.animal_id, columnId: entryDrawer.columns[entryDrawer.columnIndex]?.id }

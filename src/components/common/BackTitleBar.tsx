@@ -70,8 +70,7 @@ const BackTitleBar: React.FC<BackTitleBarProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        py: 2,
-        mb: 3,
+        py: 3,
         gap: 2,
         ...(stickySx ?? {}),
         ...(sx ?? {})

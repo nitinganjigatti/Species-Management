@@ -38,6 +38,10 @@ export interface AssessmentGridProps {
     lastEntry: LastEntry | null,
     context: { animals: AnimalRow[]; columns: TypeColumn[]; animalIndex: number; columnIndex: number }
   ) => void
+
+  // Offset for the sticky header row, used to clear the layout AppBar + any sticky page title
+  // bar rendered above this grid by the parent page.
+  stickyTopOffset?: number
 }
 
 // Loose shapes — backend response is being mapped defensively until we have a fixed schema.
@@ -195,7 +199,8 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
   page,
   onPageChange,
   selectedCell,
-  onCellClick
+  onCellClick,
+  stickyTopOffset
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
@@ -325,7 +330,8 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
         renderRowHeader={renderRowHeader}
         renderColumnHeader={renderColumnHeader}
         renderCell={renderCell}
-        stickyHeader
+        fixedHeader
+        stickyTopOffset={stickyTopOffset}
       />
 
       {/* Pagination — same MUI TablePagination treatment used in CommonTable / sticky-table across the app.
