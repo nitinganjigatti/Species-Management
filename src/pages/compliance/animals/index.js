@@ -40,7 +40,8 @@ const ComplianceAnimalsPage = () => {
         q: searchValue || undefined,
         ...filters
       }),
-    enabled: router.isReady
+    enabled: router.isReady,
+    placeholderData: previousData => previousData
   })
 
   const rows = useMemo(

@@ -27,7 +27,8 @@ const SpeciesDetailPage = () => {
         limit: pagination.pageSize,
         q: search || undefined
       }),
-    enabled: Boolean(id)
+    enabled: Boolean(id),
+    placeholderData: previousData => previousData
   })
 
   const { data: sitesData } = useQuery({
@@ -63,13 +64,26 @@ const SpeciesDetailPage = () => {
     { label: 'Animals tracked', value: species?.animal_count, icon: 'mdi:paw', color: tokens.Tertiary, bg: tokens.BgTeritary }
   ]
 
+  const breadcrumb = [
+    { label: 'Compliance Dashboard', href: '/compliance/dashboard' },
+    { label: 'Species', href: '/compliance/dashboard' }
+  ]
+  if (router.query.from_org_name && router.query.from_org) {
+    breadcrumb.push({
+      label: router.query.from_org_name,
+      href: `/compliance/dashboard/orgs/${router.query.from_org}`
+    })
+  } else if (router.query.from_site_name && router.query.from_site) {
+    breadcrumb.push({
+      label: router.query.from_site_name,
+      href: `/compliance/dashboard/sites/${router.query.from_site}`
+    })
+  }
+  breadcrumb.push({ label: species?.compliance_common_name ?? '…' })
+
   return (
     <EntityDetailView
-      breadcrumb={[
-        { label: 'Compliance Dashboard', href: '/compliance/dashboard' },
-        { label: 'Species', href: '/compliance/dashboard' },
-        { label: species?.compliance_common_name ?? '…' }
-      ]}
+      breadcrumb={breadcrumb}
       title={species?.compliance_common_name ?? '…'}
       subtitle={species ? species.compliance_scientific_name : ''}
       stats={stats}
@@ -87,11 +101,21 @@ const SpeciesDetailPage = () => {
       primarySearch={search}
       setPrimarySearch={setSearch}
       primaryLoading={orgsLoading}
-      onPrimaryRowClick={params => router.push(`/compliance/dashboard/orgs/${params.row.org_id}`)}
+      onPrimaryRowClick={params =>
+        router.push({
+          pathname: `/compliance/dashboard/orgs/${params.row.org_id}`,
+          query: { from_species: id, from_species_name: species?.compliance_common_name ?? '' }
+        })
+      }
       secondaryPanelTitle='Sites'
       secondaryPanelSubtitle={`${species?.site_count ?? 0} sites · share of animals`}
       secondaryRows={secondaryRows}
-      onSecondaryRowClick={r => router.push(`/compliance/dashboard/sites/${r.id}`)}
+      onSecondaryRowClick={r =>
+        router.push({
+          pathname: `/compliance/dashboard/sites/${r.id}`,
+          query: { from_species: id, from_species_name: species?.compliance_common_name ?? '' }
+        })
+      }
       animalsCount={species?.animal_count}
       onViewAnimals={() => router.push(`/compliance/animals?compliance_species_id=${id}`)}
       onExport={() => {}}

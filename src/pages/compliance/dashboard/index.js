@@ -65,18 +65,24 @@ const ComplianceDashboardOverview = () => {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
         q: searchValue || undefined
-      })
+      }),
+    placeholderData: previousData => previousData
   })
 
   const rows = useMemo(() => {
     const items = tabData?.data?.items ?? []
-    const idKey = ROW_ID_KEYS[activeTab]
-    return items.map(item => ({ ...item, id: item[idKey] }))
-  }, [tabData, activeTab])
+    return items
+      .map(item => ({
+        ...item,
+        id: item.org_id ?? item.site_id ?? item.compliance_species_id
+      }))
+      .filter(row => row.id !== undefined)
+  }, [tabData])
 
   const handleRowClick = params => {
-    const id = params.row[ROW_ID_KEYS[activeTab]]
-    router.push(`/compliance/dashboard/${activeTab}/${id}`)
+    if (params.row.org_id) router.push(`/compliance/dashboard/orgs/${params.row.org_id}`)
+    else if (params.row.site_id) router.push(`/compliance/dashboard/sites/${params.row.site_id}`)
+    else if (params.row.compliance_species_id) router.push(`/compliance/dashboard/species/${params.row.compliance_species_id}`)
   }
 
   const handleTabChange = next => {

@@ -27,7 +27,8 @@ const SiteDetailPage = () => {
         limit: pagination.pageSize,
         q: search || undefined
       }),
-    enabled: Boolean(id)
+    enabled: Boolean(id),
+    placeholderData: previousData => previousData
   })
 
   const { data: orgsData } = useQuery({
@@ -63,13 +64,26 @@ const SiteDetailPage = () => {
     { label: 'Animals tracked', value: site?.animal_count, icon: 'mdi:paw', color: tokens.Tertiary, bg: tokens.BgTeritary }
   ]
 
+  const breadcrumb = [
+    { label: 'Compliance Dashboard', href: '/compliance/dashboard' },
+    { label: 'Sites', href: '/compliance/dashboard' }
+  ]
+  if (router.query.from_org_name && router.query.from_org) {
+    breadcrumb.push({
+      label: router.query.from_org_name,
+      href: `/compliance/dashboard/orgs/${router.query.from_org}`
+    })
+  } else if (router.query.from_species_name && router.query.from_species) {
+    breadcrumb.push({
+      label: router.query.from_species_name,
+      href: `/compliance/dashboard/species/${router.query.from_species}`
+    })
+  }
+  breadcrumb.push({ label: site?.site_name ?? '…' })
+
   return (
     <EntityDetailView
-      breadcrumb={[
-        { label: 'Compliance Dashboard', href: '/compliance/dashboard' },
-        { label: 'Sites', href: '/compliance/dashboard' },
-        { label: site?.site_name ?? '…' }
-      ]}
+      breadcrumb={breadcrumb}
       title={site?.site_name ?? '…'}
       subtitle={site ? `Site · ID ${site.site_id}` : ''}
       stats={stats}
@@ -88,11 +102,21 @@ const SiteDetailPage = () => {
       primarySearch={search}
       setPrimarySearch={setSearch}
       primaryLoading={speciesLoading}
-      onPrimaryRowClick={params => router.push(`/compliance/dashboard/species/${params.row.compliance_species_id}`)}
+      onPrimaryRowClick={params =>
+        router.push({
+          pathname: `/compliance/dashboard/species/${params.row.compliance_species_id}`,
+          query: { from_site: id, from_site_name: site?.site_name ?? '' }
+        })
+      }
       secondaryPanelTitle='Organizations'
       secondaryPanelSubtitle={`${site?.org_count ?? 0} organizations · share of animals`}
       secondaryRows={secondaryRows}
-      onSecondaryRowClick={r => router.push(`/compliance/dashboard/orgs/${r.id}`)}
+      onSecondaryRowClick={r =>
+        router.push({
+          pathname: `/compliance/dashboard/orgs/${r.id}`,
+          query: { from_site: id, from_site_name: site?.site_name ?? '' }
+        })
+      }
       animalsCount={site?.animal_count}
       onViewAnimals={() => router.push(`/compliance/animals?site_id=${id}`)}
       onExport={() => {}}
