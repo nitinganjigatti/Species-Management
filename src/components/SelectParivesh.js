@@ -9,14 +9,14 @@ import ButtonGroup from '@mui/material/ButtonGroup'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 import Icon from 'src/@core/components/icon'
 import { usePariveshContext } from 'src/context/PariveshContext'
-import { write } from 'src/lib/windows/utils' // Assuming write function is defined for localStorage operations
-import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies' // Importing API function
-import { useRouter } from 'next/router'
+import { write } from 'src/lib/windows/utils'
+import { getOrganizationList } from 'src/lib/api/parivesh/addSpecies'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 import { Tooltip } from '@mui/material'
 
 function SelectParivesh() {
-  const router = useRouter()
-  const { id, type } = router.query
+  const router = useSafeRouter()
+  const { type } = router.query
   const { selectedParivesh, setSelectedParivesh, organizationList } = usePariveshContext()
   const [open, setOpen] = useState(false)
   const [options, setOptions] = useState(organizationList)

@@ -28,6 +28,8 @@ interface AnimalsDrawerData {
   common_name?: string
   sex_data?: Record<string, unknown>
   animal_count?: number
+  enclosure_name?: string
+  section_name?: string
 }
 
 interface AnimalsDrawerProps {
@@ -37,6 +39,8 @@ interface AnimalsDrawerProps {
   totalCount?: number
   defaultImage?: string
   objectFit?: string
+  title?: string
+  fetchFn?: (params: Record<string, unknown>) => Promise<any>
 }
 
 interface PageResult {
@@ -45,7 +49,7 @@ interface PageResult {
   total: number
 }
 
-const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, totalCount, defaultImage, objectFit }) => {
+const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, totalCount, defaultImage, objectFit, title, fetchFn }) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
   const router = useSafeRouter()
@@ -88,7 +92,8 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
   } = useInfiniteQuery<PageResult>({
     queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam }) => {
-      const res = await getNewAnimalListWithFilters({
+      const apiFn = fetchFn || getNewAnimalListWithFilters
+      const res = await apiFn({
         ...data?.params,
         page_no: pageParam as number,
         list_type: 'animals',
@@ -182,7 +187,7 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
     <CustomDrawer
       open={open}
       onClose={onClose}
-      title={t('animals')}
+      title={title || t('animals')}
       icon='/images/housing/Enclosure icon.png'
       iconColor={theme.palette.primary.main}
     >
@@ -200,7 +205,9 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
             borderRadius: '8px'
           }}
         >
-          {data?.queryKey === 'cluster-animals-drawer' || data?.queryKey === 'enclosure-wise-species-drawer' ? (
+          {data?.queryKey === 'cluster-animals-drawer' ||
+          data?.queryKey === 'enclosure-wise-species-drawer' ||
+          data?.queryKey === 'species-animals-drawer' ? (
             <>
               <SpeciesInnerCard
                 completeName={data?.complete_name}
@@ -208,6 +215,9 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
                 commonName={data?.common_name}
                 sex={data?.sex_data}
                 animalCount={data?.animal_count}
+                enclosureName={data?.enclosure_name}
+                sectionName={data?.section_name}
+                alwaysShowSexChips={data?.queryKey === 'species-animals-drawer'}
               />
             </>
           ) : (
@@ -246,27 +256,45 @@ const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, tota
         />
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
-        {list.map((animal: Animal) => (
-          <Box key={animal?.animal_id} onClick={() => handleAnimalClick(animal?.animal_id)}>
-            <AnimalParentCard
-              data={animal as unknown as { [key: string]: unknown }}
-              size={14}
-              animal={true}
-              backgroundColor=''
-              sx={{
-                border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                cursor: canViewAnimalDetails() ? 'pointer' : 'default',
-                opacity: canViewAnimalDetails() ? 1 : 0.7,
-                '&:hover': canViewAnimalDetails()
-                  ? {
-                      borderColor: theme.palette.primary.main,
-                      background: (theme.palette as any).customColors?.Surface
-                    }
-                  : {}
-              }}
-            />
-          </Box>
-        ))}
+        {list.map((animal: Animal) =>
+          // Population drilldown drawer: cards are display-only per design — render a
+          // standalone, non-interactive variant so other queryKeys keep their original behavior.
+          data?.queryKey === 'species-animals-drawer' ? (
+            <Box key={animal?.animal_id}>
+              <AnimalParentCard
+                data={animal as unknown as { [key: string]: unknown }}
+                size={14}
+                animal={true}
+                backgroundColor=''
+                showSexChip={true}
+                sx={{
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  cursor: 'default'
+                }}
+              />
+            </Box>
+          ) : (
+            <Box key={animal?.animal_id} onClick={() => handleAnimalClick(animal?.animal_id)}>
+              <AnimalParentCard
+                data={animal as unknown as { [key: string]: unknown }}
+                size={14}
+                animal={true}
+                backgroundColor=''
+                sx={{
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  cursor: canViewAnimalDetails() ? 'pointer' : 'default',
+                  opacity: canViewAnimalDetails() ? 1 : 0.7,
+                  '&:hover': canViewAnimalDetails()
+                    ? {
+                        borderColor: theme.palette.primary.main,
+                        background: (theme.palette as any).customColors?.Surface
+                      }
+                    : {}
+                }}
+              />
+            </Box>
+          )
+        )}
 
         {isFetching && list.length === 0 && (
           <Box

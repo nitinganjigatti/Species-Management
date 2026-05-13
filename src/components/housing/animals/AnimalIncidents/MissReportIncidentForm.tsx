@@ -38,7 +38,7 @@ interface MissReportIncidentFormProps {
   missReportIncidence: string
   missReportIncidentForm: boolean
   setMissReportIncidentForm: (open: boolean) => void
-  animalId: string | string[] | undefined
+  animalId: string | number | string[] | undefined
   incidentId: number | null
   fetchAnimalIncidents: () => void
 }
@@ -72,7 +72,7 @@ const MissReportIncidentForm: React.FC<MissReportIncidentFormProps> = ({
   const theme = useTheme() as any
   const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
 
   const [preparedByUsers, setPreparedByUsers] = useState<PreparedByUser[]>([])
   const [defaultPreparedBy, setDefaultPreparedBy] = useState<PreparedByUser | null>(null)

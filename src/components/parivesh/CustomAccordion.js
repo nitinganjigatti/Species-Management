@@ -68,10 +68,10 @@ const CustomAccordion = ({
   data,
   backgroundImage,
   cards,
-  isOrganization,
-  organizationName,
-  showDetails,
-  handleBoxClick
+  isOrganization = false,
+  organizationName = '',
+  showDetails = false,
+  handleBoxClick = () => {}
 }) => {
   const StyledAccordion = getStyledAccordion(backgroundImage)
   const [expanded, setExpanded] = useState(false)

@@ -77,22 +77,34 @@ const AddAnimalDrawer: React.FC<{
   // Compute disabled IDs from previously selected entities (already committed in parent)
   const disabledSiteIds = useMemo(() => {
     if (!selectedAnimals) return []
-    return selectedAnimals.filter(a => a.type === 'site').map(a => a.site_id).filter(Boolean)
+    return selectedAnimals
+      .filter(a => a.type === 'site')
+      .map(a => a.site_id)
+      .filter(Boolean)
   }, [selectedAnimals])
 
   const disabledSectionIds = useMemo(() => {
     if (!selectedAnimals) return []
-    return selectedAnimals.filter(a => a.type === 'section').map(a => a.section_id).filter(Boolean)
+    return selectedAnimals
+      .filter(a => a.type === 'section')
+      .map(a => a.section_id)
+      .filter(Boolean)
   }, [selectedAnimals])
 
   const disabledEnclosureIds = useMemo(() => {
     if (!selectedAnimals) return []
-    return selectedAnimals.filter(a => a.type === 'enclosure').map(a => a.enclosure_id).filter(Boolean)
+    return selectedAnimals
+      .filter(a => a.type === 'enclosure')
+      .map(a => a.enclosure_id)
+      .filter(Boolean)
   }, [selectedAnimals])
 
   const disabledAnimalIds = useMemo(() => {
     if (!selectedAnimals) return []
-    return selectedAnimals.filter(a => a.type === 'animal' || !a.type).map(a => a.animal_id).filter(Boolean)
+    return selectedAnimals
+      .filter(a => a.type === 'animal' || !a.type)
+      .map(a => a.animal_id)
+      .filter(Boolean)
   }, [selectedAnimals])
 
   // Handle remove site
@@ -467,11 +479,18 @@ const AddAnimalDrawer: React.FC<{
                 }
               }}
               sx={{
-                background: localAnimals.length > 0 ? theme.palette.customColors.mdAntzNeutral : theme.palette.customColors.displaybgPrimary,
+                background:
+                  localAnimals.length > 0
+                    ? theme.palette.customColors.mdAntzNeutral
+                    : theme.palette.customColors.displaybgPrimary,
                 p: 2,
                 pl: 4,
                 cursor: localAnimals.length > 0 ? 'default' : 'pointer',
-                '.MuiCardHeader-title': { fontWeight: '500', fontSize: '16px', color: theme.palette.customColors.OnPrimaryContainer }
+                '.MuiCardHeader-title': {
+                  fontWeight: '500',
+                  fontSize: '16px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
               }}
               action={
                 <IconButton size='small' disabled={localAnimals.length > 0}>

@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Grid,
   CardContent,
@@ -13,8 +15,7 @@ import {
 import { React, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
@@ -65,12 +66,9 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   }
 
   return (
-    <Grid item size={{ md: 4, xs: 6.5 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+    <Grid size={{ md: 4, xs: 6.5 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
         <div
-          item
-          md={3}
-          xs={12}
           style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
         >
           <CardContent
@@ -120,7 +118,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Grid item>
+              <Grid>
                 <FormControlLabel
                   control={
                     <Switch

@@ -18,7 +18,6 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import StickyNote2Icon from '@mui/icons-material/StickyNote2'
 import SegmentIcon from '@mui/icons-material/Segment'
 import { useTheme } from '@mui/material/styles'
-import { useTranslation } from 'react-i18next'
 import { useInView } from 'react-intersection-observer'
 import moment from 'moment'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
@@ -28,7 +27,6 @@ import { getMeasurementUnits } from 'src/lib/api/necropsy'
 
 const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight' }) => {
   const theme = useTheme()
-  const { t } = useTranslation()
 
   const [loading, setLoading] = useState(false)
   const [assessmentTypes, setAssessmentTypes] = useState([])
@@ -145,8 +143,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
 
       const response = await getAssessmentData(animalData?.animal_id, params)
       const isStaleRequest =
-        requestId !== latestRequestRef.current ||
-        String(requestedAssessmentTypeId) !== String(selectedType?.assessment_type_id)
+        requestId !== latestRequestRef.current || String(requestedAssessmentTypeId) !== String(selectedType?.assessment_type_id)
 
       if (isStaleRequest) {
         return
@@ -169,8 +166,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
       console.error('Error fetching assessment data:', error)
     } finally {
       const isStaleRequest =
-        requestId !== latestRequestRef.current ||
-        String(requestedAssessmentTypeId) !== String(selectedType?.assessment_type_id)
+        requestId !== latestRequestRef.current || String(requestedAssessmentTypeId) !== String(selectedType?.assessment_type_id)
 
       if (!isStaleRequest) {
         setLoading(false)
@@ -351,7 +347,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
     const { date, time } = formatDateTime(item?.recorded_date_time)
     const isEven = index % 2 === 0
 
-    // Convert value to selected unit if numeric type
+    // Convert value to selected unit if weight type
     let displayValue = item?.assessment_value
     let displayUnit = getUnitAbbr(item?.assessment_unit_id)
 
@@ -513,7 +509,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 <Typography
                   sx={{ fontSize: '1.5rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
                 >
-                  {t('animals_module.assessment')}
+                  Assessment
                 </Typography>
               </Box>
               <IconButton onClick={onClose}>
@@ -595,7 +591,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 }}
               >
                 <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
-                  {t('animals_module.total_assessment_types')}
+                  Total assessment types
                 </Typography>
                 <Typography sx={{ fontWeight: 500, color: theme.palette.customColors.OnPrimaryContainer }}>
                   {assessmentTypes.length}
@@ -629,7 +625,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
               backgroundColor: theme.palette.common.white
             }}
           >
-            {/* Internal tabs for numeric types */}
+            {/* Internal tabs for numeric type */}
             {isNumericType && (
               <>
                 <Box
@@ -661,32 +657,31 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                       }
                     }}
                   >
-                    <Tab label={t('animals_module.records')} />
-                    <Tab label={t('animals_module.trend_graph')} />
+                    <Tab label='Records' />
+                    <Tab label='Trend Graph' />
                   </Tabs>
                 </Box>
 
-                {/* Unit Selector for numeric types */}
-                {(weightSubTab === 0 || weightSubTab === 1) &&
-                  measurementUnits.length > 0 &&
-                  currentMeasurementType && (
-                    <FormControl fullWidth sx={{ mb: 3 }}>
-                      <InputLabel id='unit-select-label'>{t('animals_module.unit_of_measurement')}</InputLabel>
-                      <Select
-                        labelId='unit-select-label'
-                        id='unit-select'
-                        value={selectedUnit || ''}
-                        label='Unit of Measurement'
-                        onChange={e => setSelectedUnit(e.target.value)}
-                      >
-                        {getCompatibleUnits(sourceUnitId).map(unit => (
+                {/* Unit Selector */}
+                {(weightSubTab === 0 || weightSubTab === 1) && measurementUnits.length > 0 && currentMeasurementType && (
+                  <FormControl fullWidth sx={{ mb: 3 }}>
+                    <InputLabel id='unit-select-label'>Unit of Measurement</InputLabel>
+                    <Select
+                      labelId='unit-select-label'
+                      id='unit-select'
+                      value={selectedUnit || ''}
+                      label='Unit of Measurement'
+                      onChange={e => setSelectedUnit(e.target.value)}
+                    >
+                      {getCompatibleUnits(sourceUnitId)
+                        .map(unit => (
                           <MenuItem key={unit?.id} value={unit?.id}>
                             {unit?.unit_name} ({unit?.uom_abbr})
                           </MenuItem>
                         ))}
-                      </Select>
-                    </FormControl>
-                  )}
+                    </Select>
+                  </FormControl>
+                )}
               </>
             )}
 
@@ -698,7 +693,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                 </Box>
               ) : assessmentData.length === 0 ? (
                 <Typography sx={{ textAlign: 'center', py: 4, color: theme.palette.text.secondary }}>
-                  {t('no_data_found')}
+                  No data found
                 </Typography>
               ) : (
                 <>
@@ -754,16 +749,17 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                       enabled: false
                     },
                     xaxis: {
-                      categories: [...assessmentData].reverse().map(item => {
-                        const stillUtc = moment.utc(item.recorded_date_time).toDate()
-                        return moment(stillUtc).local(true).format('DD MMM YY')
-                      }),
+                      categories: [...assessmentData]
+                        .reverse()
+                        .map(item => moment(item.recorded_date_time).format('DD MMM YY')),
                       labels: { rotate: -45, show: true }
                     },
                     yaxis: {
                       title: {
                         text: `${selectedType?.assessment_name || 'Value'} (${
-                          selectedUnit ? getUnitAbbr(selectedUnit) : getUnitAbbr(assessmentData[0]?.assessment_unit_id)
+                          selectedUnit
+                            ? getUnitAbbr(selectedUnit)
+                            : getUnitAbbr(assessmentData[0]?.assessment_unit_id)
                         })`
                       }
                     },
@@ -800,7 +796,7 @@ const AssessmentDrawer = ({ open, onClose, animalData, initialTabName = 'Weight'
                       name: selectedType?.assessment_name || 'Value',
                       data: [...assessmentData].reverse().map(item => {
                         const value = parseFloat(item?.assessment_value)
-                        if (selectedUnit && item?.assessment_unit_id !== selectedUnit) {
+                        if (selectedUnit && String(item?.assessment_unit_id) !== String(selectedUnit)) {
                           return parseFloat(convertToUnit(value, item?.assessment_unit_id, selectedUnit))
                         }
                         return value

@@ -1,0 +1,251 @@
+'use client';
+import { useTheme } from '@emotion/react'
+import { Button, Card, CardContent, CardHeader, CircularProgress, Grid, Typography } from '@mui/material'
+import { Box } from '@mui/system'
+import { addDays, format, subDays } from 'date-fns'
+import React, { useContext, useState } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import RenderUtility from 'src/utility/render'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import DietReportView from 'src/views/pages/diet/kitchen/diet-report'
+import SingleDatePicker from 'src/components/SingleDatePicker'
+import { getMealGroupSummaryReport, getMealGroupWiseReport } from 'src/lib/api/diet/kitchen'
+import Toaster from 'src/components/Toaster'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import { useForm } from 'react-hook-form'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import Utility from 'src/utility'
+import Icon from 'src/@core/components/icon'
+import { useTranslation } from 'react-i18next'
+
+const schema = yup.object().shape({
+  site: yup.object().required('Site is required').nullable()
+})
+
+const MealGroupReport = () => {
+  const initialRows = [
+    {
+      id: 1,
+      reportName: 'Meal Group Wise Report',
+      reportAlias: 'meal_group_wise',
+      downloadStatus: false
+    },
+    {
+      id: 2,
+      reportName: 'Meal Group Summary Report',
+      reportAlias: 'meal_group_summary',
+      downloadStatus: false
+    }
+  ]
+
+  const authData = useContext(AuthContext) as any
+  const sites = authData?.userData?.user?.zoos[0]?.sites || []
+  const { t } = useTranslation()
+  console.log(sites, 'sites')
+
+  const siteOptions = sites.map((site: any) => ({
+    label: site.site_name,
+    value: site.site_id
+  }))
+
+  const defaultValues = {
+    site: siteOptions.find((site: any) => site.value === 16) || null
+  }
+
+  const {
+    control,
+    formState: { errors },
+    getValues
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onChange',
+    reValidateMode: 'onChange'
+  })
+
+  const theme = useTheme()
+  const [rows, setRows] = useState(initialRows)
+  const [downloadStatus, setDownloadStatus] = useState({})
+  const [loading, setLoading] = useState(false)
+  const [selectedDate, setSelectedDate] = useState(new Date())
+
+  const handleUpdateStatus = (reportId: any, status: any) => {
+    setRows(currentRows => currentRows.map(row => (row.id === reportId ? { ...row, downloadStatus: status } : row)))
+  }
+
+  const handleDownload = async (reportId: any, reportAlias: any) => {
+    const selectedSite = getValues('site')
+    const site_id = selectedSite?.value || null
+    try {
+      const params = {
+        site_id: site_id,
+        file_type: 'pdf',
+        is_portrait: 1,
+        date: format(selectedDate, 'yyyy-MM-dd')
+      }
+      handleUpdateStatus(reportId, true)
+
+      let data
+
+      if (reportAlias === 'meal_group_wise') {
+        data = await getMealGroupWiseReport({ params })
+      } else if (reportAlias === 'meal_group_summary') {
+        data = await getMealGroupSummaryReport({ params })
+      }
+
+      if (data?.success === false) {
+        Toaster({ type: 'error', message: data?.message })
+      }
+
+      if (data?.success === true) {
+        Toaster({ type: 'success', message: data?.message })
+        if (data.data) {
+          Utility.downloadFileFromURL(data.data)
+        }
+      }
+
+      console.log(params, reportId)
+    } catch (error) {
+      console.error('Download failed:', error)
+    } finally {
+      handleUpdateStatus(reportId, false)
+    }
+  }
+
+  const columns = [
+    {
+      width: 80,
+      field: 'id',
+      headerName: t('s_no'),
+      headerAlign: 'center',
+      alignItems: 'center',
+      align: 'center',
+      sortable: false,
+      renderCell: (params: any) => params.value
+    },
+    {
+      flex: 1,
+      minWidth: 300,
+      field: 'reportName',
+      headerName: t('diet_module.report_name'),
+      sortable: false,
+      renderCell: (params: any) => (
+        <Box sx={{ minWidth: 40 }}>
+          <Typography sx={{ color: 'customColors.OnSecondaryContainer', fontSize: '14px', fontWeight: '400px' }}>
+            {params.row.reportName}
+          </Typography>
+          <Typography
+            sx={{
+              color: 'customColors.OnSecondaryContainer',
+              fontSize: '14px',
+              fontWeight: '400px',
+              fontStyle: 'italic'
+            }}
+          >
+            {params.row.reportTitle}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'download',
+      headerName: t('download'),
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      renderCell: (params: any) => (
+        <>
+          {!params?.row.downloadStatus ? (
+            <Button
+              variant='contained'
+              size='small'
+              startIcon={<Icon icon='mdi:download' />}
+              onClick={() => handleDownload(params.row.id, params.row.reportAlias)}
+              disabled={params.row.downloadStatus}
+            >
+              {t('download')}
+            </Button>
+          ) : (
+            <>
+              <CircularProgress size={30} />
+            </>
+          )}
+        </>
+      )
+    }
+  ]
+
+  const handleDateChange = (date: any) => {
+    setSelectedDate(date)
+  }
+
+  return (
+    <Grid container spacing={6}>
+      <Grid size={{ xs: 12 }}>
+        <Card>
+          <CardHeader title={RenderUtility.pageTitle('Meal Group Reports')} />
+          <CardContent>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'stretch', sm: 'center' },
+                gap: { xs: 2, sm: 0 },
+                width: '100%'
+              }}
+            >
+              <Grid
+                container
+                spacing={4}
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  {React.createElement(SingleDatePicker as any, {
+                    date: selectedDate,
+                    onChangeHandler: handleDateChange,
+                    maxDate: addDays(new Date(), 7),
+                    name: 'Select Date',
+                    minDate: new Date(),
+                    dateFormat: 'dd-MM-yyyy',
+                    popperPlacement: 'bottom',
+                    size: 'medium'
+                  })}
+                </Grid>
+
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <Grid
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                    }}
+                  >
+                    {React.createElement(ControlledAutocomplete as any, {
+                      name: 'site',
+                      label: 'Select Site*',
+                      control,
+                      errors,
+                      options: siteOptions,
+                      getOptionLabel: (option: any) => (option as any).label || '',
+                      isOptionEqualToValue: (option: any, value: any) => (option as any).value === value?.value,
+                      required: true,
+                      fullWidth: true
+                    })}
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Box>
+            {React.createElement(DietReportView as any, { rows, columns, loading, downloadStatus })}
+          </CardContent>
+        </Card>
+      </Grid>
+    </Grid>
+  )
+}
+
+export default MealGroupReport

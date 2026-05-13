@@ -1,5 +1,8 @@
+'use client'
+
 // ** Next Imports
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** MUI Imports
@@ -68,6 +71,7 @@ const VerticalNavLink = ({
 }) => {
   // ** Hooks
   const router = useSafeRouter()
+  const pathname = usePathname()
 
   // ** Vars
   const { navCollapsed } = settings
@@ -80,14 +84,50 @@ const VerticalNavLink = ({
   //     return false
   //   }
   // }
+  // trailingSlash:true in next.config causes App Router's usePathname() to
+  // return paths like '/collection/species/' while nav items declare
+  // '/collection/species'. Normalize both sides before comparing.
+  const stripTrailing = p => (p && p.length > 1 && p.endsWith('/') ? p.slice(0, -1) : p || '')
+
+  // True when the current route is the nav item's path OR nested under it.
+  // Descendant matching keeps the parent nav item highlighted on detail pages
+  // (e.g. '/collection/species/123' still lights up '/collection/species').
+  // handleURLQueries already does this when a query string is present; this
+  // makes the behavior consistent regardless of the query string.
+  const pathUnder = (current, nav) => {
+    const c = stripTrailing(current)
+    const n = stripTrailing(nav)
+    if (!n || n === '/') return c === n
+    return c === n || c.startsWith(n + '/')
+  }
+
   const isNavLinkActive = () => {
-    // Check activeWhen array first if it exists
-    if (item.activeWhen && Array.isArray(item.activeWhen)) {
-      return item.activeWhen.some(path => router.pathname === path || handleURLQueries(router, path))
+    // Use usePathname() directly for App Router - more reliable than useSafeRouter
+    const currentPath = pathname || router.pathname
+
+    // Normalize paths by removing trailing slashes for comparison
+    const normalizePathForComparison = path => {
+      if (!path) return path
+      return path === '/' ? '/' : path.replace(/\/$/, '')
     }
 
-    // Fall back to default behavior
-    return router.pathname === item.path || handleURLQueries(router, item.path)
+    const normalizedCurrentPath = normalizePathForComparison(currentPath)
+    const normalizedItemPath = normalizePathForComparison(item.path)
+
+    // Check activeWhen array first if it exists
+    if (item.activeWhen && Array.isArray(item.activeWhen)) {
+      return item.activeWhen.some(path => {
+        const normalizedPath = normalizePathForComparison(path)
+        return normalizedCurrentPath === normalizedPath || handleURLQueries(router, path)
+      })
+    }
+
+    // Fall back to default behavior - exact match, prefix match for nested/detail pages, or handleURLQueries
+    return (
+      normalizedCurrentPath === normalizedItemPath ||
+      normalizedCurrentPath.startsWith(normalizedItemPath + '/') ||
+      handleURLQueries(router, item.path)
+    )
   }
 
   return (

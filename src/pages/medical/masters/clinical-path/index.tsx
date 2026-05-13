@@ -132,7 +132,7 @@ const ClinicalPath: NextPage = () => {
         type: 'clin_path'
       }
 
-      const res: ApiResponse = await getAssesmentList(params)
+      const res = (await getAssesmentList(params)) as ApiResponse
 
       if (res?.success) {
         setRows(res?.data?.records || [])
@@ -225,7 +225,7 @@ const ClinicalPath: NextPage = () => {
     try {
       setExportLoading(true)
 
-      const response: ApiResponse = await getAssesmentList(params)
+      const response = (await getAssesmentList(params)) as ApiResponse
       if (response?.success && response?.data?.download_url) {
         Utility.downloadFileFromURL(response.data.download_url)
       }

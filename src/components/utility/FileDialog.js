@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -18,6 +18,8 @@ import SignedMediaPlayer from './SignedMediaPlayer'
 import TextEllipsisWithModal from '../TextEllipsisWithModal'
 import Utility from 'src/utility'
 import { EXTENSION_TYPE_MAP } from 'src/constants/Constants'
+import 'react-pdf/dist/Page/AnnotationLayer.css'
+import 'react-pdf/dist/Page/TextLayer.css'
 
 const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) => {
   const theme = useTheme()
@@ -27,6 +29,11 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
   const [isError, setIsError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [errorType, setErrorType] = useState(null) // broken | unsupported
+  const [numPages, setNumPages] = useState(null)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [containerWidth, setContainerWidth] = useState(600)
+  const [pdfRenderer, setPdfRenderer] = useState(null)
+  const pdfContainerRef = useRef(null)
 
   // Derive file type from title if not explicitly provided
   const derivedFileType = useMemo(() => {
@@ -174,26 +181,85 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
     if (!src || isError) return renderFallback()
 
     switch (derivedFileType) {
-      case 'pdf':
-        // Ensures the PDF fits the iframe width for consistent preview across browsers and iPad
-        // const pdfUrl = `${src}#view=FitH`
+      case 'pdf': {
+        const Document = pdfRenderer?.Document
+        const Page = pdfRenderer?.Page
 
         return (
-          <Box sx={{ width: '100%', height: '70vh', position: 'relative', overflow: 'hidden' }}>
+          <Box
+            ref={pdfContainerRef}
+            sx={{
+              width: '100%',
+              height: '70vh',
+              position: 'relative',
+              overflow: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              backgroundColor: theme.palette.grey[200]
+            }}
+          >
             {isLoading && loadingOverlay}
-            {!isError && (
-              <iframe
-                src={src}
-                title={title || 'PDF Preview'}
-                style={{
-                  border: 'none',
-                  width: '100%',
-                  height: '100%'
+            {Document && Page ? (
+              <Document
+                file={src}
+                onLoadSuccess={({ numPages }) => {
+                  setNumPages(numPages)
+                  setIsLoading(false)
                 }}
-              />
+                onLoadError={() => {
+                  setErrorType('broken')
+                  setIsError(true)
+                  setIsLoading(false)
+                }}
+                loading={null}
+              >
+                <Page
+                  pageNumber={pageNumber}
+                  width={Math.max(containerWidth - 40, 300)}
+                  renderAnnotationLayer
+                  renderTextLayer
+                />
+              </Document>
+            ) : null}
+
+            {numPages > 1 && (
+              <Box
+                sx={{
+                  position: 'sticky',
+                  bottom: 0,
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 2,
+                  py: 1,
+                  backgroundColor: theme.palette.common.white,
+                  borderTop: `1px solid ${theme.palette.divider}`
+                }}
+              >
+                <IconButton
+                  size='small'
+                  onClick={() => setPageNumber(p => Math.max(p - 1, 1))}
+                  disabled={pageNumber <= 1}
+                >
+                  <Icon icon='mdi:chevron-left' />
+                </IconButton>
+                <Typography variant='body2'>
+                  {pageNumber} / {numPages}
+                </Typography>
+                <IconButton
+                  size='small'
+                  onClick={() => setPageNumber(p => Math.min(p + 1, numPages))}
+                  disabled={pageNumber >= numPages}
+                >
+                  <Icon icon='mdi:chevron-right' />
+                </IconButton>
+              </Box>
             )}
           </Box>
         )
+      }
       case 'image':
         return (
           <Box
@@ -287,41 +353,64 @@ const FileDialog = ({ open, onClose = () => {}, src, title, type, fileIcon }) =>
     }
   }
 
-  // Resets loading and error state whenever dialog opens or file source changes
+  // Resets state whenever dialog opens or file source changes
   useEffect(() => {
     if (open) {
       setIsError(false)
       setIsLoading(true)
       setErrorType(null)
+      setPageNumber(1)
+      setNumPages(null)
     }
   }, [open, src])
 
-  // Pre-check PDF accessibility to detect broken links before rendering preview
   useEffect(() => {
-    if (!open || derivedFileType !== 'pdf' || !src) return
+    if (!open || derivedFileType !== 'pdf' || typeof window === 'undefined') return
 
-    let active = true
+    let cancelled = false
 
-    const validatePdf = async () => {
-      setIsLoading(true)
+    const loadPdfRenderer = async () => {
+      try {
+        const reactPdf = await import('react-pdf')
+        reactPdf.pdfjs.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.mjs'
 
-      const exists = await checkURLExists(src)
+        if (!cancelled) {
+          setPdfRenderer({
+            Document: reactPdf.Document,
+            Page: reactPdf.Page
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load PDF preview renderer:', error)
 
-      if (!exists && active) {
-        setErrorType('broken')
-        setIsError(true)
-        setIsLoading(false)
-      } else if (active) {
-        setIsLoading(false)
+        if (!cancelled) {
+          setErrorType('unsupported')
+          setIsError(true)
+          setIsLoading(false)
+        }
       }
     }
 
-    validatePdf()
+    loadPdfRenderer()
 
     return () => {
-      active = false
+      cancelled = true
     }
-  }, [open, src, derivedFileType])
+  }, [open, derivedFileType])
+
+  // Track PDF container width for responsive page rendering
+  useEffect(() => {
+    if (!open || derivedFileType !== 'pdf') return
+    const el = pdfContainerRef.current
+    if (!el) return
+
+    const observer = new ResizeObserver(entries => {
+      setContainerWidth(entries[0].contentRect.width)
+    })
+    observer.observe(el)
+
+    return () => observer.disconnect()
+  }, [open, derivedFileType])
 
   // Dialog UI with title and content
   return (
