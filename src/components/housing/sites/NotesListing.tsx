@@ -34,7 +34,7 @@ interface NotesListingProps {
   entityName?: string
   entityImage?: string
   animalData?: any
-  animalId?: number | string
+  entityId?: string | number
 }
 
 interface CommentSubmitData {
@@ -73,15 +73,14 @@ const NotesListing: React.FC<NotesListingProps> = ({
   entityName,
   entityImage,
   animalData,
-  animalId: propAnimalId
+  entityId: entityIdProp
 }) => {
-  const router = useSafeRouter()
+  const { id: routerId } = useParams<{ id: string }>() ?? {}
   const theme = useTheme() as any
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
   const { t } = useTranslation()
-  const { id: routerId } = router.query
-  const id = propAnimalId != null ? String(propAnimalId) : routerId
+  const id = entityIdProp ?? routerId
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
@@ -96,7 +95,7 @@ const NotesListing: React.FC<NotesListingProps> = ({
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const cooldownRef = useRef(false)
-  const prevIdRef = useRef<string | string[] | undefined>(undefined)
+  const prevIdRef = useRef<string | number | undefined>(undefined)
   const handleLoadMoreRef = useRef<() => void>(() => {})
   const skipNextFilterEffect = useRef(true)
 

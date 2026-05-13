@@ -48,28 +48,22 @@ const SUB_TABS = [
   { id: 'inmates', labelKey: 'animals_module.any_other', icon: 'mdi:store' }
 ]
 
-interface AnimalHistoryProps {
-  animalId?: number | string
-}
-
-const AnimalHistory: React.FC<AnimalHistoryProps> = ({ animalId: propAnimalId }) => {
+const AnimalHistory: React.FC = () => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
-  const resolvedId = propAnimalId != null ? String(propAnimalId) : Array.isArray(id) ? id[0] : id
+  const { id } = useParams<{ id: string }>() ?? {}
 
   const [selectedSubTab, setSelectedSubTab] = useState<string>('enclosurehistory')
   const [animalHistory, setAnimalHistory] = useState<HistoryData[]>([])
   const [loading, setLoading] = useState<boolean>(false)
 
   const fetchHistoryData = async (): Promise<void> => {
-    if (!resolvedId) return
+    if (!id || Array.isArray(id)) return
     setLoading(true)
 
     try {
       const params = {
-        animal_id: Number(resolvedId)
+        animal_id: Number(id)
       }
 
       await getAnimalHistory(params).then((res: any) => {
@@ -85,10 +79,10 @@ const AnimalHistory: React.FC<AnimalHistoryProps> = ({ animalId: propAnimalId })
   }
 
   useEffect(() => {
-    if (resolvedId && selectedSubTab === 'enclosurehistory') {
+    if (id && selectedSubTab === 'enclosurehistory') {
       fetchHistoryData()
     }
-  }, [resolvedId, selectedSubTab])
+  }, [id, selectedSubTab])
 
   const handleSubTabChange = (event: React.SyntheticEvent, newValue: string): void => {
     setSelectedSubTab(newValue)

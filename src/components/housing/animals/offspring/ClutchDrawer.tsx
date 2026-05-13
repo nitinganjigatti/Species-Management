@@ -88,7 +88,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
         const response = await getClutchEggList({
           type: 'offspring',
           q: searchClutch,
-          parent_id: id,
+          parent_id: Number(id),
           is_mother: 1,
           clutch_id: clutchDetails?.clutch_id,
           page_no: pageNo
