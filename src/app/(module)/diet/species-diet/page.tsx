@@ -2,6 +2,15 @@
 import React, { useState, useEffect, useCallback, useContext, useRef } from 'react'
 
 import { debounce } from 'lodash'
+
+interface FilterOption {
+  id: string | number
+  name: string
+}
+
+interface FilterState {
+  Class: FilterOption[]
+}
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import {
   Avatar,
@@ -63,7 +72,7 @@ const SpeciesDietList = () => {
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
+  const [selectedFiltersOptions, setSelectedFiltersOptions] = useState<FilterState>({ Class: [] })
   const [filterCount, setFilterCount] = useState(0)
 
   const [selectedOptions, setSelectedOptions] = useState({
@@ -88,7 +97,7 @@ const SpeciesDietList = () => {
 
   const [animalOpenFilterDrawer, setAnimalOpenFilterDrawer] = useState(false)
   const [animalSearchQuery, setAnimalSearchQuery] = useState('')
-  const [animalSelectedFiltersOptions, setAnimalSelectedFiltersOptions] = useState({})
+  const [animalSelectedFiltersOptions, setAnimalSelectedFiltersOptions] = useState<FilterState>({ Class: [] })
   const [animalFilterCount, setAnimalFilterCount] = useState(0)
 
   const [animalSelectedOptions, setAnimalSelectedOptions] = useState({
@@ -145,7 +154,7 @@ const SpeciesDietList = () => {
   const fetchTableData = useCallback(
     async (q: any, newModel?: any) => {
       try {
-        const classIds = (selectedFiltersOptions as any)?.Class?.map((option: any) => option.id) || []
+        const classIds = selectedFiltersOptions.Class?.map((option: any) => option.id) || []
         setLoading(true)
 
         const params = {
@@ -241,7 +250,7 @@ const SpeciesDietList = () => {
   const fetchAnimalTableData = useCallback(
     async (q: any, newModel?: any) => {
       try {
-        const classIds = (animalSelectedFiltersOptions as any)?.Class?.map((option: any) => option.id) || []
+        const classIds = animalSelectedFiltersOptions.Class?.map((option: any) => option.id) || []
         setAnimalLoading(true)
 
         const params = {
@@ -305,7 +314,7 @@ const SpeciesDietList = () => {
   const handleAnimalExport = async () => {
     try {
       setAnimalExportLoading(true)
-      const classIds = (animalSelectedFiltersOptions as any)?.Class?.map((option: any) => option.id) || []
+      const classIds = animalSelectedFiltersOptions.Class?.map((option: any) => option.id) || []
       const params = {
         q: animalSearchValue,
         response_type: 'csv',

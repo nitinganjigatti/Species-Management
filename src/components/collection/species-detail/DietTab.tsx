@@ -60,7 +60,7 @@ const DietTab: React.FC<DietTabProps> = ({
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['species-diet-detail', speciesId],
-    queryFn: () => getSpecieDetailById(speciesId),
+    queryFn: () => getSpecieDetailById(speciesId!),
     enabled: Boolean(speciesId)
   })
 
