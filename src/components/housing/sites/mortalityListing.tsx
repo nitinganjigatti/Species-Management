@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
-import { Box, Grid, Typography, Theme } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { Box, Grid, Typography, Theme, Select, MenuItem, SelectChangeEvent } from '@mui/material'
+import { useRouter, useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -11,11 +11,18 @@ import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { DateInfoDisplay, IdentifierInfoCard } from 'src/utility/render'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getMortalityList } from 'src/lib/api/housing'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import Utility from 'src/utility'
 import { debounce } from 'lodash'
 import { IndexedMortalityRow } from 'src/types/housing'
 import { GridCellParams, GridSortModel, GridRowParams } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from 'src/hooks/useAuth'
+
+interface FilterDate {
+  startDate?: Date
+  endDate?: Date
+}
 
 interface MortalityFilters {
   page: number
@@ -45,14 +52,15 @@ interface PaginationModel {
 const MortalityListing: React.FC = () => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
 
   const auth = useAuth()
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights
 
   const [downloading, setDownloading] = useState<boolean>(false)
   const [inputValue, setInputValue] = useState<string>('')
+  const [filterDate, setFilterDate] = useState<FilterDate>({})
 
   const [filters, setFilters] = useState<MortalityFilters>({
     page: 1,
@@ -63,7 +71,7 @@ const MortalityListing: React.FC = () => {
   })
 
   const { data, isFetching } = useQuery({
-    queryKey: ['mortality-list', id, filters],
+    queryKey: ['mortality-list', id, filters, filterDate],
     queryFn: () =>
       getMortalityList({
         page_no: filters.page,
@@ -72,7 +80,9 @@ const MortalityListing: React.FC = () => {
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined,
         q: filters.search,
         site_id: Number(id),
-        type: 'animals'
+        type: 'animals',
+        ...(filterDate?.startDate && { start_date: Utility.formatDate(filterDate.startDate) }),
+        ...(filterDate?.endDate && { end_date: Utility.formatDate(filterDate.endDate) })
       }),
     enabled: !!id,
     placeholderData: keepPreviousData
@@ -328,13 +338,19 @@ const MortalityListing: React.FC = () => {
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
           <ListingHeader title={t('navigation.mortality')} totalCount={insightsViewAccess ? total : 0} />
-          <Search
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <CommonDateRangePickers
+              filterDates={filterDate}
+              onChange={(start: Date, end: Date) => setFilterDate({ startDate: start, endDate: end })}
+            />
+          </Box>
+          {/* <Search
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder={t('search') as string}
             sx={{ justifyContent: 'flex-end' }}
-          />
+          /> */}
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
         </Box>
 

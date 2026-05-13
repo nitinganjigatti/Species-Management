@@ -17,6 +17,7 @@ const TransferFields = ({
   reasonType,
   setImgSrc,
   setDisplayFile,
+  dgftDisplayFile = /** @type {any[]} */ ([]),
   setDgftDisplayFile,
   setReasonType
 }) => {

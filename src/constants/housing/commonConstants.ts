@@ -3,6 +3,8 @@ export const GET_ALL_SPECIES = 'v1/species/listing'
 export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'
 export const GET_MEDIA = 'zoos/all-type-media-list'
 export const ADD_MEDIA = 'zoos/all-type-add-media'
+export const DELETE_MEDIA = 'zoos/all-type-delete-media'
+
 
 // Incharge
 export const GET_INCHARGE_LIST = 'get-incharge-list'
@@ -15,3 +17,6 @@ export const GET_ALL_USERS = 'zoo/users/listing'
 
 // Entity Permission
 export const GET_ENTITY_PERMISSION = `v2/auth/user/has-permission`
+
+// hospital transfer hospital list
+export const GET_HOSPITAL_TRANSFER_HOSPITAL_LIST = `v1/entity/types/hospital`

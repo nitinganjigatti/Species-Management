@@ -16,6 +16,7 @@ const DeathFields = ({
   editParams,
   setImgSrc,
   setDisplayFile,
+  dgftDisplayFile = /** @type {any[]} */ ([]),
   setDgftDisplayFile,
   setReasonType
 }) => {
@@ -413,7 +414,7 @@ const DeathFields = ({
     // </>
     <>
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item size={{ xs: 12 }}>
+        <Grid size={{ xs: 12 }}>
           <FormControl fullWidth>
             <Controller
               name='possession_type'
@@ -466,7 +467,7 @@ const DeathFields = ({
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
+        <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='reason_for_death'
@@ -489,7 +490,7 @@ const DeathFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
+        <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='death_date'
@@ -526,7 +527,7 @@ const DeathFields = ({
         </Grid>
       </Grid>
       <Grid container spacing={2}>
-        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
+        <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='death_animal_id'
@@ -549,9 +550,9 @@ const DeathFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
+        <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <Grid container spacing={2}>
-            <Grid item size={{ xs: 12, sm: 12 }}>
+            <Grid size={{ xs: 12, sm: 12 }}>
               <FormControl fullWidth>
                 <Controller
                   name='gender'
@@ -573,7 +574,7 @@ const DeathFields = ({
         </Grid>
       </Grid>
       <Grid container spacing={2} sx={{ mb: 6 }}>
-        <Grid item size={{ xs: 12, sm: 6 }} s>
+        <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='transaction_date'

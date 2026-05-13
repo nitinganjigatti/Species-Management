@@ -7,6 +7,7 @@ import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@mui/material/styles'
+import { DataGrid } from '@mui/x-data-grid'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
@@ -192,17 +193,14 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
 
         <Grid container spacing={5}>
           {console.log(formData, 'formData')}
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
                 <CardContent sx={{ pt: 0 }}>
                   <Grid container spacing={6}>
-                    <Grid item size={{ xs: 4 }}>
+                    <Grid size={{ xs: 4 }}>
                       <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
                         <div
-                          item
-                          md={3}
-                          xs={12}
                           style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
                         >
                           <CardContent
@@ -323,7 +321,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       </Card>
                     </Grid>
 
-                    <Grid item size={{ xs: 8 }}>
+                    <Grid size={{ xs: 8 }}>
                       <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>Description</Typography>
                       <Typography variant='body2' sx={{ fontSize: '14px', pt: 2 }}>
                         {formData.desc ? formData.desc : 'No Description to show'}
@@ -357,8 +355,39 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                     /> */}
 
                     <CardHeader title='Item by Quantity' sx={{ pl: 0 }} />
-                    <CommonTable
-                      indexedRows={rowsQuantity}
+                    <DataGrid
+                      sx={{
+                        '.MuiDataGrid-main': {
+                          borderRadius: '8px',
+                          border: '1px solid #e9e9ec'
+                        },
+                        '.MuiDataGrid-cell:focus': {
+                          outline: 'none'
+                        },
+                        '& .MuiDataGrid-row:hover': {
+                          cursor: 'pointer'
+                        },
+                        '& .MuiDataGrid-columnHeader': {
+                          whiteSpace: 'nowrap', // Prevents text wrapping in header
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          backgroundColor: theme.palette.customColors.customTableHeaderBg
+                        },
+                        '& .MuiDataGrid-cell': {
+                          whiteSpace: 'nowrap', // Prevents text wrapping in cell
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          padding: '12px'
+                        }
+                      }}
+                      columnVisibilityModel={{
+                        sl_no: false
+                      }}
+                      autoHeight
+                      hideFooterSelectedRowCount
+                      disableColumnSelector={true}
+                      hideFooter={true}
+                      rows={rowsQuantity}
                       columns={columns}
                       columnVisibilityModel={{ sl_no: false }}
                       hideFooter={true}
@@ -370,7 +399,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
             </>
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12, mx: 5 }}>
               <Button
                 color='secondary'

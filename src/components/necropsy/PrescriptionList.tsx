@@ -1,6 +1,5 @@
 import React, { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Chip, CircularProgress, Skeleton, Typography } from '@mui/material'
-import { useTranslation } from 'react-i18next'
 import { alpha, useTheme } from '@mui/material/styles'
 import { CalendarToday as CalendarIcon, FiberManualRecord, Timeline as FrequencyIcon } from '@mui/icons-material'
 
@@ -58,8 +57,6 @@ const PAGE_SIZE = 10
 const SUB_TABS = ['Active', 'Stopped', 'All'] as const
 type SubTabType = (typeof SUB_TABS)[number]
 
-// ==================== Component ====================
-
 const getTypeParam = (tab: SubTabType): 'active' | 'closed' | 'all' => {
   switch (tab) {
     case 'Active':
@@ -100,10 +97,7 @@ const mergePrescriptionSections = (
     mergedMap.set(sectionKey, {
       ...existing,
       ...section,
-      data: [
-        ...(Array.isArray(existing.data) ? existing.data : []),
-        ...(Array.isArray(section.data) ? section.data : [])
-      ]
+      data: [...(Array.isArray(existing.data) ? existing.data : []), ...(Array.isArray(section.data) ? section.data : [])]
     })
   })
 
@@ -140,7 +134,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
   const theme = useTheme()
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null)
   const requestIdRef = useRef(0)
-  const { t } = useTranslation()
+
   const [activeSubTab, setActiveSubTab] = useState<SubTabType>('Active')
   const [data, setData] = useState<PrescriptionSection[]>([])
   const [counts, setCounts] = useState<PrescriptionCounts>({ active: 0, closed: 0, all: 0 })
@@ -289,10 +283,10 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
       const end = new Date(item.end_date)
       const diffMs = end.getTime() - start.getTime()
       const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24))
-      if (diffDays <= 0) return t('necropsy_module.for_1_day')
-      if (diffDays === 1) return t('necropsy_module.for_1_day')
 
-      return t('necropsy_module.for_x_days', { count: diffDays })
+      if (diffDays <= 1) return 'For 1 Day'
+
+      return `For ${diffDays} Days`
     }
 
     return null
@@ -314,8 +308,8 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
             dose.quantity && dose.unit_name
               ? `${dose.quantity} ${dose.unit_name}`
               : dose.quantity
-              ? `${dose.quantity}`
-              : null
+                ? `${dose.quantity}`
+                : null
         }))
         .filter(dose => dose.time || dose.dosage)
     }
@@ -407,9 +401,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
                     fontWeight: 500
                   }}
                 >
-                  {`${
-                    tab === 'Active' ? t('active') : tab === 'Stopped' ? t('necropsy_module.stopped') : t('all')
-                  } - ${getTabCount(tab)}`}
+                  {`${tab} - ${getTabCount(tab)}`}
                 </Typography>
               </Box>
             ))}
@@ -436,13 +428,13 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
               fontWeight: 400
             }}
           >
-            {t('necropsy_module.no_prescriptions_recorded')}
+            No Prescriptions Recorded
           </Typography>
         </Box>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
           {data.map((section, sectionIdx) => {
-            const medRecordId = section.medical_record_id || t('necropsy_module.na')
+            const medRecordId = section.medical_record_id || 'N/A'
             const prescriptions: PrescriptionItem[] = Array.isArray(section.data) ? section.data : []
 
             if (prescriptions.length === 0) return null
@@ -463,7 +455,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
                   {prescriptions.map((item, index) => {
                     const stopped = isStopped(item)
-                    const medicineName = item.name || item.medicine_name || t('necropsy_module.na')
+                    const medicineName = item.name || item.medicine_name || 'N/A'
                     const frequency = item.frequency
                     const dosageChips = buildDosageChips(item)
                     const durationText = getDurationText(item)
@@ -642,7 +634,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
                     '&:hover': { textDecoration: 'underline' }
                   }}
                 >
-                  {t('necropsy_module.load_more')}
+                  Load More
                 </Typography>
               )}
             </Box>
@@ -650,7 +642,7 @@ const PrescriptionList: FC<PrescriptionListProps> = ({
 
           {!hasMore && pageNo > 1 && (
             <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, fontSize: '0.875rem' }}>
-              {t('necropsy_module.no_more_prescriptions_to_load')}
+              No more prescriptions to load
             </Typography>
           )}
         </Box>

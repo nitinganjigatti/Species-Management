@@ -10,12 +10,14 @@ import {
   GET_MORTALITY,
   GET_MEDIA,
   ADD_MEDIA,
+  DELETE_MEDIA,
   GET_INCHARGE_LIST,
   ADD_INCHARGE,
   GET_USERS_LIST,
   GET_USERS_ROLE_LIST,
   GET_ALL_USERS,
-  GET_ENTITY_PERMISSION
+  GET_ENTITY_PERMISSION,
+  GET_HOSPITAL_TRANSFER_HOSPITAL_LIST
 } from 'src/constants/housing/commonConstants'
 
 import { USER_LIST } from 'src/constants/ApiConstant'
@@ -38,6 +40,7 @@ import type { GetUsersWithAccessParams, GetUsersWithAccessResponse } from 'src/t
 import type {
   AddMediaPayload,
   AddMediaResponse,
+  DeleteMediaParams,
   GetUserListPostParams,
   UserListItem,
   GetUserListPostResponse,
@@ -47,7 +50,9 @@ import type {
   AddInchargePayload,
   AddInchargeResponse,
   UserRole,
-  GetUsersRoleListResponse
+  GetUsersRoleListResponse,
+  GetHospitalTransferHospitalListParams,
+  GetHospitalTransferHospitalListResponse
 } from 'src/types/housing/api/common'
 
 // ==================== Species API ====================
@@ -76,6 +81,11 @@ export async function getAllMedia(params?: GetMediaParams): Promise<GetMediaResp
 
 export async function addMedia(formData: FormData): Promise<AddMediaResponse> {
   const response = await axiosFormPost({ url: `${ADD_MEDIA}`, body: formData })
+
+  return response?.data
+}
+export async function deleteMedia(params: DeleteMediaParams): Promise<AddMediaResponse> {
+  const response = await axiosPost({ url: `${DELETE_MEDIA}`, body: params })
 
   return response?.data
 }
@@ -128,6 +138,14 @@ export async function getUsersList(params: GetUsersWithAccessParams): Promise<Ge
 
 export async function getEntityPermissionCheck(params: GetEntityPermissionParams): Promise<GetEntityPermissionResponse> {
   const response = await axiosGet({ url: GET_ENTITY_PERMISSION, params })
+
+  return response?.data
+}
+
+export async function getHospitalTransferHospitalList(
+  params: GetHospitalTransferHospitalListParams
+): Promise<GetHospitalTransferHospitalListResponse> {
+  const response = await axiosGet({ url: GET_HOSPITAL_TRANSFER_HOSPITAL_LIST, params })
 
   return response?.data
 }

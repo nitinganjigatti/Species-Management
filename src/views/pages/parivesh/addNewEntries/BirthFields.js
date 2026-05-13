@@ -9,6 +9,7 @@ const BirthFields = ({
   errors,
   reasonType,
   setReasonType,
+  dgftDisplayFile = /** @type {any[]} */ ([]),
   setDgftDisplayFile,
   watch,
   getValues,

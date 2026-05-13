@@ -2,7 +2,7 @@ import { CircularProgress, Tab, Tabs, Typography, Skeleton, Button } from '@mui/
 import { Box, Grid } from '@mui/system'
 import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { getAnimalMedia } from 'src/lib/api/housing'
@@ -21,8 +21,7 @@ interface MediaPageResult {
 }
 
 const AnimalMedia: React.FC = () => {
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const { t } = useTranslation()
 
   const [activeTab, setActiveTab] = useState<string>('image')
@@ -66,12 +65,10 @@ const AnimalMedia: React.FC = () => {
       const mediaItems: Media[] = Array.isArray(rawData)
         ? (rawData as Media[])
         : Array.isArray((rawData as { result?: Media[] })?.result)
-          ? (rawData as { result: Media[] }).result
-          : []
+        ? (rawData as { result: Media[] }).result
+        : []
       const totalCount =
-        (res as { total_count?: number })?.total_count ??
-        (rawData as { total_count?: number })?.total_count ??
-        0
+        (res as { total_count?: number })?.total_count ?? (rawData as { total_count?: number })?.total_count ?? 0
 
       return {
         result: mediaItems,

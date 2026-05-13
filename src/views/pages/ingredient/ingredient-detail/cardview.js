@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Grid,
   CardContent,
@@ -13,8 +15,7 @@ import {
 import { React, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
@@ -74,12 +75,9 @@ const IngredientDetailCardview = ({
   }
 
   return (
-    <Grid item size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+    <Grid size={{ xs: 6.5, md: 4 }} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
         <div
-          item
-          md={3}
-          xs={12}
           style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
         >
           <CardContent
@@ -116,7 +114,7 @@ const IngredientDetailCardview = ({
             </div>
           </CardContent>
 
-          <Grid item>
+          <Grid>
             <Typography sx={{ mb: 1, color: theme.palette.customColors.neutralPrimary, fontWeight: 500 }}>
               {'ING' + IngredientsDetailsval.id}
             </Typography>

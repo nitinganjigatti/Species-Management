@@ -3,7 +3,7 @@ import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState, ChangeEvent } from 'react'
 import { useAuth } from 'src/hooks/useAuth'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
@@ -46,8 +46,11 @@ interface PaginationModel {
 const EnclosureWiseEnclosure: React.FC = () => {
   const { t } = useTranslation()
   const theme = useTheme() as any
-  const router: any = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const { id: routerId, enclosureId: routerEnclosureId } = useParams<{ id: string; sectionId: string; enclosureId: string }>() ?? {}
+  const id = routerEnclosureId || routerId
 
   const [inputValue, setInputValue] = useState<string>('')
   const [downloading, setDownloading] = useState<boolean>(false)
@@ -83,26 +86,16 @@ const EnclosureWiseEnclosure: React.FC = () => {
   const total: number = data?.data?.total_count || 0
 
   const updateUrlParams = (updatedFilters: EnclosureFilters): void => {
-    const currentQuery = { ...router.query }
-
-    // Update only the section-related filter keys
-    const updatedQuery = {
-      ...currentQuery,
-      enclosurePage: updatedFilters.page,
-      enclosurePageSize: updatedFilters.pageSize,
-      enclosureSearch: updatedFilters.search,
-      enclosureSortBy: updatedFilters.sortBy,
-      enclosureSortOrder: updatedFilters.sortOrder
-    }
-
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: updatedQuery
-      },
-      undefined,
-      { shallow: true }
-    )
+    // Preserve existing search params, then update enclosure-specific keys
+    const params = new URLSearchParams(searchParams?.toString() || '')
+    if (updatedFilters.page) params.set('enclosurePage', updatedFilters.page.toString())
+    if (updatedFilters.pageSize) params.set('enclosurePageSize', updatedFilters.pageSize.toString())
+    if (updatedFilters.search) params.set('enclosureSearch', updatedFilters.search)
+    else params.delete('enclosureSearch')
+    if (updatedFilters.sortBy) params.set('enclosureSortBy', updatedFilters.sortBy)
+    else params.delete('enclosureSortBy')
+    if (updatedFilters.sortOrder) params.set('enclosureSortOrder', updatedFilters.sortOrder)
+    router.replace(`${pathname}?${params.toString()}`)
   }
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
@@ -176,20 +169,14 @@ const EnclosureWiseEnclosure: React.FC = () => {
 
   useEffect(() => {
     setFilters(prev => ({
-      page: Number(router.query.enclosurePage) || 1,
-      pageSize: Number(router.query.enclosurePageSize) || 10,
-      search: (router.query.enclosureSearch as string) || '',
-      sortBy: (router.query.enclosureSortBy as string) || '',
-      sortOrder: (router.query.enclosureSortOrder as string) || 'asc'
+      page: Number(searchParams?.get('enclosurePage')) || 1,
+      pageSize: Number(searchParams?.get('enclosurePageSize')) || 10,
+      search: searchParams?.get('enclosureSearch') || '',
+      sortBy: searchParams?.get('enclosureSortBy') || '',
+      sortOrder: searchParams?.get('enclosureSortOrder') || 'asc'
     }))
-    setInputValue((router.query.enclosureSearch as string) || '')
-  }, [
-    router.query.enclosurePage,
-    router.query.enclosurePageSize,
-    router.query.enclosureSearch,
-    router.query.enclosureSortBy,
-    router.query.enclosureSortOrder
-  ])
+    setInputValue(searchParams?.get('enclosureSearch') || '')
+  }, [searchParams])
 
   const columns: GridColDef[] = [
     {

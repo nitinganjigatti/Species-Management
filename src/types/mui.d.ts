@@ -47,6 +47,10 @@ declare module '@mui/material/styles' {
 
   interface Palette {
     customColors: CustomColors
+    formContent?: {
+      tertiary?: string
+      bg?: string
+    }
   }
 
   interface PaletteOptions {

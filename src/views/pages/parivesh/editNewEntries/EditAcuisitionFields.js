@@ -26,7 +26,7 @@ import { useDropzone } from 'react-dropzone'
 import Toaster from 'src/components/Toaster'
 import { LoadingButton } from '@mui/lab'
 import { deleteAttachment } from 'src/lib/api/parivesh/entryList'
-import { useRouter } from 'next/router'
+import useSafeRouter from 'src/hooks/useSafeRouter'
 
 const EditAcquisitionFields = ({
   control,
@@ -41,10 +41,11 @@ const EditAcquisitionFields = ({
   setValue,
   clearErrors,
   isEditMode,
-  editParams
+  editParams,
+  setReasonType = /** @type {any} */ (() => {})
 }) => {
   const theme = useTheme()
-  const router = useRouter()
+  const router = useSafeRouter()
   const { id } = router.query
   const fileInputRef = useRef(null)
   const [currentImageIndex, setCurrentImageIndex] = useState(0)

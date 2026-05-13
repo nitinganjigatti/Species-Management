@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Box, useTheme, Skeleton, CircularProgress } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { Icon } from '@iconify/react'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { useInView } from 'react-intersection-observer'
 
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -12,7 +12,7 @@ import { TabProps, AnimalItem } from 'src/types/housing/animalsOffspring'
 
 const Mortality: React.FC<TabProps> = props => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
+  const router = useRouter()
   const [mortality, setMortality] = useState<AnimalItem[]>([])
   const [isMortalityFetching, setIsMortalityFetching] = useState(false)
   const [isFetchingMore, setIsFetchingMore] = useState(false)

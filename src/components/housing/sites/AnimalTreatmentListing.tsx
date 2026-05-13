@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, Theme } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
@@ -50,8 +50,8 @@ interface GenderStyle {
 
 const AnimalTreatmentListing: React.FC = () => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const theme = useTheme() as Theme & { palette: any }
 
   const auth = useAuth()

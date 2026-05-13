@@ -1,0 +1,565 @@
+import React, { useState, useEffect } from 'react'
+import { Box, Button, CircularProgress } from '@mui/material'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup'
+import * as yup from 'yup'
+import ExportPermitDetails from './ExportPermitDetails'
+import ExportPermitAnimals from './ExportPermitAnimals'
+import SpeciesDrawer from 'src/components/compliance/drawer/SpeciesDrawer'
+import { useRouter } from 'next/navigation'
+import { addExport, getMastersData, updateExport } from 'src/lib/api/compliance/exports'
+import dayjs from 'dayjs'
+import Toaster from 'src/components/Toaster'
+import { LoadingButton } from '@mui/lab'
+import countryList from 'react-select-country-list'
+import { useMemo } from 'react'
+import { DOCUMENT_TYPE_ID } from 'src/constants/Constants'
+import type {
+  ExportPermitFormProps,
+  ExportPermitFormValues,
+  ExportSpeciesFormItem,
+  SelectOption,
+  Species,
+  Id
+} from 'src/types/compliance'
+import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
+
+export const getExportPermitValidationSchema = (t: TFunction) =>
+  yup.object().shape({
+    export_number: yup.string().required(t('compliance_module.export_number_is_required')),
+
+    issued_date: yup.date().required(t('compliance_module.issued_date_is_required')),
+
+    valid_until: yup
+      .date()
+      .typeError(t('compliance_module.please_enter_a_valid_date'))
+      .required(t('compliance_module.last_date_of_validity_is_required'))
+      .min(yup.ref('issued_date'), t('compliance_module.valid_until_date_must_be_after_issued_date')),
+
+    origin_country: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.origin_country_is_required')),
+        value: yup.string().required(t('compliance_module.origin_country_is_required'))
+      })
+      .required(t('compliance_module.origin_country_is_required')),
+
+    exporting_country: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.exporting_country_is_required')),
+        value: yup.string().required(t('compliance_module.exporting_country_is_required'))
+      })
+      .required(t('compliance_module.exporting_country_is_required')),
+
+    importer_name: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.importer_name_is_required')),
+        value: yup.string().required(t('compliance_module.importer_name_is_required'))
+      })
+      .required(t('compliance_module.importer_name_is_required')),
+
+    exporter_name: yup
+      .object()
+      .shape({
+        label: yup.string().required(t('compliance_module.exporter_name_is_required')),
+        value: yup.string().required(t('compliance_module.exporter_name_is_required'))
+      })
+      .required(t('compliance_module.exporter_name_is_required')),
+
+    export_purpose: yup
+      .string()
+      .required(t('compliance_module.export_purpose_is_required'))
+      .min(1, t('compliance_module.export_purpose_is_required')),
+
+    // certificate_file: yup
+    //   .mixed()
+    //   .required('File is required')
+    //   .test('fileType', 'Unsupported file format', value => {
+    //     if (!value) return true
+
+    //     return ['image/jpeg', 'image/png', 'application/pdf'].includes(value.type)
+    //   }),
+
+    // certificate_file: yup
+    //   .mixed()
+    //   .nullable()
+    //   .test('fileType', 'Unsupported file format. Only PDF, JPEG, PNG, and Word documents are allowed', value => {
+    //     if (!value) return true // File is optional
+
+    //     // If it's a File object (new upload)
+    //     if (value instanceof File) {
+    //       const allowedTypes = [
+    //         // 'application/pdf',
+    //         'image/jpeg',
+    //         'image/png',
+    //         'application/msword',
+    //         'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    //       ]
+
+    //       return allowedTypes.includes(value.type)
+    //     }
+
+    //     // If it's an existing file object (from edit)
+    //     if (value.name) {
+    //       const extension = value.name.split('.').pop().toLowerCase()
+    //       const allowedExtensions = ['pdf', 'jpeg', 'jpg', 'png', 'doc', 'docx']
+
+    //       return allowedExtensions.includes(extension)
+    //     }
+
+    //     return true
+    //   }),
+    speciesList: yup
+      .array()
+      .min(1, t('compliance_module.at_least_one_species_must_be_selected_to_proceed_with_the_form_submission'))
+      .required(t('compliance_module.at_least_one_species_must_be_selected_to_proceed_with_the_form_submission'))
+      .of(
+        yup.object().shape({
+          species: yup.object().required(),
+          appendix: yup
+            .object()
+            .shape({
+              label: yup.string().required(t('compliance_module.appendix_is_required')),
+              value: yup.string().required(t('compliance_module.appendix_is_required'))
+            })
+            .required(t('compliance_module.appendix_is_required')),
+          male_count: yup
+            .number()
+            .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+            .min(0, t('compliance_module.must_be_0_or_more'))
+            .required(),
+          female_count: yup
+            .number()
+            .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+            .min(0, t('compliance_module.must_be_0_or_more'))
+            .required(),
+          undeterminate_count: yup
+            .number()
+            .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+            .min(0, t('compliance_module.must_be_0_or_more'))
+            .required(),
+          total_count: yup.number().min(1, t('compliance_module.total_count_must_be_at_least_1')).required(),
+          animalDetails: yup
+            .array()
+            .of(
+              yup.object().shape({
+                gender: yup
+                  .object()
+                  .shape({
+                    label: yup.string().required(t('compliance_module.gender_is_required')),
+                    value: yup.string().required(t('compliance_module.gender_is_required'))
+                  })
+                  .required(t('compliance_module.gender_is_required'))
+
+                // identifier_type: yup
+                //   .object()
+                //   .shape({
+                //     label: yup.string().required('Identifier type is required'),
+                //     value: yup.string().required('Identifier type is required')
+                //   })
+                //   .required('Identifier type is required')
+
+                // identifier_value: yup.string().required('Identifier value is required')
+
+                // animal_type: yup.string().required('Animal type is required'),
+                // animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
+              })
+            )
+            .test(
+              'count-match',
+              t('compliance_module.total_animal_details_count_must_not_exceed_gender_counts'),
+              function (animalDetails) {
+                const { male_count = 0, female_count = 0, undeterminate_count = 0 } = this.parent
+                const totalCount = male_count + female_count + undeterminate_count
+                console.log('totalCount', totalCount)
+
+                const animalDetailsCount =
+                  animalDetails?.reduce((sum, detail) => sum + (parseInt((detail as any).animal_count) || 0), 0) || 0
+
+                return animalDetailsCount <= totalCount
+              }
+            )
+        })
+      )
+  })
+
+const ExportPermitForm = ({ onSubmit, id, exportData, isLoading }: ExportPermitFormProps) => {
+  const { t } = useTranslation()
+  const exportPermitValidationSchema = useMemo(() => getExportPermitValidationSchema(t), [t])
+
+  const router = useRouter()
+  const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState<boolean>(false)
+  const [speciesList, setSpeciesList] = useState<ExportSpeciesFormItem[]>([])
+  const [submitLoader, setSubmitLoader] = useState<boolean>(false)
+  const [disableSaveButton, setDisableSaveButton] = useState<boolean>(false)
+  const [documentTypeId, setDocumentTypeId] = useState<Id | undefined>()
+
+  const [mastersData, setMastersData] = useState<{
+    genders: SelectOption[]
+    appendix: SelectOption[]
+    identifierTypes: SelectOption[]
+  }>({
+    genders: [],
+    appendix: [],
+    identifierTypes: []
+  })
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const countryOptions = useMemo(() => countryList().getData(), [])
+
+  const {
+    setValue,
+    handleSubmit,
+    reset,
+    control,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      export_number: '',
+      export_date: null,
+      issued_date: dayjs(),
+      valid_until: null,
+      export_purpose: '',
+      destination_country: null,
+      exporting_country: null,
+      importer_name: null,
+      exporter_name: null,
+      speciesList: []
+    },
+    resolver: yupResolver(exportPermitValidationSchema)
+  })
+
+  const fetchMastersData = async () => {
+    try {
+      setLoading(true)
+      const res = await getMastersData()
+      if (res?.success) {
+        const data = res.data
+
+        // Transform genders data
+        const genderOptions: SelectOption[] =
+          data?.genders?.map((gender: any) => ({
+            label: gender[0].charAt(0).toUpperCase() + gender[0].slice(1),
+            value: gender[0]
+          })) || []
+
+        // Transform appendix data
+        const appendixOptions: SelectOption[] =
+          data?.appendix?.map((item: any) => ({
+            label: item[0],
+            value: item[0]
+          })) || []
+
+        // Transform identifier types data
+        const identifierTypeOptions: SelectOption[] =
+          data?.identifier_type?.map((item: any) => ({
+            label: item.label,
+            value: item.id,
+            key: item.key,
+            id: item.id
+          })) || []
+        setDocumentTypeId((data?.document_type_id || undefined) as any)
+        setMastersData({
+          genders: genderOptions,
+          appendix: appendixOptions,
+          identifierTypes: identifierTypeOptions
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (exportData && mastersData?.identifierTypes?.length > 0) {
+      // Set basic form values
+      setValue('export_number', exportData.export_number)
+      setValue('issued_date', exportData.issued_date !== '0000-00-00' ? dayjs(exportData.issued_date) : null)
+      setValue('valid_until', exportData.valid_until !== '0000-00-00' ? dayjs(exportData.valid_until) : null)
+      setValue('export_purpose', exportData.export_purpose || '')
+      setValue('origin_country', {
+        label: countryOptions.find(country => country.value === exportData.origin_country)?.label || '',
+        value: exportData.origin_country || null
+      })
+      setValue('exporting_country', {
+        label: countryOptions.find(country => country.value === exportData.exporting_country)?.label || '',
+        value: exportData.exporting_country || null
+      })
+      setValue('importer_name', { label: exportData.importer_name, value: exportData.importer_id })
+      setValue('exporter_name', { label: exportData.exporter_name, value: exportData.exporter_id })
+      setValue(
+        'certificate_file',
+        exportData?.documents?.document_type_id
+          ? {
+              document_type_id: exportData?.documents?.document_type_id,
+              file_path: exportData?.documents?.file_path,
+              name: exportData?.documents?.file_original_name
+            }
+          : null
+      )
+
+      // Transform species data
+      const transformedSpeciesList: ExportSpeciesFormItem[] = ((exportData.species || []) as any[]).map(
+        (species: any) => ({
+          id: species.id,
+          tsn_id: species.id,
+          species: {
+            id: species.id,
+            tsn_id: species.taxonomy_id,
+            common_name: species.common_name,
+            export_species_id: species.id,
+            scientific_name: species.scientific_name
+          },
+          male_count: parseInt(String(species.male_count)) || 0,
+          female_count: parseInt(String(species.female_count)) || 0,
+          undeterminate_count: parseInt(String(species.undeterminate_count)) || 0,
+          total_count: parseInt(String(species.total_count)) || 0,
+          appendix: { label: species.appendix, value: species.appendix },
+          animalDetails: (species.animals || []).map((animal: any) => ({
+            id: animal.id,
+            export_animal_id: animal?.id,
+            export_species_id: animal?.export_species_id,
+            animal_type: animal.animal_type,
+            animal_count: parseInt(String(animal.animal_count)) || 0,
+            gender: {
+              label: animal.gender ? animal.gender.charAt(0).toUpperCase() + animal.gender.slice(1) : '',
+              value: animal.gender
+            },
+            identifier_type: {
+              label: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || '',
+              value: mastersData?.identifierTypes.find(item => item.label == animal.identifier_type)?.label || null
+            },
+            identifier_value: animal.identifier_value
+          }))
+        })
+      )
+
+      setSpeciesList(transformedSpeciesList)
+      setValue('speciesList', transformedSpeciesList)
+      console.log('speciesList', transformedSpeciesList)
+    }
+  }, [exportData, mastersData?.identifierTypes])
+
+  const handleSpeciesSelect = (selectedSpecies: Species[]) => {
+    // Create new species items for those not already in the list
+    const newSpeciesItems: ExportSpeciesFormItem[] = selectedSpecies
+      .filter(species => !speciesList.some(existing => existing.species.id === species.id))
+      .map((species: any) => ({
+        id: species.id,
+        species: {
+          id: species.id,
+          tsn_id: species.tsn_id,
+          export_species_id: species?.export_species_id || null,
+          common_name: species.common_name,
+          scientific_name: species.scientific_name || species.complete_name,
+          default_icon: species.default_icon,
+          isFromAntzDatabase: species.isFromAntzDatabase || false
+        },
+        male_count: 0,
+        female_count: 0,
+        undeterminate_count: 0,
+        total_count: 0,
+        animalDetails: []
+      }))
+
+    const updatedSpeciesList = [...speciesList, ...newSpeciesItems]
+    setSpeciesList(updatedSpeciesList)
+    setValue('speciesList', updatedSpeciesList)
+    setSpeciesDrawerOpen(false)
+  }
+
+  const handleSpeciesUpdate = (speciesId: Id, updatedSpecies: ExportSpeciesFormItem) => {
+    const updatedList = speciesList.map(item => (item.id === speciesId ? { ...updatedSpecies } : { ...item }))
+
+    // Update both local state and form state
+    setSpeciesList(updatedList)
+    setValue('speciesList', updatedList)
+  }
+
+  const handleRemoveSpecies = (speciesId: Id) => {
+    console.log('speciesId', speciesId)
+    const updatedList = speciesList.filter(item => item.id !== speciesId)
+    setSpeciesList(updatedList)
+    setValue('speciesList', updatedList)
+  }
+
+  const handleFormSubmit = async (data: Record<string, unknown>) => {
+    console.log('handleFormSubmit data', data)
+
+    // Transform data for API
+    const transformedData: Record<string, unknown> = {
+      export_number: data.export_number,
+      origin_country: (data.origin_country as SelectOption)?.value || '',
+      exporting_country: (data.exporting_country as SelectOption)?.value || '',
+      exporter_name: (data.exporter_name as SelectOption)?.label || '',
+      importer_name: (data.importer_name as SelectOption)?.label || '',
+      exporter_id: (data.exporter_name as SelectOption)?.value || '',
+      importer_id: (data.importer_name as SelectOption)?.value || '',
+      export_purpose: data.export_purpose || '',
+      issued_date: data.issued_date ? dayjs(data.issued_date as string).format('YYYY-MM-DD') : null,
+      valid_until: data.valid_until ? dayjs(data.valid_until as string).format('YYYY-MM-DD') : null,
+      document_type_id: documentTypeId,
+      species: JSON.stringify(
+        (data.speciesList as ExportSpeciesFormItem[]).map(item => ({
+          taxonomy_id: item.species?.tsn_id || null,
+          export_species_id: id && item.species?.export_species_id ? item.species?.export_species_id : null, // Only send export_species_id in edit mode
+          common_name: item.species?.common_name || '',
+          scientific_name: item.species?.scientific_name || '',
+          default_icon: item?.species?.default_icon ? item.species.default_icon.split('path=')[1] : null,
+          appendix: item.appendix?.value || '',
+          male_count: parseInt(String(item.male_count)) || 0,
+          female_count: parseInt(String(item.female_count)) || 0,
+          undeterminate_count: parseInt(String(item.undeterminate_count)) || 0,
+          animals: item.animalDetails.map(detail => ({
+            id: String(detail.id)?.startsWith('new_') ? '' : detail.id || '',
+            export_animal_id: detail?.export_animal_id ? detail.export_animal_id : null,
+            export_species_id: detail?.export_species_id ? detail.export_species_id : null,
+            gender: detail.gender?.value || '',
+            identifier_type: detail.identifier_type?.label || '',
+            identifier_value: detail.identifier_value || '',
+            animal_type: detail.animal_type || '',
+            animal_count: parseInt(String(detail.animal_count)) || 0
+          }))
+        }))
+      )
+    }
+
+    // Only include attachment if it's a new file upload
+    if (data.certificate_file && data.certificate_file instanceof File) {
+      transformedData.attachment = data.certificate_file
+    } else if ((data.certificate_file as { document_type_id?: Id })?.document_type_id) {
+      // TODO: Backend flow is yet to update
+      // transformedData.document_type_id = data?.documents?.[0]?.document_type_id
+    }
+
+    try {
+      setSubmitLoader(true)
+
+      const response = id ? await updateExport(id, transformedData) : await addExport(transformedData)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+        setSubmitLoader(false)
+        onSubmit(response?.data?.id)
+
+        // Route to detail page
+        if (!id) {
+          router.push(`/compliance/documents/exports/AddEditExportPermit?id=${response?.data?.id}&type=add`)
+        } else {
+          router.push(`/compliance/documents/exports/AddEditExportPermit?id=${id}&type=update`)
+        }
+      } else {
+        setSubmitLoader(false)
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      Toaster({ type: 'error', message: JSON.stringify(e) })
+    }
+  }
+
+  const handleFormReset = () => {
+    reset({
+      export_number: id ? exportData?.export_number : '',
+      export_date: null,
+      issued_date: id ? dayjs(exportData?.issued_date) : dayjs(),
+      valid_until: null,
+      export_purpose: '',
+      destination_country: null,
+      exporting_country: null,
+      importer_name: null,
+      exporter_name: null,
+      speciesList: []
+    })
+    setSpeciesList([])
+  }
+
+  useEffect(() => {
+    fetchMastersData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+
+        // minHeight='300px' // or '100vh' if you want full page center
+      >
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  return (
+    <Box
+      component='form'
+      onSubmit={handleSubmit(handleFormSubmit, errors => {
+        console.log('errors', errors)
+        if (Object.keys(errors).length > 0) {
+          const firstError = Object.keys(errors)[0]
+          const element = document.querySelector(`[name="${firstError}"]`)
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+        }
+      })}
+      onReset={handleFormReset}
+    >
+      <ExportPermitDetails control={control} errors={errors} isEdit={!!id} />
+
+      <ExportPermitAnimals
+        control={control}
+        errors={errors}
+        speciesList={speciesList}
+        handleSpeciesUpdate={handleSpeciesUpdate}
+        handleRemoveSpecies={handleRemoveSpecies}
+        setSpeciesDrawerOpen={setSpeciesDrawerOpen}
+        isEdit={!!id}
+        appendixOptions={mastersData.appendix}
+        identifierOptions={mastersData.identifierTypes}
+        genderOptions={mastersData.genders}
+        setValue={setValue}
+        setSpeciesList={setSpeciesList}
+      />
+
+      <SpeciesDrawer
+        open={speciesDrawerOpen}
+        onClose={() => setSpeciesDrawerOpen(false)}
+        onSelect={handleSpeciesSelect}
+        selectedSpecies={speciesList?.map(item => item.species)}
+        title={t('compliance_module.select_species')}
+        data={{
+          queryKey: 'export-permit-species',
+          id: 'species-list',
+          params: {}
+        }}
+      />
+
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, gap: 2 }}>
+        <Button variant='outlined' type='reset' disabled={disableSaveButton}>
+          {t('reset')}
+        </Button>
+        <LoadingButton
+          type='submit'
+          variant='contained'
+          loading={submitLoader}
+          disabled={disableSaveButton}
+          sx={{ py: 3, width: '8rem' }}
+          fullWidth
+        >
+          {id ? t('update') : t('save')}
+        </LoadingButton>
+      </Box>
+    </Box>
+  )
+}
+
+export default ExportPermitForm

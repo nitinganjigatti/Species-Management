@@ -31,7 +31,7 @@ interface FoundByUser {
 interface ReportFoundFormProps {
   reportFoundForm: boolean
   setReportFoundForm: (open: boolean) => void
-  animalId: string | string[] | undefined
+  animalId: string | number | string[] | undefined
 }
 
 interface FormValues {
@@ -72,7 +72,7 @@ const schema = yup.object().shape({
 const ReportFoundForm: React.FC<ReportFoundFormProps> = ({ reportFoundForm, setReportFoundForm, animalId }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as any
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [foundByUsers, setFoundByUsers] = useState<FoundByUser[]>([])

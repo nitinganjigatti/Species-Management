@@ -19,7 +19,7 @@ import Utility from 'src/utility'
 import Timeline from '@mui/lab/Timeline'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { AnimalJournalLog, AnimalJournalEntry, User, JournalModule } from 'src/types/housing'
 import { useTranslation } from 'react-i18next'
 
@@ -66,8 +66,7 @@ interface ModuleFilterItem {
 
 const AnimalJournals: React.FC = () => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const authData = useContext(AuthContext)
   const { t } = useTranslation()
 

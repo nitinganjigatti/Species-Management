@@ -3,7 +3,7 @@ import { Typography, Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import { CellInfo } from 'src/utility/render'
@@ -38,7 +38,7 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
   const theme = useTheme() as any
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const router = useSafeRouter()
+  const router = useRouter()
 
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
@@ -145,6 +145,7 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
       if (!sectionId) return
 
       router.push(`/housing/sections/${sectionId}`)
+      router.push(`/housing/sections/${sectionId}`)
 
       if (onClose) {
         onClose()
@@ -176,12 +177,12 @@ const SectionsDrawer: React.FC<SectionsDrawerProps> = ({ open, onClose, data }) 
       >
         <CellInfo
           value={data?.name}
-          subtitle=""
+          subtitle=''
           imgUrl={data?.image}
-          avatarUrl=""
-          inchagename=""
-          defaultImage=""
-          defaultImageAlt=""
+          avatarUrl=''
+          inchagename=''
+          defaultImage=''
+          defaultImageAlt=''
           color={(theme.palette as any).customColors?.OnSurfaceVariant}
           subtitleColor={(theme.palette as any).customColors?.secondaryBg}
         />

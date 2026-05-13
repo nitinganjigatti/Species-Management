@@ -21,7 +21,6 @@ import NoDataFound from 'src/views/utility/NoDataFound'
 import {
   getAssessmentCategoryList,
   getAssessmentTypeList,
-  addAssessmentTypesToEntity,
   getAssessmentTemplatesList,
   assignAssessmentTemplate
 } from 'src/lib/api/assessment'
@@ -383,40 +382,31 @@ const AddEntityAssessmentTypeDrawer: React.FC<AddEntityAssessmentTypeDrawerProps
 
     setIsSubmitting(true)
     try {
-      if (selectedTab === 'types') {
-        // Use existing API for types
-        const payload = {
-          assessment_types_to_be_removed: JSON.stringify([]),
-          new_assessment_types: JSON.stringify(selectedTypes.map(t => t.id))
-        }
+      const payload = {
+        ref_id: entityId,
+        entity_type: (selectedTab === 'types' ? 'assessment_type' : 'assessment_template') as
+          'assessment_type' | 'assessment_template',
+        ref_type: entityType,
+        entity_id:
+          selectedTab === 'types'
+            ? [...(Array.isArray(existingTypeIds) ? existingTypeIds : []), ...selectedTypes.map(t => t.id)]
+            : selectedTemplates.map(t => t.id)
+      }
 
-        const response = await addAssessmentTypesToEntity(entityId, entityType, payload)
+      const response = await assignAssessmentTemplate(payload)
 
-        if (response?.success) {
-          Toaster({ type: 'success', message: 'Assessment types added successfully' })
-          onSuccess()
-          handleDrawerClose()
-        } else {
-          Toaster({ type: 'error', message: response?.message || 'Failed to add assessment types' })
-        }
+      if (response?.success) {
+        Toaster({
+          type: 'success',
+          message: `Assessment ${selectedTab === 'types' ? 'types' : 'templates'} added successfully`
+        })
+        onSuccess()
+        handleDrawerClose()
       } else {
-        // Use assign template API for templates
-        const payload = {
-          ref_id: entityId,
-          entity_type: 'assessment_template' as const,
-          ref_type: entityType,
-          entity_id: selectedTemplates.map(t => t.id)
-        }
-
-        const response = await assignAssessmentTemplate(payload)
-
-        if (response?.success) {
-          Toaster({ type: 'success', message: 'Assessment templates added successfully' })
-          onSuccess()
-          handleDrawerClose()
-        } else {
-          Toaster({ type: 'error', message: response?.message || 'Failed to add assessment templates' })
-        }
+        Toaster({
+          type: 'error',
+          message: response?.message || `Failed to add assessment ${selectedTab === 'types' ? 'types' : 'templates'}`
+        })
       }
     } catch (error) {
       console.error('Error adding assessments:', error)

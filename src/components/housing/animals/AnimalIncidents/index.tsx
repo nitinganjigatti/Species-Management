@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 
 import {
   Button,
@@ -88,8 +88,7 @@ interface IncidentCardListProps {
 const AnimalIncidents: React.FC = () => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id: animalId } = router.query
+  const { id: animalId } = useParams<{ id: string }>() ?? {}
 
   const [activtyLogSideBar, setActivtyLogSideBar] = useState<boolean>(false)
 
@@ -224,7 +223,13 @@ const AnimalIncidents: React.FC = () => {
                   {incident.incident_code}
                 </Typography>
               </Tooltip>
-              <Tooltip title={incident.current_incident_type === 'found' ? t('animals_module.animal_found') : t('animals_module.animal_missing')}>
+              <Tooltip
+                title={
+                  incident.current_incident_type === 'found'
+                    ? t('animals_module.animal_found')
+                    : t('animals_module.animal_missing')
+                }
+              >
                 <Typography
                   sx={{
                     color:
@@ -238,7 +243,9 @@ const AnimalIncidents: React.FC = () => {
                     whiteSpace: 'nowrap'
                   }}
                 >
-                  {incident.current_incident_type === 'found' ? t('animals_module.animal_found') : t('animals_module.animal_missing')}
+                  {incident.current_incident_type === 'found'
+                    ? t('animals_module.animal_found')
+                    : t('animals_module.animal_missing')}
                 </Typography>
               </Tooltip>
             </Box>
@@ -484,7 +491,9 @@ const AnimalIncidents: React.FC = () => {
                 <Icon icon={'ion:time-outline'} />
               </Box>
               <Box>
-                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>{t('animals_module.incident_details')}</Typography>
+                <Typography sx={{ fontWeight: 500, fontSize: '24px' }}>
+                  {t('animals_module.incident_details')}
+                </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <IconButton size='small' onClick={() => setActivtyLogSideBar(false)} sx={{ color: 'text.primary' }}>
@@ -637,7 +646,10 @@ const AnimalIncidents: React.FC = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {animalListCount > 0 && `${animalListCount > 1 ? t('animals_module.incidents') : t('animals_module.incident')} (${animalListCount})`}
+                {animalListCount > 0 &&
+                  `${
+                    animalListCount > 1 ? t('animals_module.incidents') : t('animals_module.incident')
+                  } (${animalListCount})`}
               </Typography>
             )}
             <Button

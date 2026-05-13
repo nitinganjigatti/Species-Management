@@ -18,7 +18,7 @@ import Icon from 'src/@core/components/icon'
 import { Box, minWidth, width } from '@mui/system'
 import AddIdentifierDrawer from 'src/views/pages/housing/animals/AddIdentifierDrawer'
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import { deleteAnimalIdentifier, getAnimalIdentifier } from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import Search from 'src/views/utility/Search'
@@ -54,10 +54,14 @@ interface LocalIdentifierTypeOption {
   value: string
 }
 
-const AnimalIdentifier: React.FC = () => {
+interface AnimalIdentifierProps {
+  animalId?: number | string
+}
+
+const AnimalIdentifier: React.FC<AnimalIdentifierProps> = ({ animalId: propAnimalId }) => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const { t } = useTranslation()
 
   const [searchValue, setSearchValue] = useState<string>('')
@@ -93,7 +97,7 @@ const AnimalIdentifier: React.FC = () => {
     getLocalIdentifierTypeData()
   }, [])
 
-  const animalId = Array.isArray(id) ? id[0] : id
+  const animalId = propAnimalId != null ? String(propAnimalId) : (Array.isArray(id) ? id[0] : id)
 
   const { data, isLoading, refetch }: UseQueryResult<IdentifierApiResponse, Error> = useQuery({
     queryKey: ['animal-identifier', animalId],

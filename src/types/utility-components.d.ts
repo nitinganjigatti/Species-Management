@@ -143,62 +143,6 @@ declare module 'src/views/utility/FilterButtonWithNotification' {
   export default FilterButtonWithNotification
 }
 
-declare module 'src/views/pages/hospital/utility/hospitalSnippets' {
-  import { FC, ReactNode } from 'react'
-
-  interface MedicalIdChipProps {
-    medId?: string | number
-    leftImage?: boolean
-    rightDot?: boolean
-    backgroundColor?: string
-    textColor?: string
-    dotColor?: string
-    fontSize?: string
-    fontWeight?: number
-    [key: string]: unknown
-  }
-
-  export const MedicalIdChip: FC<MedicalIdChipProps>
-
-  interface CreatedByProps {
-    profile_image?: string | null
-    user_name?: string | null
-    date?: string | null
-    text_color?: string | null
-    description?: string | null
-    role?: string | null
-    crby_width?: string | number | null
-    size?: string
-    show_time?: boolean
-    dateType?: string | null
-    [key: string]: unknown
-  }
-
-  export const CreatedBy: FC<CreatedByProps>
-
-  interface SpeciesInfoCardProps {
-    species?: {
-      default_icon?: string
-      common_name?: string
-      scientific_name?: string
-    }
-    edit?: boolean
-    [key: string]: unknown
-  }
-
-  export const SpeciesInfoCard: FC<SpeciesInfoCardProps>
-
-  interface PatientSummaryCardProps {
-    data?: Record<string, unknown>
-    size?: string
-    edit?: boolean
-    valueColor?: string
-    [key: string]: unknown
-  }
-
-  export const PatientSummaryCard: FC<PatientSummaryCardProps>
-}
-
 declare module 'src/views/pages/hospital/inpatient/ClinicalAssessmentCard' {
   import { FC } from 'react'
 
@@ -303,7 +247,7 @@ declare module 'src/views/forms/form-fields/ControlledDatePicker' {
     disabled?: boolean
     sx?: Record<string, unknown>
     size?: string
-    onChangeOverride?: () => void
+    onChangeOverride?: (value: any) => void
     [key: string]: unknown
   }
 
@@ -636,6 +580,27 @@ declare module 'geolocation' {
   export default geolocation
 }
 
+declare module 'src/views/utility/FallbackAvatar' {
+  import type React from 'react'
+  import type { SxProps, Theme } from '@mui/material'
+
+  interface FallbackAvatarProps {
+    src?: string
+    variant?: string
+    fallback?: string
+    alt?: string
+    size?: string | number
+    sx?: SxProps<Theme>
+    showSkeleton?: boolean
+    onLoad?: () => void
+    onError?: () => void
+    [key: string]: unknown
+  }
+
+  const FallbackAvatar: React.FC<FallbackAvatarProps>
+  export default FallbackAvatar
+}
+
 declare module 'src/views/utility/Layout/PageCardLayout' {
   import { FC, ReactNode } from 'react'
   import { SxProps } from '@mui/material'
@@ -691,6 +656,22 @@ declare module 'src/views/utility/DynamicBreadcrumbs' {
 
   const DynamicBreadcrumbs: FC<DynamicBreadcrumbsProps>
   export default DynamicBreadcrumbs
+}
+
+declare module 'react-select-country-list' {
+  interface CountryData {
+    label: string
+    value: string
+  }
+  interface CountryList {
+    getData: () => CountryData[]
+    getLabel: (value: string) => string
+    getValue: (label: string) => string
+    getValues: () => string[]
+    getLabels: () => string[]
+  }
+  function countryList(): CountryList
+  export default countryList
 }
 
 declare module 'src/views/pages/compliance/utility' {

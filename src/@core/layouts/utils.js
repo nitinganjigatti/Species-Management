@@ -10,7 +10,14 @@ export const handleURLQueries = (router, path) => {
     // Get pathname without query string to avoid matching paths in query parameters
     const pathWithoutQuery = router.asPath.split('?')[0]
 
-    return (pathWithoutQuery === path || pathWithoutQuery.startsWith(path + '/')) && path !== '/'
+    // Normalize trailing slashes on both sides — next.config has `trailingSlash: true`,
+    // so the browser URL always ends with '/' but nav `path` strings may or may not.
+    // Without this, `path + '/'` produces '//' and the startsWith check silently fails,
+    // leaving parent nav items unhighlighted on detail/sub-pages.
+    const normPath = path.replace(/\/+$/, '')
+    const normCurrent = pathWithoutQuery.replace(/\/+$/, '')
+
+    return (normCurrent === normPath || normCurrent.startsWith(normPath + '/')) && normPath !== ''
   }
 
   return false
@@ -28,6 +35,15 @@ export const hasActiveChild = (item, currentURL) => {
   if (!children) {
     return false
   }
+
+  // Normalize path by removing trailing slashes (except for root path)
+  const normalizePath = (path) => {
+    if (!path) return path
+    return path === '/' ? '/' : path.replace(/\/$/, '')
+  }
+
+  const normalizedCurrentURL = normalizePath(currentURL)
+
   for (const child of children) {
     if (child.children) {
       if (hasActiveChild(child, currentURL)) {
@@ -37,13 +53,14 @@ export const hasActiveChild = (item, currentURL) => {
     const childPath = child.path
 
     // Check if the child has a link and is active
-    if (
-      child &&
-      childPath &&
-      currentURL &&
-      (childPath === currentURL || (currentURL.includes(childPath) && childPath !== '/'))
-    ) {
-      return true
+    if (child && childPath && normalizedCurrentURL) {
+      const normalizedChildPath = normalizePath(childPath)
+      if (
+        normalizedChildPath === normalizedCurrentURL ||
+        (normalizedCurrentURL.includes(normalizedChildPath) && normalizedChildPath !== '/')
+      ) {
+        return true
+      }
     }
   }
 

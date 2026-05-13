@@ -1,6 +1,6 @@
 import React, { useState, FC, useMemo, useEffect } from 'react'
 import { Box, Tabs, Tab, Typography } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 
 import { getOffspringStats } from 'src/lib/api/housing'
@@ -20,8 +20,7 @@ const OFFSPRING_TABS = [
 ]
 
 const AnimalOffspring: FC<AnimalOffspringProps> = ({ animalDetails }) => {
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const { t } = useTranslation()
 
   const animalId = id as string

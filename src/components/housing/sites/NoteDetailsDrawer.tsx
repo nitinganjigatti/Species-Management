@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Typography, Drawer, IconButton, Chip, Divider, CircularProgress, TextField, Avatar } from '@mui/material'
+import { Box, Typography, Drawer, IconButton, Chip, Divider, CircularProgress, TextField, Avatar, Tooltip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { alpha } from '@mui/material/styles'
+import Icon from 'src/@core/components/icon'
 import {
   Close as CloseIcon,
   Description as NoteIcon,
@@ -11,8 +13,10 @@ import {
   Send as SendIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  PersonAdd as PersonAddIcon
+  PersonAdd as PersonAddIcon,
+  AttachFile as AttachFileIcon
 } from '@mui/icons-material'
+import { useForm } from 'react-hook-form'
 import {
   getObservationDetails,
   addNoteReaction,
@@ -29,9 +33,10 @@ import { useAuth } from 'src/hooks/useAuth'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import EditNoteDrawer from './EditNoteDrawer'
-import NoteCommentDialog from './NoteCommentDialog'
 import SearchUsersDrawer from './SearchUsersDrawer'
 import type { Note, NoteAttachment, NoteComment, NoteImage, User } from 'src/types/housing'
+import AddAttachmentsDrawer from 'src/components/notes/AddAttachmentsDrawer'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 interface PriorityIcons {
   [key: string]: string
@@ -122,6 +127,19 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
   const [taggedMembersDrawerOpen, setTaggedMembersDrawerOpen] = useState(false)
   const [searchUsersDrawerOpen, setSearchUsersDrawerOpen] = useState(false)
   const [updateMembersLoading, setUpdateMembersLoading] = useState(false)
+  const [addAttachmentsDrawerOpen, setAddAttachmentsDrawerOpen] = useState<boolean>(false)
+  const [attachmentsLoading, setAttachmentsLoading] = useState<boolean>(false)
+  const [showMobileNumber, setShowMobileNumber] = useState<boolean>(false)
+  const [copied, setCopied] = useState<boolean>(false)
+  const [showCommentInput, setShowCommentInput] = useState<boolean>(false)
+
+  const { control, watch, reset } = useForm({ defaultValues: { attachments: [] } })
+
+  const handleCopyNumber = (number: string): void => {
+    navigator.clipboard.writeText(number)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   // Local like state to avoid full re-render on like toggle
   const [likeState, setLikeState] = useState<{ isLiked: boolean; count: number } | null>(null)
@@ -227,6 +245,8 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
     setCommentDialogOpen(false)
     setTaggedMembersDrawerOpen(false)
     setSearchUsersDrawerOpen(false)
+    setShowMobileNumber(false)
+    setShowCommentInput(false)
     onClose()
   }
 
@@ -250,6 +270,41 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
     } finally {
       setCommentDialogLoading(false)
     }
+  }
+
+  const handleAttachmentsSubmit = async () => {
+    const files = watch('attachments')
+    if (!files || files.length === 0) return
+
+    setAttachmentsLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('observation_id', String(observationData?.observation_id))
+      files.forEach((file: File) => {
+        formData.append('observation_note_attachment[]', file)
+      })
+
+      const response = await addObservationComment(formData)
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message || 'Attachments added successfully' })
+        reset({ attachments: [] })
+        setAddAttachmentsDrawerOpen(false)
+        fetchObservationDetails()
+        if (onUpdate) onUpdate()
+      } else {
+        Toaster({ type: 'error', message: response?.message || 'Failed to add attachments' })
+      }
+    } catch (error) {
+      console.error('Error adding attachments:', error)
+      Toaster({ type: 'error', message: 'Failed to add attachments' })
+    } finally {
+      setAttachmentsLoading(false)
+    }
+  }
+
+  const handleCloseAttachmentsDrawer = () => {
+    setAddAttachmentsDrawerOpen(false)
+    reset({ attachments: [] })
   }
 
   const handleEditSuccess = () => {
@@ -537,12 +592,83 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                   '& .MuiChip-icon': { color: theme.palette.customColors?.OnPrimaryContainer }
                 }}
               />
-              <IconButton size='small' sx={{ bgcolor: theme.palette.customColors?.Background, width: 32, height: 32 }}>
-                <PhoneIcon sx={{ fontSize: 18, color: theme.palette.customColors?.OnPrimaryContainer }} />
-              </IconButton>
-              <IconButton size='small' sx={{ bgcolor: theme.palette.customColors?.Background, width: 32, height: 32 }}>
-                <CommentIcon sx={{ fontSize: 18, color: theme.palette.customColors?.OnPrimaryContainer }} />
-              </IconButton>
+              {/* Mobile: direct call/sms */}
+              <Box sx={{ display: { xs: 'flex', md: 'none' }, gap: 1 }}>
+                <IconButton
+                  size='small'
+                  onClick={() => window.open(`tel:${(data as any)?.created_by_phone}`, '_self')}
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    backgroundColor: alpha(theme.palette.customColors?.OnSecondaryContainer || '', 0.1),
+                    color: theme.palette.customColors?.OnSecondaryContainer,
+                    '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnSecondaryContainer || '', 0.3) }
+                  }}
+                >
+                  <PhoneIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+                <IconButton
+                  size='small'
+                  onClick={() => window.open(`sms:${(data as any)?.created_by_phone}`, '_self')}
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    backgroundColor: alpha(theme.palette.customColors?.OnSecondaryContainer || '', 0.1),
+                    color: theme.palette.customColors?.OnSecondaryContainer,
+                    '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnSecondaryContainer || '', 0.3) }
+                  }}
+                >
+                  <Icon icon='material-symbols:comment-rounded' width='18' height='18' />
+                </IconButton>
+              </Box>
+
+              {/* Desktop: toggle number + copy */}
+              <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1 }}>
+                <IconButton
+                  size='small'
+                  onClick={() => setShowMobileNumber(prev => !prev)}
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    backgroundColor: alpha(theme.palette.customColors?.OnSecondaryContainer || '', 0.1),
+                    color: theme.palette.customColors?.OnSecondaryContainer,
+                    '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnSecondaryContainer || '', 0.3) }
+                  }}
+                >
+                  <PhoneIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    overflow: 'hidden',
+                    maxWidth: showMobileNumber ? '200px' : '0px',
+                    opacity: showMobileNumber ? 1 : 0,
+                    transition: 'max-width 0.3s ease-in-out, opacity 0.3s ease-in-out'
+                  }}
+                >
+                  <Typography
+                    sx={{ fontWeight: 500, fontSize: '14px', color: theme.palette.customColors?.OnSecondaryContainer }}
+                  >
+                    {(data as any)?.created_by_phone}
+                  </Typography>
+                  <Tooltip title={copied ? `${t('copied')}!` : t('copy_number')}>
+                    <IconButton
+                      size='small'
+                      onClick={() => handleCopyNumber((data as any)?.created_by_phone || '')}
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        color: theme.palette.customColors?.OnSecondaryContainer,
+                        '&:hover': { backgroundColor: alpha(theme.palette.customColors?.OnSecondaryContainer || '', 0.3) }
+                      }}
+                    >
+                      <Icon icon={copied ? 'mdi:check' : 'mdi:content-copy'} fontSize={18} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
             </Box>
 
             <Typography variant='body2' color='text.secondary' sx={{ mb: 3 }}>
@@ -638,13 +764,13 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
 
             {/* Tagged Members - Clickable to show drawer */}
             <Box
-              onClick={() => taggedMembers.length > 0 && setTaggedMembersDrawerOpen(true)}
+              onClick={() => setTaggedMembersDrawerOpen(true)}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1,
-                cursor: taggedMembers.length > 0 ? 'pointer' : 'default',
-                '&:hover': taggedMembers.length > 0 ? { opacity: 0.7 } : {}
+                cursor: 'pointer',
+                '&:hover': { opacity: 0.7 }
               }}
             >
               <PersonIcon sx={{ fontSize: 24, color: theme.palette.primary.main }} />
@@ -680,7 +806,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                 <LikeIcon
                   sx={{
                     fontSize: 20,
-                    color: isLiked ? theme.palette.customColors?.amber : theme.palette.text.secondary
+                    color: isLiked ? theme.palette.primary.main : theme.palette.text.secondary
                   }}
                 />
                 <Typography
@@ -695,18 +821,20 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                   alignItems: 'center',
                   gap: 1,
                   cursor: 'pointer',
+                  py: 1,
+                  px: 2,
+                  borderRadius: '20px',
                   '&:hover': { opacity: 0.7 }
                 }}
+                onClick={() => setShowCommentInput(true)}
               >
-                <IconButton
-                  size='small'
-                  onClick={() => setCommentDialogOpen(true)}
-                  // sx={{ bgcolor: theme.palette.customColors?.Background, width: 32, height: 32 }}
-                >
-                  <CommentIcon sx={{ fontSize: 20 }} />
-                </IconButton>
-
-                <Typography sx={{ color: theme.palette.customColors?.onPrimaryContainer, fontWeight: 500 }}>
+                <Icon
+                  icon='material-symbols:comment-rounded'
+                  width='20'
+                  height='20'
+                  color={theme.palette.text.secondary}
+                />
+                <Typography sx={{ color: theme.palette.text.secondary, fontSize: '14px', fontWeight: 600 }}>
                   {totalComments}
                 </Typography>
               </Box>
@@ -729,10 +857,32 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                         <Box
                           sx={{
                             p: 3,
-                            borderRadius: 1,
-                            bgcolor: theme.palette.customColors?.antzNotes
+                            borderRadius: item?.notes_attachment?.length > 0 ? 0 : 1,
+                            bgcolor: item?.notes_attachment?.length > 0 ? "transparent" :theme.palette.customColors?.antzNotes,
+                            borderBottom:item?.notes_attachment?.length > 0? `1px solid ${theme.palette.action.disabledBackground}`: 'none'
                           }}
                         >
+                          {commentText && (
+                            <Box sx={{ mb: 1.5 }}>
+                              <Typography variant='body2'>{commentText}</Typography>
+                            </Box>
+                          )}
+
+                          {item.notes_attachment && item.notes_attachment.length > 0 && (
+                            <Box sx={{display: 'flex', gap: 1, flexWrap: 'wrap' , mb: 1.5 }}>
+                              {item.notes_attachment.map((attachment: any, idx: number) => (
+                                <NewMediaCard
+                                  key={attachment.id || idx}
+                                  fileUrl={getAttachmentUrl(attachment) || undefined}
+                                  fileName={attachment.file_orginal_name || attachment.file_name || attachment.fileName}
+                                  fileType={attachment.file_type || attachment.type || attachment.fileType}
+                                  width='120px'
+                                  showTitle={false}
+                                />
+                              ))}
+                            </Box>
+                          )}
+
                           <Box sx={{ mb: 1.5 }}>
                             <UserAvatarDetails
                               profile_image={item.user_profile_pic || item.commented_by_image}
@@ -742,27 +892,6 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
                               show_time
                             />
                           </Box>
-
-                          {commentText && (
-                            <Box sx={{ ml: 5, mb: 1.5 }}>
-                              <Typography variant='body2'>{commentText}</Typography>
-                            </Box>
-                          )}
-
-                          {item.notes_attachment && item.notes_attachment.length > 0 && (
-                            <Box sx={{ ml: 5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                              {item.notes_attachment.map((attachment: any, idx: number) => (
-                                <NewMediaCard
-                                  key={attachment.id || idx}
-                                  fileUrl={getAttachmentUrl(attachment) || undefined}
-                                  fileName={attachment.file_orginal_name || attachment.file_name || attachment.fileName}
-                                  fileType={attachment.file_type || attachment.type || attachment.fileType}
-                                  width='100px'
-                                  showTitle={false}
-                                />
-                              ))}
-                            </Box>
-                          )}
                         </Box>
                       </Box>
                     )
@@ -779,7 +908,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
       )}
 
       {/* Comment Input Footer */}
-      <Box
+      {showCommentInput && <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -823,7 +952,17 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         >
           {commentLoading ? <CircularProgress size={20} color='inherit' /> : <SendIcon />}
         </IconButton>
-      </Box>
+        <IconButton
+          onClick={() => setAddAttachmentsDrawerOpen(true)}
+          sx={{
+            bgcolor: theme.palette.customColors?.Background,
+            color: theme.palette.customColors?.OnPrimaryContainer,
+            '&:hover': { bgcolor: theme.palette.customColors?.SurfaceVariant }
+          }}
+        >
+          <AttachFileIcon />
+        </IconButton>
+      </Box>}
 
       <ConfirmationDialog
         dialogBoxStatus={deleteDialogOpen}
@@ -847,15 +986,6 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         onSuccess={handleEditSuccess}
       />
 
-      {/* Add Comment Dialog */}
-      <NoteCommentDialog
-        open={commentDialogOpen}
-        onClose={() => setCommentDialogOpen(false)}
-        note={observationData as Note | null}
-        onSubmit={handleCommentDialogSubmit}
-        loading={commentDialogLoading}
-      />
-
       {/* Tagged Members Drawer - Positioned at right bottom */}
       <Drawer
         anchor='right'
@@ -865,6 +995,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
           paper: {
             sx: {
               width: { xs: '100%', sm: 560 },
+              height: 'auto',
               maxHeight: '60vh',
               position: 'fixed',
               bottom: 0,
@@ -917,7 +1048,7 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
         </Box>
 
         {/* Members List */}
-        <Box sx={{ px: 4, py: 2, overflowY: 'auto', maxHeight: 'calc(60vh - 70px)' }}>
+        <Box sx={{ px: 4, py: 2, overflowY: 'auto', height: 'auto', maxHeight: 'calc(60vh - 70px)' }}>
           {taggedMembers.map((member: any, index: number) => (
             <Box
               key={member.user_id || index}
@@ -938,6 +1069,15 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             </Box>
           ))}
         </Box>
+
+        {taggedMembers?.length === 0 && (
+          <>
+            <NoDataFound />
+            <Typography sx={{ color: theme.palette.text.secondary, textAlign: 'center', my: 4 }}>
+              {t('notes_module.no_members_have_been_tagged')}
+            </Typography>
+          </>
+        )}
       </Drawer>
 
       {/* Search Users Drawer for adding/editing members */}
@@ -955,6 +1095,16 @@ const NoteDetailsDrawer: React.FC<NoteDetailsDrawerProps> = ({ open, onClose, no
             } as User)
         )}
         onUsersSelected={handleUpdateMembers}
+      />
+
+       <AddAttachmentsDrawer
+        open={addAttachmentsDrawerOpen}
+        onClose={handleCloseAttachmentsDrawer}
+        control={control}
+        watch={watch}
+        reset={reset}
+        attachmentsLoading={attachmentsLoading}
+        onAttachmentsSubmit={handleAttachmentsSubmit}
       />
     </Drawer>
   )

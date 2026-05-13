@@ -13,7 +13,8 @@ const EditTransferFields = ({
   clearErrors,
   isEditMode,
   editParams,
-  reasonType
+  reasonType,
+  setReasonType = /** @type {any} */ (() => {})
 }) => {
   const CustomInput = forwardRef(({ ...props }, ref) => {
     return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />

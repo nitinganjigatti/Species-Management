@@ -1,0 +1,1036 @@
+'use client';
+import {
+  Autocomplete,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+  Divider,
+  Drawer,
+  FormControl,
+  FormControlLabel,
+  FormHelperText,
+  Grid,
+  IconButton,
+  Switch,
+  TextField,
+  Typography,
+  debounce
+} from '@mui/material'
+import { Box } from '@mui/system'
+import React, { useCallback, useEffect, useRef, useState, useContext } from 'react'
+import { useTheme } from '@mui/material/styles'
+import { Controller, useForm } from 'react-hook-form'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { getFeedTypeList } from 'src/lib/api/diet/feedType'
+import Icon from 'src/@core/components/icon'
+import Image from 'next/image'
+import imageUploader from 'public/images/imageUploader/imageUploader.png'
+import {
+  addIngredients,
+  getIngredientDetails,
+  getUnitsForIngredient,
+  updateIngredients
+} from 'src/lib/api/diet/getFeedDetails'
+import { getIngredientDetail } from 'src/lib/api/diet/getIngredients'
+import UserSnackbar from 'src/components/utility/snackbar'
+import useSafeRouter from 'src/hooks/useSafeRouter';
+import { useParams, useSearchParams } from 'next/navigation';
+import { addPreparationType, getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import FallbackSpinner from 'src/@core/components/spinner'
+import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
+import { useDropzone } from 'react-dropzone'
+import Error404 from 'src/pages/404'
+import { useTranslation } from 'react-i18next'
+import { AuthContext } from 'src/context/AuthContext'
+import Toaster from 'src/components/Toaster'
+
+const AddIngredient = () => {
+  const theme = useTheme()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const { t } = useTranslation()
+  const router = useSafeRouter();
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const routerQuery = { ...params, ...(searchParams ? Object.fromEntries(searchParams.entries()) : {}) } as any;
+  const { id, feedTypeId, feedTypeName } = routerQuery
+  const [loading, setLoading] = useState(false)
+  const [uomList, setUom] = useState<any[]>([])
+  const [FeedTypeList, setFeedTypeList] = useState<any[]>([])
+  const [defaultUom, setDefaultUom] = useState<any>(null)
+
+  // console.log('defaultUom', defaultUom)
+  const [defaultFeedType, setDefaultFeedType] = useState<any>(null)
+  const [displayFile, setDisplayFile] = useState('')
+  const [imgSrc, setImgSrc] = useState('')
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [preparationTypeSubmitLoader, setPreparationTypeSubmitLoader] = useState(false)
+  const [sort, setSort] = useState('asc')
+  const [searchValue, setSearchValue] = useState('')
+  const [sortColumn, setSortColumn] = useState('label')
+  const [options, setOptions] = useState<any>(false)
+  const [resetForm, setResetForm] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+
+  const authData = useContext(AuthContext) as any
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
+
+  const [openSnackbar, setOpenSnackbar] = useState<any>({
+    open: false,
+    severity: '',
+    message: ''
+  })
+
+  const handleSidebarClose = () => {
+    setOpenDrawer(false)
+  }
+
+  const defaultValues = {
+    active: 1,
+    ingredientName: '',
+    ingredientAlias: '',
+    feedType: '',
+    waterPercentage: '',
+    dryMatterPercentage: '',
+    nutritionalValuesPer: '',
+    uom: '',
+    calorie: '',
+    description: '',
+    ingredientImg: '',
+    preprationTypes: []
+  }
+
+  const schema = yup.object().shape({
+    ingredientName: yup.string().required('Item Name is Required'),
+    feedType: yup.string().nullable().required('Feed Type is Required'),
+
+    // uom: yup.string().nullable().required('UOM is Required'),
+    // nutritionalValuesPer: yup.string().required('Nutritional Values Per Unit is Required'),
+    preprationTypes: yup
+      .array()
+      .of(
+        yup.object({
+          id: yup.number().required(),
+          label: yup.string().required()
+        })
+      )
+      .min(1, 'At least one preparation type is required')
+      .required('At least one preparation type is required')
+  })
+
+  const handleKeyUp = (values: any) => {
+    const waterPer = getValues('waterPercentage')
+    const dryMatterPer = getValues('dryMatterPercentage')
+    if (Number(waterPer) + Number(dryMatterPer) > 100) {
+      setError(`waterPercentage`, {
+        type: 'manual',
+        message: 'The total of Dry Matter and Water should not be more than 100%'
+      })
+      setError(`dryMatterPercentage`, {
+        type: 'manual',
+        message: 'The total of Dry Matter and Water should not be more than 100%'
+      })
+    } else {
+      clearErrors('waterPercentage')
+      clearErrors('dryMatterPercentage')
+    }
+  }
+
+  useEffect(() => {
+    if (id) {
+      setLoading(true)
+      getIngredientDetail(id).then(res => {
+        // console.log('res', res?.data)
+        if (res?.success) {
+          setValue('ingredientName', res?.data?.ingredient_name)
+          setValue('ingredientAlias', res?.data?.ingredient_alias)
+          setValue('active', Number(res?.data?.active) === 0 ? 0 : 1)
+          setValue('feedType', res?.data?.feed_type)
+          setDefaultFeedType({
+            id: res?.data?.feed_type,
+            feed_type_name: res?.data?.feed_type_label
+          })
+          setValue('waterPercentage', res?.data?.water_percentage)
+          setValue('dryMatterPercentage', res?.data?.water_dry_matter)
+          setValue('nutritionalValuesPer', res?.data?.standard_unit || '')
+
+          setDefaultUom({
+            id: res?.data?.uom_id,
+            name: res?.data?.uom || ''
+          })
+          setValue('uom', res?.data?.uom_id)
+          setValue('calorie', res?.data?.calorie || '')
+          setValue('description', res?.data?.desc)
+          setValue('ingredientImg', res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
+          setImgSrc(res?.data?.image === null || undefined || '' ? '' : res?.data?.image)
+          setValue('preprationTypes', res?.data?.preparation_types)
+        } else {
+          setValue('active', 0)
+        }
+        setLoading(false)
+      })
+    }
+  }, [])
+  useEffect(() => {
+    if (feedTypeId) {
+      setValue('feedType', feedTypeId)
+      setDefaultFeedType({
+        id: feedTypeId,
+        feed_type_name: feedTypeName
+      })
+    }
+  }, [feedTypeId])
+
+  const handleAddImageClick = () => {
+    fileInputRef?.current?.click()
+  }
+
+  const handleInputImageChange = (file: any) => {
+    const reader = new FileReader()
+    const { files } = file.target
+    if (files && files.length !== 0) {
+      reader.onload = () => {
+        setImgSrc(reader?.result as string)
+      }
+      setDisplayFile(files[0]?.name)
+      reader?.readAsDataURL(files[0])
+      setValue('ingredientImg', files[0])
+      clearErrors('ingredientImg')
+    }
+  }
+
+  const removeSelectedImage = () => {
+    setImgSrc('')
+    setValue('ingredientImg', '')
+  }
+
+  const {
+    reset,
+    control,
+    setValue,
+    setError,
+    watch,
+    getValues,
+    clearErrors,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const callFeedTypeList = async ({ status, page_no, limit, q }: any) => {
+    try {
+      const params = {
+        status,
+        q,
+        active: 1,
+        page_no,
+        limit
+      }
+      await getFeedTypeList({ ...params }).then(res => {
+        setFeedTypeList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const feedTypeListSearch = debounce(async value => {
+    try {
+      await callFeedTypeList({ status: 1, page_no: 1, limit: 20, q: value })
+    } catch (e) {
+      console.log(e)
+    }
+  }, 500)
+
+  const getUnitsList = async () => {
+    try {
+      const params = {
+        type: ['length', 'weight'],
+        page_no: 1,
+        limit: 50
+      }
+      await getUnitsForIngredient({ params: params }).then(res => {
+        setUom(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    getUnitsList()
+    callFeedTypeList({ status: 1, page_no: 1, limit: 10 })
+    getPreparationList(sort, searchValue, sortColumn)
+  }, [])
+
+  const getPreparationList = useCallback(async (sort: any, q: any, column: any) => {
+    try {
+      await getPreparationTypeList({ sort, q, limit: 10, column, status: 1 }).then(res => {
+        setOptions(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }, [])
+
+  const searchPreparationList = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
+      try {
+        await getPreparationList(sort, q, column)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const onError = (errors: any) => {
+    // console.log('Form errros', errors)
+    setOpenSnackbar({
+      ...openSnackbar,
+      open: true,
+      message: 'Error Occured in Form Field',
+      severity: 'error'
+    })
+  }
+
+  const onSubmit = async (params: any) => {
+    const {
+      active,
+      ingredientName,
+      ingredientAlias,
+      description,
+      feedType,
+      uom,
+      calorie,
+      preprationTypes,
+      ingredientImg,
+      waterPercentage,
+      dryMatterPercentage,
+      nutritionalValuesPer
+    } = params
+
+    const payload = {
+      status: active,
+      ingredient_name: ingredientName,
+      ingredient_alias: ingredientAlias,
+      feed_type: feedType,
+      water_percentage: waterPercentage,
+      water_dry_matter: dryMatterPercentage,
+      desc: description,
+      ingredient_image: ingredientImg,
+      standard_unit: nutritionalValuesPer,
+      uom_id: uom,
+      calorie,
+      preparation_types: JSON?.stringify(preprationTypes?.map((i: any) => Number(i?.id)))
+    }
+
+    // console.log('submit', params)
+    // console.log('payload', payload)
+    if (id) {
+      try {
+        setSubmitLoader(true)
+        await updateIngredients(payload, id).then(res => {
+          setSubmitLoader(false)
+          if (res?.success) {
+            Toaster({ type: 'success', message: 'Item updated successfully' })
+
+            // router.push(`/diet/ingredient`)
+
+            router.push(`/diet/ingredient/${res?.data?.ingredient_id}`)
+          } else {
+            Toaster({
+              type: 'error',
+              message: res?.message?.ingredient_image ? 'Image type only PNG and JPG is allowed' : res?.message
+            })
+          }
+        })
+      } catch (error) {
+        setSubmitLoader(false)
+        console.log('error', error)
+      }
+    } else {
+      try {
+        setSubmitLoader(true)
+        await addIngredients(payload).then(res => {
+          if (res?.success) {
+            setSubmitLoader(false)
+            Toaster({ type: 'success', message: 'Item' + ' ' + res?.message })
+
+            router.push(`/diet/ingredient/${res?.data?.ingredient_id}`)
+
+            // router.push(`/diet/ingredient`)
+            reset()
+          } else {
+            setSubmitLoader(false)
+
+            // Object.entries(res?.message).map(([key, value]) => {
+            //   Toaster({
+            //     type: 'error',
+            //     message: value
+            //   })
+            // })
+
+            Toaster({
+              type: 'error',
+
+              // message: JSON?.stringify(res?.message?.ingredient_image ? res?.message?.ingredient_image : res?.message)
+              message: res?.message?.ingredient_image ? 'Image type only PNG and JPG is allowed' : res?.message
+            })
+          }
+        })
+      } catch (error) {
+        setSubmitLoader(false)
+        console.log('error', error)
+      }
+    }
+  }
+
+  const handlePreparationSubmitData = async (payload: any) => {
+    try {
+      setPreparationTypeSubmitLoader(true)
+      var response
+
+      response = await addPreparationType(payload)
+      if (response?.success) {
+        Toaster({ type: 'success', message: `Preparation type ${response?.message || ''}` })
+
+        setPreparationTypeSubmitLoader(false)
+        handleSidebarClose()
+
+        await getPreparationList(sort, searchValue, sortColumn)
+      } else {
+        setPreparationTypeSubmitLoader(false)
+        handleSidebarClose()
+
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (e) {
+      setPreparationTypeSubmitLoader(false)
+      Toaster({ type: 'error', message: JSON?.stringify(e) })
+    }
+  }
+
+  const headerAction = (
+    <FormControlLabel
+      control={
+        <Switch
+          checked={Boolean(watch('active'))}
+          onChange={e => {
+            setValue('active', Number(e.target.checked))
+          }}
+        />
+      }
+      labelPlacement='start'
+      label='Active'
+    />
+  )
+
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: false,
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+    },
+    onDrop: acceptedFiles => {
+      const reader = new FileReader()
+      const files = acceptedFiles
+      if (files && files.length !== 0) {
+        reader.onload = () => {
+          setImgSrc(reader?.result as string)
+        }
+        setDisplayFile(files[0]?.name)
+        reader?.readAsDataURL(files[0])
+        setValue('ingredientImg', files[0])
+        clearErrors('ingredientImg')
+      }
+    }
+  })
+
+  return (
+    <>
+      {dietModule && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') ? (
+        <Box>
+          <Box>
+            <Breadcrumbs aria-label='breadcrumb'>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.push('/diet/ingredient')}>
+                {t('diet_module.items')}
+              </Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                {id ? t('update') : t('add')} {t('diet_module.new_item')}
+              </Typography>
+            </Breadcrumbs>
+          </Box>
+          {loading ? (
+            <Box sx={{ justifyContent: 'center', display: 'flex', alignItems: 'center', height: '70vh' }}>
+              <FallbackSpinner sx={{}} />
+            </Box>
+          ) : (
+            <form onSubmit={handleSubmit(onSubmit, onError)}>
+              <Card sx={{ mt: 3 }}>
+                <CardHeader
+                  sx={{ paddingBottom: 0, marginX: 1 }}
+                  title={id ? t('diet_module.update_item') : t('diet_module.add_new_item')}
+                  action={id ? headerAction : null}
+                />
+                <CardContent>
+                  <Typography sx={{ width: '70%', fontSize: 14 }}>
+                    Please provide the standard unit, unit of measurement, water percentage, and dry item proportions
+                    for this item prior to processing.
+                  </Typography>
+                  <Box sx={{ my: '24px' }}>
+                    <Divider />
+                    <Divider />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'start' }}>
+                    <Box sx={{ marginLeft: 5, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                      <Box
+                        sx={{
+                          height: 20,
+                          width: 20,
+                          border: `3px solid ${theme.palette.primary.main}`,
+                          borderRadius: '50%',
+                          mb: 3
+                        }}
+                      ></Box>
+                      <Typography sx={{ fontWeight: 600, fontSize: 14 }}>
+                        {t('diet_module.basic_information')}
+                      </Typography>
+                      <Typography sx={{ fontWeight: 400, fontSize: 12 }}>{t('diet_module.enter_details')}</Typography>
+                    </Box>
+                  </Box>
+
+                  <Box>
+                    <Typography sx={{ mt: '32px', mb: '20px', fontSize: 20, fontWeight: 500 }}>
+                      1. {t('diet_module.item_details')}
+                    </Typography>
+                    <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
+                      <Grid size={{ xs: 12, md: 3.9, sm: 3.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='ingredientName'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                label={`${t('diet_module.item_name')}*`}
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Item Name'
+                                error={Boolean(errors.ingredientName)}
+                                name='ingredientName'
+                              />
+                            )}
+                          />
+                          {errors.ingredientName && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.ingredientName?.message as any}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+
+                      <Grid size={{ xs: 12, md: 3.9, sm: 3.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='ingredientAlias'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                label={t('diet_module.item_alias')}
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Item Alias'
+                                name='ingredientAlias'
+                              />
+                            )}
+                          />
+                        </FormControl>
+                      </Grid>
+
+                      <Grid size={{ xs: 12, md: 3.9, sm: 3.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='feedType'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Autocomplete
+                                value={defaultFeedType}
+                                disablePortal
+                                id='feedType'
+                                options={FeedTypeList}
+                                getOptionLabel={option => option?.feed_type_name}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                renderOption={(props: any, option: any) => (
+                                  <li {...props} key={option.id}>
+                                    {option.feed_type_name}
+                                  </li>
+                                )}
+                                onChange={(e, val) => {
+                                  if (val === null) {
+                                    setDefaultFeedType(null)
+
+                                    return onChange('')
+                                  } else {
+                                    setDefaultFeedType(val)
+
+                                    return onChange(val?.id)
+                                  }
+                                }}
+                                onKeyUp={e => {
+                                  feedTypeListSearch((e?.target as any)?.value)
+                                }}
+                                renderInput={params => (
+                                  <TextField
+                                    {...params}
+                                    label={`${t('diet_module.select_feed_type')} *`}
+                                    placeholder='Search & Select'
+                                    error={Boolean(errors.feedType)}
+                                  />
+                                )}
+                              />
+                            )}
+                          />
+                          {errors?.feedType && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.feedType?.message as any}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+
+                      <Grid size={{ xs: 12, md: 5.9, sm: 5.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='waterPercentage'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                type='number'
+                                label={t('diet_module.perc_water')}
+                                value={value}
+                                onChange={e => {
+                                  onChange(e.target.value)
+                                  handleKeyUp(value)
+                                }}
+                                placeholder='Percentage(%) of water'
+                                error={Boolean(errors.waterPercentage)}
+                                name='waterPercentage'
+                                slotProps={{
+                                  htmlInput: { min: 0, max: 100 }
+                                }}
+                              />
+                            )}
+                          />
+                          {errors.waterPercentage && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.waterPercentage?.message as any}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+
+                      <Grid size={{ xs: 12, md: 5.9, sm: 5.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='dryMatterPercentage'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                type='number'
+                                label={t('diet_module.perc_matter')}
+                                value={value}
+                                onChange={e => {
+                                  onChange(e.target.value)
+                                  handleKeyUp(value)
+                                }}
+                                placeholder='Percentage(%) of dry matter'
+                                error={Boolean(errors.dryMatterPercentage)}
+                                name='dryMatterPercentage'
+                                slotProps={{
+                                  htmlInput: { min: 0, max: 100 }
+                                }}
+                              />
+                            )}
+                          />
+                          {errors.dryMatterPercentage && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors?.dryMatterPercentage?.message as any}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+
+                    <Box sx={{ mt: '32px' }}>
+                      <Divider />
+                      <Divider />
+                    </Box>
+
+                    <Typography sx={{ my: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
+                    <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
+                      <Grid size={{ xs: 12, md: 3.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='nutritionalValuesPer'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                type='number'
+                                label={t('diet_module.enter_val')}
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Enter nutritional values per'
+                                error={Boolean(errors.nutritionalValuesPer)}
+                                name='nutritionalValuesPer'
+                                slotProps={{
+                                  htmlInput: { min: 0 }
+                                }}
+                              />
+                            )}
+                          />
+                          {errors.nutritionalValuesPer && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.nutritionalValuesPer?.message as any}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 3.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='uom'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Autocomplete
+                                value={defaultUom}
+                                disablePortal
+                                id='uom'
+                                options={uomList?.length > 0 ? uomList : []}
+                                getOptionLabel={option => option.name}
+                                isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                                onChange={(e, val) => {
+                                  if (val === null) {
+                                    setDefaultUom(null)
+
+                                    return onChange('')
+                                  } else {
+                                    setDefaultUom(val)
+
+                                    return onChange(val._id)
+                                  }
+                                }}
+                                renderInput={params => (
+                                  <TextField
+                                    {...params}
+                                    label='Select unit of measurement (UOM) '
+                                    placeholder='Search & Select'
+                                    error={Boolean(errors.uom)}
+                                  />
+                                )}
+                              />
+                            )}
+                          />
+                          {errors?.uom && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.uom?.message as any}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                      <Grid size={{ xs: 12, md: 3.9 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='calorie'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                type='number'
+                                label={t('diet_module.total_calories')}
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Enter total calories'
+                                error={Boolean(errors.calorie)}
+                                name='calorie'
+                                slotProps={{
+                                  htmlInput: { min: 0 }
+                                }}
+                              />
+                            )}
+                          />
+                          {errors.calorie && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors.calorie?.message as any}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+
+                    <Box sx={{ my: '32px' }}>
+                      <Divider />
+                      <Divider />
+                    </Box>
+
+                    <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>3. Description</Typography>
+
+                    <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                      <Grid size={{ xs: 12 }}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name='description'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                rows={4}
+                                multiline
+                                label={t('description')}
+                                value={value}
+                                onChange={onChange}
+                                placeholder='Description'
+                                error={Boolean(errors.description)}
+                                name='description'
+                              />
+                            )}
+                          />
+                          {errors.description && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors.description?.message as any}</FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+
+                    <Box sx={{ my: '32px' }}>
+                      <Divider />
+                      <Divider />
+                    </Box>
+
+                    <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>
+                      4. {imgSrc !== '' ? t('media_details.image_added') : t('media_details.attach_image')}
+                    </Typography>
+
+                    <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                      {imgSrc !== '' ? null : (
+                        <Grid size={{ xs: 12, md: 5.9, sm: 9 }}>
+                          <input
+                            type='file'
+                            accept='image/*'
+                            onChange={e => handleInputImageChange(e)}
+                            style={{ display: 'none' }}
+                            name='ingredientImg'
+                            ref={fileInputRef}
+                          />
+
+                          <Box
+                            {...getRootProps({ className: 'dropzone' })}
+                            onClick={handleAddImageClick}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 7,
+                              height: 120,
+                              border: `2px solid ${theme.palette.customColors.trackBg}`,
+                              borderRadius: 1,
+                              padding: 3
+                            }}
+                          >
+                            <Image alt={'filename'} src={imageUploader} width={100} height={100} />
+
+                            <Typography>{t('media_details.drop_image')}</Typography>
+                          </Box>
+                        </Grid>
+                      )}
+                      <Grid size={{ md: 5.9 }}>
+                        {imgSrc !== '' && (
+                          <Box sx={{ display: 'flex' }}>
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                backgroundColor: theme.palette.customColors.tableHeaderBg,
+                                borderRadius: '10px',
+                                height: 121,
+                                padding: '10.5px',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <img
+                                style={{
+                                  aspectRatio: 2 / 2,
+                                  height: '100%',
+                                  borderRadius: '5%'
+                                }}
+                                alt='Uploaded image'
+                                src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
+                              />
+                              <Box
+                                sx={{
+                                  cursor: 'pointer',
+                                  position: 'absolute',
+                                  top: 0,
+                                  right: 0,
+                                  zIndex: 10,
+                                  height: '24px',
+                                  borderRadius: 0.4,
+                                  backgroundColor: theme.palette.customColors.secondaryBg
+                                }}
+                              >
+                                <Icon
+                                  icon='material-symbols-light:close'
+                                  color={theme.palette.common.white}
+                                  onClick={() => removeSelectedImage()}
+                                >
+                                  {' '}
+                                </Icon>
+                              </Box>
+                            </Box>
+                          </Box>
+                        )}
+                      </Grid>
+                    </Grid>
+
+                    <Box sx={{ my: '32px' }}>
+                      <Divider />
+                      <Divider />
+                    </Box>
+
+                    <Box sx={{ mt: '32px', display: { sm: 'flex' }, gap: '20px', alignItems: 'center' }}>
+                      <Typography sx={{ fontSize: 20, fontWeight: 500 }}>
+                        5. {t('diet_module.preparation_types')}
+                      </Typography>
+                      <Box
+                        sx={{ display: 'flex', gap: '5px', alignItems: 'center' }}
+                        onClick={() => setOpenDrawer(true)}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: 14,
+                            fontWeight: 500,
+                            verticalAlign: 'middle',
+                            color: theme.palette.primary.main,
+                            cursor: 'pointer'
+                          }}
+                        >
+                          {t('diet_module.add_preparation_types')}
+                        </Typography>
+                        <Icon fontSize={28} color={theme.palette.primary.main} icon='system-uicons:button-add' />
+                      </Box>
+                    </Box>
+
+                    <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
+                      <Grid size={{ xs: 12 }}>
+                        <FormControl sx={{ mb: 6 }} fullWidth>
+                          <Controller
+                            name='preprationTypes'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Autocomplete
+                                multiple
+                                options={options?.length > 0 ? options : []}
+                                getOptionLabel={option => option?.label}
+                                id='preprationTypes'
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                onChange={(e, val) => {
+                                  onChange(val)
+                                }}
+                                filterSelectedOptions
+                                value={value || []}
+                                renderInput={params => (
+                                  <TextField
+                                    onChange={e => searchPreparationList(sort, e.target.value, sortColumn)}
+                                    {...params}
+                                    label='Preparation Types *'
+                                    placeholder='Preparation Types'
+                                  />
+                                )}
+                              />
+                            )}
+                          />
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                    <Grid size={{ xs: 12, md: 5, sm: 12 }}>
+                      <Grid
+                        sx={{
+                          height: '100%',
+                          alignItems: 'flex-end',
+                          justifyContent: 'flex-end',
+                          gap: 5
+                        }}
+                        container
+                      >
+                        <Button
+                          onClick={() => router.push('/diet/ingredient')}
+                          startIcon={<Icon icon='ph:arrow-left-bold' />}
+                          variant='outlined'
+                          sx={{ width: '124', height: '38' }}
+                        >
+                          {t('cancel')}
+                        </Button>
+                        <Button
+                          endIcon={<Icon icon='ph:arrow-right-bold' />}
+                          disabled={
+                            watch('ingredientName') === '' ||
+                            watch('feedType') === '' ||
+                            !!errors.dryMatterPercentage ||
+                            !!errors.waterPercentage ||
+                            watch('preprationTypes')?.length === 0 ||
+                            submitLoader
+                          }
+                          type='submit'
+                          variant='contained'
+                          sx={{ width: '124', height: '38' }}
+                        >
+                          {id ? 'Update' : 'Submit'} &nbsp; {submitLoader ? <CircularProgress size={16} /> : null}
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </Box>
+                  {openSnackbar.open ? (
+                    <UserSnackbar
+                      severity={openSnackbar?.severity}
+                      status={true}
+                      message={openSnackbar?.message}
+                      handleClose={() => setOpenSnackbar({ ...openSnackbar, open: false })}
+                    />
+                  ) : null}
+                </CardContent>
+              </Card>
+            </form>
+          )}
+          {React.createElement(AddPreparationType as any, {
+            drawerWidth: 400,
+            addEventSidebarOpen: openDrawer,
+            handleSidebarClose,
+            handleSubmitData: handlePreparationSubmitData,
+            resetForm,
+            submitLoader: preparationTypeSubmitLoader,
+            editParams: { id: null, label: null, status: null }
+          })}
+        </Box>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
+  )
+}
+
+export default AddIngredient

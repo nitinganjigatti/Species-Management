@@ -13,7 +13,7 @@ import animalInfiniteScrollReducer from 'src/store/slices/housing/animalInfinite
 import shipmentReducer from 'src/store/slices/pharmacy/request/shipmentSlice'
 import necropsyReducer from 'src/store/slices/necropsy/necropsySlice'
 import necropsyFormOptionsReducer from 'src/store/slices/necropsy/necropsyFormOptionsSlice'
-import hospitalReducer from 'src/store/slices/hospital/hospitalSlice'
+import hospitalReducer from 'src/store/slices/hospital'
 
 const store = configureStore({
   reducer: {

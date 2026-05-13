@@ -2,7 +2,7 @@ import React, { useState, useEffect, FC, useMemo, useCallback, useRef, useContex
 import { Box, Typography, IconButton, CircularProgress } from '@mui/material'
 import { alpha, useTheme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import { useInView } from 'react-intersection-observer'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import {
@@ -529,7 +529,7 @@ interface ParentsTabProps {
 
 const ParentsTab: FC<ParentsTabProps> = ({ animalId, taxonomyId, isEggAnimal, canAdd, canEdit, canDelete }) => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
+  const router = useRouter()
   const [loading, setLoading] = useState<boolean>(true)
   const [parentData, setParentData] = useState<LineageParentData | null>(null)
 
@@ -1074,7 +1074,7 @@ interface PairsTabProps {
 
 const PairsTab: FC<PairsTabProps> = ({ animalId, animalSex, taxonomyId, isEggAnimal, canAdd, canEdit, canDelete }) => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
+  const router = useRouter()
 
   const PAGE_SIZE = 20
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
@@ -1318,7 +1318,7 @@ interface SiblingsTabProps {
 }
 
 const SiblingsTab: FC<SiblingsTabProps> = ({ animalId }) => {
-  const router = useSafeRouter()
+  const router = useRouter()
   const theme = useTheme()
 
   const PAGE_SIZE = 20
@@ -1438,8 +1438,8 @@ const SiblingsTab: FC<SiblingsTabProps> = ({ animalId }) => {
 
 const AnimalLineage: FC<AnimalLineageProps> = ({ animalDetails }) => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const authData = useContext(AuthContext) as any
 
   const animalId = Number(id)
