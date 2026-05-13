@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useRef } from 'react'
-import { Box, TablePagination, Typography } from '@mui/material'
+import { Box, TablePagination } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -258,28 +258,19 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
 
   // ============== Renderers =================
 
-  // Corner header — sits in the top-left, on the same strip as the column headers.
-  // Shares the lightBg/8px-radius treatment so the whole header row reads as one continuous bar.
+  // Corner, row, and column header visuals all live in <AssessmentHeader />. This function only
+  // composes the corner's range-counter text from the page state; AssessmentHeader handles the
+  // pill treatment and skeleton.
   const renderCornerHeader = () => (
-    <Box
-      sx={{
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        px: 4,
-        backgroundColor: theme.palette.customColors.lightBg,
-        borderRadius: '8px'
-      }}
-    >
-      <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-        {t('species_module.corner_animal_range')} {rangeStart}-{rangeEnd} / {totalAnimals}
-      </Typography>
-    </Box>
+    <AssessmentHeader
+      kind='corner'
+      isLoading={isFetching}
+      text={`${t('species_module.corner_animal_range')} ${rangeStart}-${rangeEnd} / ${totalAnimals}`}
+    />
   )
 
-  // Row + column header visuals both live in <AssessmentHeader />; renderRowHeader hands the
-  // animal data through, renderColumnHeader hands the parameter name through. Skeleton state
-  // is just a boolean flag from the caller's perspective.
+  // Row + column header visuals — renderRowHeader hands the animal data through,
+  // renderColumnHeader hands the parameter name through. Skeleton state is just a boolean.
   const renderRowHeader = (animal: AnimalRow) => (
     <AssessmentHeader kind='row' isLoading={isSkeletonRow(animal)} animal={animal} />
   )

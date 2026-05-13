@@ -27,18 +27,21 @@ export interface AnimalHeaderData {
 }
 
 /**
- * Single header component for the batch-assessment matrix — handles both axes.
+ * Single header component for the batch-assessment matrix — handles all three axes.
  *
+ *   kind='corner'  →  light pill in the top-left with the range counter (e.g. "Animal 1-50 / 4969")
  *   kind='column'  →  light pill with the parameter name (e.g. "Weight")
  *   kind='row'     →  AnimalCard for the animal in the left fixed column
  *
- * Each variant has a `isLoading` skeleton state shaped to the loaded content so the grid layout
+ * Corner + column share the same `lightBg` pill treatment so the whole top strip reads as one bar.
+ * Each variant has an `isLoading` skeleton state shaped to the loaded content so the grid layout
  * stays stable during refetch instead of flashing to a spinner.
  *
  * One component because the call sites are symmetric in SplitPaneGrid — keeps everything
  * batch-assessment-header-related in one file.
  */
 export type AssessmentHeaderProps =
+  | { kind: 'corner'; isLoading?: boolean; text: string }
   | { kind: 'column'; isLoading?: boolean; name: string }
   | { kind: 'row'; isLoading?: boolean; animal?: AnimalHeaderData }
 
@@ -61,6 +64,33 @@ const computeAge = (birthDate?: string | null, asOf?: string | null): string => 
 
 const AssessmentHeader: React.FC<AssessmentHeaderProps> = props => {
   const theme = useTheme() as any
+
+  // ===================== Corner variant =====================
+  // Top-left pill that shares the lightBg treatment with the column header strip so the whole
+  // top row reads as one continuous bar. Left-aligned (vs centred column header) because the
+  // range counter is a sentence ("Animal 1-50 / 4969"), not a label.
+  if (props.kind === 'corner') {
+    return (
+      <Box
+        sx={{
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          px: 4,
+          backgroundColor: theme.palette.customColors.lightBg,
+          borderRadius: '8px'
+        }}
+      >
+        {props.isLoading ? (
+          <Skeleton variant='text' width='60%' height={20} />
+        ) : (
+          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
+            {props.text}
+          </Typography>
+        )}
+      </Box>
+    )
+  }
 
   // ===================== Column variant =====================
   if (props.kind === 'column') {
