@@ -379,7 +379,7 @@ const AuthProvider = ({ children }) => {
         password: params?.password
       })
       setLoginLoading(false)
-      debugger
+
       // Only proceed when backend explicitly confirms success.
       if (data?.success !== true) {
         if (errorCallback) errorCallback(data?.message || 'Login failed')
@@ -401,11 +401,14 @@ const AuthProvider = ({ children }) => {
       }
       write('role', data?.roles?.role_name)
       write('userData', nextUser)
+      await Promise.all([saveDeviceId(), setLastLoggedUser(data?.user?.user_id, data?.user?.user_email)])
+      // reconcilePharmacy must run before setUser/setUserData — the nav renders
+      // immediately after setUser and reads selectedPharmacy from context. If
+      // pharmacy is reconciled after, the first render sees empty selectedPharmacy
+      // and shows only master nav items (same issue as SSO login via /callback).
+      await reconcilePharmacy(data)
       setUserData({ ...data })
       setUser({ ...nextUser })
-
-      await Promise.all([saveDeviceId(), setLastLoggedUser(data?.user?.user_id, data?.user?.user_email)])
-      await reconcilePharmacy(data)
 
       loadLanguage(i18n.language || 'en-IN')
 
