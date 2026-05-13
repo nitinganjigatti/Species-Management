@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Box, Button, debounce, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllSites } from 'src/lib/api/housing'
@@ -41,8 +41,8 @@ const ClusterSites: React.FC<ClusterSitesProps> = ({
   onSiteAdded
 }) => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const theme = useTheme() as Theme
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 

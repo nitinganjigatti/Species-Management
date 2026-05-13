@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Typography, CircularProgress, Button, Chip } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { useDispatch, useSelector } from 'react-redux'
 import { useInView } from 'react-intersection-observer'
 import { FilterList as FilterIcon, Add as AddIcon } from '@mui/icons-material'
@@ -34,6 +34,7 @@ interface NotesListingProps {
   entityName?: string
   entityImage?: string
   animalData?: any
+  entityId?: string | number
 }
 
 interface CommentSubmitData {
@@ -67,13 +68,13 @@ const getPriorityBgColor = (priority: string | undefined, theme: any) => {
   }
 }
 
-const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData }) => {
-  const router = useSafeRouter()
+const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData, entityId: entityIdProp }) => {
+  const { id: routerId } = useParams<{ id: string }>() ?? {}
   const theme = useTheme() as any
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
   const { t } = useTranslation()
-  const { id } = router.query
+  const id = entityIdProp ?? routerId
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)

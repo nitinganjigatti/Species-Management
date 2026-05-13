@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box, Grid, Typography, Tooltip, CircularProgress } from '@mui/material'
 import { useTheme } from '@emotion/react'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import { getEnclosureBasicInfo, EnclosureBasicInfo } from 'src/lib/api/housing'
@@ -15,15 +15,15 @@ interface DetailItem {
 
 interface EnclosureOverviewProps {
   enclosureId?: string
+  entityId?: string
 }
 
-const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId }) => {
+const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId, entityId }) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id: routerId, enclosureId: routerEnclosureId } = useParams<{ id: string; sectionId: string; enclosureId: string }>() ?? {}
 
-  const effectiveId = enclosureId || (id as string)
+  const effectiveId = enclosureId || entityId || (routerEnclosureId as string) || (routerId as string)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['enclosure-basic-info', effectiveId],
@@ -48,7 +48,10 @@ const EnclosureOverview: React.FC<EnclosureOverviewProps> = ({ enclosureId }) =>
     { label: t('housing_module.environment_type') as string, value: basicInfo?.enclosure_environment },
     {
       label: t('housing_module.movable') as string,
-      value: basicInfo?.enclosure_is_movable === '0' || basicInfo?.enclosure_is_movable === 0 ? t('no') as string : t('yes') as string
+      value:
+        basicInfo?.enclosure_is_movable === '0' || basicInfo?.enclosure_is_movable === 0
+          ? (t('no') as string)
+          : (t('yes') as string)
     }
   ]
 

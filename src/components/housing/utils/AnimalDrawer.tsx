@@ -11,7 +11,7 @@ import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { Animal } from 'src/types/housing'
 import { useAuth } from 'src/hooks/useAuth'
 import Toaster from 'src/components/Toaster'
@@ -48,7 +48,7 @@ interface PageResult {
 const AnimalsDrawer: React.FC<AnimalsDrawerProps> = ({ open, onClose, data, totalCount, defaultImage, objectFit }) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
-  const router = useSafeRouter()
+  const router = useRouter()
   const auth = useAuth()
   const { t } = useTranslation()
 

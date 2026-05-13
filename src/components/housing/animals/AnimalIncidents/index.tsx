@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 
 import {
   Button,
@@ -88,8 +88,7 @@ interface IncidentCardListProps {
 const AnimalIncidents: React.FC = () => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id: animalId } = router.query
+  const { id: animalId } = useParams<{ id: string }>() ?? {}
 
   const [activtyLogSideBar, setActivtyLogSideBar] = useState<boolean>(false)
 

@@ -13,7 +13,7 @@ import {
   TimelineSeparator
 } from '@mui/lab'
 import { getAnimalHistory } from 'src/lib/api/housing'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { useTranslation } from 'react-i18next'
@@ -51,8 +51,7 @@ const SUB_TABS = [
 const AnimalHistory: React.FC = () => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
 
   const [selectedSubTab, setSelectedSubTab] = useState<string>('enclosurehistory')
   const [animalHistory, setAnimalHistory] = useState<HistoryData[]>([])

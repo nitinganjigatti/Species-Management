@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, Theme, Select, MenuItem, SelectChangeEvent } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -52,8 +52,8 @@ interface PaginationModel {
 const MortalityListing: React.FC = () => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
 
   const auth = useAuth()
   const insightsViewAccess = (auth as any)?.userData?.roles?.settings?.housing_view_insights

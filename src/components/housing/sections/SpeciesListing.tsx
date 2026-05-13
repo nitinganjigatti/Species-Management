@@ -1,6 +1,6 @@
 import { useTheme, Theme } from '@emotion/react'
 import { Box, Grid, Typography } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useMemo, useState, useEffect, ChangeEvent, MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
@@ -77,8 +77,8 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id: routerId, sectionId: routerSectionId } = useParams<{ id: string; sectionId: string }>() ?? {}
+  const id = routerSectionId || routerId
 
   const [filters, setFilters] = useState<SpeciesFilters>({
     page: 1,

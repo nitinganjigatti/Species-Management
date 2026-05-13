@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react'
 import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import { useInView } from 'react-intersection-observer'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import { AuthContext } from 'src/context/AuthContext'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import NoDataFound from 'src/views/utility/NoDataFound'
@@ -18,8 +18,8 @@ import AddOffspringDrawer from './AddOffspringDrawer'
 import Toaster from 'src/components/Toaster'
 
 const AllOffspring: FC<TabProps> = props => {
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const theme = useTheme() as any
   const { t } = useTranslation()
   const authData = useContext(AuthContext)

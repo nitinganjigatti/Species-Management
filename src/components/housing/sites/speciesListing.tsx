@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useMemo, useState, useEffect } from 'react'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce } from 'lodash'
@@ -58,8 +58,7 @@ const SpeciesListing: React.FC<SpeciesListingProps> = ({
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [specieName, setSpecieName] = useState<string>('')

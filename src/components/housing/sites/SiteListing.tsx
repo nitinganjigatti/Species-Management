@@ -8,7 +8,6 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
-import useSafeRouter from 'src/hooks/useSafeRouter'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo } from 'src/utility/render'
 import SectionsDrawer from '../utils/SectionsDrawer'
@@ -22,7 +21,7 @@ import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import { DrawerType, DrawerData, SiteFilters, IndexedSiteRow, Site } from 'src/types/housing'
 import { GridCellParams, GridSortModel } from '@mui/x-data-grid'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 interface SiteListingProps {
   drawerType: DrawerType
   setDrawerType: (type: DrawerType) => void
@@ -48,10 +47,10 @@ const Listing: React.FC<SiteListingProps> = ({
   totalAnimalsCount
 }) => {
   const theme = useTheme() as Theme & { palette: any }
-  const router = useSafeRouter()
+  const router = useRouter()
+  const pathname = usePathname()
   const { t } = useTranslation()
   const auth = useAuth()
-  const { query } = router
   const searchParams = useSearchParams()
 
   const [inputValue, setInputValue] = useState<string>(searchParams?.get('search') || '')
@@ -71,7 +70,11 @@ const Listing: React.FC<SiteListingProps> = ({
 
   // Populate filters from query string on mount
   useEffect(() => {
-    const { page = '1', pageSize = '10', search = '', sortBy = '', sortOrder = 'asc' } = query as Record<string, string>
+    const page = searchParams?.get('page') || '1'
+    const pageSize = searchParams?.get('pageSize') || '10'
+    const search = searchParams?.get('search') || ''
+    const sortBy = searchParams?.get('sortBy') || ''
+    const sortOrder = searchParams?.get('sortOrder') || 'asc'
 
     setFilters({
       page: parseInt(page),
@@ -80,7 +83,7 @@ const Listing: React.FC<SiteListingProps> = ({
       sortBy,
       sortOrder: sortOrder as 'asc' | 'desc'
     })
-  }, [query])
+  }, [searchParams])
 
   const { data, isFetching, refetch } = useQuery({
     queryKey: ['sites', filters],
@@ -114,7 +117,7 @@ const Listing: React.FC<SiteListingProps> = ({
         params.set(key, value.toString())
       }
     })
-    router.replace({ pathname: router.pathname, query: Object.fromEntries(params) }, undefined, { shallow: true })
+    router.replace(`${pathname}?${params.toString()}`)
   }
 
   const handlePaginationModelChange = (model: PaginationModel): void => {

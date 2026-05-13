@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Box, Typography, useTheme, useMediaQuery, Theme } from '@mui/material'
 import styled from '@emotion/styled'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
@@ -19,8 +19,8 @@ interface UsersListingProps {
 
 const UsersListing: React.FC<UsersListingProps> = ({ refType = 'site' }) => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const params = useParams<{ id: string; sectionId?: string; enclosureId?: string }>()
+  const id = refType === 'section' ? params?.sectionId : refType === 'enclosure' ? params?.enclosureId : params?.id
   const theme = useTheme()
 
   const [filters, setFilters] = useState({

@@ -16,7 +16,7 @@ import {
   DialogContentText
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
 import {
   getTransferAndSecurityTeamList,
@@ -73,7 +73,7 @@ const TeamsListing: React.FC<TeamsListingProps> = ({
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const { id } = useSafeRouter().query
+  const { id } = useParams<{ id: string }>() ?? {}
   const [activeTab, setActiveTab] = useState<TeamTabType>('transfer_user')
   const [loading, setLoading] = useState<boolean>(false)
   const [teamList, setTeamList] = useState<TeamMember[]>([])

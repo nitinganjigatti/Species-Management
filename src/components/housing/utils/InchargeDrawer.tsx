@@ -11,7 +11,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import { addIncharge } from 'src/lib/api/housing'
 import { assignAnimalIncharges } from 'src/lib/api/caretaker'
 import Toaster from 'src/components/Toaster'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useAuth } from 'src/hooks/useAuth'
@@ -31,8 +31,7 @@ const InchargeDrawer: React.FC<InchargeDrawerProps> = ({
   onSubmit,
   refType = 'site'
 }) => {
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const theme: any = useTheme()
   const { t } = useTranslation()
   const queryClient = useQueryClient()

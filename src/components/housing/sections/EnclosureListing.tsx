@@ -3,10 +3,9 @@ import { Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'next/navigation'
 import { getEnclosureListSectionWise } from 'src/lib/api/housing'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -71,9 +70,10 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
-  const router = useSafeRouter()
-  const { id } = router.query
-  const sectionId = (router.query.sectionId as string) || (id as string)
+  const router = useRouter()
+  const pathname = usePathname()
+  const routerParams = useParams<{ id: string; sectionId: string }>()
+  const sectionId = routerParams?.sectionId || routerParams?.id
 
   const auth = useAuth()
 
@@ -106,7 +106,7 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
         sort_order: filters.sortOrder as 'asc' | 'desc' | undefined,
         include_sub_enclosure: 1
       }),
-    enabled: !!id,
+    enabled: !!sectionId,
     placeholderData: keepPreviousData
   })
 
@@ -120,23 +120,13 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
   const total: number = data?.data?.total_count || 0
 
   const updateUrlParams = (updatedFilters: EnclosureFilters): void => {
-    // Update only the section-related filter keys
-    const updatedQuery = {
-      enclosurePage: updatedFilters.page,
-      enclosurePageSize: updatedFilters.pageSize,
-      enclosureSearch: updatedFilters.search,
-      enclosureSortBy: updatedFilters.sortBy,
-      enclosureSortOrder: updatedFilters.sortOrder
-    }
-
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: updatedQuery
-      },
-      undefined,
-      { shallow: true }
-    )
+    const params = new URLSearchParams()
+    if (updatedFilters.page) params.set('enclosurePage', updatedFilters.page.toString())
+    if (updatedFilters.pageSize) params.set('enclosurePageSize', updatedFilters.pageSize.toString())
+    if (updatedFilters.search) params.set('enclosureSearch', updatedFilters.search)
+    if (updatedFilters.sortBy) params.set('enclosureSortBy', updatedFilters.sortBy)
+    if (updatedFilters.sortOrder) params.set('enclosureSortOrder', updatedFilters.sortOrder)
+    router.replace(`${pathname}?${params.toString()}`)
   }
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
@@ -210,19 +200,13 @@ const EnclosureListing: React.FC<EnclosureListingProps> = ({
 
   useEffect(() => {
     setFilters(prev => ({
-      page: Number(router.query.enclosurePage) || 1,
-      pageSize: Number(router.query.enclosurePageSize) || 10,
-      search: (router.query.enclosureSearch as string) || '',
-      sortBy: (router.query.enclosureSortBy as string) || '',
-      sortOrder: (router.query.enclosureSortOrder as string) || 'asc'
+      page: Number(searchParams?.get('enclosurePage')) || 1,
+      pageSize: Number(searchParams?.get('enclosurePageSize')) || 10,
+      search: searchParams?.get('enclosureSearch') || '',
+      sortBy: searchParams?.get('enclosureSortBy') || '',
+      sortOrder: searchParams?.get('enclosureSortOrder') || 'asc'
     }))
-  }, [
-    router.query.enclosurePage,
-    router.query.enclosurePageSize,
-    router.query.enclosureSearch,
-    router.query.enclosureSortBy,
-    router.query.enclosureSortOrder
-  ])
+  }, [searchParams])
 
   const columns: GridColDef[] = [
     {

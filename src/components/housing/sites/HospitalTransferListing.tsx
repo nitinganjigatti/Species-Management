@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { Box, Typography, Tabs, Tab, useTheme } from '@mui/material'
 import styled from '@emotion/styled'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import debounce from 'lodash/debounce'
 import { useAuth } from 'src/hooks/useAuth'
 
@@ -30,8 +30,7 @@ import FilterButtonWithNotification from 'src/views/utility/FilterButtonWithNoti
 import Utility from 'src/utility'
 
 const HospitalTransferListing = () => {
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const theme = useTheme()
   const { t } = useTranslation()
   const authData: any = useAuth()

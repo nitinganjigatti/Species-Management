@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { useTranslation } from 'react-i18next'
 import { Avatar, Box, debounce, Grid, Typography, Theme } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -21,10 +21,9 @@ interface PaginationModel {
 const NotesListng: React.FC = () => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme & { palette: any }
-  const router = useSafeRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const [searchValue, setSearchValue] = useState<string>('')
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false)
-  const { id } = router.query
   const dispatch = useDispatch<AppDispatch>()
 
   const { list: noteList, loading, total, page, pageSize } = useSelector((state: RootState) => state.notes)

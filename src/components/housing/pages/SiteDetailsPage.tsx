@@ -372,6 +372,7 @@ const SiteDetailsPage: React.FC<SiteDetailsPageProps> = ({ id }) => {
               entityImage={siteData?.images?.find((img: any) => img?.display_type === 'banner')?.file}
               entityType='site'
               entityId={id || ''}
+              siteId={id || ''}
               entityDetails={siteData}
             />
           </Box>

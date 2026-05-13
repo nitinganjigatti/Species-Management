@@ -4,7 +4,7 @@ import { Box, Button, Typography, useMediaQuery, useTheme } from '@mui/material'
 import { Add as AddIcon } from '@mui/icons-material'
 import styled from '@emotion/styled'
 import { useQuery } from '@tanstack/react-query'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import debounce from 'lodash/debounce'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -18,12 +18,13 @@ import { GridColDef } from '@mui/x-data-grid'
 
 interface InchargeListingProps {
   refType?: 'site' | 'section' | 'enclosure' | 'cluster' | 'animal'
+  entityId?: string | number
 }
 
-const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site' }) => {
+const InchargeListing: React.FC<InchargeListingProps> = ({ refType = 'site', entityId: entityIdProp }) => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id: routerId } = useParams<{ id: string }>() ?? {}
+  const id = entityIdProp ?? routerId
   const theme = useTheme()
   const authData: any = useAuth()
   const addSiteAccess = authData?.userData?.permission?.user_settings?.add_sites
