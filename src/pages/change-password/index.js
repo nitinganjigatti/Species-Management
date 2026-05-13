@@ -38,10 +38,11 @@ import { useAuth } from 'src/hooks/useAuth'
 // before a WSO2 round-trip. AntzPasswordPolicyError from the SDK is still handled
 // in errorMessage() as a fallback in case WSO2-side policy is stricter.
 const passwordRequirement =
-  'Min. 8 chars with uppercase, lowercase, number & special character (@#$&*) (e.g., Pass@1234)'
+  'Min-8 and Max-64 chars with uppercase, lowercase, number & special character (@#$&*) (e.g., Pass@1234)'
 
 const validateNewPassword = pwd => {
   if (pwd.length < 8) return 'Password must be at least 8 characters.'
+  if (pwd.length > 64) return 'Password must not exceed 64 characters.'
   if (!/[A-Z]/.test(pwd)) return 'Password must include at least one uppercase letter.'
   if (!/[a-z]/.test(pwd)) return 'Password must include at least one lowercase letter.'
   if (!/[0-9]/.test(pwd)) return 'Password must include at least one number.'
