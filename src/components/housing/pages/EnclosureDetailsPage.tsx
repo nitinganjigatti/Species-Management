@@ -46,9 +46,11 @@ interface StatItem {
 
 interface EnclosureDetailsPageProps {
   id: string
+  siteId?: string
+  sectionId?: string
 }
 
-const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
+const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id, siteId, sectionId }) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
   const router = useRouter()
@@ -174,7 +176,6 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
   const SelectedComponent = selected?.component || (() => <Box>{t('no_component_found')}</Box>)
 
   const enclosureData = data?.data as any
-  const sectionId = enclosureData?.section_id
   const enclosureInfo = (enclosureBasicInfo as any)?.data || {}
   const editEnclosureAccess = Number(enclosureData?.is_system_generated) == 1
 
@@ -194,7 +195,9 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
   ).filter((line): line is string => Boolean(line))
 
   const handleBreadcrumbClick = () => {
-    if (sectionId) {
+    if (siteId && sectionId) {
+      router.push(`/housing/sites/${siteId}/section/${sectionId}`)
+    } else if (sectionId) {
       router.push(`/housing/sections/${sectionId}`)
     } else {
       router.push('/housing/sites')
@@ -291,8 +294,10 @@ const EnclosureDetailsPage: React.FC<EnclosureDetailsPageProps> = ({ id }) => {
           haveInsightsViewAccess={insightsViewAccess}
           actions={{
             onAddNew: addEnclosureAccess ? () => setShowAddSubEnclosureDrawer(true) : null,
-            onEdit: addEnclosureAccess  ? () => setShowEditEnclosureDrawer(true) : null,
-            onEditRestricted: editEnclosureAccess ?  () => Toaster({ type: 'warning', message: t('system_generated_enclosure_note_restrictions') as string }) : null,
+            onEdit: addEnclosureAccess ? () => setShowEditEnclosureDrawer(true) : null,
+            onEditRestricted: editEnclosureAccess
+              ? () => Toaster({ type: 'warning', message: t('system_generated_enclosure_note_restrictions') as string })
+              : null
           }}
           addNewTooltip={t('housing_module.add_sub_enclosure') as string}
           editTooltip={t('housing_module.edit_enclosure') as string}

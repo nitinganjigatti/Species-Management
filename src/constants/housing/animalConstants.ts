@@ -33,7 +33,7 @@ export const ANIMAL_JOURNAL_LOGS = `journal/animal-logs`
 export const ANIMAL_JOURNAL_MODULES = `journal/get-animal-module-logs`
 
 // Animal Treatment
-export const GET_ANIMAL_TREATMENT = 'site-wise-animal-medical-data'
+export const GET_ANIMAL_TREATMENT = 'medical/site-wise-animal-medical-data'
 
 // Vaccination & Side Effects
 export const GET_VACCINATION_LIST_ANIMAL_WISE = 'vaccination/get-animal-wise-list'

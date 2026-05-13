@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import Timeline from '@mui/lab/Timeline'
 import TimelineItem from '@mui/lab/TimelineItem'
 import { timelineOppositeContentClasses } from '@mui/lab'
@@ -73,7 +73,7 @@ const groupCommentsByDate = (comments: ChecklistComment[]): GroupedChecklistSect
 const HospitalTransferDrawer: React.FC<HospitalTransferDrawerProps> = ({ open, onClose, transferId, showQRCode }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
+  const router = useRouter()
 
   const [loading, setLoading] = useState<boolean>(false)
   const [hospitalTransferData, setHospitalTransferData] = useState<HospitalTransferData | null>(null)

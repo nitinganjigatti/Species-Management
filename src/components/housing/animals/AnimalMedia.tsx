@@ -2,7 +2,7 @@ import { CircularProgress, Tab, Tabs, Typography, Skeleton, Button } from '@mui/
 import { Box, Grid } from '@mui/system'
 import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useInView } from 'react-intersection-observer'
 import { getAnimalMedia } from 'src/lib/api/housing'

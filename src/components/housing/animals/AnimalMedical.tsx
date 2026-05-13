@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import { Grid } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import {
   Block as BlockIcon,
   Vaccines as VaccineIcon,
@@ -959,8 +959,7 @@ const AdverseRxList: FC<AdverseRxListProps> = ({ animalId, canDelete = true }) =
 const AnimalMedical: FC<AnimalMedicalProps> = ({ animalDetails, animalId: propAnimalId }) => {
   const { t } = useTranslation()
   const theme = useTheme()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const prescriptionScrollContainerRef = useRef<HTMLDivElement | null>(null)
 
   const [activeTab, setActiveTab] = useState<MainTabType>('Medical Records')

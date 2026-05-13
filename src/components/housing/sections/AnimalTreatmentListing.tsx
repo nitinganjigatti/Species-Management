@@ -1,6 +1,6 @@
 import { useTheme, Theme } from '@emotion/react'
 import { Box, Grid, Typography } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState, ChangeEvent } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
@@ -63,8 +63,9 @@ interface GenderLabelsMap {
 
 const AnimalTreatmentListing: React.FC = () => {
   const { t } = useTranslation()
-  const router: any = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id: routerId, sectionId: routerSectionId } = useParams<{ id: string; sectionId: string }>() ?? {}
+  const id = routerSectionId || routerId
   const theme = useTheme() as Theme & { palette: any }
 
   const auth = useAuth()
@@ -399,7 +400,10 @@ const AnimalTreatmentListing: React.FC = () => {
     <>
       <Box sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 4, flexWrap: 'wrap' }}>
-          <ListingHeader title={t('housing_module.animals_under_treatment')} totalCount={insightsViewAccess ? total : 0} />
+          <ListingHeader
+            title={t('housing_module.animals_under_treatment')}
+            totalCount={insightsViewAccess ? total : 0}
+          />
           <Search
             value={inputValue}
             onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}

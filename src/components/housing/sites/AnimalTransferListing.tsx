@@ -10,7 +10,7 @@ import {
   FormControl,
   SelectChangeEvent
 } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { getAnimalTransferList, AnimalTransferItem } from 'src/lib/api/housing'
 import AnimalTransferDetailsDrawer from './AnimalTransferDetailsDrawer'
@@ -168,8 +168,7 @@ const getStatusColors = (
 const AnimalTransferListing: React.FC<AnimalTransferListingProps> = () => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useSafeRouter()
-  const { id: siteId } = router.query
+  const { id: siteId } = useParams<{ id: string }>() ?? {}
   const auth = useAuth()
   const loggedInUserId = (auth as any)?.userData?.user?.user_id
 

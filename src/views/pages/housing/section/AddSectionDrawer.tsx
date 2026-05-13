@@ -13,7 +13,7 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { AuthContext } from 'src/context/AuthContext'
 import { addSection, editSection, deleteSection } from 'src/lib/api/housing'
 import * as yup from 'yup'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 interface SectionData {
@@ -58,7 +58,7 @@ const AddSectionDrawer: React.FC<AddSectionDrawerProps> = ({
   refetch
 }) => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
+  const router = useRouter()
   const { t } = useTranslation()
 
   const authData = useContext(AuthContext) as any

@@ -14,6 +14,9 @@ export interface TransferFilters {
   page_no: number
   limit: number
   search: string
+  start_date?: string
+  end_date?: string
+  hospital_id?: string
 }
 
 export interface HospitalTransferRow {

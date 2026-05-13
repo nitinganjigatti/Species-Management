@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { Box, Divider, Drawer, IconButton, Typography, useTheme, CircularProgress } from '@mui/material'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import { getNewAnimalListWithFilters } from 'src/lib/api/hospital/inpatient'
 
@@ -23,7 +23,7 @@ interface LitterDrawerProps {
 const LitterDrawer = ({ open, onClose, litterDetails }: LitterDrawerProps) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
+  const router = useRouter()
 
   const [searchInput, setSearchInput] = useState('')
   const [searchLitter, setSearchLitter] = useState('')

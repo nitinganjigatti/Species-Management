@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import AnimalMortalityEditDrawer from 'src/views/pages/housing/animals/AnimalMortalityEditDrawer'
 import RenderUtility from 'src/utility/render'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import {
   getAnimalMortalityReport,
   getCarcassCondition,
@@ -28,8 +28,7 @@ interface MortalityDataItem {
 
 const AnimalMortality: React.FC<AnimalMortalityProps> = ({ animalDetails }) => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const { t } = useTranslation()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [openEditMortalityDrawer, setOpenMortalityDrawer] = useState<boolean>(false)

@@ -109,6 +109,10 @@ export interface AddMediaResponse {
   data?: unknown
 }
 
+export interface DeleteMediaParams {
+  id: string
+}
+
 // ==================== User API ====================
 
 export interface GetUsersListParams {
@@ -251,5 +255,37 @@ export interface GetEntityPermissionResponse {
   message?: string
   data?: {
     hasPermission: number
+  }
+}
+
+export interface HospitalEntityCreatedBy {
+  name: string
+  user_profile_pic?: string
+  user_id: number
+}
+
+export interface HospitalEntityItem {
+  id: number
+  name: string
+  description?: string
+  zoo_id?: number
+  site_id?: number
+  site_name?: string
+  entity_type?: string
+  created_by?: HospitalEntityCreatedBy
+}
+
+export interface GetHospitalTransferHospitalListParams {
+  limit?: number
+  page_no?: number
+  q?: string
+}
+
+export interface GetHospitalTransferHospitalListResponse {
+  status?: boolean
+  message?: string
+  data?: {
+    total_records: number
+    list: HospitalEntityItem[]
   }
 }

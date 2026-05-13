@@ -13,7 +13,7 @@ import {
   TimelineSeparator
 } from '@mui/lab'
 import { getAnimalHistory } from 'src/lib/api/housing'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import Utility from 'src/utility'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import { useTranslation } from 'react-i18next'
@@ -57,7 +57,7 @@ const AnimalHistory: React.FC<AnimalHistoryProps> = ({ animalId: propAnimalId })
   const { t } = useTranslation()
   const router = useSafeRouter()
   const { id } = router.query
-  const resolvedId = propAnimalId != null ? String(propAnimalId) : (Array.isArray(id) ? id[0] : id)
+  const resolvedId = propAnimalId != null ? String(propAnimalId) : Array.isArray(id) ? id[0] : id
 
   const [selectedSubTab, setSelectedSubTab] = useState<string>('enclosurehistory')
   const [animalHistory, setAnimalHistory] = useState<HistoryData[]>([])
@@ -296,7 +296,7 @@ const AnimalHistory: React.FC<AnimalHistoryProps> = ({ animalId: propAnimalId })
       <Grid container sx={{ mt: 4 }}>
         {/* Sub-tabs */}
         <Grid size={{ xs: 12 }}>
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4,display:'inline-block' }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4, display: 'inline-block' }}>
             <Tabs
               value={selectedSubTab}
               onChange={handleSubTabChange}

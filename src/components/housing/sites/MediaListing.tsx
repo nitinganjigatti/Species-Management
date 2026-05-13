@@ -1,17 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Box, Grid, Typography, Tabs, Tab, CircularProgress, Button } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { useInView } from 'react-intersection-observer'
 import debounce from 'lodash/debounce'
 
 import Search from 'src/views/utility/Search'
 import NewMediaCard from 'src/views/utility/NewMediaCard'
-import { getAllMedia } from 'src/lib/api/housing'
-import { useInfiniteQuery, InfiniteData } from '@tanstack/react-query'
+import { getAllMedia, deleteMedia } from 'src/lib/api/housing'
+import { useInfiniteQuery, useMutation, useQueryClient, InfiniteData } from '@tanstack/react-query'
+import Toaster from 'src/components/Toaster'
 import { Media } from 'src/types/housing'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Icon from 'src/@core/components/icon'
 import AddMediaDrawer from './AddMediaDrawer'
+import { useAuth } from 'src/hooks/useAuth'
 
 type MediaTabType = 'image' | 'document' | 'video'
 
@@ -26,7 +28,11 @@ const MediaListing: React.FC = () => {
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')
   const [addMediaDrawerOpen, setAddMediaDrawerOpen] = useState<boolean>(false)
-  const { id } = useSafeRouter().query
+  const { id } = useParams<{ id: string }>() ?? {}
+  const queryClient = useQueryClient()
+  const auth = useAuth() as any
+  const authUserId = auth?.userData?.user?.user_id
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
@@ -41,7 +47,7 @@ const MediaListing: React.FC = () => {
     }
   }, [debouncedSearch])
 
-  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, refetch } = useInfiniteQuery<
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage } = useInfiniteQuery<
     MediaPage,
     Error,
     InfiniteData<MediaPage>,
@@ -67,8 +73,27 @@ const MediaListing: React.FC = () => {
     },
     getNextPageParam: (lastPage: MediaPage) => lastPage.nextPage,
     initialPageParam: 1,
-    enabled: !!id
+    enabled: !!id,
+    refetchOnWindowFocus: false
   })
+
+  const deleteMutation = useMutation({
+    mutationFn: (mediaId: string) => deleteMedia({ id: mediaId }),
+    onSuccess: res => {
+      Toaster({ type: 'success', message: res?.message || 'Media deleted successfully' })
+      setDeletingId(null)
+      queryClient.resetQueries({ queryKey: ['media', id, activeTab, search], exact: true })
+    },
+    onError: res => {
+      Toaster({ type: 'error', message: res?.message || 'Failed to delete media' })
+      setDeletingId(null)
+    }
+  })
+
+  const handleDelete = (mediaId: string): void => {
+    setDeletingId(mediaId)
+    deleteMutation.mutate(mediaId)
+  }
 
   // Clean up on tab/search change
   // useEffect(() => {
@@ -78,21 +103,11 @@ const MediaListing: React.FC = () => {
   const media = useMemo(() => data?.pages.flatMap((page: MediaPage) => page.result) || [], [data])
   const total = useMemo(() => data?.pages?.[0]?.total || 0, [data])
 
-  const cooldownRef = useRef<boolean>(false)
-
-  const loadMore = useCallback(() => {
-    if (cooldownRef.current || !hasNextPage || isFetchingNextPage) return
-    cooldownRef.current = true
-    fetchNextPage().finally(() => {
-      setTimeout(() => {
-        cooldownRef.current = false
-      }, 300)
-    })
-  }, [fetchNextPage, isFetchingNextPage, hasNextPage])
-
   useEffect(() => {
-    if (inView) loadMore()
-  }, [inView, loadMore])
+    if (inView && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [inView])
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: MediaTabType): void => {
     setActiveTab(newValue)
@@ -166,6 +181,10 @@ const MediaListing: React.FC = () => {
                 height='100%'
                 showTitle={true}
                 ondownloadaction={() => {}}
+                onDeleteaction={
+                  authUserId === file.user_id ? () => handleDelete(String(file.media_id || file.id)) : undefined
+                }
+                isDeleteLoading={deletingId === String(file.media_id || file.id) && deleteMutation.isPending}
               />
             </Grid>
           ))}
@@ -183,9 +202,9 @@ const MediaListing: React.FC = () => {
           </Box>
         )}
 
-        {(isFetchingNextPage || hasNextPage) && media.length > 0 && (
+        {hasNextPage && media.length > 0 && (
           <Box ref={loaderRef} display='flex' justifyContent='center' p={2}>
-            <CircularProgress />
+            <CircularProgress size={24} />
           </Box>
         )}
 
@@ -202,7 +221,7 @@ const MediaListing: React.FC = () => {
         onClose={() => setAddMediaDrawerOpen(false)}
         refType='site'
         refId={id as string}
-        onSuccess={() => refetch()}
+        onSuccess={() => queryClient.resetQueries({ queryKey: ['media', id, activeTab, search], exact: true })}
       />
     </Box>
   )

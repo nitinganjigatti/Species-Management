@@ -3,7 +3,7 @@ import { Card, CardContent, FormControlLabel, Grid, Typography } from '@mui/mate
 import { Box } from '@mui/system'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { debounce, DebouncedFunc } from 'lodash'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState, ChangeEvent, MouseEvent } from 'react'
 import { getEnclosureWiseSpecies } from 'src/lib/api/housing'
 import { GenderInfoCard } from 'src/utility/render'
@@ -84,9 +84,8 @@ const EnclosureWiseSpecies: React.FC<EnclosureWiseSpeciesProps> = ({
 }) => {
   const { t } = useTranslation()
   const theme = useTheme() as any
-  const router: any = useSafeRouter()
-  const { id } = router.query
-  console.log(entityDetails, 'entityDetails')
+  const { id: routerId, enclosureId: routerEnclosureId } = useParams<{ id: string; sectionId: string; enclosureId: string }>() ?? {}
+  const id = routerEnclosureId || routerId
 
   const hasSubEnclosures = Number(entityDetails?.total_sub_enclosure_count) > 0
   const [includeSubEnclosures, setIncludeSubEnclosures] = useState<boolean>(false)

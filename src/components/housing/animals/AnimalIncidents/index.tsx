@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 
 import {
   Button,

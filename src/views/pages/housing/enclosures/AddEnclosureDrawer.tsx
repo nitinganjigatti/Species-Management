@@ -26,7 +26,7 @@ import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePick
 import ControlledSelect from 'src/views/forms/form-fields/ControlledSelect'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import * as yup from 'yup'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 interface EnclosureData {
@@ -136,7 +136,7 @@ const AddEnclosureDrawer: React.FC<AddEnclosureDrawerProps> = ({
   isSubEnclosureMode = false
 }) => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
+  const router = useRouter()
   const { t } = useTranslation()
 
   const authData = useContext(AuthContext) as any
