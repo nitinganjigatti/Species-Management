@@ -42,6 +42,11 @@ export interface SplitPaneGridProps<R, C> {
   // Ref forwarded to the horizontal scroll container.
   scrollRef?: React.RefObject<HTMLDivElement | null>
 
+  // When true, the corner + column header row stays fixed while the body scrolls vertically.
+  // Pair with `maxBodyHeight` to bound the scroll area (defaults to 70vh).
+  stickyHeader?: boolean
+  maxBodyHeight?: number | string
+
   // States
   loading?: boolean
   empty?: React.ReactNode
@@ -66,9 +71,36 @@ const SplitPaneGrid = <R, C>({
   loading = false,
   empty,
   emptyText = 'No data',
-  scrollRef
+  scrollRef,
+  stickyHeader = false,
+  maxBodyHeight
 }: SplitPaneGridProps<R, C>) => {
   const theme = useTheme() as any
+
+  // Sticky-header mode pins the corner + column-header row to the top of the nearest scroll
+  // ancestor (the page viewport, unless `maxBodyHeight` constrains it to a fixed scroll area).
+  // Disabled by default so existing callers get the same flow layout they used to.
+  //
+  // Row-header stickiness during horizontal scroll is inherent to the layout: the left pane is a
+  // separate flex item from the right scroll pane, so row headers never move while the right pane
+  // scrolls horizontally. No extra CSS needed.
+  const stickyHeaderSx = stickyHeader
+    ? {
+        position: 'sticky' as const,
+        top: 0,
+        zIndex: 5,
+        backgroundColor: theme.palette.background.default
+      }
+    : undefined
+
+  // Only wrap in a constrained scroll viewport when the caller explicitly asks for one.
+  // Without maxBodyHeight, the page scrolls naturally and sticky pins against the viewport.
+  const scrollAreaSx = stickyHeader && maxBodyHeight
+    ? {
+        maxHeight: maxBodyHeight,
+        overflowY: 'auto' as const
+      }
+    : undefined
 
   if (loading) {
     return (
@@ -99,7 +131,7 @@ const SplitPaneGrid = <R, C>({
   return (
     <Box>
       {topBar}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%' }}>
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', width: '100%', ...(scrollAreaSx ?? {}) }}>
         {/* Left fixed column: corner + per-row headers. Same row template + gap as the right grid → aligned. */}
         <Box
           sx={{
@@ -111,7 +143,7 @@ const SplitPaneGrid = <R, C>({
             mr: gap
           }}
         >
-          <Box>{renderCornerHeader?.() ?? null}</Box>
+          <Box sx={stickyHeaderSx}>{renderCornerHeader?.() ?? null}</Box>
           {rows.map((row, rIdx) => (
             <Box key={rowKey(row, rIdx)} sx={{ minHeight: 0, overflow: 'hidden' }}>
               {renderRowHeader(row, rIdx)}
@@ -132,7 +164,9 @@ const SplitPaneGrid = <R, C>({
           >
             {/* Header row */}
             {columns.map((col, cIdx) => (
-              <Box key={`hdr-${String(colKey(col, cIdx))}`}>{renderColumnHeader(col, cIdx)}</Box>
+              <Box key={`hdr-${String(colKey(col, cIdx))}`} sx={stickyHeaderSx}>
+                {renderColumnHeader(col, cIdx)}
+              </Box>
             ))}
 
             {/* Body cells — row-major */}

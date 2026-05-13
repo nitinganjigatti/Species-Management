@@ -1,13 +1,14 @@
 import React, { useMemo, useEffect, useRef } from 'react'
-import { Avatar, Box, Skeleton, TablePagination, Typography } from '@mui/material'
+import { Box, TablePagination, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
-import Icon from 'src/@core/components/icon'
 import SplitPaneGrid from 'src/components/common/SplitPaneGrid'
 import { getAssessmentGroup } from 'src/lib/api/assessment'
 import { AssessmentFilters } from './AssessmentFilterDrawer'
+import AssessmentCell from './AssessmentCell'
+import AssessmentHeader from './AssessmentHeader'
 
 // ============== Layout constants =================
 // Sized to keep the animal row header readable (4 lines + sex chip) without going
@@ -17,9 +18,9 @@ import { AssessmentFilters } from './AssessmentFilterDrawer'
 const LEFT_COL_WIDTH = 240
 const TYPE_COL_WIDTH = 180
 const HEADER_ROW_HEIGHT = 48
-const BODY_ROW_HEIGHT = 105
+const BODY_ROW_HEIGHT = 110
 const GRID_GAP = 1.5
-const PAGE_LIMIT = 5
+const PAGE_LIMIT = 50
 const SKELETON_PREFIX = '__sk_'
 
 // ============== Types =================
@@ -83,20 +84,6 @@ export interface LastEntry {
 }
 
 // ============== Helpers =================
-
-const GENDER_LABELS: Record<string, string> = {
-  male: 'M',
-  female: 'F',
-  undetermined: 'UD',
-  indeterminate: 'ID'
-}
-
-const SEX_BG: Record<string, string> = {
-  M: '#cdeae5',
-  F: '#fbe0e4',
-  UD: '#dde7ec',
-  ID: '#e6e6e6'
-}
 
 const extractAnimals = (data: any): AnimalRow[] => {
   if (!data) return []
@@ -290,287 +277,40 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
     </Box>
   )
 
-  const renderRowHeader = (animal: AnimalRow) => {
-    if (isSkeletonRow(animal)) {
-      return (
-        <Box
-          sx={{
-            height: '100%',
-            p: 3,
-            display: 'flex',
-            gap: 2,
-            alignItems: 'flex-start',
-            borderRadius: '8px',
-            backgroundColor: theme.palette.background.paper
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-            <Skeleton variant='circular' width={40} height={40} />
-            <Skeleton variant='rounded' width={28} height={20} />
-          </Box>
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            <Skeleton variant='text' width='65%' height={20} />
-            <Skeleton variant='text' width='55%' height={16} />
-            <Skeleton variant='text' width='45%' height={16} />
-            <Skeleton variant='text' width='60%' height={16} />
-          </Box>
-        </Box>
-      )
-    }
-
-    const sex =
-      GENDER_LABELS[String(animal.gender || animal.sex || '').toLowerCase()] ||
-      String(animal.gender || animal.sex || '')
-        .toUpperCase()
-        .slice(0, 2) ||
-      '-'
-
-    // The /assessment/group response doesn't ship a precomputed age — derive from birth_date.
-    const computedAge =
-      (animal.age as string | undefined) || computeAge(animal.birth_date as string | undefined, dayjs().toISOString())
-
-    return (
-      <Box
-        sx={{
-          height: '100%',
-          p: 2,
-          display: 'flex',
-          gap: 1.5,
-          alignItems: 'flex-start',
-          borderRadius: '8px',
-          backgroundColor: theme.palette.background.paper
-        }}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75 }}>
-          <Avatar
-            src={(animal.default_icon as string) || undefined}
-            sx={{ width: 32, height: 32, bgcolor: theme.palette.customColors.Surface }}
-          >
-            <Icon icon='mdi:paw-outline' fontSize={16} />
-          </Avatar>
-          <Box
-            sx={{
-              width: 24,
-              height: 20,
-              borderRadius: '4px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: SEX_BG[sex] || theme.palette.customColors.Surface,
-              fontSize: '0.7rem',
-              fontWeight: 700,
-              color: theme.palette.customColors.OnSurfaceVariant
-            }}
-          >
-            {sex}
-          </Box>
-        </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant='subtitle2' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-            AID: {animal.animal_id}
-          </Typography>
-          {Number(animal.total_animal) > 1 && (
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.5,
-                mt: 0.5,
-                px: 1,
-                py: 0.25,
-                borderRadius: '4px',
-                backgroundColor: theme.palette.customColors.Surface,
-                fontSize: '0.75rem',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {t('species_module.count_badge')} <strong>{animal.total_animal}</strong>
-            </Box>
-          )}
-          <Typography
-            variant='caption'
-            sx={{ display: 'block', color: theme.palette.customColors.neutralSecondary, mt: 0.5 }}
-          >
-            {t('species_module.encl_label')} : {animal.user_enclosure_name || animal.enclosure_name || '-'}
-          </Typography>
-          <Typography variant='caption' sx={{ display: 'block', color: theme.palette.customColors.neutralSecondary }}>
-            {t('species_module.site_label')} : {animal.site_name || '-'}
-          </Typography>
-          {computedAge ? (
-            <Typography variant='caption' sx={{ display: 'block', color: theme.palette.customColors.neutralSecondary }}>
-              {t('species_module.age_label')} : {computedAge}
-            </Typography>
-          ) : null}
-        </Box>
-      </Box>
-    )
-  }
-
-  // Column header — mirrors PrescriptionMonitoringGrid's TimeHeader: lightBg pill, 16px / weight 500.
-  // While the response is in flight, names fall back to "Type #N", so render a skeleton bar instead.
-  const renderColumnHeader = (col: TypeColumn) => (
-    <Box
-      sx={{
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        px: 2,
-        backgroundColor: theme.palette.customColors.lightBg,
-        borderRadius: '8px'
-      }}
-    >
-      {isFetching ? (
-        <Skeleton variant='text' width='55%' height={20} />
-      ) : (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 500,
-            color: theme.palette.customColors.OnSurfaceVariant,
-            textAlign: 'center',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          {col.name}
-        </Typography>
-      )}
-    </Box>
+  // Row + column header visuals both live in <AssessmentHeader />; renderRowHeader hands the
+  // animal data through, renderColumnHeader hands the parameter name through. Skeleton state
+  // is just a boolean flag from the caller's perspective.
+  const renderRowHeader = (animal: AnimalRow) => (
+    <AssessmentHeader kind='row' isLoading={isSkeletonRow(animal)} animal={animal} />
   )
 
-  // Cell — white box, 8px radius (same shape as TimeSlot in prescription monitoring).
-  // Empty cells get a dashed border to match the "+ Add Entry" affordance from the mobile spec.
+  const renderColumnHeader = (col: TypeColumn) => (
+    <AssessmentHeader kind='column' isLoading={isFetching} name={col.name} />
+  )
+
+  // Cell — visuals live in <AssessmentCell />; this function only computes the props from the
+  // (animal, type) pair. Keeping data → state mapping here and visuals there makes both easier
+  // to reason about independently.
   const renderCell = (animal: AnimalRow, col: TypeColumn, rIdx: number, cIdx: number) => {
-    if (isSkeletonRow(animal)) {
-      return (
-        <Box
-          sx={{
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 0.5,
-            p: 2,
-            borderRadius: '8px',
-            backgroundColor: theme.palette.background.paper,
-            border: `1px solid ${theme.palette.customColors.SurfaceVariant}`
-          }}
-        >
-          <Skeleton variant='text' width='60%' height={20} />
-          <Skeleton variant='text' width='50%' height={14} />
-          <Skeleton variant='text' width='45%' height={14} />
-        </Box>
-      )
-    }
+    if (isSkeletonRow(animal)) return <AssessmentCell state='skeleton' />
 
     const entry = findEntryForType(animal, col.id)
     const last = buildLastEntry(entry)
-    const isEmpty = !last
-    const isSelected =
-      selectedCell &&
-      String(selectedCell.animalId) === String(animal.animal_id) &&
-      selectedCell.columnId === col.id
+    const isSelected = Boolean(
+      selectedCell && String(selectedCell.animalId) === String(animal.animal_id) && selectedCell.columnId === col.id
+    )
 
     return (
-      <Box
-        onClick={() =>
-          onCellClick?.(animal, col, last, {
-            animals,
-            columns,
-            animalIndex: rIdx,
-            columnIndex: cIdx
-          })
-        }
-        sx={{
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 0.25,
-          p: 1.5,
-          cursor: 'pointer',
-          borderRadius: '8px',
-          backgroundColor: isSelected
-            ? theme.palette.primary.main
-            : theme.palette.background.paper,
-          ...(isSelected
-            ? { border: `2px solid ${theme.palette.primary.dark}` }
-            : isEmpty
-            ? { border: `1.5px dashed ${theme.palette.customColors.OutlineVariant}` }
-            : { border: `1px solid ${theme.palette.customColors.SurfaceVariant}` }),
-          transition: 'all 0.15s',
-          '&:hover': {
-            borderColor: theme.palette.primary.main,
-            backgroundColor: isSelected
-              ? theme.palette.primary.main
-              : theme.palette.customColors.Surface
-          }
-        }}
-      >
-        {isEmpty ? (
-          <>
-            <Icon
-              icon='mdi:plus'
-              fontSize={28}
-              color={isSelected ? theme.palette.common.white : theme.palette.customColors.neutralSecondary}
-            />
-            <Typography
-              variant='body2'
-              sx={{
-                color: isSelected ? theme.palette.common.white : theme.palette.customColors.neutralSecondary,
-                fontWeight: 500
-              }}
-            >
-              {t('species_module.add_entry_cell')}
-            </Typography>
-          </>
-        ) : (
-          <>
-            <Typography
-              variant='subtitle1'
-              sx={{
-                fontWeight: 600,
-                color: isSelected ? theme.palette.common.white : theme.palette.primary.dark,
-                textAlign: 'center',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                maxWidth: '100%'
-              }}
-            >
-              {last.value}
-            </Typography>
-            {last.recordedAt && (
-              <>
-                <Typography
-                  variant='caption'
-                  sx={{ color: isSelected ? 'rgba(255,255,255,0.8)' : theme.palette.customColors.neutralSecondary }}
-                >
-                  {formatDate(last.recordedAt)}
-                </Typography>
-                <Typography
-                  variant='caption'
-                  sx={{ color: isSelected ? 'rgba(255,255,255,0.8)' : theme.palette.customColors.neutralSecondary }}
-                >
-                  {formatTime(last.recordedAt)}
-                </Typography>
-              </>
-            )}
-            {last.age && (
-              <Typography
-                variant='caption'
-                sx={{ color: isSelected ? 'rgba(255,255,255,0.8)' : theme.palette.customColors.neutralSecondary }}
-              >
-                {last.age}
-              </Typography>
-            )}
-          </>
-        )}
-      </Box>
+      <AssessmentCell
+        state={last ? 'filled' : 'empty'}
+        value={last?.value}
+        recordedDate={last?.recordedAt ? formatDate(last.recordedAt) : undefined}
+        recordedTime={last?.recordedAt ? formatTime(last.recordedAt) : undefined}
+        age={last?.age || undefined}
+        isSelected={isSelected}
+        emptyLabel={t('species_module.add_entry_cell')}
+        onClick={() => onCellClick?.(animal, col, last, { animals, columns, animalIndex: rIdx, columnIndex: cIdx })}
+      />
     )
   }
 
@@ -594,6 +334,7 @@ const AssessmentGrid: React.FC<AssessmentGridProps> = ({
         renderRowHeader={renderRowHeader}
         renderColumnHeader={renderColumnHeader}
         renderCell={renderCell}
+        stickyHeader
       />
 
       {/* Pagination — same MUI TablePagination treatment used in CommonTable / sticky-table across the app.

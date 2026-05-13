@@ -7,6 +7,7 @@ import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigat
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
+import BackTitleBar from 'src/components/common/BackTitleBar'
 import { getMeasurementUnits } from 'src/lib/api/assessment'
 import AssessmentTypePickerDrawer from './AssessmentTypePickerDrawer'
 import AssessmentFilterDrawer, { AssessmentFilters } from './AssessmentFilterDrawer'
@@ -124,73 +125,58 @@ const BatchAssessmentPage: React.FC = () => {
 
   return (
     <Box>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 5
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton
-            onClick={() => router.back()}
-            sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
-            aria-label='Back'
-          >
-            <Icon icon='mdi:arrow-left' />
-          </IconButton>
-          <Typography variant='h5' sx={{ fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
-            {t('species_module.species_assessment_header')}
-          </Typography>
-        </Box>
-        {selectedTypeIds.length > 0 && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <IconButton
-              onClick={() => setFilterOpen(true)}
-              aria-label='Filters'
-              sx={{
-                position: 'relative',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                borderRadius: '8px'
-              }}
-            >
-              <Icon icon='mdi:tune-variant' />
-              {filterCount > 0 && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    top: -4,
-                    right: -4,
-                    minWidth: 18,
-                    height: 18,
-                    px: 0.5,
-                    borderRadius: '9px',
-                    backgroundColor: theme.palette.primary.main,
-                    color: theme.palette.common.white,
-                    fontSize: '0.65rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  {filterCount}
-                </Box>
-              )}
-            </IconButton>
-            <Button
-              variant='outlined'
-              startIcon={<Icon icon='mdi:plus-circle-outline' />}
-              onClick={() => setPickerOpen(true)}
-              sx={{ borderRadius: '8px' }}
-            >
-              {t('species_module.parameter_btn')}
-            </Button>
-          </Box>
-        )}
-      </Box>
+      <BackTitleBar
+        title={t('species_module.species_assessment_header')}
+        onBack={() => router.back()}
+        actions={
+          selectedTypeIds.length > 0 ? (
+            <>
+              <IconButton
+                onClick={() => setFilterOpen(true)}
+                aria-label='Filters'
+                sx={{
+                  position: 'relative',
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  border: `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                  borderRadius: '8px'
+                }}
+              >
+                <Icon icon='mdi:tune-variant' />
+                {filterCount > 0 && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -4,
+                      right: -4,
+                      minWidth: 18,
+                      height: 18,
+                      px: 0.5,
+                      borderRadius: '9px',
+                      backgroundColor: theme.palette.primary.main,
+                      color: theme.palette.common.white,
+                      fontSize: '0.65rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    {filterCount}
+                  </Box>
+                )}
+              </IconButton>
+              <Button
+                variant='outlined'
+                startIcon={<Icon icon='mdi:plus-circle-outline' />}
+                onClick={() => setPickerOpen(true)}
+                sx={{ borderRadius: '8px' }}
+              >
+                {t('species_module.parameter_btn')}
+              </Button>
+            </>
+          ) : null
+        }
+      />
 
       {selectedTypeIds.length === 0 ? (
         <Box
