@@ -33,22 +33,73 @@ import AssessmentTypeListingDrawer from 'src/views/pages/report/AssessmentTypeLi
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import ReactTable from 'src/views/table/ReactTable'
+import {
+  Zoo,
+  UserSettings,
+  SpeciesItem,
+  AssessmentTypeItem,
+  AssessmentAnimal,
+  TransformedAssessmentItem,
+  HeaderItem,
+  FilterItems,
+  FilterParams,
+  SiteData,
+  SectionItem,
+  EnclosureItem
+} from 'src/types/report'
+
+interface AuthContextType {
+  userData: {
+    user: { zoos: Zoo[] }
+    roles: { settings: { enable_reports_module: boolean } }
+    permission: { user_settings: UserSettings }
+  } | null
+}
+
+interface AnimalDetailsData {
+  value?: string
+  date?: string
+  time?: string
+  user?: {
+    profile_image?: string
+    user_first_name?: string
+    user_last_name?: string
+  }
+  default_icon?: string
+  local_identifier_name?: string
+  local_identifier_value?: string
+  animal_id?: number
+  primary_taxonomy_id?: number
+  common_name?: string
+  scientific_name?: string
+  age?: string
+  total_animal?: number
+  type?: string
+  breed_name?: string
+  morph_name?: string
+  site_name?: string
+  sex?: string
+}
+
+interface DetailsDialogProps {
+  animalDetailsData: AnimalDetailsData
+}
 
 const AnimalAssessment = () => {
   const theme = useTheme()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as AuthContextType
   const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
   const [initialLoad, setInitialLoad] = useState(true)
-  const [selectedSpecies, setSelectedSpecies] = useState([])
+  const [selectedSpecies, setSelectedSpecies] = useState<SpeciesItem[]>([])
   const [selectAllActive, setSelectAllActive] = useState(false)
   const [isSearchResult, setIsSearchResult] = useState(false)
   const [openspeciesFilter, setOpenspeciesFilter] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState(0)
-  const [selectedAssessmentType, setSelectedAssessmentType] = useState('')
+  const [selectedAssessmentType, setSelectedAssessmentType] = useState<AssessmentTypeItem | ''>('')
   const [openassessmentFilter, setOpenAssessmentFilter] = useState(false)
 
-  const [search, setSearch] = useState()
+  const [search, setSearch] = useState<string | undefined>()
   const defaultEndDate = dayjs().format('YYYY-MM-DD')
   const defaultStartDate = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
 
@@ -59,10 +110,10 @@ const AnimalAssessment = () => {
 
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-  const [assessmentData, setAssessmentData] = useState([])
+  const [assessmentData, setAssessmentData] = useState<AssessmentAnimal[]>([])
   const [maxAssessmentCount, setMaxAssessmentCount] = useState(0)
-  const [headerList, setHeaderList] = useState([])
-  const [dataList, setDataList] = useState([])
+  const [headerList, setHeaderList] = useState<HeaderItem[]>([])
+  const [dataList, setDataList] = useState<TransformedAssessmentItem[]>([])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
@@ -71,13 +122,13 @@ const AnimalAssessment = () => {
   const [activeTab, setActiveTab] = useState('Site, Sec or Encl.')
   const [openSiteListDrawer, setSiteListDrawer] = useState(false)
 
-  const [siteData, setSiteData] = useState([])
-  const [sectionsData, setSectionsData] = useState([])
-  const [enclosuresData, setEnclosuresData] = useState([])
-  const [selectedSections, setSelectedSections] = useState([])
-  const [selectedEnclosures, setSelectedEnclosures] = useState([])
+  const [siteData, setSiteData] = useState<SiteData[]>([])
+  const [sectionsData, setSectionsData] = useState<SectionItem[]>([])
+  const [enclosuresData, setEnclosuresData] = useState<EnclosureItem[]>([])
+  const [selectedSections, setSelectedSections] = useState<(string | number)[]>([])
+  const [selectedEnclosures, setSelectedEnclosures] = useState<(string | number)[]>([])
 
-  const getDefaultSelectedItems = () => ({
+  const getDefaultSelectedItems = (): FilterItems => ({
     Site: [],
     Section: [],
     Enclosure: [],
@@ -86,13 +137,13 @@ const AnimalAssessment = () => {
     accession_end: null
   })
 
-  const [selectedItems, setSelectedItems] = useState(getDefaultSelectedItems())
-  const [tempSelectedItems, setTempSelectedItems] = useState(getDefaultSelectedItems())
+  const [selectedItems, setSelectedItems] = useState<FilterItems>(getDefaultSelectedItems())
+  const [tempSelectedItems, setTempSelectedItems] = useState<FilterItems>(getDefaultSelectedItems())
   const [filterDates, setFilterDates] = useState(getDefaultFilterDates())
   const [filterCount, setFilterCount] = useState(0)
 
   const [showDetailsPopUp, setShowDetailsPopUp] = useState(false)
-  const [animalDetailsData, setAnimalDetailsData] = useState({})
+  const [animalDetailsData, setAnimalDetailsData] = useState<AnimalDetailsData>({})
 
   // Only pass null if select all is active AND it's not a search result
   const taxonomyIds = useMemo(
@@ -122,7 +173,7 @@ const AnimalAssessment = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const searchRef = useRef(null)
+  const searchRef = useRef<HTMLInputElement>(null)
   const skipNextFetchRef = useRef(false)
 
   useEffect(() => {
@@ -131,17 +182,17 @@ const AnimalAssessment = () => {
     }
   }, [assessmentData])
 
-  const animalAssessmentReport = async (searchValue = search || '', pageOverride) => {
+  const animalAssessmentReport = async (searchValue: string = search || '', pageOverride?: number) => {
     setIsLoading(true)
 
-    const params = {
+    const params: FilterParams = {
       page: (typeof pageOverride === 'number' ? pageOverride : paginationModel.page) + 1,
       limit: paginationModel.pageSize
     }
 
-    const payload = {
+    const payload: Record<string, string | number | null | undefined> = {
       taxonomy_ids: taxonomyIds,
-      assessment_type_ids: selectedAssessmentType?.assessment_type_id || '',
+      assessment_type_ids: (selectedAssessmentType as AssessmentTypeItem)?.assessment_type_id || '',
       start_date: filterDates.startDate,
       end_date: filterDates.endDate,
       q: searchValue || '',
@@ -158,7 +209,7 @@ const AnimalAssessment = () => {
       const res = await getAnimalAssessmentReport(params, payload)
       setAssessmentData(res?.data?.animals || [])
       setMaxAssessmentCount(res?.data?.max_assessment_count || 0)
-      setTotal(res?.data?.total_records)
+      setTotal(res?.data?.total_records ?? 0)
     } catch (error) {
       console.error('error', error)
     } finally {
@@ -167,13 +218,13 @@ const AnimalAssessment = () => {
   }
 
   const debouncedSearch = useCallback(
-    debounce((value, pageOverride) => {
+    debounce((value: string, pageOverride?: number) => {
       animalAssessmentReport(value, pageOverride)
     }, 500),
     [selectedSpecies, selectedAssessmentType, filterDates, selectedItems]
   )
 
-  const handleSearchChange = e => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const value = e.target.value
     skipNextFetchRef.current = true
     resetDrawerFilters()
@@ -208,7 +259,7 @@ const AnimalAssessment = () => {
   const transformAnimalData = () => {
     const animals = assessmentData || []
 
-    const transformed = animals?.map(animal => {
+    const transformed: TransformedAssessmentItem[] = animals?.map(animal => {
       const age = (() => {
         if (animal.animal_type === 'group') return 'NA'
         if (!animal.birth_date || !moment(animal.birth_date).isValid()) return 'NA'
@@ -220,7 +271,7 @@ const AnimalAssessment = () => {
         const months = now.diff(birth, 'months') % 12
         const days = now.diff(birth.clone().add({ years, months }), 'days')
 
-        let parts = []
+        const parts: string[] = []
         if (years > 0) parts.push(`${years}y`)
         if (months > 0) parts.push(`${months}m`)
         if (days > 0 || parts.length === 0) parts.push(`${days}d`)
@@ -228,7 +279,7 @@ const AnimalAssessment = () => {
         return parts.join(' ')
       })()
 
-      const recordMap = {}
+      const recordMap: Record<string, { value: string; date: string; time: string; user: { profile_image?: string; user_first_name?: string; user_last_name?: string } }> = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
           value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${''}`,
@@ -246,7 +297,6 @@ const AnimalAssessment = () => {
 
       return {
         ...recordMap,
-        // default_icon: selectedSpeciesIcon,
         default_icon: animal.default_icon,
         local_identifier_name: animal.identifier_type,
         local_identifier_value: animal.identifier_value,
@@ -266,14 +316,14 @@ const AnimalAssessment = () => {
 
     setDataList(transformed)
 
-    const headers = [
+    const headers: HeaderItem[] = [
       { key: 'default_icon', label: 'ANIMAL DETAILS' },
       ...Array.from({ length: maxAssessmentCount || (transformed.length > 0 ? 1 : 0) }, (_, i) => ({
         key: `record_${i}`,
         label:
           i === 0 ? (
             <span style={{ display: 'inline-block', marginLeft: '14px' }}>
-              {selectedAssessmentType?.assessments_type_label}
+              {(selectedAssessmentType as AssessmentTypeItem)?.assessments_type_label}
             </span>
           ) : (
             ' '
@@ -300,9 +350,7 @@ const AnimalAssessment = () => {
           borderRight: 'none',
           boxSizing: 'border-box'
         },
-
-        // disableColumnMenu: true,
-        renderCell: params => {
+        renderCell: (params: { row: Record<string, string | number | boolean | undefined | null> }) => {
           return <AnimalCard sx={{ border: 'none' }} data={params?.row} />
         }
       }
@@ -314,36 +362,33 @@ const AnimalAssessment = () => {
       width: 240,
       sortable: false,
       disableColumnMenu: true,
-
-      // headerStyle: i === 1 && { position: 'sticky', left: 300, zIndex: 1000, p: 0, m: 0 },
       columnStyle: {
         height: '100px',
         border: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
         borderLeft: i === 1 && 'none'
       },
-      renderCell: params => {
-        const record = params?.row[header.key]
+      renderCell: (params: { row: Record<string, string | number | boolean | undefined | null> }) => {
+        const record = params?.row[header.key as string] as { value: string; date: string; time: string; user: AnimalDetailsData['user'] } | undefined
 
         return record ? (
           <Box
             onClick={() => {
               setAnimalDetailsData({
                 ...record,
-                // default_icon: selectedSpeciesIcon,
-                default_icon: params?.row?.default_icon,
-                local_identifier_name: params?.row?.identifier_type,
-                local_identifier_value: params?.row?.identifier_value,
-                animal_id: params?.row?.animal_id,
-                primary_taxonomy_id: params?.row?.taxonomy_id,
-                common_name: params?.row?.common_name,
-                scientific_name: params?.row?.scientific_name,
-                age: params.row.age,
-                total_animal: params?.row?.total_animal,
-                type: params?.row?.type,
-                breed_name: params?.row?.breed_name,
-                morph_name: params?.row?.morph_name,
-                site_name: params?.row?.site_name,
-                sex: params?.row?.sex
+                default_icon: params?.row?.default_icon as string | undefined,
+                local_identifier_name: params?.row?.identifier_type as string | undefined,
+                local_identifier_value: params?.row?.identifier_value as string | undefined,
+                animal_id: params?.row?.animal_id as number | undefined,
+                primary_taxonomy_id: params?.row?.taxonomy_id as number | undefined,
+                common_name: params?.row?.common_name as string | undefined,
+                scientific_name: params?.row?.scientific_name as string | undefined,
+                age: params.row.age as string | undefined,
+                total_animal: params?.row?.total_animal as number | undefined,
+                type: params?.row?.type as string | undefined,
+                breed_name: params?.row?.breed_name as string | undefined,
+                morph_name: params?.row?.morph_name as string | undefined,
+                site_name: params?.row?.site_name as string | undefined,
+                sex: params?.row?.sex as string | undefined
               })
               setShowDetailsPopUp(true)
             }}
@@ -391,7 +436,7 @@ const AnimalAssessment = () => {
     }
   })
 
-  const handleDateRangeChange = (startDate, endDate) => {
+  const handleDateRangeChange = (startDate: Date | null, endDate: Date | null) => {
     if (startDate && endDate) {
       setFilterDates({
         startDate: Utility.formatDate(startDate),
@@ -410,14 +455,14 @@ const AnimalAssessment = () => {
 
   const siteList = async (q = '') => {
     try {
-      const sites = authData.userData.user.zoos[0]?.sites || []
+      const sites = authData?.userData?.user?.zoos[0]?.sites || []
       const filteredSites = q ? sites.filter(site => site.site_name.toLowerCase().includes(q.toLowerCase())) : sites
 
-      setSiteData(prev =>
+      setSiteData(
         filteredSites.map(site => ({
-          site_id: site.id,
-          site_name: site.site_name,
-          ...site
+          ...site,
+          site_id: (site as { id?: number; site_id: string | number }).id ?? site.site_id,
+          site_name: site.site_name
         }))
       )
     } catch (e) {
@@ -429,7 +474,7 @@ const AnimalAssessment = () => {
     siteList()
   }, [openFilterDrawer])
 
-  const downloadNewCSVFile = csvContent => {
+  const downloadNewCSVFile = (csvContent: string) => {
     try {
       const url = csvContent
       const link = document.createElement('a')
@@ -443,15 +488,15 @@ const AnimalAssessment = () => {
     }
   }
 
-  const getDataToExport = async type => {
+  const getDataToExport = async () => {
     if (selectedSpecies?.length && selectedAssessmentType) {
       setIsDownloading(true)
 
-      const params = {
+      const params: FilterParams = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
-        taxonomy_ids: taxonomyIds,
-        assessment_type_ids: selectedAssessmentType?.assessment_type_id,
+        taxonomy_ids: taxonomyIds ?? undefined,
+        assessment_type_ids: (selectedAssessmentType as AssessmentTypeItem)?.assessment_type_id,
         start_date: filterDates.startDate,
         end_date: filterDates.endDate,
         q: search || '',
@@ -459,14 +504,14 @@ const AnimalAssessment = () => {
         section_ids: selectedItems.Section.toString() || '',
         enclosure_ids: selectedItems.Enclosure.toString() || '',
         gender: selectedItems.gender.toString() || '',
-        accession_start: selectedItems.accession_start || '',
-        accession_end: selectedItems.accession_end || ''
+        accession_start: selectedItems.accession_start ?? '',
+        accession_end: selectedItems.accession_end ?? ''
       }
 
       try {
         const response = await getAnimalAssessment(params)
         if (response?.success) {
-          downloadNewCSVFile(response?.data)
+          downloadNewCSVFile(response?.data as string)
         } else {
           console.warn('No  data available to export')
         }
@@ -478,7 +523,7 @@ const AnimalAssessment = () => {
     }
   }
 
-  const DetailsDialog = ({ animalDetailsData }) => {
+  const DetailsDialog = ({ animalDetailsData }: DetailsDialogProps) => {
     return (
       <Dialog open={showDetailsPopUp}>
         <Box sx={{ bgcolor: theme.palette.primary.contrastText, height: '416px', width: '560px', borderRadius: '8px' }}>
@@ -542,7 +587,7 @@ const AnimalAssessment = () => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                {selectedAssessmentType?.assessments_type_label}
+                {(selectedAssessmentType as AssessmentTypeItem)?.assessments_type_label}
               </Typography>
               <Box
                 sx={{
@@ -586,7 +631,7 @@ const AnimalAssessment = () => {
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      {animalDetailsData?.user?.user_first_name} {animalDetailsData?.user.user_last_name}
+                      {animalDetailsData?.user?.user_first_name} {animalDetailsData?.user?.user_last_name}
                     </Typography>
                   </Box>
                   <Typography
@@ -597,7 +642,7 @@ const AnimalAssessment = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {animalDetailsData.date} • {animalDetailsData.time}
+                    {animalDetailsData.date} {animalDetailsData.time ? `• ${animalDetailsData.time}` : ''}
                   </Typography>
                 </Box>
               </Box>
@@ -774,7 +819,7 @@ const AnimalAssessment = () => {
                       border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                     }}
                   >
-                    {selectedAssessmentType?.assessments_type_label ? (
+                    {(selectedAssessmentType as AssessmentTypeItem)?.assessments_type_label ? (
                       <Typography
                         sx={{
                           fontWeight: 500,
@@ -786,7 +831,7 @@ const AnimalAssessment = () => {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        {`${selectedAssessmentType?.assessments_type_label} `}
+                        {`${(selectedAssessmentType as AssessmentTypeItem)?.assessments_type_label} `}
                       </Typography>
                     ) : (
                       <Typography
@@ -859,7 +904,7 @@ const AnimalAssessment = () => {
                             <InputAdornment position='end'>
                               <IconButton
                                 size='small'
-                                onClick={() => handleSearchChange({ target: { value: '' } })}
+                                onClick={() => handleSearchChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)}
                                 edge='end'
                               >
                                 <Icon icon='ic:round-close' fontSize={20} />
@@ -869,8 +914,6 @@ const AnimalAssessment = () => {
                         }}
                         sx={{
                           backgroundColor: theme.palette.primary.contrastText,
-
-                          // borderRadius: '40px', // Applies to the container
                           '& .MuiOutlinedInput-root': {
                             width: '240px',
                             borderRadius: '4px'
@@ -880,12 +923,11 @@ const AnimalAssessment = () => {
                     </Box>
                     <Box sx={{ display: 'flex', gap: 4, justifyContent: 'end', alignItems: 'center' }}>
                       <CommonDateRangePickers
-                        disabled={true}
                         onChange={handleDateRangeChange}
                         filterDates={filterDates}
                       />
 
-                      {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                      {(authData?.userData?.user?.zoos[0]?.sites?.length ?? 0) > 0 && (
                         <Box
                           sx={{
                             position: 'relative',
@@ -966,15 +1008,10 @@ const AnimalAssessment = () => {
                       paginationModel={paginationModel}
                       onPaginationModelChange={setPaginationModel}
                       loading={isLoading}
-
-                      // downloadExcel
                       serverSide
-                      // rowSelection
                       modifyColumnPinning
                       hideHeaderWhenEmpty
                       searchMode='server'
-
-                      // disableColumnSorting={true}
                     />
                   ) : (
                     <Box sx={{ py: 4, textAlign: 'center' }}>
@@ -986,7 +1023,7 @@ const AnimalAssessment = () => {
             </Box>
           </Card>
 
-          {!dataList?.length > 0 && !isLoading && (
+          {!dataList?.length && !isLoading && (
             <Box
               sx={{
                 mt: 4,
@@ -1021,8 +1058,8 @@ const AnimalAssessment = () => {
           {openFilterDrawer && (
             <AssessmentReportFilterDrawer
               setOpenFilterDrawer={setOpenFilterDrawer}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
+              searchTerm={searchQuery}
+              setSearchTerm={setSearchQuery}
               openFilterDrawer={openFilterDrawer}
               setFilterCount={setFilterCount}
               tabsforfilter={tabsforfilter}
@@ -1039,8 +1076,6 @@ const AnimalAssessment = () => {
               siteData={siteData}
               setActiveTab={setActiveTab}
               activeTab={activeTab}
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
               selectedItems={selectedItems}
               setSelectedItems={setSelectedItems}
               tempSelectedItems={tempSelectedItems}

@@ -28,26 +28,28 @@ import UserWiseList from 'src/views/pages/report/caretaker-report/UserWiseList'
 import AnimalWiseList from 'src/views/pages/report/caretaker-report/AnimalWiseList'
 import { getKeepersWithAnimals, getAnimalsWithKeepers, exportAnimalKeeperReport } from 'src/lib/api/caretaker'
 import RenderUtility from 'src/utility/render'
+import { Keeper, AnimalWise, PaginationModel } from 'src/types/report'
+import { TabBadgeProps } from 'src/types/report'
 
 const PAGE_SIZE = 20
 
 const CaretakerReport = () => {
   const theme = useTheme()
-  const [viewType, setViewType] = useState('animal')
+  const [viewType, setViewType] = useState<'animal' | 'user'>('animal')
   const [loading, setLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
 
   // Download dialog state
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false)
-  const [downloadFilter, setDownloadFilter] = useState('withKeeper')
+  const [downloadFilter, setDownloadFilter] = useState<'all' | 'withKeeper' | 'withoutKeeper'>('withKeeper')
 
   // User wise state
-  const [keepers, setKeepers] = useState([])
-  const [keepersPagination, setKeepersPagination] = useState({ total: 0, page: 0, pageSize: PAGE_SIZE })
+  const [keepers, setKeepers] = useState<Keeper[]>([])
+  const [keepersPagination, setKeepersPagination] = useState<PaginationModel>({ total: 0, page: 0, pageSize: PAGE_SIZE })
 
   // Animal wise state
-  const [animals, setAnimals] = useState([])
-  const [animalsPagination, setAnimalsPagination] = useState({ total: 0, page: 0, pageSize: PAGE_SIZE })
+  const [animals, setAnimals] = useState<AnimalWise[]>([])
+  const [animalsPagination, setAnimalsPagination] = useState<PaginationModel>({ total: 0, page: 0, pageSize: PAGE_SIZE })
 
   const fetchKeepers = useCallback(async (page = 0, pageSize = PAGE_SIZE) => {
     setLoading(true)
@@ -95,17 +97,17 @@ const CaretakerReport = () => {
     }
   }, [viewType, fetchKeepers, fetchAnimals])
 
-  const handleViewChange = (event, newValue) => {
+  const handleViewChange = (_event: React.SyntheticEvent, newValue: string) => {
     if (newValue !== null) {
-      setViewType(newValue)
+      setViewType(newValue as 'animal' | 'user')
     }
   }
 
-  const handleKeepersPaginationChange = model => {
+  const handleKeepersPaginationChange = (model: PaginationModel) => {
     fetchKeepers(model.page, model.pageSize)
   }
 
-  const handleAnimalsPaginationChange = model => {
+  const handleAnimalsPaginationChange = (model: PaginationModel) => {
     fetchAnimals(model.page, model.pageSize)
   }
 
@@ -122,7 +124,7 @@ const CaretakerReport = () => {
     setIsDownloading(true)
     try {
       // Build filter param based on selection
-      const filterParam =
+      const filterParam: string | undefined =
         downloadFilter === 'all' ? undefined : downloadFilter === 'withKeeper' ? 'with_keeper' : 'without_keeper'
 
       const response = await exportAnimalKeeperReport({ filter: filterParam })
@@ -140,7 +142,7 @@ const CaretakerReport = () => {
     }
   }
 
-  const TabBadge = ({ label, totalCount }) => (
+  const TabBadge = ({ label, totalCount }: TabBadgeProps) => (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       {label}
       {totalCount ? (
@@ -200,11 +202,11 @@ const CaretakerReport = () => {
         <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleViewChange}>
           <Tab
             value='animal'
-            label={<TabBadge label='Animal Wise' totalCount={viewType === 'animal' ? animalsPagination.total : null} />}
+            label={<TabBadge label='Animal Wise' totalCount={viewType === 'animal' ? (animalsPagination.total ?? null) : null} />}
           />
           <Tab
             value='user'
-            label={<TabBadge label='Keeper Wise' totalCount={viewType === 'user' ? keepersPagination.total : null} />}
+            label={<TabBadge label='Keeper Wise' totalCount={viewType === 'user' ? (keepersPagination.total ?? null) : null} />}
           />
         </TabList>
         <TabPanel value='animal'>{tableContent()}</TabPanel>
@@ -229,7 +231,7 @@ const CaretakerReport = () => {
           <Typography sx={{ color: theme.palette.text.secondary, mb: 3 }}>
             Select which animals to include in the Excel report:
           </Typography>
-          <RadioGroup value={downloadFilter} onChange={e => setDownloadFilter(e.target.value)}>
+          <RadioGroup value={downloadFilter} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDownloadFilter(e.target.value as 'all' | 'withKeeper' | 'withoutKeeper')}>
             <Box
               sx={{
                 border: `1px solid ${downloadFilter === 'all' ? theme.palette.primary.main : theme.palette.divider}`,
@@ -237,7 +239,7 @@ const CaretakerReport = () => {
                 p: 2,
                 mb: 2,
                 cursor: 'pointer',
-                backgroundColor: downloadFilter === 'all' ? theme.palette.primary.lighter : 'transparent'
+                backgroundColor: downloadFilter === 'all' ? (theme.palette.primary as unknown as Record<string, string>).lighter : 'transparent'
               }}
               onClick={() => setDownloadFilter('all')}
             >
@@ -262,7 +264,7 @@ const CaretakerReport = () => {
                 p: 2,
                 mb: 2,
                 cursor: 'pointer',
-                backgroundColor: downloadFilter === 'withKeeper' ? theme.palette.primary.lighter : 'transparent'
+                backgroundColor: downloadFilter === 'withKeeper' ? (theme.palette.primary as unknown as Record<string, string>).lighter : 'transparent'
               }}
               onClick={() => setDownloadFilter('withKeeper')}
             >
@@ -286,7 +288,7 @@ const CaretakerReport = () => {
                 borderRadius: '8px',
                 p: 2,
                 cursor: 'pointer',
-                backgroundColor: downloadFilter === 'withoutKeeper' ? theme.palette.primary.lighter : 'transparent'
+                backgroundColor: downloadFilter === 'withoutKeeper' ? (theme.palette.primary as unknown as Record<string, string>).lighter : 'transparent'
               }}
               onClick={() => setDownloadFilter('withoutKeeper')}
             >

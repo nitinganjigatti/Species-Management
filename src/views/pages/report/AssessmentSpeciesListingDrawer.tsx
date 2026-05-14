@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, useContext, useLayoutEffect, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useContext, useLayoutEffect, useMemo } from 'react'
 import { Drawer, IconButton, TextField, Typography, CircularProgress, Box, Checkbox } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
@@ -7,6 +7,13 @@ import { AuthContext } from 'src/context/AuthContext'
 import Icon from 'src/@core/components/icon'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { getTaxonomyListForReport } from 'src/lib/api/report'
+import { AssessmentSpeciesListingDrawerProps, SpeciesItem } from 'src/types/report'
+
+interface AuthContextType {
+  userData: {
+    user: { zoos: { zoo_id: number; sites: { site_id: string | number; site_name: string }[] }[] }
+  } | null
+}
 
 function AssessmentSpeciesListingDrawer({
   selectedSpecies = [],
@@ -17,20 +24,20 @@ function AssessmentSpeciesListingDrawer({
   setSelectAllActive,
   isSearchResult,
   setIsSearchResult
-}) {
+}: AssessmentSpeciesListingDrawerProps) {
   const theme = useTheme()
-  const drawerContentRef = useRef(null)
-  const searchInputRef = useRef(null)
-  const footerRef = useRef(null)
+  const drawerContentRef = useRef<HTMLDivElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const footerRef = useRef<HTMLDivElement>(null)
 
-  const authData = useContext(AuthContext)
-  const zoo_id = authData.userData.user.zoos[0]?.zoo_id
+  const authData = useContext(AuthContext) as AuthContextType
+  const zoo_id = authData?.userData?.user?.zoos[0]?.zoo_id
 
-  const [tempSelectedSpecies, setTempSelectedSpecies] = useState(selectedSpecies || [])
+  const [tempSelectedSpecies, setTempSelectedSpecies] = useState<SpeciesItem[]>(selectedSpecies || [])
   const [selectAllMode, setSelectAllMode] = useState(false)
 
   const [searchValue, setSearchValue] = useState('')
-  const [speciesList, setSpeciesList] = useState([])
+  const [speciesList, setSpeciesList] = useState<SpeciesItem[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
@@ -90,7 +97,7 @@ function AssessmentSpeciesListingDrawer({
         page_no: pageNum
       })
 
-      const newSpecies = res?.data?.classification_list || []
+      const newSpecies: SpeciesItem[] = res?.data?.classification_list || []
       setSpeciesList(prev => (isNewSearch ? newSpecies : [...prev, ...newSpecies]))
 
       if (Number(newSpecies?.length) === 0) {
@@ -113,7 +120,7 @@ function AssessmentSpeciesListingDrawer({
 
   const debouncedSearch = useMemo(
     () =>
-      debounce(value => {
+      debounce((value: string) => {
         setPage(1)
         setSpeciesList([])
         setHasMore(true)
@@ -138,7 +145,7 @@ function AssessmentSpeciesListingDrawer({
     setOpenspeciesFilter(false)
   }
 
-  const handleSearchChange = e => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value
     setSearchValue(value)
     debouncedSearch(value)
@@ -156,7 +163,7 @@ function AssessmentSpeciesListingDrawer({
   )
 
   const toggleSpeciesSelection = useCallback(
-    specie => {
+    (specie: SpeciesItem) => {
       setTempSelectedSpecies(prev => {
         const exists = prev.some(selected => selected?.tsn_id === specie.tsn_id)
         if (exists) {
@@ -397,11 +404,9 @@ function AssessmentSpeciesListingDrawer({
       <Box
         ref={footerRef}
         sx={{
-          position: 'sticky', // sticky works inside the Drawer column; avoids layout jumps
+          position: 'sticky',
           bottom: 0,
           minHeight: '106px',
-
-          // height: { xs: 88, sm: 96, md: 106 }, // responsive heights
           px: 4,
           bgcolor: 'white',
           alignItems: 'center',
@@ -410,19 +415,6 @@ function AssessmentSpeciesListingDrawer({
           display: 'flex',
           boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
           zIndex: 1
-
-          // minHeight: '106px',
-          // position: 'sticky',
-          // bottom: 0,
-          // // height: { xs: 88, sm: 96, md: 106 },
-          // px: 4,
-          // bgcolor: 'white',
-          // alignItems: 'center',
-          // justifyContent: 'center',
-          // gap: 5,
-          // display: 'flex',
-          // boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
-          // zIndex: 1
         }}
       >
         <LoadingButton

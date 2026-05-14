@@ -16,11 +16,20 @@ import {
   getVaccinationRecords
 } from 'src/lib/api/report'
 import DailyReportView from 'src/views/pages/report/daily/DailyReportView'
+import { Zoo, UserSettings, ReportItem, FilterParams } from 'src/types/report'
+
+interface AuthContextType {
+  userData: {
+    user: { zoos: Zoo[] }
+    roles: { settings: { enable_reports_module: boolean } }
+    permission: { user_settings: UserSettings }
+  } | null
+}
 
 const DailyReport = () => {
   const [loading, setLoading] = useState(false)
-  const [reportData, setReportData] = useState([])
-  const [downloadingRowId, setDownloadingRowId] = useState(null)
+  const [reportData, setReportData] = useState<ReportItem[]>([])
+  const [downloadingRowId, setDownloadingRowId] = useState<number | string | null>(null)
   const [activeTab, setActiveTab] = useState(0)
 
   // Past date filter state - default to today
@@ -41,14 +50,14 @@ const DailyReport = () => {
     return Utility.formatDate(tomorrow)
   })
 
-  const [apiFilterParams] = useState({
+  const [apiFilterParams] = useState<FilterParams>({
     include_class: 1,
     include_order: 1,
     include_family: 1,
     include_genus: 1
   })
 
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as AuthContextType
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
 
@@ -79,7 +88,7 @@ const DailyReport = () => {
   const pastReports = reportData.filter(r => r.date_type !== 'future')
   const upcomingReports = reportData.filter(r => r.date_type === 'future')
 
-  const downloadNewCSVFile = csvContent => {
+  const downloadNewCSVFile = (csvContent: string) => {
     try {
       const link = document.createElement('a')
       link.href = csvContent
@@ -92,14 +101,14 @@ const DailyReport = () => {
     }
   }
 
-  const getDataToExport = async (type, startDate, endDate) => {
+  const getDataToExport = async (type: string, startDate: string, endDate: string) => {
     try {
-      const params = { type, ...apiFilterParams }
+      const params: FilterParams = { type, ...apiFilterParams }
       if (startDate) params.start_date = startDate
       if (endDate) params.end_date = endDate
       params.response_type = 'csv'
 
-      let response = []
+      let response: { success?: boolean; data?: unknown; message?: string } = {}
       if (type === 'user_report') {
         response = await getUserReport(params)
       } else if (type === 'medical_report') {
@@ -116,13 +125,13 @@ const DailyReport = () => {
         const [status, category] = type.split('_')
         params.response_type = 'excel'
         params.type = category
-        response = await getVaccinationRecords(status, params)
+        response = await getVaccinationRecords(status as 'upcoming' | 'pending' | 'completed', params)
       } else {
         response = await getAnimalReport(params)
       }
 
       if (response?.success) {
-        downloadNewCSVFile(response?.data)
+        downloadNewCSVFile(response?.data as string)
       } else {
         Toaster({ type: 'error', message: response?.message || 'No data available to export' })
       }
@@ -132,7 +141,7 @@ const DailyReport = () => {
     }
   }
 
-  const handleDownload = async report => {
+  const handleDownload = async (report: ReportItem) => {
     const isFuture = report.date_type === 'future'
     const startDate = isFuture
       ? (upcomingStartDate || Utility.formatDate(new Date()))
@@ -149,7 +158,7 @@ const DailyReport = () => {
     }
   }
 
-  const handlePastDateChange = (rangeStartDate, rangeEndDate) => {
+  const handlePastDateChange = (rangeStartDate: Date | null, rangeEndDate: Date | null) => {
     if (rangeStartDate && rangeEndDate) {
       setPastStartDate(Utility.formatDate(rangeStartDate))
       setPastEndDate(Utility.formatDate(rangeEndDate))
@@ -159,7 +168,7 @@ const DailyReport = () => {
     }
   }
 
-  const handleUpcomingDateChange = (rangeStartDate, rangeEndDate) => {
+  const handleUpcomingDateChange = (rangeStartDate: Date | null, rangeEndDate: Date | null) => {
     if (rangeStartDate && rangeEndDate) {
       setUpcomingStartDate(Utility.formatDate(rangeStartDate))
       setUpcomingEndDate(Utility.formatDate(rangeEndDate))
@@ -169,7 +178,7 @@ const DailyReport = () => {
     }
   }
 
-  const handleTabChange = (event, newValue) => {
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue)
   }
 

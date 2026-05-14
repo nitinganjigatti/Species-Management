@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { useTheme } from '@mui/material/styles'
 import {
@@ -17,8 +17,9 @@ import {
 import SearchIcon from '@mui/icons-material/Search'
 import FallbackAvatar from 'src/views/utility/FallbackAvatar'
 import Icon from 'src/@core/components/icon'
+import { SelectSitesProps, SiteData } from 'src/types/report'
 
-const SelectSites = ({
+const SelectSites = <T extends { Site: (string | number)[] }>({
   openSiteListDrawer,
   setSiteListDrawer,
   siteData,
@@ -26,9 +27,9 @@ const SelectSites = ({
   searchTerm,
   tempSelectedItems,
   setTempSelectedItems
-}) => {
+}: SelectSitesProps<T>) => {
   const theme = useTheme()
-  const [pendingSelections, setPendingSelections] = useState({ Site: [] })
+  const [pendingSelections, setPendingSelections] = useState<T>(tempSelectedItems)
 
   const handleCloseDrawer = () => {
     setSiteListDrawer(false)
@@ -39,16 +40,13 @@ const SelectSites = ({
     setSiteListDrawer(false)
   }
 
-  const handleSiteCheckboxChange = site => {
+  const handleSiteCheckboxChange = (site: SiteData) => {
     const siteList = Array.isArray(pendingSelections.Site) ? pendingSelections.Site : []
 
     const isSelected = siteList.includes(site?.site_id)
     const updatedSelection = isSelected ? siteList.filter(id => id !== site.site_id) : [...siteList, site.site_id]
 
-    setPendingSelections({
-      ...pendingSelections,
-      Site: updatedSelection
-    })
+    setPendingSelections({ ...pendingSelections, Site: updatedSelection } as T)
   }
 
   useEffect(() => {
@@ -80,16 +78,10 @@ const SelectSites = ({
       const allSelected = filteredSiteIds.every(id => currentSelection.includes(id))
 
       if (allSelected) {
-        return {
-          ...prev,
-          Site: currentSelection.filter(id => !filteredSiteIds.includes(id))
-        }
+        return { ...prev, Site: currentSelection.filter(id => !filteredSiteIds.includes(id)) } as T
       }
 
-      return {
-        ...prev,
-        Site: Array.from(new Set([...currentSelection, ...filteredSiteIds]))
-      }
+      return { ...prev, Site: Array.from(new Set([...currentSelection, ...filteredSiteIds])) } as T
     })
   }
 
@@ -209,9 +201,7 @@ const SelectSites = ({
               checked={areAllFilteredSelected}
               indeterminate={isSomeFilteredSelected}
               onChange={handleSelectAllSites}
-              slotProps={{
-                'aria-label': 'Select all species'
-              }}
+              inputProps={{ 'aria-label': 'Select all species' }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -279,7 +269,6 @@ const SelectSites = ({
                     }}
                   >
                     <ListItemAvatar>
-                      {/* <Avatar sx={{ backgroundColor: theme.palette.customColors.displaybgPrimary, p: site?.site_image ? 0 : 2 }} fallback='/images/housing/site-icon-colored.svg' src={site.site_image} variant='rounded' /> */}
                       <FallbackAvatar
                         src={site.site_image}
                         fallback='/images/housing/site-icon-colored.svg'
@@ -338,8 +327,6 @@ const SelectSites = ({
               color: theme.palette.primary.contrastText,
               p: 2,
               borderRadius: '8px'
-
-              // height: '58px' // to be this value according to figma but using continue 3 component from 2 place and there has different value, need to be samea at all the places
             }}
             onClick={handleCloseDrawer}
             disabled={pendingSelections?.Site?.length === 0}

@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Box, Chip, CircularProgress, Drawer, IconButton, Typography } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, Theme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { getKeeperAnimals } from 'src/lib/api/caretaker'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import { UserAnimalsDrawerProps, KeeperAnimal } from 'src/types/report'
 
-const AnimalListItem = ({ animal, theme }) => {
+interface AnimalListItemProps {
+  animal: KeeperAnimal
+  theme: Theme
+}
+
+const AnimalListItem = ({ animal, theme }: AnimalListItemProps) => {
   const isPrimary = animal.is_primary === '1' || animal.is_primary === 1 || animal.is_primary === true
 
   return (
@@ -46,10 +52,10 @@ const AnimalListItem = ({ animal, theme }) => {
   )
 }
 
-const UserAnimalsDrawer = ({ open, onClose, user }) => {
+const UserAnimalsDrawer = ({ open, onClose, user }: UserAnimalsDrawerProps) => {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
-  const [animals, setAnimals] = useState([])
+  const [animals, setAnimals] = useState<KeeperAnimal[]>([])
 
   useEffect(() => {
     if (open && user?.user_id) {
@@ -62,7 +68,8 @@ const UserAnimalsDrawer = ({ open, onClose, user }) => {
     try {
       const response = await getKeeperAnimals(user.user_id)
       if (response?.success && response?.data) {
-        setAnimals(response.data?.result || response.data || [])
+        const data = response.data
+        setAnimals(Array.isArray(data) ? data : (data as { result: KeeperAnimal[] }).result || [])
       }
     } catch (error) {
       console.error('Error fetching user animals:', error)
@@ -139,7 +146,7 @@ const UserAnimalsDrawer = ({ open, onClose, user }) => {
             </Box>
           ) : (
             animals.map(animal => (
-              <AnimalListItem key={animal.animal_id} animal={animal} theme={theme} />
+              <AnimalListItem key={animal.animal_id as string | number} animal={animal} theme={theme} />
             ))
           )}
         </Box>

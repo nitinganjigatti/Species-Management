@@ -1,15 +1,18 @@
 import { Box, Button, Card, CircularProgress, Tab, Tabs, Typography } from '@mui/material'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 import DownloadIcon from '@mui/icons-material/Download'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { DailyReportViewProps, CategoryCardProps } from 'src/types/report'
+import { ReportItem } from 'src/types/report/models'
 
-const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDownload }) => {
+const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDownload }: CategoryCardProps) => {
   const theme = useTheme()
 
-  const groupedBySubCategory = reports.reduce((acc, report) => {
+  const groupedBySubCategory: Record<string, ReportItem[]> = reports.reduce((acc: Record<string, ReportItem[]>, report) => {
     const sub = report.sub_category || null
-    if (!acc[sub]) acc[sub] = []
-    acc[sub].push(report)
+    const key = String(sub)
+    if (!acc[key]) acc[key] = []
+    acc[key].push(report)
 
     return acc
   }, {})
@@ -18,13 +21,13 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
     <Card
       sx={{
         mb: 4,
-        border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+        border: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
         boxShadow: 'none',
         borderRadius: '16px',
         overflow: 'hidden',
         transition: 'box-shadow 0.15s ease',
         '&:hover': {
-          boxShadow: theme => `0 2px 8px ${theme.palette.customColors.SurfaceVariant}`
+          boxShadow: (theme) => `0 2px 8px ${theme.palette.customColors.SurfaceVariant}`
         }
       }}
     >
@@ -37,7 +40,7 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
           px: 5,
           py: 2.5,
           backgroundColor: 'customColors.Surface',
-          borderBottom: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+          borderBottom: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`
         }}
       >
         {categoryIcon && (
@@ -81,8 +84,8 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
               sx={{
                 px: 5,
                 py: 2,
-                borderTop: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                borderBottom: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                borderTop: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                borderBottom: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`
               }}
             >
               <Typography
@@ -111,7 +114,7 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
                   justifyContent: 'space-between',
                   px: 5,
                   py: 3.5,
-                  borderBottom: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                  borderBottom: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
                   transition: 'background-color 0.15s ease',
                   '&:last-child': { borderBottom: 'none' },
                   '&:hover': { backgroundColor: 'customColors.Surface' }
@@ -191,11 +194,9 @@ const DailyReportView = ({
   downloadingRowId,
   onDownload,
   loading
-}) => {
-  const theme = useTheme()
-
-  const groupByCategory = reports => {
-    const grouped = {}
+}: DailyReportViewProps) => {
+  const groupByCategory = (reports: ReportItem[]): Record<string, ReportItem[]> => {
+    const grouped: Record<string, ReportItem[]> = {}
     reports.forEach(report => {
       const cat = report.category || 'Other'
       if (!grouped[cat]) grouped[cat] = []
@@ -206,7 +207,7 @@ const DailyReportView = ({
   }
 
   const currentReports = activeTab === 0 ? pastReports : upcomingReports
-  const groupedReports = groupByCategory(currentReports)
+  const groupedReports: Record<string, ReportItem[]> = groupByCategory(currentReports)
 
   return (
     <Card sx={{ p: 5 }}>

@@ -256,8 +256,8 @@ const MonitorCategory: NextPage = () => {
   const [total, setTotal] = useState<number>(0)
 
   const zoo_id: string | undefined = (authData as any)?.userData?.user?.zoos[0]?.zoo_id
-  const complaints_permission: boolean | undefined =
-    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
+  const complaints_permission: boolean | undefined = (authData as any)?.userData?.permission?.user_settings
+    ?.medical_add_complaints
 
   // Filters state
   const [filters, setFilters] = useState<Filters>({
@@ -294,7 +294,7 @@ const MonitorCategory: NextPage = () => {
         cat_id: router.query.id,
         ref_type: 'animal'
       }
-      const res: ApiResponse = await getAssessmentCategoriesList(params)
+      const res = (await getAssessmentCategoriesList(params)) as unknown as ApiResponse
 
       if (res?.success) {
         setAllRows(res?.data || [])
@@ -487,44 +487,44 @@ const MonitorCategory: NextPage = () => {
 
   return (
     <>
-    {complaints_permission ? (
-    <PageCardLayout title='Monitoring'>
-      <Grid container>
-        <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-            <MUISearch
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
-              }}
-              placeholder='Search...'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              onClear={handleSearchClear}
-              value={searchValue}
-            />
-          </Grid>
-        </Grid>
+      {complaints_permission ? (
+        <PageCardLayout title='Monitoring'>
+          <Grid container>
+            <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  sx={{
+                    width: {
+                      xs: '100%',
+                      sm: '250px'
+                    }
+                  }}
+                  placeholder='Search...'
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                  onClear={handleSearchClear}
+                  value={searchValue}
+                />
+              </Grid>
+            </Grid>
 
-        <Grid size={{ xs: 12 }}>
-          <CommonTable
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            loading={loading}
-            searchValue={filters.q}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-            handleSortModel={handleSortModel}
-            setPaginationModel={handlePaginationModelChange}
-            onRowClick={handleRowClick}
-          />
-        </Grid>
-      </Grid>
-    </PageCardLayout>
-    ) : (
-      <Error404 />
-    )}
+            <Grid size={{ xs: 12 }}>
+              <CommonTable
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                loading={loading}
+                searchValue={filters.q}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={handlePaginationModelChange}
+                onRowClick={handleRowClick}
+              />
+            </Grid>
+          </Grid>
+        </PageCardLayout>
+      ) : (
+        <Error404 />
+      )}
     </>
   )
 }

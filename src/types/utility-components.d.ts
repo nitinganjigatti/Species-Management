@@ -569,6 +569,171 @@ declare module 'src/components/drawers/FilterContent' {
   export default FilterContent
 }
 
+declare module 'src/views/table/sticky-table' {
+  import { FC, ReactNode } from 'react'
+
+  interface StickyTableColumn {
+    field?: string | string[]
+    id?: string
+    headerName?: ReactNode
+    width?: number
+    minWidth?: number
+    sortable?: boolean
+    subHeader?: StickyTableColumn[]
+    [key: string]: unknown
+  }
+
+  interface StickyTablePaginationModel {
+    page: number
+    pageSize: number
+  }
+
+  interface StickyTableProps {
+    rows?: Record<string, unknown>[]
+    columns?: StickyTableColumn[]
+    rowCount?: number
+    rowHeight?: number
+    headerHeight?: number
+    subHeaderHeight?: number
+    pagination?: boolean
+    pageSizeOptions?: number[]
+    rowsInView?: number
+    rowsInViewOptions?: number[]
+    paginationModel?: StickyTablePaginationModel
+    onPaginationModelChange?: (model: StickyTablePaginationModel) => void
+    onSortChange?: (sort: { field: string; direction: 'asc' | 'desc' }) => void
+    loading?: boolean
+    onCellClick?: (params: { cell: unknown; row: Record<string, unknown> }) => void
+    onRowClick?: (row: Record<string, unknown>) => void
+    onRowSelect?: (params: { currentRow?: Record<string, unknown>; rows: Record<string, unknown>[] }) => void
+    rowSelection?: boolean
+    downloadExcel?: boolean
+    headerName?: string
+    headerStyle?: Record<string, string | number>
+    searchMode?: 'local' | 'server'
+    onSearch?: (query: string) => void
+    modifyColumnPinning?: boolean
+    disableColumnSorting?: boolean
+  }
+
+  const StickyTable: FC<StickyTableProps>
+  export default StickyTable
+}
+
+declare module 'src/views/table/ReactTable' {
+  import { FC, CSSProperties, ReactNode } from 'react'
+  import { SxProps } from '@mui/material'
+
+  interface ReactTableColumn {
+    field?: string | string[]
+    id?: string
+    headerName?: ReactNode
+    width?: number
+    minWidth?: number
+    maxWidth?: number
+    sortable?: boolean
+    textAlign?: string
+    headerAlign?: string
+    columns?: ReactTableColumn[]
+    [key: string]: unknown
+  }
+
+  interface ReactTablePaginationModel {
+    page: number
+    pageSize: number
+  }
+
+  interface ReactTableProps {
+    rows?: Record<string, unknown>[]
+    columns?: ReactTableColumn[]
+    rowCount?: number
+    pagination?: boolean
+    pageSizeOptions?: number[]
+    paginationModel?: ReactTablePaginationModel
+    onPaginationModelChange?: (model: ReactTablePaginationModel) => void
+    rowHeight?: number
+    headerHeight?: number
+    subHeaderHeight?: number
+    rowsInView?: number
+    rowsInViewOptions?: number[]
+    headerStyle?: SxProps
+    rowStyle?: SxProps
+    cellStyle?: SxProps
+    loading?: boolean
+    onRowClick?: (row: Record<string, unknown>) => void
+    onCellClick?: (value: unknown, row: Record<string, unknown>) => void
+    onSortChange?: (sort: { field: string; direction: 'asc' | 'desc' }) => void
+    rowSelection?: boolean
+    onRowSelect?: (params: { rows: Record<string, unknown>[] }) => void
+    rowIdKey?: string
+    selectionPinned?: 'left' | 'right' | false
+    headerName?: string
+    searchMode?: 'local' | 'server'
+    onSearch?: (query: string) => void
+    modifyColumnPinning?: boolean
+    serverSide?: boolean
+    hideHeaderWhenEmpty?: boolean
+    sx?: SxProps
+    style?: CSSProperties
+    tableContainerSx?: SxProps
+    tableContainerStyle?: CSSProperties
+  }
+
+  const ReactTable: FC<ReactTableProps>
+  export default ReactTable
+}
+
+declare module 'src/views/pages/pharmacy/report/FilterSheet' {
+  import { FC } from 'react'
+
+  interface FilterSheetProps {
+    open: boolean
+    setOpenFilterDrawer: (open: boolean) => void
+    categories: string[]
+    options: Record<string, unknown[]>
+    animalId?: string | number
+    selectedOptions: Record<string, string[] | string>
+    setSelectedOptions: (
+      options:
+        | Record<string, string[] | string>
+        | ((prev: Record<string, string[] | string>) => Record<string, string[] | string>)
+    ) => void
+    selectedSites?: string[]
+    handleSelection?: (selectedIDs: string[], category: string) => void
+    activeTab?: string
+    isLoader?: boolean
+    getTotalSelectedFilters?: (selectedOptions: Record<string, string[] | string>) => number
+    [key: string]: unknown
+  }
+
+  const FilterSheet: FC<FilterSheetProps>
+  export default FilterSheet
+}
+
+declare module 'src/views/pages/pharmacy/report/siteSheet' {
+  import { FC } from 'react'
+
+  interface SiteSheetItem {
+    site_id: string | number
+    site_name: string
+    site_image?: string
+  }
+
+  interface SiteSheetProps {
+    openSiteDrawer: boolean
+    setOpenSiteDrawer: (open: boolean) => void
+    sites: SiteSheetItem[]
+    setSites: (sites: SiteSheetItem[] | ((prev: SiteSheetItem[]) => SiteSheetItem[])) => void
+    selectedSites: string[]
+    setSelectedSites: (sites: string[] | ((prev: string[]) => string[])) => void
+    apiFilterParams?: Record<string, string | number | string[] | undefined>
+    handleSelectedSite?: (selectedSiteIDs: string[]) => void
+  }
+
+  const SiteSheet: FC<SiteSheetProps>
+  export default SiteSheet
+}
+
 declare module 'geolocation' {
   interface GeolocationModule {
     getCurrentPosition: (
