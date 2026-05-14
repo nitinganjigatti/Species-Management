@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Box, Drawer, Typography, IconButton, Avatar, Chip, CircularProgress } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
+import { useTheme, Theme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { getAnimalKeepers } from 'src/lib/api/caretaker'
 import AnimalCard from 'src/views/utility/AnimalCard'
+import { AnimalCaretakersDrawerProps, Caretaker } from 'src/types/report'
 
-const CaretakerCard = ({ caretaker, theme }) => {
+interface CaretakerCardProps {
+  caretaker: Caretaker
+  theme: Theme
+}
+
+const CaretakerCard = ({ caretaker, theme }: CaretakerCardProps) => {
   const isPrimary = caretaker.is_primary === '1' || caretaker.is_primary === 1 || caretaker.is_primary === true
   const name = caretaker.user_name || caretaker.keeper_name || caretaker.name || caretaker.full_name || '-'
   const email = caretaker.user_email || caretaker.email || ''
@@ -78,10 +84,10 @@ const CaretakerCard = ({ caretaker, theme }) => {
   )
 }
 
-const AnimalCaretakersDrawer = ({ open, onClose, animal }) => {
+const AnimalCaretakersDrawer = ({ open, onClose, animal }: AnimalCaretakersDrawerProps) => {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
-  const [caretakers, setCaretakers] = useState([])
+  const [caretakers, setCaretakers] = useState<Caretaker[]>([])
 
   useEffect(() => {
     if (open && animal?.animal_id) {
@@ -94,7 +100,8 @@ const AnimalCaretakersDrawer = ({ open, onClose, animal }) => {
     try {
       const response = await getAnimalKeepers(animal.animal_id)
       if (response?.success) {
-        setCaretakers(response.data?.result || response.data || [])
+        const data = response.data
+        setCaretakers(Array.isArray(data) ? data : (data as { result: Caretaker[] }).result || [])
       }
     } catch (error) {
       console.error('Error fetching animal caretakers:', error)

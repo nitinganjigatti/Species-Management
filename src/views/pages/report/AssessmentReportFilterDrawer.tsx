@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Card,
@@ -19,15 +19,19 @@ import Icon from 'src/@core/components/icon'
 import SelectSectionList from 'src/components/diet/SelectSectionList'
 import SelectEnclosureList from 'src/components/diet/SelectEnclosureList'
 import SelectSites from 'src/components/report/SelectSite'
+import { AssessmentReportFilterDrawerProps, FilterItems } from 'src/types/report'
 
-const genderArray = [
+const genderArray: { name: string; key: string }[] = [
   { name: 'Male', key: 'male' },
   { name: 'Female', key: 'female' },
   { name: 'Undetermined', key: 'undetermined' },
   { name: 'Indeterminate', key: 'indeterminate' }
 ]
 
-const accessionDateOptions = [
+const accessionDateOptions: {
+  label: string
+  getRange: () => { start: ReturnType<typeof dayjs> | string; end: ReturnType<typeof dayjs> | string }
+}[] = [
   { label: 'Today', getRange: () => ({ start: dayjs(), end: dayjs() }) },
   {
     label: 'Yesterday',
@@ -69,16 +73,15 @@ const AssessmentReportFilterDrawer = ({
   setSectionsData,
   enclosuresData,
   setEnclosuresData
-}) => {
+}: AssessmentReportFilterDrawerProps) => {
   const theme = useTheme()
 
-  const [collapsed, setCollapsed] = useState(true)
+  const [collapsed, setCollapsed] = useState<boolean>(true)
 
   const [openSectionListDrawer, setOpenSectionListDrawer] = useState(false)
   const [openEnclosureListDrawer, setOpenEnclosureListDrawer] = useState(false)
 
   const handleApplyFilter = () => {
-    // console.log('tempSelectedItems', tempSelectedItems)
     setSelectedItems({ ...tempSelectedItems })
     calculateFilterCount()
     setOpenFilterDrawer(false)
@@ -97,30 +100,15 @@ const AssessmentReportFilterDrawer = ({
 
     setFilterCount(count)
   }
-  // const calculateFilterCount = () => {
-  //   const hasLocationFilter = ['Site', 'Section', 'Enclosure'].some(
-  //     key => Array.isArray(tempSelectedItems[key]) && tempSelectedItems[key].length > 0
-  //   )
 
-  //   const hasAccessionFilter =
-  //     (typeof tempSelectedItems.accession_start === 'string' && tempSelectedItems.accession_start.trim() !== '') ||
-  //     (typeof tempSelectedItems.accession_end === 'string' && tempSelectedItems.accession_end.trim() !== '')
-
-  //   const hasGenderFilter = Array.isArray(tempSelectedItems.gender) && tempSelectedItems.gender.length > 0
-
-  //   const count = [hasLocationFilter, hasAccessionFilter, hasGenderFilter].filter(Boolean).length
-
-  //   setFilterCount(count)
-  // }
-
-  const handleRemove = siteId => {
+  const handleRemove = (siteId: string | number) => {
     setTempSelectedItems(prev => ({
       ...prev,
       Site: prev.Site.filter(id => id !== siteId)
     }))
   }
 
-  const handleRemoveSection = sectionId => {
+  const handleRemoveSection = (sectionId: string | number) => {
     setTempSelectedItems(prev => ({
       ...prev,
       Section: prev.Section.filter(id => id !== sectionId)
@@ -134,7 +122,7 @@ const AssessmentReportFilterDrawer = ({
     }
   }
 
-  const handleRemoveEnclosure = enclosureId => {
+  const handleRemoveEnclosure = (enclosureId: string | number) => {
     setTempSelectedItems(prev => ({
       ...prev,
       Enclosure: prev.Enclosure.filter(id => id !== enclosureId)
@@ -148,7 +136,7 @@ const AssessmentReportFilterDrawer = ({
     }
   }
 
-  const handleGenderCheckboxChange = (key, name) => {
+  const handleGenderCheckboxChange = (key: string, _name: string) => {
     if (activeTab === 'Gender') {
       setTempSelectedItems(prev => {
         const alreadySelected = prev.gender.includes(key)
@@ -249,7 +237,7 @@ const AssessmentReportFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
+          <Grid size={{ md: 4, sm: 4, xs: 4 }}>
             {tabsforfilter.map(menu => {
               let count = 0
 
@@ -268,8 +256,8 @@ const AssessmentReportFilterDrawer = ({
                   count = 1
                 }
               }
-              
-return (
+
+              return (
                 <Box
                   key={menu}
                   sx={{
@@ -316,7 +304,7 @@ return (
             })}
           </Grid>
 
-          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
+          <Grid size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: theme.palette.primary.contrastText,
@@ -370,7 +358,6 @@ return (
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                           onClick={e => {
-                            // e.stopPropagation()
                             setCollapsed(false)
                           }}
                           disabled={tempSelectedItems?.Section?.length > 0}
@@ -604,15 +591,6 @@ return (
                       <Box
                         key={option.label}
                         sx={{ display: 'flex', alignItems: 'center', mb: 3, cursor: 'pointer' }}
-
-                        // onClick={() => {
-                        //   const { start, end } = option.getRange()
-                        //   setTempSelectedItems(prev => ({
-                        //     ...prev,
-                        //     accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
-                        //     accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
-                        //   }))
-                        // }}
                         onClick={() => {
                           const { start, end } = option.getRange()
 
@@ -633,15 +611,6 @@ return (
                       >
                         <Checkbox
                           checked={isSelected}
-
-                          // onChange={() => {
-                          //   const { start, end } = option.getRange()
-                          //   setTempSelectedItems(prev => ({
-                          //     ...prev,
-                          //     accession_start: start ? dayjs(start).format('YYYY-MM-DD') : '',
-                          //     accession_end: end ? dayjs(end).format('YYYY-MM-DD') : ''
-                          //   }))
-                          // }}
                           onChange={() => {
                             const { start, end } = option.getRange()
 
@@ -666,19 +635,6 @@ return (
                         />
                         <Box>
                           <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>{option.label}</Typography>
-                          {/* {option.label === 'All Time Data' ? (
-                            <Typography sx={{ fontSize: '13px', color: '#77838f' }}>
-                              Upto - {dayjs().format('DD MMM YYYY')}
-                            </Typography>
-                          ) : (
-                            <Typography sx={{ fontSize: '13px', color: '#77838f' }}>
-                              {option.getRange().start && option.getRange().end
-                                ? `${dayjs(option.getRange().start).format('DD MMM YYYY')} - ${dayjs(
-                                    option.getRange().end
-                                  ).format('DD MMM YYYY')}`
-                                : 'All time'}
-                            </Typography>
-                          )} */}
                         </Box>
                       </Box>
                     )
@@ -755,9 +711,9 @@ return (
 
       <SelectSites
         openSiteListDrawer={openSiteListDrawer}
-        setSiteListDrawer={setSiteListDrawer}
+        setSiteListDrawer={(open) => setSiteListDrawer(open)}
         siteData={siteData}
-        setSearchTerm={setSearchTerm}
+        setSearchTerm={(term) => setSearchTerm(term)}
         searchTerm={searchTerm}
         tempSelectedItems={tempSelectedItems}
         setTempSelectedItems={setTempSelectedItems}
@@ -766,7 +722,7 @@ return (
         open={openSectionListDrawer}
         onClose={() => setOpenSectionListDrawer(false)}
         siteId={tempSelectedItems?.Site?.[0]} // Pass the single selected site
-        onSelectSections={selectedSections => {
+        onSelectSections={(selectedSections: (string | number)[]) => {
           setTempSelectedItems(prev => ({
             ...prev,
             Section: selectedSections
@@ -775,8 +731,6 @@ return (
         }}
         setSectionsData={setSectionsData}
         sectionsData={sectionsData}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
         setSelectedSections={setSelectedSections}
         selectedSections={selectedSections}
         tempSelectedItems={tempSelectedItems}
@@ -787,7 +741,7 @@ return (
         open={openEnclosureListDrawer}
         onClose={() => setOpenEnclosureListDrawer(false)}
         sectionId={tempSelectedItems?.Section?.[0]} // Pass the single selected section
-        onSelectEnclosures={selectedEnclosures => {
+        onSelectEnclosures={(selectedEnclosures: (string | number)[]) => {
           setTempSelectedItems(prev => ({
             ...prev,
             Enclosure: selectedEnclosures
@@ -796,8 +750,6 @@ return (
         }}
         enclosuresData={enclosuresData}
         setEnclosuresData={setEnclosuresData}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
         setSelectedEnclosures={setSelectedEnclosures}
         selectedEnclosures={selectedEnclosures}
         tempSelectedItems={tempSelectedItems}
@@ -808,134 +760,3 @@ return (
 }
 
 export default AssessmentReportFilterDrawer
-
-// useEffect(() => {
-//   if (authData?.userData?.user?.zoos[0]?.sites.length > 0) {
-//     setSiteList(authData?.userData?.user?.zoos[0].sites)
-//   }
-// }, [])
-// {
-/* {activeTab === 'Taxonomy' && (
-                <>
-                  <>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                        borderRadius: '4px',
-                        padding: '0 8px',
-                        height: '40px',
-                        mb: 4
-                      }}
-                    >
-                      <Icon icon='mi:search' />
-                      <TextField
-                        variant='outlined'
-                        placeholder='Search'
-                        value={activeTab === 'Taxonomy' ? taxonomySearchQuery : searchQuery}
-                        onChange={handleSearch}
-                        InputProps={{
-                          disableUnderline: false,
-                          endAdornment: (activeTab === 'Taxonomy' ? taxonomySearchQuery : searchQuery) && (
-                            <IconButton size='small' onClick={handlesearchClose} sx={{ left: '35px' }}>
-                              <Icon icon='mdi:close' fontSize={20} />
-                            </IconButton>
-                          )
-                        }}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            border: 'none',
-                            padding: '0',
-                            '& fieldset': {
-                              border: 'none'
-                            }
-                          }
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', width: '100%', paddingBottom: '8px' }}>
-                        {activeTab === 'Taxonomy' ? (
-                          <Checkbox
-                            checked={selectedTaxonomyIds.length === taxonomyList.length && taxonomyList.length > 0}
-                            indeterminate={
-                              selectedTaxonomyIds.length > 0 && selectedTaxonomyIds.length < taxonomyList.length
-                            }
-                            onChange={handleSelectAll}
-                          />
-                        ) : (
-                          <Checkbox
-                            checked={tempSelectedItems[activeTab].length === items[activeTab].length}
-                            onChange={handleSelectAll}
-                          />
-                        )}
-                        <span>Select All</span>
-                      </div>
-                    </Box>
-                    <Divider sx={{ mb: 0 }} />
-                  </>
-                  <Box
-                    sx={{
-                      mt: 2,
-                      width: '100%',
-                      '& .MuiDrawer-paper': { width: ['100%', '562px'] },
-                      overflowY: 'auto',
-                      height: '100%'
-                    }}
-                    onScroll={handleScrollforTaxonomy}
-                  >
-                    <Box sx={{ mb: 3, width: '100%' }}>
-                      <Box sx={{ maxHeight: 600, mt: 1, width: '100%' }}>
-                        {filteredTaxonomyList?.length > 0 ? (
-                          filteredTaxonomyList.map(item => {
-                            const itemName = item.complete_name
-                            const itemId = item.tsn_id
-                            return (
-                              <div
-                                key={itemId}
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  width: '100%',
-                                  paddingBottom: '8px'
-                                }}
-                              >
-                                <Checkbox
-                                  checked={selectedTaxonomyIds.includes(itemId)}
-                                  onChange={() => handleTaxonomyCheckboxChange(itemId)}
-                                />
-                                <span>{itemName}</span>
-                              </div>
-                            )
-                          })
-                        ) : (
-                          <Typography sx={{ textAlign: 'center', mt: 10 }}>No Taxonomy found</Typography>
-                        )}
-                      </Box>
-                      {taxonomyLoading && (
-                        <Box sx={{ textAlign: 'center' }}>
-                          {' '}
-                          <CircularProgress />
-                        </Box>
-                      )}
-                    </Box>
-                  </Box>
-                </>
-              )} */
-// }
-
-// const handleSearch = event => {
-//   const value = event.target.value
-
-//   setSearchQuery(value)
-//   debouncedSearch(value)
-// }
-
-// const handlesearchClose = () => {
-//   setSearchQuery('')
-//   // setPageNo(1)
-//   // setspeciesData([])
-//   refreshSpeciesData('')
-//   // }
-// }

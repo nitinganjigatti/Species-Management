@@ -2,14 +2,18 @@ import { useState, useMemo, useCallback } from 'react'
 import { Box, Typography, Avatar, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
+import CommonTableComponent from 'src/views/table/data-grid/CommonTable'
 import AnimalCaretakersDrawer from './AnimalCaretakersDrawer'
+import { AnimalWiseListProps, AnimalWise, TableColumn } from 'src/types/report'
+import type { ComponentType } from 'react'
+
+const CommonTable = CommonTableComponent as ComponentType<Record<string, unknown>>
 
 const FALLBACK_IMAGE = '/images/branding/Antz_logomark_h_color.svg'
 
-const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
+const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: AnimalWiseListProps) => {
   const theme = useTheme()
-  const [selectedAnimal, setSelectedAnimal] = useState(null)
+  const [selectedAnimal, setSelectedAnimal] = useState<AnimalWise | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const paginationModel = useMemo(
@@ -20,7 +24,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
     [pagination?.page, pagination?.pageSize]
   )
 
-  const handleAnimalClick = useCallback(animal => {
+  const handleAnimalClick = useCallback((animal: AnimalWise) => {
     setSelectedAnimal(animal)
     setDrawerOpen(true)
   }, [])
@@ -31,13 +35,13 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
   }, [])
 
   const handlePaginationChange = useCallback(
-    model => {
+    (model: { page: number; pageSize: number }) => {
       onPaginationChange?.(model)
     },
     [onPaginationChange]
   )
 
-  const columns = useMemo(
+  const columns: TableColumn[] = useMemo(
     () => [
       {
         field: 'animal',
@@ -45,7 +49,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
         flex: 1.5,
         minWidth: 350,
         renderCell: ({ row }) => {
-          const sex = (row?.sex || row?.gender)?.toLowerCase()
+          const sex = ((row?.sex || row?.gender) as string | undefined)?.toLowerCase()
           const isGroup = row?.type === 'group'
 
           let genderLabel = '-'
@@ -54,24 +58,24 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
 
           if (isGroup) {
             genderLabel = 'G'
-            genderBg = theme.palette.customColors.addPrimary
+            genderBg = theme.palette.customColors.addPrimary || ''
             genderColor = theme.palette.primary.contrastText
           } else if (sex === 'male') {
             genderLabel = 'M'
-            genderBg = theme.palette.customColors.SecondaryContainer
-            genderColor = theme.palette.customColors.OnSecondaryContainer
+            genderBg = theme.palette.customColors.SecondaryContainer || ''
+            genderColor = theme.palette.customColors.OnSecondaryContainer || ''
           } else if (sex === 'female') {
             genderLabel = 'F'
-            genderBg = theme.palette.customColors.AntzTertiary
+            genderBg = theme.palette.customColors.AntzTertiary || ''
             genderColor = '#4A0415'
           } else if (sex === 'undetermined') {
             genderLabel = 'UD'
-            genderBg = theme.palette.customColors.displaybgSecondary
-            genderColor = theme.palette.customColors.Error
+            genderBg = theme.palette.customColors.displaybgSecondary || ''
+            genderColor = theme.palette.customColors.Error || ''
           } else if (sex === 'indeterminate') {
             genderLabel = 'ID'
-            genderBg = theme.palette.customColors.displaybgSecondary
-            genderColor = theme.palette.customColors.OnSurfaceVariant
+            genderBg = theme.palette.customColors.displaybgSecondary || ''
+            genderColor = theme.palette.customColors.OnSurfaceVariant || ''
           }
 
           const identifier =
@@ -85,18 +89,18 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
                 <Avatar
-                  src={row.default_icon || FALLBACK_IMAGE}
+                  src={(row.default_icon as string | undefined) || FALLBACK_IMAGE}
                   sx={{
                     width: 44,
                     height: 44,
                     '& img': {
-                      objectFit: row.default_icon?.includes('.svg') ? 'contain' : 'cover',
+                      objectFit: (row.default_icon as string | undefined)?.includes('.svg') ? 'contain' : 'cover',
                       padding: !row.default_icon ? '4px' : 0
                     }
                   }}
                   imgProps={{
-                    onError: e => {
-                      e.target.src = FALLBACK_IMAGE
+                    onError: (e: React.SyntheticEvent<HTMLImageElement>) => {
+                      e.currentTarget.src = FALLBACK_IMAGE
                     }
                   }}
                 />
@@ -122,7 +126,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
                     color: theme.palette.customColors.OnSurfaceVariant
                   }}
                 >
-                  {identifier}
+                  {identifier as string}
                 </Typography>
                 {(row.common_name || row.default_common_name) && (
                   <Typography
@@ -132,7 +136,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {row.common_name || row.default_common_name}
+                    {(row.common_name || row.default_common_name) as string}
                   </Typography>
                 )}
                 {(row.scientific_name || row.complete_name) && (
@@ -144,7 +148,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
                       color: theme.palette.text.secondary
                     }}
                   >
-                    {row.scientific_name || row.complete_name}
+                    {(row.scientific_name || row.complete_name) as string}
                   </Typography>
                 )}
               </Box>
@@ -161,17 +165,17 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             {row.user_enclosure_name && (
               <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                Encl: {row.user_enclosure_name}
+                Encl: {row.user_enclosure_name as string}
               </Typography>
             )}
             {row.section_name && (
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-                Sec: {row.section_name}
+                Sec: {row.section_name as string}
               </Typography>
             )}
             {row.site_name && (
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-                Site: {row.site_name}
+                Site: {row.site_name as string}
               </Typography>
             )}
           </Box>
@@ -231,7 +235,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
       (data || []).map(animal => ({
         ...animal,
         id: animal.animal_id || animal.id
-      })),
+      })) as (AnimalWise & { id: number | string })[],
     [data]
   )
 
@@ -255,7 +259,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }) => {
         setPaginationModel={handlePaginationChange}
         pageSizeOptions={[10, 20, 50]}
         rowHeight={90}
-        onRowClick={params => handleAnimalClick(params.row)}
+        onRowClick={(params: { row: AnimalWise }) => handleAnimalClick(params.row)}
       />
 
       {selectedAnimal && <AnimalCaretakersDrawer open={drawerOpen} onClose={handleCloseDrawer} animal={selectedAnimal} />}

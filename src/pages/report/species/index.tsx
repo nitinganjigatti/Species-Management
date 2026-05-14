@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+import { MouseEvent } from 'react'
 
 import {
   Card,
@@ -14,24 +15,43 @@ import {
 } from '@mui/material'
 import { Popover } from '@mui/material'
 import { TabContext } from '@mui/lab'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 
 import { AuthContext } from 'src/context/AuthContext'
 import { useAnimalContext } from 'src/context/AnimalContext'
 
 import toast from 'react-hot-toast'
 import Error404 from 'src/pages/404'
-import StickyTable from 'src/views/table/sticky-table'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 
 import { getReportFilterList } from 'src/lib/api/report'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import ReactTable from 'src/views/table/ReactTable'
+import { Zoo, UserSettings, HeaderItem, PopoverData, FilterParams } from 'src/types/report'
+
+interface AuthContextType {
+  userData: {
+    user: { zoos: Zoo[] }
+    roles: { settings: { enable_reports_module: boolean } }
+    permission: { user_settings: UserSettings }
+  } | null
+}
+
+interface AnimalContextType {
+  selectedAnimal: Record<string, string | undefined> | null
+  setSelectedAnimal: React.Dispatch<React.SetStateAction<Record<string, string | undefined> | null>>
+  apiFilterParams: FilterParams
+  setApiFilterParams: React.Dispatch<React.SetStateAction<FilterParams>>
+  selectedSites: string[]
+  setSelectedSites: React.Dispatch<React.SetStateAction<string[]>>
+  selectedOptions: Record<string, string[] | string>
+  setSelectedOptions: React.Dispatch<React.SetStateAction<Record<string, string[] | string>>>
+}
 
 const SpeciesReport = () => {
   const router = useRouter()
   const theme = useTheme()
-  const authData = useContext(AuthContext)
+  const authData = useContext(AuthContext) as AuthContextType
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
 
@@ -44,25 +64,24 @@ const SpeciesReport = () => {
     setSelectedSites,
     selectedOptions,
     setSelectedOptions
-  } = useAnimalContext()
+  } = useAnimalContext() as AnimalContextType
   const [status, setStatus] = useState('statistics')
 
-  const [dataList, setDataList] = useState([])
-  const [anchorEl, setAnchorEl] = useState(null)
+  const [dataList, setDataList] = useState<Record<string, string | number | null | undefined>[]>([])
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
 
-  // const [speciesList, setSpeciesList] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
   const [sites, setSites] = useState(
-    authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
+    authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || []
   )
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
   const [isDownloading, setIsDownloading] = useState(false)
 
-  const [popoverData, setPopoverData] = useState({
+  const [popoverData, setPopoverData] = useState<PopoverData>({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: true },
       { label: 'Order', key: 'include_order', checked: true },
@@ -78,7 +97,7 @@ const SpeciesReport = () => {
     ]
   })
 
-  const initialFilterParams = {
+  const initialFilterParams: FilterParams = {
     include_housing: 0,
     include_enclosure: 0,
     include_section: 0,
@@ -91,7 +110,7 @@ const SpeciesReport = () => {
     include_site: 0
   }
 
-  const handleClick = event => {
+  const handleClick = (event: MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
   }
 
@@ -105,18 +124,6 @@ const SpeciesReport = () => {
   const getStatisticsDataToExport = async () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
-
-  // useEffect(() => {
-  //   const fetchSpeciesList = async () => {
-  //     const response = await getSpeciesListing()
-  //     if (response.success) {
-  //       setSpeciesList(response.data.result)
-  //     } else {
-  //       console.error('Error something went wrong')
-  //     }
-  //   }
-  //   fetchSpeciesList()
-  // }, [])
 
   const title = (
     <>
@@ -133,14 +140,14 @@ const SpeciesReport = () => {
     </>
   )
 
-  const fetchAndSetDataList = async (params, options = {}) => {
+  const fetchAndSetDataList = async (params: FilterParams, options: { setHeaders?: boolean; setTotalCount?: boolean; responseType?: string } = {}) => {
     const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
     try {
       setIsLoading(true)
       const response = await getReportFilterList(params)
       const parsedParams = apiFilterParams || {}
       if (selectedSites.includes('All Sites')) {
-        let updatedParams = { ...parsedParams }
+        const updatedParams = { ...parsedParams }
         delete updatedParams.site_ids
 
         setApiFilterParams(updatedParams)
@@ -148,7 +155,7 @@ const SpeciesReport = () => {
       }
 
       if (responseType === 'csv' && response && response.data) {
-        const csvUrl = response.data
+        const csvUrl = response.data as unknown as string
         const link = document.createElement('a')
         link.href = csvUrl
         document.body.appendChild(link)
@@ -156,7 +163,7 @@ const SpeciesReport = () => {
         document.body.removeChild(link)
         URL.revokeObjectURL(csvUrl)
       } else if (response.success) {
-        const { header, datalist, total_count } = response.data || {}
+        const { header, datalist, total_count } = (response.data as { header: HeaderItem[]; datalist: Record<string, string | number | null | undefined>[]; total_count: number }) || {}
 
         setTotal(total_count)
         setIsLoading(false)
@@ -173,15 +180,15 @@ const SpeciesReport = () => {
     }
   }
 
-  const fetchDownList = async (params, options = {}) => {
+  const fetchDownList = async (params: FilterParams, options: { responseType?: string } = {}) => {
     const { responseType = 'json' } = options
     try {
       setIsDownloading(true)
       const response = await getReportFilterList(params)
       if (responseType === 'csv' && response && response.data) {
-        handleCsvResponse(response.data)
+        handleCsvResponse(response.data as unknown as string)
       } else if (response.success) {
-        const { header, animal_list, total_animal } = response.data || {}
+        const { header, animal_list, total_animal } = (response.data as unknown as { header: HeaderItem[]; animal_list: Record<string, string | number | null | undefined>[]; total_animal: number }) || {}
 
         setTotal(total_animal)
         setIsDownloading(false)
@@ -193,7 +200,7 @@ const SpeciesReport = () => {
     }
   }
 
-  const handleCsvResponse = csvUrl => {
+  const handleCsvResponse = (csvUrl: string) => {
     const link = document.createElement('a')
     link.href = csvUrl
     document.body.appendChild(link)
@@ -202,7 +209,7 @@ const SpeciesReport = () => {
     URL.revokeObjectURL(csvUrl)
   }
 
-  const handleOptionChange = (category, itemIndex) => {
+  const handleOptionChange = (category: string, itemIndex: number) => {
     setPopoverData(prevData => {
       const updatedData = {
         ...prevData,
@@ -213,24 +220,23 @@ const SpeciesReport = () => {
     })
   }
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(_currentPage: number, data: Record<string, string | number | null | undefined>[]) {
     return data
   }
 
-  const [headerList, setHeaderList] = useState([])
+  const [headerList, setHeaderList] = useState<HeaderItem[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
   const initialLoad = useRef(true)
 
-  const fetchData = useCallback(async (param, q, paginationModel) => {
-    let params = {
+  const fetchData = useCallback(async (param: FilterParams, q: string, paginationModel: { page: number; pageSize: number }) => {
+    const params: FilterParams = {
       page: paginationModel?.page + 1,
       limit: paginationModel?.pageSize,
       q,
       ...param
     }
 
-    // Reset site filtering ONLY when switching from "Detail" back to "Listing"
     setIsLoading(true)
     await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
     initialLoad.current = false
@@ -252,7 +258,7 @@ const SpeciesReport = () => {
   }, [apiFilterParams, paginationModel])
 
   const columns = headerList.map((header, index) => {
-    if (header.key.includes('default_icon')) {
+    if (Array.isArray(header.key) ? header.key.includes('default_icon') : header.key.includes('default_icon')) {
       return {
         field: 'speciesAndCommonName',
         headerName: header.label,
@@ -262,7 +268,7 @@ const SpeciesReport = () => {
         disableColumnMenu: true,
         width: 320,
         headerStyle: { zIndex: 1099 },
-        renderCell: params => <SpeciesCard species={params.row} />
+        renderCell: (params: { row: Record<string, string | number | null | undefined> }) => <SpeciesCard species={params.row} />
       }
     }
 
@@ -275,9 +281,9 @@ const SpeciesReport = () => {
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
-      renderCell: params => (
+      renderCell: (params: { row: Record<string, string | number | null | undefined> }) => (
         <>
-          {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null ? (
+          {params?.row && params?.row[header.key as string] !== undefined && params?.row[header.key as string] !== null ? (
             <Box
               sx={{
                 width: '100px',
@@ -288,8 +294,8 @@ const SpeciesReport = () => {
                 cursor: 'pointer',
                 '&:hover::after': {
                   content: `"${
-                    params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
-                      ? params?.row[header.key]
+                    params?.row && params?.row[header.key as string] !== undefined && params?.row[header.key as string] !== null
+                      ? params?.row[header.key as string]
                       : ''
                   }"`,
                   position: 'absolute',
@@ -309,10 +315,10 @@ const SpeciesReport = () => {
             >
               <Typography
                 sx={{
-                  color: getCellTextColor(header.label),
-                  backgroundColor: getCellBackgroundColor(header.label),
+                  color: getCellTextColor(header.label as string),
+                  backgroundColor: getCellBackgroundColor(header.label as string),
                   borderRadius: '4px',
-                  padding: getCellBackgroundColor(header.label) !== 'transparent' ? '4px 16px' : '0',
+                  padding: getCellBackgroundColor(header.label as string) !== 'transparent' ? '4px 16px' : '0',
                   fontWeight: 400,
                   textAlign: 'left',
                   overflow: 'hidden',
@@ -320,17 +326,15 @@ const SpeciesReport = () => {
                   textOverflow: 'ellipsis'
                 }}
               >
-                {params?.row && params?.row[header.key] !== undefined && params?.row[header.key] !== null
-                  ? params?.row[header.key]
+                {params?.row && params?.row[header.key as string] !== undefined && params?.row[header.key as string] !== null
+                  ? params?.row[header.key as string]
                   : ''}
               </Typography>
             </Box>
           ) : (
             <Typography
               sx={{
-                color: getCellTextColor(header.label)
-
-                // padding: '4px 16px'
+                color: getCellTextColor(header.label as string)
               }}
             >
               -
@@ -341,7 +345,7 @@ const SpeciesReport = () => {
     }
   })
 
-  const getCellBackgroundColor = label => {
+  const getCellBackgroundColor = (label: string) => {
     switch (label) {
       case 'Male':
         return theme.palette.customColors.SecondaryContainer
@@ -356,7 +360,7 @@ const SpeciesReport = () => {
     }
   }
 
-  const getCellTextColor = label => {
+  const getCellTextColor = (label: string) => {
     switch (label) {
       case 'Male':
       case 'Female':
@@ -370,16 +374,16 @@ const SpeciesReport = () => {
     }
   }
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: number) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const reportRows = dataList?.map((item, index) => ({
     id: index + 1,
     ...item,
     sl_no: getSlNo(index)
-  }))
+  })) as (Record<string, string | number | null | undefined> & { id: number; sl_no: number })[]
 
   const handleConfirm = async () => {
-    let updatedApiParams = { ...apiFilterParams }
+    const updatedApiParams: FilterParams = { ...apiFilterParams }
 
     Object.keys(popoverData).forEach(category => {
       popoverData[category].forEach(option => {
@@ -391,14 +395,14 @@ const SpeciesReport = () => {
     setPaginationModel({ ...paginationModel, page: 0 })
   }
 
-  const handleRowClick = params => {
+  const handleRowClick = (params: Record<string, unknown>) => {
     const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
     const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
 
     setSelectedAnimal({
-      default_icon: params?.default_icon,
-      scientific_name: params?.scientific_name,
-      common_name: params?.common_name
+      default_icon: params?.default_icon as string | undefined,
+      scientific_name: params?.scientific_name as string | undefined,
+      common_name: params?.common_name as string | undefined
     })
 
     if (hasFilterChanged) setApiFilterParams(apiFilterParams)
@@ -412,12 +416,12 @@ const SpeciesReport = () => {
     router.push(`/report/animalList?animalId=${params?.tsn_id}`)
   }
 
-  const handleSelectedSite = async selectedSiteIDs => {
-    let params = {}
+  const handleSelectedSite = async (selectedSiteIDs: string[]) => {
+    let params: FilterParams = {}
 
     if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
       params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+        ...Object.keys(apiFilterParams).reduce<FilterParams>((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
 
           return acc
@@ -428,7 +432,7 @@ const SpeciesReport = () => {
       const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
       params = {
         site_ids: filteredSiteIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+        ...Object.keys(apiFilterParams).reduce<FilterParams>((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
 
           return acc
@@ -437,19 +441,18 @@ const SpeciesReport = () => {
       setSelectedSites(filteredSiteIDs)
     } else if (selectedSiteIDs.length === 0) {
       params = {
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+        ...Object.keys(apiFilterParams).reduce<FilterParams>((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
 
           return acc
         }, {})
       }
 
-      // setSelectedSites(['All Sites'])
       setSelectedSites([])
     } else {
       params = {
         site_ids: selectedSiteIDs.toString(),
-        ...Object.keys(apiFilterParams).reduce((acc, key) => {
+        ...Object.keys(apiFilterParams).reduce<FilterParams>((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
 
           return acc
@@ -475,7 +478,7 @@ const SpeciesReport = () => {
                   fontSize: '20px',
                   fontWeight: '400',
                   fontFamily: 'Inter',
-                  color: theme.palette.primary.OnSurface,
+                  color: theme.palette.primary.main,
                   display: 'flex',
                   alignItems: 'center',
                   cursor: isDownloading ? 'not-allowed' : 'pointer',
@@ -498,7 +501,7 @@ const SpeciesReport = () => {
 
             <TabContext value={status}>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', px: 2, pt: 2 }}>
-                {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                {(authData?.userData?.user?.zoos[0]?.sites?.length ?? 0) > 0 && (
                   <Box
                     sx={{
                       display: 'flex',
@@ -518,7 +521,6 @@ const SpeciesReport = () => {
                           height: '40px',
                           width: '200px',
                           borderRadius: '8px',
-                          borderRadius: '4px',
                           textTransform: 'none',
                           overflow: 'hidden',
                           display: 'flex',
@@ -580,6 +582,7 @@ const SpeciesReport = () => {
                       setSites={setSites}
                       selectedSites={selectedSites}
                       setSelectedSites={setSelectedSites}
+                      apiFilterParams={apiFilterParams}
                       handleSelectedSite={handleSelectedSite}
                     />
 
@@ -700,7 +703,6 @@ const SpeciesReport = () => {
                   loading={isLoading}
                   onRowClick={handleRowClick}
                   serverSide
-                  // rowSelection
                   modifyColumnPinning
                   headerName='Species General Report'
                   searchMode='server'

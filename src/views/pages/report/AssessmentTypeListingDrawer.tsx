@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
+import { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { Drawer, IconButton, Typography, CircularProgress, Box, Chip, Tooltip } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { getAssessmentCategoriesList, getAssessmentTypesList } from 'src/lib/api/report'
+import { AssessmentTypeListingDrawerProps } from 'src/types/report'
 
 function AssessmentTypeListingDrawer({
   selectedCategory,
@@ -12,13 +13,13 @@ function AssessmentTypeListingDrawer({
   setSelectedAssessmentType,
   openassessmentFilter,
   setOpenAssessmentFilter
-}) {
+}: AssessmentTypeListingDrawerProps) {
   const theme = useTheme()
-  const drawerContentRef = useRef(null)
+  const drawerContentRef = useRef<HTMLDivElement>(null)
 
-  const headerRef = useRef(null)
-  const footerRef = useRef(null)
-  const scrollRef = useRef(null)
+  const headerRef = useRef<HTMLDivElement>(null)
+  const footerRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   const [footerH, setFooterH] = useState(0)
   const [headerH, setHeaderH] = useState(0)
@@ -34,18 +35,18 @@ function AssessmentTypeListingDrawer({
 
   useEffect(() => {
     window.addEventListener('resize', measure)
-    
-return () => window.removeEventListener('resize', measure)
+
+    return () => window.removeEventListener('resize', measure)
   }, [])
 
   const [tempSelectedCategory, setTempSelectedCategory] = useState(selectedCategory || 0)
   const [tempSelectedAssessmentType, setTempSelectedAssessmentType] = useState(selectedAssessmentType || null)
 
   const [assessmentcategoryLoading, setAssessmentCategoryLoading] = useState(false)
-  const [assessmentCategoryList, setAssessmentCategoryList] = useState([])
+  const [assessmentCategoryList, setAssessmentCategoryList] = useState<{ assessment_category_id: number; label: string }[]>([])
 
   const [assessmenttypeLoading, setAssessmentTypeLoading] = useState(false)
-  const [assessmentTypeList, setAssessmentTypeList] = useState([])
+  const [assessmentTypeList, setAssessmentTypeList] = useState<{ assessment_type_id: number; assessments_type_label: string; assessment_category_id?: number }[]>([])
   const [assessmentTypeCount, setAssessmentTypeCount] = useState(0)
 
   const fetchAssessmentCategories = async () => {
@@ -53,7 +54,7 @@ return () => window.removeEventListener('resize', measure)
 
     try {
       const res = await getAssessmentCategoriesList({ ref_type: 'animal' })
-      const newList = res?.data || []
+      const newList: { assessment_category_id: number; label: string }[] = res?.data || []
       setAssessmentCategoryList([
         {
           assessment_category_id: 0,
@@ -76,13 +77,10 @@ return () => window.removeEventListener('resize', measure)
         ref_type: 'animal',
         cat_id: tempSelectedCategory,
         q
-
-        // limit: 10,
-        // page_no: pageNum
       })
-      const newAssessmentTypes = res?.data?.result || []
+      const newAssessmentTypes: { assessment_type_id: number; assessments_type_label: string; assessment_category_id?: number }[] = res?.data?.result || []
 
-      setAssessmentTypeCount(res?.data?.total_count)
+      setAssessmentTypeCount(res?.data?.total_count ?? 0)
       setAssessmentTypeList(newAssessmentTypes)
     } catch (err) {
       console.error('Failed to fetch taxonomy list:', err)
@@ -100,7 +98,7 @@ return () => window.removeEventListener('resize', measure)
   }, [tempSelectedCategory])
 
   const handleCloseDrawer = () => {
-    setSelectedAssessmentType(tempSelectedAssessmentType)
+    setSelectedAssessmentType(tempSelectedAssessmentType ?? '')
     setSelectedCategory(tempSelectedCategory)
     setOpenAssessmentFilter(false)
     setTempSelectedAssessmentType(null)
@@ -113,20 +111,11 @@ return () => window.removeEventListener('resize', measure)
       sx={{
         '& .MuiDrawer-paper': {
           width: ['100%', '562px'],
-
-          // 100dvh is better for mobile/tablet chrome/urlbar changes
           height: '100dvh',
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: 'background.default'
         }
-
-        // '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
-        // position: 'relative',
-        // display: 'flex',
-        // flexDirection: 'column',
-        // gap: '24px',
-        // backgroundColor: 'background.default'
       }}
     >
       {/* Header */}
@@ -201,8 +190,6 @@ return () => window.removeEventListener('resize', measure)
             height: '100%',
             display: 'flex',
             justifyContent: 'center'
-
-            // pt: 2
           }}
         >
           <CircularProgress size={24} />
@@ -211,8 +198,6 @@ return () => window.removeEventListener('resize', measure)
         <>
           <Box
             ref={scrollRef}
-
-            // onScroll={handleScroll}
             sx={{
               flex: '1 1 auto',
               minHeight: 0,
@@ -223,16 +208,11 @@ return () => window.removeEventListener('resize', measure)
           >
             <Box sx={{ bgcolor: 'background.default', p: theme => theme.spacing(0, 3.255, 3, 5.255) }}>
               <Box sx={{ mt: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {/* {assessmenttypeLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                <CircularProgress size={24} />
-              </Box>
-            ) : ( */}
                 {assessmentTypeList.length > 0 &&
                   assessmentTypeList.map((item, index) => {
                     const isSelected = tempSelectedAssessmentType?.assessment_type_id === item?.assessment_type_id
-                    
-return (
+
+                    return (
                       <Box
                         key={index}
                         onClick={() => setTempSelectedAssessmentType(item)}

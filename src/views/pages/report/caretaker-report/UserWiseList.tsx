@@ -2,12 +2,16 @@ import { useState, useMemo, useCallback } from 'react'
 import { Box, Typography, Avatar, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
+import CommonTableComponent from 'src/views/table/data-grid/CommonTable'
 import UserAnimalsDrawer from './UserAnimalsDrawer'
+import { UserWiseListProps, Keeper, TableColumn } from 'src/types/report'
+import type { ComponentType } from 'react'
 
-const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
+const CommonTable = CommonTableComponent as ComponentType<Record<string, unknown>>
+
+const UserWiseList = ({ data, pagination, loading, onPaginationChange }: UserWiseListProps) => {
   const theme = useTheme()
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedUser, setSelectedUser] = useState<Keeper | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   const paginationModel = useMemo(
@@ -18,7 +22,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
     [pagination?.page, pagination?.pageSize]
   )
 
-  const handleUserClick = useCallback(user => {
+  const handleUserClick = useCallback((user: Keeper) => {
     setSelectedUser(user)
     setDrawerOpen(true)
   }, [])
@@ -29,13 +33,13 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
   }, [])
 
   const handlePaginationChange = useCallback(
-    model => {
+    (model: { page: number; pageSize: number }) => {
       onPaginationChange?.(model)
     },
     [onPaginationChange]
   )
 
-  const columns = useMemo(
+  const columns: TableColumn[] = useMemo(
     () => [
       {
         field: 'keeper_name',
@@ -45,7 +49,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
         renderCell: ({ row }) => (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <Avatar
-              src={row.profile_pic || row.user_profile_pic}
+              src={(row.profile_pic || row.user_profile_pic) as string | undefined}
               sx={{
                 width: 48,
                 height: 48,
@@ -61,7 +65,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              {row.keeper_name || row.user_name || '-'}
+              {(row.keeper_name || row.user_name || '-') as string}
             </Typography>
           </Box>
         )
@@ -104,7 +108,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
                 color: theme.palette.warning.main
               }}
             >
-              {row.primary_count || 0}
+              {(row.primary_count || 0) as number}
             </Typography>
           </Box>
         )
@@ -128,7 +132,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
       (data || []).map(user => ({
         ...user,
         id: user.user_id || user.id
-      })),
+      })) as (Keeper & { id: number | string })[],
     [data]
   )
 
@@ -152,7 +156,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }) => {
         setPaginationModel={handlePaginationChange}
         pageSizeOptions={[10, 20, 50]}
         rowHeight={70}
-        onRowClick={params => handleUserClick(params.row)}
+        onRowClick={(params: { row: Keeper }) => handleUserClick(params.row)}
       />
 
       {selectedUser && <UserAnimalsDrawer open={drawerOpen} onClose={handleCloseDrawer} user={selectedUser} />}

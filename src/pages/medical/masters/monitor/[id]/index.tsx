@@ -205,7 +205,7 @@ const AddMonitorCategory: NextPage = () => {
         status: 'all'
       }
 
-      const res: ApiResponse = await getAssessmentTypesList(params)
+      const res = await getAssessmentTypesList(params) as unknown as ApiResponse
 
       if (res?.success) {
         setRows(res?.data?.result || [])
@@ -357,7 +357,7 @@ const AddMonitorCategory: NextPage = () => {
 
     try {
       setExportLoading(true)
-      const response: ApiResponse = await getAssessmentTypesList(params)
+      const response = await getAssessmentTypesList(params) as unknown as ApiResponse
       if (response?.success && response?.data) {
         Utility.downloadFileFromURL(response.data)
         toast.success('Export completed successfully')
