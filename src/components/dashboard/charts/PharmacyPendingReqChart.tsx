@@ -1,11 +1,6 @@
-// ** MUI Imports
-import Card from '@mui/material/Card'
 import { useTheme } from '@mui/material/styles'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
-
-// ** Component Import
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import type { PharmacyPendingReqChartProps } from 'src/types/dashboard/components'
 
 const donutColors = {
   series1: '#01B0D7',
@@ -13,8 +8,7 @@ const donutColors = {
   series3: '#FA6140'
 }
 
-const PharmacyPendingReqChart = ({ pendingRequests }) => {
-  // ** Hook
+const PharmacyPendingReqChart: React.FC<PharmacyPendingReqChartProps> = ({ pendingRequests }) => {
   const theme = useTheme()
 
   const labels = pendingRequests?.priority_stats?.map(item => item.label)
@@ -22,43 +16,35 @@ const PharmacyPendingReqChart = ({ pendingRequests }) => {
 
   const options = {
     stroke: { width: 0 },
-    labels: labels,
+    labels,
     colors: [donutColors.series1, donutColors.series2, donutColors.series3],
     dataLabels: {
       enabled: false,
-      formatter: val => `${parseInt(val, 10)}`
+      formatter: (val: number) => `${parseInt(String(val), 10)}`
     },
     legend: {
-      position: 'bottom',
+      position: 'bottom' as const,
       markers: { offsetX: -3 },
       labels: { colors: theme.palette.text.secondary },
-      itemMargin: {
-        vertical: 8,
-        horizontal: 7
-      }
+      itemMargin: { vertical: 8, horizontal: 7 }
     },
     plotOptions: {
       pie: {
         donut: {
           labels: {
             show: true,
-            name: {
-              show: false
-
-              //   fontSize: '0.5rem'
-            },
+            name: { show: false },
             value: {
               fontSize: '1.5rem',
               color: theme.palette.text.secondary,
-              formatter: val => `${parseInt(val, 10)}`
+              formatter: (val: number) => `${parseInt(String(val), 10)}`
             },
             total: {
               show: true,
               fontSize: '1.2rem',
-              formatter: w => {
+              formatter: (w: { globals: { seriesTotals: number[] } }) => {
                 const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0)
-
-                return `${total}` // Dynamically calculated total
+                return `${total}`
               },
               color: theme.palette.text.primary
             }
@@ -70,34 +56,22 @@ const PharmacyPendingReqChart = ({ pendingRequests }) => {
       {
         breakpoint: 992,
         options: {
-          chart: {
-            height: 380
-          },
-          legend: {
-            position: 'bottom'
-          }
+          chart: { height: 380 },
+          legend: { position: 'bottom' }
         }
       },
       {
         breakpoint: 576,
         options: {
-          chart: {
-            height: 320
-          },
+          chart: { height: 320 },
           plotOptions: {
             pie: {
               donut: {
                 labels: {
                   show: true,
-                  name: {
-                    fontSize: '1rem'
-                  },
-                  value: {
-                    fontSize: '1rem'
-                  },
-                  total: {
-                    fontSize: '1rem'
-                  }
+                  name: { fontSize: '1rem' },
+                  value: { fontSize: '1rem' },
+                  total: { fontSize: '1rem' }
                 }
               }
             }
@@ -107,18 +81,7 @@ const PharmacyPendingReqChart = ({ pendingRequests }) => {
     ]
   }
 
-  return (
-    <>
-      {/* <CardHeader
-        title='Expense Ratio'
-        subheader='Spending on various categories'
-        subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
-      /> */}
-      {/* <CardContent> */}
-      <ReactApexcharts type='donut' height={260} options={options} series={values} />
-      {/* </CardContent> */}
-    </>
-  )
+  return <ReactApexcharts type='donut' height={260} options={options} series={values} />
 }
 
 export default PharmacyPendingReqChart

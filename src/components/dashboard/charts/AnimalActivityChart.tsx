@@ -1,22 +1,13 @@
-// ** i18n
 import { useTranslation } from 'react-i18next'
-
-// ** MUI Imports
 import Box from '@mui/material/Box'
 import { useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
-
-// ** Custom Components Imports
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
-
-// ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
+import type { AnimalActivityChartProps } from 'src/types/dashboard/components'
 
-const AnimalActivityChart = ({ animalActivityData }) => {
-  // ** Hooks
+const AnimalActivityChart: React.FC<AnimalActivityChartProps> = ({ animalActivityData }) => {
   const theme = useTheme()
   const { t } = useTranslation()
 
@@ -24,29 +15,28 @@ const AnimalActivityChart = ({ animalActivityData }) => {
   const labels = animalActivityData.map(item => item.label)
   const opacityLevels = [1, 0.8, 0.6, 0.4, 0.2]
 
+  const primaryOnSurface =
+    (theme.palette.primary as unknown as Record<string, string>).OnSurface ?? theme.palette.primary.main
+
   const options = {
     chart: {
       sparkline: { enabled: true }
     },
     colors: [
-      theme.palette.primary.OnSurface,
-      hexToRGBA(theme.palette.primary.OnSurface, 0.8),
-      hexToRGBA(theme.palette.primary.OnSurface, 0.6),
-      hexToRGBA(theme.palette.primary.OnSurface, 0.4),
-      hexToRGBA(theme.palette.primary.OnSurface, 0.2)
+      primaryOnSurface,
+      hexToRGBA(primaryOnSurface, 0.8),
+      hexToRGBA(primaryOnSurface, 0.6),
+      hexToRGBA(primaryOnSurface, 0.4),
+      hexToRGBA(primaryOnSurface, 0.2)
     ],
     legend: { show: false },
     tooltip: { enabled: false },
     dataLabels: { enabled: false },
     stroke: { width: 3, lineCap: 'round', colors: [theme.palette.background.paper] },
-    labels: labels,
+    labels,
     states: {
-      hover: {
-        filter: { type: 'none' }
-      },
-      active: {
-        filter: { type: 'none' }
-      }
+      hover: { filter: { type: 'none' } },
+      active: { filter: { type: 'none' } }
     },
     plotOptions: {
       pie: {
@@ -66,7 +56,7 @@ const AnimalActivityChart = ({ animalActivityData }) => {
               offsetY: -15,
               fontWeight: 500,
               fontSize: '2.125rem',
-              formatter: value => `${value}`,
+              formatter: (value: string) => `${value}`,
               color: theme.palette.text.primary
             },
             total: {
@@ -74,7 +64,8 @@ const AnimalActivityChart = ({ animalActivityData }) => {
               label: t('dashboard.today'),
               fontSize: '1rem',
               color: theme.palette.text.secondary,
-              formatter: value => `${value.globals.seriesTotals.reduce((total, num) => total + num)}`
+              formatter: (value: { globals: { seriesTotals: number[] } }) =>
+                `${value.globals.seriesTotals.reduce((total, num) => total + num)}`
             }
           }
         }
@@ -101,7 +92,7 @@ const AnimalActivityChart = ({ animalActivityData }) => {
               mx: 3,
               display: 'flex',
               alignItems: 'center',
-              '& svg': { mr: 1.25, color: hexToRGBA(theme.palette.primary.OnSurface, opacityLevels[index]) }
+              '& svg': { mr: 1.25, color: hexToRGBA(primaryOnSurface, opacityLevels[index]) }
             }}
           >
             <Icon icon='mdi:circle' fontSize='0.75rem' />
