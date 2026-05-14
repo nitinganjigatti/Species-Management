@@ -438,7 +438,8 @@
     "completed": "Completed",
     "today": "Today",
     "recent_requests": "recent requests",
-    "total_sick_animals": "Total sick animals"
+    "total_sick_animals": "Total sick animals",
+    "welcome_to_antz": "Welcome to Antz"
   },
   "media_details": {
     "media": "Media",

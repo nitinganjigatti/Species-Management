@@ -1,21 +1,23 @@
-import { useEffect, useState, useCallback, useContext } from 'react'
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import { Box, CircularProgress, Grid } from '@mui/material'
-import { AuthContext } from 'src/context/AuthContext'
 import { useTranslation } from 'react-i18next'
 import welcomeToAntz from 'public/images/intro_antz_all.jpg'
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
-import DashboardStatsPanel from 'src/components/dashboard/DashboardStatsPanel'
-import DashboardCardHeader from 'src/components/dashboard/DashboardCardHeader'
-import KeyInsights from 'src/components/dashboard/KeyInsights'
-import AnimalActivityChart from 'src/components/dashboard/charts/AnimalActivityChart'
-import AnimalTransferProgress from 'src/components/dashboard/charts/AnimalTransferProgress'
-import EggChart from 'src/components/dashboard/charts/EggChart'
-import DashboardPharmacyDetails from 'src/components/dashboard/DashboardPharmacyDetails'
-import PharmacyPendingReqChart from 'src/components/dashboard/charts/PharmacyPendingReqChart'
-import DashboardNotes from 'src/components/dashboard/charts/DashboardNotes'
-import DashboardLabRequests from 'src/components/dashboard/DashboardLabRequests'
+import { useAuth } from 'src/hooks/useAuth'
+import DashboardStatsPanel from './DashboardStatsPanel'
+import DashboardCardHeader from './DashboardCardHeader'
+import KeyInsights from './KeyInsights'
+import AnimalActivityChart from './charts/AnimalActivityChart'
+import AnimalTransferProgress from './charts/AnimalTransferProgress'
+import EggChart from './charts/EggChart'
+import DashboardPharmacyDetails from './DashboardPharmacyDetails'
+import PharmacyPendingReqChart from './charts/PharmacyPendingReqChart'
+import DashboardNotes from './charts/DashboardNotes'
+import DashboardLabRequests from './DashboardLabRequests'
 import {
   getDashboardAnalytics,
   getKeyInsights,
@@ -57,9 +59,9 @@ const DEFAULT_LAB_REQUESTS: LabRequests = {
   lab_stats: []
 }
 
-function Dashboard() {
+const DashboardPage = () => {
   const { t } = useTranslation()
-  const authData = useContext(AuthContext) as unknown as { userData?: { roles?: { role_name?: string } } } | null
+  const auth = useAuth() as unknown as { userData?: { roles?: { role_name?: string } } } | null
   const [loading, setLoading] = useState(false)
   const [firstLoad, setFirstLoad] = useState(true)
   const [dashboardAnalyticsData, setDashboardAnalyticsData] = useState<DashboardStatItem[]>([])
@@ -72,7 +74,7 @@ function Dashboard() {
   const [notes, setNotes] = useState<ChartDataItem[]>([])
   const [labRequests, setLabRequests] = useState<LabRequests>(DEFAULT_LAB_REQUESTS)
 
-  const userRole = authData?.userData?.roles?.role_name
+  const userRole = auth?.userData?.roles?.role_name
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -187,7 +189,7 @@ function Dashboard() {
                         <DashboardPharmacyDetails pharmacyData={pharmacyData} />
                       </Grid>
                       <Grid size={{ xs: 12, md: 2.5, sm: 6 }}>
-                        <DashboardCardHeader title={t('dashboard.pending_requests_pharmacy')} isSmall={true}>
+                        <DashboardCardHeader title={t('dashboard.pending_requests_pharmacy')} isSmall>
                           <PharmacyPendingReqChart pendingRequests={pendingRequests} />
                         </DashboardCardHeader>
                       </Grid>
@@ -213,7 +215,7 @@ function Dashboard() {
           <Image
             src={welcomeToAntz}
             style={{ maxWidth: '600px', width: '100%', height: 'calc(100vh - 180px)', objectFit: 'contain' }}
-            alt='Welcome to Antz'
+            alt={t('dashboard.welcome_to_antz')}
           />
         </div>
       )}
@@ -221,4 +223,4 @@ function Dashboard() {
   )
 }
 
-export default Dashboard
+export default DashboardPage
