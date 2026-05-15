@@ -438,7 +438,19 @@
     "completed": "Completed",
     "today": "Today",
     "recent_requests": "recent requests",
-    "total_sick_animals": "Total sick animals"
+    "total_sick_animals": "Total sick animals",
+    "welcome_to_antz": "Welcome to Antz"
+  },
+  "analytics": {
+    "bear_angel_health": "Bear Angel Health",
+    "bear_angel_trail": "Bear Angel Trail",
+    "bear_angel_heatmap": "Bear Angel Heatmap",
+    "bear_lola_health": "Bear Lola Health",
+    "bear_lola_trail": "Bear Lola Trail",
+    "bear_lola_heatmap": "Bear Lola Heatmap",
+    "leopard_health": "Leopard Health",
+    "leopard_heatmap": "Leopard Heatmap",
+    "leopard_trail": "Leopard Trail"
   },
   "media_details": {
     "media": "Media",
