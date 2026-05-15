@@ -492,7 +492,7 @@ const AnimalDrawer = ({
                   overflowX: 'auto',
                   scrollbarWidth: 'none',
                   '&::-webkit-scrollbar': { display: 'none' },
-                  '-ms-overflow-style': 'none'
+                  msOverflowStyle: 'none'
                 }}
               >
                 {Array.from(new Array(4)).map((_, idx) => (
@@ -509,7 +509,7 @@ const AnimalDrawer = ({
                   '&::-webkit-scrollbar': {
                     display: 'none'
                   },
-                  '-ms-overflow-style': 'none',
+                  msOverflowStyle: 'none',
                   pb: 1
                 }}
               >
@@ -560,7 +560,7 @@ const AnimalDrawer = ({
             minHeight: 0,
             '&::-webkit-scrollbar': { display: 'none' },
             scrollbarWidth: 'none',
-            // '-ms-overflow-style': 'none',
+            // msOverflowStyle: 'none',
             msOverflowStyle: 'none',
             py: showAnimalFilter ? 1 : 4
           }}
