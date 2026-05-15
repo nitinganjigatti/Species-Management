@@ -18,7 +18,7 @@ import Icon from 'src/@core/components/icon'
 import { Box, minWidth, width } from '@mui/system'
 import AddIdentifierDrawer from 'src/views/pages/housing/animals/AddIdentifierDrawer'
 import { useQuery, UseQueryResult } from '@tanstack/react-query'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import { deleteAnimalIdentifier, getAnimalIdentifier } from 'src/lib/api/housing'
 import Utility from 'src/utility'
 import Search from 'src/views/utility/Search'
@@ -60,8 +60,8 @@ interface AnimalIdentifierProps {
 
 const AnimalIdentifier: React.FC<AnimalIdentifierProps> = ({ animalId: propAnimalId }) => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const { t } = useTranslation()
 
   const [searchValue, setSearchValue] = useState<string>('')

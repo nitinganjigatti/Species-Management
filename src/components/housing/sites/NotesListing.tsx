@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Typography, CircularProgress, Button, Chip } from '@mui/material'
 import { useTheme, alpha } from '@mui/material/styles'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { useDispatch, useSelector } from 'react-redux'
 import { useInView } from 'react-intersection-observer'
 import { FilterList as FilterIcon, Add as AddIcon } from '@mui/icons-material'
@@ -34,7 +34,7 @@ interface NotesListingProps {
   entityName?: string
   entityImage?: string
   animalData?: any
-  animalId?: number | string
+  entityId?: string | number
 }
 
 interface CommentSubmitData {
@@ -68,14 +68,19 @@ const getPriorityBgColor = (priority: string | undefined, theme: any) => {
   }
 }
 
-const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityName, entityImage, animalData, animalId: propAnimalId }) => {
-  const router = useSafeRouter()
+const NotesListing: React.FC<NotesListingProps> = ({
+  refType = 'site',
+  entityName,
+  entityImage,
+  animalData,
+  entityId: entityIdProp
+}) => {
+  const { id: routerId } = useParams<{ id: string }>() ?? {}
   const theme = useTheme() as any
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth()
   const { t } = useTranslation()
-  const { id: routerId } = router.query
-  const id = propAnimalId != null ? String(propAnimalId) : routerId
+  const id = entityIdProp ?? routerId
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false)
   const [commentDialogOpen, setCommentDialogOpen] = useState(false)
@@ -90,7 +95,9 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   const { ref: loaderRef, inView } = useInView({ threshold: 0 })
   const cooldownRef = useRef(false)
-  const prevIdRef = useRef<string | string[] | undefined>(undefined)
+  const prevIdRef = useRef<string | number | undefined>(undefined)
+  const handleLoadMoreRef = useRef<() => void>(() => {})
+  const skipNextFilterEffect = useRef(true)
 
   useEffect(() => {
     dispatch(fetchObservationMasterList())
@@ -120,6 +127,7 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
 
   useEffect(() => {
     if (id && id !== prevIdRef.current) {
+      skipNextFilterEffect.current = true
       dispatch(clearNotes())
 
       dispatch(
@@ -136,12 +144,10 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
   }, [dispatch, id, refType, pageSize])
 
   useEffect(() => {
-    if (id && id === prevIdRef.current && page > 1) {
-      dispatch(fetchNotes(buildQueryParams()))
+    if (skipNextFilterEffect.current) {
+      skipNextFilterEffect.current = false
+      return
     }
-  }, [dispatch, page])
-
-  useEffect(() => {
     if (id && id === prevIdRef.current) {
       dispatch(fetchNotes(buildQueryParams(1)))
       dispatch(setPagination({ page: 1, pageSize }))
@@ -158,18 +164,22 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
     if (cooldownRef.current || loading || noteList.length >= total) return
 
     cooldownRef.current = true
-    dispatch(setPagination({ page: page + 1, pageSize }))
+    const nextPage = page + 1
+    dispatch(setPagination({ page: nextPage, pageSize }))
+    dispatch(fetchNotes(buildQueryParams(nextPage)))
 
     setTimeout(() => {
       cooldownRef.current = false
     }, 300)
-  }, [dispatch, loading, noteList.length, total, page, pageSize])
+  }, [dispatch, loading, noteList.length, total, page, pageSize, buildQueryParams])
+
+  handleLoadMoreRef.current = handleLoadMore
 
   useEffect(() => {
-    if (inView && noteList.length < total) {
-      handleLoadMore()
+    if (inView) {
+      handleLoadMoreRef.current()
     }
-  }, [inView, handleLoadMore, noteList.length, total])
+  }, [inView])
 
   const handleFilterApply = (appliedFilters: Partial<NotesFilters>) => {
     dispatch(setFilters(appliedFilters))
@@ -289,19 +299,14 @@ const NotesListing: React.FC<NotesListingProps> = ({ refType = 'site', entityNam
             >
               {t('filters')}
               {hasActiveFilters && (
-                <Chip
-                  size='small'
-                  label={totalFilterCount}
-                  sx={{ ml: 1, height: 20, minWidth: 20 }}
-                  color='primary'
-                />
+                <Chip size='small' label={totalFilterCount} sx={{ ml: 1, height: 20, minWidth: 20 }} color='primary' />
               )}
             </Button>
           </Box>
         )}
       </Box>
 
-      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+      <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
         {noteList?.map((note: Note) => (
           <ObservationNoteCard
             key={note.observation_id}

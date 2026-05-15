@@ -11,7 +11,7 @@ import { getAllEnclosures } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import SectionCard from 'src/views/pages/housing/section/SectionCard'
 import EnclosureCard from 'src/views/pages/housing/enclosures/EnclosureCard'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { Enclosure } from 'src/types/housing'
 import { useTranslation } from 'react-i18next'
 
@@ -39,7 +39,7 @@ const EnclosureDrawer: React.FC<EnclosureDrawerProps> = ({ open, onClose, data }
   const theme = useTheme() as any
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const router = useSafeRouter()
+  const router = useRouter()
 
   const [localSearch, setLocalSearch] = useState<string>('')
   const [search, setSearch] = useState<string>('')

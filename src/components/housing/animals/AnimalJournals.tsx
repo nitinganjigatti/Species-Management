@@ -19,7 +19,7 @@ import Utility from 'src/utility'
 import Timeline from '@mui/lab/Timeline'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import NoDataFound from 'src/views/utility/NoDataFound'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { AnimalJournalLog, AnimalJournalEntry, User, JournalModule } from 'src/types/housing'
 import { useTranslation } from 'react-i18next'
 
@@ -64,15 +64,9 @@ interface ModuleFilterItem {
   module?: string // Original module value from API (for sending back to API)
 }
 
-interface AnimalJournalsProps {
-  animalId?: number | string
-}
-
-const AnimalJournals: React.FC<AnimalJournalsProps> = ({ animalId: propAnimalId }) => {
+const AnimalJournals: React.FC = () => {
   const theme = useTheme() as any
-  const router = useSafeRouter()
-  const { id } = router.query
-  const id_resolved = propAnimalId != null ? String(propAnimalId) : (Array.isArray(id) ? id[0] : id)
+  const { id } = useParams<{ id: string }>() ?? {}
   const authData = useContext(AuthContext)
   const { t } = useTranslation()
 
@@ -129,7 +123,7 @@ const AnimalJournals: React.FC<AnimalJournalsProps> = ({ animalId: propAnimalId 
 
   // Fetch journal modules (for horizontal filter chips)
   const fetchJournalModules = async (): Promise<void> => {
-    const animalId = id_resolved
+    const animalId = Array.isArray(id) ? id[0] : id
     if (!animalId) return
 
     try {
@@ -162,7 +156,7 @@ const AnimalJournals: React.FC<AnimalJournalsProps> = ({ animalId: propAnimalId 
       moduleFilter?: ModuleFilterItem
     }
   ): Promise<void> => {
-    const animalId = id_resolved
+    const animalId = Array.isArray(id) ? id[0] : id
     if (!animalId) return
 
     // Use passed filters or fall back to current state
@@ -216,16 +210,16 @@ const AnimalJournals: React.FC<AnimalJournalsProps> = ({ animalId: propAnimalId 
 
   // Initial load - fetch modules and users
   useEffect(() => {
-    if (id_resolved) {
+    if (id) {
       fetchJournalModules()
       getUsers()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id_resolved, authData])
+  }, [id, authData])
 
   // Fetch journal logs on initial load and when filters change
   useEffect(() => {
-    if (id_resolved) {
+    if (id) {
       setPage(1)
       // Pass current filter values directly to avoid closure issues
       fetchAnimalJournalLogs(1, true, {
@@ -235,7 +229,7 @@ const AnimalJournals: React.FC<AnimalJournalsProps> = ({ animalId: propAnimalId 
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id_resolved, dateRange, selectedModule, selectedUsers])
+  }, [id, dateRange, selectedModule, selectedUsers])
 
   // Handle module selection
   const handleModuleSelect = (module: ModuleFilterItem): void => {

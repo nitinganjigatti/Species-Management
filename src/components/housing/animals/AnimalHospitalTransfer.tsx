@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Box, Typography, useTheme } from '@mui/material'
 import styled from '@emotion/styled'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { useAuth } from 'src/hooks/useAuth'
 import { useTranslation } from 'react-i18next'
 
@@ -49,8 +49,7 @@ interface TransferStatusInfo {
 }
 
 const AnimalHospitalTransfer = () => {
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const theme = useTheme()
   const authData: any = useAuth()
   const { t } = useTranslation()

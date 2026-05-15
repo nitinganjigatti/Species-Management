@@ -14,7 +14,7 @@ import toast from 'react-hot-toast'
 import SelectedSites from './SelectedSites'
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import type { Site } from 'src/types/housing'
 
@@ -55,7 +55,7 @@ const AddCluster: React.FC<AddClusterProps> = ({
 }) => {
   const theme = useTheme() as any
   const queryClient = useQueryClient()
-  const router = useSafeRouter()
+  const router = useRouter()
   const { t } = useTranslation()
 
   const PAGE_SIZE = 10

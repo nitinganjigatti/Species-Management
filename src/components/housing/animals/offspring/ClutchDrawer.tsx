@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from 'react'
 import { Box, Drawer, IconButton, Typography, useTheme, CircularProgress, Tabs, Tab } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import AnimalCard from 'src/views/utility/AnimalCard'
 
 import { getClutchEggList } from 'src/lib/api/housing'
@@ -25,8 +25,8 @@ interface ClutchDrawerProps {
 const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query as { id: string }
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
 
   const [searchInput, setSearchInput] = useState('')
   const [searchClutch, setSearchClutch] = useState('')
@@ -88,7 +88,7 @@ const ClutchDrawer = ({ open, onClose, clutchDetails }: ClutchDrawerProps) => {
         const response = await getClutchEggList({
           type: 'offspring',
           q: searchClutch,
-          parent_id: id,
+          parent_id: Number(id),
           is_mother: 1,
           clutch_id: clutchDetails?.clutch_id,
           page_no: pageNo

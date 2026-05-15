@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles'
 import UploadAnimalDiet from './UploadAnimalDiet'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import { getAnimalDietList } from 'src/lib/api/housing'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import NoDataFound from 'src/views/utility/NoDataFound'
 import Utility from 'src/utility'
 import moment from 'moment'
@@ -78,8 +78,7 @@ const GreenSwitch = styled(Switch)(({ theme }) => ({
 const AnimalDiet: React.FC<AnimalDietProps> = ({ animalDetails, animalId: propAnimalId }) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id: animalid } = router.query
+  const { id: animalid } = useParams<{ id: string }>() ?? {}
 
   const [selectedTab, setSelectedTab] = useState<'active' | 'inactive'>('active')
   const [animalId, setAnimalId] = useState<string | string[] | undefined | null>(propAnimalId != null ? String(propAnimalId) : animalid)

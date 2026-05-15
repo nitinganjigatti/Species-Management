@@ -30,7 +30,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { styled, alpha } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import useSafeRouter from 'src/hooks/useSafeRouter'
 
 import FilePreviewCard from 'src/views/utility/NewMediaCard'
 import ControlledMultiFileUpload from 'src/views/forms/form-fields/ControlledMultiFileUpload'
@@ -62,7 +61,6 @@ interface EggDrawerProps {
 const EggDrawer = ({ open, onClose, eggDetails }: EggDrawerProps) => {
   const theme = useTheme() as any
   const { t } = useTranslation()
-  const router = useSafeRouter()
 
   const [isEggFetching, setIsEggFetching] = useState<boolean>(false)
   const [eggData, setEggData] = useState<any | null>(null)

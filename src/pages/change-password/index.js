@@ -7,10 +7,12 @@
  *                      → { otpRequired: true  } → show OTP input
  *   3. User enters OTP → client.changePassword(current, new, otp)
  *   4. On success, WSO2 invalidates the refresh_token → logout for clean re-auth
+ *
+ * Password rule (enforced client-side before hitting WSO2):
+ *   Min. 8 characters, at least one letter, one number, one special char from @#$&*
  */
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { Box, FormControl, FormHelperText, Typography, Alert } from '@mui/material'
 import {
@@ -30,7 +32,27 @@ import CustomButton from 'src/components/login/CustomButton'
 import client from 'src/lib/auth/wso2Client'
 import { useAuth } from 'src/hooks/useAuth'
 
-const MIN_PASSWORD_LENGTH = 8
+// --- Password policy ---
+// Rule: min 8 chars, at least one letter, one number, one special char from @#$&*
+// Validated client-side before calling sendOtp() so the user gets a clear message
+// before a WSO2 round-trip. AntzPasswordPolicyError from the SDK is still handled
+// in errorMessage() as a fallback in case WSO2-side policy is stricter.
+const passwordRequirement =
+  'Min-8 and Max-64 chars with uppercase, lowercase, number & special character (@#$&*) (e.g., Pass@1234)'
+
+const validateNewPassword = pwd => {
+  if (pwd.length < 8) return 'Password must be at least 8 characters.'
+  if (pwd.length > 64) return 'Password must not exceed 64 characters.'
+  if (!/[A-Z]/.test(pwd)) return 'Password must include at least one uppercase letter.'
+  if (!/[a-z]/.test(pwd)) return 'Password must include at least one lowercase letter.'
+  if (!/[0-9]/.test(pwd)) return 'Password must include at least one number.'
+  if (!/[@#$&*]/.test(pwd)) return 'Password must include a special character (@#$&*).'
+
+  return ''
+}
+
+// Returns true only when all 4 rules pass — used to decide hint color.
+const isPasswordValid = pwd => validateNewPassword(pwd) === ''
 
 const errorMessage = err => {
   if (err instanceof AntzInvalidCredentialsError) return 'Current password is incorrect.'
@@ -64,6 +86,10 @@ const ChangePasswordPage = () => {
   const [error, setError] = useState('')
   const [otpSentMsg, setOtpSentMsg] = useState('')
 
+  // Tracks whether the user has started typing in the new password field.
+  // Prevents showing red validation hints before the user touches the field.
+  const [newPasswordTouched, setNewPasswordTouched] = useState(false)
+
   const handleSessionExpired = () => {
     logout()
   }
@@ -89,13 +115,18 @@ const ChangePasswordPage = () => {
 
       return
     }
-    if (newPassword !== confirm) {
-      setError('Passwords do not match.')
+
+    // Full password policy check — gives the user a specific message for each
+    // failing rule rather than a generic "invalid password" from WSO2.
+    const pwdError = validateNewPassword(newPassword)
+    if (pwdError) {
+      setError(pwdError)
 
       return
     }
-    if (newPassword.length < MIN_PASSWORD_LENGTH) {
-      setError(`New password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+
+    if (newPassword !== confirm) {
+      setError('Passwords do not match.')
 
       return
     }
@@ -168,6 +199,9 @@ const ChangePasswordPage = () => {
     setOtpSentMsg('')
   }
 
+  const touchedError = newPasswordTouched ? validateNewPassword(newPassword) : null
+  const touchedValid = newPasswordTouched && touchedError === ''
+
   return (
     <Box
       sx={{
@@ -206,17 +240,36 @@ const ChangePasswordPage = () => {
               />
             </FormControl>
 
-            <FormControl fullWidth sx={{ mb: 3 }}>
+            <FormControl fullWidth sx={{}}>
               <CustomInput
                 type='password'
                 name='newPassword'
                 label='New Password'
-                placeholder='Min. 8 characters'
+                // placeholder='Min. 8 chars, letter, number, @#$&*'
+                placeholder='New Password'
                 value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
+                onChange={e => {
+                  setNewPasswordTouched(true)
+                  setNewPassword(e.target.value)
+                }}
                 autoComplete='new-password'
               />
             </FormControl>
+
+            {/* Password requirements — shown as list until touched, then single status line */}
+            {touchedValid ? (
+              <FormHelperText sx={{ mb: 2, mt: 0, color: 'success.main', fontSize: 12 }}>
+                Password meets all requirements.
+              </FormHelperText>
+            ) : touchedError ? (
+              <FormHelperText sx={{ mb: 2, mt: 0, color: 'error.main', fontSize: 12 }}>{touchedError}</FormHelperText>
+            ) : (
+              <Box sx={{ mb: 2, px: 0.5 }}>
+                <Typography variant='caption' sx={{ color: 'text.secondary', lineHeight: 0.2 }}>
+                  {passwordRequirement}
+                </Typography>
+              </Box>
+            )}
 
             <FormControl fullWidth sx={{ mb: 3 }}>
               <CustomInput

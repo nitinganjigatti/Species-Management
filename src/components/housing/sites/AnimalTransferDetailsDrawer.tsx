@@ -29,7 +29,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import React, { useEffect, useState, useCallback, useMemo, memo, FC } from 'react'
 import { useTranslation } from 'react-i18next'
 import { styled, alpha, Theme } from '@mui/material/styles'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import Icon from 'src/@core/components/icon'
 import AnimalCard from 'src/views/utility/AnimalCard'
 import UserAvatarDetails from 'src/views/utility/UserAvatarDetails'
@@ -149,7 +149,7 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
 }) => {
   const { t } = useTranslation()
   const theme = useTheme<ExtendedTheme>()
-  const router = useSafeRouter()
+  const router = useRouter()
   const auth = useAuth()
   const settings = (auth as any)?.userData?.settings
 
@@ -1510,7 +1510,9 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
           }}
         >
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 4 }}>
-            <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{t('animals')} ({totalAnimalCount})</Typography>
+            <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>
+              {t('animals')} ({totalAnimalCount})
+            </Typography>
             <IconButton onClick={() => setShowAnimalListModal(false)} size='small'>
               <Icon icon='mdi:close' />
             </IconButton>
@@ -1778,7 +1780,9 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
             borderRadius: 2
           }}
         >
-          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>{t('housing_module.reject_transfer')}</Typography>
+          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>
+            {t('housing_module.reject_transfer')}
+          </Typography>
           <TextField
             fullWidth
             multiline
@@ -1818,7 +1822,9 @@ const AnimalTransferDetailsDrawer: FC<AnimalTransferDetailsDrawerProps> = ({
             borderRadius: 2
           }}
         >
-          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>{t('housing_module.cancel_transfer')}</Typography>
+          <Typography sx={{ fontSize: '18px', fontWeight: 600, mb: 3 }}>
+            {t('housing_module.cancel_transfer')}
+          </Typography>
           <TextField
             fullWidth
             multiline

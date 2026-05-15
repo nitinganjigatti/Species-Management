@@ -8,7 +8,7 @@ import {
   Card,
   CircularProgress
 } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { getFoodWastage, FoodWastageData, FoodWastageListItem, FoodWastageGraphItem } from 'src/lib/api/housing'
 import Icon from 'src/@core/components/icon'
@@ -29,6 +29,7 @@ interface FoodWastageListingProps {
   selectedTab?: string
   setSelectedTab?: (tab: string) => void
   refType?: 'site' | 'section' | 'enclosure'
+  entityId?: string | number
 }
 
 // State for details drawer
@@ -39,11 +40,12 @@ interface DetailsDrawerState {
   unit: string
 }
 
-const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site' }) => {
+const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site', entityId: entityIdProp }) => {
   const { t } = useTranslation()
   const theme = useTheme() as Theme
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id: routerId } = useParams<{ id: string }>() ?? {}
+  const id = entityIdProp ?? routerId
 
   const [loading, setLoading] = useState<boolean>(false)
   const [foodWastageData, setFoodWastageData] = useState<FoodWastageData>({})
@@ -719,10 +721,13 @@ const FoodWastageListing: React.FC<FoodWastageListingProps> = ({ refType = 'site
               >
                 {t('housing_module.highest_wastage_string', {
                   entity: entityLabel,
-                  name: refType === 'site'
-                    ? foodWastageData?.highest_wastage?.section_name
-                    : foodWastageData?.highest_wastage?.user_enclosure_name,
-                  weight: `${foodWastageData?.highest_wastage?.total_wastage} ${foodWastageData?.highest_wastage?.unit || 'Kg'}`,
+                  name:
+                    refType === 'site'
+                      ? foodWastageData?.highest_wastage?.section_name
+                      : foodWastageData?.highest_wastage?.user_enclosure_name,
+                  weight: `${foodWastageData?.highest_wastage?.total_wastage} ${
+                    foodWastageData?.highest_wastage?.unit || 'Kg'
+                  }`,
                   refType: refType,
                   percentage: `${foodWastageData?.highest_wastage?.wastage_per}%`
                 })}

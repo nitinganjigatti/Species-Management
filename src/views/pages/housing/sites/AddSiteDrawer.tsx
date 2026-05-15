@@ -30,7 +30,7 @@ import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField
 import Toaster from 'src/components/Toaster'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import React from 'react'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 
 interface SiteData {
@@ -74,7 +74,7 @@ const AddSiteDrawer: React.FC<AddSiteDrawerProps> = ({ open, setSiteDrawer, refe
   const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const authData = useContext(AuthContext) as any
-  const router = useSafeRouter()
+  const router = useRouter()
 
   const zooId = authData?.userData?.user?.zoos[0].zoo_id
   const isEditMode = !!siteData

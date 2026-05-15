@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Typography, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { useQuery } from '@tanstack/react-query'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useParams } from 'next/navigation'
 import { getTaxonomyHierarchy, TaxonomyHierarchyData } from 'src/lib/api/housing'
 import { useTranslation } from 'react-i18next'
 
@@ -107,8 +107,7 @@ const TaxonomyCard: React.FC<{
 
 const AnimalTaxonomy: React.FC<AnimalTaxonomyProps> = ({ animalDetails }) => {
   const theme = useTheme()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const { id } = useParams<{ id: string }>() ?? {}
   const { t } = useTranslation()
 
   const taxonomyId = animalDetails?.taxonomyId

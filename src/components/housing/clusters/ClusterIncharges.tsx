@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Box, debounce, Grid, Typography, Theme } from '@mui/material'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams } from 'next/navigation'
 import React, { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAllSites } from 'src/lib/api/housing'
@@ -21,8 +21,8 @@ interface PaginationModel {
 
 const ClusterIncharges: React.FC = () => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const { id } = useParams<{ id: string }>() ?? {}
   const theme = useTheme() as Theme
 
   const [downloading, setDownloading] = useState<boolean>(false)

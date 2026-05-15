@@ -21,7 +21,7 @@ const composeHousingNavigation = (includeClusters: boolean): NavigationItem[] =>
 
   const sites: NavItem = {
     title: 'Sites',
-    path: '/housing/sites/',
+    path: '/housing/sites',
     icon: <img style={{ width: '20px', height: '20px' }} src='/icons/site.svg' alt='Site Icon' />,
     activeIcon: <img style={{ width: '16px', height: '16px' }} src='/icons/site_active.svg' alt='Site Icon' />
   }
@@ -30,7 +30,7 @@ const composeHousingNavigation = (includeClusters: boolean): NavigationItem[] =>
     title: 'Clusters',
     icon: <img style={{ width: '20px', height: '20px' }} src='/icons/cluster.svg' alt='Cluster Icon' />,
     activeIcon: <img style={{ width: '20px', height: '20px' }} src='/icons/cluster_active.svg' alt='Cluster Icon' />,
-    path: '/housing/cluster/'
+    path: '/housing/cluster'
   }
 
   const housingNavigationArray: NavigationItem[] = [Title, sites]

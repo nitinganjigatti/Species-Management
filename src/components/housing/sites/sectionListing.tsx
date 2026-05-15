@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography, useMediaQuery, Theme } from '@mui/material'
-import useSafeRouter from 'src/hooks/useSafeRouter'
+import { useRouter, useParams, usePathname, useSearchParams } from 'next/navigation'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
@@ -26,6 +26,8 @@ interface SectionListingProps {
   drawerData: DrawerData | null
   setDrawerData: (data: DrawerData | null) => void
   addSuccessCheck?: boolean
+  siteId?: string | number
+  entityId?: string | number
 }
 
 interface PaginationModel {
@@ -40,17 +42,23 @@ const SectionListing: React.FC<SectionListingProps> = ({
   setDrawerType,
   drawerData,
   setDrawerData,
-  addSuccessCheck
+  addSuccessCheck,
+  siteId,
+  entityId
 }) => {
   const { t } = useTranslation()
-  const router = useSafeRouter()
-  const { id } = router.query
+  const router = useRouter()
+  const pathname = usePathname()
+  const routerParams = useParams<{ id: string }>()
+  const routerId = routerParams?.id
+  const id = siteId ?? entityId ?? routerId
   const theme = useTheme() as Theme & { palette: any }
 
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
+  const searchParams = useSearchParams()
   const [downloading, setDownloading] = useState<boolean>(false)
-  const [inputValue, setInputValue] = useState<string>('')
+  const [inputValue, setInputValue] = useState<string>(searchParams?.get('sectionSearch') || '')
 
   const [filters, setFilters] = useState<SectionFilters>({
     page: 1,
@@ -84,11 +92,7 @@ const SectionListing: React.FC<SectionListingProps> = ({
   const total: number = data?.data?.total_count || 0
 
   const updateUrlParams = (updatedFilters: SectionFilters): void => {
-    const currentQuery = { ...router.query }
-
-    // Update only the section-related filter keys
     const updatedQuery = {
-      ...currentQuery,
       sectionPage: updatedFilters.page,
       sectionPageSize: updatedFilters.pageSize,
       sectionSearch: updatedFilters.search,
@@ -96,14 +100,11 @@ const SectionListing: React.FC<SectionListingProps> = ({
       sectionSortOrder: updatedFilters.sortOrder
     }
 
-    router.replace(
-      {
-        pathname: router.pathname,
-        query: updatedQuery
-      },
-      undefined,
-      { shallow: true }
-    )
+    const params = new URLSearchParams()
+    Object.entries(updatedQuery).forEach(([k, v]) => {
+      if (v) params.set(k, v.toString())
+    })
+    router.replace(`${pathname}?${params.toString()}`)
   }
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.pageSize + index + 1
@@ -204,50 +205,27 @@ const SectionListing: React.FC<SectionListingProps> = ({
 
   const handleRowClick = (params: GridCellParams): void => {
     if (
-      params.field !== 'actions' &&
-      params.field !== 'id' &&
-      params.field !== 'species' &&
-      params.field !== 'animals' &&
-      params.field !== 'sections' &&
-      params.field !== 'enclosures'
+      params.field === 'actions' ||
+      params.field === 'id' ||
+      params.field === 'species' ||
+      params.field === 'animals' ||
+      params.field === 'enclosures'
     ) {
-      const query = { ...router.query }
-      delete query.tab
-      delete query.id
-      router.push(
-        {
-          pathname: `/housing/sections/${(params.row as IndexedSectionRow).section_id}`,
-          query: {
-            ...query,
-            sectionPage: filters.page,
-            sectionPageSize: filters.pageSize,
-            sectionSearch: filters.search,
-            sectionSortBy: filters.sortBy,
-            sectionSortOrder: filters.sortOrder
-          }
-        },
-        undefined,
-        { shallow: true }
-      )
+      return
     }
+    router.push(`/housing/sites/${id}/section/${(params.row as IndexedSectionRow).section_id}`)
   }
 
   useEffect(() => {
     setFilters(prev => ({
-      page: Number(router.query.sectionPage) || 1,
-      pageSize: Number(router.query.sectionPageSize) || 10,
-      search: (router.query.sectionSearch as string) || '',
-      sortBy: (router.query.sectionSortBy as string) || '',
-      sortOrder: (router.query.sectionSortOrder as 'asc' | 'desc') || 'asc'
+      page: Number(searchParams?.get('sectionPage')) || 1,
+      pageSize: Number(searchParams?.get('sectionPageSize')) || 10,
+      search: searchParams?.get('sectionSearch') || '',
+      sortBy: searchParams?.get('sectionSortBy') || '',
+      sortOrder: (searchParams?.get('sectionSortOrder') as 'asc' | 'desc') || 'asc'
     }))
-    setInputValue((router.query.sectionSearch as string) || '')
-  }, [
-    router.query.sectionPage,
-    router.query.sectionPageSize,
-    router.query.sectionSearch,
-    router.query.sectionSortBy,
-    router.query.sectionSortOrder
-  ])
+    setInputValue(searchParams?.get('sectionSearch') || '')
+  }, [searchParams])
 
   const handleDrawerClose = (): void => {
     setDrawerType(null)
