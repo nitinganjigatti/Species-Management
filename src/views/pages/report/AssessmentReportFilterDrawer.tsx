@@ -14,6 +14,7 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import dayjs from 'dayjs'
+import { useTranslation } from 'react-i18next'
 
 import Icon from 'src/@core/components/icon'
 import SelectSectionList from 'src/components/diet/SelectSectionList'
@@ -30,21 +31,35 @@ const genderArray: { name: string; key: string }[] = [
 
 const accessionDateOptions: {
   label: string
+  tKey: string
   getRange: () => { start: ReturnType<typeof dayjs> | string; end: ReturnType<typeof dayjs> | string }
 }[] = [
-  { label: 'Today', getRange: () => ({ start: dayjs(), end: dayjs() }) },
+  { label: 'Today', tKey: 'report_module.today', getRange: () => ({ start: dayjs(), end: dayjs() }) },
   {
     label: 'Yesterday',
+    tKey: 'report_module.yesterday',
     getRange: () => {
       const yesterday = dayjs().subtract(1, 'day')
 
       return { start: yesterday, end: yesterday }
     }
   },
-  { label: 'Last 7 Days', getRange: () => ({ start: dayjs().subtract(6, 'day'), end: dayjs() }) },
-  { label: 'Last 1 Month', getRange: () => ({ start: dayjs().subtract(1, 'month').startOf('day'), end: dayjs() }) },
-  { label: 'Last 6 Months', getRange: () => ({ start: dayjs().subtract(6, 'month').startOf('day'), end: dayjs() }) },
-  { label: 'All Time Data', getRange: () => ({ start: '', end: '' }) }
+  {
+    label: 'Last 7 Days',
+    tKey: 'report_module.last_7_days',
+    getRange: () => ({ start: dayjs().subtract(6, 'day'), end: dayjs() })
+  },
+  {
+    label: 'Last 1 Month',
+    tKey: 'report_module.last_1_month',
+    getRange: () => ({ start: dayjs().subtract(1, 'month').startOf('day'), end: dayjs() })
+  },
+  {
+    label: 'Last 6 Months',
+    tKey: 'report_module.last_6_months',
+    getRange: () => ({ start: dayjs().subtract(6, 'month').startOf('day'), end: dayjs() })
+  },
+  { label: 'All Time Data', tKey: 'report_module.all_time_data', getRange: () => ({ start: '', end: '' }) }
 ]
 
 const AssessmentReportFilterDrawer = ({
@@ -75,6 +90,7 @@ const AssessmentReportFilterDrawer = ({
   setEnclosuresData
 }: AssessmentReportFilterDrawerProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
   const [collapsed, setCollapsed] = useState<boolean>(true)
 
@@ -219,7 +235,7 @@ const AssessmentReportFilterDrawer = ({
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
           <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>{t('filter')}</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
@@ -276,7 +292,13 @@ const AssessmentReportFilterDrawer = ({
                   }}
                 >
                   <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                    {menu}
+                    {menu === 'Site, Sec or Encl.'
+                      ? t('report_module.site_sec_encl')
+                      : menu === 'Accession Date'
+                      ? t('accession_date')
+                      : menu === 'Gender'
+                      ? t('gender')
+                      : menu}
                   </Typography>
 
                   {count > 0 && (
@@ -325,7 +347,7 @@ const AssessmentReportFilterDrawer = ({
                 <>
                   <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
                     <CardHeader
-                      title='Select Site'
+                      title={t('select_site')}
                       onClick={() => {
                         if (tempSelectedItems?.Section?.length === 0) {
                           setSiteListDrawer(true)
@@ -418,7 +440,7 @@ const AssessmentReportFilterDrawer = ({
                       }}
                     >
                       <CardHeader
-                        title='Select Sections'
+                        title={t('report_module.select_sections')}
                         onClick={() => {
                           if (tempSelectedItems?.Enclosure?.length === 0) {
                             setOpenSectionListDrawer(true)
@@ -513,7 +535,7 @@ const AssessmentReportFilterDrawer = ({
                       }}
                     >
                       <CardHeader
-                        title='Select Enclosures'
+                        title={t('report_module.select_enclosures')}
                         onClick={() => setOpenEnclosureListDrawer(true)}
                         sx={{
                           background: theme.palette.customColors.tableHeaderBg,
@@ -634,7 +656,7 @@ const AssessmentReportFilterDrawer = ({
                           }}
                         />
                         <Box>
-                          <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>{option.label}</Typography>
+                          <Typography sx={{ fontSize: '16px', fontWeight: 500 }}>{t(option.tKey)}</Typography>
                         </Box>
                       </Box>
                     )
@@ -652,7 +674,7 @@ const AssessmentReportFilterDrawer = ({
                       inputProps={{ 'aria-label': 'controlled' }}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
-                      Select All
+                      {t('select_all')}
                     </Typography>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
@@ -665,7 +687,7 @@ const AssessmentReportFilterDrawer = ({
                         inputProps={{ 'aria-label': 'controlled' }}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
-                        {option.name}
+                        {t(option.key)}
                       </Typography>
                     </Box>
                   ))}
@@ -702,18 +724,18 @@ const AssessmentReportFilterDrawer = ({
             handleCancelAll()
           }}
         >
-          CANCEL ALL
+          {t('cancel_all')}
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
-          APPLY FILTER
+          {t('apply_filter')}
         </LoadingButton>
       </Box>
 
       <SelectSites
         openSiteListDrawer={openSiteListDrawer}
-        setSiteListDrawer={(open) => setSiteListDrawer(open)}
+        setSiteListDrawer={open => setSiteListDrawer(open)}
         siteData={siteData}
-        setSearchTerm={(term) => setSearchTerm(term)}
+        setSearchTerm={term => setSearchTerm(term)}
         searchTerm={searchTerm}
         tempSelectedItems={tempSelectedItems}
         setTempSelectedItems={setTempSelectedItems}

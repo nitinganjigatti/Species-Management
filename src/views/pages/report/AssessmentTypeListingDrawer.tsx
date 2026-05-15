@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import { Drawer, IconButton, Typography, CircularProgress, Box, Chip, Tooltip } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getAssessmentCategoriesList, getAssessmentTypesList } from 'src/lib/api/report'
 import { AssessmentTypeListingDrawerProps } from 'src/types/report'
@@ -15,6 +16,7 @@ function AssessmentTypeListingDrawer({
   setOpenAssessmentFilter
 }: AssessmentTypeListingDrawerProps) {
   const theme = useTheme()
+  const { t } = useTranslation()
   const drawerContentRef = useRef<HTMLDivElement>(null)
 
   const headerRef = useRef<HTMLDivElement>(null)
@@ -43,10 +45,14 @@ function AssessmentTypeListingDrawer({
   const [tempSelectedAssessmentType, setTempSelectedAssessmentType] = useState(selectedAssessmentType || null)
 
   const [assessmentcategoryLoading, setAssessmentCategoryLoading] = useState(false)
-  const [assessmentCategoryList, setAssessmentCategoryList] = useState<{ assessment_category_id: number; label: string }[]>([])
+  const [assessmentCategoryList, setAssessmentCategoryList] = useState<
+    { assessment_category_id: number; label: string }[]
+  >([])
 
   const [assessmenttypeLoading, setAssessmentTypeLoading] = useState(false)
-  const [assessmentTypeList, setAssessmentTypeList] = useState<{ assessment_type_id: number; assessments_type_label: string; assessment_category_id?: number }[]>([])
+  const [assessmentTypeList, setAssessmentTypeList] = useState<
+    { assessment_type_id: number; assessments_type_label: string; assessment_category_id?: number }[]
+  >([])
   const [assessmentTypeCount, setAssessmentTypeCount] = useState(0)
 
   const fetchAssessmentCategories = async () => {
@@ -78,7 +84,11 @@ function AssessmentTypeListingDrawer({
         cat_id: tempSelectedCategory,
         q
       })
-      const newAssessmentTypes: { assessment_type_id: number; assessments_type_label: string; assessment_category_id?: number }[] = res?.data?.result || []
+      const newAssessmentTypes: {
+        assessment_type_id: number
+        assessments_type_label: string
+        assessment_category_id?: number
+      }[] = res?.data?.result || []
 
       setAssessmentTypeCount(res?.data?.total_count ?? 0)
       setAssessmentTypeList(newAssessmentTypes)
@@ -129,7 +139,9 @@ function AssessmentTypeListingDrawer({
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Select Assessment Type</Typography>
+            <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
+              {t('report_module.select_assessment_type')}
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
             <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
@@ -155,7 +167,7 @@ function AssessmentTypeListingDrawer({
             assessmentCategoryList?.map(category => (
               <Chip
                 key={category?.assessment_category_id}
-                label={category?.label}
+                label={category?.assessment_category_id === 0 ? t('all') : category?.label}
                 onClick={() => setTempSelectedCategory(category?.assessment_category_id)}
                 sx={{
                   px: 2,
@@ -319,7 +331,7 @@ function AssessmentTypeListingDrawer({
               size='large'
               onClick={() => handleCloseDrawer()}
             >
-              DONE
+              {t('done')}
             </LoadingButton>
           </Box>
         </>

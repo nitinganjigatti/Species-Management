@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { Box, Typography, Avatar, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import CommonTableComponent from 'src/views/table/data-grid/CommonTable'
 import UserAnimalsDrawer from './UserAnimalsDrawer'
@@ -11,6 +12,7 @@ const CommonTable = CommonTableComponent as ComponentType<Record<string, unknown
 
 const UserWiseList = ({ data, pagination, loading, onPaginationChange }: UserWiseListProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [selectedUser, setSelectedUser] = useState<Keeper | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -43,7 +45,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }: UserWis
     () => [
       {
         field: 'keeper_name',
-        headerName: 'Caretaker',
+        headerName: t('report_module.caretaker'),
         flex: 1,
         minWidth: 250,
         renderCell: ({ row }) => (
@@ -72,7 +74,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }: UserWis
       },
       {
         field: 'total_animals',
-        headerName: 'Total Animals',
+        headerName: t('total_animals'),
         flex: 0.5,
         minWidth: 120,
         align: 'center',
@@ -93,7 +95,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }: UserWis
       },
       {
         field: 'primary_count',
-        headerName: 'As Primary',
+        headerName: t('report_module.as_primary'),
         flex: 0.5,
         minWidth: 120,
         align: 'center',
@@ -124,7 +126,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }: UserWis
         renderCell: () => <Icon icon='mdi:chevron-right' fontSize={24} color={theme.palette.text.secondary} />
       }
     ],
-    [theme]
+    [theme, t]
   )
 
   const tableData = useMemo(
@@ -140,7 +142,7 @@ const UserWiseList = ({ data, pagination, loading, onPaginationChange }: UserWis
   if (!loading && (!data || data.length === 0)) {
     return (
       <Box sx={{ textAlign: 'center', py: 10 }}>
-        <Typography sx={{ color: theme.palette.text.secondary }}>No caretakers found</Typography>
+        <Typography sx={{ color: theme.palette.text.secondary }}>{t('report_module.no_caretakers_found')}</Typography>
       </Box>
     )
   }

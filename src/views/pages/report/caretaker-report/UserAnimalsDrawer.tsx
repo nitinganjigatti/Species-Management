@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Box, Chip, CircularProgress, Drawer, IconButton, Typography } from '@mui/material'
 import { useTheme, Theme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getKeeperAnimals } from 'src/lib/api/caretaker'
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -12,6 +13,7 @@ interface AnimalListItemProps {
 }
 
 const AnimalListItem = ({ animal, theme }: AnimalListItemProps) => {
+  const { t } = useTranslation()
   const isPrimary = animal.is_primary === '1' || animal.is_primary === 1 || animal.is_primary === true
 
   return (
@@ -32,7 +34,7 @@ const AnimalListItem = ({ animal, theme }: AnimalListItemProps) => {
       {isPrimary && (
         <Chip
           icon={<Icon icon='mdi:crown-outline' fontSize={14} />}
-          label='Primary'
+          label={t('report_module.primary')}
           size='small'
           sx={{
             backgroundColor: '#F4E4D4',
@@ -54,6 +56,7 @@ const AnimalListItem = ({ animal, theme }: AnimalListItemProps) => {
 
 const UserAnimalsDrawer = ({ open, onClose, user }: UserAnimalsDrawerProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [animals, setAnimals] = useState<KeeperAnimal[]>([])
 
@@ -110,7 +113,8 @@ const UserAnimalsDrawer = ({ open, onClose, user }: UserAnimalsDrawerProps) => {
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            {userName}'s Animals ({animals.length})
+            {userName}
+            {t('report_module.user_animals_suffix')} ({animals.length})
           </Typography>
           <IconButton
             onClick={onClose}
@@ -142,7 +146,9 @@ const UserAnimalsDrawer = ({ open, onClose, user }: UserAnimalsDrawerProps) => {
             </Box>
           ) : animals.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 10 }}>
-              <Typography sx={{ color: theme.palette.text.secondary }}>No animals assigned</Typography>
+              <Typography sx={{ color: theme.palette.text.secondary }}>
+                {t('report_module.no_animals_assigned')}
+              </Typography>
             </Box>
           ) : (
             animals.map(animal => (

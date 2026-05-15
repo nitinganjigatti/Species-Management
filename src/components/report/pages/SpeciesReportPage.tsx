@@ -3,6 +3,7 @@
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   Card,
@@ -53,6 +54,7 @@ interface AnimalContextType {
 const SpeciesReport = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { t } = useTranslation()
   const authData = useContext(AuthContext) as AuthContextType
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
@@ -85,17 +87,17 @@ const SpeciesReport = () => {
 
   const [popoverData, setPopoverData] = useState<PopoverData>({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: true },
-      { label: 'Order', key: 'include_order', checked: true },
-      { label: 'Family', key: 'include_family', checked: true },
-      { label: 'Genus', key: 'include_genus', checked: true }
+      { label: t('report_module.class'), key: 'include_class', checked: true },
+      { label: t('report_module.order'), key: 'include_order', checked: true },
+      { label: t('report_module.family'), key: 'include_family', checked: true },
+      { label: t('report_module.genus'), key: 'include_genus', checked: true }
     ],
     Housing: [
-      { label: 'Site', key: 'include_site', checked: false },
-      { label: 'Section', key: 'include_section', checked: false },
-      { label: 'Enclosure', key: 'include_enclosure', checked: false },
-      { label: 'Cluster', key: 'include_cluster', checked: false },
-      { label: 'Organisation', key: 'include_organization', checked: false }
+      { label: t('site'), key: 'include_site', checked: false },
+      { label: t('section'), key: 'include_section', checked: false },
+      { label: t('enclosure'), key: 'include_enclosure', checked: false },
+      { label: t('report_module.cluster'), key: 'include_cluster', checked: false },
+      { label: t('report_module.organisation'), key: 'include_organization', checked: false }
     ]
   })
 
@@ -137,12 +139,15 @@ const SpeciesReport = () => {
           color: theme.palette.customColors.OnSurfaceVariant
         }}
       >
-        Species General Report
+        {t('report_module.species_general_report')}
       </Typography>
     </>
   )
 
-  const fetchAndSetDataList = async (params: FilterParams, options: { setHeaders?: boolean; setTotalCount?: boolean; responseType?: string } = {}) => {
+  const fetchAndSetDataList = async (
+    params: FilterParams,
+    options: { setHeaders?: boolean; setTotalCount?: boolean; responseType?: string } = {}
+  ) => {
     const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
     try {
       setIsLoading(true)
@@ -165,7 +170,12 @@ const SpeciesReport = () => {
         document.body.removeChild(link)
         URL.revokeObjectURL(csvUrl)
       } else if (response.success) {
-        const { header, datalist, total_count } = (response.data as { header: HeaderItem[]; datalist: Record<string, string | number | null | undefined>[]; total_count: number }) || {}
+        const { header, datalist, total_count } =
+          (response.data as {
+            header: HeaderItem[]
+            datalist: Record<string, string | number | null | undefined>[]
+            total_count: number
+          }) || {}
 
         setTotal(total_count)
         setIsLoading(false)
@@ -190,7 +200,12 @@ const SpeciesReport = () => {
       if (responseType === 'csv' && response && response.data) {
         handleCsvResponse(response.data as unknown as string)
       } else if (response.success) {
-        const { header, animal_list, total_animal } = (response.data as unknown as { header: HeaderItem[]; animal_list: Record<string, string | number | null | undefined>[]; total_animal: number }) || {}
+        const { header, animal_list, total_animal } =
+          (response.data as unknown as {
+            header: HeaderItem[]
+            animal_list: Record<string, string | number | null | undefined>[]
+            total_animal: number
+          }) || {}
 
         setTotal(total_animal)
         setIsDownloading(false)
@@ -231,18 +246,21 @@ const SpeciesReport = () => {
 
   const initialLoad = useRef(true)
 
-  const fetchData = useCallback(async (param: FilterParams, q: string, paginationModel: { page: number; pageSize: number }) => {
-    const params: FilterParams = {
-      page: paginationModel?.page + 1,
-      limit: paginationModel?.pageSize,
-      q,
-      ...param
-    }
+  const fetchData = useCallback(
+    async (param: FilterParams, q: string, paginationModel: { page: number; pageSize: number }) => {
+      const params: FilterParams = {
+        page: paginationModel?.page + 1,
+        limit: paginationModel?.pageSize,
+        q,
+        ...param
+      }
 
-    setIsLoading(true)
-    await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
-    initialLoad.current = false
-  }, [])
+      setIsLoading(true)
+      await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
+      initialLoad.current = false
+    },
+    []
+  )
 
   useEffect(() => {
     if (reports_module && enable_specie_report && initialLoad.current) {
@@ -270,7 +288,9 @@ const SpeciesReport = () => {
         disableColumnMenu: true,
         width: 320,
         headerStyle: { zIndex: 1099 },
-        renderCell: (params: { row: Record<string, string | number | null | undefined> }) => <SpeciesCard species={params.row} />
+        renderCell: (params: { row: Record<string, string | number | null | undefined> }) => (
+          <SpeciesCard species={params.row} />
+        )
       }
     }
 
@@ -285,7 +305,9 @@ const SpeciesReport = () => {
       textAlign: 'center',
       renderCell: (params: { row: Record<string, string | number | null | undefined> }) => (
         <>
-          {params?.row && params?.row[header.key as string] !== undefined && params?.row[header.key as string] !== null ? (
+          {params?.row &&
+          params?.row[header.key as string] !== undefined &&
+          params?.row[header.key as string] !== null ? (
             <Box
               sx={{
                 width: '100px',
@@ -296,7 +318,9 @@ const SpeciesReport = () => {
                 cursor: 'pointer',
                 '&:hover::after': {
                   content: `"${
-                    params?.row && params?.row[header.key as string] !== undefined && params?.row[header.key as string] !== null
+                    params?.row &&
+                    params?.row[header.key as string] !== undefined &&
+                    params?.row[header.key as string] !== null
                       ? params?.row[header.key as string]
                       : ''
                   }"`,
@@ -328,7 +352,9 @@ const SpeciesReport = () => {
                   textOverflow: 'ellipsis'
                 }}
               >
-                {params?.row && params?.row[header.key as string] !== undefined && params?.row[header.key as string] !== null
+                {params?.row &&
+                params?.row[header.key as string] !== undefined &&
+                params?.row[header.key as string] !== null
                   ? params?.row[header.key as string]
                   : ''}
               </Typography>
@@ -488,7 +514,7 @@ const SpeciesReport = () => {
                 }}
                 aria-disabled={isDownloading}
               >
-                Download report
+                {t('report_module.download_report')}
                 {isDownloading ? (
                   <CircularProgress size={22} sx={{ ml: 2 }} />
                 ) : (
@@ -563,7 +589,7 @@ const SpeciesReport = () => {
                                 {selectedSites.length > 1 && ` ...+${selectedSites.length - 1}`}
                               </>
                             ) : (
-                              `Select Site (${sites.length})`
+                              `${t('select_site')} (${sites.length})`
                             )}
                           </Box>
                         </Box>
@@ -621,7 +647,7 @@ const SpeciesReport = () => {
                       <Typography
                         sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
                       >
-                        Show/Hide
+                        {t('report_module.show_hide')}
                       </Typography>
                     </Button>
                     <Popover
@@ -641,7 +667,7 @@ const SpeciesReport = () => {
                       <Box sx={{ p: 2, width: 300 }}>
                         {Object.keys(popoverData).map(category => (
                           <Box key={category}>
-                            <Typography variant='h6'>{category}</Typography>
+                            <Typography variant='h6'>{t(category.toLowerCase())}</Typography>
                             {popoverData[category].map((item, index) => (
                               <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
                                 <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
@@ -671,7 +697,7 @@ const SpeciesReport = () => {
                             padding: '6px 16px'
                           }}
                         >
-                          Cancel
+                          {t('cancel')}
                         </Button>
                         <Button
                           variant='contained'
@@ -681,7 +707,7 @@ const SpeciesReport = () => {
                             padding: '6px 16px'
                           }}
                         >
-                          Confirm
+                          {t('confirm')}
                         </Button>
                       </Box>
                     </Popover>
@@ -706,7 +732,7 @@ const SpeciesReport = () => {
                   onRowClick={handleRowClick}
                   serverSide
                   modifyColumnPinning
-                  headerName='Species General Report'
+                  headerName={t('report_module.species_general_report')}
                   searchMode='server'
                 />
               </Box>
