@@ -1,7 +1,9 @@
+'use client'
+
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState, useMemo, useContext } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
@@ -9,27 +11,28 @@ import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import Error404 from 'src/pages/404'
+import { useAuth } from 'src/hooks/useAuth'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
-import AddClinicalPathDrawer from 'src/views/pages/masters/AddClinicalPathDrawer'
-import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
-import { addAssessmentMastersByType, updateAssessmentMastersByType } from 'src/lib/api/medical/masters'
+import AddTreatmentMastersDrawer from 'src/views/pages/masters/AddTreatmentMastersDrawer'
+import {
+  addTreatmentMasters,
+  getTreatmentMasterList,
+  updateTreatmentMasters
+} from 'src/lib/api/hospital/treatmentMaster'
 import { GridSortModel, GridPaginationModel, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { Theme } from '@mui/material/styles'
-import { NextPage } from 'next'
 import { ChangeEvent, ReactNode } from 'react'
-import { AuthContext } from 'src/context/AuthContext'
+import { useTranslation } from 'react-i18next'
 
-// Types and Interfaces
-interface ClinicalPathRow {
+interface TreatmentRow {
   id?: number | string
-  name?: string
-  is_selected?: string
+  treatment_name?: string
   sl_no?: number
   [key: string]: any
 }
 
-interface IndexedClinicalPathRow extends ClinicalPathRow {
+interface IndexedTreatmentRow extends TreatmentRow {
   sl_no: number
   id: number | string
 }
@@ -37,22 +40,17 @@ interface IndexedClinicalPathRow extends ClinicalPathRow {
 interface ApiResponse {
   success?: boolean
   message?: string | Record<string, string[]>
-  data?: {
-    records?: ClinicalPathRow[]
-    total?: number
-    download_url?: string
-  }
+  data?: any
 }
 
 interface EditParams {
   id: number | string | null
-  name: string | null
+  treatment_name: string | null
 }
 
 interface Payload {
-  id?: number | string | null
-  name?: string | null
-  type: string
+  treatment_master_id?: number | string | null
+  treatment_name?: string | null
 }
 
 interface Filters {
@@ -63,63 +61,54 @@ interface Filters {
   sortColumn: string
 }
 
-const ClinicalPath: NextPage = () => {
+const Treatment = () => {
   const theme: Theme = useTheme()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const authData = useAuth() as any
+  const { t } = useTranslation()
 
-  // State
-  const [rows, setRows] = useState<ClinicalPathRow[]>([])
+  const complaints_permission: boolean | undefined =
+    authData?.userData?.permission?.user_settings?.medical_add_complaints
+
+  const [rows, setRows] = useState<TreatmentRow[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [total, setTotal] = useState<number>(0)
   const [exportLoading, setExportLoading] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
 
-  // Filters state
   const [filters, setFilters] = useState<Filters>({
     page: 1,
     limit: 50,
     q: '',
     sort: 'asc',
-    sortColumn: 'name'
+    sortColumn: 'treatment_name'
   })
 
-  // Drawer state
-  const editParamsInitialState: EditParams = { id: null, name: null }
+  const editParamsInitialState: EditParams = { id: null, treatment_name: null }
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [resetForm, setResetForm] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
-  const authData = useContext(AuthContext)
-
-  const complaints_permission: boolean | undefined =
-    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
 
   useEffect(() => {
-    const {
-      page = '1',
-      limit = '50',
-      q = '',
-      sort = 'asc',
-      sortColumn = 'name'
-    } = router.query as {
-      page?: string
-      limit?: string
-      q?: string
-      sort?: 'asc' | 'desc'
-      sortColumn?: string
-    }
+    const page = searchParams?.get('page') || '1'
+    const limit = searchParams?.get('limit') || '50'
+    const q = searchParams?.get('q') || ''
+    const sort = (searchParams?.get('sort') as 'asc' | 'desc') || 'asc'
+    const sortColumn = searchParams?.get('sortColumn') || 'treatment_name'
 
     setFilters({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      q: q as string,
-      sort: sort as 'asc' | 'desc',
-      sortColumn: sortColumn as string
+      q,
+      sort,
+      sortColumn
     })
-    setSearchValue(q as string)
-  }, [router.query])
+    setSearchValue(q)
+  }, [searchParams])
 
-  const fetchTableData = async (): Promise<void> => {
+  const fetchTableData = useCallback(async (): Promise<void> => {
     try {
       setLoading(true)
 
@@ -128,13 +117,12 @@ const ClinicalPath: NextPage = () => {
         q: filters.q,
         column: filters.sortColumn,
         limit: filters.limit,
-        page: filters.page,
-        type: 'clin_path'
+        page: filters.page
       }
 
-      const res = (await getAssesmentList(params)) as ApiResponse
+      const res = (await getTreatmentMasterList(params)) as ApiResponse
 
-      if (res?.success) {
+      if (res?.success && res?.data) {
         setRows(res?.data?.records || [])
         setTotal(res?.data?.total || 0)
       }
@@ -143,33 +131,26 @@ const ClinicalPath: NextPage = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
 
-  // Fetch data when filters change
   useEffect(() => {
     if (complaints_permission) {
       fetchTableData()
     }
-  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
+  }, [fetchTableData])
 
   const updateUrlParams = (updatedFilters: Filters): void => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value.toString())
-      }
+      if (value) params.set(key, value.toString())
     })
-    router.push({ query: params.toString() }, undefined, { shallow: true })
+    router.replace(`/medical/masters/treatment?${params.toString()}`)
   }
 
   const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: Filters = {
-          ...filters,
-          q: value,
-          page: 1
-        }
+        const updated: Filters = { ...filters, q: value, page: 1 }
         setFilters(updated)
         updateUrlParams(updated)
       }, 1000),
@@ -187,11 +168,7 @@ const ClinicalPath: NextPage = () => {
   }
 
   const handlePaginationModelChange = (model: GridPaginationModel): void => {
-    const updated: Filters = {
-      ...filters,
-      page: model.page + 1,
-      limit: model.pageSize
-    }
+    const updated: Filters = { ...filters, page: model.page + 1, limit: model.pageSize }
     setFilters(updated)
     updateUrlParams(updated)
   }
@@ -201,31 +178,30 @@ const ClinicalPath: NextPage = () => {
       const updated: Filters = {
         ...filters,
         sort: newModel[0].sort as 'asc' | 'desc',
-        sortColumn: newModel[0].field
+        sortColumn: newModel[0].field,
+        page: 1
       }
       setFilters(updated)
       updateUrlParams(updated)
     }
   }
 
-  const handleEdit = (id: number | string | null, name: string | null): void => {
-    setEditParams({ id: id, name: name })
+  const handleEdit = (id: number | string | null, treatment_name: string | null): void => {
+    setEditParams({ id, treatment_name })
     setOpenDrawer(true)
   }
 
   const handleExport = async (): Promise<void> => {
-    const params = {
+    const params: any = {
       response_type: 'csv',
       sort: filters.sort,
       column: filters.sortColumn,
-      q: filters.q,
-      type: 'clin_path'
+      q: filters.q
     }
 
     try {
       setExportLoading(true)
-
-      const response = (await getAssesmentList(params)) as ApiResponse
+      const response = (await getTreatmentMasterList(params)) as ApiResponse
       if (response?.success && response?.data?.download_url) {
         Utility.downloadFileFromURL(response.data.download_url)
       }
@@ -243,9 +219,9 @@ const ClinicalPath: NextPage = () => {
 
       let response: ApiResponse
       if (editParams?.id !== null) {
-        response = await updateAssessmentMastersByType(payload)
+        response = (await updateTreatmentMasters(payload as Record<string, unknown>)) as ApiResponse
       } else {
-        response = await addAssessmentMastersByType(payload)
+        response = (await addTreatmentMasters(payload as Record<string, unknown>)) as ApiResponse
       }
 
       if (response?.success) {
@@ -253,19 +229,15 @@ const ClinicalPath: NextPage = () => {
         setResetForm(true)
         setOpenDrawer(false)
         toast.success(response?.message as string)
-
         await fetchTableData()
       } else {
         if (response?.message && typeof response.message === 'object') {
           Object.values(response.message).forEach((msg: string | string[]) => {
-            if (Array.isArray(msg)) {
-              msg.forEach((m: string) => toast.error(m))
-            } else {
-              toast.error(msg)
-            }
+            if (Array.isArray(msg)) msg.forEach((m: string) => toast.error(m))
+            else toast.error(msg)
           })
         } else {
-          toast.error((response?.message as string) || 'Something went wrong')
+          toast.error((response?.message as string) || t('something_went_wrong'))
         }
         setSubmitLoader(false)
         setLoading(false)
@@ -281,20 +253,20 @@ const ClinicalPath: NextPage = () => {
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.limit + index + 1
 
-  const indexedRows: IndexedClinicalPathRow[] = rows.map((row, index) => ({
+  const indexedRows: IndexedTreatmentRow[] = rows.map((row, index) => ({
     ...row,
     id: row.id || index,
     sl_no: getSlNo(index)
   }))
 
-  const columns: GridColDef<IndexedClinicalPathRow>[] = [
+  const columns: GridColDef<IndexedTreatmentRow>[] = [
     {
       minWidth: 140,
       flex: 0.1,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('medical_module.sl_no'),
       sortable: false,
-      renderCell: (params: GridRenderCellParams<IndexedClinicalPathRow>): ReactNode => (
+      renderCell: (params: GridRenderCellParams<IndexedTreatmentRow>): ReactNode => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors?.customHeadingTextColor, pl: '10px' }}>
           {params.row.sl_no}.
         </Typography>
@@ -303,11 +275,11 @@ const ClinicalPath: NextPage = () => {
     {
       minWidth: 350,
       flex: 0.3,
-      field: 'name',
-      headerName: 'NAME',
+      field: 'treatment_name',
+      headerName: t('medical_module.name_column'),
       sortable: true,
-      renderCell: (params: GridRenderCellParams<IndexedClinicalPathRow>): ReactNode => (
-        <Tooltip title={params.row.name || ''}>
+      renderCell: (params: GridRenderCellParams<IndexedTreatmentRow>): ReactNode => (
+        <Tooltip title={params.row.treatment_name || ''}>
           <Typography
             variant='body2'
             sx={{
@@ -320,7 +292,7 @@ const ClinicalPath: NextPage = () => {
               pl: '6px'
             }}
           >
-            {params.row.name}
+            {params.row.treatment_name}
           </Typography>
         </Tooltip>
       )
@@ -329,99 +301,94 @@ const ClinicalPath: NextPage = () => {
       minWidth: 150,
       flex: 0.2,
       field: 'action',
-      headerName: 'Action',
+      headerName: t('medical_module.action_column'),
       sortable: false,
-      renderCell: (params: GridRenderCellParams<IndexedClinicalPathRow>): ReactNode => (
+      renderCell: (params: GridRenderCellParams<IndexedTreatmentRow>): ReactNode => (
         <Box>
-          {params?.row?.is_selected === '0' && complaints_permission && (
-            <IconButton
-              size='small'
-              onClick={(e: React.MouseEvent) => {
-                e.stopPropagation()
-                handleEdit(params.row.id, params.row.name || null)
-              }}
-            >
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          )}
+          <IconButton
+            size='small'
+            onClick={(e: React.MouseEvent) => {
+              e.stopPropagation()
+              handleEdit(params.row.id, params.row.treatment_name || null)
+            }}
+          >
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
         </Box>
       )
     }
   ]
 
-  const headerAction: ReactNode = complaints_permission ? (
+  const headerAction: ReactNode = (
     <AddButtonContained
-      title='Add Clin Path'
+      title={t('medical_module.add_treatment')}
       action={() => {
         setOpenDrawer(true)
         setResetForm(true)
-        setEditParams({ id: null, name: null })
+        setEditParams({ id: null, treatment_name: null })
       }}
       fullWidth='fullWidth'
-      styles={{
-        margin: 0
-      }}
+      styles={{ margin: 0 }}
       disabled={false}
     />
-  ) : null
+  )
 
   return (
     <>
-    {complaints_permission ? (
-    <PageCardLayout title='Clin Path' action={headerAction}>
-      <Grid container>
-        <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-            <MUISearch
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
+      {complaints_permission ? (
+        <PageCardLayout title={t('medical_module.treatment')} action={headerAction}>
+          <Grid container>
+            <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  sx={{ width: { xs: '100%', sm: '250px' } }}
+                  placeholder={`${t('search')}...`}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                  onClear={handleSearchClear}
+                  value={searchValue}
+                />
+              </Grid>
+              <Grid>
+                <ExportButton
+                  onClick={handleExport}
+                  loading={loading || exportLoading}
+                  disabled={total === 0}
+                  bgcolor=''
+                />
+              </Grid>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <CommonTable
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                loading={loading}
+                searchValue={filters.q}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={handlePaginationModelChange}
+              />
+            </Grid>
+            <AddTreatmentMastersDrawer
+              drawerWidth={562}
+              addEventSidebarOpen={openDrawer}
+              handleSidebarClose={() => {
+                setOpenDrawer(false)
+                setResetForm(true)
               }}
-              placeholder='Search...'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              onClear={handleSearchClear}
-              value={searchValue}
+              editParams={editParams}
+              resetForm={resetForm}
+              handleSubmitData={handleSubmitData}
+              submitLoader={submitLoader}
             />
           </Grid>
-          <Grid>
-            <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} bgcolor='' />
-          </Grid>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <CommonTable
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            loading={loading}
-            searchValue={filters.q}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-            handleSortModel={handleSortModel}
-            setPaginationModel={handlePaginationModelChange}
-          />
-        </Grid>
-        <AddClinicalPathDrawer
-          drawerWidth={562}
-          addEventSidebarOpen={openDrawer}
-          handleSidebarClose={() => {
-            console.log('close event clicked')
-            setOpenDrawer(false)
-            setResetForm(true)
-          }}
-          editParams={editParams}
-          resetForm={resetForm}
-          handleSubmitData={handleSubmitData}
-          submitLoader={submitLoader}
-        />
-      </Grid>
-    </PageCardLayout>
-    ) : (
-      <Error404 />
-    )}
+        </PageCardLayout>
+      ) : (
+        <Error404 />
+      )}
     </>
   )
 }
 
-export default ClinicalPath
+export default Treatment

@@ -1,14 +1,16 @@
+'use client'
+
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce, DebouncedFunc } from 'lodash'
-import Router, { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState, useMemo, useContext } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { getAssessmentResponseType, getAssessmentTypesList } from 'src/lib/api/report'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import Error404 from 'src/pages/404'
-import { AuthContext } from 'src/context/AuthContext'
+import { useAuth } from 'src/hooks/useAuth'
 import Icon from 'src/@core/components/icon'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Utility from 'src/utility'
@@ -17,10 +19,9 @@ import { addAssessmentMasters, updateAssessmentMasters } from 'src/lib/api/medic
 import AddMonitorDrawer from 'src/views/pages/masters/AddMonitorDrawer'
 import { GridSortModel, GridPaginationModel, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { Theme } from '@mui/material/styles'
-import { NextPage } from 'next'
 import { ChangeEvent, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
-// Types and Interfaces
 interface MonitorRow {
   assessment_type_id?: number | string
   assessments_type_label?: string
@@ -43,10 +44,7 @@ interface IndexedMonitorRow extends MonitorRow {
 interface ApiResponse {
   success?: boolean
   message?: string | Record<string, string[]>
-  data?: {
-    result?: MonitorRow[]
-    total_count?: number
-  }
+  data?: any
 }
 
 interface Option {
@@ -89,23 +87,25 @@ interface CategoryProps {
   label?: string | null
 }
 
-const AddMonitorCategory: NextPage = () => {
+const MonitorCategoryDetails = () => {
   const router = useRouter()
-  const { id, label } = router.query
+  const routeParams = useParams<{ id: string }>()
+  const searchParams = useSearchParams()
+  const id = routeParams?.id
+  const label = searchParams?.get('label') || ''
   const theme: Theme = useTheme()
-  const authData = useContext(AuthContext)
+  const authData = useAuth() as any
+  const { t } = useTranslation()
 
   const complaints_permission: boolean | undefined =
-    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
+    authData?.userData?.permission?.user_settings?.medical_add_complaints
 
-  // State
   const [rows, setRows] = useState<MonitorRow[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
   const [total, setTotal] = useState<number>(0)
   const [exportLoading, setExportLoading] = useState<boolean>(false)
 
-  // Filters state
   const [filters, setFilters] = useState<Filters>({
     page: 1,
     limit: 50,
@@ -114,11 +114,9 @@ const AddMonitorCategory: NextPage = () => {
     sortColumn: 'assessments_type_label'
   })
 
-  // Options state
   const [responseTypeOption, setResponseTypeOption] = useState<Option[]>([])
   const [measurementTypeOptions, setMeasurementTypeOption] = useState<Option[]>([])
 
-  // Drawer state
   const editParamsInitialState: EditParams = {
     assessment_type_id: null,
     assessment_name: '',
@@ -134,33 +132,23 @@ const AddMonitorCategory: NextPage = () => {
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
 
-  // Sync filters with URL query params on mount
   useEffect(() => {
-    const {
-      page = '1',
-      limit = '50',
-      q = '',
-      sort = 'asc',
-      sortColumn = 'assessments_type_label'
-    } = router.query as {
-      page?: string
-      limit?: string
-      q?: string
-      sort?: 'asc' | 'desc'
-      sortColumn?: string
-    }
+    const page = searchParams?.get('page') || '1'
+    const limit = searchParams?.get('limit') || '50'
+    const q = searchParams?.get('q') || ''
+    const sort = (searchParams?.get('sort') as 'asc' | 'desc') || 'asc'
+    const sortColumn = searchParams?.get('sortColumn') || 'assessments_type_label'
 
     setFilters({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      q: q as string,
-      sort: sort as 'asc' | 'desc',
-      sortColumn: sortColumn as string
+      q,
+      sort,
+      sortColumn
     })
-    setSearchValue(q as string)
-  }, [router.query])
+    setSearchValue(q)
+  }, [searchParams])
 
-  // Fetch response types
   const fetchResponseTypes = useCallback(async (): Promise<void> => {
     try {
       const response = await getAssessmentResponseType({})
@@ -227,25 +215,17 @@ const AddMonitorCategory: NextPage = () => {
   const updateUrlParams = (updatedFilters: Filters): void => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value.toString())
-      }
+      if (value) params.set(key, value.toString())
     })
-    // Preserve id and label in URL
-    if (id) params.set('id', id as string)
-    if (label) params.set('label', label as string)
+    if (label) params.set('label', label)
 
-    router.push({ query: params.toString() }, undefined, { shallow: true })
+    router.replace(`/medical/masters/monitor/${id}?${params.toString()}`)
   }
 
   const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: Filters = {
-          ...filters,
-          q: value,
-          page: 1
-        }
+        const updated: Filters = { ...filters, q: value, page: 1 }
         setFilters(updated)
         updateUrlParams(updated)
       }, 1000),
@@ -263,11 +243,7 @@ const AddMonitorCategory: NextPage = () => {
   }
 
   const handlePaginationModelChange = (model: GridPaginationModel): void => {
-    const updated: Filters = {
-      ...filters,
-      page: model.page + 1,
-      limit: model.pageSize
-    }
+    const updated: Filters = { ...filters, page: model.page + 1, limit: model.pageSize }
     setFilters(updated)
     updateUrlParams(updated)
   }
@@ -299,7 +275,7 @@ const AddMonitorCategory: NextPage = () => {
       response_type: matchedResponseType ? { label: matchedResponseType.label, key: matchedResponseType.key } : null
     })
     setOpenDrawer(true)
-    setResetForm(false) // Set to false for edit mode
+    setResetForm(false)
   }
 
   const handleSubmitData = async (payload: Payload): Promise<void> => {
@@ -331,7 +307,7 @@ const AddMonitorCategory: NextPage = () => {
             }
           })
         } else {
-          toast.error((response?.message as string) || 'Something went wrong')
+          toast.error((response?.message as string) || t('something_went_wrong'))
         }
         setSubmitLoader(false)
         setLoading(false)
@@ -360,11 +336,11 @@ const AddMonitorCategory: NextPage = () => {
       const response = await getAssessmentTypesList(params) as unknown as ApiResponse
       if (response?.success && response?.data) {
         Utility.downloadFileFromURL(response.data)
-        toast.success('Export completed successfully')
+        toast.success(t('medical_module.export_completed_successfully'))
       }
     } catch (error) {
       console.error('Error exporting data:', error)
-      toast.error('Failed to export data')
+      toast.error(t('medical_module.failed_to_export_data'))
     } finally {
       setExportLoading(false)
     }
@@ -383,7 +359,7 @@ const AddMonitorCategory: NextPage = () => {
       minWidth: 100,
       flex: 0.1,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('medical_module.sl_no'),
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedMonitorRow>): ReactNode => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors?.customHeadingTextColor, pl: '10px' }}>
@@ -395,7 +371,7 @@ const AddMonitorCategory: NextPage = () => {
       minWidth: 350,
       flex: 0.3,
       field: 'assessments_type_label',
-      headerName: 'NAME',
+      headerName: t('medical_module.name_column'),
       sortable: true,
       renderCell: (params: GridRenderCellParams<IndexedMonitorRow>): ReactNode => (
         <Tooltip title={params.row.assessments_type_label || ''}>
@@ -420,7 +396,7 @@ const AddMonitorCategory: NextPage = () => {
       minWidth: 120,
       flex: 0.15,
       field: 'active',
-      headerName: 'STATUS',
+      headerName: t('medical_module.status_column'),
       sortable: true,
       renderCell: (params: GridRenderCellParams<IndexedMonitorRow>): ReactNode => (
         <Typography
@@ -432,7 +408,7 @@ const AddMonitorCategory: NextPage = () => {
             pl: '6px'
           }}
         >
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
+          {params.row.active === '1' ? t('active') : t('inactive')}
         </Typography>
       )
     },
@@ -440,7 +416,7 @@ const AddMonitorCategory: NextPage = () => {
       minWidth: 150,
       flex: 0.15,
       field: 'action',
-      headerName: 'Action',
+      headerName: t('medical_module.action_column'),
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedMonitorRow>): ReactNode => (
         <Box>
@@ -462,9 +438,8 @@ const AddMonitorCategory: NextPage = () => {
 
   const headerAction: ReactNode = (
     <AddButtonContained
-      title='Add Monitoring'
+      title={t('medical_module.add_monitoring')}
       action={() => {
-        // Reset to initial state for add mode
         setEditParams({
           assessment_type_id: null,
           assessment_name: '',
@@ -476,86 +451,84 @@ const AddMonitorCategory: NextPage = () => {
           list_values: null
         })
         setOpenDrawer(true)
-        setResetForm(true) // Set to true for add mode
+        setResetForm(true)
       }}
       fullWidth='fullWidth'
-      styles={{
-        margin: 0
-      }}
+      styles={{ margin: 0 }}
       disabled={false}
     />
   )
 
   const categoryProps: CategoryProps = {
     assessment_category_id: id ? String(id) : null,
-    label: label ? String(label) : null
+    label: label || null
   }
 
   return (
     <>
-    {complaints_permission ? (
-    <PageCardLayout
-      title={label?.toString() || 'Monitor'}
-      action={headerAction}
-      showIcon={true}
-      onIconClick={() => Router.back()}
-    >
-      <Grid container>
-        <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-            <MUISearch
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
+      {complaints_permission ? (
+        <PageCardLayout
+          title={label || t('medical_module.monitor')}
+          action={headerAction}
+          showIcon={true}
+          onIconClick={() => router.back()}
+        >
+          <Grid container>
+            <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  sx={{ width: { xs: '100%', sm: '250px' } }}
+                  placeholder={`${t('search')}...`}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                  onClear={handleSearchClear}
+                  value={searchValue}
+                />
+              </Grid>
+              <Grid>
+                <ExportButton
+                  onClick={handleExport}
+                  loading={loading || exportLoading}
+                  disabled={total === 0}
+                  bgcolor=''
+                />
+              </Grid>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <CommonTable
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                loading={loading}
+                searchValue={filters.q}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={handlePaginationModelChange}
+              />
+            </Grid>
+
+            <AddMonitorDrawer
+              drawerWidth={562}
+              addEventSidebarOpen={openDrawer}
+              responseTypeOption={responseTypeOption}
+              handleSidebarClose={() => {
+                setOpenDrawer(false)
+                setResetForm(true)
               }}
-              placeholder='Search...'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              onClear={handleSearchClear}
-              value={searchValue}
+              editParams={editParams}
+              resetForm={resetForm}
+              handleSubmitData={handleSubmitData}
+              category={categoryProps}
+              measurementTypeOptions={measurementTypeOptions}
+              submitLoader={submitLoader}
             />
           </Grid>
-          <Grid>
-            <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} bgcolor='' />
-          </Grid>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <CommonTable
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            loading={loading}
-            searchValue={filters.q}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-            handleSortModel={handleSortModel}
-            setPaginationModel={handlePaginationModelChange}
-          />
-        </Grid>
-
-        <AddMonitorDrawer
-          drawerWidth={562}
-          addEventSidebarOpen={openDrawer}
-          responseTypeOption={responseTypeOption}
-          handleSidebarClose={() => {
-            setOpenDrawer(false)
-            setResetForm(true)
-          }}
-          editParams={editParams}
-          resetForm={resetForm}
-          handleSubmitData={handleSubmitData}
-          category={categoryProps}
-          measurementTypeOptions={measurementTypeOptions}
-          submitLoader={submitLoader}
-        />
-      </Grid>
-    </PageCardLayout>
-    ) : (
-      <Error404 />
-    )}
+        </PageCardLayout>
+      ) : (
+        <Error404 />
+      )}
     </>
   )
 }
 
-export default AddMonitorCategory
+export default MonitorCategoryDetails

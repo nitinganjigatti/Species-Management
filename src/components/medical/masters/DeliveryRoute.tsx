@@ -1,7 +1,9 @@
+'use client'
+
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState, useMemo, useContext } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
@@ -9,29 +11,25 @@ import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import Error404 from 'src/pages/404'
-import { AuthContext } from 'src/context/AuthContext'
+import { useAuth } from 'src/hooks/useAuth'
+import { getMedicalDeliveryRoute, addDeliveryRoute, updateDeliveryRoute } from 'src/lib/api/medical/masters'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
-import AddTreatmentMastersDrawer from 'src/views/pages/masters/AddTreatmentMastersDrawer'
-import {
-  addTreatmentMasters,
-  getTreatmentMasterList,
-  updateTreatmentMasters
-} from 'src/lib/api/hospital/treatmentMaster'
+import AddDeliveryRouteDrawer from 'src/views/pages/masters/AddDeliveryRouteDrawer'
 import { GridSortModel, GridPaginationModel, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { Theme } from '@mui/material/styles'
-import { NextPage } from 'next'
 import { ChangeEvent, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
-// Types and Interfaces
-interface TreatmentRow {
+interface DeliveryRouteRow {
   id?: number | string
-  treatment_name?: string
+  delivery?: string
+  zoo_id?: string
   sl_no?: number
   [key: string]: any
 }
 
-interface IndexedTreatmentRow extends TreatmentRow {
+interface IndexedDeliveryRouteRow extends DeliveryRouteRow {
   sl_no: number
   id: number | string
 }
@@ -39,21 +37,17 @@ interface IndexedTreatmentRow extends TreatmentRow {
 interface ApiResponse {
   success?: boolean
   message?: string | Record<string, string[]>
-  data?: {
-    records?: TreatmentRow[]
-    total?: number
-    download_url?: string
-  }
+  data?: any
 }
 
 interface EditParams {
   id: number | string | null
-  treatment_name: string | null
+  name: string | null
 }
 
 interface Payload {
-  treatment_master_id?: number | string | null
-  treatment_name?: string | null
+  id?: number | string | null
+  name?: string | null
 }
 
 interface Filters {
@@ -64,113 +58,96 @@ interface Filters {
   sortColumn: string
 }
 
-const Treatment: NextPage = () => {
+const DeliveryRoute = () => {
   const theme: Theme = useTheme()
   const router = useRouter()
-  const authData = useContext(AuthContext)
+  const searchParams = useSearchParams()
+  const authData = useAuth() as any
+  const { t } = useTranslation()
 
-  const complaints_permission: boolean | undefined = (authData as any)?.userData?.permission?.user_settings
-    ?.medical_add_complaints
+  const complaints_permission: boolean | undefined =
+    authData?.userData?.permission?.user_settings?.medical_add_complaints
 
-  // State
-  const [rows, setRows] = useState<TreatmentRow[]>([])
+  const [rows, setRows] = useState<DeliveryRouteRow[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [total, setTotal] = useState<number>(0)
   const [exportLoading, setExportLoading] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
 
-  // Filters state
   const [filters, setFilters] = useState<Filters>({
     page: 1,
     limit: 50,
     q: '',
     sort: 'asc',
-    sortColumn: 'treatment_name'
+    sortColumn: 'delivery'
   })
 
-  // Drawer state
-  const editParamsInitialState: EditParams = { id: null, treatment_name: null }
+  const editParamsInitialState: EditParams = { id: null, name: null }
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [resetForm, setResetForm] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
 
-  // Sync filters with URL query params on mount
   useEffect(() => {
-    const {
-      page = '1',
-      limit = '50',
-      q = '',
-      sort = 'asc',
-      sortColumn = 'treatment_name'
-    } = router.query as {
-      page?: string
-      limit?: string
-      q?: string
-      sort?: 'asc' | 'desc'
-      sortColumn?: string
-    }
+    const page = searchParams?.get('page') || '1'
+    const limit = searchParams?.get('limit') || '50'
+    const q = searchParams?.get('q') || ''
+    const sort = (searchParams?.get('sort') as 'asc' | 'desc') || 'asc'
+    const sortColumn = searchParams?.get('sortColumn') || 'delivery'
 
     setFilters({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      q: q as string,
-      sort: sort as 'asc' | 'desc',
-      sortColumn: sortColumn as string
+      q,
+      sort,
+      sortColumn
     })
-    setSearchValue(q as string)
-  }, [router.query])
+    setSearchValue(q)
+  }, [searchParams])
 
-  const fetchTableData = async (): Promise<void> => {
+  const fetchTableData = useCallback(async (): Promise<void> => {
     try {
       setLoading(true)
 
       const params = {
-        sort: filters.sort,
+        sort_order: filters.sort,
         q: filters.q,
-        column: filters.sortColumn,
-        limit: filters.limit,
-        page: filters.page
+        sort_by: filters.sortColumn,
+        page: filters.page,
+        limit: filters.limit
       }
 
-      const res = (await getTreatmentMasterList(params)) as ApiResponse
+      const res: ApiResponse = await getMedicalDeliveryRoute({ params })
 
-      if (res?.success && res?.data) {
-        setRows(res?.data?.records || [])
-        setTotal(res?.data?.total || 0)
+      if (res?.success) {
+        setRows(res?.data?.medical_delivery_route || [])
+        setTotal(res?.data?.total_count || 0)
       }
     } catch (error) {
       console.error(error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
 
-  // Fetch data when filters change
   useEffect(() => {
     if (complaints_permission) {
       fetchTableData()
     }
-  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
+  }, [fetchTableData])
 
   const updateUrlParams = (updatedFilters: Filters): void => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value.toString())
-      }
+      if (value) params.set(key, value.toString())
     })
-    router.push({ query: params.toString() }, undefined, { shallow: true })
+    router.replace(`/medical/masters/delivery-route?${params.toString()}`)
   }
 
   const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: Filters = {
-          ...filters,
-          q: value,
-          page: 1
-        }
+        const updated: Filters = { ...filters, q: value, page: 1 }
         setFilters(updated)
         updateUrlParams(updated)
       }, 1000),
@@ -188,11 +165,7 @@ const Treatment: NextPage = () => {
   }
 
   const handlePaginationModelChange = (model: GridPaginationModel): void => {
-    const updated: Filters = {
-      ...filters,
-      page: model.page + 1,
-      limit: model.pageSize
-    }
+    const updated: Filters = { ...filters, page: model.page + 1, limit: model.pageSize }
     setFilters(updated)
     updateUrlParams(updated)
   }
@@ -202,33 +175,31 @@ const Treatment: NextPage = () => {
       const updated: Filters = {
         ...filters,
         sort: newModel[0].sort as 'asc' | 'desc',
-        sortColumn: newModel[0].field,
-        page: 1 // Reset to first page when sorting
+        sortColumn: newModel[0].field
       }
       setFilters(updated)
       updateUrlParams(updated)
     }
   }
 
-  const handleEdit = (id: number | string | null, treatment_name: string | null): void => {
-    setEditParams({ id: id, treatment_name: treatment_name })
+  const handleEdit = (id: number | string | null, name: string | null): void => {
+    setEditParams({ id, name })
     setOpenDrawer(true)
   }
 
   const handleExport = async (): Promise<void> => {
-    const params: any = {
+    const params = {
       response_type: 'csv',
-      sort: filters.sort,
-      column: filters.sortColumn,
+      sort_order: filters.sort,
+      sort_by: filters.sortColumn,
       q: filters.q
     }
 
     try {
       setExportLoading(true)
-
-      const response = (await getTreatmentMasterList(params)) as ApiResponse
-      if (response?.success && response?.data?.download_url) {
-        Utility.downloadFileFromURL(response.data.download_url)
+      const response: ApiResponse = await getMedicalDeliveryRoute({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response.data)
       }
     } catch (error) {
       console.error(error)
@@ -244,9 +215,9 @@ const Treatment: NextPage = () => {
 
       let response: ApiResponse
       if (editParams?.id !== null) {
-        response = (await updateTreatmentMasters(payload as Record<string, unknown>)) as ApiResponse
+        response = await updateDeliveryRoute(payload)
       } else {
-        response = (await addTreatmentMasters(payload as Record<string, unknown>)) as ApiResponse
+        response = await addDeliveryRoute(payload)
       }
 
       if (response?.success) {
@@ -254,19 +225,15 @@ const Treatment: NextPage = () => {
         setResetForm(true)
         setOpenDrawer(false)
         toast.success(response?.message as string)
-
         await fetchTableData()
       } else {
         if (response?.message && typeof response.message === 'object') {
           Object.values(response.message).forEach((msg: string | string[]) => {
-            if (Array.isArray(msg)) {
-              msg.forEach((m: string) => toast.error(m))
-            } else {
-              toast.error(msg)
-            }
+            if (Array.isArray(msg)) msg.forEach((m: string) => toast.error(m))
+            else toast.error(msg)
           })
         } else {
-          toast.error((response?.message as string) || 'Something went wrong')
+          toast.error((response?.message as string) || t('something_went_wrong'))
         }
         setSubmitLoader(false)
         setLoading(false)
@@ -282,20 +249,20 @@ const Treatment: NextPage = () => {
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.limit + index + 1
 
-  const indexedRows: IndexedTreatmentRow[] = rows.map((row, index) => ({
+  const indexedRows: IndexedDeliveryRouteRow[] = rows.map((row, index) => ({
     ...row,
     id: row.id || index,
     sl_no: getSlNo(index)
   }))
 
-  const columns: GridColDef<IndexedTreatmentRow>[] = [
+  const columns: GridColDef<IndexedDeliveryRouteRow>[] = [
     {
       minWidth: 140,
       flex: 0.1,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('medical_module.sl_no'),
       sortable: false,
-      renderCell: (params: GridRenderCellParams<IndexedTreatmentRow>): ReactNode => (
+      renderCell: (params: GridRenderCellParams<IndexedDeliveryRouteRow>): ReactNode => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors?.customHeadingTextColor, pl: '10px' }}>
           {params.row.sl_no}.
         </Typography>
@@ -304,11 +271,11 @@ const Treatment: NextPage = () => {
     {
       minWidth: 350,
       flex: 0.3,
-      field: 'treatment_name',
-      headerName: 'NAME',
+      field: 'delivery',
+      headerName: t('medical_module.name_column'),
       sortable: true,
-      renderCell: (params: GridRenderCellParams<IndexedTreatmentRow>): ReactNode => (
-        <Tooltip title={params.row.treatment_name || ''}>
+      renderCell: (params: GridRenderCellParams<IndexedDeliveryRouteRow>): ReactNode => (
+        <Tooltip title={params.row.delivery || ''}>
           <Typography
             variant='body2'
             sx={{
@@ -321,7 +288,7 @@ const Treatment: NextPage = () => {
               pl: '6px'
             }}
           >
-            {params.row.treatment_name}
+            {params.row.delivery}
           </Typography>
         </Tooltip>
       )
@@ -330,19 +297,21 @@ const Treatment: NextPage = () => {
       minWidth: 150,
       flex: 0.2,
       field: 'action',
-      headerName: 'Action',
+      headerName: t('medical_module.action_column'),
       sortable: false,
-      renderCell: (params: GridRenderCellParams<IndexedTreatmentRow>): ReactNode => (
+      renderCell: (params: GridRenderCellParams<IndexedDeliveryRouteRow>): ReactNode => (
         <Box>
-          <IconButton
-            size='small'
-            onClick={(e: React.MouseEvent) => {
-              e.stopPropagation()
-              handleEdit(params.row.id, params.row.treatment_name || null)
-            }}
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
+          {params?.row?.zoo_id === '0' || params?.row?.zoo_id == null ? null : (
+            <IconButton
+              size='small'
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation()
+                handleEdit(params.row.id, params.row.delivery || null)
+              }}
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
         </Box>
       )
     }
@@ -350,16 +319,14 @@ const Treatment: NextPage = () => {
 
   const headerAction: ReactNode = (
     <AddButtonContained
-      title='Add Treatment'
+      title={t('medical_module.add_delivery_route')}
       action={() => {
         setOpenDrawer(true)
         setResetForm(true)
-        setEditParams({ id: null, treatment_name: null })
+        setEditParams({ id: null, name: null })
       }}
       fullWidth='fullWidth'
-      styles={{
-        margin: 0
-      }}
+      styles={{ margin: 0 }}
       disabled={false}
     />
   )
@@ -367,18 +334,13 @@ const Treatment: NextPage = () => {
   return (
     <>
       {complaints_permission ? (
-        <PageCardLayout title='Treatment' action={headerAction}>
+        <PageCardLayout title={t('medical_module.delivery_route')} action={headerAction}>
           <Grid container>
             <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
               <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
                 <MUISearch
-                  sx={{
-                    width: {
-                      xs: '100%',
-                      sm: '250px'
-                    }
-                  }}
-                  placeholder='Search...'
+                  sx={{ width: { xs: '100%', sm: '250px' } }}
+                  placeholder={`${t('search')}...`}
                   onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                   onClear={handleSearchClear}
                   value={searchValue}
@@ -406,7 +368,7 @@ const Treatment: NextPage = () => {
                 setPaginationModel={handlePaginationModelChange}
               />
             </Grid>
-            <AddTreatmentMastersDrawer
+            <AddDeliveryRouteDrawer
               drawerWidth={562}
               addEventSidebarOpen={openDrawer}
               handleSidebarClose={() => {
@@ -427,4 +389,4 @@ const Treatment: NextPage = () => {
   )
 }
 
-export default Treatment
+export default DeliveryRoute

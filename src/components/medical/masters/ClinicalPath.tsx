@@ -1,7 +1,9 @@
+'use client'
+
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState, useMemo, useContext } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
@@ -9,26 +11,26 @@ import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import Error404 from 'src/pages/404'
-import { AuthContext } from 'src/context/AuthContext'
-import { getMedicalDeliveryRoute, addDeliveryRoute, updateDeliveryRoute } from 'src/lib/api/medical/masters'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
-import AddDeliveryRouteDrawer from 'src/views/pages/masters/AddDeliveryRouteDrawer'
+import AddClinicalPathDrawer from 'src/views/pages/masters/AddClinicalPathDrawer'
+import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
+import { addAssessmentMastersByType, updateAssessmentMastersByType } from 'src/lib/api/medical/masters'
 import { GridSortModel, GridPaginationModel, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { Theme } from '@mui/material/styles'
-import { NextPage } from 'next'
 import { ChangeEvent, ReactNode } from 'react'
+import { useAuth } from 'src/hooks/useAuth'
+import { useTranslation } from 'react-i18next'
 
-// Types and Interfaces
-interface DeliveryRouteRow {
+interface ClinicalPathRow {
   id?: number | string
-  delivery?: string
-  zoo_id?: string
+  name?: string
+  is_selected?: string
   sl_no?: number
   [key: string]: any
 }
 
-interface IndexedDeliveryRouteRow extends DeliveryRouteRow {
+interface IndexedClinicalPathRow extends ClinicalPathRow {
   sl_no: number
   id: number | string
 }
@@ -36,10 +38,7 @@ interface IndexedDeliveryRouteRow extends DeliveryRouteRow {
 interface ApiResponse {
   success?: boolean
   message?: string | Record<string, string[]>
-  data?: {
-    medical_delivery_route?: DeliveryRouteRow[]
-    total_count?: number
-  }
+  data?: any
 }
 
 interface EditParams {
@@ -50,6 +49,7 @@ interface EditParams {
 interface Payload {
   id?: number | string | null
   name?: string | null
+  type: string
 }
 
 interface Filters {
@@ -60,113 +60,97 @@ interface Filters {
   sortColumn: string
 }
 
-const DeliveryRoute: NextPage = () => {
+const ClinicalPath = () => {
   const theme: Theme = useTheme()
   const router = useRouter()
-  const authData = useContext(AuthContext)
+  const searchParams = useSearchParams()
+  const authData = useAuth() as any
+  const { t } = useTranslation()
 
   const complaints_permission: boolean | undefined =
-    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
+    authData?.userData?.permission?.user_settings?.medical_add_complaints
 
-  // State
-  const [rows, setRows] = useState<DeliveryRouteRow[]>([])
+  const [rows, setRows] = useState<ClinicalPathRow[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [total, setTotal] = useState<number>(0)
   const [exportLoading, setExportLoading] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
 
-  // Filters state
   const [filters, setFilters] = useState<Filters>({
     page: 1,
     limit: 50,
     q: '',
     sort: 'asc',
-    sortColumn: 'delivery'
+    sortColumn: 'name'
   })
 
-  // Drawer state
   const editParamsInitialState: EditParams = { id: null, name: null }
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [resetForm, setResetForm] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
 
-  // Sync filters with URL query params on mount
   useEffect(() => {
-    const {
-      page = '1',
-      limit = '50',
-      q = '',
-      sort = 'asc',
-      sortColumn = 'delivery'
-    } = router.query as {
-      page?: string
-      limit?: string
-      q?: string
-      sort?: 'asc' | 'desc'
-      sortColumn?: string
-    }
+    const page = searchParams?.get('page') || '1'
+    const limit = searchParams?.get('limit') || '50'
+    const q = searchParams?.get('q') || ''
+    const sort = (searchParams?.get('sort') as 'asc' | 'desc') || 'asc'
+    const sortColumn = searchParams?.get('sortColumn') || 'name'
 
     setFilters({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      q: q as string,
-      sort: sort as 'asc' | 'desc',
-      sortColumn: sortColumn as string
+      q,
+      sort,
+      sortColumn
     })
-    setSearchValue(q as string)
-  }, [router.query])
+    setSearchValue(q)
+  }, [searchParams])
 
-  const fetchTableData = async (): Promise<void> => {
+  const fetchTableData = useCallback(async (): Promise<void> => {
     try {
       setLoading(true)
 
       const params = {
-        sort_order: filters.sort,
+        sort: filters.sort,
         q: filters.q,
-        sort_by: filters.sortColumn,
+        column: filters.sortColumn,
+        limit: filters.limit,
         page: filters.page,
-        limit: filters.limit
+        type: 'clin_path'
       }
 
-      const res: ApiResponse = await getMedicalDeliveryRoute({ params })
+      const res = (await getAssesmentList(params)) as ApiResponse
 
       if (res?.success) {
-        setRows(res?.data?.medical_delivery_route || [])
-        setTotal(res?.data?.total_count || 0)
+        setRows(res?.data?.records || [])
+        setTotal(res?.data?.total || 0)
       }
     } catch (error) {
       console.error(error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
 
-  // Fetch data when filters change
   useEffect(() => {
     if (complaints_permission) {
       fetchTableData()
     }
-  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
+  }, [fetchTableData])
 
   const updateUrlParams = (updatedFilters: Filters): void => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value.toString())
-      }
+      if (value) params.set(key, value.toString())
     })
-    router.push({ query: params.toString() }, undefined, { shallow: true })
+    router.replace(`/medical/masters/clinical-path?${params.toString()}`)
   }
 
   const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: Filters = {
-          ...filters,
-          q: value,
-          page: 1
-        }
+        const updated: Filters = { ...filters, q: value, page: 1 }
         setFilters(updated)
         updateUrlParams(updated)
       }, 1000),
@@ -184,11 +168,7 @@ const DeliveryRoute: NextPage = () => {
   }
 
   const handlePaginationModelChange = (model: GridPaginationModel): void => {
-    const updated: Filters = {
-      ...filters,
-      page: model.page + 1,
-      limit: model.pageSize
-    }
+    const updated: Filters = { ...filters, page: model.page + 1, limit: model.pageSize }
     setFilters(updated)
     updateUrlParams(updated)
   }
@@ -206,24 +186,24 @@ const DeliveryRoute: NextPage = () => {
   }
 
   const handleEdit = (id: number | string | null, name: string | null): void => {
-    setEditParams({ id: id, name: name })
+    setEditParams({ id, name })
     setOpenDrawer(true)
   }
 
   const handleExport = async (): Promise<void> => {
     const params = {
       response_type: 'csv',
-      sort_order: filters.sort,
-      sort_by: filters.sortColumn,
-      q: filters.q
+      sort: filters.sort,
+      column: filters.sortColumn,
+      q: filters.q,
+      type: 'clin_path'
     }
 
     try {
       setExportLoading(true)
-
-      const response: ApiResponse = await getMedicalDeliveryRoute({ params })
-      if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data)
+      const response = (await getAssesmentList(params)) as ApiResponse
+      if (response?.success && response?.data?.download_url) {
+        Utility.downloadFileFromURL(response.data.download_url)
       }
     } catch (error) {
       console.error(error)
@@ -239,9 +219,9 @@ const DeliveryRoute: NextPage = () => {
 
       let response: ApiResponse
       if (editParams?.id !== null) {
-        response = await updateDeliveryRoute(payload)
+        response = await updateAssessmentMastersByType(payload)
       } else {
-        response = await addDeliveryRoute(payload)
+        response = await addAssessmentMastersByType(payload)
       }
 
       if (response?.success) {
@@ -249,19 +229,15 @@ const DeliveryRoute: NextPage = () => {
         setResetForm(true)
         setOpenDrawer(false)
         toast.success(response?.message as string)
-
         await fetchTableData()
       } else {
         if (response?.message && typeof response.message === 'object') {
           Object.values(response.message).forEach((msg: string | string[]) => {
-            if (Array.isArray(msg)) {
-              msg.forEach((m: string) => toast.error(m))
-            } else {
-              toast.error(msg)
-            }
+            if (Array.isArray(msg)) msg.forEach((m: string) => toast.error(m))
+            else toast.error(msg)
           })
         } else {
-          toast.error((response?.message as string) || 'Something went wrong')
+          toast.error((response?.message as string) || t('something_went_wrong'))
         }
         setSubmitLoader(false)
         setLoading(false)
@@ -277,20 +253,20 @@ const DeliveryRoute: NextPage = () => {
 
   const getSlNo = (index: number): number => (filters.page - 1) * filters.limit + index + 1
 
-  const indexedRows: IndexedDeliveryRouteRow[] = rows.map((row, index) => ({
+  const indexedRows: IndexedClinicalPathRow[] = rows.map((row, index) => ({
     ...row,
     id: row.id || index,
     sl_no: getSlNo(index)
   }))
 
-  const columns: GridColDef<IndexedDeliveryRouteRow>[] = [
+  const columns: GridColDef<IndexedClinicalPathRow>[] = [
     {
       minWidth: 140,
       flex: 0.1,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('medical_module.sl_no'),
       sortable: false,
-      renderCell: (params: GridRenderCellParams<IndexedDeliveryRouteRow>): ReactNode => (
+      renderCell: (params: GridRenderCellParams<IndexedClinicalPathRow>): ReactNode => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors?.customHeadingTextColor, pl: '10px' }}>
           {params.row.sl_no}.
         </Typography>
@@ -299,11 +275,11 @@ const DeliveryRoute: NextPage = () => {
     {
       minWidth: 350,
       flex: 0.3,
-      field: 'delivery',
-      headerName: 'NAME',
+      field: 'name',
+      headerName: t('medical_module.name_column'),
       sortable: true,
-      renderCell: (params: GridRenderCellParams<IndexedDeliveryRouteRow>): ReactNode => (
-        <Tooltip title={params.row.delivery || ''}>
+      renderCell: (params: GridRenderCellParams<IndexedClinicalPathRow>): ReactNode => (
+        <Tooltip title={params.row.name || ''}>
           <Typography
             variant='body2'
             sx={{
@@ -316,7 +292,7 @@ const DeliveryRoute: NextPage = () => {
               pl: '6px'
             }}
           >
-            {params.row.delivery}
+            {params.row.name}
           </Typography>
         </Tooltip>
       )
@@ -325,16 +301,16 @@ const DeliveryRoute: NextPage = () => {
       minWidth: 150,
       flex: 0.2,
       field: 'action',
-      headerName: 'Action',
+      headerName: t('medical_module.action_column'),
       sortable: false,
-      renderCell: (params: GridRenderCellParams<IndexedDeliveryRouteRow>): ReactNode => (
+      renderCell: (params: GridRenderCellParams<IndexedClinicalPathRow>): ReactNode => (
         <Box>
-          {params?.row?.zoo_id === '0' || params?.row?.zoo_id == null ? null : (
+          {params?.row?.is_selected === '0' && complaints_permission && (
             <IconButton
               size='small'
               onClick={(e: React.MouseEvent) => {
                 e.stopPropagation()
-                handleEdit(params.row.id, params.row.delivery || null)
+                handleEdit(params.row.id, params.row.name || null)
               }}
             >
               <Icon icon='mdi:pencil-outline' />
@@ -345,78 +321,76 @@ const DeliveryRoute: NextPage = () => {
     }
   ]
 
-  const headerAction: ReactNode = (
+  const headerAction: ReactNode = complaints_permission ? (
     <AddButtonContained
-      title='Add Delivery Route'
+      title={t('medical_module.add_clin_path')}
       action={() => {
         setOpenDrawer(true)
         setResetForm(true)
         setEditParams({ id: null, name: null })
       }}
       fullWidth='fullWidth'
-      styles={{
-        margin: 0
-      }}
+      styles={{ margin: 0 }}
       disabled={false}
     />
-  )
+  ) : null
 
   return (
     <>
-    {complaints_permission ? (
-    <PageCardLayout title='Delivery Route' action={headerAction}>
-      <Grid container>
-        <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-            <MUISearch
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
+      {complaints_permission ? (
+        <PageCardLayout title={t('medical_module.clin_path')} action={headerAction}>
+          <Grid container>
+            <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  sx={{ width: { xs: '100%', sm: '250px' } }}
+                  placeholder={`${t('search')}...`}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                  onClear={handleSearchClear}
+                  value={searchValue}
+                />
+              </Grid>
+              <Grid>
+                <ExportButton
+                  onClick={handleExport}
+                  loading={loading || exportLoading}
+                  disabled={total === 0}
+                  bgcolor=''
+                />
+              </Grid>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <CommonTable
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                loading={loading}
+                searchValue={filters.q}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={handlePaginationModelChange}
+              />
+            </Grid>
+            <AddClinicalPathDrawer
+              drawerWidth={562}
+              addEventSidebarOpen={openDrawer}
+              handleSidebarClose={() => {
+                setOpenDrawer(false)
+                setResetForm(true)
               }}
-              placeholder='Search...'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              onClear={handleSearchClear}
-              value={searchValue}
+              editParams={editParams}
+              resetForm={resetForm}
+              handleSubmitData={handleSubmitData}
+              submitLoader={submitLoader}
             />
           </Grid>
-          <Grid>
-            <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} bgcolor='' />
-          </Grid>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <CommonTable
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            loading={loading}
-            searchValue={filters.q}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-            handleSortModel={handleSortModel}
-            setPaginationModel={handlePaginationModelChange}
-          />
-        </Grid>
-        <AddDeliveryRouteDrawer
-          drawerWidth={562}
-          addEventSidebarOpen={openDrawer}
-          handleSidebarClose={() => {
-            setOpenDrawer(false)
-            setResetForm(true)
-          }}
-          editParams={editParams}
-          resetForm={resetForm}
-          handleSubmitData={handleSubmitData}
-          submitLoader={submitLoader}
-        />
-      </Grid>
-    </PageCardLayout>
-    ) : (
-      <Error404 />
-    )}
+        </PageCardLayout>
+      ) : (
+        <Error404 />
+      )}
     </>
   )
 }
 
-export default DeliveryRoute
+export default ClinicalPath

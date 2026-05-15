@@ -1,61 +1,86 @@
+'use client'
+
 import { Box, Button, Grid, IconButton, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { useTheme } from '@mui/material/styles'
-
+import { useTranslation } from 'react-i18next'
 import { addMedicalCategory, getCategoriesList, updateMedicalCategory } from 'src/lib/api/medical/masters'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
+import { useAuth } from 'src/hooks/useAuth'
 import AddCategories from 'src/views/pages/medical/AddCategories'
-import { AuthContext } from 'src/context/AuthContext'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import DynamicBreadcrumbs from 'src/views/utility/DynamicBreadcrumbs'
+import type { GridSortModel, GridRenderCellParams } from '@mui/x-data-grid'
+
+interface DiagnosisRow {
+  med_cat_id: number | string
+  label?: string
+  type?: string | null
+  key?: string | null
+  zoo_id?: number | string
+  sl_no?: number
+  [key: string]: any
+}
+
+interface IndexedDiagnosisRow extends DiagnosisRow {
+  id: number | string
+  sl_no: number
+}
+
+interface EditParams {
+  med_cat_id: number | string | null
+  label: string | null
+  type: string | null
+  key: string | null
+}
+
+interface ApiResponse {
+  success?: boolean
+  message?: string | Record<string, string[]>
+  data?: any
+}
 
 const Diagnosis = () => {
   const theme = useTheme()
   const router = useRouter()
-  const authData = useContext(AuthContext)
-  const [openDrawer, setOpenDrawer] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
-  const [sort, setSort] = useState('desc')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [total, setTotal] = useState(0)
-  const [rows, setRows] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const editParamsInitialState = { med_cat_id: null, label: null, type: null, key: null }
-  const [editParams, setEditParams] = useState(editParamsInitialState)
-  const [resetForm, setResetForm] = useState(false)
-  const [submitLoader, setSubmitLoader] = useState(false)
+  const authData = useAuth() as any
+  const { t } = useTranslation()
+  const [openDrawer, setOpenDrawer] = useState<boolean>(false)
+  const [searchValue, setSearchValue] = useState<string>('')
+  const [sort, setSort] = useState<'asc' | 'desc'>('desc')
+  const [sortColumn, setSortColumn] = useState<string>('label')
+  const [total, setTotal] = useState<number>(0)
+  const [rows, setRows] = useState<DiagnosisRow[]>([])
+  const [loading, setLoading] = useState<boolean>(false)
+  const [paginationModel, setPaginationModel] = useState<{ page: number; pageSize: number }>({ page: 0, pageSize: 10 })
+  const editParamsInitialState: EditParams = { med_cat_id: null, label: null, type: null, key: null }
+  const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
+  const [resetForm, setResetForm] = useState<boolean>(false)
+  const [submitLoader, setSubmitLoader] = useState<boolean>(false)
 
-  function loadServerRows(currentPage, data) {
+  function loadServerRows(_currentPage: number, data: DiagnosisRow[]): DiagnosisRow[] {
     return data
   }
 
-  const zoo_id = authData?.userData?.user?.zoos[0].zoo_id
+  const zoo_id = authData?.userData?.user?.zoos?.[0]?.zoo_id
   const diagnosis_permission = authData?.userData?.permission?.user_settings?.medical_add_diagnosis
-  console.log(zoo_id, 'zoo_id')
 
   const fetchTableData = useCallback(
-    async q => {
+    async (q?: string) => {
       try {
         setLoading(true)
 
         const params = {
           type: 'diagnosis',
           q
-
-          // sort,
-          // page: paginationModel.page + 1,
-          // limit: paginationModel.pageSize
         }
 
-        await getCategoriesList({ params: params }).then(res => {
-          console.log(res, 'res123')
-
+        await getCategoriesList({ params: params }).then((res: ApiResponse) => {
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data))
         })
@@ -74,20 +99,19 @@ const Diagnosis = () => {
     }
   }, [fetchTableData])
 
-  const handleSortModel = newModel => {
+  const handleSortModel = (newModel: GridSortModel) => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
+      setSort(newModel[0].sort as 'asc' | 'desc')
       setSortColumn(newModel[0].field)
-      fetchTableData(searchValue, newModel[0].field, status)
-    } else {
+      fetchTableData(searchValue)
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (_sort: string, q: string, _column: string) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q, column)
+        await fetchTableData(q)
       } catch (error) {
         console.error(error)
       }
@@ -95,7 +119,7 @@ const Diagnosis = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value: string) => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
   }
@@ -106,14 +130,14 @@ const Diagnosis = () => {
     setOpenDrawer(true)
   }
 
-  const handleSubmitData = async params => {
+  const handleSubmitData = async (params: { label?: string }) => {
     const payload = {
       label: params?.label,
       type: 'diagnosis'
     }
     try {
       setSubmitLoader(true)
-      var response
+      let response: ApiResponse
       if (editParams?.med_cat_id !== null) {
         response = await updateMedicalCategory(editParams?.med_cat_id, payload)
       } else {
@@ -136,28 +160,32 @@ const Diagnosis = () => {
     }
   }
 
-  const handleEdit = async (event, params) => {
+  const handleEdit = async (event: React.MouseEvent, row: DiagnosisRow) => {
     event.stopPropagation()
     setResetForm(true)
-    setEditParams(params)
+    setEditParams({
+      med_cat_id: row.med_cat_id,
+      label: row.label ?? null,
+      type: row.type ?? null,
+      key: row.key ?? null
+    })
     setOpenDrawer(true)
-    console.log('params >>', params)
   }
 
   const columns = [
     {
       width: 120,
       field: 'id',
-      headerName: 'NO',
-      align: 'center',
-      headerAlign: 'center',
+      headerName: t('medical_module.no_header'),
+      align: 'center' as const,
+      headerAlign: 'center' as const,
       sortable: false,
-      renderCell: params => (
+      renderCell: (params: GridRenderCellParams<IndexedDiagnosisRow>) => (
         <Typography
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '12px',
-            fontWeight: '400',
+            fontWeight: 400,
             lineHeight: '14.52px'
           }}
         >
@@ -165,23 +193,21 @@ const Diagnosis = () => {
         </Typography>
       )
     },
-
     {
       flex: 1,
       minWidth: 350,
       sortable: false,
       field: 'Category',
-      headerName: 'Category',
-      align: 'left',
-
-      renderCell: params => (
+      headerName: t('medical_module.category_column'),
+      align: 'left' as const,
+      renderCell: (params: GridRenderCellParams<IndexedDiagnosisRow>) => (
         <Tooltip title={params.row.label}>
           <Typography
             noWrap
             sx={{
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '16px',
-              fontWeight: '400',
+              fontWeight: 400,
               lineHeight: '19.36px'
             }}
           >
@@ -194,10 +220,10 @@ const Diagnosis = () => {
       flex: 1,
       minWidth: 150,
       field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
+      headerName: t('medical_module.action_column'),
+      renderCell: (params: GridRenderCellParams<IndexedDiagnosisRow>) => (
         <>
-          {params.row.zoo_id === zoo_id ? ( // Show only if the zoo_id matches
+          {params.row.zoo_id === zoo_id ? (
             <Box>
               <IconButton size='small' sx={{ mr: 0.5 }} onClick={e => handleEdit(e, params.row)} aria-label='Edit'>
                 <Icon icon='mdi:pencil-outline' />
@@ -209,26 +235,24 @@ const Diagnosis = () => {
     }
   ]
 
-  const handleCellClick = params => {
+  const handleCellClick = (params: GridRenderCellParams<IndexedDiagnosisRow>) => {
     const { id, label } = params.row
-    router.push({
-      pathname: `diagnosis/${id}`,
-      query: { label: label }
-    })
+    const query = label ? `?label=${encodeURIComponent(label)}` : ''
+    router.push(`/medical/masters/diagnosis/${id}${query}`)
   }
 
   const headerAction = (
     <div>
       <Button size='medium' variant='contained' onClick={() => addEventSidebarOpen()}>
         <Icon icon='mdi:add' fontSize={20} />
-        &nbsp; Add New
+        &nbsp; {t('add_new')}
       </Button>
     </div>
   )
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: number) => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
+  const indexedRows: IndexedDiagnosisRow[] = rows?.map((row, index) => ({
     ...row,
     id: row.med_cat_id,
     sl_no: getSlNo(index)
@@ -236,29 +260,25 @@ const Diagnosis = () => {
 
   return (
     <>
-      <DynamicBreadcrumbs pageItems={[{ title: 'Medical' }, { title: 'Category' }]} />
+      <DynamicBreadcrumbs
+        pageItems={[{ title: t('medical_module.medical') }, { title: t('medical_module.category') }]}
+      />
 
-      <PageCardLayout title='Category List' action={headerAction}>
-        {' '}
+      <PageCardLayout title={t('medical_module.category_list')} action={headerAction}>
         <Grid container>
-          <Grid container item size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-            <Grid item size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+          <Grid container size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+            <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
               <MUISearch
-                sx={{
-                  width: {
-                    xs: '100%',
-                    sm: '250px'
-                  }
-                }}
-                placeholder='Search...'
-                onChange={e => handleSearch(e.target.value)}
+                sx={{ width: { xs: '100%', sm: '250px' } }}
+                placeholder={`${t('search')}...`}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                 onClear={() => handleSearch('')}
                 value={searchValue}
               />
             </Grid>
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <CommonTable
               indexedRows={indexedRows === undefined ? [] : indexedRows}
               total={total}
@@ -270,13 +290,12 @@ const Diagnosis = () => {
               onCellClick={handleCellClick}
               hideFooterPagination={true}
               disablePagination={true}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
+              columnVisibilityModel={{ sl_no: false }}
             />
           </Grid>
         </Grid>
       </PageCardLayout>
+
       {openDrawer && (
         <AddCategories
           openDrawer={openDrawer}

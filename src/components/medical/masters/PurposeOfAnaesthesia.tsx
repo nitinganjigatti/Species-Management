@@ -1,7 +1,9 @@
+'use client'
+
 import { Box, Grid, IconButton, Tooltip, Typography, useTheme } from '@mui/material'
 import { debounce, DebouncedFunc } from 'lodash'
-import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState, useMemo, useContext } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import MUISearch from 'src/views/forms/form-fields/MUISearch'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
@@ -9,7 +11,7 @@ import Icon from 'src/@core/components/icon'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import PageCardLayout from 'src/views/utility/Layout/PageCardLayout'
 import Error404 from 'src/pages/404'
-import { AuthContext } from 'src/context/AuthContext'
+import { useAuth } from 'src/hooks/useAuth'
 import Utility from 'src/utility'
 import toast from 'react-hot-toast'
 import AddPurposeOfAnaesthesiaDrawer from 'src/views/pages/masters/AddPurposeOfAnaesthesiaDrawer'
@@ -17,10 +19,9 @@ import { getAssesmentList } from 'src/lib/api/hospital/anesthesia'
 import { addAssessmentMastersByType, updateAssessmentMastersByType } from 'src/lib/api/medical/masters'
 import { GridSortModel, GridPaginationModel, GridColDef, GridRenderCellParams } from '@mui/x-data-grid'
 import { Theme } from '@mui/material/styles'
-import { NextPage } from 'next'
 import { ChangeEvent, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 
-// Types and Interfaces
 interface PurposeRow {
   id?: number | string
   name?: string
@@ -37,11 +38,7 @@ interface IndexedPurposeRow extends PurposeRow {
 interface ApiResponse {
   success?: boolean
   message?: string | Record<string, string[]>
-  data?: {
-    records?: PurposeRow[]
-    total?: number
-    download_url?: string
-  }
+  data?: any
 }
 
 interface EditParams {
@@ -63,22 +60,22 @@ interface Filters {
   sortColumn: string
 }
 
-const PurposeOfAnaesthesia: NextPage = () => {
+const PurposeOfAnaesthesia = () => {
   const theme: Theme = useTheme()
   const router = useRouter()
-  const authData = useContext(AuthContext)
+  const searchParams = useSearchParams()
+  const authData = useAuth() as any
+  const { t } = useTranslation()
 
   const complaints_permission: boolean | undefined =
-    (authData as any)?.userData?.permission?.user_settings?.medical_add_complaints
+    authData?.userData?.permission?.user_settings?.medical_add_complaints
 
-  // State
   const [rows, setRows] = useState<PurposeRow[]>([])
   const [loading, setLoading] = useState<boolean>(false)
   const [total, setTotal] = useState<number>(0)
   const [exportLoading, setExportLoading] = useState<boolean>(false)
   const [searchValue, setSearchValue] = useState<string>('')
 
-  // Filters state
   const [filters, setFilters] = useState<Filters>({
     page: 1,
     limit: 50,
@@ -87,40 +84,30 @@ const PurposeOfAnaesthesia: NextPage = () => {
     sortColumn: 'name'
   })
 
-  // Drawer state
   const editParamsInitialState: EditParams = { id: null, name: null }
   const [openDrawer, setOpenDrawer] = useState<boolean>(false)
   const [resetForm, setResetForm] = useState<boolean>(false)
   const [submitLoader, setSubmitLoader] = useState<boolean>(false)
   const [editParams, setEditParams] = useState<EditParams>(editParamsInitialState)
 
-  // Sync filters with URL query params on mount
   useEffect(() => {
-    const {
-      page = '1',
-      limit = '50',
-      q = '',
-      sort = 'asc',
-      sortColumn = 'name'
-    } = router.query as {
-      page?: string
-      limit?: string
-      q?: string
-      sort?: 'asc' | 'desc'
-      sortColumn?: string
-    }
+    const page = searchParams?.get('page') || '1'
+    const limit = searchParams?.get('limit') || '50'
+    const q = searchParams?.get('q') || ''
+    const sort = (searchParams?.get('sort') as 'asc' | 'desc') || 'asc'
+    const sortColumn = searchParams?.get('sortColumn') || 'name'
 
     setFilters({
       page: parseInt(page, 10),
       limit: parseInt(limit, 10),
-      q: q as string,
-      sort: sort as 'asc' | 'desc',
-      sortColumn: sortColumn as string
+      q,
+      sort,
+      sortColumn
     })
-    setSearchValue(q as string)
-  }, [router.query])
+    setSearchValue(q)
+  }, [searchParams])
 
-  const fetchTableData = async (): Promise<void> => {
+  const fetchTableData = useCallback(async (): Promise<void> => {
     try {
       setLoading(true)
 
@@ -144,33 +131,26 @@ const PurposeOfAnaesthesia: NextPage = () => {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
 
-  // Fetch data when filters change
   useEffect(() => {
     if (complaints_permission) {
       fetchTableData()
     }
-  }, [filters.page, filters.limit, filters.q, filters.sort, filters.sortColumn])
+  }, [fetchTableData])
 
   const updateUrlParams = (updatedFilters: Filters): void => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value) {
-        params.set(key, value.toString())
-      }
+      if (value) params.set(key, value.toString())
     })
-    router.push({ query: params.toString() }, undefined, { shallow: true })
+    router.replace(`/medical/masters/purpose-of-anaesthesia?${params.toString()}`)
   }
 
   const debouncedSearch: DebouncedFunc<(value: string) => void> = useMemo(
     () =>
       debounce((value: string) => {
-        const updated: Filters = {
-          ...filters,
-          q: value,
-          page: 1
-        }
+        const updated: Filters = { ...filters, q: value, page: 1 }
         setFilters(updated)
         updateUrlParams(updated)
       }, 1000),
@@ -188,11 +168,7 @@ const PurposeOfAnaesthesia: NextPage = () => {
   }
 
   const handlePaginationModelChange = (model: GridPaginationModel): void => {
-    const updated: Filters = {
-      ...filters,
-      page: model.page + 1,
-      limit: model.pageSize
-    }
+    const updated: Filters = { ...filters, page: model.page + 1, limit: model.pageSize }
     setFilters(updated)
     updateUrlParams(updated)
   }
@@ -203,7 +179,7 @@ const PurposeOfAnaesthesia: NextPage = () => {
         ...filters,
         sort: newModel[0].sort as 'asc' | 'desc',
         sortColumn: newModel[0].field,
-        page: 1 // Reset to first page when sorting
+        page: 1
       }
       setFilters(updated)
       updateUrlParams(updated)
@@ -211,7 +187,7 @@ const PurposeOfAnaesthesia: NextPage = () => {
   }
 
   const handleEdit = (id: number | string | null, name: string | null): void => {
-    setEditParams({ id: id, name: name })
+    setEditParams({ id, name })
     setOpenDrawer(true)
   }
 
@@ -226,7 +202,6 @@ const PurposeOfAnaesthesia: NextPage = () => {
 
     try {
       setExportLoading(true)
-
       const response = (await getAssesmentList(params)) as ApiResponse
       if (response?.success && response?.data?.download_url) {
         Utility.downloadFileFromURL(response.data.download_url)
@@ -255,19 +230,15 @@ const PurposeOfAnaesthesia: NextPage = () => {
         setResetForm(true)
         setOpenDrawer(false)
         toast.success(response?.message as string)
-
         await fetchTableData()
       } else {
         if (response?.message && typeof response.message === 'object') {
           Object.values(response.message).forEach((msg: string | string[]) => {
-            if (Array.isArray(msg)) {
-              msg.forEach((m: string) => toast.error(m))
-            } else {
-              toast.error(msg)
-            }
+            if (Array.isArray(msg)) msg.forEach((m: string) => toast.error(m))
+            else toast.error(msg)
           })
         } else {
-          toast.error((response?.message as string) || 'Something went wrong')
+          toast.error((response?.message as string) || t('something_went_wrong'))
         }
         setSubmitLoader(false)
         setLoading(false)
@@ -294,7 +265,7 @@ const PurposeOfAnaesthesia: NextPage = () => {
       minWidth: 140,
       flex: 0.1,
       field: 'sl_no',
-      headerName: 'SL.NO',
+      headerName: t('medical_module.sl_no'),
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedPurposeRow>): ReactNode => (
         <Typography variant='body2' sx={{ color: theme.palette.customColors?.customHeadingTextColor, pl: '10px' }}>
@@ -306,7 +277,7 @@ const PurposeOfAnaesthesia: NextPage = () => {
       minWidth: 350,
       flex: 0.3,
       field: 'name',
-      headerName: 'NAME',
+      headerName: t('medical_module.name_column'),
       sortable: true,
       renderCell: (params: GridRenderCellParams<IndexedPurposeRow>): ReactNode => (
         <Tooltip title={params.row.name || ''}>
@@ -331,7 +302,7 @@ const PurposeOfAnaesthesia: NextPage = () => {
       minWidth: 150,
       flex: 0.2,
       field: 'action',
-      headerName: 'Action',
+      headerName: t('medical_module.action_column'),
       sortable: false,
       renderCell: (params: GridRenderCellParams<IndexedPurposeRow>): ReactNode => (
         <Box>
@@ -353,74 +324,72 @@ const PurposeOfAnaesthesia: NextPage = () => {
 
   const headerAction: ReactNode = (
     <AddButtonContained
-      title='Add Purpose'
+      title={t('medical_module.add_purpose')}
       action={() => {
         setOpenDrawer(true)
         setResetForm(true)
         setEditParams({ id: null, name: null })
       }}
       fullWidth='fullWidth'
-      styles={{
-        margin: 0
-      }}
+      styles={{ margin: 0 }}
       disabled={false}
     />
   )
 
   return (
     <>
-    {complaints_permission ? (
-    <PageCardLayout title='Purpose Of Anaesthesia' action={headerAction}>
-      <Grid container>
-        <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-          <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
-            <MUISearch
-              sx={{
-                width: {
-                  xs: '100%',
-                  sm: '250px'
-                }
+      {complaints_permission ? (
+        <PageCardLayout title={t('medical_module.purpose_of_anaesthesia')} action={headerAction}>
+          <Grid container>
+            <Grid container sx={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+              <Grid size={{ xs: 'grow', sm: 3.5, md: 3.5, lg: 3, xl: 2.5 }}>
+                <MUISearch
+                  sx={{ width: { xs: '100%', sm: '250px' } }}
+                  placeholder={`${t('search')}...`}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                  onClear={handleSearchClear}
+                  value={searchValue}
+                />
+              </Grid>
+              <Grid>
+                <ExportButton
+                  onClick={handleExport}
+                  loading={loading || exportLoading}
+                  disabled={total === 0}
+                  bgcolor=''
+                />
+              </Grid>
+            </Grid>
+
+            <Grid size={{ xs: 12 }}>
+              <CommonTable
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                loading={loading}
+                searchValue={filters.q}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
+                handleSortModel={handleSortModel}
+                setPaginationModel={handlePaginationModelChange}
+              />
+            </Grid>
+            <AddPurposeOfAnaesthesiaDrawer
+              drawerWidth={562}
+              addEventSidebarOpen={openDrawer}
+              handleSidebarClose={() => {
+                setOpenDrawer(false)
+                setResetForm(true)
               }}
-              placeholder='Search...'
-              onChange={(e: ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-              onClear={handleSearchClear}
-              value={searchValue}
+              editParams={editParams}
+              resetForm={resetForm}
+              handleSubmitData={handleSubmitData}
+              submitLoader={submitLoader}
             />
           </Grid>
-          <Grid>
-            <ExportButton onClick={handleExport} loading={loading || exportLoading} disabled={total === 0} bgcolor='' />
-          </Grid>
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <CommonTable
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            loading={loading}
-            searchValue={filters.q}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.limit }}
-            handleSortModel={handleSortModel}
-            setPaginationModel={handlePaginationModelChange}
-          />
-        </Grid>
-        <AddPurposeOfAnaesthesiaDrawer
-          drawerWidth={562}
-          addEventSidebarOpen={openDrawer}
-          handleSidebarClose={() => {
-            setOpenDrawer(false)
-            setResetForm(true)
-          }}
-          editParams={editParams}
-          resetForm={resetForm}
-          handleSubmitData={handleSubmitData}
-          submitLoader={submitLoader}
-        />
-      </Grid>
-    </PageCardLayout>
-    ) : (
-      <Error404 />
-    )}
+        </PageCardLayout>
+      ) : (
+        <Error404 />
+      )}
     </>
   )
 }
