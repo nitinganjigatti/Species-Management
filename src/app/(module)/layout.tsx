@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useRef } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from 'src/hooks/useAuth'
 import { useRouter } from 'next/navigation'
@@ -24,6 +24,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+  const [isHydrated, setIsHydrated] = useState(false)
   const auth = useAuth()
   const router = useRouter()
   const wso2 = isWso2AuthEnabled()
@@ -38,6 +39,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // selectedStore/userData/userDetails) in addition to antz_auth_*.
   const wasAuthRef = useRef(false)
   const firedRef = useRef(false)
+
+  // Mark component as hydrated after first client-side render to prevent hydration mismatches
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
+
   useEffect(() => {
     if (!wso2) return
     if (status === 'authenticated') {
@@ -64,6 +71,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   // refresh — otherwise every refresh tears down all children, remounts
   // dashboard components, and refires every React Query.
   const isInitialAuthLoading = wso2 && (status === 'idle' || (status === 'loading' && !wasAuthRef.current))
+
+  // Prevent hydration mismatch by only rendering conditional content after hydration
+  if (!isHydrated) {
+    return (
+      <AclGuard>
+        <UserLayout contentHeightFixed={false}>{children}</UserLayout>
+      </AclGuard>
+    )
+  }
+
   if (isInitialAuthLoading) {
     return <Spinner sx={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }} />
   }

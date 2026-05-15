@@ -1,0 +1,663 @@
+'use client'
+import useSafeRouter from 'src/hooks/useSafeRouter'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
+import type { FC } from 'react'
+import type { IncubatorRoomItem } from 'src/types/egg'
+
+import {
+  Avatar,
+  Box,
+  Breadcrumbs,
+  Button,
+  Card,
+  CardHeader,
+  Typography,
+  TextField,
+  Autocomplete,
+  FormControl,
+  Tooltip
+} from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { debounce } from 'lodash'
+
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
+
+import Icon from 'src/@core/components/icon'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import CustomChip from 'src/@core/components/mui/chip'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+
+import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
+
+const RoomsList: FC = () => {
+  const router = useSafeRouter()
+  const theme = useTheme()
+  const authData = useContext(AuthContext) as any
+
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
+  const [loader, setLoader] = useState<boolean>(false)
+  const [total, setTotal] = useState<number>(0)
+  const [sort, setSort] = useState<string>('desc')
+  const [rows, setRows] = useState<any[]>([])
+  const [searchValue, setSearchValue] = useState<string>('')
+
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
+  const [loading, setLoading] = useState<boolean>(false)
+  const [status, setStatus] = useState<string>('')
+  const [isOpen, setIsOpen] = useState<boolean>(false)
+
+  const [nurseryLoading, setNurseryLoading] = useState<boolean>(false)
+  const [nurseryList, setNurseryList] = useState<any[]>([])
+  const [defaultNursery, setDefaultNursery] = useState<any>(null)
+  const [defaultStatus, setDefaultStatus] = useState<any>(null)
+
+  const headerAction = (
+    <>
+      {egg_nursery_permission && (
+        <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+          <Icon icon='mdi:add' fontSize={20} />
+          &nbsp; ADD New
+        </Button>
+      )}
+    </>
+  )
+
+  // 📌 Serial Number Calculation
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = (index: number): number => paginationModel.page * paginationModel.pageSize + index + 1
+
+  const indexedRows = rows?.map((row: any, index: number) => ({
+    ...row,
+    id: row.room_id,
+    sl_no: getSlNo(index)
+  }))
+
+  function loadServerRows(currentPage: number, data: Record<string, any>[]): Record<string, any>[] {
+    return data
+  }
+
+  const fetchTableData = useCallback(
+    async (q: string = '', nurseryId: string | null = '', status: string | null = ''): Promise<void> => {
+      setLoading(true)
+
+      const params = {
+        sort,
+        search: q ?? '',
+        nursery_id: nurseryId,
+        status: status ?? 'all',
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
+      try {
+        const res = await GetRoomList({ params })
+        setTotal(parseInt(res?.data?.total_count ?? '0'))
+        setRows(loadServerRows(paginationModel.page, res?.data?.result))
+      } catch (e) {
+        console.error('Error fetching room list:', e)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [paginationModel, sort]
+  )
+
+  const searchTableData = useCallback(
+    debounce(async (q: string, nurseryId: string | null, status: string | null): Promise<void> => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(q, nurseryId, status)
+      } catch (error: any) {
+        console.error(error)
+      }
+    }, 1000),
+    [fetchTableData]
+  )
+
+  const handleSearch = (value: string, nurseryId: string | null, status: string | null): void => {
+    setSearchValue(value)
+    searchTableData(value, nurseryId, status)
+  }
+
+  const handleSortModel = (newModel: readonly { sort?: string | null; field?: string }[]): void => {
+    if (newModel.length > 0 && newModel[0].sort) {
+      setSort(newModel[0].sort)
+      fetchTableData(searchValue, defaultNursery?.nursery_id, defaultStatus?.key)
+    }
+  }
+
+  const handleEdit = async (event: React.MouseEvent<HTMLElement>, _site_id: string | null, _room_name: string | null, _nursery_id: string | null, _room_id: string | null): Promise<void> => {
+    event.stopPropagation()
+    // Note: setEditParams is used but not defined in state - commenting out
+    // setEditParams({ site_id: _site_id, room_name: _room_name, nursery_id: _nursery_id, room_id: _room_id })
+    setIsOpen(true)
+  }
+
+  // 📌 Fetch Nursery List
+  const NurseryList = async (q: string = ''): Promise<void> => {
+    setNurseryLoading(true)
+    try {
+      const params = { search: q, page: 1, limit: 50 }
+      const res = await GetNurseryList({ params })
+      setNurseryList(res?.data?.result ?? [])
+    } catch (error) {
+      console.error('Error fetching nursery list:', (error as any)?.message || error)
+    } finally {
+      setNurseryLoading(false)
+    }
+  }
+
+  // 📌 Debounced Nursery Search
+  const searchNursery = useCallback(debounce(NurseryList, 1000), [])
+
+  useEffect(() => {
+    NurseryList()
+  }, [])
+
+  const columns: Array<Record<string, any>> = [
+    {
+      minWidth: 80,
+      field: 'id',
+      headerName: 'SL.NO',
+      sortable: false,
+      align: 'center',
+      renderCell: (params: Record<string, any>) => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: 400,
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 120,
+      field: 'room',
+      headerName: 'room',
+      sortable: false,
+      renderCell: (params: Record<string, any>) => (
+        <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.room_name ? params.row.room_name : '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.5,
+      minWidth: 120,
+      field: 'nursery_name',
+      headerName: 'nursery name',
+      sortable: false,
+      renderCell: (params: Record<string, any>) => (
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.nursery_name}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 120,
+      field: 'site',
+      headerName: 'site',
+      sortable: false,
+      renderCell: (params: Record<string, any>) => (
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.site_name}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.3,
+      minWidth: 120,
+      field: 'Incubator',
+      sortable: false,
+      align: 'center',
+      headerName: 'Incubator',
+      renderCell: (params: Record<string, any>) => (
+        <Tooltip title={params.row.no_of_incubators ? params.row.no_of_incubators : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.no_of_incubators}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 120,
+      sortable: false,
+      align: 'center',
+      field: 'active',
+      headerName: 'Status',
+      renderCell: (params: Record<string, any>) => (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? 'success' : 'error'}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 220,
+      field: 'user_name',
+      sortable: false,
+      headerName: 'CREATED BY',
+      renderCell: (params: Record<string, any>) => (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Avatar
+            variant='square'
+            alt='Medicine Image'
+            sx={{
+              width: 30,
+              height: 30,
+              borderRadius: '50%',
+              background: theme.palette.customColors.displaybgPrimary,
+              overflow: 'hidden'
+            }}
+          >
+            {params.row.user_profile_pic ? (
+              <img
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                src={params.row.user_profile_pic}
+                alt='Profile'
+              />
+            ) : (
+              <Icon icon='mdi:user' />
+            )}
+          </Avatar>
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Typography
+              noWrap
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '16px',
+                fontWeight: '400',
+                lineHeight: '19.36px'
+              }}
+            >
+              {params.row.user_full_name ? params.row.user_full_name : '-'}
+            </Typography>
+            <Typography noWrap sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}>
+              {params.row.created_at
+                ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+                : '-'}
+            </Typography>
+          </Box>
+        </Box>
+      )
+    }
+
+    // {
+    //   flex: 0.3,
+    //   minWidth: 10,
+    //   field: 'status',
+    //   headerName: 'STATUS',
+    //   renderCell: params => (
+    //     <Typography>Status</Typography>
+    //     // <CustomChip
+    //     //   skin='light'
+    //     //   size='small'
+    //     //   label={params.row?.active === '1' ? 'Active' : 'InActive'}
+    //     //   color={params.row?.active === '1' ? roleColors.active : roleColors.inactive}
+    //     //   externalTableStyle={{
+    //     //     height: 20,
+    //     //     fontWeight: 600,
+    //     //     borderRadius: '5px',
+    //     //     fontSize: '0.875rem',
+    //     //     textTransform: 'capitalize',
+    //     //     '& .MuiChip-label': { mt: -0.25 }
+    //     //   }}
+    //     // />
+    //   )
+    // }
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <>
+    //       {/* selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' ||
+    //       selectedPharmacy.permission.key === 'ADD') && */}
+    //       {/* {pharmacyRole && ( */}
+    //       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //         {/* {parseInt(params.row.zoo_id) === 0 ? null : ( */}
+    //         <IconButton
+    //           size='small'
+    //           sx={{ mr: 0.5 }}
+    //           onClick={event =>
+    //             handleEdit(event, params.row.site_id, params.row.room_name, params.row.nursery_id, params.row.room_id)
+    //           }
+    //           aria-label='Edit'
+    //         >
+    //           <Icon icon='mdi:pencil-outline' />
+    //         </IconButton>
+    //         {/* )} */}
+    //       </Box>
+    //       {/* )} */}
+    //     </>
+    //   )
+    // }
+  ]
+
+  const onCellClick = (params: Record<string, any>): void => {
+    const data = params.row
+
+    router.push({
+      pathname: `/egg/incubator-rooms/${data?.id}`
+    })
+  }
+
+  useEffect(() => {
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchTableData(searchValue, defaultNursery?.nursery_id, defaultStatus?.key)
+    }
+  }, [fetchTableData])
+
+  return (
+    <>
+      {egg_nursery_permission || egg_collection_permission ? (
+        loader ? (
+          <FallbackSpinner sx={{}} />
+        ) : (
+          <>
+            <Box>
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                  Egg
+                </Typography>
+
+                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                  Incubator Room
+                </Typography>
+              </Breadcrumbs>
+              <Card>
+                <CardHeader title='Incubator Rooms' action={headerAction} />
+
+                <Box sx={{ px: 4, display: 'flex', gap: 4, flexWrap: 'wrap', mb: 6 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search'
+                      InputProps={
+                        {
+                          // disableUnderline: true
+                        }
+                      }
+                      onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+
+                  <Box>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        value={defaultNursery}
+                        disablePortal
+                        loading={nurseryLoading}
+                        sx={{ width: 220 }}
+                        id='nursery'
+                        options={nurseryList?.length > 0 ? nurseryList : []}
+                        getOptionLabel={option => option.nursery_name}
+                        isOptionEqualToValue={(option, value) => option?.nursery_id === value?.nursery_id}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultNursery(null)
+                            fetchTableData(searchValue, '', defaultStatus?.key)
+                          } else {
+                            setDefaultNursery(val)
+                            fetchTableData(searchValue, val?.nursery_id, defaultStatus?.key)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            sx={{
+                              backgroundColor: theme.palette.primary.contrastText,
+                              borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              width: '100%',
+                              '& .MuiOutlinedInput-root': {
+                                height: 40,
+                                borderRadius: '4px'
+                              },
+                              '& .MuiInputLabel-root': {
+                                top: -7
+                              },
+                              '& input': {
+                                position: 'relative',
+                                top: -7
+                              }
+                            }}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>): void => {
+                              searchNursery(e.target.value)
+                            }}
+                            {...params}
+                            label='Nursery'
+                            placeholder='Search & Select'
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Box>
+                  <Box>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        value={defaultStatus}
+                        disablePortal
+                        sx={{ width: 220 }}
+                        id='status'
+                        options={[
+                          { label: 'Active', key: 'active' },
+                          { label: 'Inactive', key: 'inactive' }
+                        ]}
+                        getOptionLabel={option => option.label}
+                        isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                        onChange={(e, val) => {
+                          if (val === null) {
+                            setDefaultStatus(null)
+                            fetchTableData(searchValue, defaultNursery?.nursery_id, '')
+                          } else {
+                            setDefaultStatus(val)
+                            fetchTableData(searchValue, defaultNursery?.nursery_id, val?.key)
+                          }
+                        }}
+                        renderInput={params => (
+                          <TextField
+                            sx={{
+                              backgroundColor: theme.palette.primary.contrastText,
+                              borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              width: '100%',
+                              '& .MuiOutlinedInput-root': {
+                                height: 40,
+                                borderRadius: '4px'
+                              },
+                              '& .MuiInputLabel-root': {
+                                top: -7
+                              },
+                              '& input': {
+                                position: 'relative',
+                                top: -7
+                              }
+                            }}
+                            onChange={(_e: React.ChangeEvent<HTMLInputElement>): void => {
+                              // searchSite(_e.target.value)
+                            }}
+                            {...params}
+                            label='Status'
+                            placeholder='Search & Select'
+                          />
+                        )}
+                      />
+                    </FormControl>
+                  </Box>
+                </Box>
+
+                {/* <Box sx={{ py: 4, px: 4 }}>
+                      <Stack direction='row' gap={3}>
+                        <Typography variant='h6'>Legends : </Typography>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#F2F2F2', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Disabled
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#e1f9ed', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Empty
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#e1f9ed', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Available
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#afe5c3', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            No Slots Available
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#ffe9e9', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Alert
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Box> */}
+
+                <CommonTable
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
+                  columns={columns as any}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  rowHeight={64}
+                  loading={loading}
+                  onCellClick={onCellClick}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  externalTableStyle={{
+                    paddingX: 4,
+                    borderTopLeftRadius: '8px',
+                    '& .MuiBox-root': {
+                      paddingX: 0
+                    },
+                    '.MuiDataGrid-main': {
+                      border: `1px solid ${theme.palette.customColors.mdAntzNeutral}`,
+                      borderRadius: '8px'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      border: 'none !important'
+                    },
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
+                  }}
+                />
+              </Card>
+            </Box>
+            {isOpen && (
+              <AddIncubatorRoom
+                open={isOpen}
+                onClose={(): void => {
+                  setIsOpen(false)
+                  fetchTableData(searchValue, defaultNursery?.nursery_id, defaultStatus?.key)
+                }}
+              />
+            )}
+          </>
+        )
+      ) : (
+        <ErrorScreen></ErrorScreen>
+      )}
+    </>
+  )
+}
+
+export default RoomsList
