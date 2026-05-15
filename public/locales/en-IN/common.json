@@ -3771,6 +3771,8 @@
     "select_site_desc": "Select a site from the list below",
     "no_sites_found": "No Sites found",
     "assessment_details": "Assessment Details",
-    "animal_details": "Animal Details"
+    "animal_details": "Animal Details",
+    "no_more_media": "No more media files to load.",
+    "delete_media_confirm": "Are you sure you want to delete this media?"
   }
 }
