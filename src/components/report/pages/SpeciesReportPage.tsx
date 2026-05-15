@@ -1,5 +1,7 @@
+'use client'
+
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 import { MouseEvent } from 'react'
 
 import {
@@ -243,13 +245,13 @@ const SpeciesReport = () => {
   }, [])
 
   useEffect(() => {
-    if (router.pathname === '/report/species' && reports_module && enable_specie_report && initialLoad.current) {
+    if (reports_module && enable_specie_report && initialLoad.current) {
       setSelectedSites([])
       setSelectedOptions({})
       setApiFilterParams(initialFilterParams)
       fetchData(initialFilterParams, searchValue, paginationModel)
     }
-  }, [router.pathname, reports_module, enable_specie_report])
+  }, [reports_module, enable_specie_report])
 
   useEffect(() => {
     if (!initialLoad.current && reports_module && enable_specie_report) {

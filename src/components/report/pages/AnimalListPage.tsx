@@ -1,5 +1,7 @@
+'use client'
+
 import { useCallback, useContext, useEffect, useRef, useState, Dispatch, SetStateAction } from 'react'
-import { useRouter } from 'next/router'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 import { Box, Button, Card, CardHeader, Checkbox, Popover, Typography, Tooltip, CircularProgress } from '@mui/material'
 import { TabContext } from '@mui/lab'
@@ -40,9 +42,9 @@ interface AnimalContextType {
 
 const AnimalList = () => {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const theme = useTheme()
-  const { animalId: animalIdQuery } = router.query
-  const animalId = animalIdQuery as string | undefined
+  const animalId = searchParams?.get('animalId') ?? undefined
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext) as AuthContextType
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
@@ -141,7 +143,7 @@ const AnimalList = () => {
   const id = open ? 'filter-popover' : undefined
 
   useEffect(() => {
-    if (router.pathname === '/report/animalList' && !animalId) {
+    if (!animalId) {
       setSelectedSites([])
       setSelectedOptions({})
 
@@ -159,7 +161,7 @@ const AnimalList = () => {
         }
       })
     }
-  }, [router.pathname, animalId])
+  }, [animalId])
 
   const handleSelection = async (selectedIDs: string[], category: string) => {
     let params: FilterParams = {}

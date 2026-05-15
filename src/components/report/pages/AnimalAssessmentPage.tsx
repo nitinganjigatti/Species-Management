@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect, useRef, useContext, useCallback, useMemo } from 'react'
 import {
   Avatar,
