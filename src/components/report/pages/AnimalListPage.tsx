@@ -2,6 +2,7 @@
 
 import { useCallback, useContext, useEffect, useRef, useState, Dispatch, SetStateAction } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 
 import { Box, Button, Card, CardHeader, Checkbox, Popover, Typography, Tooltip, CircularProgress } from '@mui/material'
 import { TabContext } from '@mui/lab'
@@ -44,6 +45,7 @@ const AnimalList = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
   const theme = useTheme()
+  const { t } = useTranslation()
   const animalId = searchParams?.get('animalId') ?? undefined
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext) as AuthContextType
@@ -84,17 +86,17 @@ const AnimalList = () => {
 
   const [popoverData, setPopoverData] = useState<PopoverData>({
     Taxonomy: [
-      { label: 'Class', key: 'include_class', checked: true },
-      { label: 'Order', key: 'include_order', checked: true },
-      { label: 'Family', key: 'include_family', checked: true },
-      { label: 'Genus', key: 'include_genus', checked: true }
+      { label: t('report_module.class'), key: 'include_class', checked: true },
+      { label: t('report_module.order'), key: 'include_order', checked: true },
+      { label: t('report_module.family'), key: 'include_family', checked: true },
+      { label: t('report_module.genus'), key: 'include_genus', checked: true }
     ],
     Housing: [
-      { label: 'Site', key: 'include_site', checked: false },
-      { label: 'Section', key: 'include_section', checked: false },
-      { label: 'Enclosure', key: 'include_enclosure', checked: false },
-      { label: 'Cluster', key: 'include_cluster', checked: false },
-      { label: 'Organisation', key: 'include_organization', checked: false }
+      { label: t('site'), key: 'include_site', checked: false },
+      { label: t('section'), key: 'include_section', checked: false },
+      { label: t('enclosure'), key: 'include_enclosure', checked: false },
+      { label: t('report_module.cluster'), key: 'include_cluster', checked: false },
+      { label: t('report_module.organisation'), key: 'include_organization', checked: false }
     ]
   })
 
@@ -193,7 +195,10 @@ const AnimalList = () => {
     }))
   }
 
-  const fetchAndSetDataList = async (params: FilterParams, options: { setHeaders?: boolean; setTotalCount?: boolean; responseType?: string } = {}) => {
+  const fetchAndSetDataList = async (
+    params: FilterParams,
+    options: { setHeaders?: boolean; setTotalCount?: boolean; responseType?: string } = {}
+  ) => {
     const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
     try {
       setIsLoading(true)
@@ -201,7 +206,12 @@ const AnimalList = () => {
       if (responseType === 'csv' && response && response.data) {
         handleCsvResponse(response.data as unknown as string)
       } else if (response.success) {
-        const { header, animal_list, total_animal } = (response.data as { header: HeaderItem[]; animal_list: Record<string, string | number | null | undefined>[]; total_animal: number }) || {}
+        const { header, animal_list, total_animal } =
+          (response.data as {
+            header: HeaderItem[]
+            animal_list: Record<string, string | number | null | undefined>[]
+            total_animal: number
+          }) || {}
 
         setTotal(total_animal)
         setIsLoading(false)
@@ -230,7 +240,12 @@ const AnimalList = () => {
       if (responseType === 'csv' && response && response.data) {
         handleCsvResponse(response.data as unknown as string)
       } else if (response.success) {
-        const { header, animal_list, total_animal } = (response.data as { header: HeaderItem[]; animal_list: Record<string, string | number | null | undefined>[]; total_animal: number }) || {}
+        const { header, animal_list, total_animal } =
+          (response.data as {
+            header: HeaderItem[]
+            animal_list: Record<string, string | number | null | undefined>[]
+            total_animal: number
+          }) || {}
 
         setTotal(total_animal)
         setIsDownloading(false)
@@ -288,7 +303,11 @@ const AnimalList = () => {
     }
   }, [fetchData, apiFilterParams, paginationModel, reports_module, enable_animal_report, animalId])
 
-  const getSpecificAnimal = async (id: string | undefined, options: { response_type?: string } = {}, fetchOptions: { responseType?: string } = {}) => {
+  const getSpecificAnimal = async (
+    id: string | undefined,
+    options: { response_type?: string } = {},
+    fetchOptions: { responseType?: string } = {}
+  ) => {
     try {
       const parsedParams = apiFilterParams || {}
 
@@ -331,7 +350,11 @@ const AnimalList = () => {
       setIsLoading(true)
       const response = await getAnimalReportById(params)
       if (response.success) {
-        const { header, animal_list, total_animal } = response.data as { header: HeaderItem[]; animal_list: Record<string, string | number | null | undefined>[]; total_animal: number }
+        const { header, animal_list, total_animal } = response.data as {
+          header: HeaderItem[]
+          animal_list: Record<string, string | number | null | undefined>[]
+          total_animal: number
+        }
 
         setTotal(total_animal)
         setHeaderList(header)
@@ -419,7 +442,10 @@ const AnimalList = () => {
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
-      renderCell: (params: { row: Record<string, string | number | null | undefined>; value?: string | number | null }) => {
+      renderCell: (params: {
+        row: Record<string, string | number | null | undefined>
+        value?: string | number | null
+      }) => {
         let truncatedValue: string | React.ReactNode
         const cellValue = params?.row[header?.key as string]
         truncatedValue = cellValue
@@ -480,7 +506,10 @@ const AnimalList = () => {
   const options = {
     Site:
       authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [],
-    Organization: (organizationList as { organization_name: string }[])?.sort((a, b) => a.organization_name.localeCompare(b.organization_name)) || []
+    Organization:
+      (organizationList as { organization_name: string }[])?.sort((a, b) =>
+        a.organization_name.localeCompare(b.organization_name)
+      ) || []
   }
 
   const handleFilterSection = () => {
@@ -502,7 +531,13 @@ const AnimalList = () => {
     updatedApiParams.sids =
       Array.isArray(selectedSiteIds) && selectedSiteIds.length > 0 ? selectedSiteIds.join(',') : ''
 
-    setSelectedSites(Array.isArray(selectedSiteIds) && selectedSiteIds.includes('All Sites') ? sites.map(s => String(s.site_id)) : (Array.isArray(selectedSiteIds) ? selectedSiteIds : []))
+    setSelectedSites(
+      Array.isArray(selectedSiteIds) && selectedSiteIds.includes('All Sites')
+        ? sites.map(s => String(s.site_id))
+        : Array.isArray(selectedSiteIds)
+        ? selectedSiteIds
+        : []
+    )
 
     setApiFilterParams(updatedApiParams)
     setAnchorEl(null)
@@ -568,7 +603,7 @@ const AnimalList = () => {
                         color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
-                      Animal Report List
+                      {t('report_module.animal_report_list')}
                     </Typography>
                   )
                 }
@@ -592,7 +627,7 @@ const AnimalList = () => {
                 }}
                 aria-disabled={isDownloading}
               >
-                Download report
+                {t('report_module.download_report')}
                 {isDownloading ? (
                   <CircularProgress size={22} sx={{ ml: 2 }} />
                 ) : (
@@ -652,7 +687,7 @@ const AnimalList = () => {
                           fontWeight: 400
                         }}
                       >
-                        Filter
+                        {t('filter')}
                       </Typography>
 
                       {animalId && getSpecificTotalSelectedFilters(selectedOptions) > 0 ? (
@@ -752,7 +787,7 @@ const AnimalList = () => {
                       <Typography
                         sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
                       >
-                        Show/Hide
+                        {t('report_module.show_hide')}
                       </Typography>
                     </Button>
                     <Popover
@@ -810,7 +845,7 @@ const AnimalList = () => {
                             padding: '6px 16px'
                           }}
                         >
-                          Cancel
+                          {t('cancel')}
                         </Button>
                         <Button
                           variant='contained'
@@ -820,7 +855,7 @@ const AnimalList = () => {
                             padding: '6px 16px'
                           }}
                         >
-                          Confirm
+                          {t('confirm')}
                         </Button>
                       </Box>
                     </Popover>
@@ -842,7 +877,7 @@ const AnimalList = () => {
                   onPaginationModelChange={setPaginationModel}
                   loading={isLoading}
                   downloadExcel
-                  headerName='Animal Report List'
+                  headerName={t('report_module.animal_report_list')}
                   searchMode='server'
                   disableColumnSorting={true}
                 />

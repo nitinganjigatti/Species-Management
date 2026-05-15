@@ -1,33 +1,38 @@
 import { Box, Button, Card, CircularProgress, Tab, Tabs, Typography } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import DownloadIcon from '@mui/icons-material/Download'
+import { useTranslation } from 'react-i18next'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { DailyReportViewProps, CategoryCardProps } from 'src/types/report'
 import { ReportItem } from 'src/types/report/models'
 
 const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDownload }: CategoryCardProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
 
-  const groupedBySubCategory: Record<string, ReportItem[]> = reports.reduce((acc: Record<string, ReportItem[]>, report) => {
-    const sub = report.sub_category || null
-    const key = String(sub)
-    if (!acc[key]) acc[key] = []
-    acc[key].push(report)
+  const groupedBySubCategory: Record<string, ReportItem[]> = reports.reduce(
+    (acc: Record<string, ReportItem[]>, report) => {
+      const sub = report.sub_category || null
+      const key = String(sub)
+      if (!acc[key]) acc[key] = []
+      acc[key].push(report)
 
-    return acc
-  }, {})
+      return acc
+    },
+    {}
+  )
 
   return (
     <Card
       sx={{
         mb: 4,
-        border: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+        border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
         boxShadow: 'none',
         borderRadius: '16px',
         overflow: 'hidden',
         transition: 'box-shadow 0.15s ease',
         '&:hover': {
-          boxShadow: (theme) => `0 2px 8px ${theme.palette.customColors.SurfaceVariant}`
+          boxShadow: theme => `0 2px 8px ${theme.palette.customColors.SurfaceVariant}`
         }
       }}
     >
@@ -40,7 +45,7 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
           px: 5,
           py: 2.5,
           backgroundColor: 'customColors.Surface',
-          borderBottom: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+          borderBottom: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
         }}
       >
         {categoryIcon && (
@@ -55,12 +60,7 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
               backgroundColor: 'customColors.OnBackground'
             }}
           >
-            <Box
-              component='img'
-              src={categoryIcon}
-              alt={category}
-              sx={{ width: 22, height: 22 }}
-            />
+            <Box component='img' src={categoryIcon} alt={category} sx={{ width: 22, height: 22 }} />
           </Box>
         )}
         <Typography
@@ -84,8 +84,8 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
               sx={{
                 px: 5,
                 py: 2,
-                borderTop: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                borderBottom: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                borderTop: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                borderBottom: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
               }}
             >
               <Typography
@@ -102,8 +102,7 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
             </Box>
           )}
           {subReports.map(report => {
-            const isDownloading =
-              downloadingRowId === report.id || downloadingRowId === report.key
+            const isDownloading = downloadingRowId === report.id || downloadingRowId === report.key
 
             return (
               <Box
@@ -114,7 +113,7 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
                   justifyContent: 'space-between',
                   px: 5,
                   py: 3.5,
-                  borderBottom: (theme) => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                  borderBottom: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
                   transition: 'background-color 0.15s ease',
                   '&:last-child': { borderBottom: 'none' },
                   '&:hover': { backgroundColor: 'customColors.Surface' }
@@ -171,7 +170,7 @@ const CategoryCard = ({ category, categoryIcon, reports, downloadingRowId, onDow
                     }
                   }}
                 >
-                  {isDownloading ? 'Downloading...' : 'Download'}
+                  {isDownloading ? t('report_module.downloading') : t('download')}
                 </Button>
               </Box>
             )
@@ -195,6 +194,8 @@ const DailyReportView = ({
   onDownload,
   loading
 }: DailyReportViewProps) => {
+  const { t } = useTranslation()
+
   const groupByCategory = (reports: ReportItem[]): Record<string, ReportItem[]> => {
     const grouped: Record<string, ReportItem[]> = {}
     reports.forEach(report => {
@@ -220,7 +221,7 @@ const DailyReportView = ({
           mb: 3
         }}
       >
-        Daily Report
+        {t('report_module.daily_report')}
       </Typography>
 
       {/* Tabs */}
@@ -246,8 +247,8 @@ const DailyReportView = ({
             }
           }}
         >
-          <Tab label='Past Reports' />
-          <Tab label='Upcoming Reports' />
+          <Tab label={t('report_module.past_reports')} />
+          <Tab label={t('report_module.upcoming_reports')} />
         </Tabs>
       </Box>
 
@@ -280,7 +281,7 @@ const DailyReportView = ({
       ) : Object.keys(groupedReports).length === 0 ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
           <Typography sx={{ color: 'customColors.neutralSecondary' }}>
-            No reports available
+            {t('report_module.no_reports_available')}
           </Typography>
         </Box>
       ) : (

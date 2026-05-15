@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Box, Drawer, Typography, IconButton, Avatar, Chip, CircularProgress } from '@mui/material'
 import { useTheme, Theme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import { getAnimalKeepers } from 'src/lib/api/caretaker'
 import AnimalCard from 'src/views/utility/AnimalCard'
@@ -12,6 +13,7 @@ interface CaretakerCardProps {
 }
 
 const CaretakerCard = ({ caretaker, theme }: CaretakerCardProps) => {
+  const { t } = useTranslation()
   const isPrimary = caretaker.is_primary === '1' || caretaker.is_primary === 1 || caretaker.is_primary === true
   const name = caretaker.user_name || caretaker.keeper_name || caretaker.name || caretaker.full_name || '-'
   const email = caretaker.user_email || caretaker.email || ''
@@ -64,7 +66,7 @@ const CaretakerCard = ({ caretaker, theme }: CaretakerCardProps) => {
       {isPrimary && (
         <Chip
           icon={<Icon icon='mdi:crown-outline' fontSize={14} />}
-          label='Primary'
+          label={t('report_module.primary')}
           size='small'
           sx={{
             backgroundColor: '#F4E4D4',
@@ -86,6 +88,7 @@ const CaretakerCard = ({ caretaker, theme }: CaretakerCardProps) => {
 
 const AnimalCaretakersDrawer = ({ open, onClose, animal }: AnimalCaretakersDrawerProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [loading, setLoading] = useState(false)
   const [caretakers, setCaretakers] = useState<Caretaker[]>([])
 
@@ -168,7 +171,7 @@ const AnimalCaretakersDrawer = ({ open, onClose, animal }: AnimalCaretakersDrawe
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Caretakers ({caretakers.length})
+            {t('report_module.caretakers')} ({caretakers.length})
           </Typography>
         </Box>
 
@@ -190,7 +193,9 @@ const AnimalCaretakersDrawer = ({ open, onClose, animal }: AnimalCaretakersDrawe
             </Box>
           ) : caretakers.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 10 }}>
-              <Typography sx={{ color: theme.palette.text.secondary }}>No caretakers assigned</Typography>
+              <Typography sx={{ color: theme.palette.text.secondary }}>
+                {t('report_module.no_caretakers_assigned')}
+              </Typography>
             </Box>
           ) : (
             caretakers.map((caretaker, index) => (

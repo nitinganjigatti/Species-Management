@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import {
   Box,
   Typography,
@@ -29,6 +30,7 @@ const SelectSites = <T extends { Site: (string | number)[] }>({
   setTempSelectedItems
 }: SelectSitesProps<T>) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [pendingSelections, setPendingSelections] = useState<T>(tempSelectedItems)
 
   const handleCloseDrawer = () => {
@@ -122,10 +124,10 @@ const SelectSites = <T extends { Site: (string | number)[] }>({
                 color: theme.palette.customColors.OnPrimaryContainer
               }}
             >
-              Choose Site
+              {t('report_module.choose_site')}
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
-              Select a site from the list below
+              {t('report_module.select_site_desc')}
             </Typography>
           </Box>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawericon}>
@@ -136,7 +138,7 @@ const SelectSites = <T extends { Site: (string | number)[] }>({
         <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
           <TextField
             fullWidth
-            placeholder='Search'
+            placeholder={t('search')}
             variant='outlined'
             size='small'
             value={searchTerm}
@@ -173,7 +175,7 @@ const SelectSites = <T extends { Site: (string | number)[] }>({
 
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
-            Selected {filteredSelectedCount} / {filteredSites.length}
+            {t('selected')} {filteredSelectedCount} / {filteredSites.length}
           </Typography>
           <Box
             sx={{
@@ -194,7 +196,7 @@ const SelectSites = <T extends { Site: (string | number)[] }>({
               }}
               onClick={handleSelectAllSites}
             >
-              Select all
+              {t('select_all')}
             </Button>
 
             <Checkbox
@@ -305,7 +307,7 @@ const SelectSites = <T extends { Site: (string | number)[] }>({
                 )
               })
           ) : (
-            <Typography sx={{ textAlign: 'center', mt: 15 }}>No Site's found</Typography>
+            <Typography sx={{ textAlign: 'center', mt: 15 }}>{t('report_module.no_sites_found')}</Typography>
           )}
         </Box>
 
@@ -331,7 +333,7 @@ const SelectSites = <T extends { Site: (string | number)[] }>({
             onClick={handleCloseDrawer}
             disabled={pendingSelections?.Site?.length === 0}
           >
-            CONTINUE
+            {t('continue')}
           </Button>
         </Box>
       </Box>

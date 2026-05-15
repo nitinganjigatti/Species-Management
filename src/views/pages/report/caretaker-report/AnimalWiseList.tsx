@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from 'react'
 import { Box, Typography, Avatar, Chip } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
 import Icon from 'src/@core/components/icon'
 import CommonTableComponent from 'src/views/table/data-grid/CommonTable'
 import AnimalCaretakersDrawer from './AnimalCaretakersDrawer'
@@ -13,6 +14,7 @@ const FALLBACK_IMAGE = '/images/branding/Antz_logomark_h_color.svg'
 
 const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: AnimalWiseListProps) => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const [selectedAnimal, setSelectedAnimal] = useState<AnimalWise | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -45,7 +47,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
     () => [
       {
         field: 'animal',
-        headerName: 'Animal',
+        headerName: t('animal'),
         flex: 1.5,
         minWidth: 350,
         renderCell: ({ row }) => {
@@ -82,8 +84,8 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
             row.local_identifier_name && row.local_identifier_value
               ? `${row.local_identifier_name}: ${row.local_identifier_value}`
               : row.animal_id
-                ? `AID: ${row.animal_id}`
-                : '-'
+              ? `${t('aid')}: ${row.animal_id}`
+              : '-'
 
           return (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -158,24 +160,24 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
       },
       {
         field: 'location',
-        headerName: 'Location',
+        headerName: t('location'),
         flex: 0.8,
         minWidth: 180,
         renderCell: ({ row }) => (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
             {row.user_enclosure_name && (
               <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                Encl: {row.user_enclosure_name as string}
+                {t('encl')}: {row.user_enclosure_name as string}
               </Typography>
             )}
             {row.section_name && (
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-                Sec: {row.section_name as string}
+                {t('sec')}: {row.section_name as string}
               </Typography>
             )}
             {row.site_name && (
               <Typography sx={{ fontSize: '13px', color: theme.palette.text.secondary }}>
-                Site: {row.site_name as string}
+                {t('site')}: {row.site_name as string}
               </Typography>
             )}
           </Box>
@@ -183,7 +185,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
       },
       {
         field: 'total_keepers',
-        headerName: 'Caretakers',
+        headerName: t('report_module.caretakers'),
         flex: 0.5,
         minWidth: 120,
         align: 'center',
@@ -204,7 +206,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
       },
       {
         field: 'has_primary',
-        headerName: 'Primary',
+        headerName: t('report_module.primary'),
         flex: 0.4,
         minWidth: 100,
         align: 'center',
@@ -227,7 +229,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
         renderCell: () => <Icon icon='mdi:chevron-right' fontSize={24} color={theme.palette.text.secondary} />
       }
     ],
-    [theme]
+    [theme, t]
   )
 
   const tableData = useMemo(
@@ -243,7 +245,7 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
   if (!loading && (!data || data.length === 0)) {
     return (
       <Box sx={{ textAlign: 'center', py: 10 }}>
-        <Typography sx={{ color: theme.palette.text.secondary }}>No animals found</Typography>
+        <Typography sx={{ color: theme.palette.text.secondary }}>{t('report_module.no_animals_found')}</Typography>
       </Box>
     )
   }
@@ -262,7 +264,9 @@ const AnimalWiseList = ({ data, pagination, loading, onPaginationChange }: Anima
         onRowClick={(params: { row: AnimalWise }) => handleAnimalClick(params.row)}
       />
 
-      {selectedAnimal && <AnimalCaretakersDrawer open={drawerOpen} onClose={handleCloseDrawer} animal={selectedAnimal} />}
+      {selectedAnimal && (
+        <AnimalCaretakersDrawer open={drawerOpen} onClose={handleCloseDrawer} animal={selectedAnimal} />
+      )}
     </>
   )
 }

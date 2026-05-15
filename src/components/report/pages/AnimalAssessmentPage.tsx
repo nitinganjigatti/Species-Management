@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useContext, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   Avatar,
   Box,
@@ -89,6 +90,7 @@ interface DetailsDialogProps {
 
 const AnimalAssessment = () => {
   const theme = useTheme()
+  const { t } = useTranslation()
   const authData = useContext(AuthContext) as AuthContextType
   const enable_animal_assessment_report = authData?.userData?.permission?.user_settings?.enable_animal_assessment_report
 
@@ -152,7 +154,10 @@ const AnimalAssessment = () => {
     () =>
       selectAllActive && !isSearchResult
         ? null
-        : selectedSpecies?.map(species => species?.tsn_id).filter(Boolean).join(',') || '',
+        : selectedSpecies
+            ?.map(species => species?.tsn_id)
+            .filter(Boolean)
+            .join(',') || '',
     [selectAllActive, isSearchResult, selectedSpecies]
   )
 
@@ -281,7 +286,15 @@ const AnimalAssessment = () => {
         return parts.join(' ')
       })()
 
-      const recordMap: Record<string, { value: string; date: string; time: string; user: { profile_image?: string; user_first_name?: string; user_last_name?: string } }> = {}
+      const recordMap: Record<
+        string,
+        {
+          value: string
+          date: string
+          time: string
+          user: { profile_image?: string; user_first_name?: string; user_last_name?: string }
+        }
+      > = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
           value: `${assessment.assessment_value} ${assessment?.uom_abbr ? assessment.uom_abbr : ''}${''}`,
@@ -319,7 +332,7 @@ const AnimalAssessment = () => {
     setDataList(transformed)
 
     const headers: HeaderItem[] = [
-      { key: 'default_icon', label: 'ANIMAL DETAILS' },
+      { key: 'default_icon', label: t('report_module.animal_details') },
       ...Array.from({ length: maxAssessmentCount || (transformed.length > 0 ? 1 : 0) }, (_, i) => ({
         key: `record_${i}`,
         label:
@@ -370,7 +383,9 @@ const AnimalAssessment = () => {
         borderLeft: i === 1 && 'none'
       },
       renderCell: (params: { row: Record<string, string | number | boolean | undefined | null> }) => {
-        const record = params?.row[header.key as string] as { value: string; date: string; time: string; user: AnimalDetailsData['user'] } | undefined
+        const record = params?.row[header.key as string] as
+          | { value: string; date: string; time: string; user: AnimalDetailsData['user'] }
+          | undefined
 
         return record ? (
           <Box
@@ -541,7 +556,7 @@ const AnimalAssessment = () => {
             <Typography
               sx={{ fontSize: '16px', fontWeight: 500, letterSpacing: 0, color: theme.palette.customColors.deepDark }}
             >
-              Assessment Details
+              {t('report_module.assessment_details')}
             </Typography>
             <IconButton
               aria-label='close'
@@ -667,7 +682,7 @@ const AnimalAssessment = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', px: '24px', gap: 4, my: 4 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }} variant='h5'>
-                  Animal Assessment Report
+                  {t('report_module.animal_assessment_report')}
                 </Typography>
               </Box>
 
@@ -702,7 +717,7 @@ const AnimalAssessment = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Species
+                    {t('species')}
                   </Typography>
                   <Box
                     sx={{
@@ -729,7 +744,7 @@ const AnimalAssessment = () => {
                               color: theme.palette.primary.light
                             }}
                           >
-                            All
+                            {t('all')}
                           </Typography>
                         ) : (
                           <>
@@ -778,7 +793,7 @@ const AnimalAssessment = () => {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        Select Species
+                        {t('report_module.select_species')}
                       </Typography>
                     )}
                     <IconButton sx={{ mr: -4, width: '37px', flexShrink: 0 }}>
@@ -807,7 +822,7 @@ const AnimalAssessment = () => {
                       color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    Assessment Type
+                    {t('report_module.assessment_type')}
                   </Typography>
                   <Box
                     sx={{
@@ -847,7 +862,7 @@ const AnimalAssessment = () => {
                           whiteSpace: 'nowrap'
                         }}
                       >
-                        Select Assessment Type
+                        {t('report_module.select_assessment_type')}
                       </Typography>
                     )}
 
@@ -865,7 +880,7 @@ const AnimalAssessment = () => {
                     fullWidth
                     onClick={handleGenerate}
                   >
-                    Generate
+                    {t('report_module.generate')}
                   </Button>
                 </Box>
               </Box>
@@ -891,7 +906,7 @@ const AnimalAssessment = () => {
                         variant='outlined'
                         disabled={isLoading}
                         size='small'
-                        placeholder='Search'
+                        placeholder={t('search')}
                         InputProps={{
                           startAdornment: (
                             <InputAdornment position='start'>
@@ -906,7 +921,9 @@ const AnimalAssessment = () => {
                             <InputAdornment position='end'>
                               <IconButton
                                 size='small'
-                                onClick={() => handleSearchChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)}
+                                onClick={() =>
+                                  handleSearchChange({ target: { value: '' } } as React.ChangeEvent<HTMLInputElement>)
+                                }
                                 edge='end'
                               >
                                 <Icon icon='ic:round-close' fontSize={20} />
@@ -924,10 +941,7 @@ const AnimalAssessment = () => {
                       />
                     </Box>
                     <Box sx={{ display: 'flex', gap: 4, justifyContent: 'end', alignItems: 'center' }}>
-                      <CommonDateRangePickers
-                        onChange={handleDateRangeChange}
-                        filterDates={filterDates}
-                      />
+                      <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
 
                       {(authData?.userData?.user?.zoos[0]?.sites?.length ?? 0) > 0 && (
                         <Box
@@ -1050,8 +1064,8 @@ const AnimalAssessment = () => {
                   }}
                 >
                   {initialLoad
-                    ? 'Select Species and Assessment Type to Generate Report'
-                    : 'Reports not available for this search'}
+                    ? t('report_module.select_species_assessment_placeholder')
+                    : t('report_module.no_reports_for_search')}
                 </Typography>
               )}
             </Box>
