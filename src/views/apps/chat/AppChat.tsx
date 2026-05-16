@@ -23,7 +23,6 @@ import {
 // ** Adapters
 import { joinChatRoom, markConversationRead, sdkMessageToMessage } from 'src/lib/chat/api'
 import type {
-  NewMessageEvent,
   MessageDeliveredEvent,
   MessagesDeliveredEvent,
   ReadReceiptEvent
@@ -77,7 +76,6 @@ const AppChat = () => {
 
   useEffect(() => {
     dispatch(fetchUserProfile())
-    dispatch(fetchChatsContacts())
   }, [dispatch])
 
   // ── @antzsoft/chat-core wiring ─────────────────────────────────────────────
@@ -128,6 +126,14 @@ const AppChat = () => {
     selectedChatIdRef.current = store?.selectedChat?.contact.id ?? null
   }, [store?.selectedChat?.contact.id])
 
+  // Stable ref for the current user's profile id — used inside socket handlers
+  // to determine if a message is "ours" (instead of relying on tempId, which
+  // the server broadcasts to everyone).
+  const userProfileIdRef = useRef<string | number | null>(null)
+  useEffect(() => {
+    userProfileIdRef.current = store?.userProfile?.id ?? null
+  }, [store?.userProfile?.id])
+
   // Stable ref of the chat id set. Used inside the new_message handler so we
   // can detect events for conversations we don't yet have (e.g. someone just
   // created a DM with us) and pull a fresh list via `fetchChatsContacts`.
@@ -146,38 +152,62 @@ const AppChat = () => {
     // `tempId` on the event = this is the server echoing our own send back
     // to us — flag it so the reducer renders the bubble on OUR side even
     // when the server's senderId doesn't match userProfile.id.
-    const onNewMessage = (evt: NewMessageEvent) => {
-      if (!evt?.message) {
-        console.warn('[chat:trace] B0. new_message event without .message — ignored')
+    const onNewMessage = (evt: any) => {
+      // The server may send the message in different shapes:
+      //   { message: Message, tempId? }   — wrapped
+      //   Message                         — directly (has .id + .conversationId)
+      //   { data: Message, tempId? }      — alt wrapper
+      const raw = evt?.message ?? evt?.data ?? (evt?.conversationId ? evt : null)
+
+      if (!raw || !raw.conversationId) {
+        console.warn('[chat:trace] B0. new_message — could not extract message from event:', evt)
 
         return
       }
+
+      // Determine if this is our own message by comparing senderId with our
+      // profile id — tempId is unreliable because the server broadcasts it
+      // to all participants, not just the sender.
+      const isOwn = Boolean(
+        userProfileIdRef.current && raw.senderId === String(userProfileIdRef.current)
+      )
+
       console.log('[chat:trace] B1. socket on(new_message) →', {
-        msgId: evt.message.id,
-        conversationId: evt.message.conversationId,
-        tempId: evt.tempId,
-        knownConv: knownChatIdsRef.current.has(evt.message.conversationId)
+        msgId: raw.id,
+        conversationId: raw.conversationId,
+        senderId: raw.senderId,
+        currentUserId: userProfileIdRef.current,
+        isOwn,
+        knownConv: knownChatIdsRef.current.has(raw.conversationId)
       })
 
-      if (!knownChatIdsRef.current.has(evt.message.conversationId)) {
-        console.log('[chat:trace] B2. unknown conversation → fetchChatsContacts()')
-        dispatch(fetchChatsContacts())
+      if (!knownChatIdsRef.current.has(raw.conversationId)) {
+        console.log('[chat:trace] B2. unknown conversation → fetchChatsContacts() then receive')
+        dispatch(fetchChatsContacts()).then(() => {
+          dispatch(
+            receiveMessage({
+              conversationId: raw.conversationId,
+              message: sdkMessageToMessage(raw),
+              isOwn
+            })
+          )
+        })
 
         return
       }
 
       dispatch(
         receiveMessage({
-          conversationId: evt.message.conversationId,
-          message: sdkMessageToMessage(evt.message),
-          isOwn: Boolean(evt.tempId)
+          conversationId: raw.conversationId,
+          message: sdkMessageToMessage(raw),
+          isOwn
         })
       )
 
-      const isOpen = selectedChatIdRef.current === evt.message.conversationId
+      const isOpen = selectedChatIdRef.current === raw.conversationId
       if (isOpen) {
         console.log('[chat:trace] B3. message in open chat → markAsRead')
-        markConversationRead(evt.message.conversationId).catch(err => {
+        markConversationRead(raw.conversationId).catch(err => {
           console.warn('[chat:trace] markAsRead on receive failed:', err)
         })
       }

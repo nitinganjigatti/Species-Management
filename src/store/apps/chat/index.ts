@@ -762,13 +762,20 @@ export const appChatSlice = createSlice({
       const stored: MessageType =
         isOwn && state.userProfile ? { ...message, senderId: state.userProfile.id } : message
 
-      chatEntry.chat.messages.push(stored)
+      const newMessages = [...chatEntry.chat.messages, stored]
+      chatEntry.chat.messages = newMessages
       chatEntry.chat.lastMessage = stored
 
       const isOpen = state.selectedChat?.contact.id === conversationId
       if (isOpen) {
-        state.selectedChat!.chat = chatEntry.chat
-        console.log('[chat:trace] R1d. pushed + synced selectedChat.chat')
+        // Explicitly create a new selectedChat object so React detects the
+        // change — Immer can miss mutations when selectedChat.chat and
+        // chats[i].chat share the same base reference.
+        state.selectedChat = {
+          chat: { ...chatEntry.chat, messages: newMessages },
+          contact: chatEntry
+        }
+        console.log('[chat:trace] R1d. pushed + synced selectedChat (new ref, len=' + newMessages.length + ')')
       } else {
         const isMine =
           isOwn || (state.userProfile != null && message.senderId === state.userProfile.id)
@@ -801,8 +808,41 @@ export const appChatSlice = createSlice({
       if (action.payload) state.userProfile = action.payload
     })
     builder.addCase(fetchChatsContacts.fulfilled, (state, action) => {
-      state.chats = action.payload.chatsContacts
+      const incoming = action.payload.chatsContacts
       state.contacts = action.payload.contacts
+
+      if (!state.chats || state.chats.length === 0) {
+        // First load — nothing to merge, just assign.
+        state.chats = incoming
+      } else {
+        // Merge: preserve locally cached messages & lastMessage that the
+        // server response doesn't carry (it only returns conversation
+        // metadata, not full message history).
+        const existingById = new Map<ChatEntityId, ChatsArrType>(state.chats.map(c => [c.id, c]))
+
+        state.chats = incoming.map(inc => {
+          const prev = existingById.get(inc.id)
+          if (!prev) return inc
+
+          return {
+            ...inc,
+            chat: {
+              ...inc.chat,
+              messages: prev.chat.messages.length > 0 ? prev.chat.messages : inc.chat.messages,
+              lastMessage: inc.chat.lastMessage ?? prev.chat.lastMessage
+            }
+          }
+        })
+      }
+
+      // Keep selectedChat in sync with the updated chats array.
+      if (state.selectedChat) {
+        const selectedId = state.selectedChat.contact.id
+        const updated = state.chats.find(c => c.id === selectedId)
+        if (updated) {
+          state.selectedChat = { chat: updated.chat, contact: updated }
+        }
+      }
     })
     builder.addCase(sendMsg.fulfilled, (state, action) => {
       const { newMsg, contactId } = action.payload
@@ -826,12 +866,18 @@ export const appChatSlice = createSlice({
       }
 
       if (newMsg.id) {
-        const existing = chatEntry.chat.messages.find(m => m.id === newMsg.id)
-        if (existing) {
+        const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === newMsg.id)
+        if (existingIdx >= 0) {
           console.log('[chat:trace] 7c. dedupe: broadcast beat the ack, updating senderId only')
-          existing.senderId = newMsg.senderId
+          chatEntry.chat.messages[existingIdx] = {
+            ...chatEntry.chat.messages[existingIdx],
+            senderId: newMsg.senderId
+          }
           if (state.selectedChat && state.selectedChat.contact.id === contactId) {
-            state.selectedChat.chat = chatEntry.chat
+            state.selectedChat = {
+              chat: { ...chatEntry.chat, messages: [...chatEntry.chat.messages] },
+              contact: chatEntry
+            }
           }
 
           return
@@ -839,11 +885,15 @@ export const appChatSlice = createSlice({
       }
 
       console.log('[chat:trace] 7d. pushing new message into thread', newMsg.id)
-      chatEntry.chat.messages.push(newMsg)
+      const newMessages = [...chatEntry.chat.messages, newMsg]
+      chatEntry.chat.messages = newMessages
       chatEntry.chat.lastMessage = newMsg
       if (state.selectedChat && state.selectedChat.contact.id === contactId) {
-        state.selectedChat.chat = chatEntry.chat
-        console.log('[chat:trace] 7e. selectedChat.chat synced')
+        state.selectedChat = {
+          chat: { ...chatEntry.chat, messages: newMessages },
+          contact: chatEntry
+        }
+        console.log('[chat:trace] 7e. selectedChat synced (new ref)')
       }
     })
   }
