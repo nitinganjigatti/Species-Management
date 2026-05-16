@@ -22,6 +22,7 @@ import animalsNavigation from 'src/components/navigation/animals'
 import componentLibraryNavigation from 'src/components/navigation/component-library'
 import vmsNavigation from 'src/components/navigation/vms'
 import collectionNavigation from 'src/components/navigation/collection'
+import chatNavigation from 'src/components/navigation/chat'
 
 const ComposeNavigation = () => {
   const authData = useContext(AuthContext)
@@ -162,6 +163,10 @@ const ComposeNavigation = () => {
     const collectionNav = collectionNavigation()
     navigationArray.push(...collectionNav)
   }
+
+  // Chat module (App Router)
+  const chatNav = chatNavigation()
+  navigationArray.push(...chatNav)
 
   // Component Library (Developer Tools)
   // const componentLibraryNav = componentLibraryNavigation()
