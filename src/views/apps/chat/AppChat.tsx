@@ -264,6 +264,20 @@ const AppChat = () => {
     const onTyping = (evt: unknown) => console.log('[chat] typing:', evt)
     const onUserStatus = (evt: unknown) => console.log('[chat] user_status:', evt)
 
+    // When a conversation is created/updated (e.g. user added to a new group),
+    // refresh the conversation list so the new chat appears in the sidebar and
+    // we join its socket room (via the room-joining effect).
+    const onConversationUpdated = (evt: any) => {
+      console.log('[chat] conversation_updated:', evt)
+      const convId = evt?.conversationId
+      if (convId && !knownChatIdsRef.current.has(convId)) {
+        console.log('[chat] new conversation detected → refreshing list + joining room')
+        dispatch(fetchChatsContacts()).then(() => {
+          joinChatRoom(convId)
+        })
+      }
+    }
+
     // DEBUG: catch every event the server fires so we can confirm which
     // ones are arriving when two users are interacting.
     const onAny = (eventName: string, ...args: unknown[]) =>
@@ -275,6 +289,7 @@ const AppChat = () => {
     chatSocket.on('read_receipt', onReadReceipt)
     chatSocket.on('typing', onTyping)
     chatSocket.on('user_status', onUserStatus)
+    chatSocket.on('conversation_updated', onConversationUpdated)
     chatSocket.onAny(onAny)
 
     return () => {
@@ -284,6 +299,7 @@ const AppChat = () => {
       chatSocket.off('read_receipt', onReadReceipt)
       chatSocket.off('typing', onTyping)
       chatSocket.off('user_status', onUserStatus)
+      chatSocket.off('conversation_updated', onConversationUpdated)
       chatSocket.offAny(onAny)
     }
   }, [chatSocket, chatConnected, chatError, chatClient, dispatch])
