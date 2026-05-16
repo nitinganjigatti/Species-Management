@@ -545,12 +545,26 @@ export const sendMsg = createAsyncThunk(
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
+    // Map app-side ChatAttachmentType → SDK SendMessageAttachment (uses fileId).
+    const attachments = obj.attachments?.length
+      ? obj.attachments.map(a => ({
+          fileId: a.id,
+          type: a.type,
+          url: a.url,
+          thumbnailUrl: a.thumbnailUrl,
+          filename: a.filename,
+          mimeType: a.mimeType,
+          size: a.size
+        }))
+      : undefined
+
     let sent
     try {
       sent = await sendMessageOverSocket({
         conversationId,
         text: obj.message,
-        tempId
+        tempId,
+        ...(attachments ? { attachments } : {})
       })
     } catch (err) {
       console.error('[chat:trace] sendMessageOverSocket threw:', err)
@@ -569,6 +583,9 @@ export const sendMsg = createAsyncThunk(
     const newMsg = sdkMessageToMessage(sent)
     if (!newMsg.message) newMsg.message = obj.message
     if (currentUserId) newMsg.senderId = currentUserId
+    if (!newMsg.attachments?.length && obj.attachments?.length) {
+      newMsg.attachments = obj.attachments
+    }
 
     return { newMsg, contactId: conversationId }
   }

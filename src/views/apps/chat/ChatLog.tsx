@@ -19,6 +19,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Utils Imports
 import { getInitials } from 'src/@core/utils/get-initials'
+import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
 // ** Types Imports
 import {
@@ -68,25 +69,21 @@ const ChatLog = (props: ChatLogType) => {
       messages: []
     }
     chatLog.forEach((msg: MessageType, index: number) => {
+      const entry = {
+        time: msg.time,
+        msg: msg.message,
+        feedback: msg.feedback,
+        ...(msg.attachments?.length ? { attachments: msg.attachments } : {})
+      }
       if (chatMessageSenderId === msg.senderId) {
-        msgGroup.messages.push({
-          time: msg.time,
-          msg: msg.message,
-          feedback: msg.feedback
-        })
+        msgGroup.messages.push(entry)
       } else {
         chatMessageSenderId = msg.senderId
 
         formattedChatLog.push(msgGroup)
         msgGroup = {
           senderId: msg.senderId,
-          messages: [
-            {
-              time: msg.time,
-              msg: msg.message,
-              feedback: msg.feedback
-            }
-          ]
+          messages: [entry]
         }
       }
 
@@ -177,26 +174,116 @@ const ChatLog = (props: ChatLogType) => {
 
               return (
                 <Box key={index} sx={{ '&:not(:last-of-type)': { mb: 3.5 } }}>
-                  <div>
-                    <Typography
-                      sx={{
-                        boxShadow: 1,
-                        borderRadius: 1,
-                        maxWidth: '100%',
-                        width: 'fit-content',
-                        fontSize: '0.875rem',
-                        wordWrap: 'break-word',
-                        p: theme => theme.spacing(3, 4),
-                        ml: isSender ? 'auto' : undefined,
-                        borderTopLeftRadius: !isSender ? 0 : undefined,
-                        borderTopRightRadius: isSender ? 0 : undefined,
-                        color: isSender ? 'common.white' : 'text.primary',
-                        backgroundColor: isSender ? 'primary.main' : 'background.paper'
-                      }}
-                    >
-                      {chat.msg}
-                    </Typography>
-                  </div>
+                  <Box
+                    sx={{
+                      ml: isSender ? 'auto' : undefined,
+                      width: 'fit-content',
+                      maxWidth: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1
+                    }}
+                  >
+                    {chat.attachments?.map(att => (
+                      <Box
+                        key={att.id}
+                        sx={{
+                          boxShadow: 1,
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                          borderTopLeftRadius: !isSender ? 0 : undefined,
+                          borderTopRightRadius: isSender ? 0 : undefined,
+                          backgroundColor: isSender ? 'primary.main' : 'background.paper',
+                          color: isSender ? 'common.white' : 'text.primary'
+                        }}
+                      >
+                        {att.type === 'image' ? (
+                          <Box
+                            component='a'
+                            href={att.url}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            sx={{ display: 'block', lineHeight: 0 }}
+                          >
+                            <Box
+                              component='img'
+                              src={att.thumbnailUrl ?? att.url}
+                              alt={att.filename}
+                              loading='lazy'
+                              sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
+                            />
+                          </Box>
+                        ) : att.type === 'video' ? (
+                          <Box
+                            component='video'
+                            src={att.url}
+                            controls
+                            sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
+                          />
+                        ) : att.type === 'audio' ? (
+                          <Box sx={{ p: 2 }}>
+                            <Box component='audio' src={att.url} controls sx={{ width: '100%' }} />
+                          </Box>
+                        ) : (
+                          (() => {
+                            const visual = getAttachmentVisual(att.mimeType, att.filename)
+
+                            return (
+                              <Box
+                                component='a'
+                                href={att.url}
+                                target='_blank'
+                                rel='noopener noreferrer'
+                                download={att.filename}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 2,
+                                  p: theme => theme.spacing(3, 4),
+                                  color: 'inherit',
+                                  textDecoration: 'none'
+                                }}
+                              >
+                                <Icon
+                                  icon={visual.icon}
+                                  color={isSender ? '#ffffff' : visual.color}
+                                  fontSize='2rem'
+                                />
+                                <Box sx={{ minWidth: 0 }}>
+                                  <Typography variant='caption' sx={{ display: 'block', color: 'inherit' }} noWrap>
+                                    {att.filename}
+                                  </Typography>
+                                  <Typography variant='caption' sx={{ color: 'inherit', opacity: 0.8 }}>
+                                    {(att.size / 1024).toFixed(0)} KB
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            )
+                          })()
+                        )}
+                      </Box>
+                    ))}
+                    {chat.msg ? (
+                      <Typography
+                        sx={{
+                          boxShadow: 1,
+                          borderRadius: 1,
+                          maxWidth: '100%',
+                          width: 'fit-content',
+                          fontSize: '0.875rem',
+                          wordWrap: 'break-word',
+                          p: theme => theme.spacing(3, 4),
+                          ml: isSender ? 'auto' : undefined,
+                          borderTopLeftRadius: !isSender ? 0 : undefined,
+                          borderTopRightRadius: isSender ? 0 : undefined,
+                          color: isSender ? 'common.white' : 'text.primary',
+                          backgroundColor: isSender ? 'primary.main' : 'background.paper'
+                        }}
+                      >
+                        {chat.msg}
+                      </Typography>
+                    ) : null}
+                  </Box>
                   {index + 1 === length ? (
                     <Box
                       sx={{
@@ -240,7 +327,7 @@ const ChatLog = (props: ChatLogType) => {
   }
 
   return (
-    <Box sx={{ height: 'calc(100% - 8.4375rem)' }}>
+    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
       <ScrollWrapper>{renderChats()}</ScrollWrapper>
     </Box>
   )

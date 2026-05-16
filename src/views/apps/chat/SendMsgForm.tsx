@@ -1,22 +1,24 @@
 'use client'
 
-// ** React Imports
-import { useState, SyntheticEvent } from 'react'
+import { useEffect, useRef, useState, SyntheticEvent, ChangeEvent } from 'react'
 
-// ** MUI Imports
 import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import CircularProgress from '@mui/material/CircularProgress'
+import toast from 'react-hot-toast'
 
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Types
 import { SendMsgComponentType } from 'src/types/apps/chatTypes'
+import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
+import { uploadChatFiles } from 'src/lib/chat/api'
+import type { UploadableFile } from 'src/lib/chat/api'
+import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
-// ** Styled Components
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   display: 'flex',
   borderRadius: 8,
@@ -31,27 +33,196 @@ const Form = styled('form')(({ theme }) => ({
   padding: theme.spacing(0, 5, 5)
 }))
 
+const PreviewStrip = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: theme.spacing(2),
+  padding: theme.spacing(2, 0)
+}))
+
+const PreviewChip = styled(Box)(({ theme }) => ({
+  position: 'relative',
+  display: 'flex',
+  alignItems: 'center',
+  gap: theme.spacing(2),
+  padding: theme.spacing(1.5, 2),
+  borderRadius: 8,
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+  maxWidth: 220
+}))
+
+type PendingFile = {
+  key: string
+  file: File
+  previewUrl: string
+  kind: 'image' | 'video' | 'audio' | 'document'
+}
+
+const inferKind = (mime: string): PendingFile['kind'] => {
+  if (mime.startsWith('image/')) return 'image'
+  if (mime.startsWith('video/')) return 'video'
+  if (mime.startsWith('audio/')) return 'audio'
+
+  return 'document'
+}
+
+const kindMediaIcon: Record<'video' | 'audio', string> = {
+  video: 'mdi:video-outline',
+  audio: 'mdi:music-note'
+}
+
 const SendMsgForm = (props: SendMsgComponentType) => {
-  // ** Props
   const { store, dispatch, sendMsg } = props
 
-  // ** State
   const [msg, setMsg] = useState<string>('')
+  const [pending, setPending] = useState<PendingFile[]>([])
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
-  const handleSendMsg = (e: SyntheticEvent) => {
-    e.preventDefault()
-    if (store && store.selectedChat && msg.trim().length) {
-      console.log('[chat:trace] 1. SendMsgForm dispatch →', {
-        conversationId: store.selectedChat.contact.id,
-        text: msg
-      })
-      dispatch(sendMsg({ ...store.selectedChat, message: msg }))
+  useEffect(() => {
+    return () => {
+      pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
     }
+
+  }, [])
+
+  const handleFiles = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? [])
+    if (!files.length) return
+
+    const next: PendingFile[] = files.map(f => ({
+      key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
+      file: f,
+      previewUrl: URL.createObjectURL(f),
+      kind: inferKind(f.type)
+    }))
+    setPending(prev => [...prev, ...next])
+
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const removePending = (key: string) => {
+    setPending(prev => {
+      const drop = prev.find(p => p.key === key)
+      if (drop) URL.revokeObjectURL(drop.previewUrl)
+
+      return prev.filter(p => p.key !== key)
+    })
+  }
+
+  const hasContent = Boolean(msg.trim().length || pending.length)
+
+  const handleSendMsg = async (e: SyntheticEvent) => {
+    e.preventDefault()
+    if (!store?.selectedChat) return
+    const trimmed = msg.trim()
+    if (!trimmed.length && !pending.length) return
+    if (uploading) return
+
+    let uploaded: ChatAttachmentType[] | undefined
+    const conversationId = store.selectedChat.contact.id
+
+    if (pending.length) {
+      if (typeof conversationId !== 'string') {
+        toast.error('Cannot send attachments before the conversation is ready')
+
+        return
+      }
+      setUploading(true)
+      try {
+        const uploadables: UploadableFile[] = pending.map(p => ({
+          uri: p.previewUrl,
+          name: p.file.name,
+          type: p.file.type,
+          size: p.file.size
+        }))
+        const result = await uploadChatFiles(uploadables, conversationId)
+        if (result.failed.length) {
+          result.failed.forEach(f => toast.error(`${f.filename}: ${f.error}`))
+        }
+        if (!result.attachments.length) {
+          setUploading(false)
+
+          return
+        }
+        uploaded = result.attachments.map(a => ({
+          id: a.fileId,
+          type: a.type,
+          url: a.url,
+          thumbnailUrl: a.thumbnailUrl,
+          filename: a.filename,
+          mimeType: a.mimeType,
+          size: a.size
+        }))
+      } catch (err) {
+        console.error('[chat] attachment upload failed:', err)
+        toast.error('Failed to upload attachments')
+        setUploading(false)
+
+        return
+      }
+      setUploading(false)
+    }
+
+    console.log('[chat:trace] 1. SendMsgForm dispatch →', {
+      conversationId,
+      text: trimmed,
+      attachmentCount: uploaded?.length ?? 0
+    })
+
+    dispatch(
+      sendMsg({
+        ...store.selectedChat,
+        message: trimmed,
+        ...(uploaded ? { attachments: uploaded } : {})
+      })
+    )
+
+    pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
+    setPending([])
     setMsg('')
   }
 
   return (
     <Form onSubmit={handleSendMsg}>
+      {pending.length > 0 && (
+        <PreviewStrip>
+          {pending.map(p => {
+            const docVisual =
+              p.kind === 'document' ? getAttachmentVisual(p.file.type, p.file.name) : null
+
+            return (
+              <PreviewChip key={p.key}>
+                {p.kind === 'image' ? (
+                  <Box
+                    component='img'
+                    src={p.previewUrl}
+                    alt={p.file.name}
+                    sx={{ width: 40, height: 40, borderRadius: 1, objectFit: 'cover' }}
+                  />
+                ) : p.kind === 'document' && docVisual ? (
+                  <Icon icon={docVisual.icon} color={docVisual.color} fontSize='1.75rem' />
+                ) : (
+                  <Icon icon={kindMediaIcon[p.kind as 'video' | 'audio']} fontSize='1.75rem' />
+                )}
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant='caption' noWrap sx={{ display: 'block', maxWidth: 120 }}>
+                  {p.file.name}
+                </Typography>
+                <Typography variant='caption' color='text.secondary'>
+                  {(p.file.size / 1024).toFixed(0)} KB
+                </Typography>
+              </Box>
+              <IconButton size='small' onClick={() => removePending(p.key)} disabled={uploading}>
+                <Icon icon='mdi:close' fontSize='1rem' />
+              </IconButton>
+              </PreviewChip>
+            )
+          })}
+        </PreviewStrip>
+      )}
+
       <ChatFormWrapper>
         <Box sx={{ flexGrow: 1, display: 'flex', alignItems: 'center' }}>
           <TextField
@@ -60,20 +231,43 @@ const SendMsgForm = (props: SendMsgComponentType) => {
             size='small'
             placeholder='Type your message here…'
             onChange={e => setMsg(e.target.value)}
+            disabled={uploading}
             sx={{ '& .MuiOutlinedInput-input': { pl: 0 }, '& fieldset': { border: '0 !important' } }}
           />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <IconButton size='small' sx={{ mr: 1.5, color: 'text.primary' }}>
-            <Icon icon='mdi:microphone' fontSize='1.375rem' />
-          </IconButton>
-          <IconButton size='small' component='label' htmlFor='upload-img' sx={{ mr: 2.75, color: 'text.primary' }}>
+          <IconButton
+            size='small'
+            component='label'
+            htmlFor='chat-attachment-input'
+            disabled={uploading}
+            sx={{ mr: 1.5, color: 'text.primary' }}
+          >
             <Icon icon='mdi:attachment' fontSize='1.375rem' />
-            <input hidden type='file' id='upload-img' />
+            <input
+              ref={fileInputRef}
+              hidden
+              type='file'
+              multiple
+              id='chat-attachment-input'
+              onChange={handleFiles}
+            />
           </IconButton>
-          <Button type='submit' variant='contained'>
-            Send
-          </Button>
+          {hasContent ? (
+            <Button
+              type='submit'
+              variant='contained'
+              disabled={uploading}
+              startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : undefined}
+              sx={{ ml: 1.25 }}
+            >
+              {uploading ? 'Sending…' : 'Send'}
+            </Button>
+          ) : (
+            <IconButton size='small' sx={{ ml: 1.25, color: 'text.primary' }}>
+              <Icon icon='mdi:microphone' fontSize='1.375rem' />
+            </IconButton>
+          )}
         </Box>
       </ChatFormWrapper>
     </Form>

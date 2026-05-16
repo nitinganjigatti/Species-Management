@@ -41,6 +41,18 @@ export type MsgFeedbackType = {
 // `string` once all seeds are removed.
 export type ChatEntityId = string | number
 
+export type ChatAttachmentType = {
+  id: string
+  type: 'image' | 'video' | 'audio' | 'document'
+  url: string
+  thumbnailUrl?: string
+  filename: string
+  mimeType: string
+  size: number
+  isUploading?: boolean
+  uploadProgress?: number
+}
+
 export type MessageType = {
   // Stable server id once known; absent for mock seed messages and pre-ack
   // optimistic sends. Used to dedupe socket echoes and update feedback ticks.
@@ -49,6 +61,7 @@ export type MessageType = {
   message: string
   senderId: ChatEntityId
   feedback: MsgFeedbackType
+  attachments?: ChatAttachmentType[]
 }
 
 export type ChatType = {
@@ -114,6 +127,7 @@ export type SendMsgParamsType = {
   chat?: ChatType
   message: string
   contact?: ChatsArrType
+  attachments?: ChatAttachmentType[]
 }
 
 export type ChatContentType = {
@@ -180,6 +194,7 @@ export type ChatLogChatType = {
   msg: string
   time: string | Date
   feedback: MsgFeedbackType
+  attachments?: ChatAttachmentType[]
 }
 
 export type MessageGroupType = {

@@ -3,6 +3,7 @@
 
 import type {
   AntzChatClient,
+  BatchUploadResult,
   Conversation,
   CreateDirectData,
   CreateGroupData,
@@ -19,9 +20,11 @@ import type {
   Participant,
   ReactionUpdatedEvent,
   ReadReceiptEvent,
+  SendMessageAttachment,
   SendMessagePayload,
   TypingIndicatorEvent,
   UpdateConversationData,
+  UploadableFile,
   User,
   UserStatusEvent
 } from '@antzsoft/chat-core'
@@ -53,6 +56,7 @@ export type ParticipantRole = 'admin' | 'member'
 
 export type {
   AntzChatClient,
+  BatchUploadResult,
   Conversation,
   CreateDirectData,
   CreateGroupData,
@@ -66,9 +70,11 @@ export type {
   NewMessageEvent,
   ReactionUpdatedEvent,
   ReadReceiptEvent,
+  SendMessageAttachment,
   SendMessagePayload,
   TypingIndicatorEvent,
   UpdateConversationData,
+  UploadableFile,
   User,
   UserStatusEvent
 }
@@ -223,6 +229,36 @@ export function markConversationRead(conversationId: string, messageId?: string)
   return requireClient('markConversationRead').messages.markAsRead(conversationId, messageId)
 }
 
+// ── Attachments / Uploads ────────────────────────────────────────────────────
+
+export type UploadChatFilesResult = {
+  attachments: SendMessageAttachment[]
+  failed: BatchUploadResult['failed']
+}
+
+// Uploads files via the SDK (presign → platformUploadFn → confirm) and maps
+// each successful FileResponse into a SendMessageAttachment ready to pass to
+// `sendMessageOverSocket({ attachments })`.
+export async function uploadChatFiles(
+  files: UploadableFile[],
+  conversationId: string
+): Promise<UploadChatFilesResult> {
+  const client = requireClient('uploadChatFiles')
+  const result = await client.uploadFiles(files, conversationId)
+
+  const attachments: SendMessageAttachment[] = result.successful.map(f => ({
+    fileId: f.id,
+    type: f.type,
+    url: f.url,
+    thumbnailUrl: f.thumbnailUrl,
+    filename: f.filename,
+    mimeType: f.mimeType,
+    size: f.size
+  }))
+
+  return { attachments, failed: result.failed }
+}
+
 // ── Adapters (SDK types → app types) ─────────────────────────────────────────
 
 // Backend returns participants with displayName / username / avatarUrl flat
@@ -299,6 +335,18 @@ export function sdkMessageToMessage(msg: Message): MessageType {
   // Socket acks occasionally lack timestamps — fall back to "now".
   const time = msg.sentAt ?? msg.createdAt ?? new Date().toISOString()
 
+  const attachments = msg.content?.attachments?.map(a => ({
+    id: a.id,
+    type: a.type,
+    url: a.url,
+    thumbnailUrl: a.thumbnailUrl,
+    filename: a.filename,
+    mimeType: a.mimeType,
+    size: a.size,
+    isUploading: a.isUploading,
+    uploadProgress: a.uploadProgress
+  }))
+
   return {
     id: msg.id,
     message: msg.content?.text ?? '',
@@ -308,7 +356,8 @@ export function sdkMessageToMessage(msg: Message): MessageType {
       isSent: msg.status !== 'failed' && deliveryStatus !== 'failed',
       isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
       isSeen: deliveryStatus === 'read'
-    }
+    },
+    ...(attachments && attachments.length ? { attachments } : {})
   }
 }
 
