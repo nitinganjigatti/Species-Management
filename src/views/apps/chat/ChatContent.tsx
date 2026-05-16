@@ -10,6 +10,7 @@ import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -212,7 +213,21 @@ const ChatContent = (props: ChatContentType) => {
             </Box>
 
             {selectedChat && store.userProfile ? (
-              <ChatLog hidden={hidden} data={{ ...selectedChat, userContact: store.userProfile }} />
+              store.loadingMessages ? (
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    minHeight: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <CircularProgress size={36} />
+                </Box>
+              ) : (
+                <ChatLog hidden={hidden} data={{ ...selectedChat, userContact: store.userProfile }} />
+              )
             ) : null}
 
             <SendMsgForm store={store} dispatch={dispatch} sendMsg={sendMsg} />

@@ -121,6 +121,7 @@ export type ChatStoreType = {
   userProfile: ProfileUserType | null
   selectedChat: SelectedChatType
   activeFilter: ChatFilterType
+  loadingMessages: boolean
 }
 
 export type SendMsgParamsType = {

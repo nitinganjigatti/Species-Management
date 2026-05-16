@@ -42,17 +42,34 @@ const ChatLog = (props: ChatLogType) => {
   // ** Ref
   const chatArea = useRef(null)
 
-  // ** Scroll to chat bottom
+  // ** Scroll to chat bottom — runs multiple passes so late-loading content
+  // (images, embeds) doesn't leave us stuck mid-list. PerfectScrollbar's inner
+  // div is `_container`. We also force a re-measure via PerfectScrollbar's
+  // `update()` if available.
   const scrollToBottom = () => {
-    if (chatArea.current) {
+    const doScroll = () => {
+      if (!chatArea.current) return
       if (hidden) {
-        // @ts-ignore
+        // @ts-ignore — native overflow div
         chatArea.current.scrollTop = chatArea.current.scrollHeight
       } else {
-        // @ts-ignore
-        chatArea.current._container.scrollTop = chatArea.current._container.scrollHeight
+        // @ts-ignore — PerfectScrollbar exposes the underlying div as `_container`
+        const c = chatArea.current._container
+        if (c) c.scrollTop = c.scrollHeight
+        // @ts-ignore — let PerfectScrollbar recompute its scrollbar after layout
+        chatArea.current.updateScroll?.()
       }
     }
+
+    // 1) immediately after the current frame paints
+    requestAnimationFrame(doScroll)
+
+    // 2) next frame — catches PerfectScrollbar's own measure cycle
+    requestAnimationFrame(() => requestAnimationFrame(doScroll))
+
+    // 3) after late content (images) settles
+    setTimeout(doScroll, 120)
+    setTimeout(doScroll, 350)
   }
 
   // ** Formats chat data based on sender

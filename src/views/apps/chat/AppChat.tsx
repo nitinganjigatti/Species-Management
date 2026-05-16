@@ -118,6 +118,24 @@ const AppChat = () => {
     dispatch(fetchChatsContacts())
   }, [chatClient, chatConnected, dispatch])
 
+  // Auto-select the first conversation on initial load so the chat panel
+  // isn't blank when the user lands on /chat. Skips if a chat is already
+  // selected (e.g. user already clicked one) or the list is empty.
+  const autoSelectedRef = useRef(false)
+  useEffect(() => {
+    if (autoSelectedRef.current) return
+    if (store?.selectedChat) {
+      autoSelectedRef.current = true
+
+      return
+    }
+    const first = store?.chats?.[0]
+    if (!first) return
+
+    autoSelectedRef.current = true
+    dispatch(selectChat(first.id))
+  }, [store?.chats, store?.selectedChat, dispatch])
+
   // Stable ref pointing at the currently open conversation id. Read inside the
   // socket handler so we can detect "message arrived in the chat I'm looking at"
   // without resubscribing the socket on every chat switch.

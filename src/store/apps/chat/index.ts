@@ -600,7 +600,8 @@ const initialState: ChatStoreType = {
   contacts: null,
   userProfile: null,
   selectedChat: null,
-  activeFilter: 'all'
+  activeFilter: 'all',
+  loadingMessages: false
 }
 
 export const appChatSlice = createSlice({
@@ -821,6 +822,15 @@ export const appChatSlice = createSlice({
     }
   },
   extraReducers: builder => {
+    builder.addCase(selectChat.pending, state => {
+      state.loadingMessages = true
+    })
+    builder.addCase(selectChat.fulfilled, state => {
+      state.loadingMessages = false
+    })
+    builder.addCase(selectChat.rejected, state => {
+      state.loadingMessages = false
+    })
     builder.addCase(fetchUserProfile.fulfilled, (state, action) => {
       if (action.payload) state.userProfile = action.payload
     })

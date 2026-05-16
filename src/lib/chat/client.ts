@@ -60,7 +60,7 @@ export function getChatClient(opts: GetChatClientOpts): AntzChatClient {
     authToken: opts.accessToken,
     userId: opts.userId,
     tenantId: opts.tenantId,
-    ...(opts.avatar ? { avatar: opts.avatar } : {})
+    avatar: opts.avatar
   })
 
   return _client
