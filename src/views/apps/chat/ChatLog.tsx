@@ -160,7 +160,7 @@ const ChatLog = (props: ChatLogType) => {
           <div>
             <CustomAvatar
               skin='light'
-              color={data.contact.avatarColor ? data.contact.avatarColor : undefined}
+              color={(isSender ? undefined : data.contact.avatarColor) ?? 'primary'}
               sx={{
                 width: '2rem',
                 height: '2rem',
@@ -168,20 +168,15 @@ const ChatLog = (props: ChatLogType) => {
                 ml: isSender ? 4 : undefined,
                 mr: !isSender ? 4 : undefined
               }}
-              {...(data.contact.avatar && !isSender
-                ? {
-                    src: data.contact.avatar,
-                    alt: data.contact.fullName
-                  }
-                : {})}
               {...(isSender
-                ? {
-                    src: data.userContact.avatar,
-                    alt: data.userContact.fullName
-                  }
+                ? data.userContact.avatar
+                  ? { src: data.userContact.avatar, alt: data.userContact.fullName }
+                  : {}
+                : data.contact.avatar
+                ? { src: data.contact.avatar, alt: data.contact.fullName }
                 : {})}
             >
-              {data.contact.avatarColor ? getInitials(data.contact.fullName) : null}
+              {getInitials(isSender ? data.userContact.fullName ?? 'Me' : data.contact.fullName)}
             </CustomAvatar>
           </div>
 

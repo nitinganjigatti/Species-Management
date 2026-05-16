@@ -33,6 +33,8 @@ export function useChatClient(): UseChatClientResult {
     const userId = userIdRaw !== undefined && userIdRaw !== null ? String(userIdRaw) : null
     const tenantId = auth.userData.user.zoos?.[0]?.zoo_id?.toString()
     const avatarUrl =
+      auth.userData.user.profile_pic ??
+      auth.userData.user.user_profile_pic ??
       auth.userData.user.profile_image ??
       auth.userData.user.avatar ??
       auth.userData.user.avatar_url ??

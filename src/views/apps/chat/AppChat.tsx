@@ -10,6 +10,7 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 
 // ** Store & Actions Imports
 import { useDispatch, useSelector } from 'react-redux'
+import { useAuth } from 'src/hooks/useAuth'
 import {
   sendMsg,
   selectChat,
@@ -59,6 +60,22 @@ const AppChat = () => {
   const theme = useTheme()
   const { settings } = useSettings()
   const dispatch = useDispatch<AppDispatch>()
+  const auth = useAuth() as any
+  const fallbackAvatarUrl: string | undefined =
+    auth?.userData?.user?.profile_pic ??
+    auth?.userData?.user?.user_profile_pic ??
+    auth?.userData?.user?.profile_image ??
+    auth?.userData?.user?.avatar ??
+    auth?.userData?.user?.avatar_url ??
+    undefined
+  console.log('[chat:avatar] auth.user fields →', {
+    profile_pic: auth?.userData?.user?.profile_pic,
+    user_profile_pic: auth?.userData?.user?.user_profile_pic,
+    profile_image: auth?.userData?.user?.profile_image,
+    avatar: auth?.userData?.user?.avatar,
+    avatar_url: auth?.userData?.user?.avatar_url,
+    resolved: fallbackAvatarUrl
+  })
   const hidden = useMediaQuery(theme.breakpoints.down('lg'))
   const store = useSelector((state: RootState) => state.chat)
 
@@ -75,8 +92,8 @@ const AppChat = () => {
   }
 
   useEffect(() => {
-    dispatch(fetchUserProfile())
-  }, [dispatch])
+    dispatch(fetchUserProfile({ fallbackAvatarUrl }))
+  }, [dispatch, fallbackAvatarUrl])
 
   // ── @antzsoft/chat-core wiring ─────────────────────────────────────────────
   // Initializes the SDK (REST) + our path-fixed socket.io-client wrapper.
@@ -91,11 +108,11 @@ const AppChat = () => {
     // Fetch profile first so `fetchChatsContacts` can use its id to identify
     // the "other" participant in direct conversations.
     const run = async () => {
-      await dispatch(fetchUserProfile())
+      await dispatch(fetchUserProfile({ fallbackAvatarUrl }))
       dispatch(fetchChatsContacts())
     }
     run()
-  }, [chatClient, dispatch])
+  }, [chatClient, dispatch, fallbackAvatarUrl])
 
   // Join every conversation's Socket.IO room so the server pushes that room's
   // `new_message` (and delivery/read) events to us. The SDK's `socketEmit.joinRoom`

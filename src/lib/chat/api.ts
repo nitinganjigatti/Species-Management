@@ -143,6 +143,15 @@ export function getMe(): Promise<User> {
   return requireClient('getMe').auth.getMe()
 }
 
+// Pushes the avatar to the chat backend via `POST /users/me/avatar/sync`.
+// Server fetches the URL, dedups, and stores it on the user record so OTHER
+// participants see it in their `listConversations` response. The socket
+// handshake also carries `avatarUrl`, but this REST call is the deterministic
+// way to confirm the backend has it.
+export function syncAvatar(source: { url?: string; base64?: string }) {
+  return requireClient('syncAvatar').auth.syncAvatar(source)
+}
+
 // ── Conversations ────────────────────────────────────────────────────────────
 
 export function listConversations(params?: {

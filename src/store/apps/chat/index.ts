@@ -20,6 +20,7 @@ import type {
 import { getChatClientOrNull } from 'src/lib/chat/client'
 import {
   getMe,
+  syncAvatar,
   listConversations,
   getConversation,
   createGroupConversation,
@@ -53,25 +54,41 @@ import {
 /**
  * Fetch the current user's chat profile via `GET /users/me`.
  */
-export const fetchUserProfile = createAsyncThunk<ProfileUserType | null>(
-  'appChat/fetchUserProfile',
-  async () => {
-    const client = getChatClientOrNull()
-    if (!client) return null
+export const fetchUserProfile = createAsyncThunk<
+  ProfileUserType | null,
+  { fallbackAvatarUrl?: string } | void
+>('appChat/fetchUserProfile', async arg => {
+  const client = getChatClientOrNull()
+  if (!client) return null
 
-    try {
-      const sdkUser = await getMe()
-      const profile = sdkUserToProfile(sdkUser)
-      console.log('[chat] fetchUserProfile ← SDK:', profile)
+  try {
+    const sdkUser = await getMe()
+    const profile = sdkUserToProfile(sdkUser)
+    const fallback = arg && 'fallbackAvatarUrl' in arg ? arg.fallbackAvatarUrl : undefined
 
-      return profile
-    } catch (err) {
-      console.error('[chat] fetchUserProfile failed:', err)
-
-      return null
+    // Chat backend's /users/me has no avatarUrl yet → push ours via the
+    // explicit `POST /users/me/avatar/sync` so OTHER participants will see
+    // it in their conversation list (the socket handshake also carries it,
+    // but this is the deterministic REST path the server commits).
+    if (!profile.avatar && fallback) {
+      try {
+        const synced = await syncAvatar({ url: fallback })
+        profile.avatar = synced.avatarUrl || fallback
+        console.log('[chat] syncAvatar ✓', synced.avatarUrl)
+      } catch (syncErr) {
+        console.warn('[chat] syncAvatar failed — using local fallback only:', syncErr)
+        profile.avatar = fallback
+      }
     }
+    console.log('[chat] fetchUserProfile ← SDK:', profile)
+
+    return profile
+  } catch (err) {
+    console.error('[chat] fetchUserProfile failed:', err)
+
+    return null
   }
-)
+})
 
 /**
  * Fetch the user's conversation list + a derived contact directory.
