@@ -12,6 +12,7 @@
     "build:icons": "node src/iconify-bundle/bundle-icons-react.js"
   },
   "dependencies": {
+    "@antzsoft/chat-core": "^1.0.2",
     "@antzsoft/wso2-auth-web": "^1.4.5",
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "7.21.3",
@@ -57,7 +58,7 @@
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "moment-timezone": "^0.6.0",
-    "next": "16.1.6",
+    "next": "16.2.6",
     "nprogress": "0.2.0",
     "prismjs": "1.29.0",
     "quill": "^2.0.3",
