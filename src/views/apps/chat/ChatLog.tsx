@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { useRef, useEffect, Ref, ReactNode } from 'react'
+import { useRef, useEffect, Ref, ReactNode, MouseEvent } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -223,6 +223,21 @@ const ChatLog = (props: ChatLogType) => {
                           color: isSender ? 'common.white' : 'text.primary'
                         }}
                       >
+                        {/* TEMP DIAG — remove once audio render is verified. Logs every
+                            attachment so we can see the actual type/url/mimeType the server
+                            returned. Filter console by `[chat:att]`. */}
+                        {(() => {
+                          console.log('[chat:att]', {
+                            id: att.id,
+                            type: att.type,
+                            mimeType: att.mimeType,
+                            url: att.url,
+                            filename: att.filename,
+                            size: att.size
+                          })
+
+                          return null
+                        })()}
                         {att.type === 'image' ? (
                           <Box
                             component='a'
@@ -247,8 +262,23 @@ const ChatLog = (props: ChatLogType) => {
                             sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
                           />
                         ) : att.type === 'audio' ? (
-                          <Box sx={{ p: 2 }}>
-                            <Box component='audio' src={att.url} controls sx={{ width: '100%' }} />
+                          <Box sx={{ p: 2, minWidth: 300 }}>
+                            <Box
+                              component='audio'
+                              src={att.url}
+                              controls
+                              controlsList='nodownload noplaybackrate'
+                              onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                              sx={{
+                                display: 'block',
+                                width: 280,
+                                maxWidth: '100%',
+                                // Light tint on green sender bubbles so the
+                                // browser's default-dark audio controls read.
+                                borderRadius: 1,
+                                bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
+                              }}
+                            />
                           </Box>
                         ) : (
                           (() => {

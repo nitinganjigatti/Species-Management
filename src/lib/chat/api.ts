@@ -172,9 +172,7 @@ export async function sendMessageOverSocket(payload: SendMessagePayload): Promis
   }
 
   // Try the wrapped/full shapes first.
-  let msg = ((r as { message?: Message }).message ?? (r as { data?: Message }).data) as
-    | Message
-    | undefined
+  let msg = ((r as { message?: Message }).message ?? (r as { data?: Message }).data) as Message | undefined
 
   // Fall back: if the ack is just `{success, messageId}`, synthesize a Message
   // from the request payload + returned id so downstream code (Redux + receipt
@@ -182,6 +180,19 @@ export async function sendMessageOverSocket(payload: SendMessagePayload): Promis
   if (!msg && r && typeof r === 'object' && 'messageId' in r && (r as any).messageId) {
     const ack = r as { success?: boolean; messageId: string }
     const now = new Date().toISOString()
+    // Map SendMessageAttachment (`fileId`) → SDK Attachment-ish (`id`). Without
+    // this normalization, our local message attachments end up with
+    // `id: undefined`, which breaks React keys + downstream lookups (reactions,
+    // pin, etc.).
+    const normalizedAttachments = payload.attachments?.map(a => ({
+      id: a.fileId,
+      type: a.type,
+      url: a.url,
+      thumbnailUrl: a.thumbnailUrl,
+      filename: a.filename,
+      mimeType: a.mimeType,
+      size: a.size
+    }))
     msg = {
       id: ack.messageId,
       tenantId: '',
@@ -190,7 +201,7 @@ export async function sendMessageOverSocket(payload: SendMessagePayload): Promis
       content: {
         type: 'text',
         text: payload.text,
-        attachments: (payload.attachments as any) ?? undefined
+        attachments: (normalizedAttachments as any) ?? undefined
       },
       reactions: [],
       status: 'sent',
@@ -291,10 +302,7 @@ export function createDirectConversation(data: CreateDirectData): Promise<Conver
   return requireClient('createDirectConversation').conversations.createDirect(data)
 }
 
-export function updateConversation(
-  conversationId: string,
-  data: UpdateConversationData
-): Promise<Conversation> {
+export function updateConversation(conversationId: string, data: UpdateConversationData): Promise<Conversation> {
   return requireClient('updateConversation').conversations.update(conversationId, data)
 }
 
@@ -504,10 +512,7 @@ export type UploadChatFilesResult = {
 // Uploads files via the SDK (presign → platformUploadFn → confirm) and maps
 // each successful FileResponse into a SendMessageAttachment ready to pass to
 // `sendMessageOverSocket({ attachments })`.
-export async function uploadChatFiles(
-  files: UploadableFile[],
-  conversationId: string
-): Promise<UploadChatFilesResult> {
+export async function uploadChatFiles(files: UploadableFile[], conversationId: string): Promise<UploadChatFilesResult> {
   const client = requireClient('uploadChatFiles')
   const result = await client.uploadFiles(files, conversationId)
 
@@ -520,7 +525,7 @@ export async function uploadChatFiles(
     mimeType: f.mimeType,
     size: f.size
   }))
-
+  console.log('[chat-api] uploadChatFiles: attachments ready', attachments)
   return { attachments, failed: result.failed }
 }
 
@@ -602,6 +607,23 @@ export function sdkMessageToMessage(msg: Message): MessageType {
   // Socket acks occasionally lack timestamps — fall back to "now".
   const time = msg.sentAt ?? msg.createdAt ?? new Date().toISOString()
 
+  // TEMP DIAG — see what the SDK is returning per attachment before our
+  // shape transformation. Filter console by `[chat:sdk-att]`.
+  if (msg.content?.attachments?.length) {
+    console.log(
+      '[chat:sdk-att]',
+      msg.id,
+      msg.content.attachments.map(a => ({
+        id: a.id,
+        type: a.type,
+        mimeType: a.mimeType,
+        url: a.url ? `${a.url.slice(0, 80)}…` : a.url,
+        filename: a.filename,
+        size: a.size
+      }))
+    )
+  }
+
   const attachments = msg.content?.attachments?.map(a => ({
     id: a.id,
     type: a.type,
@@ -667,13 +689,9 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
   const isGroup = conv.conversationType === 'group'
 
   // Backend soft-deletes removed members via isActive=false; filter them out.
-  const activeParticipants = ((conv.participants ?? []) as ParticipantWithFlatUser[]).filter(
-    p => p.isActive !== false
-  )
+  const activeParticipants = ((conv.participants ?? []) as ParticipantWithFlatUser[]).filter(p => p.isActive !== false)
 
-  const otherParticipant = isGroup
-    ? undefined
-    : activeParticipants.find(p => p.userId !== String(currentUserId))
+  const otherParticipant = isGroup ? undefined : activeParticipants.find(p => p.userId !== String(currentUserId))
   const other = otherParticipant ? participantToUser(otherParticipant) : undefined
 
   const fullName = isGroup
