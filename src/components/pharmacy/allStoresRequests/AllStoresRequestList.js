@@ -47,7 +47,7 @@ const AllStoresRequestList = () => {
 
   const columns = [
     {
-      width: 100,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -81,7 +81,8 @@ const AllStoresRequestList = () => {
     },
 
     {
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'pending_items',
       headerName: 'Total Pending Items',
       align: 'center',
@@ -100,7 +101,8 @@ const AllStoresRequestList = () => {
     },
 
     {
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'emergency_items',
       headerName: 'Emergency Items',
       align: 'center',
@@ -118,7 +120,8 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'available_product_count',
       headerName: 'available product',
       align: 'center',
@@ -136,7 +139,8 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 200,
+      minWidth: 200,
+      flex: 0.2,
       field: 'not_available_product_count',
       headerName: 'not available product',
       align: 'center',

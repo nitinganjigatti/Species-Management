@@ -3,7 +3,7 @@ import { getDrivers, addDriver, updateDriver } from 'src/lib/api/pharmacy/driver
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 // ** MUI Imports
-import { Box, IconButton, Typography, Grid } from '@mui/material'
+import { Box, IconButton, Typography, Grid, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -60,7 +60,7 @@ const Driver = () => {
 
   const columns = [
     {
-      minWidth: 80,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -71,23 +71,28 @@ const Driver = () => {
     },
     {
       flex: 1,
-      minWidth: 200,
+      minWidth: 250,
       field: 'driver_name',
       headerName: 'Driver Name',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500
-          }}
-        >
-          {params.row.driver_name}
-        </Typography>
+        <Tooltip title={params.row.driver_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis'
+            }}
+          >
+            {params.row.driver_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'phone_number',
       headerName: 'Phone Number',
@@ -105,6 +110,7 @@ const Driver = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'vehicle_number',
       headerName: 'Vehicle Number',
@@ -121,10 +127,30 @@ const Driver = () => {
         </Typography>
       )
     },
+    {
+      flex: 0.2,
+      minWidth: 120,
+      field: 'active',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500
+          }}
+        >
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
+        </Typography>
+      )
+    },
 
     {
+      flex: 0.2,
       minWidth: 200,
-      field: 'Action',
+      field: 'action',
+      sortable: false,
       headerName: 'Action',
       renderCell: params => (
         <>
@@ -153,7 +179,8 @@ const Driver = () => {
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('id')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [tableLoading, setTableLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -161,7 +188,8 @@ const Driver = () => {
   const fetchTableData = useCallback(
     async (sort, q, column) => {
       try {
-        setLoading(true)
+        // setLoading(true)
+        setTableLoading(true)
 
         const params = {
           sort,
@@ -176,8 +204,13 @@ const Driver = () => {
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
         setLoading(false)
+        setTableLoading(false)
       } catch (e) {
         setLoading(false)
+        setTableLoading(false)
+      } finally {
+        setLoading(false)
+        setTableLoading(false)
       }
     },
     [paginationModel]
@@ -252,11 +285,15 @@ const Driver = () => {
           toast.error(response.message)
         }
       }
+
+      return response
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
 
       toast.error(JSON.stringify(e))
+
+      return null
     }
   }
 
@@ -325,7 +362,7 @@ const Driver = () => {
                     paginationModel={paginationModel}
                     handleSortModel={handleSortModel}
                     setPaginationModel={setPaginationModel}
-                    loading={loading}
+                    loading={tableLoading}
                     searchValue={searchValue}
                   />
                 </Grid>
