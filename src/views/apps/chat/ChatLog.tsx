@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { useRef, useEffect, useCallback, Ref, ReactNode, MouseEvent } from 'react'
+import { useRef, useEffect, useCallback, useState, Ref, ReactNode, MouseEvent } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -18,6 +18,10 @@ import PerfectScrollbarComponent, { ScrollBarProps } from 'react-perfect-scrollb
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import MessageBubble from 'src/views/apps/chat/MessageBubble'
 import MessageActions from 'src/views/apps/chat/MessageActions'
+import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
+
+// ** Types
+import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
 
 // ** Utils Imports
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -65,6 +69,12 @@ const ChatLog = (props: ChatLogType) => {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
   }, [activeMatchIndex, searchResultIds])
+
+  // In-page preview state for image / video / pdf / other attachments.
+  // Clicking an attachment opens the dialog; close button or backdrop closes.
+  const [previewAttachment, setPreviewAttachment] = useState<ChatAttachmentType | null>(null)
+  const openPreview = (att: ChatAttachmentType) => setPreviewAttachment(att)
+  const closePreview = () => setPreviewAttachment(null)
 
   // ** Scroll to chat bottom — runs multiple passes so late-loading content
   // (images, embeds) doesn't leave us stuck mid-list. PerfectScrollbar's inner
@@ -315,18 +325,17 @@ const ChatLog = (props: ChatLogType) => {
                             >
                               {att.type === 'image' ? (
                                 <Box
-                                  component='a'
-                                  href={att.url}
-                                  target='_blank'
-                                  rel='noopener noreferrer'
-                                  sx={{ display: 'block', lineHeight: 0 }}
+                                  onClick={() => openPreview(att)}
+                                  onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                  sx={{ display: 'block', lineHeight: 0, cursor: 'zoom-in' }}
                                 >
                                   <Box
                                     component='img'
                                     src={att.thumbnailUrl ?? att.url}
                                     alt={att.filename}
                                     loading='lazy'
-                                    sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
+                                    draggable={false}
+                                    sx={{ maxWidth: 280, maxHeight: 280, display: 'block', userSelect: 'none' }}
                                   />
                                 </Box>
                               ) : att.type === 'video' ? (
@@ -334,7 +343,10 @@ const ChatLog = (props: ChatLogType) => {
                                   component='video'
                                   src={att.url}
                                   controls
-                                  sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
+                                  controlsList='nodownload noplaybackrate'
+                                  onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                  sx={{ maxWidth: 280, maxHeight: 280, display: 'block', cursor: 'pointer' }}
+                                  onClick={() => openPreview(att)}
                                 />
                               ) : att.type === 'audio' ? (
                                 <Box sx={{ p: 2, minWidth: 300 }}>
@@ -359,18 +371,15 @@ const ChatLog = (props: ChatLogType) => {
 
                                   return (
                                     <Box
-                                      component='a'
-                                      href={att.url}
-                                      target='_blank'
-                                      rel='noopener noreferrer'
-                                      download={att.filename}
+                                      onClick={() => openPreview(att)}
                                       sx={{
                                         display: 'flex',
                                         alignItems: 'center',
                                         gap: 2,
                                         p: theme => theme.spacing(3, 4),
                                         color: 'inherit',
-                                        textDecoration: 'none'
+                                        textDecoration: 'none',
+                                        cursor: 'pointer'
                                       }}
                                     >
                                       <Icon
@@ -593,6 +602,11 @@ const ChatLog = (props: ChatLogType) => {
   return (
     <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
       <ScrollWrapper>{renderChats()}</ScrollWrapper>
+      <AttachmentPreviewDialog
+        attachment={previewAttachment}
+        open={previewAttachment !== null}
+        onClose={closePreview}
+      />
     </Box>
   )
 }

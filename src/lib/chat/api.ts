@@ -609,23 +609,6 @@ export function sdkMessageToMessage(msg: Message): MessageType {
   // Socket acks occasionally lack timestamps — fall back to "now".
   const time = msg.sentAt ?? msg.createdAt ?? new Date().toISOString()
 
-  // TEMP DIAG — see what the SDK is returning per attachment before our
-  // shape transformation. Filter console by `[chat:sdk-att]`.
-  if (msg.content?.attachments?.length) {
-    console.log(
-      '[chat:sdk-att]',
-      msg.id,
-      msg.content.attachments.map(a => ({
-        id: a.id,
-        type: a.type,
-        mimeType: a.mimeType,
-        url: a.url ? `${a.url.slice(0, 80)}…` : a.url,
-        filename: a.filename,
-        size: a.size
-      }))
-    )
-  }
-
   const attachments = msg.content?.attachments?.map(a => ({
     id: a.id,
     type: a.type,

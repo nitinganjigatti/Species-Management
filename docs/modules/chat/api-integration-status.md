@@ -172,6 +172,56 @@ The SDK exports `devicesApi` at module level (not on the `AntzChatClient` instan
 
 ---
 
+## UI status — per-message interactions
+
+WhatsApp-style 3-dot menu + reaction picker on every bubble. All actions live in a single shared component, [src/views/apps/chat/MessageActions.tsx](../../../src/views/apps/chat/MessageActions.tsx), so text bubbles and attachment bubbles use identical handlers and SDK calls.
+
+| Affordance | Status | Notes |
+|---|---|---|
+| 3-dot menu on hover (text bubble) | ✅ | Rendered inside [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx) |
+| 3-dot menu on hover (audio / video / image / document) | ✅ | Rendered as a sibling of the attachment column in [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) when the message is attachment-only. CSS `:hover .msg-actions { opacity: 1 !important }` reveals icons. |
+| Reaction picker popover | ✅ | 6 hardcoded emojis (👍 ❤️ 😂 😮 😢 🙏) + "more" disabled. Available on all bubble types. |
+| Reaction chips below bubble | ✅ | Chip per emoji, count visible, highlighted if user reacted. Click chip = toggle. |
+| Reply (composer banner + bubble snippet) | ✅ | `setReplyingTo` Redux state. Banner with cancel ✕ above the input. Inside reply bubble: left accent + sender name + 2-line preview, click snippet scrolls + flashes original (`msg-flash` CSS in [custom.css](../../../styles/custom.css)). |
+| Edit (own text messages only) | ✅ | `setEditingMessage` Redux state. Warning-color banner above input prefilled with original. Submit branches to `updateMessageOverSocket`. Bubble shows `(edited)` after broadcast. |
+| Star / Unstar | ✅ | Personal (no server broadcast). Optimistic local toggle. Star icon renders inline on bubble. |
+| Pin / Unpin | ✅ | DM: both sides; group: admin-only. Pinned strip renders above ChatLog showing latest pinned + count, click jumps. |
+| Copy text | ✅ | Hidden for attachment-only bubbles. |
+| Delete for me | ✅ | Same `MessageActions` for all message types. Shared `ConfirmationDialog`. Removes from local thread only. |
+| Delete for everyone (own messages) | ✅ | Same flow. Server broadcasts → tombstone "This message was deleted" replaces the bubble for all participants. Works on text and all attachment types. |
+
+### Component map
+
+```
+MessageBubble                   ← text bubble + reply snippet + reactions row
+  └─ MessageActions             ← actions surface, alwaysVisible=hovered
+                                  showEdit, showCopyText
+
+ChatLog (attachment-only path)
+  ├─ attachment column          ← image / video / audio / document
+  └─ MessageActions             ← actions surface
+                                  showEdit=false, showCopyText=false
+                                  parent CSS forces icons visible on hover
+```
+
+### Voice messages
+
+Recording happens inline in [SendMsgForm.tsx](../../../src/views/apps/chat/SendMsgForm.tsx):
+
+1. Click 🎤 button — calls `navigator.mediaDevices.getUserMedia({ audio: true })`
+2. `MediaRecorder` picks the best supported MIME from a priority list: `audio/webm;codecs=opus` → `audio/webm` → `audio/mp4` → `audio/ogg;codecs=opus` (Safari falls through to `audio/mp4`)
+3. Composer overlays a recording UI: pulsing red dot + `mm:ss` timer + ⏹ Stop + ✕ Cancel
+4. On Stop, the Blob's reported mimeType is normalized — strip everything after `;` so `audio/webm;codecs=opus` becomes `audio/webm` (server allow-lists reject the codec suffix)
+5. Recording becomes a regular `File` and enters the `pending[]` strip with `kind: 'audio'` — shows an inline `<audio controls>` preview chip
+6. Click Send → flows through `uploadChatFiles` like any other attachment (no audio-specific code path)
+7. On the receive side, `ChatLog` renders incoming audio attachments with `<audio controls controlsList='nodownload noplaybackrate'>` at a fixed 280px width on a light-tinted background (so the browser's dark default audio controls remain legible inside the green sender bubble)
+
+### Lightweight ack normalization
+
+When the server returns `{success: true, messageId: '...'}` instead of a full `Message`, [`sendMessageOverSocket`](../../../src/lib/chat/api.ts) synthesizes a Message from the request payload. The `SendMessageAttachment[]` payload uses `fileId`, so we map `fileId → id` while building the synthetic `content.attachments` — otherwise every newly-sent attachment would land in Redux with `id: undefined`, breaking React keys, reactions, pin, and any other operation that addresses an attachment by id.
+
+---
+
 ## UI status — group info drawer ([UserProfileRight.tsx](../../../src/views/apps/chat/UserProfileRight.tsx))
 
 | Affordance | Status | Notes |
@@ -307,6 +357,20 @@ Summary table:
 
 ## Changelog
 
+- **2026-05-18e** — Per-message interactions + voice messages, all 8 phases shipped:
+  - **Phase 0 — types + adapter:** extended `MessageType` and `ChatLogChatType` with `replyTo`, `reactions`, `isPinned`, `isStarred`, `isEdited`, `editedAt`, `isDeletedForEveryone`. Added `ReactionEntry` and `MessageReplyRef` types. `sdkMessageToMessage` now maps SDK fields (reactions / replyTo / isPinned / isStarred / isEdited / editedAt).
+  - **Phase 1 — MessageBubble shell:** new component for text bubbles with 3-dot menu, hover-revealed icons.
+  - **Phase 2 — Reply:** `replyingTo` Redux state, composer banner with cancel, inside-bubble reply snippet, scroll-to-original with `.msg-flash` CSS keyframes.
+  - **Phase 3 — Reactions:** popover picker (6 hardcoded emojis), reactions chip row under bubble with toggle-on-click, `reaction_updated` socket listener + `applyReactionUpdate` reducer (full array replacement, server authoritative).
+  - **Phase 4 — Edit:** `editingMessage` Redux state, composer warning banner with prefilled text, submit branches to `updateMessageOverSocket`, `message_updated` socket listener + `applyMessageUpdate` reducer, `(edited)` marker on bubble.
+  - **Phase 5 — Delete:** for me + for everyone via socket, shared `ConfirmationDialog` for both variants, `applyMessageDelete` / `applyMessageDeleteForMe` reducers, "This message was deleted" tombstone for the everyone-delete path.
+  - **Phase 6 — Star:** personal flag with optimistic local toggle + revert on failure, inline star icon on bubble.
+  - **Phase 7 — Pin:** DM both-sides / group admin-only gating, `applyMessagePin` reducer, pinned-messages strip above ChatLog showing latest pinned + count.
+  - **MessageActions refactor:** extracted the 3-dot menu + reaction picker + delete dialog into a single shared component used by both `MessageBubble` (text) and `ChatLog` (attachment-only bubbles) — audio / video / image / document now have the same delete / star / pin / react / reply flow as text. One delete operation removes the entire message including any attachments via the same SDK functions (`deleteMessageOverSocket(chat.id)` and `deleteMessageForMeOverSocket(chat.id)`).
+  - **Voice messages:** mic button in composer opens MediaRecorder (priority list of MIME types for cross-browser support, Safari falls through to `audio/mp4`). Recording overlay with pulsing dot, `mm:ss` timer, ⏹ Stop, ✕ Cancel. Stop → File enters the pending strip with inline `<audio>` preview. Send → flows through existing `uploadChatFiles`. Receive side renders `<audio controls controlsList='nodownload noplaybackrate'>` at 280px width.
+  - **MIME normalization:** strip codec suffix from MediaRecorder output (`audio/webm;codecs=opus` → `audio/webm`) before constructing the File. Server allow-list rejects the codec-decorated form.
+  - **Lightweight ack attachment-id fix:** in `sendMessageOverSocket`, when synthesizing a Message from `{success, messageId}` ack, map `payload.attachments[].fileId → .id` so downstream code addresses attachments by a defined id.
+  - **SidebarLeft active highlight sync:** removed local `active` React state, now derives from `state.chat.selectedChat.contact.id`. Single source of truth fixes the highlight when chats are opened via auto-select, deep-link, or programmatic `selectChat` dispatch.
 - **2026-05-18d** — Policy change: **`read_receipt` is now the authoritative signal for tick advancement.** `message_delivered` / `messages_delivered` events are now **skipped** when no recipient is online per `useChatStore.onlineUsers` (the backend over-eagerly stamps delivered even with no recipient device active). Tick stays single ✓ until a real `read_receipt` arrives, at which point it jumps directly to double-green ✓✓ (reducer sets `isSeen=true` AND `isDelivered=true` in one mutation). Console: look for `[chat:receipt] ⚠ D1 SKIPPED` when the policy fires.
 - **2026-05-18c** — Receipt-flow verified end-to-end on a live two-user test (A↔B DM and a group). Full trace logs captured: send anchor (A0) → delivery race with buffered drain (D1 → R2 0/1 → R2a buffered → A0 → 7d.drain) → read receipt with DM-vs-group split (S1 → S2 → S3 → R2 1/1 → R3). Temporary `[chat:receipt] V1 renderMsgFeedback` log removed from `ChatLog.tsx` after confirming green-tick render works. New deep-dive log catalog: [receipt-logs-reference.md](./receipt-logs-reference.md).
 - **2026-05-18b** — Doc accuracy + SDK 1.0.6 breaking-change absorption:
