@@ -228,7 +228,57 @@ const ChatContent = (props: ChatContentType) => {
                   <CircularProgress size={36} />
                 </Box>
               ) : (
-                <ChatLog hidden={hidden} data={{ ...selectedChat, userContact: store.userProfile }} />
+                <>
+                  {/* Pinned-messages strip. Shows count + latest pinned text;
+                      clicking scrolls to the most-recently-pinned bubble. */}
+                  {(() => {
+                    const pinned = selectedChat.chat.messages.filter(m => m.isPinned && m.id)
+                    if (!pinned.length) return null
+                    const latest = pinned[pinned.length - 1]
+
+                    return (
+                      <Box
+                        onClick={() => {
+                          if (!latest.id) return
+                          const el = document.querySelector(`[data-msg-id="${latest.id}"]`)
+                          if (!el) return
+                          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+                          el.classList.add('msg-flash')
+                          setTimeout(() => el.classList.remove('msg-flash'), 1200)
+                        }}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1.5,
+                          px: 4,
+                          py: 1.25,
+                          cursor: 'pointer',
+                          borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                          backgroundColor: 'customColors.Surface',
+                          '&:hover': {
+                            backgroundColor: theme => theme.palette.action.hover
+                          }
+                        }}
+                      >
+                        <Icon icon='mdi:pin' fontSize='1.125rem' />
+                        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+                          <Typography variant='caption' sx={{ display: 'block', fontWeight: 600 }}>
+                            Pinned · {pinned.length}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            noWrap
+                            sx={{ display: 'block', color: 'text.secondary' }}
+                          >
+                            {latest.message ||
+                              (latest.attachments?.length ? '📎 Attachment' : '')}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )
+                  })()}
+                  <ChatLog hidden={hidden} data={{ ...selectedChat, userContact: store.userProfile }} />
+                </>
               )
             ) : null}
 

@@ -53,6 +53,25 @@ export type ChatAttachmentType = {
   uploadProgress?: number
 }
 
+// One reaction bucket on a message — `userIds` is who reacted, `count` is its
+// length cached for quick render. Mirrors the SDK's `MessageReaction`.
+export type ReactionEntry = {
+  emoji: string
+  userIds: string[]
+  count: number
+}
+
+// Lightweight reference embedded on a message that replies to another one.
+// `textPreview` is the first ~80 chars of the original; full content lookup
+// happens via id when the user clicks the snippet.
+export type MessageReplyRef = {
+  messageId: string
+  senderId: ChatEntityId
+  senderName?: string
+  textPreview: string
+  hasAttachment?: boolean
+}
+
 export type MessageType = {
   // Stable server id once known; absent for mock seed messages and pre-ack
   // optimistic sends. Used to dedupe socket echoes and update feedback ticks.
@@ -62,6 +81,16 @@ export type MessageType = {
   senderId: ChatEntityId
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
+  // Interaction state — populated by the SDK adapter when the server includes
+  // these, mutated by the new message-actions reducers. All optional so
+  // existing send/receive paths don't need updates.
+  replyTo?: MessageReplyRef
+  reactions?: ReactionEntry[]
+  isPinned?: boolean
+  isStarred?: boolean
+  isEdited?: boolean
+  editedAt?: string
+  isDeletedForEveryone?: boolean
 }
 
 export type ChatType = {
@@ -126,6 +155,12 @@ export type ChatStoreType = {
   // landed in `chats`. Keyed by messageId. Drained in `sendMsg.fulfilled` and
   // `receiveMessage` once the message is appended.
   pendingFeedback: Record<string, { isDelivered?: boolean; isSeen?: boolean }>
+  // The message currently being replied to. Set by clicking "Reply" on a
+  // bubble; cleared by sending or by the composer's cancel button.
+  replyingTo: MessageReplyRef | null
+  // The message currently being edited. Set by clicking "Edit" on an own
+  // bubble; cleared on save / cancel.
+  editingMessage: { messageId: string; originalText: string } | null
 }
 
 export type SendMsgParamsType = {
@@ -196,10 +231,22 @@ export type SendMsgComponentType = {
 }
 
 export type ChatLogChatType = {
+  // Stable id so the bubble can pass it to action handlers (react, edit,
+  // delete, etc.). Optional during the mock-data migration window.
+  id?: string
   msg: string
   time: string | Date
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
+  // Forwarded from MessageType so the bubble renderer can show interaction
+  // state without going back to Redux for each message.
+  replyTo?: MessageReplyRef
+  reactions?: ReactionEntry[]
+  isPinned?: boolean
+  isStarred?: boolean
+  isEdited?: boolean
+  editedAt?: string
+  isDeletedForEveryone?: boolean
 }
 
 export type MessageGroupType = {

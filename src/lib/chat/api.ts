@@ -614,6 +614,35 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     uploadProgress: a.uploadProgress
   }))
 
+  // Reactions — copy through; default count from userIds length so the UI
+  // can render the chip without recounting.
+  const reactions = msg.reactions?.length
+    ? msg.reactions.map(r => ({
+        emoji: r.emoji,
+        userIds: r.userIds ?? [],
+        count: r.count ?? r.userIds?.length ?? 0
+      }))
+    : undefined
+
+  // Reply reference — SDK may stash the original id under `.messageId` or
+  // `.id`, and the preview under `.contentPreview` or `.content.text`.
+  // Normalize so the bubble renderer has one shape to read.
+  const replyTo = msg.replyTo
+    ? (() => {
+        const r = msg.replyTo as typeof msg.replyTo & { id?: string; content?: { text?: string } }
+        const messageId = r?.messageId ?? r?.id
+        if (!messageId) return undefined
+
+        return {
+          messageId,
+          senderId: '' as string, // not provided in the ref; bubble falls back to senderName
+          senderName: r?.senderName ?? r?.sender?.displayName,
+          textPreview: r?.contentPreview ?? r?.content?.text ?? '',
+          hasAttachment: Boolean(r?.content?.attachments?.length)
+        }
+      })()
+    : undefined
+
   return {
     id: msg.id,
     message: msg.content?.text ?? '',
@@ -624,7 +653,13 @@ export function sdkMessageToMessage(msg: Message): MessageType {
       isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
       isSeen: deliveryStatus === 'read'
     },
-    ...(attachments && attachments.length ? { attachments } : {})
+    ...(attachments && attachments.length ? { attachments } : {}),
+    ...(reactions ? { reactions } : {}),
+    ...(replyTo ? { replyTo } : {}),
+    ...(msg.isPinned ? { isPinned: true } : {}),
+    ...(msg.isStarred ? { isStarred: true } : {}),
+    ...(msg.isEdited ? { isEdited: true } : {}),
+    ...(msg.editedAt ? { editedAt: msg.editedAt } : {})
   }
 }
 

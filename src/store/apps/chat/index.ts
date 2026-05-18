@@ -9,6 +9,7 @@ import type {
   ProfileUserType,
   ChatType,
   MessageType,
+  MessageReplyRef,
   SendMsgParamsType,
   ChatFilterType,
   ChatEntityId,
@@ -575,13 +576,18 @@ export const sendMsg = createAsyncThunk(
         }))
       : undefined
 
+    // Reply: include the original message id so the server attaches a
+    // `replyTo` reference. Cleared from Redux at the end of this thunk.
+    const replyToId = state.chat?.replyingTo?.messageId
+
     let sent
     try {
       sent = await sendMessageOverSocket({
         conversationId,
         text: obj.message,
         tempId,
-        ...(attachments ? { attachments } : {})
+        ...(attachments ? { attachments } : {}),
+        ...(replyToId ? { replyTo: replyToId } : {})
       })
     } catch (err) {
       console.error('[chat] sendMessageOverSocket threw:', err)
@@ -601,6 +607,11 @@ export const sendMsg = createAsyncThunk(
     if (currentUserId) newMsg.senderId = currentUserId
     if (!newMsg.attachments?.length && obj.attachments?.length) {
       newMsg.attachments = obj.attachments
+    }
+    // Stamp the reply ref locally — the ack often doesn't echo it back. The
+    // server's eventual broadcast will overwrite with the canonical preview.
+    if (!newMsg.replyTo && state.chat?.replyingTo) {
+      newMsg.replyTo = state.chat.replyingTo
     }
 
     // Anchor for the receipt flow: this id is what we expect to see come
@@ -627,7 +638,9 @@ const initialState: ChatStoreType = {
   selectedChat: null,
   activeFilter: 'all',
   loadingMessages: false,
-  pendingFeedback: {}
+  pendingFeedback: {},
+  replyingTo: null,
+  editingMessage: null
 }
 
 export const appChatSlice = createSlice({
@@ -706,6 +719,186 @@ export const appChatSlice = createSlice({
         state.selectedChat = {
           chat: { ...chatEntry.chat },
           contact: chatEntry
+        }
+      }
+    },
+    // Composer reply state — set by clicking "Reply" on a bubble, cleared by
+    // the composer's cancel button or by sendMsg.fulfilled.
+    setReplyingTo: (state, action: PayloadAction<MessageReplyRef | null>) => {
+      state.replyingTo = action.payload
+    },
+    // Composer edit state — set by clicking "Edit" on an own bubble; cleared
+    // when the edit completes or the user cancels.
+    setEditingMessage: (
+      state,
+      action: PayloadAction<{ messageId: string; originalText: string } | null>
+    ) => {
+      state.editingMessage = action.payload
+    },
+    // Pin — server-broadcast on `message_pin_updated`. Visible to all
+    // participants of the conversation.
+    applyMessagePin: (
+      state,
+      action: PayloadAction<{ messageId: string; isPinned: boolean }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, isPinned } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.isPinned = isPinned
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Star — personal flag. No server broadcast; we toggle locally and call
+    // REST. The thunk-level call is fire-and-forget; if the network fails the
+    // UI is slightly off until the next refresh.
+    setMessageStarred: (
+      state,
+      action: PayloadAction<{ messageId: string; isStarred: boolean }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, isStarred } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.isStarred = isStarred
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a server-broadcast "delete for everyone". We don't remove the
+    // message — we mark it as deleted so the placeholder ("This message was
+    // deleted") renders in-place. Matches WhatsApp/Telegram behavior.
+    applyMessageDelete: (state, action: PayloadAction<{ messageId: string }>) => {
+      if (!state.chats) return
+      const { messageId } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.isDeletedForEveryone = true
+            m.message = ''
+            m.attachments = undefined
+            m.reactions = undefined
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a "delete for me" — removes the message entirely from local state.
+    // Fires only on the device that called the action (server emits this only
+    // to that user's socket).
+    applyMessageDeleteForMe: (state, action: PayloadAction<{ messageId: string }>) => {
+      if (!state.chats) return
+      const { messageId } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        const before = chat.chat.messages.length
+        chat.chat.messages = chat.chat.messages.filter(m => m.id !== messageId)
+        if (chat.chat.messages.length !== before) touched = chat.id
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a server-broadcast edit. Updates `message`, `isEdited` and
+    // `editedAt` on whichever message matches.
+    applyMessageUpdate: (
+      state,
+      action: PayloadAction<{ messageId: string; text: string; editedAt?: string }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, text, editedAt } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.message = text
+            m.isEdited = true
+            if (editedAt) m.editedAt = editedAt
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a server-broadcast reactions update to a single message. The
+    // server's `reactions` array is authoritative — replace, don't merge.
+    applyReactionUpdate: (
+      state,
+      action: PayloadAction<{ messageId: string; reactions: { emoji: string; userIds: string[]; count?: number }[] }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, reactions } = action.payload
+      const normalized = reactions.map(r => ({
+        emoji: r.emoji,
+        userIds: r.userIds ?? [],
+        count: r.count ?? r.userIds?.length ?? 0
+      }))
+
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.reactions = normalized
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
         }
       }
     },
@@ -1027,6 +1220,10 @@ export const appChatSlice = createSlice({
     builder.addCase(sendMsg.fulfilled, (state, action) => {
       const { newMsg, contactId } = action.payload
 
+      // Clear the composer reply state after a successful send (regardless of
+      // whether the chats array is in a state to accept the message).
+      if (state.replyingTo) state.replyingTo = null
+
       if (!state.chats || contactId == null) {
         console.warn('[chat] sendMsg.fulfilled dropped: missing chats or contactId')
 
@@ -1119,6 +1316,14 @@ export const {
   addOrReplaceChat,
   updateChatFlags,
   setUnreadCount,
+  setReplyingTo,
+  setEditingMessage,
+  applyMessageUpdate,
+  applyMessageDelete,
+  applyMessageDeleteForMe,
+  setMessageStarred,
+  applyMessagePin,
+  applyReactionUpdate,
   removeChatFromList,
   removeSelectedChat,
   setActiveFilter

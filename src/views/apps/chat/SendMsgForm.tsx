@@ -18,6 +18,8 @@ import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
 import { uploadChatFiles } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
+import { setReplyingTo, setEditingMessage } from 'src/store/apps/chat'
+import { updateMessageOverSocket } from 'src/lib/chat/api'
 
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   display: 'flex',
@@ -87,6 +89,13 @@ const SendMsgForm = (props: SendMsgComponentType) => {
 
   }, [])
 
+  // When the user picks "Edit" on a bubble, store puts the message into
+  // `editingMessage` — prefill the input so the user can amend it inline.
+  const editing = store?.editingMessage ?? null
+  useEffect(() => {
+    if (editing?.originalText) setMsg(editing.originalText)
+  }, [editing?.messageId])
+
   const handleFiles = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
     if (!files.length) return
@@ -119,6 +128,30 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     const trimmed = msg.trim()
     if (!trimmed.length && !pending.length) return
     if (uploading) return
+
+    // Edit branch — calls `updateMessageOverSocket` and clears edit state.
+    // Skips attachment upload (you can't change attachments on edit).
+    if (editing) {
+      if (!trimmed.length) return
+      if (trimmed === editing.originalText) {
+        dispatch(setEditingMessage(null))
+        setMsg('')
+
+        return
+      }
+      try {
+        await updateMessageOverSocket(editing.messageId, trimmed)
+      } catch (err) {
+        console.error('[chat] updateMessage failed:', err)
+        toast.error('Edit failed')
+
+        return
+      }
+      dispatch(setEditingMessage(null))
+      setMsg('')
+
+      return
+    }
 
     let uploaded: ChatAttachmentType[] | undefined
     const conversationId = store.selectedChat.contact.id
@@ -178,8 +211,77 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     setMsg('')
   }
 
+  const replyingTo = store?.replyingTo ?? null
+
   return (
     <Form onSubmit={handleSendMsg}>
+      {editing ? (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 2,
+            px: 3,
+            py: 1.5,
+            borderRadius: 1,
+            borderLeft: theme => `3px solid ${theme.palette.warning.main}`,
+            backgroundColor: 'customColors.Surface'
+          }}
+        >
+          <Icon icon='mdi:pencil-outline' fontSize='1.25rem' />
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography variant='caption' sx={{ display: 'block', fontWeight: 600 }}>
+              Editing message
+            </Typography>
+            <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
+              {editing.originalText}
+            </Typography>
+          </Box>
+          <IconButton
+            size='small'
+            aria-label='Cancel edit'
+            onClick={() => {
+              dispatch(setEditingMessage(null))
+              setMsg('')
+            }}
+          >
+            <Icon icon='mdi:close' fontSize='1rem' />
+          </IconButton>
+        </Box>
+      ) : replyingTo ? (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            mb: 2,
+            px: 3,
+            py: 1.5,
+            borderRadius: 1,
+            borderLeft: theme => `3px solid ${theme.palette.primary.main}`,
+            backgroundColor: 'customColors.Surface'
+          }}
+        >
+          <Icon icon='mdi:reply' fontSize='1.25rem' />
+          <Box sx={{ minWidth: 0, flexGrow: 1 }}>
+            <Typography variant='caption' sx={{ display: 'block', fontWeight: 600 }}>
+              Replying to {replyingTo.senderName ?? 'message'}
+            </Typography>
+            <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
+              {replyingTo.textPreview ||
+                (replyingTo.hasAttachment ? '📎 Attachment' : '')}
+            </Typography>
+          </Box>
+          <IconButton
+            size='small'
+            aria-label='Cancel reply'
+            onClick={() => dispatch(setReplyingTo(null))}
+          >
+            <Icon icon='mdi:close' fontSize='1rem' />
+          </IconButton>
+        </Box>
+      ) : null}
       {pending.length > 0 && (
         <PreviewStrip>
           {pending.map(p => {

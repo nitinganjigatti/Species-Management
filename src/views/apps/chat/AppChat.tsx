@@ -19,6 +19,11 @@ import {
   removeSelectedChat,
   receiveMessage,
   setUnreadCount,
+  applyReactionUpdate,
+  applyMessageUpdate,
+  applyMessageDelete,
+  applyMessageDeleteForMe,
+  applyMessagePin,
   updateMessagesFeedback
 } from 'src/store/apps/chat'
 
@@ -326,6 +331,51 @@ const AppChat = () => {
       dispatch(fetchChatsContacts())
     }
 
+    // Reactions — server broadcasts the full `reactions` array for one
+    // message. We replace (not merge) since the server is authoritative.
+    const onReactionUpdated = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      const reactions = evt?.reactions ?? evt?.message?.reactions ?? []
+      if (!messageId) return
+      dispatch(applyReactionUpdate({ messageId, reactions }))
+    }
+
+    // Edit — server broadcasts the new text + isEdited stamp.
+    const onMessageUpdated = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      const text = evt?.text ?? evt?.message?.content?.text ?? ''
+      const editedAt = evt?.editedAt ?? evt?.message?.editedAt
+      if (!messageId) return
+      dispatch(applyMessageUpdate({ messageId, text, editedAt }))
+    }
+
+    // Delete-for-everyone — keep the bubble in place, render the
+    // "This message was deleted" placeholder.
+    const onMessageDeleted = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      if (!messageId) return
+      dispatch(applyMessageDelete({ messageId }))
+    }
+
+    // Delete-for-me — server only emits this to the user who initiated.
+    // Remove the message entirely from local state.
+    const onMessageDeletedForMe = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      if (!messageId) return
+      dispatch(applyMessageDeleteForMe({ messageId }))
+    }
+
+    // Pin — broadcast to all participants. Server toggles state both directions
+    // (pin and unpin both arrive via `message_pin_updated`).
+    const onMessagePinUpdated = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      // Default to true if the server omits the flag — `pinMessage` is the
+      // common pattern; unpins usually include `isPinned: false` explicitly.
+      const isPinned = typeof evt?.isPinned === 'boolean' ? evt.isPinned : true
+      if (!messageId) return
+      dispatch(applyMessagePin({ messageId, isPinned }))
+    }
+
     // TEMPORARY: log every server event before our specific handlers run, so
     // we can verify event-name matches. Remove once read-receipt flow is
     // verified end-to-end on staging.
@@ -345,6 +395,11 @@ const AppChat = () => {
     chatSocket.on('conversation_updated', onConversationUpdated)
     chatSocket.on('conversation_created', onConversationCreated)
     chatSocket.on('conversation_deleted', onConversationDeleted)
+    chatSocket.on('reaction_updated', onReactionUpdated)
+    chatSocket.on('message_updated', onMessageUpdated)
+    chatSocket.on('message_deleted', onMessageDeleted)
+    chatSocket.on('message_deleted_for_me', onMessageDeletedForMe)
+    chatSocket.on('message_pin_updated', onMessagePinUpdated)
 
     return () => {
       chatSocket.offAny(onAnyDebug)
@@ -356,6 +411,11 @@ const AppChat = () => {
       chatSocket.off('conversation_updated', onConversationUpdated)
       chatSocket.off('conversation_created', onConversationCreated)
       chatSocket.off('conversation_deleted', onConversationDeleted)
+      chatSocket.off('reaction_updated', onReactionUpdated)
+      chatSocket.off('message_updated', onMessageUpdated)
+      chatSocket.off('message_deleted', onMessageDeleted)
+      chatSocket.off('message_deleted_for_me', onMessageDeletedForMe)
+      chatSocket.off('message_pin_updated', onMessagePinUpdated)
     }
   }, [chatSocket, chatConnected, chatError, chatClient, dispatch])
 

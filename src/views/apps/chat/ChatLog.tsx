@@ -16,6 +16,7 @@ import PerfectScrollbarComponent, { ScrollBarProps } from 'react-perfect-scrollb
 
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import MessageBubble from 'src/views/apps/chat/MessageBubble'
 
 // ** Utils Imports
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -87,10 +88,23 @@ const ChatLog = (props: ChatLogType) => {
     }
     chatLog.forEach((msg: MessageType, index: number) => {
       const entry = {
+        // Forward the id so future bubble-level actions (react, edit, delete,
+        // pin, star, reply) have a stable target.
+        id: msg.id,
         time: msg.time,
         msg: msg.message,
         feedback: msg.feedback,
-        ...(msg.attachments?.length ? { attachments: msg.attachments } : {})
+        ...(msg.attachments?.length ? { attachments: msg.attachments } : {}),
+        // Interaction state — forwarded so the bubble renderer can decorate
+        // without going back to Redux per message. Phase 0 only carries them;
+        // no UI change yet.
+        ...(msg.replyTo ? { replyTo: msg.replyTo } : {}),
+        ...(msg.reactions?.length ? { reactions: msg.reactions } : {}),
+        ...(msg.isPinned ? { isPinned: true } : {}),
+        ...(msg.isStarred ? { isStarred: true } : {}),
+        ...(msg.isEdited ? { isEdited: true } : {}),
+        ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
+        ...(msg.isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
       }
       if (chatMessageSenderId === msg.senderId) {
         msgGroup.messages.push(entry)
@@ -275,25 +289,25 @@ const ChatLog = (props: ChatLogType) => {
                         )}
                       </Box>
                     ))}
-                    {chat.msg ? (
-                      <Typography
-                        sx={{
-                          boxShadow: 1,
-                          borderRadius: 1,
-                          maxWidth: '100%',
-                          width: 'fit-content',
-                          fontSize: '0.875rem',
-                          wordWrap: 'break-word',
-                          p: theme => theme.spacing(3, 4),
-                          ml: isSender ? 'auto' : undefined,
-                          borderTopLeftRadius: !isSender ? 0 : undefined,
-                          borderTopRightRadius: isSender ? 0 : undefined,
-                          color: isSender ? 'common.white' : 'text.primary',
-                          backgroundColor: isSender ? 'primary.main' : 'background.paper'
-                        }}
-                      >
-                        {chat.msg}
-                      </Typography>
+                    {chat.msg || chat.isDeletedForEveryone ? (
+                      <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
+                        <MessageBubble
+                          chat={chat}
+                          isSender={isSender}
+                          senderName={isSender ? data.userContact.fullName : data.contact.fullName}
+                          senderId={item.senderId}
+                          canPin={(() => {
+                            // DM: both participants can pin any message (their
+                            // own or received). Group: still admin-only.
+                            const isGroup = data.contact.isGroup === true
+                            if (!isGroup) return true
+                            const me = String(data.userContact.id ?? '')
+                            const admins = data.contact.adminIds?.map(String) ?? []
+
+                            return admins.includes(me)
+                          })()}
+                        />
+                      </Box>
                     ) : null}
                   </Box>
                   {index + 1 === length ? (
