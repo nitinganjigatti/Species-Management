@@ -38,7 +38,7 @@ import {
   getConversationMembers,
   getLastRead,
   listMessages,
-  markConversationRead,
+  markReadOverSocket,
   sendMessageOverSocket,
   sdkUserToProfile,
   sdkConversationToChat,
@@ -519,20 +519,9 @@ export const selectChat = createAsyncThunk<void, ChatEntityId>(
 
       dispatch(setChatMessages({ chatId, messages }))
 
-      // Clear the server-side unread badge. Fire-and-forget — a failure here
-      // just means the badge sticks around, not a UX-breaking error.
-      //
-      // Also: this REST call is what triggers the server to broadcast
-      // `read_receipt` to other participants — so other users see their
-      // messages flip to "seen" because of THIS call.
-      console.log('[chat:receipt] B1 markConversationRead → request for', chatId, '(no messageId = mark all)')
-      markConversationRead(chatId)
-        .then(() => {
-          console.log('[chat:receipt] B2 markConversationRead ← OK for', chatId)
-        })
-        .catch(err => {
-          console.warn('[chat:receipt] B2 markConversationRead FAILED for', chatId, err)
-        })
+      // Mark via socket so the server broadcasts read_receipt to the sender.
+      // The REST markAsRead endpoint does NOT trigger a socket broadcast.
+      markReadOverSocket(chatId)
     } catch (err) {
       console.error('[chat] selectChat failed to load messages:', err)
     }
@@ -942,6 +931,14 @@ export const appChatSlice = createSlice({
       chatEntry.chat.messages = newMessages
       chatEntry.chat.lastMessage = stored
 
+      // Move this chat to the top of the list so the sidebar reflects
+      // the most recent activity.
+      const idx = state.chats.indexOf(chatEntry)
+      if (idx > 0) {
+        state.chats.splice(idx, 1)
+        state.chats.unshift(chatEntry)
+      }
+
       const isOpen = state.selectedChat?.contact.id === conversationId
       if (isOpen) {
         // Explicitly create a new selectedChat object so React detects the
@@ -1096,6 +1093,14 @@ export const appChatSlice = createSlice({
       const newMessages = [...chatEntry.chat.messages, newMsg]
       chatEntry.chat.messages = newMessages
       chatEntry.chat.lastMessage = newMsg
+
+      // Move this chat to the top of the list.
+      const idx = state.chats.indexOf(chatEntry)
+      if (idx > 0) {
+        state.chats.splice(idx, 1)
+        state.chats.unshift(chatEntry)
+      }
+
       if (state.selectedChat && state.selectedChat.contact.id === contactId) {
         state.selectedChat = {
           chat: { ...chatEntry.chat, messages: newMessages },

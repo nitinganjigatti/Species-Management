@@ -191,24 +191,26 @@ const ChatContent = (props: ChatContentType) => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {mdAbove ? (
                   <Fragment>
-                    <IconButton size='small' sx={{ color: 'text.secondary' }}>
+                    {/* Call & video call hidden — re-enable when needed */}
+                    {/* <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:phone-outline' />
                     </IconButton>
                     <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:video-outline' fontSize='1.5rem' />
-                    </IconButton>
+                    </IconButton> */}
                     <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:magnify' />
                     </IconButton>
                   </Fragment>
                 ) : null}
 
-                <OptionsMenu
+                {/* 3-dot menu hidden — re-enable when needed */}
+                {/* <OptionsMenu
                   menuProps={{ sx: { mt: 2 } }}
                   icon={<Icon icon='mdi:dots-vertical' fontSize='1.25rem' />}
                   iconButtonProps={{ size: 'small', sx: { color: 'text.secondary' } }}
                   options={['View Contact', 'Mute Notifications', 'Block Contact', 'Clear Chat', 'Report']}
-                />
+                /> */}
               </Box>
             </Box>
 
