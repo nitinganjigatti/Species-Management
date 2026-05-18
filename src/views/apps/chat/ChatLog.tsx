@@ -17,6 +17,7 @@ import PerfectScrollbarComponent, { ScrollBarProps } from 'react-perfect-scrollb
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import MessageBubble from 'src/views/apps/chat/MessageBubble'
+import MessageActions from 'src/views/apps/chat/MessageActions'
 
 // ** Utils Imports
 import { getInitials } from 'src/@core/utils/get-initials'
@@ -210,7 +211,139 @@ const ChatLog = (props: ChatLogType) => {
                       gap: 1
                     }}
                   >
-                    {chat.attachments?.map(att => (
+                    {/* Attachment-only messages get a MessageActions sibling so
+                        delete/star/pin/react work on audio / video / document / image
+                        the same as on text bubbles. Mixed (text + attachments) messages
+                        keep their actions inside MessageBubble below — one menu per
+                        message, not per attachment. */}
+                    {chat.attachments?.length && !chat.msg && !chat.isDeletedForEveryone ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: isSender ? 'row-reverse' : 'row',
+                          alignItems: 'flex-start',
+                          gap: 1,
+                          '&:hover .msg-actions': {
+                            opacity: '1 !important',
+                            pointerEvents: 'auto !important'
+                          }
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxWidth: '100%' }}>
+                          {chat.attachments.map(att => (
+                            <Box
+                              key={att.id}
+                              sx={{
+                                boxShadow: 1,
+                                borderRadius: 1,
+                                overflow: 'hidden',
+                                borderTopLeftRadius: !isSender ? 0 : undefined,
+                                borderTopRightRadius: isSender ? 0 : undefined,
+                                backgroundColor: isSender ? 'primary.main' : 'background.paper',
+                                color: isSender ? 'common.white' : 'text.primary'
+                              }}
+                            >
+                              {att.type === 'image' ? (
+                                <Box
+                                  component='a'
+                                  href={att.url}
+                                  target='_blank'
+                                  rel='noopener noreferrer'
+                                  sx={{ display: 'block', lineHeight: 0 }}
+                                >
+                                  <Box
+                                    component='img'
+                                    src={att.thumbnailUrl ?? att.url}
+                                    alt={att.filename}
+                                    loading='lazy'
+                                    sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
+                                  />
+                                </Box>
+                              ) : att.type === 'video' ? (
+                                <Box
+                                  component='video'
+                                  src={att.url}
+                                  controls
+                                  sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
+                                />
+                              ) : att.type === 'audio' ? (
+                                <Box sx={{ p: 2, minWidth: 300 }}>
+                                  <Box
+                                    component='audio'
+                                    src={att.url}
+                                    controls
+                                    controlsList='nodownload noplaybackrate'
+                                    onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                    sx={{
+                                      display: 'block',
+                                      width: 280,
+                                      maxWidth: '100%',
+                                      borderRadius: 1,
+                                      bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
+                                    }}
+                                  />
+                                </Box>
+                              ) : (
+                                (() => {
+                                  const visual = getAttachmentVisual(att.mimeType, att.filename)
+
+                                  return (
+                                    <Box
+                                      component='a'
+                                      href={att.url}
+                                      target='_blank'
+                                      rel='noopener noreferrer'
+                                      download={att.filename}
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 2,
+                                        p: theme => theme.spacing(3, 4),
+                                        color: 'inherit',
+                                        textDecoration: 'none'
+                                      }}
+                                    >
+                                      <Icon
+                                        icon={visual.icon}
+                                        color={isSender ? '#ffffff' : visual.color}
+                                        fontSize='2rem'
+                                      />
+                                      <Box sx={{ minWidth: 0 }}>
+                                        <Typography variant='caption' sx={{ color: 'inherit' }} noWrap>
+                                          {att.filename}
+                                        </Typography>
+                                        <Typography variant='caption' sx={{ color: 'inherit', opacity: 0.8 }}>
+                                          {(att.size / 1024).toFixed(0)} KB
+                                        </Typography>
+                                      </Box>
+                                    </Box>
+                                  )
+                                })()
+                              )}
+                            </Box>
+                          ))}
+                        </Box>
+                        <MessageActions
+                          chat={chat}
+                          isSender={isSender}
+                          senderName={isSender ? data.userContact.fullName : data.contact.fullName}
+                          senderId={item.senderId}
+                          canPin={(() => {
+                            const isGroup = data.contact.isGroup === true
+                            if (!isGroup) return true
+                            const me = String(data.userContact.id ?? '')
+                            const admins = data.contact.adminIds?.map(String) ?? []
+
+                            return admins.includes(me)
+                          })()}
+                          showEdit={false}
+                          showCopyText={false}
+                        />
+                      </Box>
+                    ) : null}
+                    {/* Mixed (attachments + text) and text-only paths: existing inline
+                        attachments map below + MessageBubble. Skipped when attachment-only. */}
+                    {chat.attachments?.length && (chat.msg || chat.isDeletedForEveryone) ? chat.attachments.map(att => (
                       <Box
                         key={att.id}
                         sx={{
@@ -318,7 +451,7 @@ const ChatLog = (props: ChatLogType) => {
                           })()
                         )}
                       </Box>
-                    ))}
+                    )) : null}
                     {chat.msg || chat.isDeletedForEveryone ? (
                       <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
                         <MessageBubble

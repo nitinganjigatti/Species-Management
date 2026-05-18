@@ -88,15 +88,17 @@ The SDK exports `devicesApi` at module level (not on the `AntzChatClient` instan
 | `list` | ✅ | `selectChat` thunk — limit 50, reversed for chronological render |
 | `get(messageId)` | 🔌 | `getMessage` in `api.ts` — useful for deep-link → fetch single message |
 | `send` (REST) | 🔌 | We use socket `socketEmit.sendMessage` instead. REST `send` is not wrapped (no consumer would need it). |
-| `update(messageId, text)` | 🔌 | `updateMessage` in `api.ts`. Pairs with socket `updateMessageOverSocket`. No edit UI yet. |
-| `delete(messageId)` | 🔌 | `deleteMessage` in `api.ts` — "delete for everyone." Pairs with `deleteMessageOverSocket`. |
-| `deleteForMe(messageId)` | 🔌 | `deleteMessageForMe` — local soft-delete. Pairs with `deleteMessageForMeOverSocket`. |
-| `addReaction` / `removeReaction` | 🔌 | `addMessageReaction` / `removeMessageReaction` in `api.ts`. Pairs with socket equivalents. |
-| `star` / `unstar` / `getStarred` | 🔌 | `starMessage` / `unstarMessage` / `listStarredMessages` in `api.ts` |
+| `update(messageId, text)` | ✅ | Wired via socket `updateMessageOverSocket` — invoked from `MessageActions` 3-dot → Edit. Composer enters edit mode (banner + prefilled text), submits via socket. `message_updated` event → `applyMessageUpdate` reducer → bubble shows `(edited)`. REST `updateMessage` also exposed. |
+| `delete(messageId)` | ✅ | Wired via socket `deleteMessageOverSocket` — invoked from `MessageActions` 3-dot → Delete for everyone. Confirmation via shared `ConfirmationDialog`. `message_deleted` event → `applyMessageDelete` reducer → bubble shows "This message was deleted" tombstone. **Works on text and all attachment types** (audio / video / image / document) — same `MessageActions` component everywhere. REST `deleteMessage` also exposed. |
+| `deleteForMe(messageId)` | ✅ | Wired via socket `deleteMessageForMeOverSocket` — invoked from `MessageActions` 3-dot → Delete for me. `message_deleted_for_me` event → `applyMessageDeleteForMe` reducer → message removed from local thread only. REST `deleteMessageForMe` also exposed. |
+| `addReaction` / `removeReaction` | ✅ | Wired via socket `addReactionOverSocket` / `removeReactionOverSocket`. Reaction picker popover in `MessageActions` (6 quick emojis: 👍 ❤️ 😂 😮 😢 🙏). Reaction chips render below bubble; click chip = toggle your reaction. `reaction_updated` event → `applyReactionUpdate` reducer (full array replace, server is authoritative). |
+| `star` / `unstar` | ✅ | Wired via REST `starMessage` / `unstarMessage` — invoked from `MessageActions` 3-dot. Optimistic local toggle via `setMessageStarred` reducer with revert on failure. Star icon renders inline on bubble. No server broadcast event (personal flag). |
+| `getStarred` | 🔌 | `listStarredMessages` in `api.ts`. No starred-messages view in UI yet. |
 | `search(params)` | 🔌 | `searchMessages` in `api.ts`. Sidebar search currently filters loaded chats only; this would power proper server-side message search. |
 | `getLastRead(conversationId)` | ✅ | `selectChat` thunk seeds `useChatStore.lastRead` via this on every chat open. Powers the future unread-divider + jump-to-first-unread UI. |
 | `markAsRead` | ✅ | `selectChat` thunk + `new_message` socket handler (when chat is open) |
-| `pin` / `unpin` / `getPinned` | 🔌 | `pinMessage` / `unpinMessage` / `listPinnedMessages` in `api.ts`. No pin UI yet. |
+| `pin` / `unpin` | ✅ | Wired via socket `pinMessageOverSocket` / `unpinMessageOverSocket` — invoked from `MessageActions` 3-dot. Gating: DM both sides can pin; group admin-only. `message_pin_updated` event → `applyMessagePin` reducer. Pinned strip renders above ChatLog showing the latest pinned message + count; click jumps + flashes. REST `pinMessage` / `unpinMessage` also exposed. |
+| `getPinned` | 🔌 | `listPinnedMessages` in `api.ts`. Currently the pinned strip derives from `chat.messages.filter(m => m.isPinned)`; could swap to a dedicated query for very long threads. |
 
 ---
 
