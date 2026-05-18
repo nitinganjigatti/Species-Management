@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, ReactNode } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -29,6 +29,9 @@ interface MessageBubbleProps {
   senderName?: string
   senderId?: string | number
   canPin?: boolean
+  isSearchMatch?: boolean
+  isActiveSearchMatch?: boolean
+  searchQuery?: string
 }
 
 /**
@@ -36,7 +39,7 @@ interface MessageBubbleProps {
  * picker live in <MessageActions />, which is reused by ChatLog for
  * attachment-only bubbles too.
  */
-const MessageBubble = ({ chat, isSender, senderName, senderId, canPin }: MessageBubbleProps) => {
+const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchMatch, isActiveSearchMatch, searchQuery }: MessageBubbleProps) => {
   const [hovered, setHovered] = useState(false)
   const currentUserId = useSelector((s: RootState) => s.chat?.userProfile?.id ?? null)
 
@@ -65,6 +68,38 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin }: Message
         </Typography>
       </Box>
     )
+  }
+
+  // Highlights search query matches within text
+  const highlightText = (text: string, isActive: boolean): ReactNode => {
+    if (!searchQuery?.trim()) return text
+    const q = searchQuery.toLowerCase()
+    const parts: ReactNode[] = []
+    let lastIdx = 0
+    let pos = text.toLowerCase().indexOf(q, 0)
+    let key = 0
+    while (pos !== -1) {
+      if (pos > lastIdx) parts.push(text.slice(lastIdx, pos))
+      parts.push(
+        <Box
+          component='span'
+          key={key++}
+          sx={{
+            backgroundColor: isActive ? 'warning.main' : 'warning.light',
+            color: 'warning.contrastText',
+            borderRadius: '2px',
+            px: '2px'
+          }}
+        >
+          {text.slice(pos, pos + q.length)}
+        </Box>
+      )
+      lastIdx = pos + q.length
+      pos = text.toLowerCase().indexOf(q, lastIdx)
+    }
+    if (lastIdx < text.length) parts.push(text.slice(lastIdx))
+
+    return <>{parts}</>
   }
 
   if (!chat.msg) return null
@@ -116,7 +151,11 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin }: Message
             borderTopLeftRadius: !isSender ? 0 : undefined,
             borderTopRightRadius: isSender ? 0 : undefined,
             color: isSender ? 'common.white' : 'text.primary',
-            backgroundColor: isSender ? 'primary.main' : 'background.paper'
+            backgroundColor: isSender ? 'primary.main' : 'background.paper',
+            ...(isActiveSearchMatch && {
+              outline: theme => `2px solid ${theme.palette.warning.main}`,
+              outlineOffset: '2px'
+            })
           }}
         >
           {chat.replyTo ? (
@@ -154,7 +193,7 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin }: Message
             </Box>
           ) : null}
           <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
-            {chat.msg}
+            {isSearchMatch ? highlightText(chat.msg, !!isActiveSearchMatch) : chat.msg}
             {chat.isPinned ? (
               <Box
                 component='span'

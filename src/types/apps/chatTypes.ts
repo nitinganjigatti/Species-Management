@@ -81,6 +81,7 @@ export type MessageType = {
   senderId: ChatEntityId
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
+  contentType?: 'text' | 'attachment' | 'system'
   // Interaction state — populated by the SDK adapter when the server includes
   // these, mutated by the new message-actions reducers. All optional so
   // existing send/receive paths don't need updates.
@@ -119,6 +120,8 @@ export type ChatsArrType = {
   fullName: string
   status: StatusType
   avatarColor?: ThemeColor
+  email?: string
+  phone?: string
   isGroup?: boolean
   isFavourite?: boolean
   description?: string
@@ -238,6 +241,7 @@ export type ChatLogChatType = {
   time: string | Date
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
+  contentType?: 'text' | 'attachment' | 'system'
   // Forwarded from MessageType so the bubble renderer can show interaction
   // state without going back to Redux for each message.
   replyTo?: MessageReplyRef
@@ -263,4 +267,7 @@ export type ChatLogType = {
     contact: ChatsArrType
     userContact: ProfileUserType
   }
+  searchQuery?: string
+  searchResultIds?: string[]
+  activeMatchIndex?: number
 }

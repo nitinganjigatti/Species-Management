@@ -21,7 +21,8 @@ import {
 
 // ** Chat SDK
 import { getChatClientOrNull } from 'src/lib/chat/client'
-import { searchUsers, sdkUserToContact } from 'src/lib/chat/api'
+import { searchUsers, sdkUserToContact, getUserById } from 'src/lib/chat/api'
+import type { User } from 'src/lib/chat/api'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -89,7 +90,33 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const [addableContacts, setAddableContacts] = useState<ContactType[]>([])
   const [searching, setSearching] = useState<boolean>(false)
 
+  // Fetch full user details for 1:1 chat profile sidebar
+  const [contactUser, setContactUser] = useState<User | null>(null)
+  const contactId = store?.selectedChat?.contact?.id
   const isGroup = store?.selectedChat?.contact?.isGroup === true
+
+  useEffect(() => {
+    if (isGroup || !userProfileRightOpen || !contactId) {
+      setContactUser(null)
+
+      return
+    }
+
+    const client = getChatClientOrNull()
+    if (!client) return
+
+    // For 1:1 chats, the contact id is the conversation id. We need the
+    // other participant's userId to fetch their profile.
+    const otherUserId = store?.selectedChat?.contact?.participantIds?.find(
+      id => String(id) !== String(store?.userProfile?.id)
+    )
+    if (!otherUserId) return
+
+    getUserById(String(otherUserId))
+      .then(user => setContactUser(user))
+      .catch(() => setContactUser(null))
+  }, [userProfileRightOpen, contactId, isGroup])
+
   const currentUserId = store?.userProfile?.id ?? 11
   const currentGroupId = store?.selectedChat?.contact?.id ?? null
   const existingParticipantIds = store?.selectedChat?.contact?.participantIds ?? []
@@ -164,6 +191,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
   type ConfirmAction =
     | { type: 'leave' }
     | { type: 'delete' }
+    | { type: 'deleteChat' }
     | { type: 'removeMember'; userId: ChatEntityId; fullName: string }
 
   const [confirmAction, setConfirmAction] = useState<ConfirmAction | null>(null)
@@ -180,14 +208,21 @@ const UserProfileRight = (props: UserProfileRightType) => {
   }
 
   const runConfirmedAction = () => {
-    if (!confirmAction || currentGroupId === null) return
+    if (!confirmAction) return
+    const chatId = store?.selectedChat?.contact?.id ?? null
+    if (chatId === null) return
+
     if (confirmAction.type === 'leave') {
-      dispatch(leaveGroupChat(currentGroupId))
+      dispatch(leaveGroupChat(chatId))
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'delete') {
-      dispatch(deleteConversation(currentGroupId))
+      dispatch(deleteConversation(chatId))
+      handleUserProfileRightSidebarToggle()
+    } else if (confirmAction.type === 'deleteChat') {
+      dispatch(deleteConversation(chatId))
       handleUserProfileRightSidebarToggle()
     } else if (confirmAction.type === 'removeMember') {
+      if (currentGroupId === null) return
       dispatch(
         removeParticipantFromGroup({ groupId: currentGroupId, userId: confirmAction.userId })
       )
@@ -196,13 +231,13 @@ const UserProfileRight = (props: UserProfileRightType) => {
   }
 
   // Derived dialog copy
-  const groupName = store?.selectedChat?.contact.fullName ?? 'this group'
+  const chatName = store?.selectedChat?.contact.fullName ?? 'this chat'
   const confirmCopy = (() => {
     if (!confirmAction) return null
     switch (confirmAction.type) {
       case 'leave':
         return {
-          title: `Leave "${groupName}"?`,
+          title: `Leave "${chatName}"?`,
           description: "You won't receive new messages.",
           confirmText: 'Leave group',
           icon: 'mdi:exit-to-app',
@@ -210,8 +245,16 @@ const UserProfileRight = (props: UserProfileRightType) => {
         }
       case 'delete':
         return {
-          title: `Delete "${groupName}"?`,
+          title: `Delete "${chatName}"?`,
           description: 'This cannot be undone.',
+          confirmText: 'Delete',
+          icon: 'mdi:delete',
+          iconColor: '#ff3838'
+        }
+      case 'deleteChat':
+        return {
+          title: `Delete chat with "${chatName}"?`,
+          description: 'This will permanently delete the conversation. This cannot be undone.',
           confirmText: 'Delete',
           icon: 'mdi:delete',
           iconColor: '#ff3838'
@@ -219,7 +262,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
       case 'removeMember':
         return {
           title: `Remove "${confirmAction.fullName}"?`,
-          description: `They will no longer be part of "${groupName}".`,
+          description: `They will no longer be part of "${chatName}".`,
           confirmText: 'Remove',
           icon: 'mdi:account-remove-outline',
           iconColor: '#ff3838'
@@ -721,14 +764,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
                       <ListItemText secondary='Pin to top' />
                     </ListItemButton>
                   </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:magnify' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Search messages' />
-                    </ListItemButton>
-                  </ListItem>
                 </List>
 
                 {/* Danger zone */}
@@ -746,20 +781,22 @@ const UserProfileRight = (props: UserProfileRightType) => {
                       />
                     </ListItemButton>
                   </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }} onClick={handleDeleteGroup}>
-                      <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
-                        <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText
-                        secondary={
-                          <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>
-                            Delete group <Typography component='span' sx={{ color: 'text.disabled', fontSize: '0.75rem' }}>(admin only)</Typography>
-                          </Typography>
-                        }
-                      />
-                    </ListItemButton>
-                  </ListItem>
+                  {isCurrentUserAdmin ? (
+                    <ListItem disablePadding>
+                      <ListItemButton sx={{ px: 2 }} onClick={handleDeleteGroup}>
+                        <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
+                          <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
+                        </ListItemIcon>
+                        <ListItemText
+                          secondary={
+                            <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>
+                              Delete group
+                            </Typography>
+                          }
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ) : null}
                 </List>
               </Box>
             </ScrollWrapper>
@@ -833,82 +870,86 @@ const UserProfileRight = (props: UserProfileRightType) => {
             <ScrollWrapper>
               <Box sx={{ p: 5 }}>
                 <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase' }}>
-                  About
-                </Typography>
-                <Typography variant='body2' sx={{ mb: 6 }}>
-                  {store.selectedChat.contact.about}
-                </Typography>
-                <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase' }}>
                   Personal Information
                 </Typography>
                 <List dense sx={{ mb: 6, p: 0 }}>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:email-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='josephGreen@email.com' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:phone-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='+1(123) 456 - 7890' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:clock-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Mon - Fri 10AM - 8PM' />
-                    </ListItemButton>
-                  </ListItem>
+                  {contactUser?.email ? (
+                    <ListItem disablePadding>
+                      <ListItemButton sx={{ px: 2 }}>
+                        <ListItemIcon sx={{ mr: 2 }}>
+                          <Icon icon='mdi:email-outline' fontSize='1.25rem' />
+                        </ListItemIcon>
+                        <ListItemText secondary={contactUser.email} />
+                      </ListItemButton>
+                    </ListItem>
+                  ) : null}
+                  {contactUser?.phone ? (
+                    <ListItem disablePadding>
+                      <ListItemButton sx={{ px: 2 }}>
+                        <ListItemIcon sx={{ mr: 2 }}>
+                          <Icon icon='mdi:phone-outline' fontSize='1.25rem' />
+                        </ListItemIcon>
+                        <ListItemText secondary={contactUser.phone} />
+                      </ListItemButton>
+                    </ListItem>
+                  ) : null}
+                  {contactUser?.username ? (
+                    <ListItem disablePadding>
+                      <ListItemButton sx={{ px: 2 }}>
+                        <ListItemIcon sx={{ mr: 2 }}>
+                          <Icon icon='mdi:account-outline' fontSize='1.25rem' />
+                        </ListItemIcon>
+                        <ListItemText secondary={contactUser.username} />
+                      </ListItemButton>
+                    </ListItem>
+                  ) : null}
                 </List>
                 <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase' }}>
                   Options
                 </Typography>
                 <List dense sx={{ p: 0 }}>
-                  <ListItem disablePadding>
+                  <ListItem
+                    disablePadding
+                    secondaryAction={
+                      <Switch
+                        edge='end'
+                        size='small'
+                        checked={isMuted}
+                        onChange={e => {
+                          if (!contactId) return
+                          if (e.target.checked) dispatch(muteConversation({ chatId: contactId }))
+                          else dispatch(unmuteConversation(contactId))
+                        }}
+                      />
+                    }
+                  >
                     <ListItemButton sx={{ px: 2 }}>
                       <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:bookmark-outline' fontSize='1.25rem' />
+                        <Icon icon='mdi:bell-off-outline' fontSize='1.25rem' />
                       </ListItemIcon>
-                      <ListItemText secondary='Add Tag' />
+                      <ListItemText secondary='Mute notifications' />
                     </ListItemButton>
                   </ListItem>
-                  <ListItem disablePadding>
+                  <ListItem
+                    disablePadding
+                    secondaryAction={
+                      <Switch
+                        edge='end'
+                        size='small'
+                        checked={isPinned}
+                        onChange={e => {
+                          if (!contactId) return
+                          if (e.target.checked) dispatch(pinConversation(contactId))
+                          else dispatch(unpinConversation(contactId))
+                        }}
+                      />
+                    }
+                  >
                     <ListItemButton sx={{ px: 2 }}>
                       <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:star-outline' fontSize='1.25rem' />
+                        <Icon icon='mdi:pin-outline' fontSize='1.25rem' />
                       </ListItemIcon>
-                      <ListItemText secondary='Important Contact' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:image-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Shared Media' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Delete Contact' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:block-helper' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Block Contact' />
+                      <ListItemText secondary='Pin to top' />
                     </ListItemButton>
                   </ListItem>
                 </List>

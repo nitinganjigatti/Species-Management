@@ -47,6 +47,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import UserProfileLeft from 'src/views/apps/chat/UserProfileLeft'
 import ComposePopover from 'src/views/apps/chat/ComposePopover'
 import CreateGroupDrawer from 'src/views/apps/chat/CreateGroupDrawer'
+import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
 // ** Slice actions (filter + group)
 import { setActiveFilter, createGroupChat, startDirectChat } from 'src/store/apps/chat'
@@ -169,7 +170,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       list = list.filter(c => c.fullName.toLowerCase().includes(q))
     }
 
-    return list
+    // Pinned conversations float to the top
+    const pinned = list.filter(c => c.isPinned === true)
+    const unpinned = list.filter(c => c.isPinned !== true)
+
+    return [...pinned, ...unpinned]
   })()
 
   const renderChats = () => {
@@ -212,6 +217,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       const { lastMessage } = chat.chat
       const activeCondition = chat.id === selectedChatId
       const isGroup = chat.isGroup === true
+      const isPinnedChat = chat.isPinned === true
 
       return (
         <ListItem key={`chat-${chat.id}-${index}`} disablePadding sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
@@ -283,9 +289,50 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 </Typography>
               }
               secondary={
-                <Typography noWrap variant='body2' sx={{ ...(!activeCondition && { color: 'text.disabled' }) }}>
-                  {lastMessage ? lastMessage.message : null}
-                </Typography>
+                lastMessage ? (
+                  lastMessage.contentType === 'system' ? (
+                    <Typography noWrap variant='body2' sx={{ fontStyle: 'italic', ...(!activeCondition && { color: 'text.disabled' }) }}>
+                      {lastMessage.message || 'System message'}
+                    </Typography>
+                  ) : lastMessage.message ? (
+                    <Typography noWrap variant='body2' sx={{ ...(!activeCondition && { color: 'text.disabled' }) }}>
+                      {lastMessage.message}
+                    </Typography>
+                  ) : lastMessage.attachments?.length ? (
+                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                      <Box component='span' sx={{ flexShrink: 0, display: 'inline-flex' }}>
+                        <Icon
+                          icon={
+                            lastMessage.attachments[0].type === 'image'
+                              ? 'mdi:image-outline'
+                              : lastMessage.attachments[0].type === 'video'
+                              ? 'mdi:video-outline'
+                              : lastMessage.attachments[0].type === 'audio'
+                              ? 'mdi:music-note'
+                              : getAttachmentVisual(lastMessage.attachments[0].mimeType, lastMessage.attachments[0].filename).icon
+                          }
+                          fontSize='1rem'
+                        />
+                      </Box>
+                      <Typography noWrap variant='body2' sx={{ minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}>
+                        {lastMessage.attachments[0].type === 'image'
+                          ? 'Photo'
+                          : lastMessage.attachments[0].type === 'video'
+                          ? 'Video'
+                          : lastMessage.attachments[0].type === 'audio'
+                          ? 'Audio'
+                          : lastMessage.attachments[0].filename}
+                      </Typography>
+                    </Box>
+                  ) : lastMessage.contentType === 'attachment' ? (
+                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                      <Icon icon='mdi:attachment' fontSize='1rem' />
+                      <Typography noWrap variant='body2' sx={{ minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}>
+                        Attachment
+                      </Typography>
+                    </Box>
+                  ) : null
+                ) : null
               }
             />
 
@@ -308,19 +355,34 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   ? formatDateToMonthShort(lastMessage.time as string, true)
                   : ''}
               </Typography>
-              {chat.chat.unseenMsgs && chat.chat.unseenMsgs > 0 ? (
-                <Chip
-                  color='error'
-                  label={chat.chat.unseenMsgs}
-                  sx={{
-                    mt: 0.5,
-                    height: 18,
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    '& .MuiChip-label': { pt: 0.25, px: 1.655 }
-                  }}
-                />
-              ) : null}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                {chat.isMuted === true ? (
+                  <Icon
+                    icon='mdi:bell-off-outline'
+                    fontSize='0.875rem'
+                    color={activeCondition ? 'inherit' : undefined}
+                  />
+                ) : null}
+                {isPinnedChat ? (
+                  <Icon
+                    icon='mdi:pin'
+                    fontSize='0.875rem'
+                    color={activeCondition ? 'inherit' : undefined}
+                  />
+                ) : null}
+                {chat.chat.unseenMsgs && chat.chat.unseenMsgs > 0 ? (
+                  <Chip
+                    color='error'
+                    label={chat.chat.unseenMsgs}
+                    sx={{
+                      height: 18,
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      '& .MuiChip-label': { pt: 0.25, px: 1.655 }
+                    }}
+                  />
+                ) : null}
+              </Box>
             </Box>
           </ListItemButton>
         </ListItem>

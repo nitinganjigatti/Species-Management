@@ -539,6 +539,7 @@ type ParticipantWithFlatUser = Participant & {
   displayName?: string
   username?: string
   email?: string
+  phone?: string
   avatarUrl?: string
   status?: string
 }
@@ -550,6 +551,7 @@ function participantToUser(p: ParticipantWithFlatUser): User {
     id: p.userId,
     tenantId: '',
     email: p.email ?? '',
+    phone: p.phone ?? '',
     username: p.username ?? '',
     displayName: p.displayName ?? '',
     avatarUrl: p.avatarUrl,
@@ -676,6 +678,7 @@ export function sdkMessageToMessage(msg: Message): MessageType {
       isSeen: deliveryStatus === 'read'
     },
     ...(attachments && attachments.length ? { attachments } : {}),
+    ...(msg.content?.type ? { contentType: msg.content.type } : {}),
     ...(reactions ? { reactions } : {}),
     ...(replyTo ? { replyTo } : {}),
     ...(msg.isPinned ? { isPinned: true } : {}),
@@ -709,6 +712,8 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     role: '',
     about: conv.description ?? '',
     status: other ? normalizeStatus(other.status) : 'online',
+    email: other?.email || undefined,
+    phone: other?.phone || undefined,
     isGroup,
     description: conv.description,
     participantIds: activeParticipants.map(p => p.userId),

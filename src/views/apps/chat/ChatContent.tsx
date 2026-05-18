@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Fragment } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Badge from '@mui/material/Badge'
@@ -11,6 +11,7 @@ import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
+import InputBase from '@mui/material/InputBase'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -21,6 +22,9 @@ import SendMsgForm from 'src/views/apps/chat/SendMsgForm'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
+
+// ** Chat API
+import { searchMessages } from 'src/lib/chat/api'
 
 // ** Types
 import { ChatContentType } from 'src/types/apps/chatTypes'
@@ -52,6 +56,99 @@ const ChatContent = (props: ChatContentType) => {
     handleLeftSidebarToggle,
     handleUserProfileRightSidebarToggle
   } = props
+
+  // ** Search state
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [activeMatchIndex, setActiveMatchIndex] = useState(0)
+  const [searchResultIds, setSearchResultIds] = useState<string[]>([])
+  const [searchLoading, setSearchLoading] = useState(false)
+  const [searchTotal, setSearchTotal] = useState(0)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Debounced API search
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+
+    const conversationId = store?.selectedChat?.contact?.id
+    if (!searchQuery.trim() || !conversationId) {
+      setSearchResultIds([])
+      setSearchTotal(0)
+      setSearchLoading(false)
+
+      return
+    }
+
+    setSearchLoading(true)
+    debounceRef.current = setTimeout(() => {
+      searchMessages({ query: searchQuery, conversationId: String(conversationId), limit: 50 })
+        .then(res => {
+          setSearchResultIds(res.data.map(m => m.id))
+          setSearchTotal(res.meta.total)
+          setActiveMatchIndex(0)
+        })
+        .catch(() => {
+          setSearchResultIds([])
+          setSearchTotal(0)
+        })
+        .finally(() => setSearchLoading(false))
+    }, 400)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchQuery, store?.selectedChat?.contact?.id])
+
+  // Reset search when chat changes
+  useEffect(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+    setSearchResultIds([])
+    setSearchTotal(0)
+  }, [store?.selectedChat?.contact?.id])
+
+  const handleSearchToggle = useCallback(() => {
+    setSearchOpen(prev => {
+      if (!prev) {
+        setTimeout(() => searchInputRef.current?.focus(), 100)
+      } else {
+        setSearchQuery('')
+      }
+
+      return !prev
+    })
+  }, [])
+
+  const handleSearchClose = useCallback(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+    setSearchResultIds([])
+    setSearchTotal(0)
+  }, [])
+
+  const handleSearchPrev = useCallback(() => {
+    setActiveMatchIndex(prev => (prev > 0 ? prev - 1 : searchResultIds.length - 1))
+  }, [searchResultIds.length])
+
+  const handleSearchNext = useCallback(() => {
+    setActiveMatchIndex(prev => (prev < searchResultIds.length - 1 ? prev + 1 : 0))
+  }, [searchResultIds.length])
+
+  const handleSearchKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        if (e.shiftKey) {
+          handleSearchPrev()
+        } else {
+          handleSearchNext()
+        }
+      } else if (e.key === 'Escape') {
+        handleSearchClose()
+      }
+    },
+    [handleSearchNext, handleSearchPrev, handleSearchClose]
+  )
 
   const handleStartConversation = () => {
     if (!mdAbove) {
@@ -132,11 +229,7 @@ const ChatContent = (props: ChatContentType) => {
                   sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                 >
                   {selectedChat.contact.isGroup ? (
-                    <CustomAvatar
-                      skin='light'
-                      color='primary'
-                      sx={{ width: 40, height: 40, mr: 3.5 }}
-                    >
+                    <CustomAvatar skin='light' color='primary' sx={{ width: 40, height: 40, mr: 3.5 }}>
                       <Icon icon='mdi:account-group' fontSize='1.25rem' />
                     </CustomAvatar>
                   ) : (
@@ -198,7 +291,11 @@ const ChatContent = (props: ChatContentType) => {
                     <IconButton size='small' sx={{ color: 'text.secondary' }}>
                       <Icon icon='mdi:video-outline' fontSize='1.5rem' />
                     </IconButton> */}
-                    <IconButton size='small' sx={{ color: 'text.secondary' }}>
+                    <IconButton
+                      size='small'
+                      sx={{ color: searchOpen ? 'primary.main' : 'text.secondary' }}
+                      onClick={handleSearchToggle}
+                    >
                       <Icon icon='mdi:magnify' />
                     </IconButton>
                   </Fragment>
@@ -213,6 +310,48 @@ const ChatContent = (props: ChatContentType) => {
                 /> */}
               </Box>
             </Box>
+
+            {searchOpen && (
+              <Box
+                sx={{
+                  px: 4,
+                  py: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Icon icon='mdi:magnify' fontSize='1.25rem' />
+                <InputBase
+                  inputRef={searchInputRef}
+                  placeholder='Search messages...'
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  sx={{ flex: 1, fontSize: '0.875rem' }}
+                  autoFocus
+                />
+                {searchQuery.trim() &&
+                  (searchLoading ? (
+                    <CircularProgress size={16} />
+                  ) : (
+                    <Typography variant='caption' sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                      {searchTotal > 0 ? `${activeMatchIndex + 1} of ${searchTotal}` : 'No results'}
+                    </Typography>
+                  ))}
+                <IconButton size='small' onClick={handleSearchPrev} disabled={searchResultIds.length === 0}>
+                  <Icon icon='mdi:chevron-up' fontSize='1.25rem' />
+                </IconButton>
+                <IconButton size='small' onClick={handleSearchNext} disabled={searchResultIds.length === 0}>
+                  <Icon icon='mdi:chevron-down' fontSize='1.25rem' />
+                </IconButton>
+                <IconButton size='small' onClick={handleSearchClose}>
+                  <Icon icon='mdi:close' fontSize='1.25rem' />
+                </IconButton>
+              </Box>
+            )}
 
             {selectedChat && store.userProfile ? (
               store.loadingMessages ? (
@@ -265,19 +404,20 @@ const ChatContent = (props: ChatContentType) => {
                           <Typography variant='caption' sx={{ display: 'block', fontWeight: 600 }}>
                             Pinned · {pinned.length}
                           </Typography>
-                          <Typography
-                            variant='caption'
-                            noWrap
-                            sx={{ display: 'block', color: 'text.secondary' }}
-                          >
-                            {latest.message ||
-                              (latest.attachments?.length ? '📎 Attachment' : '')}
+                          <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
+                            {latest.message || (latest.attachments?.length ? '📎 Attachment' : '')}
                           </Typography>
                         </Box>
                       </Box>
                     )
                   })()}
-                  <ChatLog hidden={hidden} data={{ ...selectedChat, userContact: store.userProfile }} />
+                  <ChatLog
+                    hidden={hidden}
+                    data={{ ...selectedChat, userContact: store.userProfile }}
+                    searchQuery={searchOpen ? searchQuery : ''}
+                    searchResultIds={searchOpen ? searchResultIds : []}
+                    activeMatchIndex={activeMatchIndex}
+                  />
                 </>
               )
             ) : null}

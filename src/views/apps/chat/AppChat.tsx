@@ -295,14 +295,18 @@ const AppChat = () => {
       dispatch(setUnreadCount({ chatId: convId, count }))
     }
 
-    // When a conversation is updated (metadata change, last message, etc.),
+    // When a conversation is updated (metadata change, pin/unpin, mute, etc.),
     // refresh the conversation list so the sidebar reflects the change.
     const onConversationUpdated = (evt: any) => {
       const convId = evt?.conversationId
-      if (convId && !knownChatIdsRef.current.has(convId)) {
+      if (!convId) return
+
+      if (!knownChatIdsRef.current.has(convId)) {
         dispatch(fetchChatsContacts()).then(() => {
           joinChatRoom(convId)
         })
+      } else {
+        dispatch(fetchChatsContacts())
       }
     }
 

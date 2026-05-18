@@ -697,6 +697,13 @@ export const appChatSlice = createSlice({
       if (isMuted !== undefined) chatEntry.isMuted = isMuted
       if (isPinned !== undefined) chatEntry.isPinned = isPinned
       if (isFavourite !== undefined) chatEntry.isFavourite = isFavourite
+
+      // Keep selectedChat.contact in sync so the UI reflects the change
+      if (state.selectedChat?.contact?.id === chatId) {
+        if (isMuted !== undefined) state.selectedChat.contact.isMuted = isMuted
+        if (isPinned !== undefined) state.selectedChat.contact.isPinned = isPinned
+        if (isFavourite !== undefined) state.selectedChat.contact.isFavourite = isFavourite
+      }
       if (state.selectedChat?.contact.id === chatId) {
         state.selectedChat.contact = chatEntry
       }
