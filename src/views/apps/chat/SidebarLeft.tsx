@@ -88,12 +88,18 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
   // ** Local UI state
   const [query, setQuery] = useState<string>('')
-  const [active, setActive] = useState<null | { type: string; id: string | number }>(null)
   const [composeAnchorEl, setComposeAnchorEl] = useState<HTMLElement | null>(null)
   const [view, setView] = useState<'chats' | 'create-group'>('chats')
 
   const pathname = usePathname()
   const activeFilter: ChatFilterType = store?.activeFilter ?? 'all'
+
+  // The "currently active" chat is the one Redux says is open. Deriving from
+  // Redux (instead of a local `active` state set on click) keeps the highlight
+  // in sync no matter how the chat got opened — including the auto-select
+  // effect in AppChat, programmatic `dispatch(selectChat(...))`, or any other
+  // path. Single source of truth: state.chat.selectedChat.contact.id.
+  const selectedChatId = store?.selectedChat?.contact?.id ?? null
 
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleChatClick = (type: 'chat' | 'contact', id: ChatEntityId) => {
@@ -107,7 +113,6 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     } else {
       dispatch(selectChat(id))
     }
-    setActive({ type, id })
     if (!mdAbove) handleLeftSidebarToggle()
   }
 
@@ -134,20 +139,15 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     if (!mdAbove) handleLeftSidebarToggle()
   }
 
-  // Clear active highlight on route change
+  // Clear the open chat on route change (when navigating away from /chat).
+  // The "highlight" follows Redux selectedChat naturally — no local state to
+  // reset here.
   useEffect(() => {
     return () => {
-      setActive(null)
       dispatch(removeSelectedChat())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
-
-  useEffect(() => {
-    if (store && store.chats && active && active.type === 'contact' && active.id === store.chats[0]?.id) {
-      setActive({ type: 'chat', id: active.id })
-    }
-  }, [store, active])
 
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {
@@ -210,7 +210,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
     return visibleChats.map((chat: ChatsArrType, index: number) => {
       const { lastMessage } = chat.chat
-      const activeCondition = active !== null && active.id === chat.id && active.type === 'chat'
+      const activeCondition = chat.id === selectedChatId
       const isGroup = chat.isGroup === true
 
       return (
