@@ -55,13 +55,16 @@ const PurchaseDocsDrawer = ({
     setSelectedDoc(null)
   }
 
-  const isPDF = title => title?.toLowerCase().endsWith('.pdf')
-
+  // const isPDF = title => title?.toLowerCase().endsWith('.pdf')
+  const isPDF = title => {
+    const ext = title?.toLowerCase()
+    return ext?.endsWith('.pdf') || ext?.endsWith('.xls') || ext?.endsWith('.xlsx')
+  }
 
   const handleDelete = (e, index, doc) => {
     setSelectedDoc(doc)
     e.preventDefault()
-    e.stopPropagation() 
+    e.stopPropagation()
 
     if (id) {
       if (doc?.id) {
@@ -94,7 +97,7 @@ const PurchaseDocsDrawer = ({
     <Drawer
       anchor='right'
       open={openDocsDrawer}
-      onClose={() => setOpenDocsDrawer(false)} 
+      onClose={() => setOpenDocsDrawer(false)}
       sx={{
         '& .MuiDrawer-paper': {
           width: ['100%', '396px'],
@@ -140,7 +143,6 @@ const PurchaseDocsDrawer = ({
             <Icon icon='maki:cross' width='15' height='15' color={theme.palette.customColors.OnPrimaryContainer} />
           </IconButton>
         </Box>
-      
 
         <Box
           sx={{
@@ -157,7 +159,7 @@ const PurchaseDocsDrawer = ({
                 key={index}
                 onClick={e => {
                   if (!isPDF(doc.title || fileArr[index]?.name)) {
-                    e.preventDefault() 
+                    e.preventDefault()
                     handleOpenDialog(doc, index)
                     setSelectedDoc(doc)
                   }
@@ -169,7 +171,6 @@ const PurchaseDocsDrawer = ({
                   rel='noopener noreferrer'
                   style={{ textDecoration: 'none' }}
                 >
-                 
                   <Box
                     key={index}
                     elevation={3}
@@ -180,14 +181,11 @@ const PurchaseDocsDrawer = ({
                       flexDirection: 'column',
                       position: 'relative',
                       borderRadius: '8px',
-                      backgroundColor: '#fff' 
+                      backgroundColor: '#fff'
                     }}
                   >
-                   
-
                     {closeButton(index, doc)}
 
-                  
                     {isPDF(doc.title || fileArr[index]?.name) ? (
                       <Box
                         sx={{
@@ -256,7 +254,6 @@ const PurchaseDocsDrawer = ({
         </Box>
       </Box>
 
-     
       <Dialog open={openDialog} onClose={handleCloseDialog} fullWidth maxWidth='md'>
         <Box
           sx={{
@@ -267,23 +264,21 @@ const PurchaseDocsDrawer = ({
             alignItems: 'center',
             overflow: 'hidden',
             backgroundColor: '#f0f0f0',
-            position: 'relative' 
+            position: 'relative'
           }}
         >
-         
           <IconButton
             onClick={handleCloseDialog}
             sx={{
               position: 'absolute',
-              top: '10px', 
-              right: '10px', 
-              zIndex: 2 
+              top: '10px',
+              right: '10px',
+              zIndex: 2
             }}
           >
             <Icon icon='solar:close-square-bold' width='40px' height='40px' color={'#7A8684'} />
           </IconButton>
 
-        
           <img
             src={selectedDoc?.transcript || selectedDoc}
             alt='Invoice doc'
@@ -320,7 +315,7 @@ const PurchaseDocsDrawer = ({
                 color: theme.palette.customColors.neutralSecondary,
                 '&:hover': {
                   borderColor: theme.palette.customColors.OutlineVariant,
-                  color: theme.palette.customColors.neutralSecondary 
+                  color: theme.palette.customColors.neutralSecondary
                 }
               }}
               onClick={() => setConfirmDeleteDialog(false)}
@@ -338,7 +333,7 @@ const PurchaseDocsDrawer = ({
               sx={{
                 bgcolor: theme.palette.customColors.Error,
                 '&:hover': {
-                  bgcolor: theme.palette.customColors.Error 
+                  bgcolor: theme.palette.customColors.Error
                 }
               }}
             >

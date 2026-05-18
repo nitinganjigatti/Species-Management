@@ -218,6 +218,24 @@ export async function variantMappingForProductBatch(payload) {
   }
 }
 
+export async function createPurchase(payload) {
+  try {
+    const url = `v4/pharma/${PURCHASE}`
+    var data = payload
+    const response = await axiosFormPost({ url, body: data, pharmacy: true })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
 export async function printPurchaseInvoice(purchaseId) {
   const response = await axiosGet({
     url: `${PHARMACY_BASE_URL}${PURCHASE}/${INVOICE_PRINT}/${purchaseId}`,
