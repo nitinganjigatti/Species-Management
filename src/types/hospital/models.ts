@@ -232,7 +232,7 @@ export type VisitTypeOption = {
   label: string
 }
 
-export type AnimalCategory = 'Single' | 'Group'
+export type AnimalCategory = 'Single' | 'Group' | 'SINGLE' | 'GROUP' | 'single' | 'group'
 export interface AnimalDetails { 
   animal_id: Id
   taxonomy_id: Id
@@ -285,6 +285,12 @@ export interface PatientAnimalDetail {
   age?: string
   sex?: string
   type?: string
+  breed_id?: Id | null
+  morph_id?: Id | null
+  local_id?: string
+  breed_name?: string | null
+  morph_name?: string | null
+  scientific_name?: string
   weight?: string
   site_id?: Id
   animal_id?: Id
@@ -292,9 +298,11 @@ export interface PatientAnimalDetail {
   birth_date?: string
   section_id?: Id
   common_name?: string
+  default_common_name?: string
   default_icon?: string
   section_name?: string
   complete_name?: string
+  total_animal?: number
   user_enclosure_id?: Id
   weight_record_date?: string
   user_enclosure_name?: string
@@ -916,6 +924,613 @@ export interface Prescription {
   status?: string
 }
 
+export interface MedicineList{
+  id: Id
+  name: string
+  generic_name?: string
+  composition?: string
+  dose_form?: string
+  total_central_store_qty?: string
+  total_local_store_qty?: string
+  total_qty?: string
+  controlled_substance?: number
+}
+
+export type PrescriptionStatus = 'active' | 'completed' | 'stopped' | 'all' | 'restart' | 'stop'
+
+export type PrescriptionFrequency =
+  | 'at_regular_intervals'
+  | 'on_specific_days' | 'At Regular Intervals' | 'On Specific Days' | 'one_time'
+
+export type PrescriptionScheduleStatus =
+  | 'Pending'
+  | 'Administered'
+  | 'Stopped'
+  | 'Skipped'
+
+  export type DurationType = 
+  | 'Days'
+  | 'Weeks'
+
+export type DosePurpose = | 'administer' | 'withheld'
+
+export type ApplyDosage = | 'only_for_this_day' | 'till_prescription_end'
+export interface PrescriptionScheduleItem {
+  schedule_id: Id
+  time: string
+  dosage?: string
+  status?: PrescriptionScheduleStatus
+  administered_time?: string | null
+  compliance_note?: string | null
+  administrative_id?: Id
+  medicine_id?: Id
+  prescription_id?: Id
+  administered_date?: string | null
+  total_schedule_count?: number
+  total_administer_count?: number
+  total_pending_count?: number
+  prescription_pending_count?: number
+  total_stopped_count?: number
+  administrative_ids?: Id[]
+}
+
+export interface PrescriptionList {
+  id: Id
+  name: string
+  label?: string
+  medical_record_id?: string
+  prescription_id?: Id
+  frequency?: PrescriptionFrequency
+  controlled_substance?: string | number
+  side_effects?: string | number
+  group_prescription_id?: Id
+  prescription_start_date?: string
+  prescription_stop_date?: string | null
+  prescription_end_date?: string | null
+  schedule?: PrescriptionScheduleItem[]
+  progress?: string
+  status?: PrescriptionScheduleStatus | string | null
+  canEdit?: boolean
+  pending_prescription_administer?: number
+}
+
+export interface MedicineSideEffect {
+  id: Id
+  animal_id: Id
+  medicine_id: Id
+  reason?: string | null
+  zoo_id?: Id
+  enclosure_id?: Id
+  section_id?: Id
+  name?: string
+  created_at?: string
+  created_by?: Id
+  description?: string | null
+  controlled_substance?: string | number
+}
+export interface MedicineBatchList {
+  id: Id
+  batch_no: string
+  expiry_date: string
+}
+
+// ==================== Medical Master Data ====================
+export interface MedicalCaseType {
+  id: Id
+  label: string
+  string_id?: string
+  default_icon?: string
+  color_code?: string
+  description?: string
+  active?: string | number
+  zoo_id?: Id
+  created_by?: Id
+  created_on?: string
+}
+
+export interface PrescriptionMeasurementType {
+  id: Id
+  unit_name: string
+  uom_abbr: string
+  string_id?: string
+}
+
+export type PrescriptionDosageType = 'Dosage' 
+
+export interface PrescriptionDosageMeasurementType {
+  id: Id
+  key: string
+  string_id?: string
+  label: string
+  dosage_type?: PrescriptionDosageType
+  description?: string | null
+  zoo_id?: Id | null
+  active?: string | number
+  created_by?: Id
+  created_on?: string
+  value: string
+  unit_name?: string
+  uom_abbr?: string
+}
+
+export interface PrescriptionDurationOption {
+  id: Id
+  key: string
+  string_id?: string
+  label: string
+  show_duration_field?: string | number
+  is_deleted?: string | number
+  created_by?: Id
+  created_at?: string
+  value?: string
+}
+
+export interface PrescriptionFrequencyOption {
+  id: Id
+  key?: string
+  string_id?: string
+  label: string
+  show_freq_field?: string | number
+  is_deleted?: string | number
+  created_by?: Id
+  created_at?: string
+  value?: Id
+}
+
+export interface PrescriptionDeliveryRoute {
+  id: Id
+  delivery: string
+  route_abbr: string
+  string_id?: string
+  zoo_id?: Id
+  is_deleted?: string | number
+  created_at?: string
+  modified_at?: string | null
+  created_by?: Id
+  modified_by?: Id | null
+  label?: string
+  value?: string
+}
+
+export interface MedicalRecommendedAdvice {
+  id: Id
+  label: string
+  string_id?: string
+  active?: string | number
+  zoo_id?: Id | null
+  created_by?: Id
+  created_on?: string | null
+}
+
+export type MedicalLabTestInputType = 'CheckBox' | 'Radio' | 'Text' | 'Number' | string
+
+export interface MedicalLabTest {
+  test_id: Id
+  full_test?: boolean
+  string_id?: string
+  test_name: string
+  child_tests?: MedicalLabTest[]
+  input_type?: MedicalLabTestInputType
+  value?: boolean | string | number | null
+}
+
+export interface MedicalLabTestSample {
+  sample_id: Id
+  sample_name: string
+  string_id?: string
+  tests: MedicalLabTest[]
+}
+
+export interface MedicalMostUsedLabTest {
+  id: Id
+  label: string
+  string_id?: string
+  mostly_use_count?: string | number
+}
+
+export interface MedicalDefaultVital {
+  assessment_type_id: Id
+  description?: string
+  assessments_type_label: string
+  string_id?: string
+  category_string_id?: string
+  assessment_category_id?: Id
+  response_type?: string
+  measurement_type?: string
+  active?: string | number
+  created_by?: Id
+  updated_by?: Id
+  created_on?: string
+  updated_on?: string
+  label?: string
+  zoo_id?: Id
+  template_count?: string | number
+  default_values?: unknown
+}
+
+export interface PrescriptionMedicineBatchDetail {
+  batch_id?: Id
+  batch_no?: string
+  expiry_date?: string
+  quantity?: string | number
+  unit?: string
+  [key: string]: unknown
+}
+
+export interface PrescriptionMedicineTiming {
+  administritive_id?: Id
+  administritive_unit_id?: Id | null
+  modified_at?: string | null
+  wastage_unit_id?: Id | null
+  quantity_administered?: string | number | null
+  wastage_quantity?: string | number | null
+  scheduled_quantity?: string | number
+  scheduled_time?: string
+  scheduled_unit_name?: string
+  scheduled_unit_id?: Id
+  string_id?: string | null
+  scheduled_dose_id?: Id
+  created_at?: string
+  status?: string | null
+  reason?: string | null
+  variant?: string
+  dosage?: string
+  wastage_note: string
+  notes?: string
+  administritive_date?: string | null
+  administritive_time?: string | null
+  job_id?: Id | null
+  user_profile_pic?: string | null
+  user_full_name?: string | null
+  user_mobile_number?: string | null
+  user_country_code?: string | null
+  stopped_date?: string | null
+  controlled_substance?: string | number
+  batch_details?: PrescriptionMedicineBatchDetail[]
+  batch_details_required?: boolean
+}
+
+export interface PrescriptionDetails {
+  medical_record_code?: string
+  interval?: string
+  medical_record_id?: Id
+  prescription_id?: Id
+  created_at?: string
+  created_by?: Id
+  updated_by?: Id | null
+  updated_at?: string | null
+  notes?: string
+  duration?: string
+  will_restart?: string | number
+  is_new_data?: string | number
+  stop_date?: string | null
+  animal_details?: PatientAnimalDetail
+  medical_record_type?: string
+  total_animal?: string | number
+  frequency?: string
+  prescription_frequency?: PrescriptionFrequency
+  interval_label?: string
+  duration_string_id?: string
+  duration_label?: string
+  duration_qty?: string | number
+  interval_string_id?: string
+  frequency_string_id?: string
+  delivery_route_name?: string
+  delivery_route_string_id?: string
+  controlled_substance?: string | number
+  medicine_name?: string
+  start_date?: string
+  end_date?: string
+  composition_name?: string
+  medicine_id?: Id
+  side_effect?: string | number
+  created_for?: string
+  prescription_created_for?: string
+  medicine_timings: PrescriptionMedicineTiming[]
+  dose_count?: number
+  show_stop_button?: boolean
+}
+
+export interface PrescriptionMasterData {
+    caseTypes: MedicalCaseType[]
+    prescriptionMeasurementType: PrescriptionMeasurementType[]
+    prescriptionDosageMeasurementType: PrescriptionDosageMeasurementType[]
+    prescriptionDuration: PrescriptionDurationOption[]
+    prescriptionFrequency: PrescriptionFrequencyOption[]
+    prescriptionDeliveryRoute: PrescriptionDeliveryRoute[]
+    recommendedAdvices: MedicalRecommendedAdvice[]
+    labTests: MedicalLabTestSample[]
+    recentlyUsedLabTests: MedicalMostUsedLabTest[]
+    mostUsedLabTests: MedicalMostUsedLabTest[]
+    defaultVitals: MedicalDefaultVital[]
+}
+
+export interface PrescriptionFrequencyList {
+  id: Id
+  label: PrescriptionFrequency
+  string_id?: string
+  translation_string_id?: string
+}
+
+export interface TransformedPrescriptionFrequency extends PrescriptionFrequencyList{
+  value: Id
+}
+
+export interface PrescriptionIntervalList {
+  id: string
+  label: string
+  string_id?: string
+  interval_string_id?: string
+  value?: string
+}
+
+export interface AddPrescriptionScheduleDose {
+  id: Id | ''                              
+  time: string
+  quantity: number | string 
+  unit_id: Id                                                   
+  unit_name: string                         
+  string_id: string                     
+  old_time?: string
+  created_at?: string     
+}
+
+export interface AddPrescriptionParamList {
+  id: Id
+  label: string
+  name: string
+  total_qty: string | number
+  total_central_store_qty: string | number
+  total_local_store_qty: string | number
+  frequency_key: string
+  frequency_id: Id
+  frequency: string
+  frequency_string_id?: string
+  schedule_doses: AddPrescriptionScheduleDose[]
+  interval: string
+  interval_id: Id
+  interval_string_id?: string
+  duration_qty: string | number
+  duration_id: Id
+  duration: string
+  duration_string_id?: string
+  duration_type: string
+  notes: string
+  delivery_route_name: string
+  delivery_route_id: Id
+  delivery_route_string_id?: string
+  start_date: string
+  end_date: string
+  restart_reason: string
+  stop_reason: string
+  will_restart: boolean
+  side_effect: boolean
+  created_for: string
+  administer_date: string
+  batch_list: PrescriptionMedicineBatchDetail[]
+  dose_type: string
+}
+
+export interface WeightDose {
+  unit_id: Id | null
+  string_id?: string | null
+  unit_name: string | null
+}
+
+export interface AddPrescriptionResponseList {
+  prescription_id: Id
+  follow_up_date?: string | null
+  when?: string | null
+  group_prescription_id: Id
+  id: Id
+  controlled_substance: boolean
+  side_effect: boolean
+  medical_record_id: Id
+  created_for: string
+  created_by: string
+  dose_type: string
+  weight_dose: WeightDose
+  delivery_route_id: Id
+  delivery_route_name: string
+  delivery_route_string_id?: string
+  frequency: PrescriptionFrequency
+  frequency_compare: PrescriptionFrequency
+  frequency_string_id?: string
+  interval_id: Id
+  interval: string
+  interval_string_id?: string
+  notes: string
+  start_date: string
+  stop_date: string | null
+  show_stop_button: string
+  administer_date: string | null
+  end_date: string | null
+  status: PrescriptionScheduleStatus
+  stop_reason: string
+  is_new_data: string
+  restart_reason: string
+  will_restart: boolean
+  duration_qty: string
+  dosage: null | string | number
+  duration: string
+  duration_type: DurationType
+  duration_string_id?: string
+  duration_id: Id
+  created_at: string
+  schedule_doses: AddPrescriptionScheduleDose[]
+  gid?: null | Id
+  type: string
+  name: string
+  label: string
+  generic_name: string | null
+  composition_name: string
+  total_central_store_qty: string
+  total_local_store_qty: string
+  total_qty: string
+  is_administer_pending: string
+  frequency_id: number
+  frequency_key: PrescriptionFrequency
+}
+
+export interface RestartStopMedicineScheduleDose {
+  id: Id
+  time: string
+  unit_id: Id
+  old_time: string
+  quantity: string | number
+  string_id?: string | null
+  unit_name: string
+  created_at: string
+}
+
+export interface RestartStopMedicineItem {
+  prescription_id?: Id
+  medical_record_id?: Id
+  created_for?: string
+  when?: string | null
+  delivery_route_id: Id
+  delivery_route_name: string
+  delivery_route_string_id?: string
+  frequency: string
+  interval_id: Id
+  interval: string
+  notes: string
+  start_date: string
+  stop_date: string | null
+  end_date: string | null
+  is_new_data: string
+  stop_reason: string
+  restart_reason: string
+  will_restart: boolean
+  duration_qty: string
+  duration_id: Id
+  dosage: string | number | null
+  created_at: string
+  id: Id
+  controlled_substance: boolean
+  name: string
+  gid: Id | null
+  generic_name: string | null
+  weight_dose: WeightDose
+  follow_up_date: string | null
+  schedule_doses: RestartStopMedicineScheduleDose[]
+  side_effect: boolean
+  total_central_store_qty: string
+  total_local_store_qty: string
+  total_qty: string
+  is_administer_pending: string
+  show_stop_button: string
+  administer_date: string | null
+  status: string
+  group_prescription_id: Id
+  dose_type: string
+  frequency_compare: string
+  frequency_string_id?: string
+  interval_string_id?: string
+  duration: string
+  duration_type: DurationType
+  duration_string_id?: string
+  type: string
+  label: string
+  composition: string | null
+  frequency_id: Id
+  frequency_key: string
+}
+
+export interface PrescriptionDates {
+  date: string
+  pending_count: string
+  group_prescription_id?: Id
+  id?: Id
+}
+
+export interface AdministerDoseBatchDetails {
+  id: Id
+  batch_id: Id
+  animal_id: Id
+  wastage_quantity: string
+  reason: string
+  wastage_unit: string 
+}
+
+export interface AddDosageScheduleInfo {
+  time: string
+  quantity: number
+  unit_id: Id
+  dosageQuantity: number
+  dosageUnit: string
+}
+
+export interface DirectAdministerScheduleDose {
+  id: Id
+  time: string
+  notes: string
+  quantity: number
+  unit_id: Id
+  unit_name: string
+  string_id?: Id
+  batch_list: PrescriptionMedicineBatchDetail[] | null
+  files: string | null
+}
+
+export interface AddDirectAdministerPastSlotParams {
+  id: Id
+  start_date: string
+  end_date: string
+  notes: string
+  schedule_doses: DirectAdministerScheduleDose
+  batch_list: any
+  files: any
+}
+
+export interface RestartMedicineDetails {
+  delivery_route_id: Id
+  delivery_route_name: string
+  delivery_route_string_id: string
+  duration: string
+  duration_id?: Id
+  duration_qty?: string | number
+  duration_string_id?: string
+  duration_type: DurationType | string
+  start_date: string
+  end_date: string
+  frequency: string | number
+  frequency_id: Id
+  frequency_key: string
+  frequency_string_id: string
+  group_prescription_id: Id
+  id: Id
+  interval: string
+  interval_id?: string
+  interval_string_id?: string
+  label: string
+  name: string
+  notes: string
+  restart_reason: string
+  stop_reason: string
+  side_effect: Boolean
+  schedule_doses: RestartStopMedicineScheduleDose[]
+}
+
+export interface ClinicalNotesList {
+  note_id: string
+  note: string
+  created_by_id: Id
+  medical_record_code: string
+  created_by_user_name: string
+  user_created_profile_pic: string
+  created_at: string
+}
+
+export interface ClinicalNotesParams {
+  type: string
+  limit: number
+  hospital_case_id: Id
+  medical_type: string
+  page: string | number
+}
+
+
 export interface TreatmentMonitoringEntry {
   entry_id?: Id
   id?: Id
@@ -994,4 +1609,282 @@ export interface HospitalStaff{
 export interface SelectOption<T = string | number> {
   label: string
   value: T
+}
+
+// ==================== Other Treatments ====================
+
+export interface OtherTreatment {
+  id: string
+  animal_id: string
+  treatment_master_id: string
+  hospital_case_id: string
+  medical_record_id: string
+  medical_record_code: string
+  treatment_name: string
+  treatment_start_date_time: string
+  note: string
+  is_first: string | number
+  created_at: string
+  update_at: string
+  created_by_name: string
+  profile_pic: string
+  notes_count: string | number
+  is_modified: string | number
+}
+
+export interface OtherTreatmentRecord {
+  medical_record_id: string
+  medical_record_code: string
+  treatments: OtherTreatment[]
+}
+
+export interface TreatmentMaster {
+  id: string
+  treatment_name: string
+}
+
+
+// ==================== Treatment Monitoring ====================
+
+export type RemoveParameterPeriod = 'only_today' | 'from_today_onwards'
+export interface TreatmentMonitoringData {
+  assessment_type_id: string
+  label: string
+  frequency_label: string
+  duration_minutes: string | null
+  assessment_details: AssessmentDetails[]
+}
+
+export interface AssessmentDetails {
+  assessment_value: string
+  assessment_unit_id: string
+  record_time: string
+  assessment_type_id: string
+  total_records: string
+  unit_name: string
+  record_time_utc: string
+  record_time_ist: string
+  recorded_date_time_ist: string
+  recorded_date_time_utc: string
+  hour_block: string
+}
+
+export interface PreviousAssessmentEntry {
+  id: string
+  animal_id: string
+  medical_record_id: string
+  assessment_type_id: string
+  assessment_unit_id: string
+  assessment_value: string
+  assessment_rank: string
+  base_uom_value: string
+  base_uom_name: string
+  created_at: string
+  created_by: string
+  modified_by: string | null
+  record_date: string
+  record_time: string
+  comments: string
+  hospital_case_id: string
+  is_deleted: string
+  recorded_date_time: string
+  modified_at: string
+  given_unit_name: string
+  uom_abbr: string
+  created_user_id: string
+  user_first_name: string
+  user_last_name: string
+  user_email: string
+  list_label: string | null
+  user_full_profile_url: string
+  modified_user_id: string | null
+  modified_user_first_name: string | null
+  modified_user_last_name: string | null
+  modified_user_email: string | null
+  modified_user_profile_full_pic: string | null
+  modified_user_profile_full_url: string | null
+  user_profile_full_url: string
+}
+
+export interface ParametersUnit {
+  id: number
+  uom_abbr: string
+  string_id?: string
+  unit_name: string
+  base_uom_id: number
+  base_uom_name: string
+  measurement_type: string
+}
+
+export interface ParameterDropdownValue {
+  id: string | number
+  label: string
+}
+
+export interface MeasurementUnitDropdown {
+  id: string | number
+  uom_abbr: string
+  unit_name: string
+}
+
+export interface MonitoringParameters {
+  hospital_case_id: string
+  assessment_type_id: string
+  assessment_interval: string
+  label: string
+  frequency_label: string
+}
+
+export interface AddIntervalParameter {
+  parameter_id: string
+  parameter_value: string
+}
+
+export interface IntervalAssessmentList {
+  id: string
+  frequency_label: string
+  duration_minutes: string | null
+  sort_order: string
+  is_deleted: string
+  created_by: string | null
+  created_at: string
+  updated_at: string | null
+  updated_by: string | null
+}
+
+export interface TemplatesAssessmentList {
+  assessment_template_id: string
+  template_name: string
+  description: string
+  zoo_id: string
+  active: string
+  reason_to_delete: string | null
+  created_by: string
+  updated_by: string | null
+  created_on: string
+  updated_on: string
+  assigned_assessment_types: string
+  assigned_species_count: string
+}
+
+export interface TemplateAssessmentTypes {
+  assessment_type_id: string
+  description: string
+  assessments_type_label: string
+  string_id?: string
+  category_string_id?: string
+  response_type: string
+  measurement_type: string
+  assessment_category_id: string
+  active: string
+  created_by: string
+  updated_by: string | null
+  created_on: string
+  updated_on: string
+  label: string
+  template_count: string
+  default_values: TemplateAssessmentDefaultValues[]
+  already_in_use: boolean
+}
+
+export interface TemplateAssessmentDefaultValues {
+  id: Id
+  desc: string
+  label: string
+  order: number
+  active: number
+  string_id?: string
+  created_by: number
+  created_on: string
+  updated_by: number | null
+  updated_on: string | null
+}
+
+export interface SaveTemplate {
+  status: boolean
+  id: number
+  template_name: string
+  description: string
+  ref_type: string
+  zoo_id: string
+  hospital_id: string
+}
+
+export interface HospitalParametersUnit {
+  assessment_type_id: string
+  description: string
+  measurement_type: string
+  string_id?: string
+  response_type: string
+  assessment_category_id: string
+  dropdown_values: ParameterDropdownValue[]
+  measurement_units_dropdown: MeasurementUnitDropdown[]
+}
+
+export interface ParametersBasedOnFilters {
+  assessment_type_id: Id
+  description: string
+  assessments_type_label: string
+  string_id?: string
+  category_string_id?: string
+  response_type: string
+  measurement_type: string
+  assessment_category_id: Id
+  active: string | number
+  created_by: string | number
+  updated_by: string | number | null
+  created_on: string
+  updated_on: string | null
+  label: string
+  template_count: string | number
+  default_values: TemplateAssessmentDefaultValues
+  already_in_use: true
+}
+
+export interface HospitalParamsFilterOption {
+  assessment_category_id: string
+  label: string
+  string_id: string
+  active: string
+  created_by: string
+  updated_by: string
+  created_on: string
+  updated_on: string
+  zoo_id: string
+  assessment_type_count: string
+}
+
+// ==================== Medical Summary ====================
+
+
+export type Day = 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday'
+export interface MedicalSummary {
+  date: string
+  created_at: string
+  day: string
+  entries: MedicalEntries[]
+}
+
+export interface MedicalEntries {
+  time: string
+  incon: string
+  title: string
+  ref_id: Id
+  details: MedicalSummaryDetails[]
+}
+
+export interface MedicalSummaryDetails {
+  type: AnimalCategory
+  notes: string
+  case_type: string
+  diagnosis: string
+  lab_tests: string
+  complaints: string
+  created_by: string
+  assessments: string
+  attachments: string
+  created_for: string
+  prescriptions: string
+  follow_up_date: string | null
+  medical_record_number: string
 }
