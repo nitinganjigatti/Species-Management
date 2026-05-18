@@ -23,12 +23,10 @@ import {
 } from 'src/store/apps/chat'
 
 // ** Adapters
-import { joinChatRoom, markConversationRead, sdkMessageToMessage } from 'src/lib/chat/api'
+import { joinChatRoom, markReadOverSocket, sdkMessageToMessage } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
-import { useChatStore as sdkChatStore } from '@antzsoft/chat-core'
-
 // ** Types
-import reduxStore, { RootState, AppDispatch } from 'src/store'
+import { RootState, AppDispatch } from 'src/store'
 import { StatusObjType, StatusType } from 'src/types/apps/chatTypes'
 
 // ** Hooks
@@ -45,7 +43,8 @@ import ChatContent from 'src/views/apps/chat/ChatContent'
 // ** @antzsoft/chat-core smoke test — verifies the SDK can connect to the
 // backend without touching the existing Redux/mock data path. Logs to console.
 // Becomes a no-op when NEXT_PUBLIC_CHAT_API_URL is not set.
-import { useChatClient } from 'src/hooks/useChatClient'
+import { getSocketStatus, onSocketStatus, tryGetSocket, type SocketStatus } from '@antzsoft/chat-core'
+import { getChatClientOrNull } from 'src/lib/chat/client'
 
 const AppChat = () => {
   // ** States
@@ -90,7 +89,19 @@ const AppChat = () => {
   // When `client` becomes non-null, we re-dispatch `fetchUserProfile` so
   // Redux swaps the mock seed profile for the real one from `GET /auth/me`.
   // See: docs/modules/chat/chat-core-starter.md
-  const { client: chatClient, socket: chatSocket, connected: chatConnected, error: chatError } = useChatClient()
+  const [socketStatus, setSocketStatus] = useState<SocketStatus>(() => {
+    try {
+      return getSocketStatus()
+    } catch {
+      return 'disconnected'
+    }
+  })
+  useEffect(() => onSocketStatus(setSocketStatus), [])
+
+  const chatClient = getChatClientOrNull()
+  const chatSocket = socketStatus === 'disconnected' ? null : tryGetSocket()
+  const chatConnected = socketStatus === 'connected'
+  const chatError = socketStatus === 'error' ? new Error('chat socket error') : null
 
   useEffect(() => {
     if (!chatClient) return
@@ -219,65 +230,15 @@ const AppChat = () => {
 
       const isOpen = selectedChatIdRef.current === raw.conversationId
       if (isOpen) {
-        // This call is what tells the server "I read this" → server then
-        // broadcasts read_receipt to the SENDER so their tick turns green.
-        markConversationRead(raw.conversationId).catch(err =>
-          console.warn('[chat] markConversationRead failed on receive for', raw.conversationId, err)
-        )
-      }
-    }
-    // Helper: look up which other participants of a conversation are
-    // currently online per the SDK's auto-maintained presence store.
-    // Used to detect backend semantic bugs where `message_delivered` fires
-    // even though no recipient was online at the time.
-    type PresenceInfo = {
-      onlineUsers: string[]
-      others: string[]
-      onlineOthers: string[]
-      offlineOthers: string[]
-      error?: string
-    }
-    const presenceSnapshot = (convId: string): PresenceInfo => {
-      try {
-        const sdkState = sdkChatStore.getState()
-        const onlineUsers: string[] = sdkState.onlineUsers ?? []
-        const me = userProfileIdRef.current ? String(userProfileIdRef.current) : null
-        const chats = reduxStore.getState().chat.chats ?? []
-        const chat = chats.find(c => c.id === convId)
-        const others = ((chat?.participantIds as string[]) ?? []).filter(id => id !== me)
-        const onlineOthers = others.filter(id => onlineUsers.includes(id))
-        const offlineOthers = others.filter(id => !onlineUsers.includes(id))
-
-        return { onlineUsers, others, onlineOthers, offlineOthers }
-      } catch (err) {
-        return { onlineUsers: [], others: [], onlineOthers: [], offlineOthers: [], error: String(err) }
+        // Mark via socket so the server broadcasts read_receipt to the sender.
+        // The REST markAsRead endpoint does NOT trigger a socket broadcast.
+        markReadOverSocket(raw.conversationId)
       }
     }
 
     // Single-message delivered (other side received it).
     const onMessageDelivered = (evt: MessageDeliveredEvent) => {
       if (!evt) return
-      const presence = presenceSnapshot(evt.conversationId)
-      console.log('[chat:receipt] D1 message_delivered ← event:', {
-        messageId: evt.messageId,
-        conversationId: evt.conversationId,
-        presence
-      })
-      // POLICY: read_receipt is the source of truth for tick state.
-      // The backend stamps `message_delivered` prematurely (fires even when
-      // no recipient device is actually online). To keep the tick honest:
-      //   - If no recipient is online → skip; tick stays single ✓
-      //   - When the recipient actually reads, `read_receipt` arrives and the
-      //     reducer sets both `isSeen=true` AND `isDelivered=true` in one go,
-      //     so the tick jumps from single ✓ straight to double-green ✓✓
-      if (presence.others.length > 0 && presence.onlineOthers.length === 0) {
-        console.warn(
-          '[chat:receipt] ⚠ D1 SKIPPED — message_delivered fired but no recipient is online. Waiting for read_receipt to advance tick.',
-          { messageId: evt.messageId, offlineRecipients: presence.offlineOthers }
-        )
-
-        return
-      }
       dispatch(
         updateMessagesFeedback({
           conversationId: evt.conversationId,
@@ -291,23 +252,6 @@ const AppChat = () => {
     // catches them up on multiple acknowledgements at once.
     const onMessagesDelivered = (evt: MessagesDeliveredEvent) => {
       if (!evt?.messageIds?.length) return
-      const presence = presenceSnapshot(evt.conversationId)
-      console.log('[chat:receipt] D1b messages_delivered ← event:', {
-        conversationId: evt.conversationId,
-        count: evt.messageIds.length,
-        messageIds: evt.messageIds,
-        presence
-      })
-      // Same policy as onMessageDelivered — defer to read_receipt when no
-      // recipient is online. See comment there.
-      if (presence.others.length > 0 && presence.onlineOthers.length === 0) {
-        console.warn(
-          '[chat:receipt] ⚠ D1b SKIPPED — batch messages_delivered fired but no recipient is online. Waiting for read_receipt to advance tick.',
-          { count: evt.messageIds.length, offlineRecipients: presence.offlineOthers }
-        )
-
-        return
-      }
       dispatch(
         updateMessagesFeedback({
           conversationId: evt.conversationId,
@@ -317,122 +261,15 @@ const AppChat = () => {
       )
     }
 
-    // Read receipt — flips the ✓✓ ticks green/blue. The seen indicator MUST
-    // only fire when EVERY participant has read the message — that's the
-    // `fullyReadMessageIds` field on the SDK's ReadReceiptEvent. The other
-    // fields (`updatedMessageIds`, `messageId`, `userId`) describe which
-    // single user just read which messages — that's a partial-read signal,
-    // not "seen by everyone". Flipping the tick on a partial read would be
-    // wrong for group chats (tick goes green as soon as one of N people
-    // reads). For DMs both fields contain the same id, so behavior is
-    // unchanged there.
+    // Read receipt — blue tick only for fullyReadMessageIds (read by ALL
+    // participants). Per SDK docs: updatedMessageIds = one user read,
+    // fullyReadMessageIds = everyone read → show blue tick.
     const onReadReceipt = (evt: ReadReceiptEvent) => {
-      if (!evt) {
-        console.warn('[chat:receipt] S0 read_receipt ← null/undefined event, ignoring')
+      if (!evt) return
 
-        return
-      }
-      const sPresence = presenceSnapshot(evt.conversationId)
-      console.log('[chat:receipt] S1 read_receipt ← raw event:', {
-        conversationId: evt.conversationId,
-        readerUserId: (evt as any).userId,
-        readAt: (evt as any).readAt,
-        messageId: evt.messageId,
-        updatedMessageIds: evt.updatedMessageIds,
-        fullyReadMessageIds: evt.fullyReadMessageIds,
-        presence: sPresence
-      })
+      const fullyReadIds = evt.fullyReadMessageIds ?? []
+      if (!fullyReadIds.length) return
 
-      // TEMPORARY DIAGNOSTIC: print our current state for the message id in the
-      // event so we can see (a) which conversation it actually lives in,
-      // (b) its current feedback, (c) whether selectedChat is the same chat.
-      const debugIds = [
-        ...(evt.fullyReadMessageIds ?? []),
-        ...(evt.updatedMessageIds ?? []),
-        ...(evt.messageId ? [evt.messageId] : [])
-      ]
-      const stateSnap = reduxStore.getState().chat
-      const located = debugIds.map(id => {
-        const owner = (stateSnap.chats ?? []).find(c => c.chat?.messages?.some(m => m.id === id))
-        const msg = owner?.chat?.messages?.find(m => m.id === id)
-
-        return {
-          id,
-          foundInChat: owner?.id ?? null,
-          isGroup: owner?.isGroup ?? null,
-          currentFeedback: msg?.feedback ?? null
-        }
-      })
-      console.log('[chat:receipt] S1b local-state lookup for each id:', {
-        located,
-        selectedChatId: stateSnap.selectedChat?.contact?.id ?? null,
-        eventConversationId: evt.conversationId
-      })
-      const readerUserId = (evt as any).userId
-      const me = userProfileIdRef.current ? String(userProfileIdRef.current) : null
-      // Suppress when the reader is us — the SDK's `onlineUsers` list excludes
-      // the current user by design, so "self not in list" is expected, not a
-      // backend bug. Only warn when an OTHER user is the reader but appears offline.
-      if (readerUserId && readerUserId !== me && !sPresence.onlineUsers.includes(readerUserId)) {
-        console.warn(
-          '[chat:receipt] ⚠ S1 BACKEND-SUSPICIOUS — read_receipt fired but reader is NOT in SDK onlineUsers. Either reader logged out before receipt propagated or backend timing issue.',
-          { readerUserId, onlineUsers: sPresence.onlineUsers }
-        )
-      }
-
-      // Determine whether this conversation is a DM or a group. The receipt's
-      // own `conversationId` is unreliable (backend bug — sometimes mismatched),
-      // so we look up the conversation from any known message id in the event.
-      const candidateIds = [
-        ...(evt.fullyReadMessageIds ?? []),
-        ...(evt.updatedMessageIds ?? []),
-        ...(evt.messageId ? [evt.messageId] : [])
-      ]
-      let isGroupConversation = false
-      let resolvedConvId: string | undefined = evt.conversationId
-      const chats = reduxStore.getState().chat.chats ?? []
-      for (const id of candidateIds) {
-        const owner = chats.find(c => c.chat?.messages?.some(m => m.id === id))
-        if (owner) {
-          isGroupConversation = Boolean(owner.isGroup)
-          resolvedConvId = owner.id as string
-          break
-        }
-      }
-      // Fall back to the event's conversationId if we couldn't locate the
-      // message yet (race condition where receipt arrives before the message).
-      if (!resolvedConvId || resolvedConvId === evt.conversationId) {
-        const direct = chats.find(c => c.id === evt.conversationId)
-        if (direct) isGroupConversation = Boolean(direct.isGroup)
-      }
-
-      // For groups: only `fullyReadMessageIds` counts as "seen by everyone".
-      // For DMs:    there's only one other participant, so ANY read is a
-      //             full read — backend may put the id in `messageId` /
-      //             `updatedMessageIds` / `fullyReadMessageIds`, all are valid.
-      const fullyReadIds = isGroupConversation ? evt.fullyReadMessageIds ?? [] : candidateIds
-      const partiallyReadIds = isGroupConversation
-        ? [...(evt.updatedMessageIds ?? []), ...(evt.messageId ? [evt.messageId] : [])].filter(
-            id => !(evt.fullyReadMessageIds ?? []).includes(id)
-          )
-        : []
-
-      console.log('[chat:receipt] S2 split:', {
-        isGroupConversation,
-        resolvedConvId,
-        fullyReadIds,
-        partiallyReadIds,
-        note: isGroupConversation
-          ? 'GROUP: only fullyReadMessageIds flips green; partial reads are ignored'
-          : 'DM: any read = fully read (only one recipient)'
-      })
-
-      if (!fullyReadIds.length) {
-        console.log('[chat:receipt] S2a no read ids to apply — green tick not flipped this event')
-
-        return
-      }
-      console.log('[chat:receipt] S3 dispatching updateMessagesFeedback (isSeen=true) for', fullyReadIds.length, 'ids')
       dispatch(
         updateMessagesFeedback({
           conversationId: evt.conversationId,
