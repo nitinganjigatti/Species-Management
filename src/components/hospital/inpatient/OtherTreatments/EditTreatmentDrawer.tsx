@@ -13,25 +13,28 @@ import MUIDatePicker from 'src/views/forms/form-fields/MUIDatePicker'
 import ControlledTextArea from 'src/views/forms/form-fields/ControlledTextArea'
 import Utility from 'src/utility'
 import ControlledDatePicker from 'src/views/forms/form-fields/ControlledDatePicker'
+import type { Theme } from '@mui/material/styles'
+import type { SystemStyleObject } from '@mui/system'
+import type { EditTreatmentFormState, Treatment, TreatmentActivity } from './index'
 
 interface EditTreatmentDrawerProps {
   open: boolean
   onClose: () => void
-  treatment?: any
-  formData: any
-  onChange: (field: string, value: any) => void
+  treatment?: Treatment | null
+  formData: EditTreatmentFormState
+  onChange: (field: keyof EditTreatmentFormState, value: EditTreatmentFormState[keyof EditTreatmentFormState]) => void
   onAdd: () => void
   onUpdate: () => void
   onDelete: () => void
-  onActivityPrefill?: (activity: any) => void
-  activities?: any[]
+  onActivityPrefill?: (activity: TreatmentActivity) => void
+  activities?: TreatmentActivity[]
   isActivitiesLoading?: boolean
   isAdding?: boolean
   isSubmitting?: boolean
-  formatTimestamp: (value: any) => string
-  formatShortDate: (value: any) => string
-  admissionDate?: any
-  dischargedDate?: any
+  formatTimestamp: (value: string | Date | null) => string
+  formatShortDate: (value: string | Date | null) => string
+  admissionDate?: dayjs.Dayjs
+  dischargedDate?: dayjs.Dayjs | null
 }
 
 const EditTreatmentDrawer = ({
@@ -54,7 +57,7 @@ const EditTreatmentDrawer = ({
   dischargedDate
 }: EditTreatmentDrawerProps) => {
   const { t } = useTranslation()
-  const theme: any = useTheme()
+  const theme: Theme = useTheme()
 
   const resolvedStartDate = dayjs.isDayjs(formData.startDate)
     ? formData.startDate
@@ -85,7 +88,7 @@ const EditTreatmentDrawer = ({
 
   if (!treatment) return null
 
-  const commonFieldStyles: any = {
+  const commonFieldStyles: SystemStyleObject<Theme> = {
     '& .MuiOutlinedInput-root': {
       borderRadius: '8px',
       backgroundColor: theme.palette.primary.contrastText
@@ -103,7 +106,7 @@ const EditTreatmentDrawer = ({
 
   const activityList = activities || []
 
-  const activeActivity = activityList.find((a: any) => a.id === formData.activeActivityId)
+  const activeActivity = activityList.find((a: TreatmentActivity) => a.id === formData.activeActivityId)
   const originalStartDate = activeActivity ? activeActivity.treatment_start_date_time : null
 
   const dateHasChanged = originalStartDate
@@ -114,7 +117,7 @@ const EditTreatmentDrawer = ({
   const isUpdateDisabled = isSubmitting || (!trimmedNotes && !dateHasChanged)
   const isAddDisabled = isAdding || isSubmitting || !trimmedNotes
 
-  const formatTreatmentName = (name: any) => {
+  const formatTreatmentName = (name: string | null) => {
     if (!name || typeof name !== 'string') return ''
 
     return name.charAt(0).toUpperCase() + name.slice(1)
@@ -158,7 +161,7 @@ const EditTreatmentDrawer = ({
               color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
-            Edit Treatment
+            {t('hospital_module.edit_treatment')}
           </Typography>
           <IconButton onClick={onClose} sx={{ color: theme.palette.primary.light, mr: -1 }}>
             <CloseIcon />
@@ -195,10 +198,10 @@ const EditTreatmentDrawer = ({
                   sx={{
                     fontWeight: 400,
                     fontSize: '14px',
-                    color: theme.palette.primary.deepDark
+                    color: theme.palette.customColors.deepDark
                   }}
                 >
-                  Treatment Start Date
+                  {t('hospital_module.treatment_start_date')}
                 </Typography>
                 {/* <Controller
                   name='startDate'
@@ -238,11 +241,11 @@ const EditTreatmentDrawer = ({
                   name={'startDate'}
                   minDate={admissionDate}
                   maxDate={dischargedDate || dayjs()}
-                  onChangeOverride={(value: any) => onChange('startDate', value)}
+                  onChangeOverride={(value: dayjs.Dayjs | null) => onChange('startDate', value)}
                   sx={{
                     ...commonFieldStyles,
                     '& .MuiOutlinedInput-root': {
-                    ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                    ...((commonFieldStyles['& .MuiOutlinedInput-root'] as Record<string, unknown>) || {}),
                       height: '56px'
                     },
                     '& .MuiInputBase-input': {
@@ -255,7 +258,7 @@ const EditTreatmentDrawer = ({
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{t('hospital_module.notes_label')}</Typography>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>{t('notes')}</Typography>
                 <ControlledTextArea
                   name='editNotes'
                   control={control}
@@ -263,12 +266,12 @@ const EditTreatmentDrawer = ({
                   disabled={isSubmitting || isAdding}
                   rows={4}
                   placeholder={t('hospital_module.add_notes_placeholder') as any}
-                  onChangeOverride={(event: any) => onChange('notes', event?.target?.value || '')}
+                  onChangeOverride={(value: unknown) => onChange('notes', (value as React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>)?.target?.value || '')}
                   inputBackgroundColor={theme.palette.primary.contrastText}
                   sx={{
                     ...commonFieldStyles,
                     '& .MuiOutlinedInput-root': {
-                      ...(commonFieldStyles['& .MuiOutlinedInput-root'] || {}),
+                      ...((commonFieldStyles['& .MuiOutlinedInput-root'] as Record<string, unknown>) || {}),
                       minHeight: '120px'
                     }
                   }}
@@ -293,7 +296,7 @@ const EditTreatmentDrawer = ({
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              Activity
+              {t('hospital_module.activity_label')}
             </Typography>
 
             {isActivitiesLoading ? (
@@ -315,10 +318,10 @@ const EditTreatmentDrawer = ({
                   fontSize: '14px'
                 }}
               >
-                No activity records available.
+                {t('hospital_module.no_activity_records_available')}
               </Typography>
             ) : (
-              activityList.map((activity: any) => {
+              activityList.map((activity) => {
                 const isSelected = formData?.activeActivityId === activity.id
 
                 if (activity.isEditable) {
@@ -346,7 +349,7 @@ const EditTreatmentDrawer = ({
                         }`,
                         backgroundColor: isSelected
                           ? alpha(theme.palette.primary.main, 0.15)
-                          : alpha(theme.palette.customColors.Notes, 102 / 255),
+                          : alpha(theme.palette.customColors.Notes || '', 102 / 255),
                         cursor: 'pointer'
                       }}
                     >
@@ -380,7 +383,7 @@ const EditTreatmentDrawer = ({
                             lineHeight: '100%'
                           }}
                         >
-                          {activity.author} • {formatTimestamp(activity.timestamp)}
+                          {activity.author} • {formatTimestamp(activity.timestamp ?? '')}
                         </Typography>
                       </Box>
                       <IconButton
@@ -417,7 +420,7 @@ const EditTreatmentDrawer = ({
                           fontSize: '16px'
                         }}
                       >
-                        {activity.treatmentName || activity.title || 'Treatment Activity'}
+                        {activity.treatmentName || activity.title || t('hospital_module.treatment_activity')}
                       </Typography>
                       {activity.medicalRecordCode ? (
                         <Typography
@@ -427,7 +430,7 @@ const EditTreatmentDrawer = ({
                             fontSize: '12px'
                           }}
                         >
-                          Medical Record: {activity.medicalRecordCode}
+                          {t('hospital_module.medical_record')}: {activity.medicalRecordCode}
                         </Typography>
                       ) : null}
                       <Typography
@@ -438,7 +441,7 @@ const EditTreatmentDrawer = ({
                           lineHeight: '100%'
                         }}
                       >
-                        {activity.author} • {formatTimestamp(activity.timestamp)}
+                        {activity.author} • {formatTimestamp(activity.timestamp ?? null)}
                       </Typography>
                     </Box>
                     <Typography
@@ -448,9 +451,9 @@ const EditTreatmentDrawer = ({
                         fontSize: '12px'
                       }}
                     >
-                      Treatment Start Date:{' '}
+                      {t('hospital_module.treatment_start_date')}{' '}
                       <Box component='span' sx={{ fontWeight: 600 }}>
-                        {formatShortDate(activity.treatment_start_date_time)}
+                        {formatShortDate(activity.treatment_start_date_time ?? null)}
                       </Box>
                     </Typography>
                     {activity.note && (
@@ -462,7 +465,7 @@ const EditTreatmentDrawer = ({
                             fontSize: '12px'
                           }}
                         >
-                          Notes
+                          {t('notes')}
                         </Typography>
                         <Typography
                           sx={{
@@ -510,11 +513,11 @@ const EditTreatmentDrawer = ({
                   fontWeight: 600,
                   '&:hover': {
                     borderColor: theme.palette.error.dark,
-                    backgroundColor: alpha(theme.palette.customColors.Error, 0.1)
+                    backgroundColor: alpha(theme.palette.customColors.Error || '', 0.1)
                   }
                 }}
               >
-                Delete
+                {t('delete')}
               </Button>
               <Button
                 variant='contained'
@@ -532,7 +535,7 @@ const EditTreatmentDrawer = ({
                   }
                 }}
               >
-                {isSubmitting ? 'Updating...' : 'Update'}
+                {isSubmitting ? t('updating...') : t('update')}
               </Button>
             </>
           ) : (
@@ -549,7 +552,7 @@ const EditTreatmentDrawer = ({
                 boxShadow: `0px 4px 8px -4px ${theme.palette.customColors.shadowColor}`
               }}
             >
-              {isAdding ? 'Adding...' : 'Add'}
+              {isAdding ? t('hospital_module.adding') : t('hospital_module.add')}
             </Button>
           )}
         </Box>

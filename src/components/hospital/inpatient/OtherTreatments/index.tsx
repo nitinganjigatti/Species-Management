@@ -23,14 +23,23 @@ import {
   updateTreatmentRecord,
   deleteTreatmentRecord
 } from 'src/lib/api/hospital/treatmentMaster'
+import type { Id, OtherTreatment, OtherTreatmentRecord } from 'src/types/hospital/models'
+import type {
+  AddTreatmentParams,
+  GetOtherTreatmentsResponse,
+  GetTreatmentListResponse,
+  GetTreatmentMasterListParams,
+  GetTreatmentMasterListResponse,
+  UpdateTreatmentParams
+} from 'src/types/hospital/api/OtherTreatments/otherTreatments'
 
 const TREATMENT_DATE_TIME_FORMAT = 'DD MMM YYYY HH:mm:ss'
 
-const formatTimestamp = (isoString: any) => {
+const formatTimestamp = (isoString: string | Date | null) => {
   if (!isoString) return '-'
 
-  const timePart = (Utility as any).convertUTCToLocaltime(isoString)
-  const datePart = (Utility as any).convertUtcToLocalReadableDate(isoString)
+  const timePart = Utility.convertUTCToLocaltime(isoString)
+  const datePart = Utility.convertUtcToLocalReadableDate(isoString)
   const safeTime = timePart && timePart !== 'Invalid date' ? timePart : ''
   const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
 
@@ -41,11 +50,11 @@ const formatTimestamp = (isoString: any) => {
   return safeTime || safeDate || '-'
 }
 
-const formatClinicianTimestamp = (isoString: any) => {
+const formatClinicianTimestamp = (isoString: string | Date | null) => {
   if (!isoString) return ''
 
-  const timePart = (Utility as any).convertUTCToLocaltime(isoString)
-  const datePart = (Utility as any).convertUtcToLocalReadableDate(isoString)
+  const timePart = Utility.convertUTCToLocaltime(isoString)
+  const datePart = Utility.convertUtcToLocalReadableDate(isoString)
   const safeTime = timePart && timePart !== 'Invalid date' ? timePart : ''
   const safeDate = datePart && datePart !== 'Invalid date' ? datePart : ''
 
@@ -56,34 +65,39 @@ const formatClinicianTimestamp = (isoString: any) => {
   return safeTime || safeDate || ''
 }
 
-const formatShortDate = (isoString: any) => {
+const formatShortDate = (isoString: string | Date | null) => {
   if (!isoString) return '-'
 
-  const formatted = (Utility as any).convertUtcToLocalReadableDate(isoString)
+  const formatted = Utility.convertUtcToLocalReadableDate(isoString)
 
   return formatted && formatted !== 'Invalid date' ? formatted : '-'
 }
 
-const getApiRecords = (response: any) => {
-  if (Array.isArray(response?.data?.records)) return response.data.records
+const getApiRecords = (response: GetOtherTreatmentsResponse): OtherTreatmentRecord[] => {
+  if (response.success && Array.isArray(response.data?.records)) return response.data.records
 
   return []
 }
 
-const parseNotesCount = (value: any) => {
+const parseNotesCount = (value: string | number | null) => {
   const parsed = Number(value)
 
   return Number.isFinite(parsed) ? parsed : null
 }
 
-const extractTreatmentEntries = (record: any) => {
+interface TreatmentEntryInput extends Partial<OtherTreatment> {
+  treatments?: OtherTreatment[]
+  start_time?: string
+}
+
+const extractTreatmentEntries = (record: TreatmentEntryInput): TreatmentEntryInput[] => {
   if (Array.isArray(record?.treatments) && record.treatments.length) return record.treatments
   if (record?.treatment_name) return [record]
 
   return []
 }
 
-const mapTreatmentEntry = (entry: any, index: number = 0): any => {
+const mapTreatmentEntry = (entry: OtherTreatment, index: number = 0): Treatment | null => {
   if (!entry) return null
 
   const noteText = entry.note?.toString().trim() || ''
@@ -101,7 +115,7 @@ const mapTreatmentEntry = (entry: any, index: number = 0): any => {
       name: entry.created_by_name || '—',
       avatarUrl: entry.profile_pic || '',
       createdAt: entry.created_at || '',
-      updatedAt: entry.updated_at || ''
+      updatedAt: entry.update_at || ''
     },
     animalId: entry.animal_id || null,
     medicalRecordId: entry.medical_record_id || null,
@@ -115,7 +129,7 @@ const mapTreatmentEntry = (entry: any, index: number = 0): any => {
   }
 }
 
-const mapRecordsToGroups = (records: any[] = []) => {
+const mapRecordsToGroups = (records: OtherTreatmentRecord[] = []): TreatmentGroup[] => {
   if (!records.length) return []
 
   return records
@@ -125,22 +139,20 @@ const mapRecordsToGroups = (records: any[] = []) => {
       if (!treatments.length) return null
 
       return {
-        id: record.medical_record_id || record.medical_record_code || record.id || `medical-record-${index}`,
-        code: record.medical_record_code
-          ? record.medical_record_code
-          : record.medical_record_name || record.title || 'Medical Record',
-        icon: record.icon || 'mdi:medical-bag-outline',
+        id: record.medical_record_id || record.medical_record_code || `medical-record-${index}`,
+        code: record.medical_record_code || 'Medical Record',
+        icon: 'mdi:medical-bag-outline',
         treatments
       }
     })
-    .filter(Boolean)
+    .filter((group): group is TreatmentGroup => group !== null)
 }
 
-const mapDetailRecordsToActivities = (records: any[] = []) => {
+const mapDetailRecordsToActivities = (records: OtherTreatmentRecord[] = []) => {
   const treatmentEntries = records.flatMap(extractTreatmentEntries)
   if (!treatmentEntries.length) return []
 
-  return treatmentEntries.map((entry: any, index: number) => {
+  return treatmentEntries.map((entry: TreatmentEntryInput, index: number) => {
     const note = entry.note || ''
     const timestamp = entry.update_at || entry.created_at || null
     const isInitial = String(entry.is_first) === '1'
@@ -178,6 +190,107 @@ interface OtherTreatmentProps {
   patientData?: any
 }
 
+export interface TreatmentFormData {
+  id: string
+  treatment_start_date_time?: string
+  treatmentMasterId?: string | null
+  medicalRecordId?: string | null
+  animalId?: string | null
+  hospitalCaseId?: string | null
+}
+
+export interface ActivityFormData {
+  id?: string | null
+  description?: string
+  notes?: string
+  treatment_start_date_time?: string
+}
+
+export interface EditTreatmentFormData {
+  startDate: dayjs.Dayjs | null
+  notes: string
+  activeActivityId: string | null
+}
+
+export interface TreatmentOption {
+  label: string
+  value: string
+  id: string
+}
+
+export interface AddTreatmentFormState {
+  startDate: dayjs.Dayjs | null
+  treatmentName: TreatmentOption | string | null
+  notes: string
+}
+
+export interface EditTreatmentFormState {
+  startDate: dayjs.Dayjs | null
+  notes: string
+  activeActivityId: string | null
+  description?: string
+  id?: string
+}
+
+export interface TreatmentClinicianInfo {
+  name: string
+  avatarUrl: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Treatment {
+  id: string
+  name: string
+  noteCount: number
+  noteSummary: string
+  lastUpdated: string | null
+  treatment_start_date_time?: string
+  clinician: TreatmentClinicianInfo
+  animalId?: string | null
+  medicalRecordId?: string | null
+  medicalRecordCode?: string
+  treatmentMasterId?: string | null
+  hospitalCaseId?: string | null
+  notes_count: number | null
+  isModified?: string | number
+  record?: OtherTreatment & Record<string, unknown>
+  updatedAt?: string
+}
+
+export interface TreatmentGroup {
+  id: string
+  code: string
+  icon: string
+  treatments: Treatment[]
+}
+
+export interface LoadActivitiesParams {
+  treatmentMasterId?: string | null
+  medicalRecordId?: string | null
+  animalId?: string | null
+}
+
+export interface TreatmentActivity {
+  id?: string | null
+  treatmentId?: string | null
+  treatmentMasterId?: string | null
+  treatmentName?: string
+  author?: string
+  clinician?: { name?: string; avatarUrl?: string }
+  timestamp?: string | null
+  treatmentStartDate?: string | null
+  treatment_start_date_time?: string
+  notes?: string
+  description?: string
+  note?: string
+  status?: 'initial' | 'update'
+  isFirst?: boolean
+  isEditable?: boolean
+  medicalRecordCode?: string
+  title?: string
+}
+
 const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDischarged = false, patientData }: OtherTreatmentProps) => {
   const { t } = useTranslation()
   const theme: any = useTheme()
@@ -188,28 +301,28 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     return patientData?.discharge_at ? dayjs(patientData.discharge_at) : dayjs()
   }
 
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<AddTreatmentFormState>({
     startDate: getDefaultStartDate(),
     treatmentName: null,
     notes: ''
   })
 
-  const [editFormData, setEditFormData] = useState<any>({
+  const [editFormData, setEditFormData] = useState<EditTreatmentFormState>({
     startDate: getDefaultStartDate(),
     notes: '',
     activeActivityId: null
   })
-  const [selectedTreatment, setSelectedTreatment] = useState<any>(null)
+  const [selectedTreatment, setSelectedTreatment] = useState<Treatment | null>(null)
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
-  const [treatmentGroups, setTreatmentGroups] = useState<any[]>([])
-  const [treatmentOptions, setTreatmentOptions] = useState<any[]>([])
+  const [treatmentGroups, setTreatmentGroups] = useState<TreatmentGroup[]>([])
+  const [treatmentOptions, setTreatmentOptions] = useState<TreatmentOption[]>([])
   const [treatmentOptionsLoading, setTreatmentOptionsLoading] = useState<boolean>(false)
   const [treatmentSearchTerm, setTreatmentSearchTerm] = useState<string>('')
   const [isCreatingTreatment, setIsCreatingTreatment] = useState<boolean>(false)
   const [isAddingTreatmentNote, setIsAddingTreatmentNote] = useState<boolean>(false)
   const [isTreatmentsLoading, setTreatmentsLoading] = useState<boolean>(false)
   const [treatmentInputValue, setTreatmentInputValue] = useState<string>('')
-  const [selectedTreatmentActivities, setSelectedTreatmentActivities] = useState<any[]>([])
+  const [selectedTreatmentActivities, setSelectedTreatmentActivities] = useState<ActivityFormData[]>([])
   const [isTreatmentActivitiesLoading, setTreatmentActivitiesLoading] = useState<boolean>(false)
   const [isUpdatingTreatment, setIsUpdatingTreatment] = useState<boolean>(false)
   const [isDeletingTreatment, setIsDeletingTreatment] = useState<boolean>(false)
@@ -256,15 +369,16 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     setTreatmentsLoading(true)
     try {
-      const response: any = await getTreatmentList({
+      const response: GetTreatmentListResponse = await getTreatmentList({
         animal_id: animalId,
         medical_record_id: medicalRecordId,
         hospital_case_id: hospitalCaseId
       })
 
-      setTreatmentGroups(mapRecordsToGroups(getApiRecords(response)) as any[])
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_fetch_treatments') })
+      setTreatmentGroups(mapRecordsToGroups(getApiRecords(response)))
+    } catch (error: unknown) {
+      const err = error as Error
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_fetch_treatments') })
       setTreatmentGroups([])
     } finally {
       setTreatmentsLoading(false)
@@ -272,7 +386,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
   }, [animalId, medicalRecordId, hospitalCaseId])
 
   const loadTreatmentActivities = useCallback(
-    async ({ treatmentMasterId, medicalRecordId: medicalRecordIdParam, animalId: fallbackAnimalId }: any = {}) => {
+    async ({ treatmentMasterId, medicalRecordId: medicalRecordIdParam, animalId: fallbackAnimalId }: LoadActivitiesParams = {}) => {
       const finalAnimalId = animalId || fallbackAnimalId
       const finalMedicalRecordId = medicalRecordIdParam || medicalRecordId
       const finalTreatmentMasterId = treatmentMasterId
@@ -286,7 +400,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
       setTreatmentActivitiesLoading(true)
       try {
-        const response: any = await getTreatmentList({
+        const response = await getTreatmentList({
           animal_id: finalAnimalId,
           medical_record_id: finalMedicalRecordId,
           treatment_master_id: finalTreatmentMasterId,
@@ -294,8 +408,9 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         })
 
         setSelectedTreatmentActivities(mapDetailRecordsToActivities(getApiRecords(response)))
-      } catch (error: any) {
-        Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_fetch_treatment_details') })
+      } catch (error: unknown) {
+        const err = error as Error
+        Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_fetch_treatment_details') })
         setSelectedTreatmentActivities([])
       } finally {
         setTreatmentActivitiesLoading(false)
@@ -334,18 +449,18 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setTreatmentOptionsLoading(true)
 
     const handler = setTimeout(async () => {
-      const params = {
+      const params: GetTreatmentMasterListParams = {
         q: treatmentSearchTerm,
         page: 0,
         limit: 10
       }
       try {
-        const response: any = await getTreatmentMasterList(params)
+        const response = await getTreatmentMasterList(params)
         if (!isMounted) return
         const records = response?.data?.records || []
         if (records.length) {
           setTreatmentOptions(
-            records.map((record: any) => ({
+            records.map((record) => ({
               label: record.treatment_name,
               value: record.treatment_name,
               id: record.id
@@ -400,7 +515,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     const formattedStartTime = formData.startDate ? dayjs(formData.startDate).format('DD MMM YYYY HH:mm:ss') : ''
 
-    const payload = {
+    const payload: AddTreatmentParams = {
       animal_id: animalId,
       medical_record_id: medicalRecordId,
       hospital_case_id: hospitalCaseId || '',
@@ -412,7 +527,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     try {
       setIsCreatingTreatment(true)
-      const response: any = await createTreatmentRecord(payload)
+      const response = await createTreatmentRecord(payload)
       Toaster({
         type: response?.success ? 'success' : 'error',
         message: response?.message || 'Treatment creation status unknown.'
@@ -428,27 +543,28 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         setTreatmentSearchTerm('')
         fetchTreatments()
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_create_treatment') })
+    } catch (error: unknown) {
+      const err = error as Error
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_create_treatment') })
     } finally {
       setIsCreatingTreatment(false)
     }
   }
 
-  const handleEditFieldChange = (field: string, value: any) => {
-    setEditFormData((prev: any) => ({
+  const handleEditFieldChange = (field: string, value: EditTreatmentFormState[keyof EditTreatmentFormState]) => {
+    setEditFormData((prev: EditTreatmentFormState) => ({
       ...prev,
       [field]: value
     }))
   }
 
-  const handleOpenEditDrawer = (treatment: any, activity: any = null) => {
+  const handleOpenEditDrawer = (treatment: Treatment, activity: EditTreatmentFormState | null = null) => {
     if (!treatment) return
 
     setSelectedTreatmentActivities([])
 
     const localStartDate = treatment.treatment_start_date_time
-      ? dayjs((Utility as any).convertUTCToLocal(treatment.treatment_start_date_time))
+      ? dayjs(Utility.convertUTCToLocal(treatment.treatment_start_date_time))
       : null
 
     const inferredStartDate = localStartDate?.isValid()
@@ -494,10 +610,10 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       return
     }
 
-    const activeActivity = selectedTreatmentActivities.find((activity: any) => activity.id === editFormData.activeActivityId)
+    const activeActivity = selectedTreatmentActivities.find((activity: ActivityFormData) => activity.id === editFormData.activeActivityId)
 
     const originalLocalStartTime = activeActivity?.treatment_start_date_time
-      ? dayjs((Utility as any).convertUTCToLocal(activeActivity.treatment_start_date_time)).format(TREATMENT_DATE_TIME_FORMAT)
+      ? dayjs(Utility.convertUTCToLocal(activeActivity.treatment_start_date_time)).format(TREATMENT_DATE_TIME_FORMAT)
       : ''
 
     const currentLocalStartTime = editFormData.startDate
@@ -506,7 +622,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     const hasDateChanged =
       activeActivity?.treatment_start_date_time &&
-      !dayjs((Utility as any).convertUTCToLocal(activeActivity.treatment_start_date_time)).isSame(dayjs(editFormData.startDate), 'day')
+      !dayjs(Utility.convertUTCToLocal(activeActivity.treatment_start_date_time)).isSame(dayjs(editFormData.startDate), 'day')
 
     const formattedStartTime = hasDateChanged ? currentLocalStartTime : originalLocalStartTime || currentLocalStartTime
 
@@ -518,7 +634,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
       return
     }
 
-    const payload = {
+    const payload: UpdateTreatmentParams = {
       animal_id: finalAnimalId,
       medical_record_id: finalMedicalRecordId,
       hospital_case_id: selectedTreatment.hospitalCaseId || hospitalCaseId || '',
@@ -530,7 +646,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     try {
       setIsUpdatingTreatment(true)
-      const response: any = await updateTreatmentRecord(payload)
+      const response = await updateTreatmentRecord(payload)
       Toaster({
         type: response?.success ? 'success' : 'error',
         message: response?.message || t('hospital_module.failed_to_update_treatment')
@@ -539,8 +655,9 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         closeEditDrawer()
         fetchTreatments()
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_update_treatment') })
+    } catch (error: unknown) {
+      const err = error as Error
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_update_treatment') })
     } finally {
       setIsUpdatingTreatment(false)
     }
@@ -586,7 +703,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     try {
       setIsAddingTreatmentNote(true)
-      const response: any = await createTreatmentRecord(payload)
+      const response = await createTreatmentRecord(payload)
       Toaster({
         type: response?.success ? 'success' : 'error',
         message: response?.message || t('hospital_module.failed_to_add_treatment_note')
@@ -595,8 +712,9 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         closeEditDrawer()
         fetchTreatments()
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_add_treatment_note') })
+    } catch (error: unknown) {
+      const err = error as Error
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_add_treatment_note') })
     } finally {
       setIsAddingTreatmentNote(false)
     }
@@ -622,7 +740,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
     try {
       setIsDeletingTreatment(true)
-      const response: any = await deleteTreatmentRecord({ treatment_id: editFormData.activeActivityId })
+      const response = await deleteTreatmentRecord({ treatment_id: editFormData.activeActivityId })
       Toaster({
         type: response?.success ? 'success' : 'error',
         message: response?.message || t('hospital_module.failed_to_delete_treatment_entry')
@@ -632,8 +750,9 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
         closeEditDrawer()
         fetchTreatments()
       }
-    } catch (error: any) {
-      Toaster({ type: 'error', message: error?.message || t('hospital_module.failed_to_delete_treatment_entry') })
+    } catch (error: unknown) {
+      const err = error as Error
+      Toaster({ type: 'error', message: err?.message || t('hospital_module.failed_to_delete_treatment_entry') })
     } finally {
       setIsDeletingTreatment(false)
     }
@@ -644,11 +763,11 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
     setIsDeletingTreatment(false)
   }
 
-  const handlePrefillFromActivity = (activity: any) => {
+  const handlePrefillFromActivity = (activity: ActivityFormData) => {
     if (!selectedTreatment || !activity) return
 
     const localStartDate = activity.treatment_start_date_time
-      ? dayjs((Utility as any).convertUTCToLocal(activity.treatment_start_date_time))
+      ? dayjs(Utility.convertUTCToLocal(activity.treatment_start_date_time))
       : null
 
     const inferredStartDate = localStartDate?.isValid()
@@ -743,7 +862,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
 
         {!isTreatmentsLoading && treatmentGroups.length > 0 && (
           <>
-            {treatmentGroups.map((group: any) => (
+            {treatmentGroups.map((group: TreatmentGroup) => (
               <Box key={group.id} sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <Avatar
@@ -765,7 +884,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                 </Box>
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {group.treatments.map((treatment: any) => {
+                  {group.treatments.map((treatment: Treatment) => {
                     const parsedApiNotesCount =
                       treatment?.notes_count !== undefined && treatment?.notes_count !== null
                         ? Number(treatment.notes_count)
@@ -873,7 +992,7 @@ const OtherTreatment = ({ animalId, medicalRecordId, hospitalCaseId, patientDisc
                                   color: theme.palette.customColors.neutralSecondary
                                 }}
                               >
-                                {t('hospital_module.notes')}
+                                {t('notes')}
                               </Typography>
                             )}
 
