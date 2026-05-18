@@ -1348,6 +1348,7 @@ const AddMedicine = () => {
                                 image={uploadedImage}
                                 files={files}
                                 onRemoveImage={handleRemoveImage}
+                                sizeValidation={true}
                               />
                             </CardContent>
                           </Card>
