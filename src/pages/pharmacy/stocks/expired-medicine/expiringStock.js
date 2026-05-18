@@ -187,7 +187,8 @@ const ExpiringMedicine = () => {
     ...(storeId === 'all'
       ? [
           {
-            width: 200,
+            minWidth: 200,
+            flex: 0.2,
             field: 'store_name',
             headerName: 'Store Name',
             renderCell: params => (
@@ -208,8 +209,8 @@ const ExpiringMedicine = () => {
         ]
       : []),
     {
-      width: 250,
-      minWidth: 100,
+      minWidth: 250,
+      flex: 0.2,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -238,8 +239,8 @@ const ExpiringMedicine = () => {
     //   )
     // },
     {
-      width: 250,
-      minWidth: 100,
+      minWidth: 250,
+      flex: 0.2,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -257,8 +258,8 @@ const ExpiringMedicine = () => {
     },
 
     {
-      width: 250,
-      minWidth: 100,
+      minWidth: 250,
+      flex: 0.2,
       field: 'stock_qty',
       headerName: 'Qty',
       type: 'number',

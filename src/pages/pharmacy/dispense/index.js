@@ -44,8 +44,7 @@ function Dispense() {
 
   const columns = [
     {
-      // flex: 0.1,
-      Width: 100,
+      minWidth: 100,
       field: 'sl',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -55,8 +54,8 @@ function Dispense() {
       )
     },
     {
-      width: 180,
-      minWidth: 20,
+      minWidth: 140,
+      flex: 0.2,
       field: 'dispense_id',
       headerName: 'Dispense Id',
       renderCell: params => (
@@ -133,8 +132,8 @@ function Dispense() {
     //   )
     // },
     {
-      width: 180,
-      minWidth: 20,
+      minWidth: 160,
+      flex: 0.2,
       field: 'animal_count',
       type: 'number',
       align: 'left',
@@ -154,8 +153,8 @@ function Dispense() {
       )
     },
     {
-      width: 270,
-      minWidth: 30,
+      minWidth: 200,
+      flex: 0.2,
       field: 'created_at',
       headerName: 'Dispensed Date',
       renderCell: params => (
@@ -173,8 +172,8 @@ function Dispense() {
       )
     },
     {
-      width: 220,
-      minWidth: 220,
+      flex: 0.2,
+      minWidth: 200,
       field: 'user_name',
       headerName: 'Dispensed to',
       renderCell: params => (
@@ -191,8 +190,8 @@ function Dispense() {
       )
     },
     {
-      width: 220,
-      minWidth: 100,
+      flex: 0.2,
+      minWidth: 180,
       field: 'created_by',
       headerName: 'Created by ',
       renderCell: params => (
@@ -206,8 +205,8 @@ function Dispense() {
       )
     },
     {
-      width: 220,
-      minWidth: 100,
+      flex: 0.2,
+      minWidth: 200,
       field: 'ep_number',
       headerName: 'User Name & EP No',
       renderCell: params => (

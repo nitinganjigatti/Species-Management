@@ -221,8 +221,7 @@ const ReturnSupplier = () => {
 
   const columns = [
     {
-      width: 100,
-      minWidth: 20,
+      minWidth: 100,
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -237,8 +236,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'discard_id',
       headerName: 'RETURN REQUEST NUMBER',
       sortable: true,
@@ -256,8 +255,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'discarded_date',
       headerName: 'RETURN DATE',
       sortable: true,
@@ -275,8 +274,9 @@ const ReturnSupplier = () => {
       )
     },
     {
-      width: 340,
-      minWidth: 20,
+      flex: 1,
+      minWidth: 340,
+
       field: 'stock_name',
       align: 'left',
       sortable: true,
@@ -296,8 +296,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'batch_no',
       sortable: true,
       headerName: 'BATCH NUMBER',
@@ -315,8 +315,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       sortable: true,
@@ -334,8 +334,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -355,8 +355,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 160,
+      flex: 0.2,
+      minWidth: 160,
       field: 'discarded_value',
       headerName: 'TOTAL VALUE',
       sortable: true,
@@ -376,8 +376,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 180,
+      flex: 0.2,
+      minWidth: 180,
       field: 'discarded_quantity',
       headerName: 'DISCARDED QUANTITY',
       sortable: true,
@@ -396,8 +396,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'supplier_name',
       sortable: true,
       headerName: 'SUPPLIER NAME',
@@ -411,8 +411,8 @@ const ReturnSupplier = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              textOverflow: 'ellipsis'
+              // maxWidth: 200
             }}
           >
             <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
@@ -421,8 +421,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'package',
       headerName: 'PACKAGE',
       sortable: false,
@@ -439,8 +439,8 @@ const ReturnSupplier = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
+              textOverflow: 'ellipsis'
+              // maxWidth: 240
             }}
           >
             {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
@@ -450,8 +450,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 260,
+      flex: 0.2,
+      minWidth: 260,
       field: 'manufacturer_name',
       sortable: true,
       headerName: 'MANUFACTURER NAME',
@@ -465,8 +465,8 @@ const ReturnSupplier = () => {
               fontWeight: 400,
               overflow: 'hidden',
               whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
+              textOverflow: 'ellipsis'
+              // maxWidth: 240
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -475,8 +475,8 @@ const ReturnSupplier = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 200,
+      flex: 0.2,
+      minWidth: 200,
       field: 'comments',
       sortable: false,
       headerName: 'COMMENTS',
@@ -494,8 +494,8 @@ const ReturnSupplier = () => {
                   fontWeight: 400,
                   overflow: 'hidden',
                   whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  maxWidth: 200
+                  textOverflow: 'ellipsis'
+                  // maxWidth: 200
                 }}
               >
                 {comment}
@@ -521,6 +521,7 @@ const ReturnSupplier = () => {
       }
     },
     {
+      flex: 0.2,
       minWidth: 200,
       field: 'discard_created_at',
       sortable: true,

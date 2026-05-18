@@ -11,7 +11,7 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 
 // ** MUI Imports
-import { Box, Grid, Typography, Chip,} from '@mui/material'
+import { Box, Grid, Typography, Chip } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -275,7 +275,7 @@ const RequestList = () => {
                   pathname: '/pharmacy/request/add-request/'
                 })
               }
-              styles = {{
+              styles={{
                 margin: 0
               }}
             />
@@ -368,7 +368,7 @@ const RequestList = () => {
 
   const columns = [
     {
-      width: 80,
+      minWidth: 100,
       field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -381,7 +381,8 @@ const RequestList = () => {
     },
 
     {
-      width: 100,
+      minWidth: 100,
+      flex: 0.2,
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
@@ -402,7 +403,8 @@ const RequestList = () => {
     },
 
     {
-      width: 120,
+      minWidth: 120,
+      flex: 0.2,
       field: 'request_number',
       headerName: 'REQUEST ID',
       hide: true,
@@ -423,6 +425,7 @@ const RequestList = () => {
     },
     {
       minWidth: 200,
+      flex: 0.4,
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
@@ -440,6 +443,7 @@ const RequestList = () => {
     },
     {
       minWidth: 100,
+      flex: 0.2,
       field: 'created_at',
       headerName: 'Days',
       renderCell: params => (
@@ -478,6 +482,7 @@ const RequestList = () => {
 
     {
       minWidth: 160,
+      flex: 0.2,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
@@ -496,6 +501,7 @@ const RequestList = () => {
 
     {
       minWidth: 120,
+      flex: 0.2,
       field: 'product_count',
       headerName: 'TOTAL ITEMS',
       type: 'number',
@@ -517,6 +523,7 @@ const RequestList = () => {
 
     {
       minWidth: 160,
+      flex: 0.2,
       field: 'pending_count',
       headerName: 'PENDING ITEMS',
       headerAlign: 'left',
@@ -552,6 +559,7 @@ const RequestList = () => {
     // },
     {
       minWidth: 160,
+      flex: 0.2,
       field: 'shipping_status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -617,6 +625,7 @@ const RequestList = () => {
     },
     {
       minWidth: 220,
+      flex: 0.2,
       field: 'created_by_user_name',
       headerName: 'Requested by ',
       renderCell: params => (
@@ -664,19 +673,16 @@ const RequestList = () => {
         {loader ? (
           <FallbackSpinner />
         ) : (
-            <PageCardLayout
-              title = 'Request List'
-              action = {headerAction}>
+          <PageCardLayout title='Request List' action={headerAction}>
             <Grid
               container
               spacing={4}
               sx={{
                 display: 'flex',
                 alignItems: 'center'
- 
               }}
             >
-              <Grid size={{ xs: 12, sm: 12, md: 2.9, xl: 2.5}}>
+              <Grid size={{ xs: 12, sm: 12, md: 2.9, xl: 2.5 }}>
                 <MUISearch
                   width={'100%'}
                   placeholder='Search...'
@@ -697,7 +703,7 @@ const RequestList = () => {
                     xl: 2.5
                   }}
                   sx={{
-                    marginLeft: 'auto',
+                    marginLeft: 'auto'
                   }}
                 >
                   <MUIAutocomplete
@@ -733,7 +739,7 @@ const RequestList = () => {
                   })
                 }}
               >
-               <MUISelect
+                <MUISelect
                   value={selectDays}
                   label='Filter by days'
                   options={[
@@ -743,23 +749,22 @@ const RequestList = () => {
                     { id: '15', name: '7 to 15 Days' },
                     { id: '16', name: '15 Days' }
                   ]}
-                  onChange={e=> {
+                  onChange={e => {
                     const value = e.target.value
-                    if (value=== null) {
+                    if (value === null) {
                       setSelectDays('all')
                       filterByDays('all')
                     } else {
                       filterByDays(value)
                       setSelectDays(value)
-                   }
-                 }
-              }/>
-                            
+                    }
+                  }}
+                />
               </Grid>
 
               {/* Completed Switch */}
               {(status === 'all' || status === 'completed') && (
-                <Grid item >
+                <Grid item>
                   <MUISwitch
                     label='Completed'
                     labelStyle={{
@@ -767,7 +772,7 @@ const RequestList = () => {
                       fontSize: '14px',
                       fontWeight: 400
                     }}
-                    formControlStyle = {{
+                    formControlStyle={{
                       margin: 0
                     }}
                     labelPlacement='end'
@@ -779,7 +784,7 @@ const RequestList = () => {
                 </Grid>
               )}
             </Grid>
-            
+
             <Grid>
               <CommonTable
                 onRowClick={onRowClick}
@@ -793,8 +798,7 @@ const RequestList = () => {
                 searchValue={searchValue}
               />
             </Grid>
-            </PageCardLayout>
-            
+          </PageCardLayout>
         )}
       </>
     )
@@ -802,38 +806,35 @@ const RequestList = () => {
 
   return (
     <>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile>
-            <Tab
-              // sx={{ ml: 3 }}
-              value='pending'
-              label={<TabBadge label='Pending ' totalCount={status === 'pending' ? total : null} />}
-            />
-            {/* <Tab
+      <TabContext value={status}>
+        <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile>
+          <Tab
+            // sx={{ ml: 3 }}
+            value='pending'
+            label={<TabBadge label='Pending ' totalCount={status === 'pending' ? total : null} />}
+          />
+          {/* <Tab
               value='completed'
               label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
             /> */}
-            <Tab
-              value='shipped'
-              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
-            />
+          <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
 
+          <Tab
+            value='disputed'
+            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+          />
+          {selectedPharmacy?.type === 'local' && (
             <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+              value='cancel'
+              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
             />
-            {selectedPharmacy?.type === 'local' && (
-              <Tab
-                value='cancel'
-                label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-              />
-            )}
-            <Tab
-              value={'all' ? 'all' : 'completed'}
-              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-            />
-          </TabList>
-           <Box sx={{ '& .MuiTabPanel-root': {p: 0, mt: 3}}}>
+          )}
+          <Tab
+            value={'all' ? 'all' : 'completed'}
+            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+          />
+        </TabList>
+        <Box sx={{ '& .MuiTabPanel-root': { p: 0, mt: 3 } }}>
           <TabPanel value='pending'>{tableData()}</TabPanel>
           {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
           <TabPanel value='shipped'>{tableData()}</TabPanel>
@@ -845,8 +846,8 @@ const RequestList = () => {
           ) : (
             <TabPanel value='completed'>{tableData()}</TabPanel>
           )}
-          </Box>
-        </TabContext>
+        </Box>
+      </TabContext>
     </>
   )
 }

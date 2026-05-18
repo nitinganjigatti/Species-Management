@@ -1,4 +1,4 @@
-import { Box, IconButton, debounce, Grid, Typography } from '@mui/material'
+import { Box, IconButton, debounce, Grid, Typography, Tooltip } from '@mui/material'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
@@ -56,7 +56,7 @@ const VariantList = () => {
 
   const columns = [
     {
-      minWidth: 50,
+      minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
@@ -66,7 +66,8 @@ const VariantList = () => {
       )
     },
     {
-      minWidth: 200,
+      flex: 0.2,
+      minWidth: 180,
       field: 'unit_multiplier',
       headerName: 'Unit Multiplier',
       textAlign: 'center',
@@ -85,21 +86,27 @@ const VariantList = () => {
     },
     {
       flex: 1,
-      minWidth: 200,
+      minWidth: 250,
       field: 'description',
       headerName: 'Description',
       textAlign: 'center',
       renderCell: params => (
         <>
           {params.row?.description ? (
-            <TextEllipsisWithModal
-              text={params.row.description}
-              style={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500
-              }}
-            />
+            <Tooltip title={params.row.description}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {params.row?.description}
+              </Typography>
+            </Tooltip>
           ) : (
             <Typography
               sx={{
@@ -116,6 +123,7 @@ const VariantList = () => {
     },
 
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'active',
       headerName: 'STATUS',
@@ -133,6 +141,7 @@ const VariantList = () => {
       )
     },
     {
+      flex: 0.2,
       minWidth: 200,
       field: 'Action',
       headerName: 'Action',

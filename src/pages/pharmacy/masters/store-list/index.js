@@ -95,7 +95,8 @@ const ListOfStores = () => {
       )
     },
     {
-      minWidth: 150,
+      flex: 0.2,
+      minWidth: 250,
       field: 'type',
       headerName: 'TYPE',
       renderCell: params => (
@@ -113,7 +114,7 @@ const ListOfStores = () => {
     },
     {
       flex: 1,
-      minWidth: 200,
+      minWidth: 250,
       field: 'name',
       headerName: 'PHARMACY NAME',
       renderCell: params => (
@@ -130,7 +131,8 @@ const ListOfStores = () => {
       )
     },
     {
-      minWidth: 150,
+      flex: 0.2,
+      minWidth: 250,
       field: 'latitude',
       headerName: 'LATITUDE',
       renderCell: params => (
@@ -147,7 +149,8 @@ const ListOfStores = () => {
       )
     },
     {
-      minWidth: 150,
+      flex: 0.2,
+      minWidth: 250,
       field: 'logitude',
       headerName: 'LONGITUDE',
       renderCell: params => (
@@ -165,6 +168,7 @@ const ListOfStores = () => {
     },
 
     {
+      flex: 0.2,
       minWidth: 250,
       field: 'site_name',
       headerName: 'Site Name',
@@ -185,7 +189,8 @@ const ListOfStores = () => {
     },
 
     {
-      minWidth: 150,
+      flex: 0.2,
+      minWidth: 250,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -204,7 +209,8 @@ const ListOfStores = () => {
       )
     },
     {
-      minWidth: 150,
+      flex: 0.2,
+      minWidth: 250,
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -573,7 +579,7 @@ const ListOfStores = () => {
                         icon='material-symbols:delete-outline-rounded'
                       />
                     ) : (
-                      (<>
+                      <>
                         <Icon
                           style={{
                             cursor: 'pointer',
@@ -596,7 +602,7 @@ const ListOfStores = () => {
                           }}
                           icon='heroicons:no-symbol-16-solid'
                         />
-                      </>)
+                      </>
 
                       // <Icon
                       //   style={{
@@ -743,7 +749,7 @@ const ListOfStores = () => {
         </>
       )}
     </>
-  );
+  )
 }
 
 export default ListOfStores

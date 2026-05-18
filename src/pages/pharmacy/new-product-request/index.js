@@ -135,7 +135,6 @@ export default function NewProductList() {
 
   const columns = [
     {
-      width: 80,
       minWidth: 100,
       field: 'id',
       headerName: 'SL.NO',
@@ -146,8 +145,8 @@ export default function NewProductList() {
       )
     },
     {
-      width: 150,
       minWidth: 150,
+      flex: 0.2,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
@@ -166,7 +165,7 @@ export default function NewProductList() {
       )
     },
     selectedPharmacy?.type === 'central' && {
-      width: 150,
+      flex: 0.2,
       minWidth: 180,
       field: 'to_store_name',
       headerName: 'From Store',
@@ -227,7 +226,7 @@ export default function NewProductList() {
       )
     },
     selectedPharmacy?.type === 'central' && {
-      flex: 0.3,
+      flex: 0.2,
       minWidth: 150,
       field: 'requested_by',
       headerName: 'Requested User',

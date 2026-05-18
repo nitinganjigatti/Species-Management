@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import styled from '@emotion/styled'
 import { LoadingButton } from '@mui/lab'
-import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, Typography } from '@mui/material'
+import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useCallback, useState } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -246,9 +246,19 @@ const ReturnToSupplierFilter = ({
                         checked={selectedOptions['Supplier Name']?.includes(supplier?.id)}
                         onChange={() => handleCheckbox(supplier?.id, 'Supplier Name')}
                       />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
-                        {supplier?.company_name}
-                      </Typography>
+                      <Tooltip title={supplier?.company_name}>
+                        <Typography
+                          sx={{
+                            fontSize: '16px',
+                            textOverflow: 'ellipsis',
+                            overflow: 'hidden',
+                            fontWeight: 400,
+                            color: '#839D8D'
+                          }}
+                        >
+                          {supplier?.company_name}
+                        </Typography>
+                      </Tooltip>
                     </Box>
                   ))}
                 </>

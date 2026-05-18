@@ -164,8 +164,7 @@ const StockLocation = () => {
 
   const columns = [
     {
-      width: 80,
-      minWidth: 20,
+      minWidth: 100,
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
@@ -179,8 +178,8 @@ const StockLocation = () => {
       )
     },
     {
-      width: 260,
-      minWidth: 20,
+      flex: 1,
+      minWidth: 250,
       field: 'stock_name',
       align: 'left',
       sortable: true,
@@ -197,8 +196,9 @@ const StockLocation = () => {
       )
     },
     {
-      width: 180,
-      minWidth: 20,
+      minWidth: 180,
+      flex: 0.2,
+
       field: 'rack_count',
       align: 'center',
       sortable: false,
@@ -218,8 +218,8 @@ const StockLocation = () => {
       )
     },
     {
-      width: 200,
-      minWidth: 20,
+      minWidth: 200,
+      flex: 0.2,
       field: 'shelf_count',
       align: 'center',
       sortable: false,
@@ -239,8 +239,8 @@ const StockLocation = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 220,
+      minWidth: 250,
+      flex: 0.2,
       field: 'total_available_qty',
       headerName: 'TOTAL AVAILABLE QUANTITY',
       sortable: true,
@@ -259,8 +259,8 @@ const StockLocation = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 220,
+      minWidth: 250,
+      flex: 0.2,
       field: 'min_qty',
       headerName: 'REORDER LEVEL',
       sortable: true,
@@ -280,8 +280,8 @@ const StockLocation = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 140,
+      minWidth: 200,
+      flex: 0.2,
       field: 'Action',
       headerAlign: 'right',
       headerName: 'Actions',
