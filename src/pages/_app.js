@@ -60,6 +60,8 @@ import { PariveshProvider } from 'src/context/PariveshContext'
 import { AnimalProvider } from 'src/context/AnimalContext'
 import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
 import { LanguageProvider } from 'src/context/LanguageContext'
+// Global init point for @antzsoft/chat-core
+import ChatBoot from 'src/components/chat/ChatBoot'
 
 // Redux
 import { Provider } from 'react-redux'
@@ -129,6 +131,7 @@ const App = props => {
                       <EggProvider>
                         <ForgotPasswordProvider>
                           <AuthProvider>
+                            <ChatBoot />
                             <LanguageProvider>
                               <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
                                 <SettingsConsumer>

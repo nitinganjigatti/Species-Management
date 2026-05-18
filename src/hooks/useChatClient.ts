@@ -25,22 +25,43 @@ export function useChatClient(): UseChatClientResult {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    if (!auth?.userData?.user) return
-    if (!process.env.NEXT_PUBLIC_CHAT_API_URL) return
+    // Accept either `auth.userData.user` (full backend resData) or `auth.user`
+    // (the slim user object that `(module)/layout.tsx` already waits for).
+    // The WSO2 hydrate path sometimes lands `auth.user` before / without
+    // populating a nested `auth.userData.user` — fall back so we don't get
+    // stuck on the gate.
+    const sourceUser = auth?.userData?.user ?? auth?.user
+    if (!sourceUser) {
+      console.log('[chat:gate] no auth user yet — waiting')
 
-    const userIdRaw =
-      auth.userData.user.user_id ?? auth.userData.user.id ?? auth.userData.user.email
+      return
+    }
+    if (!process.env.NEXT_PUBLIC_CHAT_API_URL) {
+      console.warn('[chat:gate] NEXT_PUBLIC_CHAT_API_URL not set')
+
+      return
+    }
+
+    const userIdRaw = sourceUser.user_id ?? sourceUser.id ?? sourceUser.email
     const userId = userIdRaw !== undefined && userIdRaw !== null ? String(userIdRaw) : null
-    const tenantId = auth.userData.user.zoos?.[0]?.zoo_id?.toString()
+    const tenantId =
+      sourceUser.zoos?.[0]?.zoo_id?.toString() ??
+      auth?.userData?.user?.zoos?.[0]?.zoo_id?.toString() ??
+      auth?.userData?.zoos?.[0]?.zoo_id?.toString()
     const avatarUrl =
-      auth.userData.user.profile_pic ??
-      auth.userData.user.user_profile_pic ??
-      auth.userData.user.profile_image ??
-      auth.userData.user.avatar ??
-      auth.userData.user.avatar_url ??
+      sourceUser.profile_pic ??
+      sourceUser.user_profile_pic ??
+      sourceUser.profile_image ??
+      sourceUser.avatar ??
+      sourceUser.avatar_url ??
       undefined
 
-    if (!userId) return
+    if (!userId) {
+      console.warn('[chat:gate] no userId derivable from auth', sourceUser)
+
+      return
+    }
+    console.log('[chat:gate] initializing with', { userId, tenantId, hasAvatar: Boolean(avatarUrl) })
 
     const getAccessToken = (): string =>
       typeof window !== 'undefined'
@@ -118,7 +139,8 @@ export function useChatClient(): UseChatClientResult {
       setClient(null)
       setSocket(null)
     }
-  }, [auth?.userData?.user?.id])
+    // Watch BOTH paths — whichever populates first triggers init.
+  }, [auth?.userData?.user?.user_id, auth?.userData?.user?.id, auth?.user?.id, auth?.user?.email])
 
   return { client, socket, connected, error }
 }
