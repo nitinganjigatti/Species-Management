@@ -122,6 +122,10 @@ export type ChatStoreType = {
   selectedChat: SelectedChatType
   activeFilter: ChatFilterType
   loadingMessages: boolean
+  // Receipts (delivered/seen) that arrived BEFORE the corresponding message
+  // landed in `chats`. Keyed by messageId. Drained in `sendMsg.fulfilled` and
+  // `receiveMessage` once the message is appended.
+  pendingFeedback: Record<string, { isDelivered?: boolean; isSeen?: boolean }>
 }
 
 export type SendMsgParamsType = {

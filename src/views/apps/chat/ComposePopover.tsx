@@ -64,10 +64,9 @@ const ComposePopover = ({
     return contacts.filter(c => chatContactIds.has(c.id)).slice(0, 4)
   }, [contacts, chats])
 
-  // SDK user lookup. The SDK exposes only `conversations.searchUsers(query)`,
-  // but most backends accept an empty string as "return everyone" — so we use
-  // that for the default list when the popover opens, and re-query (debounced)
-  // as the user types. Falls back to filtering the local mock contacts list
+  // SDK user lookup via `users.list({ query })`. Empty query returns everyone,
+  // so we use that for the default list when the popover opens, and re-query
+  // (debounced) as the user types. Falls back to filtering the local mock contacts list
   // when the SDK isn't ready (dev / pre-auth).
   useEffect(() => {
     if (!open) return

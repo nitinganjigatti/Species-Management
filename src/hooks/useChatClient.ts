@@ -79,22 +79,12 @@ export function useChatClient(): UseChatClientResult {
     const resolvedSocketConfig = {
       socketOrigin,
       socketPath,
+      userId,
+      tenantId,
       avatar: { url: avatarUrl }
     } as Parameters<typeof connectSocket>[0]
 
-    // Log what we're about to send in the handshake so we can verify the
-    // avatar (and other auth fields) are populated. The actual handshake
-    // payload includes: token (Bearer), userId, tenantId, avatarUrl.
-    console.log('[chat:handshake] connect →', {
-      socketOrigin,
-      socketPath,
-      userId,
-      tenantId,
-      avatarUrl: avatarUrl ?? '(none — auth.userData.user has no profile_image / avatar / avatar_url)',
-      hasToken: Boolean(accessToken)
-    })
-
-    connectSocket(resolvedSocketConfig, getAccessToken, userId, tenantId).catch(setError)
+    connectSocket(resolvedSocketConfig, getAccessToken).catch(setError)
 
     const s = getSocket()
     setSocket(s)

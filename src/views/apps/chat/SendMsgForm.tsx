@@ -165,12 +165,6 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       setUploading(false)
     }
 
-    console.log('[chat:trace] 1. SendMsgForm dispatch →', {
-      conversationId,
-      text: trimmed,
-      attachmentCount: uploaded?.length ?? 0
-    })
-
     dispatch(
       sendMsg({
         ...store.selectedChat,

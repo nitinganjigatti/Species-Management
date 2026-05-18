@@ -36,6 +36,7 @@ import {
   unpinConversation as apiUnpinConversation,
   leaveConversation,
   getConversationMembers,
+  getLastRead,
   listMessages,
   markConversationRead,
   sendMessageOverSocket,
@@ -44,6 +45,8 @@ import {
   sdkMessageToMessage,
   extractContactsFromConversations
 } from 'src/lib/chat/api'
+
+import { useChatStore } from '@antzsoft/chat-core'
 
 // ----------------------------------------------------------------------
 // Async Thunks — talk to the chat backend via @antzsoft/chat-core.
@@ -74,13 +77,11 @@ export const fetchUserProfile = createAsyncThunk<
       try {
         const synced = await syncAvatar({ url: fallback })
         profile.avatar = synced.avatarUrl || fallback
-        console.log('[chat] syncAvatar ✓', synced.avatarUrl)
       } catch (syncErr) {
         console.warn('[chat] syncAvatar failed — using local fallback only:', syncErr)
         profile.avatar = fallback
       }
     }
-    console.log('[chat] fetchUserProfile ← SDK:', profile)
 
     return profile
   } catch (err) {
@@ -111,9 +112,10 @@ export const fetchChatsContacts = createAsyncThunk<{
   const currentUserId = state.chat?.userProfile?.id ?? ''
 
   try {
-    const resp = await listConversations({ page: 1, limit: 50 })
+    // Omit page+limit: SDK returns all matching conversations in one response
+    // (per @antzsoft/chat-core 1.0.6 doc Step 6). Pagination is opt-in.
+    const resp = await listConversations()
     const conversations = resp.data ?? []
-    console.log('[chat] fetchChatsContacts ← SDK:', conversations.length, 'conversations')
 
     const chatsContacts = conversations.map(c => sdkConversationToChat(c, currentUserId))
     const contacts = extractContactsFromConversations(conversations, currentUserId)
@@ -145,7 +147,6 @@ export const startDirectChat = createAsyncThunk<void, ChatEntityId>(
 
     try {
       const conv = await createDirectConversation({ userId: String(userId) })
-      console.log('[chat] startDirectChat ← SDK:', conv.id, 'with user', userId)
 
       const state = getState() as { chat?: ChatStoreType }
       const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -180,13 +181,15 @@ export const createGroupChat = createAsyncThunk<void, CreateGroupPayload>(
     }
 
     try {
+      // NOTE: SDK 1.0.6 dropped `icon` from CreateGroupData. Group icons are
+      // now set via the separate `uploadConversationIcon(groupId, fileId)` flow
+      // after creation. The CreateGroupDrawer still collects an icon URL but
+      // it's no longer sent here — wire the post-create upload separately.
       const conv = await createGroupConversation({
         name: payload.name,
         description: payload.description,
-        icon: payload.icon,
         participantIds: payload.participantIds.map(String)
       })
-      console.log('[chat] createGroupChat ← SDK:', conv.id, conv.name)
 
       const state = getState() as { chat?: ChatStoreType }
       const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -225,7 +228,6 @@ export const addParticipantsToGroup = createAsyncThunk<
 
   try {
     const conv = await apiAddParticipants(groupId, userIds.map(String))
-    console.log('[chat] addParticipantsToGroup ← SDK:', groupId, '+', userIds.length, 'members')
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -261,7 +263,6 @@ export const leaveGroupChat = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await leaveConversation(groupId)
-      console.log('[chat] leaveGroupChat ← SDK:', groupId)
       dispatch(removeChatFromList(groupId))
     } catch (err) {
       console.error('[chat] leaveGroupChat failed:', err)
@@ -293,7 +294,6 @@ export const deleteConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiDeleteConversation(chatId)
-      console.log('[chat] deleteConversation ← SDK:', chatId)
       dispatch(removeChatFromList(chatId))
     } catch (err) {
       console.error('[chat] deleteConversation failed:', err)
@@ -329,14 +329,15 @@ export const fetchConversation = createAsyncThunk<void, ChatEntityId>(
  */
 export const updateGroupChat = createAsyncThunk<
   void,
-  { chatId: ChatEntityId; name?: string; description?: string; icon?: string }
->('appChat/updateGroupChat', async ({ chatId, name, description, icon }, { dispatch, getState }) => {
+  { chatId: ChatEntityId; name?: string; description?: string }
+>('appChat/updateGroupChat', async ({ chatId, name, description }, { dispatch, getState }) => {
   const client = getChatClientOrNull()
   if (!client || typeof chatId !== 'string') return
 
   try {
-    const conv = await updateConversation(chatId, { name, description, icon })
-    console.log('[chat] updateGroupChat ← SDK:', chatId)
+    // SDK 1.0.6 dropped `icon` from UpdateConversationData. Icon updates go
+    // through `uploadConversationIcon(groupId, fileId)` instead.
+    const conv = await updateConversation(chatId, { name, description })
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
     dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
@@ -357,7 +358,6 @@ export const removeParticipantFromGroup = createAsyncThunk<
 
   try {
     const conv = await apiRemoveParticipant(groupId, String(userId))
-    console.log('[chat] removeParticipantFromGroup ← SDK:', groupId, 'removed', userId)
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
     dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
@@ -378,7 +378,6 @@ export const updateParticipantRoleInGroup = createAsyncThunk<
 
   try {
     const conv = await apiUpdateParticipantRole(groupId, String(userId), role)
-    console.log('[chat] updateParticipantRoleInGroup ← SDK:', groupId, userId, '→', role)
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
     dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
@@ -400,7 +399,6 @@ export const muteConversation = createAsyncThunk<
 
   try {
     await apiMuteConversation(chatId, mutedUntil)
-    console.log('[chat] muteConversation ← SDK:', chatId)
     dispatch(updateChatFlags({ chatId, isMuted: true }))
   } catch (err) {
     console.error('[chat] muteConversation failed:', err)
@@ -415,7 +413,6 @@ export const unmuteConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiUnmuteConversation(chatId)
-      console.log('[chat] unmuteConversation ← SDK:', chatId)
       dispatch(updateChatFlags({ chatId, isMuted: false }))
     } catch (err) {
       console.error('[chat] unmuteConversation failed:', err)
@@ -435,7 +432,6 @@ export const pinConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiPinConversation(chatId)
-      console.log('[chat] pinConversation ← SDK:', chatId)
       dispatch(updateChatFlags({ chatId, isPinned: true }))
     } catch (err) {
       console.error('[chat] pinConversation failed:', err)
@@ -451,7 +447,6 @@ export const unpinConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiUnpinConversation(chatId)
-      console.log('[chat] unpinConversation ← SDK:', chatId)
       dispatch(updateChatFlags({ chatId, isPinned: false }))
     } catch (err) {
       console.error('[chat] unpinConversation failed:', err)
@@ -501,10 +496,23 @@ export const selectChat = createAsyncThunk<void, ChatEntityId>(
     if (!client) return
     if (typeof chatId !== 'string') return
 
+    // Seed the SDK's useChatStore.lastRead in parallel with the message fetch.
+    // Pure side-effect into Zustand — does not gate or alter the message
+    // pipeline, so a failure or slow response here cannot affect live
+    // messaging. Powers the unread divider + jump-to-first-unread UI.
+    getLastRead(chatId)
+      .then(({ lastReadMessageId, lastReadAt }) => {
+        if (lastReadMessageId && lastReadAt) {
+          useChatStore.getState().setLastRead(chatId, lastReadMessageId, lastReadAt)
+        }
+      })
+      .catch(err => {
+        console.warn('[chat] getLastRead failed for', chatId, err)
+      })
+
     try {
       const resp = await listMessages(chatId, { limit: 50 })
       const sdkMessages = resp.data ?? []
-      console.log('[chat] selectChat ← SDK:', sdkMessages.length, 'messages for', chatId)
 
       // SDK returns newest-first; the UI renders top-to-bottom oldest-to-newest.
       const messages = [...sdkMessages].reverse().map(sdkMessageToMessage)
@@ -513,9 +521,18 @@ export const selectChat = createAsyncThunk<void, ChatEntityId>(
 
       // Clear the server-side unread badge. Fire-and-forget — a failure here
       // just means the badge sticks around, not a UX-breaking error.
-      markConversationRead(chatId).catch(err => {
-        console.warn('[chat] markAsRead failed for', chatId, err)
-      })
+      //
+      // Also: this REST call is what triggers the server to broadcast
+      // `read_receipt` to other participants — so other users see their
+      // messages flip to "seen" because of THIS call.
+      console.log('[chat:receipt] B1 markConversationRead → request for', chatId, '(no messageId = mark all)')
+      markConversationRead(chatId)
+        .then(() => {
+          console.log('[chat:receipt] B2 markConversationRead ← OK for', chatId)
+        })
+        .catch(err => {
+          console.warn('[chat:receipt] B2 markConversationRead FAILED for', chatId, err)
+        })
     } catch (err) {
       console.error('[chat] selectChat failed to load messages:', err)
     }
@@ -540,13 +557,11 @@ export const selectChat = createAsyncThunk<void, ChatEntityId>(
 export const sendMsg = createAsyncThunk(
   'appChat/sendMsg',
   async (obj: SendMsgParamsType & { contact?: ChatsArrType }, { getState }) => {
-    console.log('[chat:trace] 2. sendMsg thunk start →', obj)
-
     const conversationId = obj.contact?.id ?? obj.chat?.id
     const client = getChatClientOrNull()
 
     if (!client || typeof conversationId !== 'string') {
-      console.error('[chat:trace] sendMsg precondition failed', {
+      console.error('[chat] sendMsg precondition failed', {
         client: client ? 'ready' : 'null',
         conversationId
       })
@@ -555,10 +570,6 @@ export const sendMsg = createAsyncThunk(
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
-
-    const chatsList = state.chat?.chats ?? []
-    const found = chatsList.some(c => c.id === conversationId)
-    console.log('[chat:trace] 2a. conversationId in state.chats?', found, `(${chatsList.length} total)`)
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -584,10 +595,9 @@ export const sendMsg = createAsyncThunk(
         ...(attachments ? { attachments } : {})
       })
     } catch (err) {
-      console.error('[chat:trace] sendMessageOverSocket threw:', err)
+      console.error('[chat] sendMessageOverSocket threw:', err)
       throw err
     }
-    console.log('[chat:trace] 6. sendMsg ← ack received, msg id:', sent.id, '(tempId:', tempId, ')')
 
     // Defensive overrides:
     //  - The ack payload occasionally omits `content.text` — fall back to the
@@ -604,6 +614,15 @@ export const sendMsg = createAsyncThunk(
       newMsg.attachments = obj.attachments
     }
 
+    // Anchor for the receipt flow: this id is what we expect to see come
+    // back in a future read_receipt event when the other user opens the chat.
+    console.log('[chat:receipt] A0 sent message anchor:', {
+      id: newMsg.id,
+      conversationId,
+      initialFeedback: newMsg.feedback,
+      text: newMsg.message?.slice(0, 40)
+    })
+
     return { newMsg, contactId: conversationId }
   }
 )
@@ -618,7 +637,8 @@ const initialState: ChatStoreType = {
   userProfile: null,
   selectedChat: null,
   activeFilter: 'all',
-  loadingMessages: false
+  loadingMessages: false,
+  pendingFeedback: {}
 }
 
 export const appChatSlice = createSlice({
@@ -679,6 +699,27 @@ export const appChatSlice = createSlice({
         state.selectedChat.contact = chatEntry
       }
     },
+    // Authoritative unread count from the server — pushed via the
+    // `unread_count_changed` socket event whenever the server recalculates
+    // the count for this user (mark-read from any device, message
+    // deletion-for-me, etc.). Replaces our local count rather than
+    // incrementing, because the server is the source of truth.
+    setUnreadCount: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; count: number }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, count } = action.payload
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      chatEntry.chat.unseenMsgs = count
+      if (state.selectedChat?.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat },
+          contact: chatEntry
+        }
+      }
+    },
     // Remove a chat from the sidebar list and clear selectedChat if it was open.
     // Dispatched by `leaveGroupChat` / `deleteConversation` thunks after the
     // server confirms the action.
@@ -730,25 +771,82 @@ export const appChatSlice = createSlice({
         isSeen?: boolean
       }>
     ) => {
-      if (!state.chats) return
+      if (!state.chats) {
+        console.warn('[chat:receipt] R0 reducer skipped — state.chats is null')
+
+        return
+      }
       const { conversationId, messageIds, isDelivered, isSeen } = action.payload
-
-      const chatEntry = state.chats.find(c => c.id === conversationId)
-      if (!chatEntry) return
-
-      const idSet = new Set(messageIds)
-      chatEntry.chat.messages.forEach(m => {
-        if (!m.id || !idSet.has(m.id)) return
-        if (isDelivered === true) m.feedback.isDelivered = true
-        if (isSeen === true) {
-          m.feedback.isSeen = true
-          m.feedback.isDelivered = true // read implies delivered
-        }
+      console.log('[chat:receipt] R0 updateMessagesFeedback ← payload:', {
+        conversationId,
+        messageIds,
+        isDelivered,
+        isSeen
       })
 
-      // Mirror into selectedChat if it's the open one (so the panel re-renders).
-      if (state.selectedChat?.contact.id === conversationId) {
-        state.selectedChat.chat = chatEntry.chat
+      // Search ALL chats for matching message ids — don't trust the event's
+      // `conversationId` because the backend sometimes emits a `read_receipt`
+      // with a mismatched conversationId (derived from the reader's
+      // perspective rather than the message's actual home). Message ids are
+      // globally unique ObjectIds, so finding by id is authoritative.
+      const idSet = new Set(messageIds)
+      const matchedIds: string[] = []
+      const touchedChatIds = new Set<ChatEntityId>()
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (!m.id || !idSet.has(m.id)) return
+          if (isDelivered === true) m.feedback.isDelivered = true
+          if (isSeen === true) {
+            m.feedback.isSeen = true
+            m.feedback.isDelivered = true // read implies delivered
+          }
+          matchedIds.push(m.id)
+          touchedChatIds.add(chat.id)
+        })
+      })
+
+      const missed = messageIds.filter(id => !matchedIds.includes(id))
+      console.log(
+        `[chat:receipt] R2 reducer: matched ${matchedIds.length}/${messageIds.length} messages`,
+        {
+          matchedIds,
+          missedIds: missed,
+          touchedChats: Array.from(touchedChatIds),
+          eventConversationId: conversationId
+        }
+      )
+      if (missed.length) {
+        // Buffer pending feedback for messages we haven't appended yet.
+        // Drained by sendMsg.fulfilled / receiveMessage. This handles the
+        // common race where `message_delivered` arrives BEFORE the send ack
+        // callback resolves (Socket.IO can deliver event packets ahead of the
+        // ack callback for the same network frame).
+        missed.forEach(id => {
+          const existing = state.pendingFeedback[id] ?? {}
+          state.pendingFeedback[id] = {
+            isDelivered: existing.isDelivered || isDelivered === true,
+            isSeen: existing.isSeen || isSeen === true
+          }
+        })
+        console.warn(
+          '[chat:receipt] R2a missed ids — buffered into pendingFeedback:',
+          missed,
+          'current buffer:',
+          state.pendingFeedback
+        )
+      }
+
+      // Mirror into selectedChat if any of the matched messages live in the
+      // currently open chat (so the panel re-renders).
+      if (state.selectedChat && touchedChatIds.has(state.selectedChat.contact.id)) {
+        const openChat = state.chats.find(c => c.id === state.selectedChat!.contact.id)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+          console.log('[chat:receipt] R3 mirrored into selectedChat (panel will re-render)')
+        }
       }
     },
     // Live-incoming message from the socket. Dispatched by AppChat's
@@ -764,30 +862,56 @@ export const appChatSlice = createSlice({
       action: PayloadAction<{ conversationId: ChatEntityId; message: MessageType; isOwn?: boolean }>
     ) => {
       const { conversationId, message, isOwn } = action.payload
-      console.log('[chat:trace] R1. receiveMessage reducer →', {
-        conversationId,
-        msgId: message.id,
-        isOwn,
-        chatsLen: state.chats?.length ?? 0
-      })
 
       if (!state.chats) {
-        console.warn('[chat:trace] R1a. dropped: no chats in state yet')
+        console.warn('[chat] receiveMessage dropped: no chats in state yet')
 
         return
       }
 
       const chatEntry = state.chats.find(c => c.id === conversationId)
       if (!chatEntry) {
-        console.warn('[chat:trace] R1b. dropped: no chat entry for', conversationId)
+        console.warn('[chat] receiveMessage dropped: no chat entry for', conversationId)
 
         return
       }
 
-      if (message.id && chatEntry.chat.messages.some(m => m.id === message.id)) {
-        console.log('[chat:trace] R1c. dedupe: message already present')
+      if (message.id) {
+        const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === message.id)
+        if (existingIdx >= 0) {
+          // Dedupe but MERGE feedback — the broadcast echo may carry a
+          // stronger delivery status than the ack we already stored
+          // (e.g. ack returned `sent` but by the time the broadcast
+          // round-tripped, server flipped to `delivered`). isSent/isDelivered/isSeen
+          // are monotonic: once true, they stay true.
+          const existing = chatEntry.chat.messages[existingIdx]
+          const mergedFeedback = {
+            isSent: existing.feedback.isSent || message.feedback.isSent,
+            isDelivered: existing.feedback.isDelivered || message.feedback.isDelivered,
+            isSeen: existing.feedback.isSeen || message.feedback.isSeen
+          }
+          const feedbackChanged =
+            mergedFeedback.isSent !== existing.feedback.isSent ||
+            mergedFeedback.isDelivered !== existing.feedback.isDelivered ||
+            mergedFeedback.isSeen !== existing.feedback.isSeen
+          if (feedbackChanged) {
+            chatEntry.chat.messages[existingIdx] = { ...existing, feedback: mergedFeedback }
+            console.log('[chat:receipt] R1c.feedback-merge dedupe + upgraded feedback for', message.id, {
+              before: existing.feedback,
+              after: mergedFeedback
+            })
+            // Touch selectedChat so the bubble re-renders
+            if (state.selectedChat?.contact.id === conversationId) {
+              state.selectedChat = {
+                chat: { ...chatEntry.chat, messages: [...chatEntry.chat.messages] },
+                contact: chatEntry
+              }
+            }
+          } else {
+          }
 
-        return
+          return
+        }
       }
 
       // Force senderId to the current user's id when this is an echo of
@@ -796,6 +920,23 @@ export const appChatSlice = createSlice({
       // we use as `userProfile.id`.
       const stored: MessageType =
         isOwn && state.userProfile ? { ...message, senderId: state.userProfile.id } : message
+
+      // Drain pending feedback if any receipts arrived before this broadcast.
+      if (stored.id && state.pendingFeedback[stored.id]) {
+        const pf = state.pendingFeedback[stored.id]
+        const before = { ...stored.feedback }
+        stored.feedback = {
+          isSent: stored.feedback.isSent,
+          isDelivered: stored.feedback.isDelivered || Boolean(pf.isDelivered) || Boolean(pf.isSeen),
+          isSeen: stored.feedback.isSeen || Boolean(pf.isSeen)
+        }
+        delete state.pendingFeedback[stored.id]
+        console.log('[chat:receipt] R1.drain applied pendingFeedback to', stored.id, {
+          before,
+          pending: pf,
+          after: stored.feedback
+        })
+      }
 
       const newMessages = [...chatEntry.chat.messages, stored]
       chatEntry.chat.messages = newMessages
@@ -810,12 +951,10 @@ export const appChatSlice = createSlice({
           chat: { ...chatEntry.chat, messages: newMessages },
           contact: chatEntry
         }
-        console.log('[chat:trace] R1d. pushed + synced selectedChat (new ref, len=' + newMessages.length + ')')
       } else {
         const isMine =
           isOwn || (state.userProfile != null && message.senderId === state.userProfile.id)
         if (!isMine) chatEntry.chat.unseenMsgs += 1
-        console.log('[chat:trace] R1e. pushed (background); unread =', chatEntry.chat.unseenMsgs)
       }
     },
     // Replaces the messages array for a chat. Dispatched by the `selectChat`
@@ -890,21 +1029,16 @@ export const appChatSlice = createSlice({
     })
     builder.addCase(sendMsg.fulfilled, (state, action) => {
       const { newMsg, contactId } = action.payload
-      console.log('[chat:trace] 7. sendMsg.fulfilled reducer →', {
-        contactId,
-        newMsgId: newMsg.id,
-        chatsLen: state.chats?.length ?? 0
-      })
 
       if (!state.chats || contactId == null) {
-        console.warn('[chat:trace] 7a. dropped: missing chats or contactId')
+        console.warn('[chat] sendMsg.fulfilled dropped: missing chats or contactId')
 
         return
       }
 
       const chatEntry = state.chats.find(c => c.id === contactId)
       if (!chatEntry) {
-        console.warn('[chat:trace] 7b. dropped: no chat entry for contactId', contactId)
+        console.warn('[chat] sendMsg.fulfilled dropped: no chat entry for contactId', contactId)
 
         return
       }
@@ -912,10 +1046,23 @@ export const appChatSlice = createSlice({
       if (newMsg.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === newMsg.id)
         if (existingIdx >= 0) {
-          console.log('[chat:trace] 7c. dedupe: broadcast beat the ack, updating senderId only')
+          // Broadcast echo beat our ack into Redux. Merge senderId AND the
+          // stronger feedback flags so we don't lose delivered/seen state.
+          const existing = chatEntry.chat.messages[existingIdx]
+          const mergedFeedback = {
+            isSent: existing.feedback.isSent || newMsg.feedback.isSent,
+            isDelivered: existing.feedback.isDelivered || newMsg.feedback.isDelivered,
+            isSeen: existing.feedback.isSeen || newMsg.feedback.isSeen
+          }
+          console.log('[chat:receipt] 7c.feedback-merge ack: dedupe + merged feedback for', newMsg.id, {
+            existing: existing.feedback,
+            ackProvided: newMsg.feedback,
+            merged: mergedFeedback
+          })
           chatEntry.chat.messages[existingIdx] = {
-            ...chatEntry.chat.messages[existingIdx],
-            senderId: newMsg.senderId
+            ...existing,
+            senderId: newMsg.senderId,
+            feedback: mergedFeedback
           }
           if (state.selectedChat && state.selectedChat.contact.id === contactId) {
             state.selectedChat = {
@@ -928,7 +1075,24 @@ export const appChatSlice = createSlice({
         }
       }
 
-      console.log('[chat:trace] 7d. pushing new message into thread', newMsg.id)
+      // Drain any pending feedback (delivered/seen) that arrived before this
+      // ack callback resolved. Apply to the message we're about to push so the
+      // tick state is correct from the first render.
+      if (newMsg.id && state.pendingFeedback[newMsg.id]) {
+        const pf = state.pendingFeedback[newMsg.id]
+        const before = { ...newMsg.feedback }
+        if (pf.isDelivered) newMsg.feedback.isDelivered = true
+        if (pf.isSeen) {
+          newMsg.feedback.isSeen = true
+          newMsg.feedback.isDelivered = true
+        }
+        delete state.pendingFeedback[newMsg.id]
+        console.log('[chat:receipt] 7d.drain applied pendingFeedback to', newMsg.id, {
+          before,
+          pending: pf,
+          after: newMsg.feedback
+        })
+      }
       const newMessages = [...chatEntry.chat.messages, newMsg]
       chatEntry.chat.messages = newMessages
       chatEntry.chat.lastMessage = newMsg
@@ -937,7 +1101,6 @@ export const appChatSlice = createSlice({
           chat: { ...chatEntry.chat, messages: newMessages },
           contact: chatEntry
         }
-        console.log('[chat:trace] 7e. selectedChat synced (new ref)')
       }
     })
   }
@@ -950,6 +1113,7 @@ export const {
   updateMessagesFeedback,
   addOrReplaceChat,
   updateChatFlags,
+  setUnreadCount,
   removeChatFromList,
   removeSelectedChat,
   setActiveFilter
