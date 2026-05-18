@@ -216,6 +216,46 @@ Recording happens inline in [SendMsgForm.tsx](../../../src/views/apps/chat/SendM
 6. Click Send → flows through `uploadChatFiles` like any other attachment (no audio-specific code path)
 7. On the receive side, `ChatLog` renders incoming audio attachments with `<audio controls controlsList='nodownload noplaybackrate'>` at a fixed 280px width on a light-tinted background (so the browser's dark default audio controls remain legible inside the green sender bubble)
 
+### Attachment preview — view-only, no downloads
+
+WhatsApp-Web-style in-page preview for image / video / PDF / other documents. New component: [src/views/apps/chat/AttachmentPreviewDialog.tsx](../../../src/views/apps/chat/AttachmentPreviewDialog.tsx). Clicking any attachment bubble in `ChatLog` opens this fullscreen overlay instead of routing the user to the raw S3 URL in a new tab.
+
+**No download paths are surfaced to the user.** Every casual save route is blocked at the client level:
+
+| Surface | Blocked? | How |
+|---|---|---|
+| App-level download button | ✅ | No `<a href download>` / no anchor wrappers anywhere in `ChatLog`; clicks open the dialog instead |
+| Video `<video controls>` overflow → Download | ✅ | `controlsList='nodownload noplaybackrate'` |
+| Audio `<audio controls>` overflow → Download | ✅ | `controlsList='nodownload noplaybackrate'` |
+| PDF viewer toolbar (Chrome/Edge) | ✅ | `#toolbar=0&navpanes=0&scrollbar=0` URL fragment appended to the iframe src — hides toolbar, download, print, navpanes, scrollbar |
+| Right-click → "Save image as" | ✅ | `onContextMenu={e => e.preventDefault()}` at the Dialog root + on every media element |
+| Image drag-to-desktop | ✅ | `draggable={false}` + `WebkitUserDrag: none` |
+| Text/image selection in dialog | ✅ | `userSelect: none` on Dialog root |
+| Keyboard `Ctrl/Cmd + S` (save page) | ✅ | `window.keydown` listener with `preventDefault()` while dialog is open |
+| Keyboard `Ctrl/Cmd + P` (print) | ✅ | Same listener |
+| DevTools → Network → Save resource | ❌ unblockable | Inherent web limitation — same as WhatsApp Web. Would require DRM or server-streamed bytes without exposing the URL. |
+| Firefox / Safari PDF viewer toolbar | ⚠️ partial | Those browsers use their own PDF viewers that ignore `#toolbar=0`. Bundling PDF.js (~1MB) would fix this; not done. |
+
+**UX details — modelled on WhatsApp Web:**
+
+- Fullscreen Dialog (`fullScreen` MUI prop), near-black backdrop (`rgba(0,0,0,0.95)`)
+- Header overlay (gradient): filename + file size + close ✕
+- **Image**: centered, fits viewport, click toggles zoom in. Floating bottom toolbar with Zoom out / `Math.round(zoom * 100)%` / Zoom in (50%–400% range, 25% steps) and Rotate (90° increments). Transform applies via CSS `transform: scale() rotate()` with 200ms ease.
+- **Video**: centered, native controls with download + playback-rate hidden, right-click suppressed
+- **PDF**: iframe with `#toolbar=0&navpanes=0&scrollbar=0`
+- **Other documents** (.docx, .xlsx, etc.): file-info card with icon + filename + "Preview not available for this file type" — no link, no download, no fallback open-in-new-tab
+
+**Wiring in [ChatLog.tsx](../../../src/views/apps/chat/ChatLog.tsx):**
+
+```ts
+const [previewAttachment, setPreviewAttachment] = useState<ChatAttachmentType | null>(null)
+const openPreview = (att) => setPreviewAttachment(att)
+
+// Each attachment Box now uses onClick={() => openPreview(att)}
+// (replacing the previous <a target='_blank'> / <a download> wrappers).
+// One <AttachmentPreviewDialog> mounted at the bottom of ChatLog.
+```
+
 ### Lightweight ack normalization
 
 When the server returns `{success: true, messageId: '...'}` instead of a full `Message`, [`sendMessageOverSocket`](../../../src/lib/chat/api.ts) synthesizes a Message from the request payload. The `SendMessageAttachment[]` payload uses `fileId`, so we map `fileId → id` while building the synthetic `content.attachments` — otherwise every newly-sent attachment would land in Redux with `id: undefined`, breaking React keys, reactions, pin, and any other operation that addresses an attachment by id.
@@ -357,6 +397,16 @@ Summary table:
 
 ## Changelog
 
+- **2026-05-18f** — Attachment preview is now **view-only, no downloads**:
+  - New `AttachmentPreviewDialog` — fullscreen WhatsApp-Web-style overlay.
+  - Replaced every `<a href target='_blank'>` and `<a download>` anchor in `ChatLog` with `onClick={() => openPreview(att)}`. Image / video / pdf / document all open in-page.
+  - **Image** — fits viewport, zoom in/out (50–400% in 25% steps), rotate (90° increments). Bottom toolbar shows current zoom %.
+  - **Video** — native controls with `controlsList='nodownload noplaybackrate'` + right-click prevented.
+  - **PDF** — iframe with `#toolbar=0&navpanes=0&scrollbar=0` URL fragment so Chrome/Edge hide their built-in toolbar (download + print + overflow). Firefox/Safari ignore these flags and still show their viewer UI — would need PDF.js to fully cover them.
+  - **Other docs** — fallback card with file info; no link, no download, no fallback "Open in new tab".
+  - **Blocked at the Dialog root**: `onContextMenu` (no right-click Save), `userSelect: none` (no drag-out), `draggable={false}` + `WebkitUserDrag: none` on images, `window.keydown` listener suppressing `Ctrl/Cmd+S` and `Ctrl/Cmd+P` while open.
+  - Audio bubbles already had `controlsList='nodownload'` from the voice-message work — unchanged.
+  - Removed the temporary `[chat:att]` and `[chat:sdk-att]` diagnostic logs from `ChatLog.tsx` and `api.ts` now that audio render is verified.
 - **2026-05-18e** — Per-message interactions + voice messages, all 8 phases shipped:
   - **Phase 0 — types + adapter:** extended `MessageType` and `ChatLogChatType` with `replyTo`, `reactions`, `isPinned`, `isStarred`, `isEdited`, `editedAt`, `isDeletedForEveryone`. Added `ReactionEntry` and `MessageReplyRef` types. `sdkMessageToMessage` now maps SDK fields (reactions / replyTo / isPinned / isStarred / isEdited / editedAt).
   - **Phase 1 — MessageBubble shell:** new component for text bubbles with 3-dot menu, hover-revealed icons.
