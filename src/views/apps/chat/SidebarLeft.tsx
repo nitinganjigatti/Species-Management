@@ -294,19 +294,41 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 mr: 1.5,
                 '& .MuiTypography-root': { ...(activeCondition && { color: 'common.white' }) }
               }}
+              slotProps={{
+                primary: { component: 'div' },
+                secondary: { component: 'div' }
+              }}
               primary={
-                <Typography noWrap sx={{ ...(!activeCondition ? { color: 'text.secondary' } : {}), fontWeight: 600 }}>
+                <Typography
+                  component='span'
+                  noWrap
+                  sx={{ display: 'block', ...(!activeCondition ? { color: 'text.secondary' } : {}), fontWeight: 600 }}
+                >
                   {chat.fullName}
                 </Typography>
               }
               secondary={
                 lastMessage ? (
                   lastMessage.contentType === 'system' ? (
-                    <Typography noWrap variant='body2' sx={{ fontStyle: 'italic', ...(!activeCondition && { color: 'text.disabled' }) }}>
+                    <Typography
+                      component='span'
+                      noWrap
+                      variant='body2'
+                      sx={{
+                        display: 'block',
+                        fontStyle: 'italic',
+                        ...(!activeCondition && { color: 'text.disabled' })
+                      }}
+                    >
                       {lastMessage.message || 'System message'}
                     </Typography>
                   ) : lastMessage.message ? (
-                    <Typography noWrap variant='body2' sx={{ ...(!activeCondition && { color: 'text.disabled' }) }}>
+                    <Typography
+                      component='span'
+                      noWrap
+                      variant='body2'
+                      sx={{ display: 'block', ...(!activeCondition && { color: 'text.disabled' }) }}
+                    >
                       {lastMessage.message}
                     </Typography>
                   ) : lastMessage.attachments?.length ? (
@@ -320,12 +342,20 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                               ? 'mdi:video-outline'
                               : lastMessage.attachments[0].type === 'audio'
                               ? 'mdi:music-note'
-                              : getAttachmentVisual(lastMessage.attachments[0].mimeType, lastMessage.attachments[0].filename).icon
+                              : getAttachmentVisual(
+                                  lastMessage.attachments[0].mimeType,
+                                  lastMessage.attachments[0].filename
+                                ).icon
                           }
                           fontSize='1rem'
                         />
                       </Box>
-                      <Typography noWrap variant='body2' sx={{ minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}>
+                      <Typography
+                        component='span'
+                        noWrap
+                        variant='body2'
+                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}
+                      >
                         {lastMessage.attachments[0].type === 'image'
                           ? 'Photo'
                           : lastMessage.attachments[0].type === 'video'
@@ -338,7 +368,12 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   ) : lastMessage.contentType === 'attachment' ? (
                     <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                       <Icon icon='mdi:attachment' fontSize='1rem' />
-                      <Typography noWrap variant='body2' sx={{ minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}>
+                      <Typography
+                        component='span'
+                        noWrap
+                        variant='body2'
+                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}
+                      >
                         Attachment
                       </Typography>
                     </Box>
@@ -375,11 +410,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   />
                 ) : null}
                 {isPinnedChat ? (
-                  <Icon
-                    icon='mdi:pin'
-                    fontSize='0.875rem'
-                    color={activeCondition ? 'inherit' : undefined}
-                  />
+                  <Icon icon='mdi:pin' fontSize='0.875rem' color={activeCondition ? 'inherit' : undefined} />
                 ) : null}
                 {chat.chat.unseenMsgs && chat.chat.unseenMsgs > 0 ? (
                   <Chip
