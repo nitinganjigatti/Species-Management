@@ -231,8 +231,20 @@ export function updateMessageOverSocket(messageId: string, text: string): Promis
   return sdkSocketEmit.updateMessage(messageId, text)
 }
 
+// `delete_message` is emitted fire-and-forget instead of via the SDK's
+// ack-based `sdkSocketEmit.deleteMessage`. The chat backend processes the
+// removal and broadcasts `message_deleted` to all participants, but does
+// NOT send an ack frame back for this event — the 5s ack timeout would
+// otherwise reject with `"Socket ack timeout: delete_message"` even
+// though the deletion succeeded, producing a false "Delete failed" toast.
+// State for both sender and receivers lands via the `message_deleted`
+// broadcast handler in AppChat → `applyMessageDelete` reducer.
 export function deleteMessageOverSocket(messageId: string): Promise<unknown> {
-  return sdkSocketEmit.deleteMessage(messageId)
+  const socket = getChatSocket()
+  if (!socket) return Promise.reject(new Error('[chat-api] deleteMessageOverSocket: socket not connected'))
+  socket.emit('delete_message', { messageId })
+
+  return Promise.resolve()
 }
 
 export function deleteMessageForMeOverSocket(messageId: string): Promise<unknown> {
@@ -650,9 +662,19 @@ export function sdkMessageToMessage(msg: Message): MessageType {
       })()
     : undefined
 
+  // SDK marks a "delete for everyone" message with `status: 'deleted'`
+  // — the server still returns the row on subsequent `listMessages` calls
+  // so the tombstone renders in place. Without surfacing this, refreshing
+  // the tab would resurrect the original text + attachments + reactions
+  // because `applyMessageDelete` only runs in response to the live
+  // `message_deleted` socket event (not on REST re-fetch).
+  const isDeletedForEveryone = msg.status === 'deleted'
+
   return {
     id: msg.id,
-    message: msg.content?.text ?? '',
+    // Blank the body on tombstones so the rendered bubble matches what the
+    // live-broadcast path produces (applyMessageDelete also blanks `m.message`).
+    message: isDeletedForEveryone ? '' : msg.content?.text ?? '',
     time,
     senderId: msg.senderId,
     feedback: {
@@ -660,14 +682,17 @@ export function sdkMessageToMessage(msg: Message): MessageType {
       isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
       isSeen: deliveryStatus === 'read'
     },
-    ...(attachments && attachments.length ? { attachments } : {}),
+    // Skip attachments + reactions on tombstones — the placeholder is the
+    // only thing that should render. Matches applyMessageDelete reducer.
+    ...(!isDeletedForEveryone && attachments && attachments.length ? { attachments } : {}),
     ...(msg.content?.type ? { contentType: msg.content.type } : {}),
-    ...(reactions ? { reactions } : {}),
+    ...(!isDeletedForEveryone && reactions ? { reactions } : {}),
     ...(replyTo ? { replyTo } : {}),
     ...(msg.isPinned ? { isPinned: true } : {}),
     ...(msg.isStarred ? { isStarred: true } : {}),
     ...(msg.isEdited ? { isEdited: true } : {}),
-    ...(msg.editedAt ? { editedAt: msg.editedAt } : {})
+    ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
+    ...(isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
   }
 }
 
@@ -743,6 +768,12 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     isCurrentUserActive,
     isMuted: conv.isMuted ?? false,
     isPinned: conv.isPinned ?? false,
+    // Tenant-tunable message-mutation windows. Backend returns seconds;
+    // `undefined` lets the UI treat the action as always allowed (existing
+    // behavior). Consumed by MessageActions to gate Edit / Delete-for-
+    // everyone menu items once the window expires.
+    editWindowSeconds: conv.settings?.messageConfig?.editWindowSeconds,
+    deleteWindowSeconds: conv.settings?.messageConfig?.deleteWindowSeconds,
     chat: {
       id: conv.id,
       unseenMsgs: conv.unreadCount ?? 0,

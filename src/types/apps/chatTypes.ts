@@ -154,6 +154,14 @@ export type ChatsArrType = {
   isMuted?: boolean
   /** Mirrors `Conversation.isPinned` from the SDK. */
   isPinned?: boolean
+  /**
+   * Time windows (seconds since send) during which the sender can edit or
+   * delete-for-everyone their own messages. Sourced from
+   * `Conversation.settings.messageConfig`. Tenant-tunable on the backend.
+   * Undefined → no restriction (caller falls back to "always allowed").
+   */
+  editWindowSeconds?: number
+  deleteWindowSeconds?: number
 }
 
 export interface CreateGroupPayload {

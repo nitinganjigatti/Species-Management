@@ -11,9 +11,9 @@ import ListItemText from '@mui/material/ListItemText'
 import toast from 'react-hot-toast'
 
 // ** Redux
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { setReplyingTo, setEditingMessage, setMessageStarred } from 'src/store/apps/chat'
-import type { AppDispatch } from 'src/store'
+import type { AppDispatch, RootState } from 'src/store'
 
 // ** SDK
 import {
@@ -68,6 +68,32 @@ const MessageActions = ({
   const [deleting, setDeleting] = useState(false)
   const menuOpen = Boolean(menuAnchor)
   const dispatch = useDispatch<AppDispatch>()
+
+  // Tenant-tunable mutation windows from `Conversation.settings.messageConfig`.
+  // Adapter maps them onto `selectedChat.contact`. If undefined, fall back to
+  // "always allowed" so we don't accidentally hide actions on a backend that
+  // hasn't surfaced messageConfig yet.
+  const editWindowSeconds = useSelector(
+    (s: RootState) => s.chat?.selectedChat?.contact.editWindowSeconds
+  )
+  const deleteWindowSeconds = useSelector(
+    (s: RootState) => s.chat?.selectedChat?.contact.deleteWindowSeconds
+  )
+
+  // Whether `chat.time` is still within `windowSeconds` of now. Defensive
+  // against missing window (undefined → no restriction → always allowed) and
+  // malformed timestamps (NaN → fail closed = treat as expired).
+  const isWithinWindow = (windowSeconds: number | undefined): boolean => {
+    if (windowSeconds === undefined || windowSeconds === null) return true
+    if (!chat.time) return false
+    const sentMs = new Date(chat.time).getTime()
+    if (Number.isNaN(sentMs)) return false
+
+    return Date.now() - sentMs <= windowSeconds * 1000
+  }
+
+  const canEdit = isWithinWindow(editWindowSeconds)
+  const canDeleteForEveryone = isWithinWindow(deleteWindowSeconds)
 
   const handleMenuOpen = (e: MouseEvent<HTMLButtonElement>) => setMenuAnchor(e.currentTarget)
   const handleMenuClose = () => setMenuAnchor(null)
@@ -210,7 +236,7 @@ const MessageActions = ({
             <ListItemText>{chat.isPinned ? 'Unpin' : 'Pin'}</ListItemText>
           </MenuItem>
         ) : null}
-        {isSender && showEdit ? (
+        {isSender && showEdit && canEdit ? (
           <MenuItem onClick={handleEdit} disabled={!chat.id}>
             <ListItemIcon>
               <Icon icon='mdi:pencil-outline' fontSize='1rem' />
@@ -232,7 +258,7 @@ const MessageActions = ({
           </ListItemIcon>
           <ListItemText>Delete for me</ListItemText>
         </MenuItem>
-        {isSender ? (
+        {isSender && canDeleteForEveryone ? (
           <MenuItem onClick={handleDeleteForEveryone} disabled={!chat.id} sx={{ color: 'error.main' }}>
             <ListItemIcon>
               <Icon icon='mdi:delete-forever-outline' fontSize='1rem' color='inherit' />
