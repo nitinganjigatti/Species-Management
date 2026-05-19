@@ -212,16 +212,17 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
     try {
       const body = { taxonomy_id: taxonomyId, site_id: siteId }
 
-      // Always include compliance names
-      body.compliance_common_name = values.compliance_common_name
-      body.compliance_scientific_name = values.compliance_scientific_name
-
-      // Include target allocation if counts were touched
-      if (countsDirty) {
-        body.target = Object.fromEntries(
-          Object.entries(values.by_org).map(([k, v]) => [Number(k), parseInt(v, 10) || 0])
-        )
-      }
+      body.target = Object.fromEntries(
+        orgs.map(org => {
+          const orgId = org.organization_id
+          const entry = {
+            compliance_common_name: values.compliance_common_name,
+            compliance_scientific_name: values.compliance_scientific_name
+          }
+          if (countsDirty) entry.count = parseInt(values.by_org[String(orgId)], 10) || 0
+          return [orgId, entry]
+        })
+      )
 
       if (repointDirty && repoint) {
         if (repoint.type === 'existing') body.repoint_to_taxonomy_id = repoint.id
