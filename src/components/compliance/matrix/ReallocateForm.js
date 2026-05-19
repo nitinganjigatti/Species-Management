@@ -23,17 +23,7 @@ import AsyncSpeciesAutocomplete from './AsyncSpeciesAutocomplete'
 
 const NOTE_MAX = 500
 
-const shortCode = org => {
-  if (org?.short_name) return org.short_name
-  const name = org?.organization_name || ''
-  const letters = name
-    .split(/[\s,/\-_()]+/)
-    .filter(Boolean)
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
-  return letters || name.slice(0, 5).toUpperCase()
-}
+const shortCode = org => org?.short_code || org?.organization_name?.slice(0, 5).toUpperCase() || ''
 
 const isMeaningful = v => {
   if (!v) return false

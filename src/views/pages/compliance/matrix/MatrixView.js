@@ -29,17 +29,7 @@ const GENUS_WIDTH = 140
 const ORG_COL_WIDTH = 110
 const TOTAL_WIDTH = 110
 
-const shortCode = org => {
-  if (org?.short_name) return org.short_name
-  const name = org?.organization_name || ''
-  const letters = name
-    .split(/[\s,/\-_()]+/)
-    .filter(Boolean)
-    .map(w => w[0])
-    .join('')
-    .toUpperCase()
-  return letters || name.slice(0, 5).toUpperCase()
-}
+const shortCode = org => org?.short_code || org?.organization_name?.slice(0, 5).toUpperCase() || ''
 
 const headerCellSx = {
   bgcolor: 'grey.50',
