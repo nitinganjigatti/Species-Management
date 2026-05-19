@@ -148,7 +148,8 @@ const DarkHeader = ({
   siteValue,
   onSiteChange,
   onlyFlagged,
-  onOnlyFlaggedChange
+  onOnlyFlaggedChange,
+  onlyFlaggedDisabled
 }) => (
   <Box
     sx={{
@@ -243,14 +244,15 @@ const DarkHeader = ({
           display: 'inline-flex',
           alignItems: 'center',
           gap: 0.75,
-          color: theme => alpha(theme.palette.common.white, 0.85),
+          color: theme => alpha(theme.palette.common.white, onlyFlaggedDisabled ? 0.35 : 0.85),
           fontSize: 12.5,
-          cursor: 'pointer'
+          cursor: onlyFlaggedDisabled ? 'not-allowed' : 'pointer'
         }}
       >
         <Switch
           size='small'
           checked={onlyFlagged}
+          disabled={onlyFlaggedDisabled}
           onChange={e => onOnlyFlaggedChange(e.target.checked)}
           sx={{
             '& .MuiSwitch-track': {
@@ -272,6 +274,7 @@ const MatrixView = ({
   onSiteChange,
   onlyFlagged,
   onOnlyFlaggedChange,
+  onlyFlaggedDisabled,
   classOptions = [],
   taxonomicClass,
   onClassChange,
@@ -309,6 +312,7 @@ const MatrixView = ({
         onSiteChange={onSiteChange}
         onlyFlagged={onlyFlagged}
         onOnlyFlaggedChange={onOnlyFlaggedChange}
+        onlyFlaggedDisabled={onlyFlaggedDisabled}
       />
 
       {isError && (

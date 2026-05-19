@@ -134,9 +134,10 @@ const MatrixContainer = () => {
         onSearchInputChange={setSearchInput}
         sites={sites}
         siteValue={siteValue}
-        onSiteChange={site => pushQuery({ site_id: site?.site_id || undefined, page: undefined })}
+        onSiteChange={site => pushQuery({ site_id: site?.site_id || undefined, only_flagged: undefined, page: undefined })}
         onlyFlagged={urlOnlyFlagged}
         onOnlyFlaggedChange={next => pushQuery({ only_flagged: next ? '1' : undefined, page: undefined })}
+        onlyFlaggedDisabled={!urlSiteId}
         classOptions={classOptions}
         taxonomicClass={urlClass}
         onClassChange={next => pushQuery({ tax_class: next || undefined, page: undefined })}
