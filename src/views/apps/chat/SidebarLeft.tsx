@@ -246,13 +246,20 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
           >
             <ListItemAvatar sx={{ m: 0 }}>
               {isGroup ? (
-                <CustomAvatar
-                  color='primary'
-                  skin={activeCondition ? 'light-static' : 'light'}
-                  sx={{ width: 40, height: 40, fontSize: '1.125rem' }}
-                >
-                  <Icon icon='mdi:account-group' fontSize='1.25rem' />
-                </CustomAvatar>
+                // Group: prefer the uploaded `iconUrl` (mapped to `chat.avatar`
+                // by the adapter). Fall back to the default group glyph when
+                // no icon has been set yet.
+                chat.avatar ? (
+                  <MuiAvatar src={chat.avatar} alt={chat.fullName} sx={{ width: 40, height: 40 }} />
+                ) : (
+                  <CustomAvatar
+                    color='primary'
+                    skin={activeCondition ? 'light-static' : 'light'}
+                    sx={{ width: 40, height: 40, fontSize: '1.125rem' }}
+                  >
+                    <Icon icon='mdi:account-group' fontSize='1.25rem' />
+                  </CustomAvatar>
+                )
               ) : (
                 <Badge
                   overlap='circular'

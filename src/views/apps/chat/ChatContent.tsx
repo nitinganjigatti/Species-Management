@@ -255,9 +255,20 @@ const ChatContent = (props: ChatContentType) => {
                   sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                 >
                   {selectedChat.contact.isGroup ? (
-                    <CustomAvatar skin='light' color='primary' sx={{ width: 40, height: 40, mr: 3.5 }}>
-                      <Icon icon='mdi:account-group' fontSize='1.25rem' />
-                    </CustomAvatar>
+                    // Group: prefer the uploaded `iconUrl` (mapped to
+                    // `contact.avatar` by the adapter). Fall back to the
+                    // default group glyph when no icon has been set yet.
+                    selectedChat.contact.avatar ? (
+                      <MuiAvatar
+                        src={selectedChat.contact.avatar}
+                        alt={selectedChat.contact.fullName}
+                        sx={{ width: 40, height: 40, mr: 3.5 }}
+                      />
+                    ) : (
+                      <CustomAvatar skin='light' color='primary' sx={{ width: 40, height: 40, mr: 3.5 }}>
+                        <Icon icon='mdi:account-group' fontSize='1.25rem' />
+                      </CustomAvatar>
+                    )
                   ) : (
                     <Badge
                       overlap='circular'

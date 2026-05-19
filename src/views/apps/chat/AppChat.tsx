@@ -267,6 +267,21 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         return
       }
 
+      // TEMP DIAG — when investigating whether the backend emits a system
+      // message on group-icon change, this surfaces only system-typed
+      // messages so the console isn't drowned by regular chat traffic.
+      // Filter by `[chat:system]`. Remove once verified.
+      if (raw.content?.type === 'system') {
+        // eslint-disable-next-line no-console
+        console.log('[chat:system] new system message', {
+          messageId: raw.id,
+          conversationId: raw.conversationId,
+          text: raw.content?.text,
+          metadata: raw.content,
+          full: raw
+        })
+      }
+
       // Determine if this is our own message by comparing senderId with our
       // profile id — tempId is unreliable because the server broadcasts it
       // to all participants, not just the sender.

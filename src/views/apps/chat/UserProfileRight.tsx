@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { Fragment, ReactNode, useEffect, useState } from 'react'
+import { ChangeEvent, Fragment, ReactNode, useEffect, useRef, useState } from 'react'
 
 // ** Redux Imports
 import { useDispatch } from 'react-redux'
@@ -16,8 +16,10 @@ import {
   unpinConversation,
   updateGroupChat,
   removeParticipantFromGroup,
-  updateParticipantRoleInGroup
+  updateParticipantRoleInGroup,
+  uploadGroupIcon
 } from 'src/store/apps/chat'
+import toast from 'react-hot-toast'
 
 // ** Chat SDK
 import { getChatClientOrNull } from 'src/lib/chat/client'
@@ -86,6 +88,15 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // to false after a successful leave). Pin-to-top stays available so the
   // user can keep the chat at the top of their sidebar after leaving.
   const isCurrentUserActive = store?.selectedChat?.contact.isCurrentUserActive !== false
+
+  // Group icon upload — admin only. SDK's `client.uploadIcon` does
+  // presigned-url + S3 upload + setIcon in one shot; the thunk pipes the
+  // returned Conversation through the adapter + `addOrReplaceChat` so the
+  // sidebar / header / profile drawer all pick up the new iconUrl in one
+  // Redux tick. Other group members get it via the `conversation_updated`
+  // socket broadcast (handled in AppChat).
+  const iconFileInputRef = useRef<HTMLInputElement | null>(null)
+  const [uploadingIcon, setUploadingIcon] = useState<boolean>(false)
 
   // Add-members flow state
   const dispatch = useDispatch<AppDispatch>()
@@ -213,6 +224,51 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const handleDeleteGroup = () => {
     if (currentGroupId === null) return
     setConfirmAction({ type: 'delete' })
+  }
+
+  const handleOpenIconPicker = () => {
+    if (uploadingIcon) return
+    iconFileInputRef.current?.click()
+  }
+
+  const handleIconFileSelected = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    // Reset value so re-picking the same file fires onChange again.
+    e.target.value = ''
+    if (!file) return
+    if (currentGroupId === null || typeof currentGroupId !== 'string') {
+      toast.error('Cannot upload icon — invalid group')
+
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please pick an image file')
+
+      return
+    }
+
+    // SDK expects an `UploadableFile` shape (`{ uri, name, type, size }`).
+    // Without `name` the presigned-url request returns 400. Wrap via a blob
+    // URL — same pattern SendMsgForm uses for attachments.
+    const previewUrl = URL.createObjectURL(file)
+    const uploadable = {
+      uri: previewUrl,
+      name: file.name,
+      type: file.type,
+      size: file.size
+    }
+
+    setUploadingIcon(true)
+    try {
+      await dispatch(uploadGroupIcon({ chatId: currentGroupId, file: uploadable })).unwrap()
+      toast.success('Group icon updated')
+    } catch (err) {
+      console.error('[chat] uploadGroupIcon failed:', err)
+      toast.error('Failed to update group icon')
+    } finally {
+      setUploadingIcon(false)
+      URL.revokeObjectURL(previewUrl)
+    }
   }
 
   const runConfirmedAction = () => {
@@ -607,23 +663,36 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   </CustomAvatar>
                 )}
                 {isCurrentUserAdmin && (
-                  <IconButton
-                    size='small'
-                    onClick={openEditGroup}
-                    sx={{
-                      position: 'absolute',
-                      bottom: -2,
-                      right: -2,
-                      width: 26,
-                      height: 26,
-                      backgroundColor: 'primary.main',
-                      color: 'common.white',
-                      border: '2px solid white',
-                      '&:hover': { backgroundColor: 'primary.dark' }
-                    }}
-                  >
-                    <Icon icon='mdi:pencil' fontSize='0.75rem' />
-                  </IconButton>
+                  <>
+                    {/* Camera — opens hidden file picker for group icon upload. */}
+                    <IconButton
+                      size='small'
+                      onClick={handleOpenIconPicker}
+                      disabled={uploadingIcon}
+                      aria-label='Change group icon'
+                      sx={{
+                        position: 'absolute',
+                        bottom: -2,
+                        right: -2,
+                        width: 26,
+                        height: 26,
+                        backgroundColor: 'primary.main',
+                        color: 'common.white',
+                        border: '2px solid white',
+                        '&:hover': { backgroundColor: 'primary.dark' },
+                        '&.Mui-disabled': { backgroundColor: 'primary.main', opacity: 0.6, color: 'common.white' }
+                      }}
+                    >
+                      <Icon icon={uploadingIcon ? 'mdi:loading' : 'mdi:camera'} fontSize='0.85rem' />
+                    </IconButton>
+                    <input
+                      ref={iconFileInputRef}
+                      type='file'
+                      accept='image/*'
+                      onChange={handleIconFileSelected}
+                      style={{ display: 'none' }}
+                    />
+                  </>
                 )}
               </Box>
 

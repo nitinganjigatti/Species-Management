@@ -349,6 +349,61 @@ export const updateGroupChat = createAsyncThunk<
 })
 
 /**
+ * Upload a new group icon. The SDK's `client.uploadIcon(conversationId, file)`
+ * runs the presigned-url + S3 upload + conversations.uploadIcon flow in one
+ * call and returns the updated Conversation (with a fresh `iconUrl`). We
+ * pipe that Conversation through the adapter and `addOrReplaceChat` so the
+ * sidebar tile picks up the new avatar immediately. Other participants get
+ * the change via the `conversation_updated` socket broadcast handled in
+ * AppChat. `file` must be an SDK `UploadableFile` — `{ uri, name, type, size }`
+ * — wrapped in a blob URL on the web.
+ */
+export const uploadGroupIcon = createAsyncThunk<
+  void,
+  { chatId: ChatEntityId; file: { uri: string; name: string; type: string; size: number } }
+>('appChat/uploadGroupIcon', async ({ chatId, file }, { dispatch, getState }) => {
+  // TEMP DIAG — confirms the thunk actually fires with the right inputs.
+  // eslint-disable-next-line no-console
+  console.log('[chat:icon-upload] thunk start', { chatId, fileName: file?.name, fileType: file?.type, fileSize: file?.size })
+
+  const client = getChatClientOrNull()
+  if (!client || typeof chatId !== 'string') {
+    // eslint-disable-next-line no-console
+    console.warn('[chat:icon-upload] aborted', { hasClient: !!client, chatId })
+
+    return
+  }
+
+  try {
+    const conv = await client.uploadIcon(chatId, file)
+
+    // TEMP DIAG — surfaces whether the SDK's response actually carries the
+    // fresh `iconUrl`. Filter console by `[chat:icon-upload]`.
+    // eslint-disable-next-line no-console
+    console.log('[chat:icon-upload] uploadIcon response', {
+      id: conv?.id,
+      iconUrl: conv?.iconUrl,
+      hasIconUrl: !!conv?.iconUrl,
+      full: conv
+    })
+
+    const state = getState() as { chat?: ChatStoreType }
+    const currentUserId = state.chat?.userProfile?.id ?? ''
+    dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
+
+    // Belt-and-suspenders: always re-fetch the list so the sidebar picks up
+    // a fresh signed `iconUrl` even if the immediate response had a stale
+    // or missing URL. Server's `conversation_updated` broadcast will also
+    // run this, but the uploader shouldn't have to wait for that echo.
+    dispatch(fetchChatsContacts())
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[chat:icon-upload] FAILED:', err)
+    throw err
+  }
+})
+
+/**
  * Remove a participant from a group (admin-only on the backend).
  */
 export const removeParticipantFromGroup = createAsyncThunk<
@@ -1062,6 +1117,16 @@ export const appChatSlice = createSlice({
         }
       } else {
         state.chats.unshift(incoming)
+      }
+
+      // Keep selectedChat in sync so the currently-open chat's header + Group
+      // info drawer + ChatLog fallback avatar pick up the new metadata (icon,
+      // name, description, members) instantly — without waiting for the
+      // `conversation_updated` socket echo. Mirrors the same sync that
+      // `fetchChatsContacts.fulfilled` already does at the bottom of this file.
+      if (state.selectedChat && state.selectedChat.contact.id === incoming.id) {
+        const updated = state.chats.find(c => c.id === incoming.id)
+        if (updated) state.selectedChat = { chat: updated.chat, contact: updated }
       }
     },
     // Update feedback flags on one or more messages by id within a single
