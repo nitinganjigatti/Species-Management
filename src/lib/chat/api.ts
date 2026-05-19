@@ -346,7 +346,7 @@ export function leaveConversation(conversationId: string): Promise<void> {
   return requireClient('leaveConversation').conversations.leave(conversationId)
 }
 
-export function getConversationMembers(conversationId: string): Promise<User[]> {
+export function getConversationMembers(conversationId: string): Promise<Participant[]> {
   return requireClient('getConversationMembers').conversations.getMembers(conversationId)
 }
 
