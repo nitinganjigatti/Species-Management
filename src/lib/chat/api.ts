@@ -680,11 +680,30 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
   // for the active-only views (sidebar previews, "X members" counts, etc.).
   const activeParticipants = rawParticipants.filter(p => p.isActive !== false)
 
-  const otherParticipant = isGroup ? undefined : activeParticipants.find(p => p.userId !== String(currentUserId))
+  // Self-chat detection — direct conversation where the only participant is
+  // the current user (WhatsApp's "Message yourself"). Without this, the
+  // peer lookup below would resolve to `undefined` → "Unknown user" + empty
+  // avatar. Falls back to the current user's own entry so the sidebar and
+  // header show their own name + avatar. This branch is the only behavior
+  // change in this function; non-self DMs and groups take the original
+  // paths unchanged.
+  const meIdStr = String(currentUserId ?? '')
+  const isSelfChat =
+    !isGroup &&
+    activeParticipants.length > 0 &&
+    activeParticipants.every(p => p.userId === meIdStr)
+
+  const otherParticipant = isGroup
+    ? undefined
+    : isSelfChat
+    ? activeParticipants[0]
+    : activeParticipants.find(p => p.userId !== meIdStr)
   const other = otherParticipant ? participantToUser(otherParticipant) : undefined
 
   const fullName = isGroup
     ? conv.name ?? 'Unnamed group'
+    : isSelfChat
+    ? `${other?.displayName || other?.username || 'You'} (You)`
     : other?.displayName || other?.username || other?.email || 'Unknown user'
 
   const avatar = isGroup ? conv.iconUrl ?? '' : other?.avatarUrl ?? ''
