@@ -1079,3 +1079,12 @@ export const GET_COMPLIANCE_DASHBOARD_ORGS = 'v1/compliance/dashboard/orgs'
 export const GET_COMPLIANCE_DASHBOARD_SITES = 'v1/compliance/dashboard/sites'
 export const GET_COMPLIANCE_DASHBOARD_SPECIES = 'v1/compliance/dashboard/species'
 export const GET_COMPLIANCE_ANIMALS = 'v1/compliance/animals'
+
+// Compliance Matrix (org clean-up)
+export const GET_COMPLIANCE_SPECIES_MATRIX = 'v1/compliance/dashboard/species-matrix'
+export const GET_COMPLIANCE_SPECIES_BREAKDOWN = 'v1/compliance/species-breakdown'
+export const GET_COMPLIANCE_SNAPSHOT = 'v1/compliance/snapshot'
+export const GET_COMPLIANCE_SPECIES_SEARCH = 'v1/compliance/species'
+export const POST_COMPLIANCE_SPECIES_UPDATE = 'v1/compliance/species'
+export const POST_COMPLIANCE_REALLOCATE = 'v1/compliance/reallocate'
+export const POST_COMPLIANCE_REVIEW_FLAGS = 'v1/compliance/review-flags'

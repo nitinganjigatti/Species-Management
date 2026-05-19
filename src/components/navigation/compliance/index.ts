@@ -157,7 +157,14 @@ const composeComplianceNavigation = (): ComplianceNavItem[] => {
     activeWhen: ['/compliance/animals']
   }
 
-  const complianceNavigation: ComplianceNavItem[] = [complianceTitle, dashboard, animals, documentsParent]
+  const matrix: ComplianceNavItem = {
+    title: 'Matrix',
+    path: '/compliance/matrix',
+    icon: 'mdi:grid',
+    activeWhen: ['/compliance/matrix']
+  }
+
+  const complianceNavigation: ComplianceNavItem[] = [complianceTitle, dashboard, matrix, animals, documentsParent]
 
   return complianceNavigation
 }

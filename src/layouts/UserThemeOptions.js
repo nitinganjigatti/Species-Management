@@ -143,6 +143,8 @@ const UserThemeOptions = () => {
         deepDark: '#000000',
         neutral_50: '#00000066',
         Tertiary: '#FA6140',
+        TertiaryDark: '#B0451F',
+        Jade100: '#DCEEF0',
         neutralPrimary: '#000000',
         OnPrimaryContainer: '#1F515B',
         TertiaryContainer: '#FFBDA8',
