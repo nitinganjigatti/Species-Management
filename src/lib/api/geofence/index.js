@@ -1,9 +1,19 @@
 import axios from 'axios'
 import { axiosPost } from '../utility'
 import { getCurrentFix } from 'src/lib/geofence/getFix'
+import { isGeofenceEnabled } from 'src/lib/geofence/featureFlag'
 
 const VERIFY = 'v1/auth/geofence-verify'
 const HEARTBEAT = 'v1/auth/geofence-heartbeat'
+
+// Response shape we synthesize when the feature flag is off, so existing
+// callers (AuthContext, useGeofenceHeartbeat) treat the build as if the
+// backend itself had geofencing disabled — no errors, no lock banners, no
+// further actions required.
+const DISABLED_RESPONSE = Object.freeze({
+  success: true,
+  data: Object.freeze({ skipped: true, reason: 'geofence_feature_disabled' })
+})
 
 /**
  * The geofence backend returns 4xx (400 imprecise_location, 403 outside_geofence)
@@ -62,6 +72,11 @@ const unwrap = async axiosPromise => {
  * @param {{ tokenOverride?: string, zooId?: number|string }} [opts]
  */
 export async function verifyGeofence(opts = {}) {
+  // Build-level gate — when the feature is off, skip the GPS fix AND the
+  // network round-trip entirely and synthesize a `success: true, skipped`
+  // body. Callers only check `success` / `error` so they need no changes.
+  if (!isGeofenceEnabled()) return DISABLED_RESPONSE
+
   const fix = await getCurrentFix()
 
   if (opts.tokenOverride) {
@@ -83,6 +98,8 @@ export async function verifyGeofence(opts = {}) {
  * Same unwrap semantics as verifyGeofence.
  */
 export async function heartbeatGeofence() {
+  if (!isGeofenceEnabled()) return DISABLED_RESPONSE
+
   const fix = await getCurrentFix()
 
   return unwrap(axiosPost({ url: HEARTBEAT, body: fix }))

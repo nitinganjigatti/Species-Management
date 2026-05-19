@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { heartbeatGeofence } from 'src/lib/api/geofence'
+import { isGeofenceEnabled } from 'src/lib/geofence/featureFlag'
 
 const HEARTBEAT_MS = 2 * 60 * 1000 // active polling cadence
 const SKIPPED_RECHECK_MS = 15 * 60 * 1000 // low-freq re-check while geofencing is off
@@ -93,6 +94,16 @@ export function useGeofenceHeartbeat(enabled) {
 
   useEffect(() => {
     if (!enabled) return undefined
+
+    // Build-level gate: feature is off via NEXT_PUBLIC_GEOFENCE_ENABLED=false.
+    // Skip all timers and network calls — leave the hook in `skipped` so any
+    // UI that reads the state shows the off-mode treatment without surfacing
+    // errors. No GPS access, no /geofence-heartbeat traffic.
+    if (!isGeofenceEnabled()) {
+      setState('skipped')
+
+      return undefined
+    }
 
     const start = () => {
       // Always fire one heartbeat on mount/resume so we learn the current
