@@ -47,7 +47,7 @@ export const updateComplianceSpecies = async ({ compliance_species_id, body }) =
 }
 
 export const reallocate = async body => {
-  const response = await axiosPost({ url: `${POST_COMPLIANCE_REALLOCATE}/`, body })
+  const response = await axiosPost({ url: `${POST_COMPLIANCE_REALLOCATE}`, body })
   return response.data
 }
 
