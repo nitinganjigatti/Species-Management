@@ -12,8 +12,11 @@ import toast from 'react-hot-toast'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'src/store'
 
-// ** SDK
-import { addReactionOverSocket, removeReactionOverSocket } from 'src/lib/chat/api'
+// ** SDK — only `add_reaction` is documented as ack'd. The chat backend
+// treats a re-emit with the same emoji as a toggle (server removes if the
+// user already reacted), so both ADD and REMOVE go through this one call.
+// State for both sides lands via the `reaction_updated` broadcast.
+import { addReactionOverSocket } from 'src/lib/chat/api'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -54,8 +57,11 @@ const MessageReactionPicker = ({ chat, isSender }: Props) => {
     const me = currentUserId != null ? String(currentUserId) : ''
     const existing = chat.reactions?.find(r => r.emoji === emoji)
     const alreadyReacted = !!(existing && me && existing.userIds.includes(me))
-    const fn = alreadyReacted ? removeReactionOverSocket : addReactionOverSocket
-    fn(chat.id, emoji).catch(err => {
+    // Single call for both add and remove — server-side toggle. The
+    // `alreadyReacted` check is kept above only so future code can still
+    // branch UI behaviour on it if needed.
+    void alreadyReacted
+    addReactionOverSocket(chat.id, emoji).catch((err: unknown) => {
       console.error('[chat] toggle reaction failed:', err)
       toast.error('Reaction failed')
     })

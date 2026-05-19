@@ -11,8 +11,11 @@ import Chip from '@mui/material/Chip'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'src/store'
 
-// ** SDK
-import { addReactionOverSocket, removeReactionOverSocket } from 'src/lib/chat/api'
+// ** SDK — only `add_reaction` is acked by the chat backend; a re-emit
+// with the same emoji is treated as a toggle (server removes if the user
+// already reacted). Both add and remove use this one call; state for both
+// sides lands via the `reaction_updated` broadcast.
+import { addReactionOverSocket } from 'src/lib/chat/api'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -140,8 +143,10 @@ const MessageBubble = ({
     const me = currentUserId != null ? String(currentUserId) : ''
     const existing = chat.reactions?.find(r => r.emoji === emoji)
     const alreadyReacted = !!(existing && me && existing.userIds.includes(me))
-    const fn = alreadyReacted ? removeReactionOverSocket : addReactionOverSocket
-    fn(chat.id, emoji).catch(err => {
+    // Single call for both add and remove — server treats a re-emit as a
+    // toggle. `alreadyReacted` is kept only for any future UI branching.
+    void alreadyReacted
+    addReactionOverSocket(chat.id, emoji).catch((err: unknown) => {
       console.error('[chat] toggle reaction failed:', err)
     })
   }
