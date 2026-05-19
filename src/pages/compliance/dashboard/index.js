@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/router'
 import { useQuery } from '@tanstack/react-query'
+import { Box, Typography } from '@mui/material'
 import {
   getOverallStats,
   getOrgsList,
@@ -21,10 +22,24 @@ const ROW_ID_KEYS = {
   species: 'compliance_species_id'
 }
 
+const renderOrgCell = params => (
+  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <Typography variant='body2'>{params.row.organization_name}</Typography>
+    {params.row.short_code ? (
+      <Typography
+        variant='caption'
+        sx={{ px: 1, py: 0.25, borderRadius: 0.5, bgcolor: 'customColors.OnBackground', color: 'primary.dark', fontWeight: 600 }}
+      >
+        {params.row.short_code}
+      </Typography>
+    ) : null}
+  </Box>
+)
+
 const buildColumns = entity => {
   if (entity === 'orgs') {
     return [
-      { field: 'organization_name', headerName: 'Organization', flex: 3 },
+      { field: 'organization_name', headerName: 'Organization', flex: 3, renderCell: renderOrgCell },
       { field: 'site_count', headerName: 'Sites', flex: 1, align: 'right', headerAlign: 'right' },
       { field: 'compliance_species_count', headerName: 'Species', flex: 1, align: 'right', headerAlign: 'right' },
       { field: 'animal_count', headerName: 'Animals', flex: 1, align: 'right', headerAlign: 'right' }

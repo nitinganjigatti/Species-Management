@@ -52,7 +52,7 @@ const SiteDetailPage = () => {
         id: o.org_id,
         name: o.organization_name,
         value: o.animal_count,
-        subtext: `${o.compliance_species_count} spp.`
+        subtext: [o.short_code, `${o.compliance_species_count} spp.`].filter(Boolean).join(' · ')
       })),
     [orgsData]
   )

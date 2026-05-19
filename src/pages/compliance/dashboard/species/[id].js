@@ -93,6 +93,7 @@ const SpeciesDetailPage = () => {
       primaryTotal={orgsData?.data?.total ?? 0}
       primaryColumns={[
         { field: 'organization_name', headerName: 'Organization', flex: 3 },
+        { field: 'short_code', headerName: 'Code', flex: 1 },
         { field: 'site_count', headerName: 'Sites', flex: 1, align: 'right', headerAlign: 'right' },
         { field: 'animal_count', headerName: 'Animals', flex: 1, align: 'right', headerAlign: 'right' }
       ]}

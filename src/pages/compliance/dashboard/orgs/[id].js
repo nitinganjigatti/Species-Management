@@ -85,7 +85,7 @@ const OrgDetailPage = () => {
     <EntityDetailView
       breadcrumb={breadcrumb}
       title={org?.organization_name ?? '…'}
-      subtitle={org ? `Organization · ID ${org.org_id}` : ''}
+      subtitle={org ? `Organization · ${org.short_code ?? org.org_id}` : ''}
       stats={stats}
       primaryPanelTitle='Species'
       primaryPanelSubtitle={`${org?.compliance_species_count ?? 0} compliance species in this organization`}
