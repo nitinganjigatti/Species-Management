@@ -35,6 +35,13 @@ interface MessageBubbleProps {
   isSearchMatch?: boolean
   isActiveSearchMatch?: boolean
   searchQuery?: string
+  /**
+   * When false, the action menu (Reply / Star / Copy / Delete) and reaction
+   * toggles are hidden. ChatContent flips this off when the current user has
+   * left / been removed from the group (isActive=false on their participant
+   * entry). Defaults to true so DMs and other call sites are unaffected.
+   */
+  canInteract?: boolean
 }
 
 /**
@@ -42,7 +49,17 @@ interface MessageBubbleProps {
  * picker live in <MessageActions />, which is reused by ChatLog for
  * attachment-only bubbles too.
  */
-const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchMatch, isActiveSearchMatch, searchQuery }: MessageBubbleProps) => {
+const MessageBubble = ({
+  chat,
+  isSender,
+  senderName,
+  senderId,
+  canPin,
+  isSearchMatch,
+  isActiveSearchMatch,
+  searchQuery,
+  canInteract = true
+}: MessageBubbleProps) => {
   const currentUserId = useSelector((s: RootState) => s.chat?.userProfile?.id ?? null)
 
   // Tombstone for "delete for everyone".
@@ -169,24 +186,26 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
             })
           }}
         >
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 2,
-              right: 2,
-              zIndex: 1
-            }}
-          >
-            <MessageActions
-              chat={chat}
-              isSender={isSender}
-              senderName={senderName}
-              senderId={senderId}
-              canPin={canPin}
-              showEdit
-              showCopyText
-            />
-          </Box>
+          {canInteract ? (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 2,
+                right: 2,
+                zIndex: 1
+              }}
+            >
+              <MessageActions
+                chat={chat}
+                isSender={isSender}
+                senderName={senderName}
+                senderId={senderId}
+                canPin={canPin}
+                showEdit
+                showCopyText
+              />
+            </Box>
+          ) : null}
           {chat.replyTo ? (
             <Box
               onClick={handleReplySnippetClick}
@@ -265,7 +284,7 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
           </Typography>
         </Box>
 
-        {chat.reactions && chat.reactions.length > 0 ? (
+        {canInteract && chat.reactions && chat.reactions.length > 0 ? (
           <Box
             sx={{
               display: 'flex',
@@ -284,7 +303,10 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
                 <Chip
                   key={r.emoji}
                   size='small'
-                  onClick={() => handleToggleReaction(r.emoji)}
+                  // Click-to-toggle only when the current user can interact
+                  // with this conversation. Removed-from-group users see
+                  // existing reaction chips as static read-only labels.
+                  onClick={canInteract ? () => handleToggleReaction(r.emoji) : undefined}
                   label={
                     <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
                       <span>{r.emoji}</span>
@@ -310,7 +332,7 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
         ) : null}
       </Box>
 
-      <MessageReactionPicker chat={chat} isSender={isSender} />
+      {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
     </Box>
   )
 }

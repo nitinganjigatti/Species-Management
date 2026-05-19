@@ -89,7 +89,8 @@ const ChatLog = (props: ChatLogType) => {
     searchResultIds = [],
     activeMatchIndex = 0,
     onLoadOlder,
-    onJumpToMessage
+    onJumpToMessage,
+    canInteract = true
   } = props
 
   // ** Ref
@@ -582,31 +583,33 @@ const ChatLog = (props: ChatLogType) => {
                           {/* Chevron lives INSIDE the attachment column,
                               absolutely positioned at the top-right — matches
                               the WhatsApp-Web pattern used for text bubbles. */}
-                          <Box
-                            sx={{
-                              position: 'absolute',
-                              top: 4,
-                              right: 4,
-                              zIndex: 2
-                            }}
-                          >
-                            <MessageActions
-                              chat={chat}
-                              isSender={isSender}
-                              senderName={isSender ? data.userContact.fullName : data.contact.fullName}
-                              senderId={item.senderId}
-                              canPin={(() => {
-                                const isGroup = data.contact.isGroup === true
-                                if (!isGroup) return true
-                                const me = String(data.userContact.id ?? '')
-                                const admins = data.contact.adminIds?.map(String) ?? []
+                          {canInteract ? (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                zIndex: 2
+                              }}
+                            >
+                              <MessageActions
+                                chat={chat}
+                                isSender={isSender}
+                                senderName={isSender ? data.userContact.fullName : data.contact.fullName}
+                                senderId={item.senderId}
+                                canPin={(() => {
+                                  const isGroup = data.contact.isGroup === true
+                                  if (!isGroup) return true
+                                  const me = String(data.userContact.id ?? '')
+                                  const admins = data.contact.adminIds?.map(String) ?? []
 
-                                return admins.includes(me)
-                              })()}
-                              showEdit={false}
-                              showCopyText={false}
-                            />
-                          </Box>
+                                  return admins.includes(me)
+                                })()}
+                                showEdit={false}
+                                showCopyText={false}
+                              />
+                            </Box>
+                          ) : null}
                           {chat.attachments.map(att => (
                             <Box
                               key={att.id}
@@ -699,7 +702,7 @@ const ChatLog = (props: ChatLogType) => {
                             </Box>
                           ))}
                         </Box>
-                        <MessageReactionPicker chat={chat} isSender={isSender} />
+                        {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
                       </Box>
                     ) : null}
                     {/* Mixed (attachments + text) and text-only paths: existing inline
@@ -835,6 +838,7 @@ const ChatLog = (props: ChatLogType) => {
                           isSearchMatch={isMatch}
                           isActiveSearchMatch={isActiveMatch}
                           searchQuery={searchQuery}
+                          canInteract={canInteract}
                         />
                       </Box>
                     ) : null}

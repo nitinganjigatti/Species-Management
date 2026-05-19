@@ -674,8 +674,11 @@ export function sdkMessageToMessage(msg: Message): MessageType {
 export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEntityId): ChatsArrType {
   const isGroup = conv.conversationType === 'group'
 
-  // Backend soft-deletes removed members via isActive=false; filter them out.
-  const activeParticipants = ((conv.participants ?? []) as ParticipantWithFlatUser[]).filter(p => p.isActive !== false)
+  const rawParticipants = (conv.participants ?? []) as ParticipantWithFlatUser[]
+
+  // Backend soft-deletes removed members via isActive=false; filter them out
+  // for the active-only views (sidebar previews, "X members" counts, etc.).
+  const activeParticipants = rawParticipants.filter(p => p.isActive !== false)
 
   const otherParticipant = isGroup ? undefined : activeParticipants.find(p => p.userId !== String(currentUserId))
   const other = otherParticipant ? participantToUser(otherParticipant) : undefined
@@ -687,6 +690,22 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
   const avatar = isGroup ? conv.iconUrl ?? '' : other?.avatarUrl ?? ''
 
   const lastMessage = conv.lastMessage ? sdkMessageToMessage(conv.lastMessage) : undefined
+
+  // Full participants list (incl. isActive=false) so callers can distinguish
+  // "removed from group" from "never a member". DMs don't carry isActive
+  // semantics — both sides are always active.
+  const participants = rawParticipants.map(p => ({
+    userId: p.userId,
+    isActive: p.isActive !== false,
+    role: p.role ?? 'member'
+  }))
+
+  // Convenience flag for the composer / chat-actions gate. For DMs the user
+  // is always considered active. For groups, look up the current user in the
+  // unfiltered participants and read their isActive directly.
+  const meId = String(currentUserId ?? '')
+  const ownEntry = meId ? rawParticipants.find(p => p.userId === meId) : undefined
+  const isCurrentUserActive = isGroup ? ownEntry?.isActive !== false : true
 
   return {
     id: conv.id,
@@ -701,6 +720,8 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     description: conv.description,
     participantIds: activeParticipants.map(p => p.userId),
     adminIds: activeParticipants.filter(p => p.role === 'admin').map(p => p.userId),
+    participants,
+    isCurrentUserActive,
     isMuted: conv.isMuted ?? false,
     isPinned: conv.isPinned ?? false,
     chat: {

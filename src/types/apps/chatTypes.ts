@@ -136,6 +136,20 @@ export type ChatsArrType = {
   participantIds?: ChatEntityId[]
   /** Subset of participantIds that have the `admin` role server-side. */
   adminIds?: ChatEntityId[]
+  /**
+   * Raw participants array including soft-deleted (isActive=false) members.
+   * Use this when callers need to distinguish "still in the group" from
+   * "left/removed" for the current user — `participantIds` strips inactive
+   * entries by design.
+   */
+  participants?: Array<{ userId: string; isActive: boolean; role: string }>
+  /**
+   * Convenience flag: true if the current user has an active participant
+   * entry on the conversation. False for groups they've been removed from
+   * (or have left). Always true for DMs. Populated by the adapter from the
+   * `participants` array above.
+   */
+  isCurrentUserActive?: boolean
   /** Mirrors `Conversation.isMuted` from the SDK. */
   isMuted?: boolean
   /** Mirrors `Conversation.isPinned` from the SDK. */
@@ -288,4 +302,8 @@ export type ChatLogType = {
   // and we need to reload a context slice around that message. ChatContent
   // wires this to the `jumpToMessage` thunk.
   onJumpToMessage?: (messageId: string) => void
+  // When false, per-message actions (Reply / Star / Copy / Delete) and
+  // reaction toggles are suppressed. Set by ChatContent when the current
+  // user has been removed from / has left a group. Defaults to true.
+  canInteract?: boolean
 }
