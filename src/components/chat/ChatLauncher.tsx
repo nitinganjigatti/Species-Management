@@ -53,7 +53,11 @@ const PANEL_WIDTH = 480
 const PANEL_HEIGHT = 640
 
 const ChatLauncher = () => {
-  const auth = useAuth() as { user?: unknown } | null
+  // useAuth is typed loosely (null user, generic userData) — cast to any so
+  // we can probe the zoo-settings flag without TS friction. Same pattern as
+  // AppChat.tsx:112.
+  const auth = useAuth() as any
+  const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
   const dispatch = useDispatch<AppDispatch>()
   const [open, setOpen] = useState(false)
 
@@ -69,16 +73,19 @@ const ChatLauncher = () => {
   }, [chats])
 
   // Bootstrap the user's profile + conversation list once, so the FAB badge
-  // can show the right number even before the user opens the panel.
+  // can show the right number even before the user opens the panel. Skip
+  // entirely when chat is disabled for this tenant.
   useEffect(() => {
+    if (!enableChatModule) return
     dispatch(fetchUserProfile())
     dispatch(fetchChatsContacts())
-  }, [dispatch])
+  }, [dispatch, enableChatModule])
 
   // Subscribe to the two socket events that affect unread counts. AppChat
   // owns the full event surface on /chat — we hide there to avoid overlap,
-  // so this listener is the only path off-/chat.
+  // so this listener is the only path off-/chat. Skip when chat is disabled.
   useEffect(() => {
+    if (!enableChatModule) return
     const socket = getChatSocket()
     if (!socket) return
 
@@ -111,13 +118,15 @@ const ChatLauncher = () => {
       socket.off('new_message', onNewMessage)
       socket.off('unread_count_changed', onUnreadCountChanged)
     }
-  }, [dispatch, userProfileId])
+  }, [dispatch, userProfileId, enableChatModule])
 
   // Don't show the launcher on guest / login pages — there's no user yet, so
-  // the panel would be empty and the badge would be 0. The /chat-route guard
-  // lives in the App Router layout, not here, because Pages Router doesn't
-  // have a /chat route and shouldn't need to know about that one.
+  // the panel would be empty and the badge would be 0. Also gate on the zoo
+  // settings flag — tenants without the chat module shouldn't see anything.
+  // The /chat-route guard lives in the App Router layout, not here, because
+  // Pages Router doesn't have a /chat route and shouldn't need to know about it.
   if (!auth?.user) return null
+  if (!enableChatModule) return null
 
   const toggleOpen = () => setOpen(o => !o)
 
