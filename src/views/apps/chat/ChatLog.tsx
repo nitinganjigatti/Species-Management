@@ -18,6 +18,13 @@ import CircularProgress from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
+// ** Redux — for resolving sender identities in group chats. `data.contact`
+// is the GROUP (name + icon), so non-sender bubbles need a per-message
+// lookup of who actually sent each message. We use the deduped contacts
+// list populated by `fetchChatsContacts` / `extractContactsFromConversations`.
+import { useSelector } from 'react-redux'
+import type { RootState } from 'src/store'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -92,6 +99,21 @@ const ChatLog = (props: ChatLogType) => {
     onJumpToMessage,
     canInteract = true
   } = props
+
+  // Sender-resolution map for group chats. The avatar + name shown next to
+  // each incoming bubble must reflect the MESSAGE'S SENDER (not the group),
+  // so we look up `item.senderId` in the deduped contacts list. Falls back
+  // to data.contact / 'Unknown' if the participant isn't in the cache
+  // (e.g., they've been removed from the group and aren't in the active
+  // conversation list anymore).
+  const isGroupChat = data.contact.isGroup === true
+  const contactsList = useSelector((s: RootState) => s.chat?.contacts) ?? []
+  const senderById = (() => {
+    const m = new Map<string, (typeof contactsList)[number]>()
+    contactsList.forEach(c => m.set(String(c.id), c))
+
+    return m
+  })()
 
   // ** Ref
   const chatArea = useRef(null)
@@ -497,6 +519,20 @@ const ChatLog = (props: ChatLogType) => {
 
       const isSender = item.senderId === data.userContact.id
 
+      // For group incoming messages, resolve the actual sender (their name +
+      // avatar) instead of falling back to the group's icon/name. DM incoming
+      // messages keep using `data.contact` since it IS the peer. Outgoing
+      // messages always show the current user.
+      const senderContact = !isSender && isGroupChat ? senderById.get(String(item.senderId)) : undefined
+      const avatarSrc = isSender
+        ? data.userContact.avatar
+        : senderContact?.avatar ?? (isGroupChat ? undefined : data.contact.avatar)
+      const avatarName = isSender
+        ? data.userContact.fullName ?? 'Me'
+        : senderContact?.fullName ?? (isGroupChat ? 'Unknown' : data.contact.fullName)
+      const avatarColor =
+        isSender ? 'primary' : senderContact?.avatarColor ?? data.contact.avatarColor ?? 'primary'
+
       return (
         <Box
           key={index}
@@ -509,7 +545,7 @@ const ChatLog = (props: ChatLogType) => {
           <div>
             <CustomAvatar
               skin='light'
-              color={(isSender ? undefined : data.contact.avatarColor) ?? 'primary'}
+              color={avatarColor}
               sx={{
                 width: '2rem',
                 height: '2rem',
@@ -517,19 +553,32 @@ const ChatLog = (props: ChatLogType) => {
                 ml: isSender ? 4 : undefined,
                 mr: !isSender ? 4 : undefined
               }}
-              {...(isSender
-                ? data.userContact.avatar
-                  ? { src: data.userContact.avatar, alt: data.userContact.fullName }
-                  : {}
-                : data.contact.avatar
-                ? { src: data.contact.avatar, alt: data.contact.fullName }
-                : {})}
+              {...(avatarSrc ? { src: avatarSrc, alt: avatarName } : {})}
             >
-              {getInitials(isSender ? data.userContact.fullName ?? 'Me' : data.contact.fullName)}
+              {getInitials(avatarName)}
             </CustomAvatar>
           </div>
 
           <Box className='chat-body' sx={{ maxWidth: ['calc(100% - 5.75rem)', '75%', '65%'] }}>
+            {/* Sender name label above the first bubble in a group's run of
+                messages. Only for incoming messages in a group — DMs and
+                outgoing messages don't need it (avatar already identifies
+                the sender). */}
+            {!isSender && isGroupChat ? (
+              <Typography
+                variant='caption'
+                sx={{
+                  display: 'block',
+                  mb: 0.5,
+                  ml: 0.5,
+                  fontWeight: 600,
+                  color: theme =>
+                    theme.palette[(avatarColor as 'primary') ?? 'primary']?.main ?? theme.palette.primary.main
+                }}
+              >
+                {avatarName}
+              </Typography>
+            ) : null}
             {item.messages.map((chat: ChatLogChatType, index: number, { length }: { length: number }) => {
               const time = new Date(chat.time)
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false

@@ -81,6 +81,11 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // mute/unmute/pin/unpin thunk which patches local state on success.
   const isMuted = store?.selectedChat?.contact.isMuted === true
   const isPinned = store?.selectedChat?.contact.isPinned === true
+  // Hide the "Leave group" affordance once the current user is no longer
+  // an active participant (server flipped their `participants[].isActive`
+  // to false after a successful leave). Pin-to-top stays available so the
+  // user can keep the chat at the top of their sidebar after leaving.
+  const isCurrentUserActive = store?.selectedChat?.contact.isCurrentUserActive !== false
 
   // Add-members flow state
   const dispatch = useDispatch<AppDispatch>()
@@ -766,21 +771,28 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   </ListItem>
                 </List>
 
-                {/* Danger zone */}
-                <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase', fontWeight: 600, color: 'error.main' }}>
-                  Danger zone
-                </Typography>
+                {/* Danger zone — show only if the current user has any
+                    destructive action available. Inactive (already-left)
+                    non-admins see nothing here, so hide the section header
+                    too to avoid an empty band. */}
+                {isCurrentUserActive || isCurrentUserAdmin ? (
+                  <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase', fontWeight: 600, color: 'error.main' }}>
+                    Danger zone
+                  </Typography>
+                ) : null}
                 <List dense sx={{ p: 0 }}>
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 2 }} onClick={handleLeaveGroup}>
-                      <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
-                        <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText
-                        secondary={<Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Leave group</Typography>}
-                      />
-                    </ListItemButton>
-                  </ListItem>
+                  {isCurrentUserActive ? (
+                    <ListItem disablePadding>
+                      <ListItemButton sx={{ px: 2 }} onClick={handleLeaveGroup}>
+                        <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
+                          <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
+                        </ListItemIcon>
+                        <ListItemText
+                          secondary={<Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Leave group</Typography>}
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ) : null}
                   {isCurrentUserAdmin ? (
                     <ListItem disablePadding>
                       <ListItemButton sx={{ px: 2 }} onClick={handleDeleteGroup}>
