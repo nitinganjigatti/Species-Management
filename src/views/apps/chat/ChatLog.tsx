@@ -82,7 +82,15 @@ const formatDateLabel = (time: string | Date): string => {
 
 const ChatLog = (props: ChatLogType) => {
   // ** Props
-  const { data, hidden, searchQuery = '', searchResultIds = [], activeMatchIndex = 0, onLoadOlder } = props
+  const {
+    data,
+    hidden,
+    searchQuery = '',
+    searchResultIds = [],
+    activeMatchIndex = 0,
+    onLoadOlder,
+    onJumpToMessage
+  } = props
 
   // ** Ref
   const chatArea = useRef(null)
@@ -115,6 +123,12 @@ const ChatLog = (props: ChatLogType) => {
   // pagination. Guarding on the actual newest-message id keeps us from
   // yanking the user to the bottom unless a real new message has landed.
   const lastSeenNewestIdRef = useRef<string | undefined>(undefined)
+
+  // Prevents firing onJumpToMessage repeatedly for the same target while the
+  // network round-trip is in flight, and prevents the post-jump messages
+  // commit from triggering scrollToBottom (we want to land on the search
+  // target, not the bottom of the new window).
+  const pendingJumpForIdRef = useRef<string | null>(null)
 
   // Resolve the actual scroll container — PerfectScrollbar wraps the native
   // div; mobile uses the native div directly.
@@ -206,7 +220,11 @@ const ChatLog = (props: ChatLogType) => {
     }
   }, [])
 
-  // Scroll to the active search match
+  // Scroll to the active search match. If the match isn't in the currently-
+  // loaded message window (cursor pagination keeps only ~50 messages around
+  // the live position), ask ChatContent to load a context window via the
+  // `jumpToMessage` thunk. The effect re-runs once Redux pushes the new
+  // messages array down through `data`, at which point the ref will resolve.
   useEffect(() => {
     if (!searchResultIds.length) return
     const targetId = searchResultIds[activeMatchIndex]
@@ -214,9 +232,31 @@ const ChatLog = (props: ChatLogType) => {
 
     const el = messageRefs.current.get(targetId)
     if (el) {
+      const wasJumping = pendingJumpForIdRef.current !== null
+      pendingJumpForIdRef.current = null
+
+      // When we land via a jump, the messages array was just replaced with a
+      // historical context window — the scroll-to-bottom effect runs right
+      // after this one and would otherwise yank the view away from the search
+      // target because the window's "newest" id differs from what it last saw.
+      // Sync that ref preemptively so it short-circuits.
+      if (wasJumping) {
+        const lastId = data.chat.messages[data.chat.messages.length - 1]?.id
+        lastSeenNewestIdRef.current = lastId
+      }
+
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+
+      return
     }
-  }, [activeMatchIndex, searchResultIds])
+
+    // Target not in DOM. Fire one jump request per target id and wait for
+    // the messages array to swap; this effect will re-run on that swap.
+    if (pendingJumpForIdRef.current === targetId) return
+    if (!onJumpToMessage) return
+    pendingJumpForIdRef.current = targetId
+    onJumpToMessage(targetId)
+  }, [activeMatchIndex, searchResultIds, data.chat.messages, onJumpToMessage])
 
   // In-page preview state for image / video / pdf / other attachments.
   // Clicking an attachment opens the dialog; close button or backdrop closes.
@@ -372,6 +412,13 @@ const ChatLog = (props: ChatLogType) => {
     const newestId = data.chat.messages[data.chat.messages.length - 1]?.id
     if (newestId === lastSeenNewestIdRef.current) return
     lastSeenNewestIdRef.current = newestId
+
+    // A `jumpToMessage` dispatch replaces the messages array with a context
+    // window centered on the search target. The newest id of that window is
+    // not the conversation's newest id, so the check above would otherwise
+    // trip and yank the user to the bottom. Skip — the search-scroll effect
+    // will land us on the right bubble instead.
+    if (pendingJumpForIdRef.current) return
 
     scrollToBottom()
     // eslint-disable-next-line react-hooks/exhaustive-deps

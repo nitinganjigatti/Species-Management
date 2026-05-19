@@ -38,6 +38,7 @@ import {
   leaveConversation,
   getConversationMembers,
   getLastRead,
+  getMessage,
   listMessages,
   markReadOverSocket,
   sendMessageOverSocket,
@@ -586,6 +587,64 @@ export const loadOlderMessages = createAsyncThunk<void, ChatEntityId>(
     }
   }
 )
+
+/**
+ * Replace the loaded message window with a context window centered on a
+ * specific message. Used by the chat-details search flow when the selected
+ * match is outside the currently-loaded slice of history.
+ *
+ * Fetches `limit` messages before and after the target plus the target
+ * itself, dedupes, and chronologically sorts. The new `oldestCursor` /
+ * `hasMoreOlder` flags come from the "before" page so upward pagination
+ * continues to work from this new position. Forward pagination is not
+ * supported yet — to get back to the very latest messages, the user reopens
+ * the chat.
+ */
+export const jumpToMessage = createAsyncThunk<
+  void,
+  { chatId: ChatEntityId; messageId: string }
+>('appChat/jumpToMessage', async ({ chatId, messageId }, { dispatch }) => {
+  const client = getChatClientOrNull()
+  if (!client || typeof chatId !== 'string' || !messageId) return
+
+  try {
+    const [before, after, target] = await Promise.all([
+      listMessages(chatId, { cursor: messageId, direction: 'before', limit: 25 }),
+      listMessages(chatId, { cursor: messageId, direction: 'after', limit: 25 }),
+      getMessage(messageId)
+    ])
+
+    // SDK returns each page newest-first; reverse so the merged array reads
+    // oldest → target → newest, matching how ChatLog renders.
+    const olderMessages = [...(before.data ?? [])].reverse().map(sdkMessageToMessage)
+    const newerMessages = [...(after.data ?? [])].reverse().map(sdkMessageToMessage)
+    const targetMessage = sdkMessageToMessage(target)
+
+    // Dedupe — cursor pagination semantics around the cursor message itself
+    // are SDK-defined, so the target id can appear in either the before /
+    // after page in addition to our explicit getMessage call.
+    const merged = [...olderMessages, targetMessage, ...newerMessages]
+    const seen = new Set<string>()
+    const messages = merged.filter(m => {
+      if (!m.id) return true
+      if (seen.has(m.id)) return false
+      seen.add(m.id)
+
+      return true
+    })
+
+    dispatch(
+      setChatMessages({
+        chatId,
+        messages,
+        oldestCursor: before.meta?.nextCursor ?? null,
+        hasMoreOlder: before.meta?.hasMore ?? false
+      })
+    )
+  } catch (err) {
+    console.error('[chat] jumpToMessage failed:', err)
+  }
+})
 
 /**
  * Send a message via the **Socket.IO `send_message` event** with an ack.

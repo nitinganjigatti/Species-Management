@@ -452,7 +452,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   <Badge
                     overlap='circular'
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    onClick={handleUserProfileLeftSidebarToggle}
+                    // Profile drawer is hidden for now — see <UserProfileLeft />
+                    // render below. Restore `onClick={handleUserProfileLeftSidebarToggle}`
+                    // when the drawer comes back.
                     badgeContent={
                       <Box
                         component='span'
@@ -564,16 +566,21 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         onSelectContact={(id: ChatEntityId) => handleChatClick('contact', id)}
       />
 
-      <UserProfileLeft
-        store={store}
-        hidden={hidden}
-        statusObj={statusObj}
-        userStatus={userStatus}
-        sidebarWidth={sidebarWidth}
-        setUserStatus={setUserStatus}
-        userProfileLeftOpen={userProfileLeftOpen}
-        handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
-      />
+      {/* Hidden for now — own-profile drawer (About / Status / Settings).
+          Restore the <UserProfileLeft /> render and the avatar's onClick
+          handler above when bringing it back. */}
+      {false && (
+        <UserProfileLeft
+          store={store}
+          hidden={hidden}
+          statusObj={statusObj}
+          userStatus={userStatus}
+          sidebarWidth={sidebarWidth}
+          setUserStatus={setUserStatus}
+          userProfileLeftOpen={userProfileLeftOpen}
+          handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
+        />
+      )}
     </div>
   )
 }

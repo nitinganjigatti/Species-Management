@@ -27,7 +27,7 @@ import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
 import { searchMessages } from 'src/lib/chat/api'
 
 // ** Store
-import { loadOlderMessages } from 'src/store/apps/chat'
+import { loadOlderMessages, jumpToMessage, selectChat } from 'src/store/apps/chat'
 
 // ** Types
 import { ChatContentType } from 'src/types/apps/chatTypes'
@@ -129,7 +129,13 @@ const ChatContent = (props: ChatContentType) => {
     setSearchQuery('')
     setSearchResultIds([])
     setSearchTotal(0)
-  }, [])
+
+    // If the user jumped to a historical message via search, the loaded
+    // message window is sitting in the middle of history — reopen the chat
+    // to snap back to the latest 50 messages so live updates resume.
+    const chatId = store?.selectedChat?.contact?.id
+    if (chatId) dispatch(selectChat(chatId) as any)
+  }, [dispatch, store?.selectedChat?.contact?.id])
 
   const handleSearchPrev = useCallback(() => {
     setActiveMatchIndex(prev => (prev > 0 ? prev - 1 : searchResultIds.length - 1))
@@ -424,6 +430,12 @@ const ChatContent = (props: ChatContentType) => {
                     onLoadOlder={() => {
                       const chatId = selectedChat.contact.id
                       if (chatId) dispatch(loadOlderMessages(chatId) as any)
+                    }}
+                    onJumpToMessage={(messageId: string) => {
+                      const chatId = selectedChat.contact.id
+                      if (chatId && messageId) {
+                        dispatch(jumpToMessage({ chatId, messageId }) as any)
+                      }
                     }}
                   />
                 </>

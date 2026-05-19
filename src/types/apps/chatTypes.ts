@@ -284,4 +284,8 @@ export type ChatLogType = {
   // older page. ChatLog handles the trigger detection + scroll-position
   // preservation; ChatContent wires this to the `loadOlderMessages` thunk.
   onLoadOlder?: () => void
+  // Fired when the active search match is not in the currently-loaded window
+  // and we need to reload a context slice around that message. ChatContent
+  // wires this to the `jumpToMessage` thunk.
+  onJumpToMessage?: (messageId: string) => void
 }
