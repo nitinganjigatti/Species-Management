@@ -27,6 +27,14 @@ import { getDeviceInfo, setLastLoggedUser, saveDeviceId } from 'src/utility/devi
 import { legacyLogin } from 'src/lib/api/login'
 import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 
+// Chat-core disconnect helpers — called at the top of handleLogout so the
+// socket dies cleanly before either WSO2 hand-off or legacy router.push.
+// Belt-and-suspenders: `useChatClient`'s effect cleanup also runs when
+// `auth.userData.user` clears, but the WSO2 path navigates the page before
+// React cleanup finishes and the legacy happy path doesn't flip auth state.
+import { disconnectSocket as chatDisconnectSocket } from '@antzsoft/chat-core'
+import { disposeChatClient as chatDisposeClient } from 'src/lib/chat/client'
+
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 // const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
@@ -430,6 +438,22 @@ const AuthProvider = ({ children }) => {
 
   const handleLogout = async () => {
     // debugger
+
+    // Tear down the chat-core socket + SDK singleton before any other cleanup.
+    // Runs synchronously so it completes before the WSO2 hand-off navigates
+    // the page or the legacy path pushes /login. Defensive try/catch — chat
+    // may not be initialized (e.g., user logging out while NEXT_PUBLIC_CHAT_API_URL
+    // is missing) and we don't want a chat error to block the auth logout.
+    try {
+      chatDisconnectSocket()
+    } catch (e) {
+      console.warn('[auth] chat socket disconnect failed:', e)
+    }
+    try {
+      chatDisposeClient()
+    } catch (e) {
+      console.warn('[auth] chat client dispose failed:', e)
+    }
 
     const preserveDeviceInfo = () => {
       let deviceId

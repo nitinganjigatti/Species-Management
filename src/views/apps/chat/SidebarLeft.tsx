@@ -104,6 +104,17 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleChatClick = (type: 'chat' | 'contact', id: ChatEntityId) => {
+    // Skip if user clicked the chat that's already open — re-dispatching
+    // `selectChat` would refetch messages and mark-as-read for no reason,
+    // causing a visible "reload" of the panel. Only act when the selection
+    // actually changes. (Contact clicks always run — they may resolve to a
+    // new conversation if the DM doesn't exist yet.)
+    if (type === 'chat' && id === selectedChatId) {
+      if (!mdAbove) handleLeftSidebarToggle()
+
+      return
+    }
+
     // Clicking an existing chat row → open that conversation directly.
     // Clicking a contact (from the compose popover) → resolve/create a direct
     // conversation first, then open it. `startDirectChat` handles both the

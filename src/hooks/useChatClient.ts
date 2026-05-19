@@ -69,6 +69,17 @@ export function useChatClient(): UseChatClientResult {
         : ''
     const accessToken = getAccessToken()
 
+    // Final safety gate — refuse to connect without a valid access token in
+    // localStorage. `handleLogout` removes the token before disposing the
+    // chat client; this gate makes sure stale auth state can't trigger a
+    // reconnect on the login page (legacy path doesn't clear React user
+    // state, so this is belt-and-suspenders).
+    if (!accessToken) {
+      console.log('[chat:gate] no access token — refusing to connect')
+
+      return
+    }
+
     let c: AntzChatClient
     try {
       c = getChatClient({
