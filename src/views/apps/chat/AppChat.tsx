@@ -51,7 +51,15 @@ import ChatContent from 'src/views/apps/chat/ChatContent'
 import { getSocketStatus, onSocketStatus, tryGetSocket, type SocketStatus } from '@antzsoft/chat-core'
 import { getChatClientOrNull } from 'src/lib/chat/client'
 
-const AppChat = () => {
+// Optional `compact` flag forces single-pane mobile-style layout regardless
+// of viewport width. ChatLauncher passes this when AppChat is rendered inside
+// the narrow floating dock — the panel is always too small for the desktop
+// two-pane layout, so we want the sidebar to act as a slide-in drawer.
+type AppChatProps = {
+  compact?: boolean
+}
+
+const AppChat = ({ compact = false }: AppChatProps = {}) => {
   // ** States
   const [userStatus, setUserStatus] = useState<StatusType>('online')
   const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(false)
@@ -117,14 +125,20 @@ const AppChat = () => {
     auth?.userData?.user?.avatar ??
     auth?.userData?.user?.avatar_url ??
     undefined
-  const hidden = useMediaQuery(theme.breakpoints.down('lg'))
+  // `compact` (set by the floating ChatLauncher) forces mobile-style single-pane
+  // layout even on desktop viewports — the panel is always too narrow for the
+  // two-pane layout. Otherwise fall back to the viewport-based media query.
+  const isViewportNarrow = useMediaQuery(theme.breakpoints.down('lg'))
+  const hidden = compact || isViewportNarrow
   const store = useSelector((state: RootState) => state.chat)
 
   // ** Vars
   const { skin } = settings
   const smAbove = useMediaQuery(theme.breakpoints.up('sm'))
   const sidebarWidth = smAbove ? 370 : 300
-  const mdAbove = useMediaQuery(theme.breakpoints.up('md'))
+  // When `compact` is set, force narrow-viewport semantics so the sidebar
+  // drawer auto-closes on chat select and ChatContent's hamburger appears.
+  const mdAbove = !compact && useMediaQuery(theme.breakpoints.up('md'))
   const statusObj: StatusObjType = {
     busy: 'error',
     away: 'warning',

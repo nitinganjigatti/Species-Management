@@ -62,6 +62,7 @@ import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
 import { LanguageProvider } from 'src/context/LanguageContext'
 // Global init point for @antzsoft/chat-core
 import ChatBoot from 'src/components/chat/ChatBoot'
+import ChatLauncher from 'src/components/chat/ChatLauncher'
 
 // Redux
 import { Provider } from 'react-redux'
@@ -145,6 +146,7 @@ const App = props => {
                                             authGuard={authGuard}
                                           >
                                             {getLayout(<Component {...pageProps} />)}
+                                            <ChatLauncher />
                                           </AclGuard>
                                         </Guard>
                                         <ReactHotToast>
