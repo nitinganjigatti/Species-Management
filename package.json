@@ -12,7 +12,7 @@
     "build:icons": "node src/iconify-bundle/bundle-icons-react.js"
   },
   "dependencies": {
-    "@antzsoft/chat-core": "^1.1.0",
+    "@antzsoft/chat-core": "^1.1.1",
     "@antzsoft/wso2-auth-web": "^1.4.5",
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "7.21.3",
@@ -45,6 +45,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "4.1.0",
     "dayjs": "^1.11.10",
+    "docx-preview": "^0.3.7",
     "file-saver": "^2.0.5",
     "geolocation": "^0.2.0",
     "html5-qrcode": "^2.3.8",

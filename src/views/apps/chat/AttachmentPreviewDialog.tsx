@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import dynamic from 'next/dynamic'
 
 // ** MUI Imports
 import Dialog from '@mui/material/Dialog'
@@ -11,6 +12,28 @@ import Tooltip from '@mui/material/Tooltip'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+
+// ** PDF preview — dynamic + ssr:false because `react-pdf` / `pdfjs-dist`
+// touch `DOMMatrix` at module-evaluation time, which crashes Next.js SSR
+// with `DOMMatrix is not defined`. Loading the renderer only on the client
+// sidesteps that without losing the canvas-based rendering.
+const PdfPreview = dynamic(() => import('src/views/apps/chat/PdfPreview'), {
+  ssr: false
+})
+
+// ** Spreadsheet preview — handles CSV / XLSX / XLS via the existing
+// `xlsx` (SheetJS) dependency. Dynamic so the ~600KB SheetJS parser only
+// loads when the user actually opens a spreadsheet file.
+const SpreadsheetPreview = dynamic(() => import('src/views/apps/chat/SpreadsheetPreview'), {
+  ssr: false
+})
+
+// ** DOCX preview — uses `mammoth` to convert .docx bytes to HTML on the
+// client. Dynamic + ssr:false; mammoth ships JSZip + xmldom that aren't
+// SSR-friendly. Only loads on first DOCX preview of a session.
+const DocxPreview = dynamic(() => import('src/views/apps/chat/DocxPreview'), {
+  ssr: false
+})
 
 // ** Types
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
@@ -53,6 +76,23 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
 
   const isPdf = current?.mimeType === 'application/pdf' || /\.pdf$/i.test(current?.filename ?? '')
 
+  // Spreadsheet detection — handled by the single `SpreadsheetPreview`
+  // component (SheetJS reads both CSV text and XLSX/XLS binary). The mime
+  // check covers Excel; the extension check covers CSV + .xls variants
+  // where the server omits the MIME.
+  const isSpreadsheet =
+    current?.mimeType === 'text/csv' ||
+    current?.mimeType === 'application/vnd.ms-excel' ||
+    current?.mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    /\.(csv|xlsx?|xlsm|xlsb)$/i.test(current?.filename ?? '')
+
+  // DOCX detection — mammoth only supports the modern `.docx` zip format.
+  // Legacy binary `.doc` still falls through to the file-info card; no
+  // reliable client-side parser exists for that format.
+  const isDocx =
+    current?.mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    /\.docx$/i.test(current?.filename ?? '')
+
   // Image transform state — reset whenever the viewed attachment changes.
   const [zoom, setZoom] = useState(1)
   const [rotate, setRotate] = useState(0)
@@ -62,17 +102,62 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
   }, [current?.id])
 
   // Block Ctrl/Cmd + S (save) and Ctrl/Cmd + P (print) while the dialog is open.
-  // Also handle left/right arrow keys for carousel navigation.
+  // Also handle left/right arrow keys for carousel navigation. Plus block
+  // DevTools / View-source / Save / Print keystrokes while the preview is
+  // open. Scope is the dialog only: listener is attached on `open === true`
+  // and removed on close — no impact on the rest of the app.
+  //
+  // Why `e.code` instead of `e.key` for the inspect shortcuts: on macOS,
+  // holding Option mutates the typed character (Option+I → "ˆ", Option+J →
+  // "∆", Option+C → "ç", Option+U → "¨"). The physical key stays the same,
+  // so `e.code === 'KeyI'` reliably matches regardless of OS or modifier.
+  //
+  // Shortcuts covered:
+  //   • F12                          → DevTools (Win / Linux / Chromebook)
+  //   • Ctrl+Shift+I / Cmd+Opt+I     → DevTools Inspect (Win/Linux / Mac)
+  //   • Ctrl+Shift+J / Cmd+Opt+J     → DevTools Console
+  //   • Ctrl+Shift+C / Cmd+Opt+C     → DevTools Pick-element
+  //   • Ctrl+U / Cmd+Opt+U           → View page source
+  //   • Ctrl/Cmd + S                 → Save page
+  //   • Ctrl/Cmd + P                 → Print
+  //
+  // Hard limit: client-side cannot disable the browser's application menu
+  // (View → Developer → Inspect) nor hide URLs from the Network tab. This
+  // is a friction layer, not a guarantee.
   useEffect(() => {
     if (!open) return
     const handler = (e: KeyboardEvent) => {
-      const mod = e.ctrlKey || e.metaKey
-      if (mod && (e.key === 's' || e.key === 'S' || e.key === 'p' || e.key === 'P')) {
+      const cmdOrCtrl = e.ctrlKey || e.metaKey
+      const optOrShift = e.altKey || e.shiftKey
+
+      // Save / Print
+      if (cmdOrCtrl && (e.code === 'KeyS' || e.code === 'KeyP')) {
         e.preventDefault()
         e.stopPropagation()
 
         return
       }
+
+      // DevTools (F12, Ctrl+Shift+I/J/C, Cmd+Opt+I/J/C)
+      const isDevTools =
+        e.code === 'F12' ||
+        (cmdOrCtrl && optOrShift && (e.code === 'KeyI' || e.code === 'KeyJ' || e.code === 'KeyC'))
+      if (isDevTools) {
+        e.preventDefault()
+        e.stopPropagation()
+
+        return
+      }
+
+      // View page source (Ctrl+U / Cmd+Opt+U)
+      if (cmdOrCtrl && e.code === 'KeyU') {
+        e.preventDefault()
+        e.stopPropagation()
+
+        return
+      }
+
+      // Carousel nav
       if (hasCarousel) {
         if (e.key === 'ArrowLeft') {
           e.preventDefault()
@@ -212,22 +297,35 @@ const AttachmentPreviewDialog = ({ attachment, open, onClose, attachments, initi
             }}
           />
         ) : isPdf ? (
-          <Box
-            component='iframe'
-            src={`${current.url}#toolbar=0&navpanes=0&scrollbar=0`}
-            title={current.filename}
-            sx={{
-              width: '100%',
-              height: '100%',
-              minHeight: '70vh',
-              border: 'none',
-              bgcolor: 'common.white'
-            }}
+          // PDF rendered to <canvas> via the dynamic PdfPreview component —
+          // no <iframe>, so the browser's native PDF viewer chrome (with
+          // its Save/Print/Inspect context menu) never enters the DOM.
+          // Component is dynamic + ssr:false because react-pdf / pdfjs-dist
+          // touches DOMMatrix at module-evaluation time (SSR-incompatible).
+          <PdfPreview url={current.url} attachmentId={current.id} />
+        ) : isSpreadsheet ? (
+          // CSV / XLSX / XLS — parsed client-side via SheetJS and rendered
+          // as a plain MUI <Table>. No iframe, no native viewer chrome.
+          <SpreadsheetPreview
+            url={current.url}
+            filename={current.filename}
+            attachmentId={current.id}
           />
+        ) : isDocx ? (
+          // DOCX — converted to HTML client-side via mammoth and rendered
+          // inside a sanitized container. Legacy .doc binary falls through
+          // to the file-info card (no client-side parser exists).
+          <DocxPreview url={current.url} attachmentId={current.id} />
         ) : (
+          // Non-image, non-video, non-audio, non-PDF document → file-info card.
           <Box sx={{ textAlign: 'center', color: 'common.white', maxWidth: 360 }}>
             <Icon icon='mdi:file-document-outline' fontSize='4rem' />
             <Typography sx={{ mt: 2, fontWeight: 600 }}>{current.filename}</Typography>
+            {sizeKb ? (
+              <Typography variant='caption' sx={{ display: 'block', opacity: 0.7, mt: 0.5 }}>
+                {sizeKb}
+              </Typography>
+            ) : null}
             <Typography variant='caption' sx={{ display: 'block', opacity: 0.7, mt: 1 }}>
               Preview not available for this file type
             </Typography>
