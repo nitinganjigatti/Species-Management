@@ -9,6 +9,7 @@ import type {
   ProfileUserType,
   ChatType,
   MessageType,
+  MessageReplyRef,
   SendMsgParamsType,
   ChatFilterType,
   ChatEntityId,
@@ -36,14 +37,18 @@ import {
   unpinConversation as apiUnpinConversation,
   leaveConversation,
   getConversationMembers,
+  getLastRead,
+  getMessage,
   listMessages,
-  markConversationRead,
+  markReadOverSocket,
   sendMessageOverSocket,
   sdkUserToProfile,
   sdkConversationToChat,
   sdkMessageToMessage,
   extractContactsFromConversations
 } from 'src/lib/chat/api'
+
+import { useChatStore } from '@antzsoft/chat-core'
 
 // ----------------------------------------------------------------------
 // Async Thunks — talk to the chat backend via @antzsoft/chat-core.
@@ -74,13 +79,11 @@ export const fetchUserProfile = createAsyncThunk<
       try {
         const synced = await syncAvatar({ url: fallback })
         profile.avatar = synced.avatarUrl || fallback
-        console.log('[chat] syncAvatar ✓', synced.avatarUrl)
       } catch (syncErr) {
         console.warn('[chat] syncAvatar failed — using local fallback only:', syncErr)
         profile.avatar = fallback
       }
     }
-    console.log('[chat] fetchUserProfile ← SDK:', profile)
 
     return profile
   } catch (err) {
@@ -111,9 +114,10 @@ export const fetchChatsContacts = createAsyncThunk<{
   const currentUserId = state.chat?.userProfile?.id ?? ''
 
   try {
-    const resp = await listConversations({ page: 1, limit: 50 })
+    // Omit page+limit: SDK returns all matching conversations in one response
+    // (per @antzsoft/chat-core 1.0.6 doc Step 6). Pagination is opt-in.
+    const resp = await listConversations()
     const conversations = resp.data ?? []
-    console.log('[chat] fetchChatsContacts ← SDK:', conversations.length, 'conversations')
 
     const chatsContacts = conversations.map(c => sdkConversationToChat(c, currentUserId))
     const contacts = extractContactsFromConversations(conversations, currentUserId)
@@ -145,7 +149,6 @@ export const startDirectChat = createAsyncThunk<void, ChatEntityId>(
 
     try {
       const conv = await createDirectConversation({ userId: String(userId) })
-      console.log('[chat] startDirectChat ← SDK:', conv.id, 'with user', userId)
 
       const state = getState() as { chat?: ChatStoreType }
       const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -180,13 +183,15 @@ export const createGroupChat = createAsyncThunk<void, CreateGroupPayload>(
     }
 
     try {
+      // NOTE: SDK 1.0.6 dropped `icon` from CreateGroupData. Group icons are
+      // now set via the separate `uploadConversationIcon(groupId, fileId)` flow
+      // after creation. The CreateGroupDrawer still collects an icon URL but
+      // it's no longer sent here — wire the post-create upload separately.
       const conv = await createGroupConversation({
         name: payload.name,
         description: payload.description,
-        icon: payload.icon,
         participantIds: payload.participantIds.map(String)
       })
-      console.log('[chat] createGroupChat ← SDK:', conv.id, conv.name)
 
       const state = getState() as { chat?: ChatStoreType }
       const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -225,7 +230,6 @@ export const addParticipantsToGroup = createAsyncThunk<
 
   try {
     const conv = await apiAddParticipants(groupId, userIds.map(String))
-    console.log('[chat] addParticipantsToGroup ← SDK:', groupId, '+', userIds.length, 'members')
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -261,7 +265,6 @@ export const leaveGroupChat = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await leaveConversation(groupId)
-      console.log('[chat] leaveGroupChat ← SDK:', groupId)
       dispatch(removeChatFromList(groupId))
     } catch (err) {
       console.error('[chat] leaveGroupChat failed:', err)
@@ -293,7 +296,6 @@ export const deleteConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiDeleteConversation(chatId)
-      console.log('[chat] deleteConversation ← SDK:', chatId)
       dispatch(removeChatFromList(chatId))
     } catch (err) {
       console.error('[chat] deleteConversation failed:', err)
@@ -329,14 +331,15 @@ export const fetchConversation = createAsyncThunk<void, ChatEntityId>(
  */
 export const updateGroupChat = createAsyncThunk<
   void,
-  { chatId: ChatEntityId; name?: string; description?: string; icon?: string }
->('appChat/updateGroupChat', async ({ chatId, name, description, icon }, { dispatch, getState }) => {
+  { chatId: ChatEntityId; name?: string; description?: string }
+>('appChat/updateGroupChat', async ({ chatId, name, description }, { dispatch, getState }) => {
   const client = getChatClientOrNull()
   if (!client || typeof chatId !== 'string') return
 
   try {
-    const conv = await updateConversation(chatId, { name, description, icon })
-    console.log('[chat] updateGroupChat ← SDK:', chatId)
+    // SDK 1.0.6 dropped `icon` from UpdateConversationData. Icon updates go
+    // through `uploadConversationIcon(groupId, fileId)` instead.
+    const conv = await updateConversation(chatId, { name, description })
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
     dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
@@ -357,7 +360,6 @@ export const removeParticipantFromGroup = createAsyncThunk<
 
   try {
     const conv = await apiRemoveParticipant(groupId, String(userId))
-    console.log('[chat] removeParticipantFromGroup ← SDK:', groupId, 'removed', userId)
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
     dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
@@ -378,7 +380,6 @@ export const updateParticipantRoleInGroup = createAsyncThunk<
 
   try {
     const conv = await apiUpdateParticipantRole(groupId, String(userId), role)
-    console.log('[chat] updateParticipantRoleInGroup ← SDK:', groupId, userId, '→', role)
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
     dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
@@ -400,7 +401,6 @@ export const muteConversation = createAsyncThunk<
 
   try {
     await apiMuteConversation(chatId, mutedUntil)
-    console.log('[chat] muteConversation ← SDK:', chatId)
     dispatch(updateChatFlags({ chatId, isMuted: true }))
   } catch (err) {
     console.error('[chat] muteConversation failed:', err)
@@ -415,7 +415,6 @@ export const unmuteConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiUnmuteConversation(chatId)
-      console.log('[chat] unmuteConversation ← SDK:', chatId)
       dispatch(updateChatFlags({ chatId, isMuted: false }))
     } catch (err) {
       console.error('[chat] unmuteConversation failed:', err)
@@ -435,7 +434,6 @@ export const pinConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiPinConversation(chatId)
-      console.log('[chat] pinConversation ← SDK:', chatId)
       dispatch(updateChatFlags({ chatId, isPinned: true }))
     } catch (err) {
       console.error('[chat] pinConversation failed:', err)
@@ -451,7 +449,6 @@ export const unpinConversation = createAsyncThunk<void, ChatEntityId>(
 
     try {
       await apiUnpinConversation(chatId)
-      console.log('[chat] unpinConversation ← SDK:', chatId)
       dispatch(updateChatFlags({ chatId, isPinned: false }))
     } catch (err) {
       console.error('[chat] unpinConversation failed:', err)
@@ -501,26 +498,153 @@ export const selectChat = createAsyncThunk<void, ChatEntityId>(
     if (!client) return
     if (typeof chatId !== 'string') return
 
+    // Seed the SDK's useChatStore.lastRead in parallel with the message fetch.
+    // Pure side-effect into Zustand — does not gate or alter the message
+    // pipeline, so a failure or slow response here cannot affect live
+    // messaging. Powers the unread divider + jump-to-first-unread UI.
+    getLastRead(chatId)
+      .then(({ lastReadMessageId, lastReadAt }) => {
+        if (lastReadMessageId && lastReadAt) {
+          useChatStore.getState().setLastRead(chatId, lastReadMessageId, lastReadAt)
+        }
+      })
+      .catch(err => {
+        console.warn('[chat] getLastRead failed for', chatId, err)
+      })
+
     try {
       const resp = await listMessages(chatId, { limit: 50 })
       const sdkMessages = resp.data ?? []
-      console.log('[chat] selectChat ← SDK:', sdkMessages.length, 'messages for', chatId)
 
       // SDK returns newest-first; the UI renders top-to-bottom oldest-to-newest.
       const messages = [...sdkMessages].reverse().map(sdkMessageToMessage)
 
-      dispatch(setChatMessages({ chatId, messages }))
+      dispatch(
+        setChatMessages({
+          chatId,
+          messages,
+          oldestCursor: resp.meta?.nextCursor ?? null,
+          hasMoreOlder: resp.meta?.hasMore ?? false
+        })
+      )
 
-      // Clear the server-side unread badge. Fire-and-forget — a failure here
-      // just means the badge sticks around, not a UX-breaking error.
-      markConversationRead(chatId).catch(err => {
-        console.warn('[chat] markAsRead failed for', chatId, err)
-      })
+      // Mark via socket so the server broadcasts read_receipt to the sender.
+      // The REST markAsRead endpoint does NOT trigger a socket broadcast.
+      markReadOverSocket(chatId)
     } catch (err) {
       console.error('[chat] selectChat failed to load messages:', err)
     }
   }
 )
+
+/**
+ * Load the next older page of messages for the currently visible chat.
+ *
+ * Uses cursor pagination from the SDK — the cursor we send is the
+ * `oldestCursor` saved from the previous response's `meta.nextCursor`. We pass
+ * `direction: 'before'` so the SDK returns messages older than the cursor.
+ *
+ * Guards inside the reducer prevent stacked calls; this thunk also short-
+ * circuits if pagination state says there's nothing more to load.
+ */
+export const loadOlderMessages = createAsyncThunk<void, ChatEntityId>(
+  'appChat/loadOlderMessages',
+  async (chatId, { dispatch, getState }) => {
+    const client = getChatClientOrNull()
+    if (!client || typeof chatId !== 'string') return
+
+    const state = getState() as { chat?: ChatStoreType }
+    const chatEntry = state.chat?.chats?.find(c => c.id === chatId)
+    if (!chatEntry) return
+    if (chatEntry.chat.loadingOlder) return
+    if (chatEntry.chat.hasMoreOlder === false) return
+    if (!chatEntry.chat.oldestCursor) return
+
+    dispatch(setLoadingOlder({ chatId, loading: true }))
+
+    try {
+      const resp = await listMessages(chatId, {
+        cursor: chatEntry.chat.oldestCursor,
+        direction: 'before',
+        limit: 50
+      })
+      const sdkMessages = resp.data ?? []
+
+      // SDK returns newest-first within the page; reverse for chronological order.
+      const messages = [...sdkMessages].reverse().map(sdkMessageToMessage)
+
+      dispatch(
+        prependChatMessages({
+          chatId,
+          messages,
+          oldestCursor: resp.meta?.nextCursor ?? null,
+          hasMoreOlder: resp.meta?.hasMore ?? false
+        })
+      )
+    } catch (err) {
+      console.error('[chat] loadOlderMessages failed:', err)
+      dispatch(setLoadingOlder({ chatId, loading: false }))
+    }
+  }
+)
+
+/**
+ * Replace the loaded message window with a context window centered on a
+ * specific message. Used by the chat-details search flow when the selected
+ * match is outside the currently-loaded slice of history.
+ *
+ * Fetches `limit` messages before and after the target plus the target
+ * itself, dedupes, and chronologically sorts. The new `oldestCursor` /
+ * `hasMoreOlder` flags come from the "before" page so upward pagination
+ * continues to work from this new position. Forward pagination is not
+ * supported yet — to get back to the very latest messages, the user reopens
+ * the chat.
+ */
+export const jumpToMessage = createAsyncThunk<
+  void,
+  { chatId: ChatEntityId; messageId: string }
+>('appChat/jumpToMessage', async ({ chatId, messageId }, { dispatch }) => {
+  const client = getChatClientOrNull()
+  if (!client || typeof chatId !== 'string' || !messageId) return
+
+  try {
+    const [before, after, target] = await Promise.all([
+      listMessages(chatId, { cursor: messageId, direction: 'before', limit: 25 }),
+      listMessages(chatId, { cursor: messageId, direction: 'after', limit: 25 }),
+      getMessage(messageId)
+    ])
+
+    // SDK returns each page newest-first; reverse so the merged array reads
+    // oldest → target → newest, matching how ChatLog renders.
+    const olderMessages = [...(before.data ?? [])].reverse().map(sdkMessageToMessage)
+    const newerMessages = [...(after.data ?? [])].reverse().map(sdkMessageToMessage)
+    const targetMessage = sdkMessageToMessage(target)
+
+    // Dedupe — cursor pagination semantics around the cursor message itself
+    // are SDK-defined, so the target id can appear in either the before /
+    // after page in addition to our explicit getMessage call.
+    const merged = [...olderMessages, targetMessage, ...newerMessages]
+    const seen = new Set<string>()
+    const messages = merged.filter(m => {
+      if (!m.id) return true
+      if (seen.has(m.id)) return false
+      seen.add(m.id)
+
+      return true
+    })
+
+    dispatch(
+      setChatMessages({
+        chatId,
+        messages,
+        oldestCursor: before.meta?.nextCursor ?? null,
+        hasMoreOlder: before.meta?.hasMore ?? false
+      })
+    )
+  } catch (err) {
+    console.error('[chat] jumpToMessage failed:', err)
+  }
+})
 
 /**
  * Send a message via the **Socket.IO `send_message` event** with an ack.
@@ -540,13 +664,11 @@ export const selectChat = createAsyncThunk<void, ChatEntityId>(
 export const sendMsg = createAsyncThunk(
   'appChat/sendMsg',
   async (obj: SendMsgParamsType & { contact?: ChatsArrType }, { getState }) => {
-    console.log('[chat:trace] 2. sendMsg thunk start →', obj)
-
     const conversationId = obj.contact?.id ?? obj.chat?.id
     const client = getChatClientOrNull()
 
     if (!client || typeof conversationId !== 'string') {
-      console.error('[chat:trace] sendMsg precondition failed', {
+      console.error('[chat] sendMsg precondition failed', {
         client: client ? 'ready' : 'null',
         conversationId
       })
@@ -555,10 +677,6 @@ export const sendMsg = createAsyncThunk(
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
-
-    const chatsList = state.chat?.chats ?? []
-    const found = chatsList.some(c => c.id === conversationId)
-    console.log('[chat:trace] 2a. conversationId in state.chats?', found, `(${chatsList.length} total)`)
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
@@ -575,19 +693,23 @@ export const sendMsg = createAsyncThunk(
         }))
       : undefined
 
+    // Reply: include the original message id so the server attaches a
+    // `replyTo` reference. Cleared from Redux at the end of this thunk.
+    const replyToId = state.chat?.replyingTo?.messageId
+
     let sent
     try {
       sent = await sendMessageOverSocket({
         conversationId,
         text: obj.message,
         tempId,
-        ...(attachments ? { attachments } : {})
+        ...(attachments ? { attachments } : {}),
+        ...(replyToId ? { replyTo: replyToId } : {})
       })
     } catch (err) {
-      console.error('[chat:trace] sendMessageOverSocket threw:', err)
+      console.error('[chat] sendMessageOverSocket threw:', err)
       throw err
     }
-    console.log('[chat:trace] 6. sendMsg ← ack received, msg id:', sent.id, '(tempId:', tempId, ')')
 
     // Defensive overrides:
     //  - The ack payload occasionally omits `content.text` — fall back to the
@@ -603,6 +725,20 @@ export const sendMsg = createAsyncThunk(
     if (!newMsg.attachments?.length && obj.attachments?.length) {
       newMsg.attachments = obj.attachments
     }
+    // Stamp the reply ref locally — the ack often doesn't echo it back. The
+    // server's eventual broadcast will overwrite with the canonical preview.
+    if (!newMsg.replyTo && state.chat?.replyingTo) {
+      newMsg.replyTo = state.chat.replyingTo
+    }
+
+    // Anchor for the receipt flow: this id is what we expect to see come
+    // back in a future read_receipt event when the other user opens the chat.
+    console.log('[chat:receipt] A0 sent message anchor:', {
+      id: newMsg.id,
+      conversationId,
+      initialFeedback: newMsg.feedback,
+      text: newMsg.message?.slice(0, 40)
+    })
 
     return { newMsg, contactId: conversationId }
   }
@@ -618,7 +754,10 @@ const initialState: ChatStoreType = {
   userProfile: null,
   selectedChat: null,
   activeFilter: 'all',
-  loadingMessages: false
+  loadingMessages: false,
+  pendingFeedback: {},
+  replyingTo: null,
+  editingMessage: null
 }
 
 export const appChatSlice = createSlice({
@@ -675,8 +814,216 @@ export const appChatSlice = createSlice({
       if (isMuted !== undefined) chatEntry.isMuted = isMuted
       if (isPinned !== undefined) chatEntry.isPinned = isPinned
       if (isFavourite !== undefined) chatEntry.isFavourite = isFavourite
+
+      // Keep selectedChat.contact in sync so the UI reflects the change
+      if (state.selectedChat?.contact?.id === chatId) {
+        if (isMuted !== undefined) state.selectedChat.contact.isMuted = isMuted
+        if (isPinned !== undefined) state.selectedChat.contact.isPinned = isPinned
+        if (isFavourite !== undefined) state.selectedChat.contact.isFavourite = isFavourite
+      }
       if (state.selectedChat?.contact.id === chatId) {
         state.selectedChat.contact = chatEntry
+      }
+    },
+    // Authoritative unread count from the server — pushed via the
+    // `unread_count_changed` socket event whenever the server recalculates
+    // the count for this user (mark-read from any device, message
+    // deletion-for-me, etc.). Replaces our local count rather than
+    // incrementing, because the server is the source of truth.
+    setUnreadCount: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; count: number }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, count } = action.payload
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      chatEntry.chat.unseenMsgs = count
+      if (state.selectedChat?.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat },
+          contact: chatEntry
+        }
+      }
+    },
+    // Composer reply state — set by clicking "Reply" on a bubble, cleared by
+    // the composer's cancel button or by sendMsg.fulfilled.
+    setReplyingTo: (state, action: PayloadAction<MessageReplyRef | null>) => {
+      state.replyingTo = action.payload
+    },
+    // Composer edit state — set by clicking "Edit" on an own bubble; cleared
+    // when the edit completes or the user cancels.
+    setEditingMessage: (
+      state,
+      action: PayloadAction<{ messageId: string; originalText: string } | null>
+    ) => {
+      state.editingMessage = action.payload
+    },
+    // Pin — server-broadcast on `message_pin_updated`. Visible to all
+    // participants of the conversation.
+    applyMessagePin: (
+      state,
+      action: PayloadAction<{ messageId: string; isPinned: boolean }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, isPinned } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.isPinned = isPinned
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Star — personal flag. No server broadcast; we toggle locally and call
+    // REST. The thunk-level call is fire-and-forget; if the network fails the
+    // UI is slightly off until the next refresh.
+    setMessageStarred: (
+      state,
+      action: PayloadAction<{ messageId: string; isStarred: boolean }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, isStarred } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.isStarred = isStarred
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a server-broadcast "delete for everyone". We don't remove the
+    // message — we mark it as deleted so the placeholder ("This message was
+    // deleted") renders in-place. Matches WhatsApp/Telegram behavior.
+    applyMessageDelete: (state, action: PayloadAction<{ messageId: string }>) => {
+      if (!state.chats) return
+      const { messageId } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.isDeletedForEveryone = true
+            m.message = ''
+            m.attachments = undefined
+            m.reactions = undefined
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a "delete for me" — removes the message entirely from local state.
+    // Fires only on the device that called the action (server emits this only
+    // to that user's socket).
+    applyMessageDeleteForMe: (state, action: PayloadAction<{ messageId: string }>) => {
+      if (!state.chats) return
+      const { messageId } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        const before = chat.chat.messages.length
+        chat.chat.messages = chat.chat.messages.filter(m => m.id !== messageId)
+        if (chat.chat.messages.length !== before) touched = chat.id
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a server-broadcast edit. Updates `message`, `isEdited` and
+    // `editedAt` on whichever message matches.
+    applyMessageUpdate: (
+      state,
+      action: PayloadAction<{ messageId: string; text: string; editedAt?: string }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, text, editedAt } = action.payload
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.message = text
+            m.isEdited = true
+            if (editedAt) m.editedAt = editedAt
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
+      }
+    },
+    // Apply a server-broadcast reactions update to a single message. The
+    // server's `reactions` array is authoritative — replace, don't merge.
+    applyReactionUpdate: (
+      state,
+      action: PayloadAction<{ messageId: string; reactions: { emoji: string; userIds: string[]; count?: number }[] }>
+    ) => {
+      if (!state.chats) return
+      const { messageId, reactions } = action.payload
+      const normalized = reactions.map(r => ({
+        emoji: r.emoji,
+        userIds: r.userIds ?? [],
+        count: r.count ?? r.userIds?.length ?? 0
+      }))
+
+      let touched: ChatEntityId | null = null
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (m.id === messageId) {
+            m.reactions = normalized
+            touched = chat.id
+          }
+        })
+      })
+      if (touched && state.selectedChat?.contact.id === touched) {
+        const openChat = state.chats.find(c => c.id === touched)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+        }
       }
     },
     // Remove a chat from the sidebar list and clear selectedChat if it was open.
@@ -730,25 +1077,82 @@ export const appChatSlice = createSlice({
         isSeen?: boolean
       }>
     ) => {
-      if (!state.chats) return
+      if (!state.chats) {
+        console.warn('[chat:receipt] R0 reducer skipped — state.chats is null')
+
+        return
+      }
       const { conversationId, messageIds, isDelivered, isSeen } = action.payload
-
-      const chatEntry = state.chats.find(c => c.id === conversationId)
-      if (!chatEntry) return
-
-      const idSet = new Set(messageIds)
-      chatEntry.chat.messages.forEach(m => {
-        if (!m.id || !idSet.has(m.id)) return
-        if (isDelivered === true) m.feedback.isDelivered = true
-        if (isSeen === true) {
-          m.feedback.isSeen = true
-          m.feedback.isDelivered = true // read implies delivered
-        }
+      console.log('[chat:receipt] R0 updateMessagesFeedback ← payload:', {
+        conversationId,
+        messageIds,
+        isDelivered,
+        isSeen
       })
 
-      // Mirror into selectedChat if it's the open one (so the panel re-renders).
-      if (state.selectedChat?.contact.id === conversationId) {
-        state.selectedChat.chat = chatEntry.chat
+      // Search ALL chats for matching message ids — don't trust the event's
+      // `conversationId` because the backend sometimes emits a `read_receipt`
+      // with a mismatched conversationId (derived from the reader's
+      // perspective rather than the message's actual home). Message ids are
+      // globally unique ObjectIds, so finding by id is authoritative.
+      const idSet = new Set(messageIds)
+      const matchedIds: string[] = []
+      const touchedChatIds = new Set<ChatEntityId>()
+      state.chats.forEach(chat => {
+        chat.chat.messages.forEach(m => {
+          if (!m.id || !idSet.has(m.id)) return
+          if (isDelivered === true) m.feedback.isDelivered = true
+          if (isSeen === true) {
+            m.feedback.isSeen = true
+            m.feedback.isDelivered = true // read implies delivered
+          }
+          matchedIds.push(m.id)
+          touchedChatIds.add(chat.id)
+        })
+      })
+
+      const missed = messageIds.filter(id => !matchedIds.includes(id))
+      console.log(
+        `[chat:receipt] R2 reducer: matched ${matchedIds.length}/${messageIds.length} messages`,
+        {
+          matchedIds,
+          missedIds: missed,
+          touchedChats: Array.from(touchedChatIds),
+          eventConversationId: conversationId
+        }
+      )
+      if (missed.length) {
+        // Buffer pending feedback for messages we haven't appended yet.
+        // Drained by sendMsg.fulfilled / receiveMessage. This handles the
+        // common race where `message_delivered` arrives BEFORE the send ack
+        // callback resolves (Socket.IO can deliver event packets ahead of the
+        // ack callback for the same network frame).
+        missed.forEach(id => {
+          const existing = state.pendingFeedback[id] ?? {}
+          state.pendingFeedback[id] = {
+            isDelivered: existing.isDelivered || isDelivered === true,
+            isSeen: existing.isSeen || isSeen === true
+          }
+        })
+        console.warn(
+          '[chat:receipt] R2a missed ids — buffered into pendingFeedback:',
+          missed,
+          'current buffer:',
+          state.pendingFeedback
+        )
+      }
+
+      // Mirror into selectedChat if any of the matched messages live in the
+      // currently open chat (so the panel re-renders).
+      if (state.selectedChat && touchedChatIds.has(state.selectedChat.contact.id)) {
+        const openChat = state.chats.find(c => c.id === state.selectedChat!.contact.id)
+        if (openChat) {
+          state.selectedChat = {
+            chat: { ...openChat.chat, messages: [...openChat.chat.messages] },
+            contact: openChat
+          }
+          console.log('[chat:receipt] R3 mirrored into selectedChat (panel will re-render)')
+        }
       }
     },
     // Live-incoming message from the socket. Dispatched by AppChat's
@@ -764,30 +1168,56 @@ export const appChatSlice = createSlice({
       action: PayloadAction<{ conversationId: ChatEntityId; message: MessageType; isOwn?: boolean }>
     ) => {
       const { conversationId, message, isOwn } = action.payload
-      console.log('[chat:trace] R1. receiveMessage reducer →', {
-        conversationId,
-        msgId: message.id,
-        isOwn,
-        chatsLen: state.chats?.length ?? 0
-      })
 
       if (!state.chats) {
-        console.warn('[chat:trace] R1a. dropped: no chats in state yet')
+        console.warn('[chat] receiveMessage dropped: no chats in state yet')
 
         return
       }
 
       const chatEntry = state.chats.find(c => c.id === conversationId)
       if (!chatEntry) {
-        console.warn('[chat:trace] R1b. dropped: no chat entry for', conversationId)
+        console.warn('[chat] receiveMessage dropped: no chat entry for', conversationId)
 
         return
       }
 
-      if (message.id && chatEntry.chat.messages.some(m => m.id === message.id)) {
-        console.log('[chat:trace] R1c. dedupe: message already present')
+      if (message.id) {
+        const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === message.id)
+        if (existingIdx >= 0) {
+          // Dedupe but MERGE feedback — the broadcast echo may carry a
+          // stronger delivery status than the ack we already stored
+          // (e.g. ack returned `sent` but by the time the broadcast
+          // round-tripped, server flipped to `delivered`). isSent/isDelivered/isSeen
+          // are monotonic: once true, they stay true.
+          const existing = chatEntry.chat.messages[existingIdx]
+          const mergedFeedback = {
+            isSent: existing.feedback.isSent || message.feedback.isSent,
+            isDelivered: existing.feedback.isDelivered || message.feedback.isDelivered,
+            isSeen: existing.feedback.isSeen || message.feedback.isSeen
+          }
+          const feedbackChanged =
+            mergedFeedback.isSent !== existing.feedback.isSent ||
+            mergedFeedback.isDelivered !== existing.feedback.isDelivered ||
+            mergedFeedback.isSeen !== existing.feedback.isSeen
+          if (feedbackChanged) {
+            chatEntry.chat.messages[existingIdx] = { ...existing, feedback: mergedFeedback }
+            console.log('[chat:receipt] R1c.feedback-merge dedupe + upgraded feedback for', message.id, {
+              before: existing.feedback,
+              after: mergedFeedback
+            })
+            // Touch selectedChat so the bubble re-renders
+            if (state.selectedChat?.contact.id === conversationId) {
+              state.selectedChat = {
+                chat: { ...chatEntry.chat, messages: [...chatEntry.chat.messages] },
+                contact: chatEntry
+              }
+            }
+          } else {
+          }
 
-        return
+          return
+        }
       }
 
       // Force senderId to the current user's id when this is an echo of
@@ -797,9 +1227,34 @@ export const appChatSlice = createSlice({
       const stored: MessageType =
         isOwn && state.userProfile ? { ...message, senderId: state.userProfile.id } : message
 
+      // Drain pending feedback if any receipts arrived before this broadcast.
+      if (stored.id && state.pendingFeedback[stored.id]) {
+        const pf = state.pendingFeedback[stored.id]
+        const before = { ...stored.feedback }
+        stored.feedback = {
+          isSent: stored.feedback.isSent,
+          isDelivered: stored.feedback.isDelivered || Boolean(pf.isDelivered) || Boolean(pf.isSeen),
+          isSeen: stored.feedback.isSeen || Boolean(pf.isSeen)
+        }
+        delete state.pendingFeedback[stored.id]
+        console.log('[chat:receipt] R1.drain applied pendingFeedback to', stored.id, {
+          before,
+          pending: pf,
+          after: stored.feedback
+        })
+      }
+
       const newMessages = [...chatEntry.chat.messages, stored]
       chatEntry.chat.messages = newMessages
       chatEntry.chat.lastMessage = stored
+
+      // Move this chat to the top of the list so the sidebar reflects
+      // the most recent activity.
+      const idx = state.chats.indexOf(chatEntry)
+      if (idx > 0) {
+        state.chats.splice(idx, 1)
+        state.chats.unshift(chatEntry)
+      }
 
       const isOpen = state.selectedChat?.contact.id === conversationId
       if (isOpen) {
@@ -810,31 +1265,93 @@ export const appChatSlice = createSlice({
           chat: { ...chatEntry.chat, messages: newMessages },
           contact: chatEntry
         }
-        console.log('[chat:trace] R1d. pushed + synced selectedChat (new ref, len=' + newMessages.length + ')')
       } else {
         const isMine =
           isOwn || (state.userProfile != null && message.senderId === state.userProfile.id)
         if (!isMine) chatEntry.chat.unseenMsgs += 1
-        console.log('[chat:trace] R1e. pushed (background); unread =', chatEntry.chat.unseenMsgs)
       }
     },
     // Replaces the messages array for a chat. Dispatched by the `selectChat`
-    // thunk after `messages.list()` resolves.
+    // thunk after `messages.list()` resolves. Also carries the cursor
+    // pagination meta so the next "load older" call has somewhere to start.
     setChatMessages: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; messages: MessageType[] }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        messages: MessageType[]
+        oldestCursor?: string | null
+        hasMoreOlder?: boolean
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, messages } = action.payload
+      const { chatId, messages, oldestCursor, hasMoreOlder } = action.payload
 
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
 
       chatEntry.chat.messages = messages
       chatEntry.chat.lastMessage = messages[messages.length - 1]
+      if (oldestCursor !== undefined) chatEntry.chat.oldestCursor = oldestCursor
+      if (hasMoreOlder !== undefined) chatEntry.chat.hasMoreOlder = hasMoreOlder
+      chatEntry.chat.loadingOlder = false
 
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat.chat = chatEntry.chat
+      }
+    },
+    // Prepend an older page of messages to the chat. Updates the cursor /
+    // hasMore flags so subsequent pages chain correctly, and clears the
+    // loading flag. Always re-creates `selectedChat.chat.messages` as a new
+    // array so React's reference check fires.
+    prependChatMessages: (
+      state,
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        messages: MessageType[]
+        oldestCursor: string | null
+        hasMoreOlder: boolean
+      }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, messages, oldestCursor, hasMoreOlder } = action.payload
+
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+
+      // Dedupe — in rare races a page boundary message could already exist.
+      const existingIds = new Set(chatEntry.chat.messages.map(m => m.id).filter(Boolean) as string[])
+      const incoming = messages.filter(m => !m.id || !existingIds.has(m.id))
+
+      chatEntry.chat.messages = [...incoming, ...chatEntry.chat.messages]
+      chatEntry.chat.oldestCursor = oldestCursor
+      chatEntry.chat.hasMoreOlder = hasMoreOlder
+      chatEntry.chat.loadingOlder = false
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat, messages: [...chatEntry.chat.messages] },
+          contact: chatEntry
+        }
+      }
+    },
+    // Toggle the `loadingOlder` flag for a chat. The thunk sets it true before
+    // the network call; the prepend reducer (or the thunk's catch branch)
+    // clears it.
+    setLoadingOlder: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; loading: boolean }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, loading } = action.payload
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      chatEntry.chat.loadingOlder = loading
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat },
+          contact: chatEntry
+        }
       }
     }
   },
@@ -890,21 +1407,20 @@ export const appChatSlice = createSlice({
     })
     builder.addCase(sendMsg.fulfilled, (state, action) => {
       const { newMsg, contactId } = action.payload
-      console.log('[chat:trace] 7. sendMsg.fulfilled reducer →', {
-        contactId,
-        newMsgId: newMsg.id,
-        chatsLen: state.chats?.length ?? 0
-      })
+
+      // Clear the composer reply state after a successful send (regardless of
+      // whether the chats array is in a state to accept the message).
+      if (state.replyingTo) state.replyingTo = null
 
       if (!state.chats || contactId == null) {
-        console.warn('[chat:trace] 7a. dropped: missing chats or contactId')
+        console.warn('[chat] sendMsg.fulfilled dropped: missing chats or contactId')
 
         return
       }
 
       const chatEntry = state.chats.find(c => c.id === contactId)
       if (!chatEntry) {
-        console.warn('[chat:trace] 7b. dropped: no chat entry for contactId', contactId)
+        console.warn('[chat] sendMsg.fulfilled dropped: no chat entry for contactId', contactId)
 
         return
       }
@@ -912,10 +1428,23 @@ export const appChatSlice = createSlice({
       if (newMsg.id) {
         const existingIdx = chatEntry.chat.messages.findIndex(m => m.id === newMsg.id)
         if (existingIdx >= 0) {
-          console.log('[chat:trace] 7c. dedupe: broadcast beat the ack, updating senderId only')
+          // Broadcast echo beat our ack into Redux. Merge senderId AND the
+          // stronger feedback flags so we don't lose delivered/seen state.
+          const existing = chatEntry.chat.messages[existingIdx]
+          const mergedFeedback = {
+            isSent: existing.feedback.isSent || newMsg.feedback.isSent,
+            isDelivered: existing.feedback.isDelivered || newMsg.feedback.isDelivered,
+            isSeen: existing.feedback.isSeen || newMsg.feedback.isSeen
+          }
+          console.log('[chat:receipt] 7c.feedback-merge ack: dedupe + merged feedback for', newMsg.id, {
+            existing: existing.feedback,
+            ackProvided: newMsg.feedback,
+            merged: mergedFeedback
+          })
           chatEntry.chat.messages[existingIdx] = {
-            ...chatEntry.chat.messages[existingIdx],
-            senderId: newMsg.senderId
+            ...existing,
+            senderId: newMsg.senderId,
+            feedback: mergedFeedback
           }
           if (state.selectedChat && state.selectedChat.contact.id === contactId) {
             state.selectedChat = {
@@ -928,16 +1457,40 @@ export const appChatSlice = createSlice({
         }
       }
 
-      console.log('[chat:trace] 7d. pushing new message into thread', newMsg.id)
+      // Drain any pending feedback (delivered/seen) that arrived before this
+      // ack callback resolved. Apply to the message we're about to push so the
+      // tick state is correct from the first render.
+      if (newMsg.id && state.pendingFeedback[newMsg.id]) {
+        const pf = state.pendingFeedback[newMsg.id]
+        const before = { ...newMsg.feedback }
+        if (pf.isDelivered) newMsg.feedback.isDelivered = true
+        if (pf.isSeen) {
+          newMsg.feedback.isSeen = true
+          newMsg.feedback.isDelivered = true
+        }
+        delete state.pendingFeedback[newMsg.id]
+        console.log('[chat:receipt] 7d.drain applied pendingFeedback to', newMsg.id, {
+          before,
+          pending: pf,
+          after: newMsg.feedback
+        })
+      }
       const newMessages = [...chatEntry.chat.messages, newMsg]
       chatEntry.chat.messages = newMessages
       chatEntry.chat.lastMessage = newMsg
+
+      // Move this chat to the top of the list.
+      const idx = state.chats.indexOf(chatEntry)
+      if (idx > 0) {
+        state.chats.splice(idx, 1)
+        state.chats.unshift(chatEntry)
+      }
+
       if (state.selectedChat && state.selectedChat.contact.id === contactId) {
         state.selectedChat = {
           chat: { ...chatEntry.chat, messages: newMessages },
           contact: chatEntry
         }
-        console.log('[chat:trace] 7e. selectedChat synced (new ref)')
       }
     })
   }
@@ -946,10 +1499,21 @@ export const appChatSlice = createSlice({
 export const {
   setSelectedChat,
   setChatMessages,
+  prependChatMessages,
+  setLoadingOlder,
   receiveMessage,
   updateMessagesFeedback,
   addOrReplaceChat,
   updateChatFlags,
+  setUnreadCount,
+  setReplyingTo,
+  setEditingMessage,
+  applyMessageUpdate,
+  applyMessageDelete,
+  applyMessageDeleteForMe,
+  setMessageStarred,
+  applyMessagePin,
+  applyReactionUpdate,
   removeChatFromList,
   removeSelectedChat,
   setActiveFilter

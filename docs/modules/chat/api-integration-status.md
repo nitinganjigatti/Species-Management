@@ -2,9 +2,9 @@
 
 Tracks which SDK methods are wired into the app today and which still need work. The full SDK reference (signatures, types, examples) lives in [antzsoft-chat-core.md](./antzsoft-chat-core.md); architecture overview in [chat-core-starter.md](./chat-core-starter.md).
 
-**Currently on `@antzsoft/chat-core@1.0.2`** (path-prefix socket bug fixed → custom socket wrapper deleted; SDK handles connect / disconnect / reconnect natively).
+**Currently on `@antzsoft/chat-core@1.0.6`** (path-prefix socket bug fixed → custom socket wrapper deleted; SDK handles connect / disconnect / reconnect natively; new lightweight ack shape `{success, messageId}` is handled by synthesizing a Message from the request payload).
 
-Legend: ✅ wired · ☐ pending (needs UI or no consumer yet) · ⚠️ partial / known gap
+Legend: ✅ wired (used by app) · 🔌 exposed in `api.ts` facade but no UI consumer yet · ☐ neither · ⚠️ partial / known gap
 
 ---
 
@@ -25,6 +25,8 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 | Method | Status | Where / Notes |
 |---|---|---|
 | `getMe` | ✅ | `fetchUserProfile` thunk — [src/store/apps/chat/index.ts](../../../src/store/apps/chat/index.ts) |
+| `syncAvatar` | ✅ | `fetchUserProfile` thunk — pushes avatar URL post-login |
+| `uploadAvatar` | 🔌 | Exposed in `api.ts`. Builtin-auth mode only; we use WSO2 SSO so unused. |
 | `login` | ☐ | Not used — WSO2 owns auth, JWT is passed via `authToken` config |
 | `register` | ☐ | Same as above |
 | `refresh` | ⚠️ | Not wired. SDK's internal refresh hits `/auth/refresh` (doesn't exist on our chat backend). The new `refreshSocketAuth()` only handles the socket side. |
@@ -36,11 +38,11 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 
 | Method | Status | Where / Notes |
 |---|---|---|
-| `list` | ✅ | `fetchChatsContacts` thunk — fetches `{ page: 1, limit: 50 }`. Auto re-fired on socket connect and on `new_message` for an unknown conversation. |
+| `list` | ✅ | `fetchChatsContacts` thunk — calls `listConversations()` with **no `page`/`limit`** so server returns all matching (per SDK doc Step 6 "Pagination is optional"). Auto re-fired on socket connect and on `new_message` for an unknown conversation. Accepts full `ConversationListParams` for future server-side filtering (type / isPinned / isMuted / hasUnread / search / role / hasAttachments / attachmentType / notificationsEnabled). |
 | `get` | ✅ | `fetchConversation` thunk — refresh single conversation by id |
-| `createGroup` | ✅ | `createGroupChat` thunk; dispatched from `CreateGroupDrawer` |
+| `createGroup` | ✅ | `createGroupChat` thunk; dispatched from `CreateGroupDrawer`. **SDK 1.0.6 breaking change:** `icon` field was removed from `CreateGroupData`. Group icon must now be uploaded **after** create via `uploadConversationIcon(groupId, fileId)` — not yet wired in UI. |
 | `createDirect` | ✅ | `startDirectChat` thunk — idempotent, fired from compose popover |
-| `update` | ✅ | `updateGroupChat` thunk; inline edit of group name + description in [UserProfileRight.tsx](../../../src/views/apps/chat/UserProfileRight.tsx) (admin-only) |
+| `update` | ✅ | `updateGroupChat` thunk; inline edit of group name + description in [UserProfileRight.tsx](../../../src/views/apps/chat/UserProfileRight.tsx) (admin-only). **SDK 1.0.6 breaking change:** `icon` removed from `UpdateConversationData`. |
 | `delete` | ✅ | `deleteConversation` thunk; "Delete group" in danger zone (admin-only on backend) |
 | `addParticipants` | ✅ | `addParticipantsToGroup` thunk; "Add" flow uses `searchUsers` |
 | `removeParticipant` | ⚠️ | `removeParticipantFromGroup` thunk wired; member-row kebab → "Remove from group". **Known bug:** UI does not refresh after backend confirms — see "Risks" |
@@ -49,7 +51,33 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 | `pin` / `unpin` | ✅ | `pinConversation` / `unpinConversation` thunks; toggle in group actions |
 | `leave` | ✅ | `leaveGroupChat` thunk; "Leave group" in danger zone, uses shared `ConfirmationDialog` |
 | `getMembers` | ✅ | `getGroupMembers` thunk; raw return — no consumer in UI yet (member list still derived from `conv.participants`) |
-| `searchUsers` | ✅ | Used by Compose popover, CreateGroupDrawer member picker, and group "Add members" flow. Debounced 300ms; empty string returns full user list |
+| `getUnreadCount(id)` | 🔌 | Exposed as `getConversationUnreadCount` — single-conversation badge refresh after foreground / reconnect |
+| `getUnreadSummary()` | 🔌 | Exposed in `api.ts`. Source of truth for cold-start / post-reconnect unread totals across all conversations |
+| `uploadIcon(id, fileId)` | 🔌 | Exposed as `uploadConversationIcon`. Two-step: `uploadChatFiles([file], groupId)` → returned `fileId` → this call. CreateGroupDrawer still collects an icon URL but it's currently inert post-1.0.6. |
+
+---
+
+## Users API (`usersApi`)
+
+**SDK 1.0.6 breaking change:** user search moved from `conversationsApi.searchUsers(query)` (removed) to `usersApi.list({ query })`. Our `searchUsers` wrapper unwraps the new `PaginatedResponse<User>.data` shape.
+
+| Method | Status | Where / Notes |
+|---|---|---|
+| `list({ query })` | ✅ | Wrapped as `searchUsers(query)` — used by Compose popover, CreateGroupDrawer member picker, and group "Add members" flow. Debounced 300ms; empty string returns full user list. Full paginated variant `listUsers(params)` also exposed. |
+| `getById(userId)` | 🔌 | `getUserById` in `api.ts` — no UI consumer yet |
+| `getLastSeen(userId)` | 🔌 | `getUserLastSeen` in `api.ts` — needed for DM "last seen" UI (not yet wired). Pairs with `useChatStore.lastSeen` which the SDK auto-hydrates from `user_offline` events. |
+| `getPreferences()` / `updatePreferences(prefs)` | 🔌 | `getUserPreferences` / `updateUserPreferences` in `api.ts` — needed for notification settings UI |
+
+---
+
+## Devices API (`devicesApi`) — push notifications
+
+The SDK exports `devicesApi` at module level (not on the `AntzChatClient` instance). Both wrappers gate on SDK initialization via `requireClient()` but call `sdkDevicesApi` directly.
+
+| Method | Status | Where / Notes |
+|---|---|---|
+| `register(payload)` | 🔌 | `registerDevice` in `api.ts`. Supports mobile (`expo` / `fcm` / `apns`) and web (`web-push` with VAPID `endpoint` / `p256dh` / `auth`). Not yet called — needs OS-level token acquisition flow. |
+| `remove(deviceId)` | 🔌 | `removeDevice` — call on logout to stop push delivery |
 
 ---
 
@@ -58,15 +86,19 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 | Method | Status | Where / Notes |
 |---|---|---|
 | `list` | ✅ | `selectChat` thunk — limit 50, reversed for chronological render |
-| `get` | ☐ | — |
-| `send` | ✅ | **Now via Socket.IO** (`socketEmit.sendMessage`), not REST. `sendMsg` thunk → `sendMessageOverSocket(payload)` → ack-based promise. tempId generated client-side for dedup against the broadcast echo. |
-| `update` | ☐ | No edit UI yet |
-| `delete` | ☐ | No delete UI yet |
-| `addReaction` / `removeReaction` | ☐ | No reaction picker UI |
-| `star` / `unstar` / `getStarred` | ☐ | No star UI |
-| `search` | ☐ | Sidebar search currently filters loaded chats only |
+| `get(messageId)` | 🔌 | `getMessage` in `api.ts` — useful for deep-link → fetch single message |
+| `send` (REST) | 🔌 | We use socket `socketEmit.sendMessage` instead. REST `send` is not wrapped (no consumer would need it). |
+| `update(messageId, text)` | ✅ | Wired via socket `updateMessageOverSocket` — invoked from `MessageActions` 3-dot → Edit. Composer enters edit mode (banner + prefilled text), submits via socket. `message_updated` event → `applyMessageUpdate` reducer → bubble shows `(edited)`. REST `updateMessage` also exposed. |
+| `delete(messageId)` | ✅ | Wired via socket `deleteMessageOverSocket` — invoked from `MessageActions` 3-dot → Delete for everyone. Confirmation via shared `ConfirmationDialog`. `message_deleted` event → `applyMessageDelete` reducer → bubble shows "This message was deleted" tombstone. **Works on text and all attachment types** (audio / video / image / document) — same `MessageActions` component everywhere. REST `deleteMessage` also exposed. |
+| `deleteForMe(messageId)` | ✅ | Wired via socket `deleteMessageForMeOverSocket` — invoked from `MessageActions` 3-dot → Delete for me. `message_deleted_for_me` event → `applyMessageDeleteForMe` reducer → message removed from local thread only. REST `deleteMessageForMe` also exposed. |
+| `addReaction` / `removeReaction` | ✅ | Wired via socket `addReactionOverSocket` / `removeReactionOverSocket`. Reaction picker popover in `MessageActions` (6 quick emojis: 👍 ❤️ 😂 😮 😢 🙏). Reaction chips render below bubble; click chip = toggle your reaction. `reaction_updated` event → `applyReactionUpdate` reducer (full array replace, server is authoritative). |
+| `star` / `unstar` | ✅ | Wired via REST `starMessage` / `unstarMessage` — invoked from `MessageActions` 3-dot. Optimistic local toggle via `setMessageStarred` reducer with revert on failure. Star icon renders inline on bubble. No server broadcast event (personal flag). |
+| `getStarred` | 🔌 | `listStarredMessages` in `api.ts`. No starred-messages view in UI yet. |
+| `search(params)` | 🔌 | `searchMessages` in `api.ts`. Sidebar search currently filters loaded chats only; this would power proper server-side message search. |
+| `getLastRead(conversationId)` | ✅ | `selectChat` thunk seeds `useChatStore.lastRead` via this on every chat open. Powers the future unread-divider + jump-to-first-unread UI. |
 | `markAsRead` | ✅ | `selectChat` thunk + `new_message` socket handler (when chat is open) |
-| `pin` / `unpin` / `getPinned` | ☐ | No pin UI |
+| `pin` / `unpin` | ✅ | Wired via socket `pinMessageOverSocket` / `unpinMessageOverSocket` — invoked from `MessageActions` 3-dot. Gating: DM both sides can pin; group admin-only. `message_pin_updated` event → `applyMessagePin` reducer. Pinned strip renders above ChatLog showing the latest pinned message + count; click jumps + flashes. REST `pinMessage` / `unpinMessage` also exposed. |
+| `getPinned` | 🔌 | `listPinnedMessages` in `api.ts`. Currently the pinned strip derives from `chat.messages.filter(m => m.isPinned)`; could swap to a dedicated query for very long threads. |
 
 ---
 
@@ -74,16 +106,14 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 
 | Method | Status | Where / Notes |
 |---|---|---|
-| `requestPresignedUrl` | ☐ | No attachment send UI |
-| `requestPresignedUrlBatch` | ☐ | — |
-| `confirmUpload` | ☐ | Required after every binary upload completes |
-| `getFile` | ☐ | — |
-| `getFileUrl` | ☐ | Refresh expired signed URL for existing file |
+| `uploadFiles` (via `client.uploadFiles`) | ✅ | Wrapped as `uploadChatFiles(files, convId)` in `api.ts`. Used by `SendMsgForm` for attachment send. Orchestrates presigned → `platformUploadFn` → confirm internally. |
+| `platformUploadFn` (XHR adapter) | ✅ | Provided in [src/lib/chat/client.ts](../../../src/lib/chat/client.ts). Browser XHR with progress events. |
+| `requestPresignedUrl` / `requestPresignedUrlBatch` | ☐ | Low-level — not exposed; `uploadChatFiles` handles batching internally |
+| `confirmUpload` | ☐ | Low-level — handled inside `uploadChatFiles` |
+| `getFile` / `getFileUrl` | ☐ | Not exposed yet — useful when a signed URL expires mid-render |
 | `deleteFile` | ☐ | No delete-attachment UI |
 | `getConversationFiles` | ☐ | Could power a "Media / Files" tab in group info |
 | `getMyFiles` | ☐ | — |
-| `uploadBatch` (helper) | ☐ | Orchestrates presigned + XHR + confirm; calls our `platformUploadFn` |
-| `platformUploadFn` (XHR adapter) | ✅ | Provided in [src/lib/chat/client.ts](../../../src/lib/chat/client.ts) — wired but unexercised until upload UI exists |
 
 ---
 
@@ -108,15 +138,18 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 |---|---|---|
 | `new_message` | ✅ | AppChat → `receiveMessage` reducer (dedupes by id, uses `isOwn` flag from `evt.tempId`). If the conversation isn't in our list yet → triggers `fetchChatsContacts()` to refresh. |
 | `message_ack` | ☐ | Needed for optimistic-send → real-id reconciliation |
-| `message_delivered` / `messages_delivered` | ✅ | AppChat → `updateMessagesFeedback({isDelivered: true})` |
-| `read_receipt` | ✅ | AppChat → `updateMessagesFeedback({isSeen: true})`; handles single / `updatedMessageIds[]` / `fullyReadMessageIds[]` shapes |
+| `message_delivered` / `messages_delivered` | ✅ | AppChat → `updateMessagesFeedback({isDelivered: true})`. Includes a **pending-feedback buffer** in the slice — if delivery fires before the ack callback adds the message to Redux (Socket.IO can deliver event packets ahead of the ack), the receipt is buffered by `messageId` and drained when the message is appended. Also includes a **presence cross-check** that logs `⚠ BACKEND-SUSPICIOUS` when delivery fires but no recipient is online per `useChatStore.onlineUsers`. |
+| `read_receipt` | ✅ | AppChat → `updateMessagesFeedback({isSeen: true})`. **DM vs group semantics**: for DMs any read = full read (only one recipient); for groups only `fullyReadMessageIds` flips the green tick (partial reads via `updatedMessageIds` / bare `messageId` are deliberately ignored). Same buffering + presence cross-check as delivery. |
+| `unread_count_changed` | ✅ | AppChat → `setUnreadCount` reducer; keeps the sidebar badge in sync across devices/tabs without REST refetch |
+| `conversation_created` | ✅ | AppChat refreshes list and emits `joinRoom` so realtime events flow for newly-added conversations without reload |
+| `conversation_deleted` | ✅ | AppChat refreshes list so the stale row disappears |
 | `message_updated` | ☐ | Needs edit feature |
 | `message_deleted` / `message_deleted_for_me` | ☐ | Needs delete feature |
 | `reaction_updated` | ☐ | Needs reactions feature |
 | `typing` | ⚠️ | Logged to console, not wired to UI |
 | `user_status` | ⚠️ | Logged to console, not wired to UI (avatar status dots are static) |
 
-> Temporary `socket.onAny(...)` debug listener is active in [AppChat.tsx](../../../src/views/apps/chat/AppChat.tsx) — remove once all event names are confirmed in production.
+> The temporary `socket.onAny(...)` and `[chat:trace]` / `[chat:avatar]` / `[chat:handshake]` debug logs have been removed. Only `[chat:receipt]` instrumentation remains — these are the targeted receipt-flow diagnostics described in the "Receipt flow" section below.
 
 ---
 
@@ -125,14 +158,107 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 | Emit | Status | Where / Notes |
 |---|---|---|
 | `joinRoom` | ✅ | `joinChatRoom(id)` from api.ts; fired per chat in AppChat |
-| `leaveRoom` | ☐ | Not strictly needed |
+| `leaveRoom` | 🔌 | `leaveChatRoom(id)` exposed. Not strictly needed — disconnect on logout cleans rooms. |
 | `sendMessage` | ✅ | `sendMessageOverSocket(payload)` from api.ts; called by `sendMsg` thunk |
-| `updateMessage` / `deleteMessage` / `deleteMessageForMe` | ☐ | — |
-| `markRead` (socket variant) | ☐ | Currently using REST `markAsRead` |
-| `typing` | ☐ | — |
-| `addReaction` / `removeReaction` | ☐ | — |
-| `pinMessage` / `unpinMessage` | ☐ | — |
-| `getOnlineUsers` / `getTypingUsers` | ☐ | — |
+| `updateMessage` | 🔌 | `updateMessageOverSocket(messageId, text)` exposed |
+| `deleteMessage` | 🔌 | `deleteMessageOverSocket(messageId)` exposed |
+| `deleteMessageForMe` | 🔌 | `deleteMessageForMeOverSocket(messageId)` exposed |
+| `markRead` (socket variant) | 🔌 | `markReadOverSocket(convId, messageId?)` exposed. Currently using REST `markAsRead`; can switch to socket-only with this. |
+| `typing` | 🔌 | `typingOverSocket(convId, isTyping)` exposed. No typing UI consumer yet. |
+| `addReaction` / `removeReaction` | 🔌 | `addReactionOverSocket` / `removeReactionOverSocket` exposed |
+| `pinMessage` / `unpinMessage` | 🔌 | `pinMessageOverSocket` / `unpinMessageOverSocket` exposed |
+| `getOnlineUsers` | 🔌 | `getOnlineUsersOverSocket(userIds)` exposed |
+| `getTypingUsers` | ☐ | Not wrapped |
+
+---
+
+## UI status — per-message interactions
+
+WhatsApp-style 3-dot menu + reaction picker on every bubble. All actions live in a single shared component, [src/views/apps/chat/MessageActions.tsx](../../../src/views/apps/chat/MessageActions.tsx), so text bubbles and attachment bubbles use identical handlers and SDK calls.
+
+| Affordance | Status | Notes |
+|---|---|---|
+| 3-dot menu on hover (text bubble) | ✅ | Rendered inside [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx) |
+| 3-dot menu on hover (audio / video / image / document) | ✅ | Rendered as a sibling of the attachment column in [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) when the message is attachment-only. CSS `:hover .msg-actions { opacity: 1 !important }` reveals icons. |
+| Reaction picker popover | ✅ | 6 hardcoded emojis (👍 ❤️ 😂 😮 😢 🙏) + "more" disabled. Available on all bubble types. |
+| Reaction chips below bubble | ✅ | Chip per emoji, count visible, highlighted if user reacted. Click chip = toggle. |
+| Reply (composer banner + bubble snippet) | ✅ | `setReplyingTo` Redux state. Banner with cancel ✕ above the input. Inside reply bubble: left accent + sender name + 2-line preview, click snippet scrolls + flashes original (`msg-flash` CSS in [custom.css](../../../styles/custom.css)). |
+| Edit (own text messages only) | ✅ | `setEditingMessage` Redux state. Warning-color banner above input prefilled with original. Submit branches to `updateMessageOverSocket`. Bubble shows `(edited)` after broadcast. |
+| Star / Unstar | ✅ | Personal (no server broadcast). Optimistic local toggle. Star icon renders inline on bubble. |
+| Pin / Unpin | ✅ | DM: both sides; group: admin-only. Pinned strip renders above ChatLog showing latest pinned + count, click jumps. |
+| Copy text | ✅ | Hidden for attachment-only bubbles. |
+| Delete for me | ✅ | Same `MessageActions` for all message types. Shared `ConfirmationDialog`. Removes from local thread only. |
+| Delete for everyone (own messages) | ✅ | Same flow. Server broadcasts → tombstone "This message was deleted" replaces the bubble for all participants. Works on text and all attachment types. |
+
+### Component map
+
+```
+MessageBubble                   ← text bubble + reply snippet + reactions row
+  └─ MessageActions             ← actions surface, alwaysVisible=hovered
+                                  showEdit, showCopyText
+
+ChatLog (attachment-only path)
+  ├─ attachment column          ← image / video / audio / document
+  └─ MessageActions             ← actions surface
+                                  showEdit=false, showCopyText=false
+                                  parent CSS forces icons visible on hover
+```
+
+### Voice messages
+
+Recording happens inline in [SendMsgForm.tsx](../../../src/views/apps/chat/SendMsgForm.tsx):
+
+1. Click 🎤 button — calls `navigator.mediaDevices.getUserMedia({ audio: true })`
+2. `MediaRecorder` picks the best supported MIME from a priority list: `audio/webm;codecs=opus` → `audio/webm` → `audio/mp4` → `audio/ogg;codecs=opus` (Safari falls through to `audio/mp4`)
+3. Composer overlays a recording UI: pulsing red dot + `mm:ss` timer + ⏹ Stop + ✕ Cancel
+4. On Stop, the Blob's reported mimeType is normalized — strip everything after `;` so `audio/webm;codecs=opus` becomes `audio/webm` (server allow-lists reject the codec suffix)
+5. Recording becomes a regular `File` and enters the `pending[]` strip with `kind: 'audio'` — shows an inline `<audio controls>` preview chip
+6. Click Send → flows through `uploadChatFiles` like any other attachment (no audio-specific code path)
+7. On the receive side, `ChatLog` renders incoming audio attachments with `<audio controls controlsList='nodownload noplaybackrate'>` at a fixed 280px width on a light-tinted background (so the browser's dark default audio controls remain legible inside the green sender bubble)
+
+### Attachment preview — view-only, no downloads
+
+WhatsApp-Web-style in-page preview for image / video / PDF / other documents. New component: [src/views/apps/chat/AttachmentPreviewDialog.tsx](../../../src/views/apps/chat/AttachmentPreviewDialog.tsx). Clicking any attachment bubble in `ChatLog` opens this fullscreen overlay instead of routing the user to the raw S3 URL in a new tab.
+
+**No download paths are surfaced to the user.** Every casual save route is blocked at the client level:
+
+| Surface | Blocked? | How |
+|---|---|---|
+| App-level download button | ✅ | No `<a href download>` / no anchor wrappers anywhere in `ChatLog`; clicks open the dialog instead |
+| Video `<video controls>` overflow → Download | ✅ | `controlsList='nodownload noplaybackrate'` |
+| Audio `<audio controls>` overflow → Download | ✅ | `controlsList='nodownload noplaybackrate'` |
+| PDF viewer toolbar (Chrome/Edge) | ✅ | `#toolbar=0&navpanes=0&scrollbar=0` URL fragment appended to the iframe src — hides toolbar, download, print, navpanes, scrollbar |
+| Right-click → "Save image as" | ✅ | `onContextMenu={e => e.preventDefault()}` at the Dialog root + on every media element |
+| Image drag-to-desktop | ✅ | `draggable={false}` + `WebkitUserDrag: none` |
+| Text/image selection in dialog | ✅ | `userSelect: none` on Dialog root |
+| Keyboard `Ctrl/Cmd + S` (save page) | ✅ | `window.keydown` listener with `preventDefault()` while dialog is open |
+| Keyboard `Ctrl/Cmd + P` (print) | ✅ | Same listener |
+| DevTools → Network → Save resource | ❌ unblockable | Inherent web limitation — same as WhatsApp Web. Would require DRM or server-streamed bytes without exposing the URL. |
+| Firefox / Safari PDF viewer toolbar | ⚠️ partial | Those browsers use their own PDF viewers that ignore `#toolbar=0`. Bundling PDF.js (~1MB) would fix this; not done. |
+
+**UX details — modelled on WhatsApp Web:**
+
+- Fullscreen Dialog (`fullScreen` MUI prop), near-black backdrop (`rgba(0,0,0,0.95)`)
+- Header overlay (gradient): filename + file size + close ✕
+- **Image**: centered, fits viewport, click toggles zoom in. Floating bottom toolbar with Zoom out / `Math.round(zoom * 100)%` / Zoom in (50%–400% range, 25% steps) and Rotate (90° increments). Transform applies via CSS `transform: scale() rotate()` with 200ms ease.
+- **Video**: centered, native controls with download + playback-rate hidden, right-click suppressed
+- **PDF**: iframe with `#toolbar=0&navpanes=0&scrollbar=0`
+- **Other documents** (.docx, .xlsx, etc.): file-info card with icon + filename + "Preview not available for this file type" — no link, no download, no fallback open-in-new-tab
+
+**Wiring in [ChatLog.tsx](../../../src/views/apps/chat/ChatLog.tsx):**
+
+```ts
+const [previewAttachment, setPreviewAttachment] = useState<ChatAttachmentType | null>(null)
+const openPreview = (att) => setPreviewAttachment(att)
+
+// Each attachment Box now uses onClick={() => openPreview(att)}
+// (replacing the previous <a target='_blank'> / <a download> wrappers).
+// One <AttachmentPreviewDialog> mounted at the bottom of ChatLog.
+```
+
+### Lightweight ack normalization
+
+When the server returns `{success: true, messageId: '...'}` instead of a full `Message`, [`sendMessageOverSocket`](../../../src/lib/chat/api.ts) synthesizes a Message from the request payload. The `SendMessageAttachment[]` payload uses `fileId`, so we map `fileId → id` while building the synthetic `content.attachments` — otherwise every newly-sent attachment would land in Redux with `id: undefined`, breaking React keys, reactions, pin, and any other operation that addresses an attachment by id.
 
 ---
 
@@ -149,6 +275,87 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 | ↳ Remove from group | ⚠️ | Server returns 200 but UI doesn't refresh — see "Risks" |
 | Mute / Pin toggles | ✅ | Wired to `muteConversation` / `unmuteConversation` / `pinConversation` / `unpinConversation`; state read from adapter (`isMuted` / `isPinned`) |
 | Danger zone: Leave / Delete | ✅ | Both use shared [`ConfirmationDialog`](../../../src/components/confirmation-dialog/index.js) (no more `window.confirm`) |
+
+---
+
+## Receipt flow (delivered + seen ticks)
+
+### Tick semantics
+
+Monotonic — once a state is true it never goes back. The recipient logging out does **not** undeliver a message; opening another chat doesn't "unsee" what was already read. Identical to WhatsApp / Telegram.
+
+| State | Meaning | When it flips |
+|---|---|---|
+| Single grey tick (`isSent`) | Server accepted the message | `sendMsg.fulfilled` reducer pushes the new message |
+| Double grey tick (`isDelivered`) | At least one recipient device received it | `message_delivered` event arrives **AND** at least one recipient is online per SDK presence |
+| Double green tick (`isSeen`) | Read by **every** participant (groups) / the **recipient** (DMs) | `read_receipt` event arrives |
+
+### Delivery skip policy (added 2026-05-18d)
+
+The backend emits `message_delivered` prematurely — fires even when no recipient device is online. To avoid false "delivered" ticks, the `onMessageDelivered` / `onMessagesDelivered` handlers **skip** the dispatch when no recipient is online per `useChatStore.onlineUsers`. The tick stays at single grey ✓ until either:
+
+- A genuine delivery event fires while a recipient is online → advances to double grey ✓✓
+- A `read_receipt` event arrives → reducer sets `isSeen=true` AND `isDelivered=true` in one mutation, so the tick jumps from single ✓ straight to double-green ✓✓ (skipping the double-grey state)
+
+This means **read_receipt is the authoritative signal**. Look for `[chat:receipt] ⚠ D1 SKIPPED` in the console when the policy fires.
+
+### Where ticks are computed
+
+- `sdkMessageToMessage` in [api.ts](../../../src/lib/chat/api.ts) maps `Message.status` + `Message.deliveryStatus` → `{ isSent, isDelivered, isSeen }`.
+- Live updates come through `updateMessagesFeedback` in the slice. The reducer searches **all chats** by `messageId` (not the event's `conversationId`, which is unreliable — the server sometimes emits a mismatched `conversationId` for receipts).
+
+### Send-side pipeline
+
+1. `SendMsgForm.onSubmit` → `dispatch(sendMsg(...))`.
+2. `sendMsg` thunk → `sendMessageOverSocket(payload)` → server `socketEmit.sendMessage` (ack).
+3. Ack arrives in any of these shapes — `sendMessageOverSocket` normalizes them:
+   - `{ message: Message }` / `{ data: Message }` / bare `Message` → unwrap directly
+   - `{ success: true, messageId: string }` → synthesize a `Message` from the request payload + returned id (current server shape)
+4. `sendMsg.fulfilled` reducer pushes the message and **drains any pending feedback** keyed by the new id.
+5. The dedupe path also merges feedback monotonically (`existing.isDelivered || newMsg.feedback.isDelivered`) — handles the case where the broadcast echo beats the ack.
+
+### Read-side pipeline
+
+1. `new_message` arrives → `receiveMessage` reducer appends (with feedback merge on dedupe + pending feedback drain).
+2. If the message is in the open chat → fire-and-forget `markConversationRead(conversationId)` (REST).
+3. Server broadcasts `read_receipt` to participants whose own messages were read.
+4. `onReadReceipt` in AppChat splits the event:
+   - `fullyReadMessageIds` → always flips green
+   - `updatedMessageIds` / bare `messageId` → flips green **only for DMs** (one recipient = "any read = full read")
+   - Group partial reads are deliberately ignored
+
+### Pending-feedback buffer
+
+`state.pendingFeedback: Record<messageId, { isDelivered?, isSeen? }>` solves a Socket.IO timing race: event packets (`message_delivered`, `read_receipt`) can arrive in the same network frame as the `send_message` ack but be processed **before** the ack promise resolves. The receipt then misses because the message isn't in Redux yet. Without the buffer the tick stays single forever.
+
+Drained at two points:
+- `sendMsg.fulfilled` — when our own ack lands
+- `receiveMessage` — when a broadcast appends a new message
+
+### Diagnostic logs
+
+All filtered by the `[chat:receipt]` prefix. They form a complete end-to-end trace for one send → delivered → read cycle.
+
+**Full catalog with file:line references, payload shapes, and diagnostic shortcuts:** [receipt-logs-reference.md](./receipt-logs-reference.md).
+
+Summary table:
+
+| Tag | Where | Fires when |
+|---|---|---|
+| `A0` | `sendMsg` thunk | We just received the ack and resolved the new message id |
+| `B0` / `B1` / `B2` | `selectChat` thunk + receive-in-open-chat handler | We sent (or skipped) `markConversationRead` (REST) → triggers server's read_receipt broadcast |
+| `D1` / `D1b` | `onMessageDelivered` / `onMessagesDelivered` in AppChat | Server emitted delivery event |
+| `S0` / `S1` / `S2` / `S2a` / `S3` | `onReadReceipt` in AppChat | Server emitted read_receipt; `S2` shows DM vs group split |
+| `R0` / `R2` / `R2a` / `R3` | `updateMessagesFeedback` reducer | Match across all chats; `R2a` = buffered into pending; `R3` = open chat mirrored |
+| `7d.drain` / `R1.drain` / `7c.feedback-merge` / `R1c.feedback-merge` | Slice reducers | Buffered feedback applied or merged |
+| `⚠ … BACKEND-SUSPICIOUS` | Delivery / receipt handlers | Server emitted delivery/read while no recipient is online per SDK presence — likely server semantic bug |
+
+### Known server-side quirks (we work around)
+
+1. **Ack is lightweight.** Server returns `{success: true, messageId}` not a full `Message`. We synthesize.
+2. **`read_receipt.conversationId` is sometimes wrong.** Reducer searches across all chats by `messageId` instead of trusting the event field.
+3. **`fullyReadMessageIds` empty in DMs.** Backend sends ids only in `messageId` for DM receipts. We accept any field for DMs because there's only one recipient.
+4. **Delivery events may fire even when recipient is offline.** Flagged by the presence cross-check warning — server semantic bug to file with backend if it appears.
 
 ---
 
@@ -172,10 +379,69 @@ Nothing outside `src/lib/chat/` imports from `@antzsoft/chat-core` directly. Eve
 - **Message-time fallback.** Socket acks occasionally lack `sentAt`/`createdAt` — adapter falls back to `new Date().toISOString()` so date formatters don't choke.
 - **ID widening.** `ChatEntityId = string | number` during the migration. Once mock seed data is fully retired this can narrow to `string`.
 - **`createGroup` doesn't filter current user.** The picker in `CreateGroupDrawer` shows the current user in the list. Backend auto-adds the creator anyway, but UX-wise we should filter them out.
-- **`onAny` debug listener** still active in AppChat. Remove once event names are confirmed in prod.
+
+---
+
+## SDK 1.0.6 breaking changes (the ones we already absorbed)
+
+| Change | Impact | Our handling |
+|---|---|---|
+| `searchUsers` moved from `conversationsApi` → `usersApi.list({ query })` | Runtime `TypeError` on any user search | `api.ts` `searchUsers` rewrapped over `users.list({ query }).data`. Same `(query) => User[]` signature for callers. |
+| `Conversation.icon` field removed (only `iconUrl` remains) | TS error `Property 'icon' does not exist on Conversation` | Dropped from `sdkConversationToChat` and from `ChatsArrType` assignment. Avatar resolution uses `iconUrl` only. |
+| `CreateGroupData.icon` removed | TS error on `createGroupConversation({ icon })` | Dropped from `createGroupChat` thunk. CreateGroupDrawer still **collects** an icon URL but it's not sent server-side. Proper icon flow now needs separate `uploadConversationIcon(groupId, fileId)` after group creation — not wired yet. |
+| `UpdateConversationData.icon` removed | TS error on `updateConversation({ icon })` | Dropped from `updateGroupChat` thunk. Icon updates also need `uploadConversationIcon`. |
+| Socket `connectSocket` arity reduced to `(config, getToken)` | Server rejected handshake with `"userId is required"` | `useChatClient` now passes `userId` + `tenantId` inside the `config` object instead of as positional args. |
+| `devicesApi` is module-level export, not on `AntzChatClient` | TS error `Property 'devices' does not exist on AntzChatClient` | `registerDevice` / `removeDevice` in `api.ts` import `sdkDevicesApi` directly; `requireClient()` still gates on SDK initialization. |
 
 ---
 
 ## Changelog
 
+- **2026-05-18f** — Attachment preview is now **view-only, no downloads**:
+  - New `AttachmentPreviewDialog` — fullscreen WhatsApp-Web-style overlay.
+  - Replaced every `<a href target='_blank'>` and `<a download>` anchor in `ChatLog` with `onClick={() => openPreview(att)}`. Image / video / pdf / document all open in-page.
+  - **Image** — fits viewport, zoom in/out (50–400% in 25% steps), rotate (90° increments). Bottom toolbar shows current zoom %.
+  - **Video** — native controls with `controlsList='nodownload noplaybackrate'` + right-click prevented.
+  - **PDF** — iframe with `#toolbar=0&navpanes=0&scrollbar=0` URL fragment so Chrome/Edge hide their built-in toolbar (download + print + overflow). Firefox/Safari ignore these flags and still show their viewer UI — would need PDF.js to fully cover them.
+  - **Other docs** — fallback card with file info; no link, no download, no fallback "Open in new tab".
+  - **Blocked at the Dialog root**: `onContextMenu` (no right-click Save), `userSelect: none` (no drag-out), `draggable={false}` + `WebkitUserDrag: none` on images, `window.keydown` listener suppressing `Ctrl/Cmd+S` and `Ctrl/Cmd+P` while open.
+  - Audio bubbles already had `controlsList='nodownload'` from the voice-message work — unchanged.
+  - Removed the temporary `[chat:att]` and `[chat:sdk-att]` diagnostic logs from `ChatLog.tsx` and `api.ts` now that audio render is verified.
+- **2026-05-18e** — Per-message interactions + voice messages, all 8 phases shipped:
+  - **Phase 0 — types + adapter:** extended `MessageType` and `ChatLogChatType` with `replyTo`, `reactions`, `isPinned`, `isStarred`, `isEdited`, `editedAt`, `isDeletedForEveryone`. Added `ReactionEntry` and `MessageReplyRef` types. `sdkMessageToMessage` now maps SDK fields (reactions / replyTo / isPinned / isStarred / isEdited / editedAt).
+  - **Phase 1 — MessageBubble shell:** new component for text bubbles with 3-dot menu, hover-revealed icons.
+  - **Phase 2 — Reply:** `replyingTo` Redux state, composer banner with cancel, inside-bubble reply snippet, scroll-to-original with `.msg-flash` CSS keyframes.
+  - **Phase 3 — Reactions:** popover picker (6 hardcoded emojis), reactions chip row under bubble with toggle-on-click, `reaction_updated` socket listener + `applyReactionUpdate` reducer (full array replacement, server authoritative).
+  - **Phase 4 — Edit:** `editingMessage` Redux state, composer warning banner with prefilled text, submit branches to `updateMessageOverSocket`, `message_updated` socket listener + `applyMessageUpdate` reducer, `(edited)` marker on bubble.
+  - **Phase 5 — Delete:** for me + for everyone via socket, shared `ConfirmationDialog` for both variants, `applyMessageDelete` / `applyMessageDeleteForMe` reducers, "This message was deleted" tombstone for the everyone-delete path.
+  - **Phase 6 — Star:** personal flag with optimistic local toggle + revert on failure, inline star icon on bubble.
+  - **Phase 7 — Pin:** DM both-sides / group admin-only gating, `applyMessagePin` reducer, pinned-messages strip above ChatLog showing latest pinned + count.
+  - **MessageActions refactor:** extracted the 3-dot menu + reaction picker + delete dialog into a single shared component used by both `MessageBubble` (text) and `ChatLog` (attachment-only bubbles) — audio / video / image / document now have the same delete / star / pin / react / reply flow as text. One delete operation removes the entire message including any attachments via the same SDK functions (`deleteMessageOverSocket(chat.id)` and `deleteMessageForMeOverSocket(chat.id)`).
+  - **Voice messages:** mic button in composer opens MediaRecorder (priority list of MIME types for cross-browser support, Safari falls through to `audio/mp4`). Recording overlay with pulsing dot, `mm:ss` timer, ⏹ Stop, ✕ Cancel. Stop → File enters the pending strip with inline `<audio>` preview. Send → flows through existing `uploadChatFiles`. Receive side renders `<audio controls controlsList='nodownload noplaybackrate'>` at 280px width.
+  - **MIME normalization:** strip codec suffix from MediaRecorder output (`audio/webm;codecs=opus` → `audio/webm`) before constructing the File. Server allow-list rejects the codec-decorated form.
+  - **Lightweight ack attachment-id fix:** in `sendMessageOverSocket`, when synthesizing a Message from `{success, messageId}` ack, map `payload.attachments[].fileId → .id` so downstream code addresses attachments by a defined id.
+  - **SidebarLeft active highlight sync:** removed local `active` React state, now derives from `state.chat.selectedChat.contact.id`. Single source of truth fixes the highlight when chats are opened via auto-select, deep-link, or programmatic `selectChat` dispatch.
+- **2026-05-18d** — Policy change: **`read_receipt` is now the authoritative signal for tick advancement.** `message_delivered` / `messages_delivered` events are now **skipped** when no recipient is online per `useChatStore.onlineUsers` (the backend over-eagerly stamps delivered even with no recipient device active). Tick stays single ✓ until a real `read_receipt` arrives, at which point it jumps directly to double-green ✓✓ (reducer sets `isSeen=true` AND `isDelivered=true` in one mutation). Console: look for `[chat:receipt] ⚠ D1 SKIPPED` when the policy fires.
+- **2026-05-18c** — Receipt-flow verified end-to-end on a live two-user test (A↔B DM and a group). Full trace logs captured: send anchor (A0) → delivery race with buffered drain (D1 → R2 0/1 → R2a buffered → A0 → 7d.drain) → read receipt with DM-vs-group split (S1 → S2 → S3 → R2 1/1 → R3). Temporary `[chat:receipt] V1 renderMsgFeedback` log removed from `ChatLog.tsx` after confirming green-tick render works. New deep-dive log catalog: [receipt-logs-reference.md](./receipt-logs-reference.md).
+- **2026-05-18b** — Doc accuracy + SDK 1.0.6 breaking-change absorption:
+  - `api.ts` reorganized into clearly-labeled sections per SDK module (auth / conversations / messages / users / devices / storage / socket-emit / socket-status / adapters).
+  - Added **REST wrappers** for previously-unexposed SDK endpoints (no UI consumers yet, but discoverable from the facade): `uploadAvatar`, `getConversationUnreadCount`, `getUnreadSummary`, `uploadConversationIcon`, `getMessage`, `updateMessage`, `deleteMessage`, `deleteMessageForMe`, `addMessageReaction`, `removeMessageReaction`, `starMessage`, `unstarMessage`, `listStarredMessages`, `searchMessages`, `getLastRead`, `pinMessage`, `unpinMessage`, `listPinnedMessages`, `listUsers`, `getUserById`, `getUserLastSeen`, `getUserPreferences`, `updateUserPreferences`, `registerDevice`, `removeDevice`.
+  - Added **socket-emit wrappers** alongside REST equivalents: `typingOverSocket`, `markReadOverSocket`, `updateMessageOverSocket`, `deleteMessageOverSocket`, `deleteMessageForMeOverSocket`, `addReactionOverSocket`, `removeReactionOverSocket`, `pinMessageOverSocket`, `unpinMessageOverSocket`, `getOnlineUsersOverSocket`.
+  - Re-exported the missing SDK types: `ConversationListParams`, `ConversationUnreadCount`, `UnreadSummary`, `SearchParams`, `UserPreferences`, `FileResponse`, `FileType`, `PresignedUrlRequest`, `PresignedUrlResponse`, `RegisterDeviceTokenPayload`, `MobileDeviceToken`, `WebPushDeviceToken`.
+  - `fetchChatsContacts` no longer caps at `{ page: 1, limit: 50 }` — calls `listConversations()` so server returns all matching conversations in one response (per SDK doc Step 6 "Pagination is optional"). Users with >50 chats no longer lose anything.
+  - `listConversations` signature widened to accept full `ConversationListParams` (server-side filters: type / isPinned / isMuted / hasUnread / search / role / hasAttachments / attachmentType / notificationsEnabled). Still unused by UI (sidebar filters remain client-side) but available.
+  - Stale comments in `ComposePopover` / `CreateGroupDrawer` updated to reference `users.list({ query })` instead of the removed `conversations.searchUsers`.
+  - **Socket userId fix** — `useChatClient` was passing `userId` / `tenantId` as positional args to `connectSocket(config, getToken, userId, tenantId)` but the SDK signature is only `(config, getToken)`. Server rejected handshake with `"userId is required"`. Moved both fields **into** `config`; removed the extra positional args.
+  - Added end-to-end `[chat:receipt]` verification logs covering A0 (send anchor) → B1/B2 (markConversationRead) → S1/S2/S2a/S3 (read_receipt inbound + DM/group split) → R0/R2/R2a/R3 (reducer match + drain into pendingFeedback + selectedChat mirror) → D1/D1b (delivery events). Filter with `chat:receipt` in DevTools to trace one send → delivered → read cycle.
+- **2026-05-18** — Receipt-flow hardening on SDK `1.0.6`:
+  - `sendMessageOverSocket` now handles the lightweight `{success, messageId}` ack shape by synthesizing a Message from the request payload.
+  - New `state.pendingFeedback` buffer in the slice — receipts that arrive before the ack callback are stored by `messageId` and drained when the message lands. Fixes the "tick stuck on single" timing race.
+  - `updateMessagesFeedback` reducer searches all chats by `messageId` instead of trusting the event's `conversationId` (which the backend sometimes emits wrong).
+  - Dedupe paths in `receiveMessage` and `sendMsg.fulfilled` now **merge** feedback monotonically instead of dropping it on the echo.
+  - `onReadReceipt` splits DM vs group semantics: groups use only `fullyReadMessageIds` for the green tick; DMs accept any read id (single recipient = full read).
+  - Added `useChatStore.lastRead` seeding via `getLastRead()` in `selectChat` (powers future jump-to-first-unread UI).
+  - Added `conversation_created` / `conversation_deleted` socket listeners — runtime group membership changes now reflect without page reload.
+  - Added `unread_count_changed` listener + `setUnreadCount` reducer — multi-device unread badge sync.
+  - Added presence cross-check (`useChatStore.onlineUsers`) on delivery / read events; logs `⚠ BACKEND-SUSPICIOUS` when server fires receipts while recipient is offline.
+  - Removed `onAny` debug listener, `[chat:trace]`, `[chat:avatar]`, `[chat:handshake]`, `[chat:lastRead]` debug logs. Only `[chat:receipt]` instrumentation remains.
 - **2026-05-16** — Upgraded SDK `1.0.0` → `1.0.2`. Deleted `src/lib/chat/socket.ts` wrapper (path-prefix bug fixed natively). Merged `adapters.ts` into `api.ts`. Send now goes via socket (`sendMessageOverSocket`) instead of REST. Wired `refreshSocketAuth()` on `connect_error`. Conversation list auto-refreshes on socket connect + on `new_message` for unknown conversations. Dropped `NEXT_PUBLIC_CHAT_WS_URL` env var (derived from API URL).

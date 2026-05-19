@@ -52,8 +52,8 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
 
   // Backend-driven member picker: same pattern as the compose popover and the
   // group "Add members" flow. Empty query lists everyone, typing refines via
-  // `conversations.searchUsers(q)` (debounced 300ms). Falls back to filtering
-  // the prop-supplied contacts list when the SDK isn't ready.
+  // `users.list({ query })` (debounced 300ms). Falls back to filtering the
+  // prop-supplied contacts list when the SDK isn't ready.
   useEffect(() => {
     const client = getChatClientOrNull()
     const q = memberQuery.trim()

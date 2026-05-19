@@ -25,28 +25,60 @@ export function useChatClient(): UseChatClientResult {
   const [error, setError] = useState<Error | null>(null)
 
   useEffect(() => {
-    if (!auth?.userData?.user) return
-    if (!process.env.NEXT_PUBLIC_CHAT_API_URL) return
+    // Accept either `auth.userData.user` (full backend resData) or `auth.user`
+    // (the slim user object that `(module)/layout.tsx` already waits for).
+    // The WSO2 hydrate path sometimes lands `auth.user` before / without
+    // populating a nested `auth.userData.user` — fall back so we don't get
+    // stuck on the gate.
+    const sourceUser = auth?.userData?.user ?? auth?.user
+    if (!sourceUser) {
+      console.log('[chat:gate] no auth user yet — waiting')
 
-    const userIdRaw =
-      auth.userData.user.user_id ?? auth.userData.user.id ?? auth.userData.user.email
+      return
+    }
+    if (!process.env.NEXT_PUBLIC_CHAT_API_URL) {
+      console.warn('[chat:gate] NEXT_PUBLIC_CHAT_API_URL not set')
+
+      return
+    }
+
+    const userIdRaw = sourceUser.user_id ?? sourceUser.id ?? sourceUser.email
     const userId = userIdRaw !== undefined && userIdRaw !== null ? String(userIdRaw) : null
-    const tenantId = auth.userData.user.zoos?.[0]?.zoo_id?.toString()
+    const tenantId =
+      sourceUser.zoos?.[0]?.zoo_id?.toString() ??
+      auth?.userData?.user?.zoos?.[0]?.zoo_id?.toString() ??
+      auth?.userData?.zoos?.[0]?.zoo_id?.toString()
     const avatarUrl =
-      auth.userData.user.profile_pic ??
-      auth.userData.user.user_profile_pic ??
-      auth.userData.user.profile_image ??
-      auth.userData.user.avatar ??
-      auth.userData.user.avatar_url ??
+      sourceUser.profile_pic ??
+      sourceUser.user_profile_pic ??
+      sourceUser.profile_image ??
+      sourceUser.avatar ??
+      sourceUser.avatar_url ??
       undefined
 
-    if (!userId) return
+    if (!userId) {
+      console.warn('[chat:gate] no userId derivable from auth', sourceUser)
+
+      return
+    }
+    console.log('[chat:gate] initializing with', { userId, tenantId, hasAvatar: Boolean(avatarUrl) })
 
     const getAccessToken = (): string =>
       typeof window !== 'undefined'
         ? localStorage.getItem(authConfig.storageTokenKeyName) ?? ''
         : ''
     const accessToken = getAccessToken()
+
+    // Final safety gate — refuse to connect without a valid access token in
+    // localStorage. `handleLogout` removes the token before disposing the
+    // chat client; this gate makes sure stale auth state can't trigger a
+    // reconnect on the login page (legacy path doesn't clear React user
+    // state, so this is belt-and-suspenders).
+    if (!accessToken) {
+      console.log('[chat:gate] no access token — refusing to connect')
+
+      return
+    }
 
     let c: AntzChatClient
     try {
@@ -79,22 +111,12 @@ export function useChatClient(): UseChatClientResult {
     const resolvedSocketConfig = {
       socketOrigin,
       socketPath,
+      userId,
+      tenantId,
       avatar: { url: avatarUrl }
     } as Parameters<typeof connectSocket>[0]
 
-    // Log what we're about to send in the handshake so we can verify the
-    // avatar (and other auth fields) are populated. The actual handshake
-    // payload includes: token (Bearer), userId, tenantId, avatarUrl.
-    console.log('[chat:handshake] connect →', {
-      socketOrigin,
-      socketPath,
-      userId,
-      tenantId,
-      avatarUrl: avatarUrl ?? '(none — auth.userData.user has no profile_image / avatar / avatar_url)',
-      hasToken: Boolean(accessToken)
-    })
-
-    connectSocket(resolvedSocketConfig, getAccessToken, userId, tenantId).catch(setError)
+    connectSocket(resolvedSocketConfig, getAccessToken).catch(setError)
 
     const s = getSocket()
     setSocket(s)
@@ -128,7 +150,8 @@ export function useChatClient(): UseChatClientResult {
       setClient(null)
       setSocket(null)
     }
-  }, [auth?.userData?.user?.id])
+    // Watch BOTH paths — whichever populates first triggers init.
+  }, [auth?.userData?.user?.user_id, auth?.userData?.user?.id, auth?.user?.id, auth?.user?.email])
 
   return { client, socket, connected, error }
 }
