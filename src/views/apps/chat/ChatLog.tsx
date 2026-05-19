@@ -1,10 +1,21 @@
 'use client'
 
 // ** React Imports
-import { useRef, useEffect, useCallback, useState, Ref, ReactNode, MouseEvent } from 'react'
+import {
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  useState,
+  Ref,
+  ReactNode,
+  MouseEvent,
+  UIEvent
+} from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
+import CircularProgress from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
 
@@ -41,13 +52,150 @@ const PerfectScrollbar = styled(PerfectScrollbarComponent)<ScrollBarProps & { re
   padding: theme.spacing(5)
 }))
 
+// Date helpers for the day-separator pills (WhatsApp-style):
+//   - Today / Yesterday for the two most recent days
+//   - Weekday name for messages 2-6 days back
+//   - Full date for anything older
+// `toDateKey` is the equality key used to detect when two consecutive messages
+// fall on different calendar days.
+const toDateKey = (time: string | Date): string => {
+  const d = new Date(time)
+
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+const formatDateLabel = (time: string | Date): string => {
+  const msgDay = new Date(time)
+  msgDay.setHours(0, 0, 0, 0)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const daysAgo = Math.round((today.getTime() - msgDay.getTime()) / 86400000)
+
+  if (daysAgo === 0) return 'Today'
+  if (daysAgo === 1) return 'Yesterday'
+  if (daysAgo > 1 && daysAgo < 7) {
+    return msgDay.toLocaleDateString('en-US', { weekday: 'long' })
+  }
+
+  return msgDay.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
 const ChatLog = (props: ChatLogType) => {
   // ** Props
-  const { data, hidden, searchQuery = '', searchResultIds = [], activeMatchIndex = 0 } = props
+  const { data, hidden, searchQuery = '', searchResultIds = [], activeMatchIndex = 0, onLoadOlder } = props
 
   // ** Ref
   const chatArea = useRef(null)
   const messageRefs = useRef<Map<string, HTMLElement>>(new Map())
+
+  // Pagination — surfaced via `data.chat` from Redux. ChatLog only triggers;
+  // ChatContent owns the dispatch.
+  const loadingOlder = data.chat.loadingOlder === true
+  const hasMoreOlder = data.chat.hasMoreOlder !== false
+
+  // Anchor-based visual-position preservation. We snapshot the topmost
+  // currently-rendered message (id + its pixel offset within the viewport)
+  // before the load fires. After React commits the prepended messages we find
+  // that same DOM node by id and adjust `scrollTop` so it lands at the same
+  // pixel offset — invariant to any other DOM size changes between renders
+  // (topStatus toggling, scrollbar appearance, subpixel rounding, browser
+  // auto-anchor, etc.).
+  const anchorMessageIdRef = useRef<string | null>(null)
+  const anchorViewportTopRef = useRef<number>(0)
+  const isPrependingRef = useRef(false)
+
+  // Native-overflow direction tracking (mobile fallback). PerfectScrollbar's
+  // `onYReachStart` only fires at the top, so it's directional by definition.
+  const lastNativeScrollTopRef = useRef<number>(Infinity)
+
+  // Tracks the id of the newest message we've already auto-scrolled for. The
+  // `data` prop is a fresh object literal on every parent render (ChatContent
+  // does `{ ...selectedChat, ... }`), so the scroll-to-bottom effect fires on
+  // every state change — including the `loadingOlder` toggle that runs during
+  // pagination. Guarding on the actual newest-message id keeps us from
+  // yanking the user to the bottom unless a real new message has landed.
+  const lastSeenNewestIdRef = useRef<string | undefined>(undefined)
+
+  // Resolve the actual scroll container — PerfectScrollbar wraps the native
+  // div; mobile uses the native div directly.
+  const getScrollContainer = useCallback((): HTMLElement | null => {
+    if (!chatArea.current) return null
+    if (hidden) return chatArea.current as unknown as HTMLElement
+
+    // @ts-ignore — PerfectScrollbar exposes the underlying div as `_container`
+    return (chatArea.current._container as HTMLElement | undefined) ?? null
+  }, [hidden])
+
+  const triggerLoadOlder = useCallback(() => {
+    if (!onLoadOlder) return
+    if (loadingOlder) return
+    if (!hasMoreOlder) return
+    if (!data.chat.oldestCursor) return
+
+    const c = getScrollContainer()
+    if (!c) return
+
+    // Snapshot the oldest currently-loaded message as the anchor — it's the
+    // first message in our chronological array and survives the prepend
+    // unchanged. Record where (in viewport-relative pixels) its top edge sits
+    // so we can put it back at the same spot once new content lands above.
+    const firstMsg = data.chat.messages[0]
+    if (firstMsg?.id) {
+      const el = messageRefs.current.get(firstMsg.id)
+      if (el) {
+        anchorMessageIdRef.current = firstMsg.id
+        anchorViewportTopRef.current = el.getBoundingClientRect().top - c.getBoundingClientRect().top
+      } else {
+        anchorMessageIdRef.current = null
+      }
+    } else {
+      anchorMessageIdRef.current = null
+    }
+
+    isPrependingRef.current = true
+    onLoadOlder()
+  }, [onLoadOlder, loadingOlder, hasMoreOlder, data.chat.oldestCursor, getScrollContainer, data.chat.messages])
+
+  // Restore the anchor element to its captured viewport position. Runs
+  // synchronously before paint, so the user never sees the in-between state.
+  useLayoutEffect(() => {
+    if (!isPrependingRef.current) return
+    const c = getScrollContainer()
+    if (!c) {
+      isPrependingRef.current = false
+
+      return
+    }
+    const anchorId = anchorMessageIdRef.current
+    if (!anchorId) {
+      isPrependingRef.current = false
+
+      return
+    }
+
+    const el = messageRefs.current.get(anchorId)
+    if (!el) {
+      isPrependingRef.current = false
+      anchorMessageIdRef.current = null
+
+      return
+    }
+
+    // Compute how far the anchor has shifted since capture. Positive shift
+    // means new content was added above; pushing scrollTop by exactly that
+    // amount restores the original viewport-relative position.
+    const currentTop = el.getBoundingClientRect().top - c.getBoundingClientRect().top
+    const shift = currentTop - anchorViewportTopRef.current
+    if (shift !== 0) c.scrollTop += shift
+
+    // PerfectScrollbar needs an explicit re-measure after we set scrollTop
+    // directly on its inner container.
+    // @ts-ignore — react-perfect-scrollbar exposes updateScroll() on the ref.
+    chatArea.current?.updateScroll?.()
+
+    anchorMessageIdRef.current = null
+    isPrependingRef.current = false
+  }, [data.chat.messages.length, getScrollContainer])
 
   const setMessageRef = useCallback((msgId: string | undefined, el: HTMLElement | null) => {
     if (!msgId) return
@@ -106,7 +254,9 @@ const ChatLog = (props: ChatLogType) => {
     setTimeout(doScroll, 350)
   }
 
-  // ** Formats chat data based on sender
+  // ** Formats chat data — groups consecutive messages by sender, splits
+  // groups on day boundaries, and emits a synthetic `senderId: 'date'` entry
+  // at each boundary so the renderer can drop a date-pill into the stream.
   const formattedChatData = () => {
     let chatLog: MessageType[] | [] = []
     if (data.chat) {
@@ -114,12 +264,15 @@ const ChatLog = (props: ChatLogType) => {
     }
 
     const formattedChatLog: FormattedChatsType[] = []
-    let chatMessageSenderId = chatLog[0] ? chatLog[0].senderId : 11
-    let msgGroup: MessageGroupType = {
-      senderId: chatMessageSenderId,
-      messages: []
+    let msgGroup: MessageGroupType | null = null
+    let prevDateKey: string | null = null
+
+    const flushGroup = () => {
+      if (msgGroup && msgGroup.messages.length) formattedChatLog.push(msgGroup)
+      msgGroup = null
     }
-    chatLog.forEach((msg: MessageType, index: number) => {
+
+    chatLog.forEach((msg: MessageType) => {
       const entry = {
         // Forward the id so future bubble-level actions (react, edit, delete,
         // pin, star, reply) have a stable target.
@@ -140,26 +293,44 @@ const ChatLog = (props: ChatLogType) => {
         ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
         ...(msg.isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
       }
-      if (msg.contentType === 'system') {
-        if (msgGroup.messages.length) formattedChatLog.push(msgGroup)
-        formattedChatLog.push({ senderId: 'system', messages: [entry] })
-        msgGroup = { senderId: chatMessageSenderId, messages: [] }
-      } else if (chatMessageSenderId === msg.senderId) {
-        msgGroup.messages.push(entry)
-      } else {
-        chatMessageSenderId = msg.senderId
 
-        formattedChatLog.push(msgGroup)
-        msgGroup = {
-          senderId: msg.senderId,
-          messages: [entry]
+      // Date boundary — flush the active group and inject a separator
+      // BEFORE pushing this message, so the pill sits between the two days.
+      if (msg.time) {
+        const dateKey = toDateKey(msg.time)
+        if (dateKey !== prevDateKey) {
+          flushGroup()
+          formattedChatLog.push({
+            senderId: 'date',
+            messages: [
+              {
+                id: `date-${dateKey}`,
+                msg: formatDateLabel(msg.time),
+                time: msg.time,
+                feedback: { isSent: true, isDelivered: false, isSeen: false }
+              }
+            ]
+          })
+          prevDateKey = dateKey
         }
       }
 
-      if (index === chatLog.length - 1 && msgGroup.messages.length) {
-        formattedChatLog.push(msgGroup)
+      if (msg.contentType === 'system') {
+        flushGroup()
+        formattedChatLog.push({ senderId: 'system', messages: [entry] })
+
+        return
+      }
+
+      if (msgGroup && msgGroup.senderId === msg.senderId) {
+        msgGroup.messages.push(entry)
+      } else {
+        flushGroup()
+        msgGroup = { senderId: msg.senderId, messages: [entry] }
       }
     })
+
+    flushGroup()
 
     return formattedChatLog
   }
@@ -191,9 +362,18 @@ const ChatLog = (props: ChatLogType) => {
   }
 
   useEffect(() => {
-    if (data && data.chat && data.chat.messages.length) {
-      scrollToBottom()
-    }
+    if (!data?.chat?.messages.length) return
+
+    // Only scroll when the NEWEST message id actually changed. This is true
+    // for: initial chat open, switching chats, new live message, our own send
+    // ack. It is NOT true for prepended older pages or any other state mutation
+    // (loadingOlder toggle, feedback flags, pin/star/edit/delete, etc.), so
+    // those won't yank the user to the bottom.
+    const newestId = data.chat.messages[data.chat.messages.length - 1]?.id
+    if (newestId === lastSeenNewestIdRef.current) return
+    lastSeenNewestIdRef.current = newestId
+
+    scrollToBottom()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
@@ -205,6 +385,7 @@ const ChatLog = (props: ChatLogType) => {
   const renderChats = () => {
     return formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
+      const isDateGroup = item.senderId === 'date'
 
       // System messages — centered, small bubble (WhatsApp style)
       if (isSystemGroup) {
@@ -226,6 +407,37 @@ const ChatLog = (props: ChatLogType) => {
                 backgroundColor: theme => theme.palette.action.hover,
                 color: 'text.secondary',
                 maxWidth: '75%',
+                textAlign: 'center'
+              }}
+            >
+              {chat.msg}
+            </Typography>
+          </Box>
+        ))
+      }
+
+      // Date separators — same centered pill as system messages, with a
+      // slightly bolder weight so the day label reads as a heading.
+      if (isDateGroup) {
+        return item.messages.map((chat, msgIdx) => (
+          <Box
+            key={`date-${index}-${msgIdx}`}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              mb: 4,
+              mt: 2
+            }}
+          >
+            <Typography
+              variant='caption'
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                backgroundColor: theme => theme.palette.action.hover,
+                color: 'text.secondary',
+                fontWeight: 600,
                 textAlign: 'center'
               }}
             >
@@ -557,23 +769,24 @@ const ChatLog = (props: ChatLogType) => {
                       </Box>
                     ) : null}
                   </Box>
-                  {index + 1 === length ? (
-                    <Box
-                      sx={{
-                        mt: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: isSender ? 'flex-end' : 'flex-start'
-                      }}
-                    >
-                      {renderMsgFeedback(isSender, chat.feedback)}
-                      <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                        {time
-                          ? new Date(time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-                          : null}
-                      </Typography>
-                    </Box>
-                  ) : null}
+                  <Box
+                    sx={{
+                      mt: 0.5,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: isSender ? 'flex-end' : 'flex-start'
+                    }}
+                  >
+                    {/* Feedback ticks (sent/delivered/seen) only on the last
+                        message of the group — same status applies to the whole
+                        batch, so repeating ticks per bubble would just be noise. */}
+                    {index + 1 === length ? renderMsgFeedback(isSender, chat.feedback) : null}
+                    <Typography variant='caption' sx={{ color: 'text.disabled' }}>
+                      {time
+                        ? new Date(time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+                        : null}
+                    </Typography>
+                  </Box>
                 </Box>
               )
             })}
@@ -583,16 +796,55 @@ const ChatLog = (props: ChatLogType) => {
     })
   }
 
+  // Native-overflow (mobile fallback) scroll handler. Triggers a load only on
+  // upward motion near the top — downward / bottom scrolls never fire it.
+  const handleNativeScroll = useCallback(
+    (e: UIEvent<HTMLDivElement>) => {
+      const el = e.currentTarget
+      const prevTop = lastNativeScrollTopRef.current
+      lastNativeScrollTopRef.current = el.scrollTop
+
+      // Only act on UPWARD motion (current < previous) AND when near the top.
+      if (el.scrollTop >= prevTop) return
+      if (el.scrollTop > 80) return
+      triggerLoadOlder()
+    },
+    [triggerLoadOlder]
+  )
+
+  // Top-of-list status row — spinner while loading, optional "start of
+  // conversation" caption once we've exhausted history. Rendered INSIDE the
+  // scroll container so it participates in scroll geometry.
+  const topStatus = (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 24, mb: 2 }}>
+      {loadingOlder ? (
+        <CircularProgress size={20} thickness={4} />
+      ) : !hasMoreOlder && data.chat.messages.length > 0 ? (
+        <Typography variant='caption' sx={{ color: 'text.disabled' }}>
+          Beginning of conversation
+        </Typography>
+      ) : null}
+    </Box>
+  )
+
   const ScrollWrapper = ({ children }: { children: ReactNode }) => {
     if (hidden) {
       return (
-        <Box ref={chatArea} sx={{ p: 5, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <Box
+          ref={chatArea}
+          onScroll={handleNativeScroll}
+          sx={{ p: 5, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
+        >
           {children}
         </Box>
       )
     } else {
       return (
-        <PerfectScrollbar ref={chatArea} options={{ wheelPropagation: false }}>
+        <PerfectScrollbar
+          ref={chatArea}
+          options={{ wheelPropagation: false }}
+          onYReachStart={triggerLoadOlder}
+        >
           {children}
         </PerfectScrollbar>
       )
@@ -601,7 +853,10 @@ const ChatLog = (props: ChatLogType) => {
 
   return (
     <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
-      <ScrollWrapper>{renderChats()}</ScrollWrapper>
+      <ScrollWrapper>
+        {topStatus}
+        {renderChats()}
+      </ScrollWrapper>
       <AttachmentPreviewDialog
         attachment={previewAttachment}
         open={previewAttachment !== null}

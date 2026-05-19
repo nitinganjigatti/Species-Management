@@ -99,6 +99,13 @@ export type ChatType = {
   unseenMsgs: number
   messages: MessageType[]
   lastMessage?: MessageType
+  // Pagination state for "load older messages on scroll up". `oldestCursor` is
+  // the SDK's nextCursor pointing at the next-older page; null means there is
+  // no further page to load. `hasMoreOlder=false` means we've reached the
+  // start of history.
+  oldestCursor?: string | null
+  hasMoreOlder?: boolean
+  loadingOlder?: boolean
 }
 
 export type ContactType = {
@@ -273,4 +280,8 @@ export type ChatLogType = {
   searchQuery?: string
   searchResultIds?: string[]
   activeMatchIndex?: number
+  // Fired when the user scrolls near the top and we should request the next
+  // older page. ChatLog handles the trigger detection + scroll-position
+  // preservation; ChatContent wires this to the `loadOlderMessages` thunk.
+  onLoadOlder?: () => void
 }

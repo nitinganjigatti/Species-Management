@@ -518,13 +518,71 @@ export const selectChat = createAsyncThunk<void, ChatEntityId>(
       // SDK returns newest-first; the UI renders top-to-bottom oldest-to-newest.
       const messages = [...sdkMessages].reverse().map(sdkMessageToMessage)
 
-      dispatch(setChatMessages({ chatId, messages }))
+      dispatch(
+        setChatMessages({
+          chatId,
+          messages,
+          oldestCursor: resp.meta?.nextCursor ?? null,
+          hasMoreOlder: resp.meta?.hasMore ?? false
+        })
+      )
 
       // Mark via socket so the server broadcasts read_receipt to the sender.
       // The REST markAsRead endpoint does NOT trigger a socket broadcast.
       markReadOverSocket(chatId)
     } catch (err) {
       console.error('[chat] selectChat failed to load messages:', err)
+    }
+  }
+)
+
+/**
+ * Load the next older page of messages for the currently visible chat.
+ *
+ * Uses cursor pagination from the SDK — the cursor we send is the
+ * `oldestCursor` saved from the previous response's `meta.nextCursor`. We pass
+ * `direction: 'before'` so the SDK returns messages older than the cursor.
+ *
+ * Guards inside the reducer prevent stacked calls; this thunk also short-
+ * circuits if pagination state says there's nothing more to load.
+ */
+export const loadOlderMessages = createAsyncThunk<void, ChatEntityId>(
+  'appChat/loadOlderMessages',
+  async (chatId, { dispatch, getState }) => {
+    const client = getChatClientOrNull()
+    if (!client || typeof chatId !== 'string') return
+
+    const state = getState() as { chat?: ChatStoreType }
+    const chatEntry = state.chat?.chats?.find(c => c.id === chatId)
+    if (!chatEntry) return
+    if (chatEntry.chat.loadingOlder) return
+    if (chatEntry.chat.hasMoreOlder === false) return
+    if (!chatEntry.chat.oldestCursor) return
+
+    dispatch(setLoadingOlder({ chatId, loading: true }))
+
+    try {
+      const resp = await listMessages(chatId, {
+        cursor: chatEntry.chat.oldestCursor,
+        direction: 'before',
+        limit: 50
+      })
+      const sdkMessages = resp.data ?? []
+
+      // SDK returns newest-first within the page; reverse for chronological order.
+      const messages = [...sdkMessages].reverse().map(sdkMessageToMessage)
+
+      dispatch(
+        prependChatMessages({
+          chatId,
+          messages,
+          oldestCursor: resp.meta?.nextCursor ?? null,
+          hasMoreOlder: resp.meta?.hasMore ?? false
+        })
+      )
+    } catch (err) {
+      console.error('[chat] loadOlderMessages failed:', err)
+      dispatch(setLoadingOlder({ chatId, loading: false }))
     }
   }
 )
@@ -1155,22 +1213,86 @@ export const appChatSlice = createSlice({
       }
     },
     // Replaces the messages array for a chat. Dispatched by the `selectChat`
-    // thunk after `messages.list()` resolves.
+    // thunk after `messages.list()` resolves. Also carries the cursor
+    // pagination meta so the next "load older" call has somewhere to start.
     setChatMessages: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; messages: MessageType[] }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        messages: MessageType[]
+        oldestCursor?: string | null
+        hasMoreOlder?: boolean
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, messages } = action.payload
+      const { chatId, messages, oldestCursor, hasMoreOlder } = action.payload
 
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
 
       chatEntry.chat.messages = messages
       chatEntry.chat.lastMessage = messages[messages.length - 1]
+      if (oldestCursor !== undefined) chatEntry.chat.oldestCursor = oldestCursor
+      if (hasMoreOlder !== undefined) chatEntry.chat.hasMoreOlder = hasMoreOlder
+      chatEntry.chat.loadingOlder = false
 
       if (state.selectedChat && state.selectedChat.contact.id === chatId) {
         state.selectedChat.chat = chatEntry.chat
+      }
+    },
+    // Prepend an older page of messages to the chat. Updates the cursor /
+    // hasMore flags so subsequent pages chain correctly, and clears the
+    // loading flag. Always re-creates `selectedChat.chat.messages` as a new
+    // array so React's reference check fires.
+    prependChatMessages: (
+      state,
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        messages: MessageType[]
+        oldestCursor: string | null
+        hasMoreOlder: boolean
+      }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, messages, oldestCursor, hasMoreOlder } = action.payload
+
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+
+      // Dedupe — in rare races a page boundary message could already exist.
+      const existingIds = new Set(chatEntry.chat.messages.map(m => m.id).filter(Boolean) as string[])
+      const incoming = messages.filter(m => !m.id || !existingIds.has(m.id))
+
+      chatEntry.chat.messages = [...incoming, ...chatEntry.chat.messages]
+      chatEntry.chat.oldestCursor = oldestCursor
+      chatEntry.chat.hasMoreOlder = hasMoreOlder
+      chatEntry.chat.loadingOlder = false
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat, messages: [...chatEntry.chat.messages] },
+          contact: chatEntry
+        }
+      }
+    },
+    // Toggle the `loadingOlder` flag for a chat. The thunk sets it true before
+    // the network call; the prepend reducer (or the thunk's catch branch)
+    // clears it.
+    setLoadingOlder: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; loading: boolean }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, loading } = action.payload
+      const chatEntry = state.chats.find(c => c.id === chatId)
+      if (!chatEntry) return
+      chatEntry.chat.loadingOlder = loading
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...chatEntry.chat },
+          contact: chatEntry
+        }
       }
     }
   },
@@ -1318,6 +1440,8 @@ export const appChatSlice = createSlice({
 export const {
   setSelectedChat,
   setChatMessages,
+  prependChatMessages,
+  setLoadingOlder,
   receiveMessage,
   updateMessagesFeedback,
   addOrReplaceChat,

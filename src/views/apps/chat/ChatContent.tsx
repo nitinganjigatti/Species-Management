@@ -26,6 +26,9 @@ import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
 // ** Chat API
 import { searchMessages } from 'src/lib/chat/api'
 
+// ** Store
+import { loadOlderMessages } from 'src/store/apps/chat'
+
 // ** Types
 import { ChatContentType } from 'src/types/apps/chatTypes'
 
@@ -418,6 +421,10 @@ const ChatContent = (props: ChatContentType) => {
                     searchQuery={searchOpen ? searchQuery : ''}
                     searchResultIds={searchOpen ? searchResultIds : []}
                     activeMatchIndex={activeMatchIndex}
+                    onLoadOlder={() => {
+                      const chatId = selectedChat.contact.id
+                      if (chatId) dispatch(loadOlderMessages(chatId) as any)
+                    }}
                   />
                 </>
               )
