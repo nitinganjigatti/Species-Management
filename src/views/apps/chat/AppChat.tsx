@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -57,6 +57,53 @@ const AppChat = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(false)
   const [userProfileLeftOpen, setUserProfileLeftOpen] = useState<boolean>(false)
   const [userProfileRightOpen, setUserProfileRightOpen] = useState<boolean>(false)
+
+  // ** Typing indicator state — keyed by conversationId → array of typing users
+  type TypingUser = { userId: string; displayName: string }
+  const [typingUsers, setTypingUsers] = useState<Record<string, TypingUser[]>>({})
+  const typingTimers = useRef<Record<string, Record<string, ReturnType<typeof setTimeout>>>>({})
+
+  const handleTypingEvent = useCallback((raw: any) => {
+    // Server may send a single object or an array
+    const evt = Array.isArray(raw) ? raw[0] : raw
+    if (!evt) return
+
+    const convId = evt?.conversationId
+    const userId = evt?.userId
+    const displayName = evt?.displayName || evt?.username || 'Someone'
+    const isTyping = evt?.isTyping !== false
+
+    if (!convId || !userId) return
+    // Ignore own typing events
+    if (userId === String(userProfileIdRef.current)) return
+
+    if (isTyping) {
+      setTypingUsers(prev => {
+        const existing = prev[convId] ?? []
+        const alreadyExists = existing.some(u => u.userId === userId)
+
+        return { ...prev, [convId]: alreadyExists ? existing : [...existing, { userId, displayName }] }
+      })
+
+      // Auto-clear after 4s if no new typing event
+      if (!typingTimers.current[convId]) typingTimers.current[convId] = {}
+      if (typingTimers.current[convId][userId]) clearTimeout(typingTimers.current[convId][userId])
+      typingTimers.current[convId][userId] = setTimeout(() => {
+        setTypingUsers(prev => ({
+          ...prev,
+          [convId]: (prev[convId] ?? []).filter(u => u.userId !== userId)
+        }))
+      }, 4000)
+    } else {
+      setTypingUsers(prev => ({
+        ...prev,
+        [convId]: (prev[convId] ?? []).filter(u => u.userId !== userId)
+      }))
+      if (typingTimers.current[convId]?.[userId]) {
+        clearTimeout(typingTimers.current[convId][userId])
+      }
+    }
+  }, [])
 
   // ** Hooks
   const theme = useTheme()
@@ -404,6 +451,7 @@ const AppChat = () => {
     chatSocket.on('message_deleted', onMessageDeleted)
     chatSocket.on('message_deleted_for_me', onMessageDeletedForMe)
     chatSocket.on('message_pin_updated', onMessagePinUpdated)
+    chatSocket.on('typing_indicator', handleTypingEvent)
 
     return () => {
       chatSocket.offAny(onAnyDebug)
@@ -420,6 +468,7 @@ const AppChat = () => {
       chatSocket.off('message_deleted', onMessageDeleted)
       chatSocket.off('message_deleted_for_me', onMessageDeletedForMe)
       chatSocket.off('message_pin_updated', onMessagePinUpdated)
+      chatSocket.off('typing_indicator', handleTypingEvent)
     }
   }, [chatSocket, chatConnected, chatError, chatClient, dispatch])
 
@@ -472,6 +521,11 @@ const AppChat = () => {
         userProfileRightOpen={userProfileRightOpen}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+        typingUsers={
+          store?.selectedChat?.contact?.id
+            ? typingUsers[String(store.selectedChat.contact.id)] ?? []
+            : []
+        }
       />
     </Box>
   )

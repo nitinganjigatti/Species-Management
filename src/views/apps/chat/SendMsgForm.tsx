@@ -15,7 +15,7 @@ import Icon from 'src/@core/components/icon'
 
 import { SendMsgComponentType } from 'src/types/apps/chatTypes'
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
-import { uploadChatFiles } from 'src/lib/chat/api'
+import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 import { setReplyingTo, setEditingMessage } from 'src/store/apps/chat'
@@ -239,6 +239,37 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     if (editing?.originalText) setMsg(editing.originalText)
   }, [editing?.messageId])
 
+  // Typing indicator — emit typing(true) on keystrokes, auto-stop after 2s idle
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isTypingRef = useRef(false)
+
+  const emitTyping = () => {
+    const conversationId = store?.selectedChat?.contact?.id
+    if (!conversationId || typeof conversationId !== 'string') return
+
+    if (!isTypingRef.current) {
+      isTypingRef.current = true
+      typingOverSocket(conversationId, true)
+    }
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    typingTimeoutRef.current = setTimeout(() => {
+      if (isTypingRef.current) {
+        isTypingRef.current = false
+        typingOverSocket(conversationId, false)
+      }
+    }, 2000)
+  }
+
+  const stopTyping = () => {
+    const conversationId = store?.selectedChat?.contact?.id
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    if (isTypingRef.current && conversationId && typeof conversationId === 'string') {
+      isTypingRef.current = false
+      typingOverSocket(conversationId, false)
+    }
+  }
+
   const handleFiles = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
     if (!files.length) return
@@ -352,6 +383,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
     setPending([])
     setMsg('')
+    stopTyping()
   }
 
   const replyingTo = store?.replyingTo ?? null
@@ -525,7 +557,10 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 value={msg}
                 size='small'
                 placeholder='Type your message here…'
-                onChange={e => setMsg(e.target.value)}
+                onChange={e => {
+                  setMsg(e.target.value)
+                  if (e.target.value.trim()) emitTyping()
+                }}
                 disabled={uploading}
                 sx={{ '& .MuiOutlinedInput-input': { pl: 0 }, '& fieldset': { border: '0 !important' } }}
               />

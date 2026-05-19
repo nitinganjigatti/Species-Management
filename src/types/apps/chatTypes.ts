@@ -173,6 +173,8 @@ export type SendMsgParamsType = {
   attachments?: ChatAttachmentType[]
 }
 
+export type TypingUserInfo = { userId: string; displayName: string }
+
 export type ChatContentType = {
   store: ChatStoreType
   hidden: boolean
@@ -185,6 +187,7 @@ export type ChatContentType = {
   userProfileRightOpen: boolean
   handleLeftSidebarToggle: () => void
   handleUserProfileRightSidebarToggle: () => void
+  typingUsers?: TypingUserInfo[]
 }
 
 export type ChatSidebarLeftType = {

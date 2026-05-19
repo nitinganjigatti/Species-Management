@@ -54,7 +54,8 @@ const ChatContent = (props: ChatContentType) => {
     sidebarWidth,
     userProfileRightOpen,
     handleLeftSidebarToggle,
-    handleUserProfileRightSidebarToggle
+    handleUserProfileRightSidebarToggle,
+    typingUsers = []
   } = props
 
   // ** Search state
@@ -421,6 +422,43 @@ const ChatContent = (props: ChatContentType) => {
                 </>
               )
             ) : null}
+
+            {typingUsers.length > 0 && (
+              <Box sx={{ px: 5, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: '3px',
+                    alignItems: 'center',
+                    '& > span': {
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: 'text.disabled',
+                      animation: 'typingBounce 1.4s infinite ease-in-out',
+                      '&:nth-of-type(1)': { animationDelay: '0s' },
+                      '&:nth-of-type(2)': { animationDelay: '0.2s' },
+                      '&:nth-of-type(3)': { animationDelay: '0.4s' }
+                    },
+                    '@keyframes typingBounce': {
+                      '0%, 80%, 100%': { transform: 'scale(0.6)', opacity: 0.4 },
+                      '40%': { transform: 'scale(1)', opacity: 1 }
+                    }
+                  }}
+                >
+                  <Box component='span' />
+                  <Box component='span' />
+                  <Box component='span' />
+                </Box>
+                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                  {typingUsers.length === 1
+                    ? `${typingUsers[0].displayName} is typing`
+                    : typingUsers.length === 2
+                    ? `${typingUsers[0].displayName} and ${typingUsers[1].displayName} are typing`
+                    : `${typingUsers[0].displayName} and ${typingUsers.length - 1} others are typing`}
+                </Typography>
+              </Box>
+            )}
 
             <SendMsgForm store={store} dispatch={dispatch} sendMsg={sendMsg} />
 
