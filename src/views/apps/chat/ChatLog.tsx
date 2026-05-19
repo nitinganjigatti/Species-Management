@@ -8,7 +8,6 @@ import {
   useCallback,
   useState,
   Ref,
-  ReactNode,
   MouseEvent,
   UIEvent
 } from 'react'
@@ -898,36 +897,34 @@ const ChatLog = (props: ChatLogType) => {
     </Box>
   )
 
-  const ScrollWrapper = ({ children }: { children: ReactNode }) => {
-    if (hidden) {
-      return (
+  // NOTE: do NOT extract this into a `ScrollWrapper` component defined inside
+  // ChatLog — React would treat that as a brand-new component type on every
+  // ChatLog render and unmount/remount PerfectScrollbar (and the entire
+  // message subtree) every time. That remount resets scrollTop to 0 and
+  // causes a visible flash-to-top on send / receipt updates. Keeping the
+  // conditional inline means React sees the same `<PerfectScrollbar />`
+  // element across renders and reuses the instance.
+  return (
+    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
+      {hidden ? (
         <Box
           ref={chatArea}
           onScroll={handleNativeScroll}
           sx={{ p: 5, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
         >
-          {children}
+          {topStatus}
+          {renderChats()}
         </Box>
-      )
-    } else {
-      return (
+      ) : (
         <PerfectScrollbar
           ref={chatArea}
           options={{ wheelPropagation: false }}
           onYReachStart={triggerLoadOlder}
         >
-          {children}
+          {topStatus}
+          {renderChats()}
         </PerfectScrollbar>
-      )
-    }
-  }
-
-  return (
-    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
-      <ScrollWrapper>
-        {topStatus}
-        {renderChats()}
-      </ScrollWrapper>
+      )}
       <AttachmentPreviewDialog
         attachment={previewAttachment}
         open={previewAttachment !== null}
