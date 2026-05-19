@@ -174,34 +174,44 @@ The SDK exports `devicesApi` at module level (not on the `AntzChatClient` instan
 
 ## UI status — per-message interactions
 
-WhatsApp-style 3-dot menu + reaction picker on every bubble. All actions live in a single shared component, [src/views/apps/chat/MessageActions.tsx](../../../src/views/apps/chat/MessageActions.tsx), so text bubbles and attachment bubbles use identical handlers and SDK calls.
+WhatsApp-Web layout — the chevron 3-dot menu sits **INSIDE** the bubble's top-right corner, and the reaction picker (😀) sits **OUTSIDE** the bubble, vertically centered on the inside-facing edge. The two surfaces are split into two components so callers can position them independently:
+
+- [src/views/apps/chat/MessageActions.tsx](../../../src/views/apps/chat/MessageActions.tsx) — chevron menu + delete confirmation dialog.
+- [src/views/apps/chat/MessageReactionPicker.tsx](../../../src/views/apps/chat/MessageReactionPicker.tsx) — standalone 😀 trigger + 6-emoji quick-pick popover.
+
+Both share the same `.msg-actions` CSS class so the parent reveals them together on bubble hover (`&:hover .msg-actions { opacity: 1; pointer-events: auto }`).
 
 | Affordance | Status | Notes |
 |---|---|---|
-| 3-dot menu on hover (text bubble) | ✅ | Rendered inside [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx) |
-| 3-dot menu on hover (audio / video / image / document) | ✅ | Rendered as a sibling of the attachment column in [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) when the message is attachment-only. CSS `:hover .msg-actions { opacity: 1 !important }` reveals icons. |
-| Reaction picker popover | ✅ | 6 hardcoded emojis (👍 ❤️ 😂 😮 😢 🙏) + "more" disabled. Available on all bubble types. |
+| Chevron menu inside bubble top-right (text) | ✅ | Absolutely positioned at `top: 2, right: 2` inside the text bubble in [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx). Bubble has `pr: 7` to reserve space so the chevron doesn't overlap text. |
+| Chevron menu inside attachment top-right | ✅ | Same pattern in [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) attachment-only branch. Audio container uses `pt: 5` so the chevron sits cleanly above the audio control row. |
+| Chevron contrast on green / white-audio bg | ✅ | Chevron icon is `common.white` with a translucent dark circle backdrop (`rgba(0,0,0,0.32)` sender / `rgba(0,0,0,0.45)` receiver) so it reads against the bubble color AND any embedded white element (audio control, PDF preview, light image). |
+| Reaction picker outside bubble (centered) | ✅ | `MessageReactionPicker` rendered as a flex sibling of the bubble column. Outer row uses `flex-direction: isSender ? 'row-reverse' : 'row'` so the 😀 visually sits on the LEFT of sender (green) bubbles and the RIGHT of receiver (white) bubbles — i.e. always on the inside-facing edge. |
 | Reaction chips below bubble | ✅ | Chip per emoji, count visible, highlighted if user reacted. Click chip = toggle. |
 | Reply (composer banner + bubble snippet) | ✅ | `setReplyingTo` Redux state. Banner with cancel ✕ above the input. Inside reply bubble: left accent + sender name + 2-line preview, click snippet scrolls + flashes original (`msg-flash` CSS in [custom.css](../../../styles/custom.css)). |
 | Edit (own text messages only) | ✅ | `setEditingMessage` Redux state. Warning-color banner above input prefilled with original. Submit branches to `updateMessageOverSocket`. Bubble shows `(edited)` after broadcast. |
 | Star / Unstar | ✅ | Personal (no server broadcast). Optimistic local toggle. Star icon renders inline on bubble. |
 | Pin / Unpin | ✅ | DM: both sides; group: admin-only. Pinned strip renders above ChatLog showing latest pinned + count, click jumps. |
-| Copy text | ✅ | Hidden for attachment-only bubbles. |
+| Copy text | ✅ | Hidden for attachment-only bubbles via `showCopyText={false}`. |
 | Delete for me | ✅ | Same `MessageActions` for all message types. Shared `ConfirmationDialog`. Removes from local thread only. |
 | Delete for everyone (own messages) | ✅ | Same flow. Server broadcasts → tombstone "This message was deleted" replaces the bubble for all participants. Works on text and all attachment types. |
 
 ### Component map
 
 ```
-MessageBubble                   ← text bubble + reply snippet + reactions row
-  └─ MessageActions             ← actions surface, alwaysVisible=hovered
-                                  showEdit, showCopyText
+MessageBubble                              ← outer flex row, position: relative
+  ├─ bubble Box (position: relative)       ← rounded message box
+  │    ├─ MessageActions (abs top-right)   ← chevron menu INSIDE bubble
+  │    ├─ reply snippet                    ← optional
+  │    ├─ text + inline pin/star/edited
+  │    └─ reactions chips row
+  └─ MessageReactionPicker                 ← 😀 OUTSIDE bubble, centered
 
-ChatLog (attachment-only path)
-  ├─ attachment column          ← image / video / audio / document
-  └─ MessageActions             ← actions surface
-                                  showEdit=false, showCopyText=false
-                                  parent CSS forces icons visible on hover
+ChatLog (attachment-only path)             ← outer flex row, position: relative
+  ├─ attachment column (position: relative)
+  │    ├─ MessageActions (abs top-right)   ← chevron menu INSIDE first attachment
+  │    └─ attachment Box(es)               ← image / video / audio / document
+  └─ MessageReactionPicker                 ← 😀 OUTSIDE column, centered
 ```
 
 ### Voice messages
@@ -255,6 +265,18 @@ const openPreview = (att) => setPreviewAttachment(att)
 // (replacing the previous <a target='_blank'> / <a download> wrappers).
 // One <AttachmentPreviewDialog> mounted at the bottom of ChatLog.
 ```
+
+### ChatLog scroll-container stability
+
+[`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) used to define an inner `ScrollWrapper` component **inside** its render function. Because the function reference was new on every render, React's reconciler treated each `<ScrollWrapper>` element as a different component type and unmounted + remounted the entire `PerfectScrollbar` subtree on every Redux state change (sends, receipts, reactions, edits, deletes, pins, stars). Each remount reset `scrollTop` to 0 and the `scrollToBottom` raf passes then yanked the chat back down — the visible effect was a brief flash-to-top on every send.
+
+Fix: the `hidden ? <Box> : <PerfectScrollbar>` conditional is now inlined directly in `ChatLog`'s return statement. React sees the same `<PerfectScrollbar>` element type across renders and reuses the instance. Side benefits:
+
+- `chatArea.current` ref stays stable → `scrollToBottom`, `triggerLoadOlder`, pagination anchor restoration all work reliably.
+- `messageRefs` Map of `msg-id → DOM element` is no longer cleared and rebuilt every render → search "jump to match" scrolls reliably.
+- ~50 message bubbles are no longer re-created from scratch on every Redux update — measurable perf win on active chats.
+
+General rule: never define a React component inside another component's render. The two look similar but trigger a full remount of the inner subtree on every outer render.
 
 ### Lightweight ack normalization
 
@@ -397,6 +419,15 @@ Summary table:
 
 ## Changelog
 
+- **2026-05-19** — WhatsApp-Web message-affordance layout + ChatLog scroll-container fix:
+  - **Split MessageActions into two components** so the chevron and the reaction picker can be positioned independently:
+    - [`MessageActions`](../../../src/views/apps/chat/MessageActions.tsx) — now only the chevron menu trigger + Menu + delete `ConfirmationDialog`. All reaction-picker code (`Popover`, `QUICK_REACTIONS`, `addReactionOverSocket`/`removeReactionOverSocket`, `useSelector` for `currentUserId`) extracted.
+    - [`MessageReactionPicker`](../../../src/views/apps/chat/MessageReactionPicker.tsx) — new standalone 😀 trigger + 6-emoji quick-pick popover.
+  - **Chevron INSIDE the bubble, reaction picker OUTSIDE.** [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx) renders the chevron `MessageActions` absolutely at `top: 2, right: 2` inside the bubble Box (which now has `position: relative` + `pr: 7` to reserve space for the icon). The `MessageReactionPicker` is a flex sibling of the bubble column, vertically centered, on the inside-facing edge (LEFT of green sender bubbles, RIGHT of receiver bubbles) via `flex-direction: row-reverse` on the outer row.
+  - **Same pattern in the attachment-only branch of [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx).** The attachment column got `position: relative`; the chevron sits absolute at `top: 4, right: 4` over the top-right of the first attachment. Audio container changed from uniform `p: 2` to `pt: 5, pb: 2, px: 2` so the chevron sits above the audio control row instead of overlapping the volume button.
+  - **Chevron contrast fix for audio + image + PDF previews.** The chevron icon was previously `rgba(255,255,255,0.85)` with no backdrop and disappeared on top of the white `<audio>` control strip. Now it's `common.white` with a translucent dark circle (`bgcolor: rgba(0,0,0,0.32)` on sender bubbles, `rgba(0,0,0,0.45)` on receiver) that contrasts against both the green bubble color AND any embedded white element underneath.
+  - **Hover reveal.** Both icons share `className='msg-actions'` (opacity 0 / pointer-events: none by default). Each outer row has `&:hover .msg-actions { opacity: 1; pointer-events: auto }` so they appear together when the row is hovered.
+  - **ChatLog flash-to-top on send — root cause + fix.** `ChatLog` defined an inner `ScrollWrapper` component inside its render function; React saw a new component type on every ChatLog render and unmounted + remounted the entire `PerfectScrollbar` subtree on every Redux state change. This reset `scrollTop` to 0, then the `scrollToBottom` raf passes yanked the chat back down — visible as a flash to top on every send / receipt / reaction. Fix: removed the inner `ScrollWrapper` and inlined the `hidden ? <Box> : <PerfectScrollbar>` conditional in the return statement. React now reuses the same `<PerfectScrollbar>` instance across renders; `scrollTop`, `chatArea.current`, `messageRefs`, and pagination anchor restoration all stay valid. Also dropped the unused `ReactNode` import.
 - **2026-05-18f** — Attachment preview is now **view-only, no downloads**:
   - New `AttachmentPreviewDialog` — fullscreen WhatsApp-Web-style overlay.
   - Replaced every `<a href target='_blank'>` and `<a download>` anchor in `ChatLog` with `onClick={() => openPreview(att)}`. Image / video / pdf / document all open in-page.
