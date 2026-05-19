@@ -29,6 +29,7 @@ import PerfectScrollbarComponent, { ScrollBarProps } from 'react-perfect-scrollb
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import MessageBubble from 'src/views/apps/chat/MessageBubble'
 import MessageActions from 'src/views/apps/chat/MessageActions'
+import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
 
 // ** Types
@@ -560,15 +561,53 @@ const ChatLog = (props: ChatLogType) => {
                         sx={{
                           display: 'flex',
                           flexDirection: isSender ? 'row-reverse' : 'row',
-                          alignItems: 'flex-start',
+                          alignItems: 'center',
                           gap: 1,
+                          // Reveal chevron (inside attachment bubble) + emoji
+                          // picker (outside attachment column) on hover.
                           '&:hover .msg-actions': {
                             opacity: '1 !important',
                             pointerEvents: 'auto !important'
                           }
                         }}
                       >
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxWidth: '100%' }}>
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1,
+                            maxWidth: '100%'
+                          }}
+                        >
+                          {/* Chevron lives INSIDE the attachment column,
+                              absolutely positioned at the top-right — matches
+                              the WhatsApp-Web pattern used for text bubbles. */}
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 4,
+                              right: 4,
+                              zIndex: 2
+                            }}
+                          >
+                            <MessageActions
+                              chat={chat}
+                              isSender={isSender}
+                              senderName={isSender ? data.userContact.fullName : data.contact.fullName}
+                              senderId={item.senderId}
+                              canPin={(() => {
+                                const isGroup = data.contact.isGroup === true
+                                if (!isGroup) return true
+                                const me = String(data.userContact.id ?? '')
+                                const admins = data.contact.adminIds?.map(String) ?? []
+
+                                return admins.includes(me)
+                              })()}
+                              showEdit={false}
+                              showCopyText={false}
+                            />
+                          </Box>
                           {chat.attachments.map(att => (
                             <Box
                               key={att.id}
@@ -608,7 +647,7 @@ const ChatLog = (props: ChatLogType) => {
                                   onClick={() => openPreview(att)}
                                 />
                               ) : att.type === 'audio' ? (
-                                <Box sx={{ p: 2, minWidth: 300 }}>
+                                <Box sx={{ pt: 5, pb: 2, px: 2, minWidth: 300 }}>
                                   <Box
                                     component='audio'
                                     src={att.url}
@@ -661,22 +700,7 @@ const ChatLog = (props: ChatLogType) => {
                             </Box>
                           ))}
                         </Box>
-                        <MessageActions
-                          chat={chat}
-                          isSender={isSender}
-                          senderName={isSender ? data.userContact.fullName : data.contact.fullName}
-                          senderId={item.senderId}
-                          canPin={(() => {
-                            const isGroup = data.contact.isGroup === true
-                            if (!isGroup) return true
-                            const me = String(data.userContact.id ?? '')
-                            const admins = data.contact.adminIds?.map(String) ?? []
-
-                            return admins.includes(me)
-                          })()}
-                          showEdit={false}
-                          showCopyText={false}
-                        />
+                        <MessageReactionPicker chat={chat} isSender={isSender} />
                       </Box>
                     ) : null}
                     {/* Mixed (attachments + text) and text-only paths: existing inline

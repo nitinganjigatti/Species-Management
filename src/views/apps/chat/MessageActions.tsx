@@ -3,24 +3,20 @@
 import { useState, MouseEvent } from 'react'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
-import Popover from '@mui/material/Popover'
 import toast from 'react-hot-toast'
 
 // ** Redux
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import { setReplyingTo, setEditingMessage, setMessageStarred } from 'src/store/apps/chat'
-import type { AppDispatch, RootState } from 'src/store'
+import type { AppDispatch } from 'src/store'
 
 // ** SDK
 import {
-  addReactionOverSocket,
-  removeReactionOverSocket,
   deleteMessageOverSocket,
   deleteMessageForMeOverSocket,
   starMessage,
@@ -38,34 +34,25 @@ import ConfirmationDialog from 'src/components/confirmation-dialog'
 // ** Types
 import type { ChatLogChatType } from 'src/types/apps/chatTypes'
 
-// Quick reactions — kept inline; not worth shipping a full picker.
-const QUICK_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🙏']
-
 interface MessageActionsProps {
   chat: ChatLogChatType
   isSender: boolean
   senderName?: string
   senderId?: string | number
   canPin?: boolean
-  // Only sender's own text messages can be edited. Attachment bubbles never
-  // need edit, so the parent can suppress the menu item by passing false.
   showEdit?: boolean
-  // Hover state lives on the wrapping bubble — when the user hovers over the
-  // bubble OR the menu is open, icons should be visible. Parent decides.
-  alwaysVisible?: boolean
-  // When the bubble is media-only (no text), there's nothing meaningful to
-  // copy. Hide the "Copy text" item.
   showCopyText?: boolean
 }
 
 /**
- * Self-contained per-message actions surface — the 3-dot menu, reaction
- * picker, and delete confirmation dialog. Stateless w.r.t. position — the
- * parent component decides where to place this in the bubble layout.
+ * 3-dot (chevron) menu trigger that lives INSIDE the message bubble's
+ * top-right corner — WhatsApp-Web-style. Owns the action menu + delete
+ * confirmation dialog. The reaction picker is a separate component
+ * (MessageReactionPicker) that sits OUTSIDE the bubble.
  *
  * Used by:
- *   - MessageBubble — for text bubbles
- *   - ChatLog — for attachment-only bubbles (audio / video / document / image)
+ *   - MessageBubble (text bubbles)
+ *   - ChatLog (attachment-only bubbles)
  */
 const MessageActions = ({
   chat,
@@ -74,22 +61,16 @@ const MessageActions = ({
   senderId,
   canPin,
   showEdit = true,
-  alwaysVisible = false,
   showCopyText = true
 }: MessageActionsProps) => {
   const [menuAnchor, setMenuAnchor] = useState<null | HTMLElement>(null)
-  const [pickerAnchor, setPickerAnchor] = useState<null | HTMLElement>(null)
   const [confirmingDelete, setConfirmingDelete] = useState<null | 'me' | 'everyone'>(null)
   const [deleting, setDeleting] = useState(false)
   const menuOpen = Boolean(menuAnchor)
-  const pickerOpen = Boolean(pickerAnchor)
   const dispatch = useDispatch<AppDispatch>()
-  const currentUserId = useSelector((s: RootState) => s.chat?.userProfile?.id ?? null)
 
   const handleMenuOpen = (e: MouseEvent<HTMLButtonElement>) => setMenuAnchor(e.currentTarget)
   const handleMenuClose = () => setMenuAnchor(null)
-  const handleOpenPicker = (e: MouseEvent<HTMLButtonElement>) => setPickerAnchor(e.currentTarget)
-  const handleClosePicker = () => setPickerAnchor(null)
 
   const handleCopy = async () => {
     handleMenuClose()
@@ -160,9 +141,7 @@ const MessageActions = ({
   const handleConfirmDelete = async () => {
     if (!chat.id || !confirmingDelete) return
     const call =
-      confirmingDelete === 'everyone'
-        ? deleteMessageOverSocket(chat.id)
-        : deleteMessageForMeOverSocket(chat.id)
+      confirmingDelete === 'everyone' ? deleteMessageOverSocket(chat.id) : deleteMessageForMeOverSocket(chat.id)
     setDeleting(true)
     try {
       await call
@@ -175,80 +154,33 @@ const MessageActions = ({
     }
   }
 
-  const handleToggleReaction = (emoji: string) => {
-    handleClosePicker()
-    if (!chat.id) return
-    const me = currentUserId != null ? String(currentUserId) : ''
-    const existing = chat.reactions?.find(r => r.emoji === emoji)
-    const alreadyReacted = !!(existing && me && existing.userIds.includes(me))
-    const fn = alreadyReacted ? removeReactionOverSocket : addReactionOverSocket
-    fn(chat.id, emoji).catch(err => {
-      console.error('[chat] toggle reaction failed:', err)
-      toast.error('Reaction failed')
-    })
-  }
-
-  // CSS visibility — icons appear on hover (set by parent via `alwaysVisible`
-  // OR when one of the popovers is open so the icon doesn't vanish under the
-  // pointer).
-  const iconVisible = alwaysVisible || menuOpen || pickerOpen
-
   return (
-    <Box sx={{ display: 'flex', flexDirection: isSender ? 'row-reverse' : 'row', alignItems: 'flex-start', gap: 0.5 }}>
-      <IconButton
-        size='small'
-        aria-label='React to message'
-        className='msg-actions'
-        data-open={pickerOpen ? 'true' : 'false'}
-        onClick={handleOpenPicker}
-        disabled={!chat.id}
-        sx={{
-          opacity: iconVisible ? 1 : 0,
-          pointerEvents: iconVisible ? 'auto' : 'none',
-          transition: 'opacity 150ms ease',
-          color: 'customColors.Outline'
-        }}
-      >
-        <Icon icon='mdi:emoticon-happy-outline' fontSize='1.125rem' />
-      </IconButton>
+    <>
       <IconButton
         size='small'
         aria-label='Message actions'
         className='msg-actions'
         data-open={menuOpen ? 'true' : 'false'}
         onClick={handleMenuOpen}
+        disabled={!chat.id}
         sx={{
-          opacity: iconVisible ? 1 : 0,
-          pointerEvents: iconVisible ? 'auto' : 'none',
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? 'auto' : 'none',
           transition: 'opacity 150ms ease',
-          color: 'customColors.Outline'
+          // Translucent dark backdrop so the chevron reads against EITHER the
+          // bubble color OR any white embedded element underneath it (audio
+          // controls, pdf preview, light image). Without this, the white
+          // chevron disappears on top of audio's default white control row.
+          color: 'common.white',
+          bgcolor: isSender ? 'rgba(0,0,0,0.32)' : 'rgba(0,0,0,0.45)',
+          '&:hover': {
+            bgcolor: isSender ? 'rgba(0,0,0,0.5)' : 'rgba(0,0,0,0.6)'
+          },
+          p: 0.25
         }}
       >
-        <Icon icon='mdi:chevron-down' fontSize='1.125rem' />
+        <Icon icon='mdi:chevron-down' fontSize='1.25rem' />
       </IconButton>
-
-      <Popover
-        anchorEl={pickerAnchor}
-        open={pickerOpen}
-        onClose={handleClosePicker}
-        anchorOrigin={{ vertical: 'top', horizontal: isSender ? 'right' : 'left' }}
-        transformOrigin={{ vertical: 'bottom', horizontal: isSender ? 'right' : 'left' }}
-        slotProps={{ paper: { sx: { px: 1, py: 0.5, borderRadius: 999 } } }}
-      >
-        <Box sx={{ display: 'flex', gap: 0.5 }}>
-          {QUICK_REACTIONS.map(emoji => (
-            <IconButton
-              key={emoji}
-              size='small'
-              aria-label={`React with ${emoji}`}
-              onClick={() => handleToggleReaction(emoji)}
-              sx={{ fontSize: '1.25rem' }}
-            >
-              <span>{emoji}</span>
-            </IconButton>
-          ))}
-        </Box>
-      </Popover>
 
       <Menu
         anchorEl={menuAnchor}
@@ -329,7 +261,7 @@ const MessageActions = ({
         }}
         confirmAction={handleConfirmDelete}
       />
-    </Box>
+    </>
   )
 }
 
