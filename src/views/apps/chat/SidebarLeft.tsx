@@ -63,7 +63,7 @@ const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: bool
 const FILTER_TABS: { value: ChatFilterType; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'unread', label: 'Unread' },
-  { value: 'favourites', label: 'Favourites' },
+  // { value: 'favourites', label: 'Favourites' },
   { value: 'groups', label: 'Groups' }
 ]
 
