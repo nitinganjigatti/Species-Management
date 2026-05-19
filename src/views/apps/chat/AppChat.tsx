@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -18,17 +18,18 @@ import {
   fetchChatsContacts,
   removeSelectedChat,
   receiveMessage,
+  setUnreadCount,
+  applyReactionUpdate,
+  applyMessageUpdate,
+  applyMessageDelete,
+  applyMessageDeleteForMe,
+  applyMessagePin,
   updateMessagesFeedback
 } from 'src/store/apps/chat'
 
 // ** Adapters
-import { joinChatRoom, markConversationRead, sdkMessageToMessage } from 'src/lib/chat/api'
-import type {
-  MessageDeliveredEvent,
-  MessagesDeliveredEvent,
-  ReadReceiptEvent
-} from 'src/lib/chat/api'
-
+import { joinChatRoom, markReadOverSocket, sdkMessageToMessage } from 'src/lib/chat/api'
+import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
 // ** Types
 import { RootState, AppDispatch } from 'src/store'
 import { StatusObjType, StatusType } from 'src/types/apps/chatTypes'
@@ -47,14 +48,70 @@ import ChatContent from 'src/views/apps/chat/ChatContent'
 // ** @antzsoft/chat-core smoke test — verifies the SDK can connect to the
 // backend without touching the existing Redux/mock data path. Logs to console.
 // Becomes a no-op when NEXT_PUBLIC_CHAT_API_URL is not set.
-import { useChatClient } from 'src/hooks/useChatClient'
+import { getSocketStatus, onSocketStatus, tryGetSocket, type SocketStatus } from '@antzsoft/chat-core'
+import { getChatClientOrNull } from 'src/lib/chat/client'
 
-const AppChat = () => {
+// Optional `compact` flag forces single-pane mobile-style layout regardless
+// of viewport width. ChatLauncher passes this when AppChat is rendered inside
+// the narrow floating dock — the panel is always too small for the desktop
+// two-pane layout, so we want the sidebar to act as a slide-in drawer.
+type AppChatProps = {
+  compact?: boolean
+}
+
+const AppChat = ({ compact = false }: AppChatProps = {}) => {
   // ** States
   const [userStatus, setUserStatus] = useState<StatusType>('online')
   const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(false)
   const [userProfileLeftOpen, setUserProfileLeftOpen] = useState<boolean>(false)
   const [userProfileRightOpen, setUserProfileRightOpen] = useState<boolean>(false)
+
+  // ** Typing indicator state — keyed by conversationId → array of typing users
+  type TypingUser = { userId: string; displayName: string }
+  const [typingUsers, setTypingUsers] = useState<Record<string, TypingUser[]>>({})
+  const typingTimers = useRef<Record<string, Record<string, ReturnType<typeof setTimeout>>>>({})
+
+  const handleTypingEvent = useCallback((raw: any) => {
+    // Server may send a single object or an array
+    const evt = Array.isArray(raw) ? raw[0] : raw
+    if (!evt) return
+
+    const convId = evt?.conversationId
+    const userId = evt?.userId
+    const displayName = evt?.displayName || evt?.username || 'Someone'
+    const isTyping = evt?.isTyping !== false
+
+    if (!convId || !userId) return
+    // Ignore own typing events
+    if (userId === String(userProfileIdRef.current)) return
+
+    if (isTyping) {
+      setTypingUsers(prev => {
+        const existing = prev[convId] ?? []
+        const alreadyExists = existing.some(u => u.userId === userId)
+
+        return { ...prev, [convId]: alreadyExists ? existing : [...existing, { userId, displayName }] }
+      })
+
+      // Auto-clear after 4s if no new typing event
+      if (!typingTimers.current[convId]) typingTimers.current[convId] = {}
+      if (typingTimers.current[convId][userId]) clearTimeout(typingTimers.current[convId][userId])
+      typingTimers.current[convId][userId] = setTimeout(() => {
+        setTypingUsers(prev => ({
+          ...prev,
+          [convId]: (prev[convId] ?? []).filter(u => u.userId !== userId)
+        }))
+      }, 4000)
+    } else {
+      setTypingUsers(prev => ({
+        ...prev,
+        [convId]: (prev[convId] ?? []).filter(u => u.userId !== userId)
+      }))
+      if (typingTimers.current[convId]?.[userId]) {
+        clearTimeout(typingTimers.current[convId][userId])
+      }
+    }
+  }, [])
 
   // ** Hooks
   const theme = useTheme()
@@ -68,22 +125,20 @@ const AppChat = () => {
     auth?.userData?.user?.avatar ??
     auth?.userData?.user?.avatar_url ??
     undefined
-  console.log('[chat:avatar] auth.user fields →', {
-    profile_pic: auth?.userData?.user?.profile_pic,
-    user_profile_pic: auth?.userData?.user?.user_profile_pic,
-    profile_image: auth?.userData?.user?.profile_image,
-    avatar: auth?.userData?.user?.avatar,
-    avatar_url: auth?.userData?.user?.avatar_url,
-    resolved: fallbackAvatarUrl
-  })
-  const hidden = useMediaQuery(theme.breakpoints.down('lg'))
+  // `compact` (set by the floating ChatLauncher) forces mobile-style single-pane
+  // layout even on desktop viewports — the panel is always too narrow for the
+  // two-pane layout. Otherwise fall back to the viewport-based media query.
+  const isViewportNarrow = useMediaQuery(theme.breakpoints.down('lg'))
+  const hidden = compact || isViewportNarrow
   const store = useSelector((state: RootState) => state.chat)
 
   // ** Vars
   const { skin } = settings
   const smAbove = useMediaQuery(theme.breakpoints.up('sm'))
   const sidebarWidth = smAbove ? 370 : 300
-  const mdAbove = useMediaQuery(theme.breakpoints.up('md'))
+  // When `compact` is set, force narrow-viewport semantics so the sidebar
+  // drawer auto-closes on chat select and ChatContent's hamburger appears.
+  const mdAbove = !compact && useMediaQuery(theme.breakpoints.up('md'))
   const statusObj: StatusObjType = {
     busy: 'error',
     away: 'warning',
@@ -100,7 +155,19 @@ const AppChat = () => {
   // When `client` becomes non-null, we re-dispatch `fetchUserProfile` so
   // Redux swaps the mock seed profile for the real one from `GET /auth/me`.
   // See: docs/modules/chat/chat-core-starter.md
-  const { client: chatClient, socket: chatSocket, connected: chatConnected, error: chatError } = useChatClient()
+  const [socketStatus, setSocketStatus] = useState<SocketStatus>(() => {
+    try {
+      return getSocketStatus()
+    } catch {
+      return 'disconnected'
+    }
+  })
+  useEffect(() => onSocketStatus(setSocketStatus), [])
+
+  const chatClient = getChatClientOrNull()
+  const chatSocket = socketStatus === 'disconnected' ? null : tryGetSocket()
+  const chatConnected = socketStatus === 'connected'
+  const chatError = socketStatus === 'error' ? new Error('chat socket error') : null
 
   useEffect(() => {
     if (!chatClient) return
@@ -115,16 +182,16 @@ const AppChat = () => {
   }, [chatClient, dispatch, fallbackAvatarUrl])
 
   // Join every conversation's Socket.IO room so the server pushes that room's
-  // `new_message` (and delivery/read) events to us. The SDK's `socketEmit.joinRoom`
-  // would normally handle this, but we use our own socket wrapper (path-prefix
-  // workaround). Re-joining is idempotent on Socket.IO; emitting again on
-  // every list change is fine.
+  // `new_message` (and delivery/read) events to us. The SDK doc says the server
+  // auto-joins all existing rooms on connect, but the deployed server doesn't
+  // appear to do that — sends don't broadcast and incoming events don't arrive
+  // unless we explicitly join. Re-joining is idempotent on Socket.IO; emitting
+  // again on every list change is fine.
   useEffect(() => {
     if (!chatSocket || !chatConnected) return
     if (!store?.chats) return
 
     const roomIds = store.chats.filter(c => typeof c.id === 'string').map(c => c.id)
-    console.log('[chat] joining rooms:', roomIds)
     roomIds.forEach(id => joinChatRoom(id as string))
   }, [chatSocket, chatConnected, store?.chats])
 
@@ -195,7 +262,7 @@ const AppChat = () => {
       const raw = evt?.message ?? evt?.data ?? (evt?.conversationId ? evt : null)
 
       if (!raw || !raw.conversationId) {
-        console.warn('[chat:trace] B0. new_message — could not extract message from event:', evt)
+        console.warn('[chat] new_message — could not extract message from event:', evt)
 
         return
       }
@@ -203,21 +270,9 @@ const AppChat = () => {
       // Determine if this is our own message by comparing senderId with our
       // profile id — tempId is unreliable because the server broadcasts it
       // to all participants, not just the sender.
-      const isOwn = Boolean(
-        userProfileIdRef.current && raw.senderId === String(userProfileIdRef.current)
-      )
-
-      console.log('[chat:trace] B1. socket on(new_message) →', {
-        msgId: raw.id,
-        conversationId: raw.conversationId,
-        senderId: raw.senderId,
-        currentUserId: userProfileIdRef.current,
-        isOwn,
-        knownConv: knownChatIdsRef.current.has(raw.conversationId)
-      })
+      const isOwn = Boolean(userProfileIdRef.current && raw.senderId === String(userProfileIdRef.current))
 
       if (!knownChatIdsRef.current.has(raw.conversationId)) {
-        console.log('[chat:trace] B2. unknown conversation → fetchChatsContacts() then receive')
         dispatch(fetchChatsContacts()).then(() => {
           dispatch(
             receiveMessage({
@@ -241,16 +296,15 @@ const AppChat = () => {
 
       const isOpen = selectedChatIdRef.current === raw.conversationId
       if (isOpen) {
-        console.log('[chat:trace] B3. message in open chat → markAsRead')
-        markConversationRead(raw.conversationId).catch(err => {
-          console.warn('[chat:trace] markAsRead on receive failed:', err)
-        })
+        // Mark via socket so the server broadcasts read_receipt to the sender.
+        // The REST markAsRead endpoint does NOT trigger a socket broadcast.
+        markReadOverSocket(raw.conversationId)
       }
     }
+
     // Single-message delivered (other side received it).
     const onMessageDelivered = (evt: MessageDeliveredEvent) => {
       if (!evt) return
-      console.log('[chat] message_delivered:', evt.messageId)
       dispatch(
         updateMessagesFeedback({
           conversationId: evt.conversationId,
@@ -264,7 +318,6 @@ const AppChat = () => {
     // catches them up on multiple acknowledgements at once.
     const onMessagesDelivered = (evt: MessagesDeliveredEvent) => {
       if (!evt?.messageIds?.length) return
-      console.log('[chat] messages_delivered:', evt.messageIds.length, 'in', evt.conversationId)
       dispatch(
         updateMessagesFeedback({
           conversationId: evt.conversationId,
@@ -274,68 +327,162 @@ const AppChat = () => {
       )
     }
 
-    // Read receipt — flips the ✓✓ ticks blue. Server payload may carry a
-    // single messageId, an `updatedMessageIds[]` partial-read set, or a
-    // `fullyReadMessageIds[]` everyone-read set. We treat any of them as
-    // "seen" for the purposes of the local UI.
+    // Read receipt — blue tick only for fullyReadMessageIds (read by ALL
+    // participants). Per SDK docs: updatedMessageIds = one user read,
+    // fullyReadMessageIds = everyone read → show blue tick.
     const onReadReceipt = (evt: ReadReceiptEvent) => {
       if (!evt) return
-      const ids = [
-        ...(evt.fullyReadMessageIds ?? []),
-        ...(evt.updatedMessageIds ?? []),
-        ...(evt.messageId ? [evt.messageId] : [])
-      ]
-      if (!ids.length) return
-      console.log('[chat] read_receipt:', ids.length, 'in', evt.conversationId)
+
+      const fullyReadIds = evt.fullyReadMessageIds ?? []
+      if (!fullyReadIds.length) return
+
       dispatch(
         updateMessagesFeedback({
           conversationId: evt.conversationId,
-          messageIds: ids,
+          messageIds: fullyReadIds,
           isSeen: true
         })
       )
     }
 
-    const onTyping = (evt: unknown) => console.log('[chat] typing:', evt)
-    const onUserStatus = (evt: unknown) => console.log('[chat] user_status:', evt)
-
-    // When a conversation is created/updated (e.g. user added to a new group),
-    // refresh the conversation list so the new chat appears in the sidebar and
-    // we join its socket room (via the room-joining effect).
-    const onConversationUpdated = (evt: any) => {
-      console.log('[chat] conversation_updated:', evt)
+    // Authoritative unread count from the server. Fires whenever the server
+    // recalculates this user's unread for a conversation — including mark-read
+    // from another device — so the sidebar badge stays consistent across
+    // tabs/devices without a REST refetch.
+    const onUnreadCountChanged = (evt: any) => {
       const convId = evt?.conversationId
-      if (convId && !knownChatIdsRef.current.has(convId)) {
-        console.log('[chat] new conversation detected → refreshing list + joining room')
+      const count = typeof evt?.unreadCount === 'number' ? evt.unreadCount : null
+      if (!convId || count === null) return
+      dispatch(setUnreadCount({ chatId: convId, count }))
+    }
+
+    // When a conversation is updated (metadata change, pin/unpin, mute, etc.),
+    // refresh the conversation list so the sidebar reflects the change.
+    const onConversationUpdated = (evt: any) => {
+      const convId = evt?.conversationId
+      if (!convId) return
+
+      if (!knownChatIdsRef.current.has(convId)) {
         dispatch(fetchChatsContacts()).then(() => {
           joinChatRoom(convId)
         })
+      } else {
+        dispatch(fetchChatsContacts())
       }
     }
 
-    // DEBUG: catch every event the server fires so we can confirm which
-    // ones are arriving when two users are interacting.
-    const onAny = (eventName: string, ...args: unknown[]) =>
-      console.log('[chat:event]', eventName, args)
+    // Fires when a new conversation is created OR when the current user is
+    // added to one at runtime. Per SDK doc Step 7, the server does NOT
+    // auto-join the user's socket to the new room — only the personal
+    // conversation_created event is emitted to that user. We must:
+    //   1. Add the conversation to the sidebar (via fetchChatsContacts refresh)
+    //   2. Emit `joinRoom` so the socket subscribes to new_message etc. for that room
+    // Without this, the user would receive no realtime events for the new chat
+    // until the next page reload.
+    const onConversationCreated = (evt: any) => {
+      const conv = evt?.conversation ?? evt?.data ?? evt
+      const convId = conv?.id ?? evt?.conversationId
+      if (!convId) return
+      dispatch(fetchChatsContacts()).then(() => {
+        joinChatRoom(convId)
+      })
+    }
 
+    // When a conversation is deleted (admin action, leave-and-delete), remove
+    // it from the sidebar so the stale row doesn't linger.
+    const onConversationDeleted = (evt: any) => {
+      const convId = evt?.conversationId ?? evt?.id
+      if (!convId) return
+      dispatch(fetchChatsContacts())
+    }
+
+    // Reactions — server broadcasts the full `reactions` array for one
+    // message. We replace (not merge) since the server is authoritative.
+    const onReactionUpdated = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      const reactions = evt?.reactions ?? evt?.message?.reactions ?? []
+      if (!messageId) return
+      dispatch(applyReactionUpdate({ messageId, reactions }))
+    }
+
+    // Edit — server broadcasts the new text + isEdited stamp.
+    const onMessageUpdated = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      const text = evt?.text ?? evt?.message?.content?.text ?? ''
+      const editedAt = evt?.editedAt ?? evt?.message?.editedAt
+      if (!messageId) return
+      dispatch(applyMessageUpdate({ messageId, text, editedAt }))
+    }
+
+    // Delete-for-everyone — keep the bubble in place, render the
+    // "This message was deleted" placeholder.
+    const onMessageDeleted = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      if (!messageId) return
+      dispatch(applyMessageDelete({ messageId }))
+    }
+
+    // Delete-for-me — server only emits this to the user who initiated.
+    // Remove the message entirely from local state.
+    const onMessageDeletedForMe = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      if (!messageId) return
+      dispatch(applyMessageDeleteForMe({ messageId }))
+    }
+
+    // Pin — broadcast to all participants. Server toggles state both directions
+    // (pin and unpin both arrive via `message_pin_updated`).
+    const onMessagePinUpdated = (evt: any) => {
+      const messageId = evt?.messageId ?? evt?.message?.id
+      // Default to true if the server omits the flag — `pinMessage` is the
+      // common pattern; unpins usually include `isPinned: false` explicitly.
+      const isPinned = typeof evt?.isPinned === 'boolean' ? evt.isPinned : true
+      if (!messageId) return
+      dispatch(applyMessagePin({ messageId, isPinned }))
+    }
+
+    // TEMPORARY: log every server event before our specific handlers run, so
+    // we can verify event-name matches. Remove once read-receipt flow is
+    // verified end-to-end on staging.
+    const onAnyDebug = (eventName: string, ...args: unknown[]) => {
+      // Highlight read-related events to make them easy to spot in the console.
+      const isReadLike = /read|receipt|seen/i.test(eventName)
+      const prefix = isReadLike ? '[chat:event ★ READ-LIKE]' : '[chat:event]'
+      console.log(prefix, eventName, args)
+    }
+
+    chatSocket.onAny(onAnyDebug)
     chatSocket.on('new_message', onNewMessage)
     chatSocket.on('message_delivered', onMessageDelivered)
     chatSocket.on('messages_delivered', onMessagesDelivered)
     chatSocket.on('read_receipt', onReadReceipt)
-    chatSocket.on('typing', onTyping)
-    chatSocket.on('user_status', onUserStatus)
+    chatSocket.on('unread_count_changed', onUnreadCountChanged)
     chatSocket.on('conversation_updated', onConversationUpdated)
-    chatSocket.onAny(onAny)
+    chatSocket.on('conversation_created', onConversationCreated)
+    chatSocket.on('conversation_deleted', onConversationDeleted)
+    chatSocket.on('reaction_updated', onReactionUpdated)
+    chatSocket.on('message_updated', onMessageUpdated)
+    chatSocket.on('message_deleted', onMessageDeleted)
+    chatSocket.on('message_deleted_for_me', onMessageDeletedForMe)
+    chatSocket.on('message_pin_updated', onMessagePinUpdated)
+    chatSocket.on('typing_indicator', handleTypingEvent)
 
     return () => {
+      chatSocket.offAny(onAnyDebug)
       chatSocket.off('new_message', onNewMessage)
       chatSocket.off('message_delivered', onMessageDelivered)
       chatSocket.off('messages_delivered', onMessagesDelivered)
       chatSocket.off('read_receipt', onReadReceipt)
-      chatSocket.off('typing', onTyping)
-      chatSocket.off('user_status', onUserStatus)
+      chatSocket.off('unread_count_changed', onUnreadCountChanged)
       chatSocket.off('conversation_updated', onConversationUpdated)
-      chatSocket.offAny(onAny)
+      chatSocket.off('conversation_created', onConversationCreated)
+      chatSocket.off('conversation_deleted', onConversationDeleted)
+      chatSocket.off('reaction_updated', onReactionUpdated)
+      chatSocket.off('message_updated', onMessageUpdated)
+      chatSocket.off('message_deleted', onMessageDeleted)
+      chatSocket.off('message_deleted_for_me', onMessageDeletedForMe)
+      chatSocket.off('message_pin_updated', onMessagePinUpdated)
+      chatSocket.off('typing_indicator', handleTypingEvent)
     }
   }, [chatSocket, chatConnected, chatError, chatClient, dispatch])
 
@@ -388,6 +535,11 @@ const AppChat = () => {
         userProfileRightOpen={userProfileRightOpen}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+        typingUsers={
+          store?.selectedChat?.contact?.id
+            ? typingUsers[String(store.selectedChat.contact.id)] ?? []
+            : []
+        }
       />
     </Box>
   )

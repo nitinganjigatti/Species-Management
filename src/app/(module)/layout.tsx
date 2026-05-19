@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useAuth } from 'src/hooks/useAuth'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 
 // ** Layout Import
@@ -14,6 +14,9 @@ import Spinner from 'src/@core/components/spinner'
 
 // ** ACL Guard for App Router
 import AclGuard from 'src/configs/AclGuard'
+
+// ** Global floating chat launcher (FAB + popout panel hosting <AppChat />)
+import ChatLauncher from 'src/components/chat/ChatLauncher'
 
 // ** WSO2 Auth Client + Flag
 import client from 'src/lib/auth/wso2Client'
@@ -26,7 +29,13 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const auth = useAuth()
   const router = useRouter()
+  const pathname = usePathname()
   const wso2 = isWso2AuthEnabled()
+
+  // Hide the floating chat launcher on the dedicated /chat route — the full
+  // AppChat is already mounted on that page, so a second instance inside the
+  // dock would duplicate fetches and socket handlers.
+  const hideChatLauncher = pathname === '/chat' || pathname?.startsWith('/chat/')
 
   // Hook always runs; result only consumed in WSO2 mode. In non-SSO it goes
   // idle→unauthenticated quickly with no side effects.
@@ -78,7 +87,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <AclGuard>
-      <UserLayout contentHeightFixed={false}>{children}</UserLayout>
+      <UserLayout contentHeightFixed={false}>
+        {children}
+        {!hideChatLauncher && <ChatLauncher />}
+      </UserLayout>
     </AclGuard>
   )
 }

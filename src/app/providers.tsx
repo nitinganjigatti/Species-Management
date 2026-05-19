@@ -51,6 +51,9 @@ import { queryClient } from 'src/lib/shared/queryClient'
 import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
 import { LanguageProvider } from 'src/context/LanguageContext'
 
+// Global init point for @antzsoft/chat-core — see src/components/chat/ChatBoot.tsx
+import ChatBoot from 'src/components/chat/ChatBoot'
+
 interface ProvidersProps {
   children: ReactNode
 }
@@ -69,6 +72,7 @@ export function Providers({ children }: ProvidersProps) {
                       <EggProvider>
                         <ForgotPasswordProvider>
                           <AuthProvider>
+                            <ChatBoot />
                             <LanguageProvider>
                               <SettingsProvider pageSettings={null}>
                                 <SettingsConsumer>

@@ -47,6 +47,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import UserProfileLeft from 'src/views/apps/chat/UserProfileLeft'
 import ComposePopover from 'src/views/apps/chat/ComposePopover'
 import CreateGroupDrawer from 'src/views/apps/chat/CreateGroupDrawer'
+import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 
 // ** Slice actions (filter + group)
 import { setActiveFilter, createGroupChat, startDirectChat } from 'src/store/apps/chat'
@@ -88,15 +89,32 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
   // ** Local UI state
   const [query, setQuery] = useState<string>('')
-  const [active, setActive] = useState<null | { type: string; id: string | number }>(null)
   const [composeAnchorEl, setComposeAnchorEl] = useState<HTMLElement | null>(null)
   const [view, setView] = useState<'chats' | 'create-group'>('chats')
 
   const pathname = usePathname()
   const activeFilter: ChatFilterType = store?.activeFilter ?? 'all'
 
+  // The "currently active" chat is the one Redux says is open. Deriving from
+  // Redux (instead of a local `active` state set on click) keeps the highlight
+  // in sync no matter how the chat got opened — including the auto-select
+  // effect in AppChat, programmatic `dispatch(selectChat(...))`, or any other
+  // path. Single source of truth: state.chat.selectedChat.contact.id.
+  const selectedChatId = store?.selectedChat?.contact?.id ?? null
+
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleChatClick = (type: 'chat' | 'contact', id: ChatEntityId) => {
+    // Skip if user clicked the chat that's already open — re-dispatching
+    // `selectChat` would refetch messages and mark-as-read for no reason,
+    // causing a visible "reload" of the panel. Only act when the selection
+    // actually changes. (Contact clicks always run — they may resolve to a
+    // new conversation if the DM doesn't exist yet.)
+    if (type === 'chat' && id === selectedChatId) {
+      if (!mdAbove) handleLeftSidebarToggle()
+
+      return
+    }
+
     // Clicking an existing chat row → open that conversation directly.
     // Clicking a contact (from the compose popover) → resolve/create a direct
     // conversation first, then open it. `startDirectChat` handles both the
@@ -107,7 +125,6 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     } else {
       dispatch(selectChat(id))
     }
-    setActive({ type, id })
     if (!mdAbove) handleLeftSidebarToggle()
   }
 
@@ -134,20 +151,15 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     if (!mdAbove) handleLeftSidebarToggle()
   }
 
-  // Clear active highlight on route change
+  // Clear the open chat on route change (when navigating away from /chat).
+  // The "highlight" follows Redux selectedChat naturally — no local state to
+  // reset here.
   useEffect(() => {
     return () => {
-      setActive(null)
       dispatch(removeSelectedChat())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname])
-
-  useEffect(() => {
-    if (store && store.chats && active && active.type === 'contact' && active.id === store.chats[0]?.id) {
-      setActive({ type: 'chat', id: active.id })
-    }
-  }, [store, active])
 
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {
@@ -169,7 +181,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       list = list.filter(c => c.fullName.toLowerCase().includes(q))
     }
 
-    return list
+    // Pinned conversations float to the top
+    const pinned = list.filter(c => c.isPinned === true)
+    const unpinned = list.filter(c => c.isPinned !== true)
+
+    return [...pinned, ...unpinned]
   })()
 
   const renderChats = () => {
@@ -210,8 +226,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
 
     return visibleChats.map((chat: ChatsArrType, index: number) => {
       const { lastMessage } = chat.chat
-      const activeCondition = active !== null && active.id === chat.id && active.type === 'chat'
+      const activeCondition = chat.id === selectedChatId
       const isGroup = chat.isGroup === true
+      const isPinnedChat = chat.isPinned === true
 
       return (
         <ListItem key={`chat-${chat.id}-${index}`} disablePadding sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
@@ -277,15 +294,91 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 mr: 1.5,
                 '& .MuiTypography-root': { ...(activeCondition && { color: 'common.white' }) }
               }}
+              slotProps={{
+                primary: { component: 'div' },
+                secondary: { component: 'div' }
+              }}
               primary={
-                <Typography noWrap sx={{ ...(!activeCondition ? { color: 'text.secondary' } : {}), fontWeight: 600 }}>
+                <Typography
+                  component='span'
+                  noWrap
+                  sx={{ display: 'block', ...(!activeCondition ? { color: 'text.secondary' } : {}), fontWeight: 600 }}
+                >
                   {chat.fullName}
                 </Typography>
               }
               secondary={
-                <Typography noWrap variant='body2' sx={{ ...(!activeCondition && { color: 'text.disabled' }) }}>
-                  {lastMessage ? lastMessage.message : null}
-                </Typography>
+                lastMessage ? (
+                  lastMessage.contentType === 'system' ? (
+                    <Typography
+                      component='span'
+                      noWrap
+                      variant='body2'
+                      sx={{
+                        display: 'block',
+                        fontStyle: 'italic',
+                        ...(!activeCondition && { color: 'text.disabled' })
+                      }}
+                    >
+                      {lastMessage.message || 'System message'}
+                    </Typography>
+                  ) : lastMessage.message ? (
+                    <Typography
+                      component='span'
+                      noWrap
+                      variant='body2'
+                      sx={{ display: 'block', ...(!activeCondition && { color: 'text.disabled' }) }}
+                    >
+                      {lastMessage.message}
+                    </Typography>
+                  ) : lastMessage.attachments?.length ? (
+                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                      <Box component='span' sx={{ flexShrink: 0, display: 'inline-flex' }}>
+                        <Icon
+                          icon={
+                            lastMessage.attachments[0].type === 'image'
+                              ? 'mdi:image-outline'
+                              : lastMessage.attachments[0].type === 'video'
+                              ? 'mdi:video-outline'
+                              : lastMessage.attachments[0].type === 'audio'
+                              ? 'mdi:music-note'
+                              : getAttachmentVisual(
+                                  lastMessage.attachments[0].mimeType,
+                                  lastMessage.attachments[0].filename
+                                ).icon
+                          }
+                          fontSize='1rem'
+                        />
+                      </Box>
+                      <Typography
+                        component='span'
+                        noWrap
+                        variant='body2'
+                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}
+                      >
+                        {lastMessage.attachments[0].type === 'image'
+                          ? 'Photo'
+                          : lastMessage.attachments[0].type === 'video'
+                          ? 'Video'
+                          : lastMessage.attachments[0].type === 'audio'
+                          ? 'Audio'
+                          : lastMessage.attachments[0].filename}
+                      </Typography>
+                    </Box>
+                  ) : lastMessage.contentType === 'attachment' ? (
+                    <Box component='span' sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+                      <Icon icon='mdi:attachment' fontSize='1rem' />
+                      <Typography
+                        component='span'
+                        noWrap
+                        variant='body2'
+                        sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}
+                      >
+                        Attachment
+                      </Typography>
+                    </Box>
+                  ) : null
+                ) : null
               }
             />
 
@@ -308,19 +401,30 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   ? formatDateToMonthShort(lastMessage.time as string, true)
                   : ''}
               </Typography>
-              {chat.chat.unseenMsgs && chat.chat.unseenMsgs > 0 ? (
-                <Chip
-                  color='error'
-                  label={chat.chat.unseenMsgs}
-                  sx={{
-                    mt: 0.5,
-                    height: 18,
-                    fontWeight: 600,
-                    fontSize: '0.75rem',
-                    '& .MuiChip-label': { pt: 0.25, px: 1.655 }
-                  }}
-                />
-              ) : null}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
+                {chat.isMuted === true ? (
+                  <Icon
+                    icon='mdi:bell-off-outline'
+                    fontSize='0.875rem'
+                    color={activeCondition ? 'inherit' : undefined}
+                  />
+                ) : null}
+                {isPinnedChat ? (
+                  <Icon icon='mdi:pin' fontSize='0.875rem' color={activeCondition ? 'inherit' : undefined} />
+                ) : null}
+                {chat.chat.unseenMsgs && chat.chat.unseenMsgs > 0 ? (
+                  <Chip
+                    color='error'
+                    label={chat.chat.unseenMsgs}
+                    sx={{
+                      height: 18,
+                      fontWeight: 600,
+                      fontSize: '0.75rem',
+                      '& .MuiChip-label': { pt: 0.25, px: 1.655 }
+                    }}
+                  />
+                ) : null}
+              </Box>
             </Box>
           </ListItemButton>
         </ListItem>
@@ -379,7 +483,9 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   <Badge
                     overlap='circular'
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                    onClick={handleUserProfileLeftSidebarToggle}
+                    // Profile drawer is hidden for now — see <UserProfileLeft />
+                    // render below. Restore `onClick={handleUserProfileLeftSidebarToggle}`
+                    // when the drawer comes back.
                     badgeContent={
                       <Box
                         component='span'
@@ -491,16 +597,21 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         onSelectContact={(id: ChatEntityId) => handleChatClick('contact', id)}
       />
 
-      <UserProfileLeft
-        store={store}
-        hidden={hidden}
-        statusObj={statusObj}
-        userStatus={userStatus}
-        sidebarWidth={sidebarWidth}
-        setUserStatus={setUserStatus}
-        userProfileLeftOpen={userProfileLeftOpen}
-        handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
-      />
+      {/* Hidden for now — own-profile drawer (About / Status / Settings).
+          Restore the <UserProfileLeft /> render and the avatar's onClick
+          handler above when bringing it back. */}
+      {false && (
+        <UserProfileLeft
+          store={store}
+          hidden={hidden}
+          statusObj={statusObj}
+          userStatus={userStatus}
+          sidebarWidth={sidebarWidth}
+          setUserStatus={setUserStatus}
+          userProfileLeftOpen={userProfileLeftOpen}
+          handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
+        />
+      )}
     </div>
   )
 }

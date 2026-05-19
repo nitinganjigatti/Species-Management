@@ -54,6 +54,8 @@ const ComposeNavigation = () => {
   const hospitalModule = authData?.userData?.roles?.settings?.add_hospital
   const havePermissionToAddHospital = authData?.userData?.permission?.user_settings?.add_hospital_permission
 
+  const enableChatModule = authData?.userData?.settings?.ENABLE_CHAT_MODULE
+
   const userRole = authData?.userData?.roles?.role_name
 
   const enableAddNecropsyReport = authData?.userData?.roles?.settings?.enable_add_necropsy_report
@@ -164,9 +166,11 @@ const ComposeNavigation = () => {
     navigationArray.push(...collectionNav)
   }
 
-  // Chat module (App Router)
-  const chatNav = chatNavigation()
-  navigationArray.push(...chatNav)
+  // Chat module (App Router) — gated by zoo settings flag
+  if (enableChatModule) {
+    const chatNav = chatNavigation()
+    navigationArray.push(...chatNav)
+  }
 
   // Component Library (Developer Tools)
   // const componentLibraryNav = componentLibraryNavigation()
