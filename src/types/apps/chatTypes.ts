@@ -162,6 +162,12 @@ export type ChatsArrType = {
    */
   editWindowSeconds?: number
   deleteWindowSeconds?: number
+  /**
+   * Creator of the conversation. Mirrors `Conversation.createdBy` from the
+   * SDK. Used by the sidebar to render a "X created group Y" preview when
+   * the server doesn't surface `lastMessage` for a freshly-created group.
+   */
+  createdBy?: ChatEntityId
 }
 
 export interface CreateGroupPayload {

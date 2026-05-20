@@ -986,6 +986,20 @@ export const appChatSlice = createSlice({
             touched = chat.id
           }
         })
+
+        // Keep the sidebar preview (`chat.lastMessage`) in sync when the
+        // deleted message IS the last one. Without this, the sidebar
+        // would keep showing the now-deleted message's original text
+        // until the next refresh.
+        if (chat.chat.lastMessage?.id === messageId) {
+          chat.chat.lastMessage = {
+            ...chat.chat.lastMessage,
+            isDeletedForEveryone: true,
+            message: '',
+            attachments: undefined,
+            reactions: undefined
+          }
+        }
       })
       if (touched && state.selectedChat?.contact.id === touched) {
         const openChat = state.chats.find(c => c.id === touched)
@@ -1008,6 +1022,13 @@ export const appChatSlice = createSlice({
         const before = chat.chat.messages.length
         chat.chat.messages = chat.chat.messages.filter(m => m.id !== messageId)
         if (chat.chat.messages.length !== before) touched = chat.id
+
+        // If the just-removed message was the sidebar preview, fall back
+        // to the new last message in the array (or undefined if empty).
+        // Without this, the sidebar would keep showing the gone message.
+        if (chat.chat.lastMessage?.id === messageId) {
+          chat.chat.lastMessage = chat.chat.messages[chat.chat.messages.length - 1]
+        }
       })
       if (touched && state.selectedChat?.contact.id === touched) {
         const openChat = state.chats.find(c => c.id === touched)
@@ -1037,6 +1058,18 @@ export const appChatSlice = createSlice({
             touched = chat.id
           }
         })
+
+        // Keep the sidebar preview in sync if the edited message IS the
+        // last one. Without this, the sidebar would keep showing the
+        // pre-edit text.
+        if (chat.chat.lastMessage?.id === messageId) {
+          chat.chat.lastMessage = {
+            ...chat.chat.lastMessage,
+            message: text,
+            isEdited: true,
+            ...(editedAt ? { editedAt } : {})
+          }
+        }
       })
       if (touched && state.selectedChat?.contact.id === touched) {
         const openChat = state.chats.find(c => c.id === touched)

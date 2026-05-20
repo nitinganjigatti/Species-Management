@@ -230,6 +230,28 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
       const isGroup = chat.isGroup === true
       const isPinnedChat = chat.isPinned === true
 
+      // Synthesized "X created group Y" preview for freshly-created groups
+      // where the server didn't return a `lastMessage`. Resolved here (not
+      // in the adapter) so we can look up the creator's display name from
+      // the deduped `store.contacts` list — the conversation-list response
+      // sometimes returns participants without `displayName`, and the
+      // creator might not even be in the participants array anymore.
+      // Falls through to the existing "no preview" path if we can't find a
+      // name to render — better than showing "Someone".
+      let createdByPreview: string | null = null
+      if (!lastMessage && isGroup && chat.createdBy) {
+        const creatorIdStr = String(chat.createdBy)
+        const meIdStr = String(store?.userProfile?.id ?? '')
+        if (meIdStr && creatorIdStr === meIdStr) {
+          createdByPreview = `You created group "${chat.fullName}"`
+        } else {
+          const creator = store?.contacts?.find(c => String(c.id) === creatorIdStr)
+          if (creator?.fullName) {
+            createdByPreview = `${creator.fullName} created group "${chat.fullName}"`
+          }
+        }
+      }
+
       return (
         <ListItem key={`chat-${chat.id}-${index}`} disablePadding sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
           <ListItemButton
@@ -316,7 +338,24 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
               }
               secondary={
                 lastMessage ? (
-                  lastMessage.contentType === 'system' ? (
+                  // Tombstone preview — matches WhatsApp's sidebar behavior
+                  // when the last message has been deleted-for-everyone.
+                  // Renders italic placeholder so it reads distinct from
+                  // regular text. Mirrors the bubble's tombstone in ChatLog.
+                  lastMessage.isDeletedForEveryone ? (
+                    <Typography
+                      component='span'
+                      noWrap
+                      variant='body2'
+                      sx={{
+                        display: 'block',
+                        fontStyle: 'italic',
+                        ...(!activeCondition && { color: 'text.disabled' })
+                      }}
+                    >
+                      This message was deleted
+                    </Typography>
+                  ) : lastMessage.contentType === 'system' ? (
                     <Typography
                       component='span'
                       noWrap
@@ -385,6 +424,21 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       </Typography>
                     </Box>
                   ) : null
+                ) : createdByPreview ? (
+                  // No real lastMessage — render the resolved "X created
+                  // group Y" preview as a system-style italic line.
+                  <Typography
+                    component='span'
+                    noWrap
+                    variant='body2'
+                    sx={{
+                      display: 'block',
+                      fontStyle: 'italic',
+                      ...(!activeCondition && { color: 'text.disabled' })
+                    }}
+                  >
+                    {createdByPreview}
+                  </Typography>
                 ) : null
               }
             />
