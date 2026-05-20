@@ -11,6 +11,13 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 // NOTE: prismjs and iconify-bundle are imported in providers.tsx (Client Component)
 // because they contain browser-only code / class components
 
+// Skip build-time prerender for every route. This is an authenticated SPA —
+// pages have nothing useful to render until auth resolves in the browser, and
+// many call `useSearchParams()` directly inside `'use client'` bodies, which
+// crashes the default prerender attempt. No runtime cost; just disables a
+// build-time optimization that wasn't producing useful HTML anyway.
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Antz Dashboard',
   description: 'Antz Web Dashboard',
