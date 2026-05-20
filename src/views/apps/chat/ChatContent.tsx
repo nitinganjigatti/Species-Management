@@ -22,6 +22,7 @@ import SendMsgForm from 'src/views/apps/chat/SendMsgForm'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
+import MessageInfoDialog from 'src/views/apps/chat/MessageInfoDialog'
 
 // ** Chat API
 import { searchMessages } from 'src/lib/chat/api'
@@ -68,6 +69,7 @@ const ChatContent = (props: ChatContentType) => {
   const [searchResultIds, setSearchResultIds] = useState<string[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchTotal, setSearchTotal] = useState(0)
+  const [scrollTargetMessageId, setScrollTargetMessageId] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -416,11 +418,12 @@ const ChatContent = (props: ChatContentType) => {
                       <Box
                         onClick={() => {
                           if (!latest.id) return
-                          const el = document.querySelector(`[data-msg-id="${latest.id}"]`)
-                          if (!el) return
-                          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                          el.classList.add('msg-flash')
-                          setTimeout(() => el.classList.remove('msg-flash'), 1200)
+                          // Clear first so re-clicking the same pinned id
+                          // re-triggers the ChatLog effect (it dedupes on
+                          // the prop value).
+                          setScrollTargetMessageId(null)
+                          // Defer so React commits the null before the new id.
+                          requestAnimationFrame(() => setScrollTargetMessageId(latest.id ?? null))
                         }}
                         sx={{
                           display: 'flex',
@@ -464,6 +467,8 @@ const ChatContent = (props: ChatContentType) => {
                         dispatch(jumpToMessage({ chatId, messageId }) as any)
                       }
                     }}
+                    scrollTargetMessageId={scrollTargetMessageId}
+                    onScrollToTargetDone={() => setScrollTargetMessageId(null)}
                     canInteract={canInteract}
                   />
                 </>
@@ -537,6 +542,11 @@ const ChatContent = (props: ChatContentType) => {
               userProfileRightOpen={userProfileRightOpen}
               handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
             />
+            {/* Mounted once at the chat shell root — driven by Redux
+                `state.chat.infoMessage`. Any bubble's "Info" menu item
+                dispatches `setInfoMessage(...)` and the drawer slides in
+                using the same `Sidebar` primitive as UserProfileRight. */}
+            <MessageInfoDialog />
           </Box>
         )
       }

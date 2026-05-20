@@ -100,6 +100,17 @@ export type MessageType = {
   isEdited?: boolean
   editedAt?: string
   isDeletedForEveryone?: boolean
+  /**
+   * Per-recipient read receipts. Populated by the adapter from the SDK
+   * Message's `readBy` array. Drives the WhatsApp-style "Message info"
+   * dialog (list of who read + when).
+   */
+  readBy?: Array<{ userId: string; readAt: string }>
+  /**
+   * Per-recipient delivery receipts (reached the device, may not yet be
+   * opened). Same shape as `readBy`.
+   */
+  deliveredTo?: Array<{ userId: string; deliveredAt: string }>
 }
 
 export type ChatType = {
@@ -221,6 +232,16 @@ export type ChatStoreType = {
   // The message currently being edited. Set by clicking "Edit" on an own
   // bubble; cleared on save / cancel.
   editingMessage: { messageId: string; originalText: string } | null
+  // The message currently shown in the "Message info" right-side drawer.
+  // Set by clicking the chevron's "Info" item on a sender bubble; cleared
+  // on close. Mounted at the AppChat root so the drawer panel overlays
+  // the chat shell, not the bubble.
+  infoMessage: {
+    messageId: string
+    messageText?: string
+    readBy?: Array<{ userId: string; readAt: string }>
+    deliveredTo?: Array<{ userId: string; deliveredAt: string }>
+  } | null
 }
 
 export type SendMsgParamsType = {
@@ -311,6 +332,9 @@ export type ChatLogChatType = {
   isEdited?: boolean
   editedAt?: string
   isDeletedForEveryone?: boolean
+  // Receipts — forwarded from MessageType for the "Message info" dialog.
+  readBy?: Array<{ userId: string; readAt: string }>
+  deliveredTo?: Array<{ userId: string; deliveredAt: string }>
 }
 
 export type MessageGroupType = {
@@ -338,6 +362,13 @@ export type ChatLogType = {
   // and we need to reload a context slice around that message. ChatContent
   // wires this to the `jumpToMessage` thunk.
   onJumpToMessage?: (messageId: string) => void
+  // External scroll request (e.g. pinned-bar click). When set, ChatLog tries
+  // to scroll to the message; if it's not in the loaded window it dispatches
+  // `onJumpToMessage` and retries once the messages array swaps. Caller
+  // should clear via `onScrollToTargetDone` once handled to allow re-clicks
+  // on the same id.
+  scrollTargetMessageId?: string | null
+  onScrollToTargetDone?: () => void
   // When false, per-message actions (Reply / Star / Copy / Delete) and
   // reaction toggles are suppressed. Set by ChatContent when the current
   // user has been removed from / has left a group. Defaults to true.
