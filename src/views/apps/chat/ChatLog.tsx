@@ -88,6 +88,8 @@ const ChatLog = (props: ChatLogType) => {
     activeMatchIndex = 0,
     onLoadOlder,
     onJumpToMessage,
+    scrollTargetMessageId = null,
+    onScrollToTargetDone,
     canInteract = true
   } = props
 
@@ -234,6 +236,65 @@ const ChatLog = (props: ChatLogType) => {
     }
   }, [])
 
+  // Cancels any in-flight smooth-scroll animation. Stored at hook scope so a
+  // new scroll request during a previous animation can abort and restart.
+  const scrollAnimRafRef = useRef<number | null>(null)
+
+  // JS-animated scrollTop. Browser-native `scrollTo({behavior:'smooth'})`
+  // doesn't reliably move PerfectScrollbar's `_container`, so we ease via
+  // rAF and ping `updateScroll()` after each frame to keep its rails in sync.
+  const smoothScrollTo = useCallback(
+    (target: number, duration = 300) => {
+      if (scrollAnimRafRef.current != null) cancelAnimationFrame(scrollAnimRafRef.current)
+      const c = getScrollContainer()
+      if (!c) return
+      const start = c.scrollTop
+      const delta = target - start
+      if (Math.abs(delta) < 1) return
+      const t0 = performance.now()
+      const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
+      const tick = (now: number) => {
+        const t = Math.min(1, (now - t0) / duration)
+        c.scrollTop = start + delta * easeOutCubic(t)
+        // @ts-ignore — re-measure PerfectScrollbar's rails each frame
+        chatArea.current?.updateScroll?.()
+        if (t < 1) {
+          scrollAnimRafRef.current = requestAnimationFrame(tick)
+        } else {
+          scrollAnimRafRef.current = null
+        }
+      }
+      scrollAnimRafRef.current = requestAnimationFrame(tick)
+    },
+    [getScrollContainer]
+  )
+
+  // Cancel any pending animation on unmount.
+  useEffect(() => {
+    return () => {
+      if (scrollAnimRafRef.current != null) cancelAnimationFrame(scrollAnimRafRef.current)
+    }
+  }, [])
+
+  // Center a found bubble inside the scrollable container using `smoothScrollTo`.
+  // Falls back to native `scrollIntoView` for the `hidden` (non-PS) mode where
+  // we don't have a PerfectScrollbar container to drive manually.
+  const scrollMessageIntoView = useCallback(
+    (el: HTMLElement) => {
+      const c = getScrollContainer()
+      if (!c) {
+        el.scrollIntoView({ block: 'center' })
+
+        return
+      }
+      const elRect = el.getBoundingClientRect()
+      const cRect = c.getBoundingClientRect()
+      const target = Math.max(0, c.scrollTop + (elRect.top - cRect.top) - (c.clientHeight - el.offsetHeight) / 2)
+      smoothScrollTo(target)
+    },
+    [getScrollContainer, smoothScrollTo]
+  )
+
   // Scroll to the active search match. If the match isn't in the currently-
   // loaded message window (cursor pagination keeps only ~50 messages around
   // the live position), ask ChatContent to load a context window via the
@@ -259,7 +320,7 @@ const ChatLog = (props: ChatLogType) => {
         lastSeenNewestIdRef.current = lastId
       }
 
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      scrollMessageIntoView(el)
 
       return
     }
@@ -270,7 +331,34 @@ const ChatLog = (props: ChatLogType) => {
     if (!onJumpToMessage) return
     pendingJumpForIdRef.current = targetId
     onJumpToMessage(targetId)
-  }, [activeMatchIndex, searchResultIds, data.chat.messages, onJumpToMessage])
+  }, [activeMatchIndex, searchResultIds, data.chat.messages, onJumpToMessage, scrollMessageIntoView])
+
+  // External scroll target (pinned-bar click etc.). Mirrors the search-jump
+  // effect: try the in-DOM ref first, otherwise ask the parent to load a
+  // context window via onJumpToMessage and let this effect re-run once the
+  // messages array swaps. PerfectScrollbar's wrapper computes
+  // `overflow: hidden`, so native `scrollIntoView` no-ops — we set
+  // scrollTop on the resolved container instead.
+  const pendingExternalJumpRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!scrollTargetMessageId) return
+
+    const el = messageRefs.current.get(scrollTargetMessageId)
+    if (el) {
+      pendingExternalJumpRef.current = null
+      scrollMessageIntoView(el)
+      el.classList.add('msg-flash')
+      setTimeout(() => el.classList.remove('msg-flash'), 1200)
+      onScrollToTargetDone?.()
+
+      return
+    }
+
+    if (pendingExternalJumpRef.current === scrollTargetMessageId) return
+    if (!onJumpToMessage) return
+    pendingExternalJumpRef.current = scrollTargetMessageId
+    onJumpToMessage(scrollTargetMessageId)
+  }, [scrollTargetMessageId, data.chat.messages, onJumpToMessage, onScrollToTargetDone, scrollMessageIntoView])
 
   // In-page preview state for image / video / pdf / other attachments.
   // Clicking an attachment opens the dialog; close button or backdrop closes.
@@ -358,7 +446,11 @@ const ChatLog = (props: ChatLogType) => {
         ...(msg.isStarred ? { isStarred: true } : {}),
         ...(msg.isEdited ? { isEdited: true } : {}),
         ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
-        ...(msg.isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
+        ...(msg.isDeletedForEveryone ? { isDeletedForEveryone: true } : {}),
+        // Receipts — forwarded to the bubble so MessageActions can open the
+        // "Message info" dialog without going back to Redux per message.
+        ...(msg.readBy?.length ? { readBy: msg.readBy } : {}),
+        ...(msg.deliveredTo?.length ? { deliveredTo: msg.deliveredTo } : {})
       }
 
       // Date boundary — flush the active group and inject a separator
@@ -582,7 +674,7 @@ const ChatLog = (props: ChatLogType) => {
                 {avatarName}
               </Typography>
             ) : null}
-            {item.messages.map((chat: ChatLogChatType, index: number, { length }: { length: number }) => {
+            {item.messages.map((chat: ChatLogChatType, index: number) => {
               const time = new Date(chat.time)
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false
               const isActiveMatch = isMatch && chat.id === activeResultId
@@ -591,6 +683,7 @@ const ChatLog = (props: ChatLogType) => {
                 <Box
                   key={index}
                   ref={(el: HTMLElement | null) => setMessageRef(chat.id, el)}
+                  data-msg-id={chat.id}
                   sx={{ '&:not(:last-of-type)': { mb: 3.5 } }}
                 >
                   <Box
@@ -1123,10 +1216,16 @@ const ChatLog = (props: ChatLogType) => {
                       justifyContent: isSender ? 'flex-end' : 'flex-start'
                     }}
                   >
-                    {/* Feedback ticks (sent/delivered/seen) only on the last
-                        message of the group — same status applies to the whole
-                        batch, so repeating ticks per bubble would just be noise. */}
-                    {index + 1 === length ? renderMsgFeedback(isSender, chat.feedback) : null}
+                    {/* Feedback ticks per message — matches WhatsApp:
+                        • single grey ✓ → isSent (server acked)
+                        • double grey ✓✓ → isDelivered (recipient online / received)
+                        • double green ✓✓ → isSeen (recipient opened the chat)
+                        The data flows in from two paths that are kept in sync:
+                        (1) REST `listMessages` → adapter reads `msg.deliveryStatus`
+                            ('sent'|'delivered'|'read') and maps to the three flags;
+                        (2) Live `message_delivered` / `read_receipt` socket events
+                            patch flags via `updateMessagesFeedback`. */}
+                    {renderMsgFeedback(isSender, chat.feedback)}
                     <Typography variant='caption' sx={{ color: 'text.disabled' }}>
                       {time
                         ? new Date(time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })

@@ -109,11 +109,18 @@ export function useChatClient(): UseChatClientResult {
     }
 
     const resolvedSocketConfig = {
+      apiUrl,
       socketOrigin,
       socketPath,
       userId,
       tenantId,
-      avatar: { url: avatarUrl }
+      avatar: { url: avatarUrl },
+      // Mirror the AntzChatClient constructor — without this, the SDK's
+      // pre-socket handshake fetches `${apiUrl}/crypto/pubkey` and falls
+      // back to a relative URL when apiUrl is missing, hitting the dev
+      // server at `/login/undefined/crypto/pubkey` (404). Must also match
+      // the server's TRANSIT_ENCRYPTION_ENABLED flag.
+      transitEncryption: false
     } as Parameters<typeof connectSocket>[0]
 
     // SDK's `connectSocket` is async — it does `fetchServerKeys` BEFORE

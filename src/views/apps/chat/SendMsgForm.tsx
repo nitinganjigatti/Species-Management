@@ -70,6 +70,20 @@ const inferKind = (mime: string): PendingFile['kind'] => {
   return 'document'
 }
 
+// Attachment limits — matches the SDK's documented defaults so we surface
+// the same rules client-side BEFORE the upload. SDK exposes these on
+// `UploadConfig` (`maxFilesPerMessage`, `maxFileSizeMB`) but doesn't
+// actually enforce them in `uploadBatch`; without this guard, the user
+// would only learn after pressing Send. Tune if the backend ever caps
+// differently than the SDK defaults.
+const MAX_FILES_PER_MESSAGE = 10
+const MAX_FILE_SIZE_MB: Record<PendingFile['kind'], number> = {
+  image: 5,
+  video: 25,
+  audio: 10,
+  document: 10
+}
+
 const kindMediaIcon: Record<'video' | 'audio', string> = {
   video: 'mdi:video-outline',
   audio: 'mdi:music-note'
@@ -142,7 +156,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     } catch (err) {
       console.warn('[chat] mic permission denied:', err)
-      toast.error('Microphone permission denied')
+      toast.error('Please enable your microphone to continue')
 
       return
     }
@@ -231,7 +245,6 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       mediaStreamRef.current?.getTracks().forEach(t => t.stop())
       stopTimer()
     }
-
   }, [])
 
   // When the user picks "Edit" on a bubble, store puts the message into
@@ -277,9 +290,36 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (!files.length) return
 
+    // Per-file size validation. Reject files whose size exceeds the
+    // per-kind limit BEFORE adding them to the pending strip — gives
+    // immediate feedback instead of failing silently on send.
+    const sized = files.filter(f => {
+      const kind = inferKind(f.type)
+      const limitMb = MAX_FILE_SIZE_MB[kind]
+      const fileMb = f.size / (1024 * 1024)
+      if (fileMb > limitMb) {
+        toast.error(`${f.name} is ${fileMb.toFixed(1)} MB — ${kind} limit is ${limitMb} MB`)
+
+        return false
+      }
+
+      return true
+    })
+    if (!sized.length) return
+
+    // Count-based UX: KEEP all files in the pending strip (better than
+    // silently dropping the user's picks), but raise a warning toast and
+    // let the Send button's disabled state (driven by pending.length) be
+    // the gate. User decides which to remove via the ✕ chip.
+    const projected = pending.length + sized.length
+    if (projected > MAX_FILES_PER_MESSAGE) {
+      const excess = projected - MAX_FILES_PER_MESSAGE
+      toast.error(`${MAX_FILES_PER_MESSAGE}-file limit — remove ${excess} attachment${excess === 1 ? '' : 's'} to send`)
+    }
+
     setProcessingFiles(true)
     try {
-      const processed = await Promise.all(files.map(f => maybeCompressImage(f)))
+      const processed = await Promise.all(sized.map(f => maybeCompressImage(f)))
       const next: PendingFile[] = processed.map(f => ({
         key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
         file: f,
@@ -302,6 +342,11 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   }
 
   const hasContent = Boolean(msg.trim().length || pending.length)
+  // Send is blocked when the user has attached more than the per-message
+  // cap. We let the chips stay in the strip (so they can pick which to
+  // drop via the ✕ button) but disable Send until pending.length is back
+  // under the limit.
+  const exceedsAttachmentCap = pending.length > MAX_FILES_PER_MESSAGE
 
   const handleSendMsg = async (e: SyntheticEvent) => {
     e.preventDefault()
@@ -451,24 +496,39 @@ const SendMsgForm = (props: SendMsgComponentType) => {
               Replying to {replyingTo.senderName ?? 'message'}
             </Typography>
             <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
-              {replyingTo.textPreview ||
-                (replyingTo.hasAttachment ? '📎 Attachment' : '')}
+              {replyingTo.textPreview || (replyingTo.hasAttachment ? '📎 Attachment' : '')}
             </Typography>
           </Box>
-          <IconButton
-            size='small'
-            aria-label='Cancel reply'
-            onClick={() => dispatch(setReplyingTo(null))}
-          >
+          <IconButton size='small' aria-label='Cancel reply' onClick={() => dispatch(setReplyingTo(null))}>
             <Icon icon='mdi:close' fontSize='1rem' />
           </IconButton>
         </Box>
       ) : null}
       {pending.length > 0 && (
         <PreviewStrip>
+          {/* Counter chip — only shown when over the per-message cap so the
+              user knows exactly why Send is disabled. Stays out of the way
+              for normal sends ≤ limit. */}
+          {exceedsAttachmentCap ? (
+            <Box
+              component='span'
+              sx={{
+                alignSelf: 'center',
+                px: 1.25,
+                py: 0.25,
+                borderRadius: 999,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: 'error.contrastText',
+                bgcolor: 'error.main',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {pending.length} / {MAX_FILES_PER_MESSAGE}
+            </Box>
+          ) : null}
           {pending.map(p => {
-            const docVisual =
-              p.kind === 'document' ? getAttachmentVisual(p.file.type, p.file.name) : null
+            const docVisual = p.kind === 'document' ? getAttachmentVisual(p.file.type, p.file.name) : null
 
             return (
               <PreviewChip key={p.key}>
@@ -496,17 +556,17 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 ) : (
                   <Icon icon={kindMediaIcon[p.kind as 'video' | 'audio']} fontSize='1.75rem' />
                 )}
-              <Box sx={{ minWidth: 0 }}>
-                <Typography variant='caption' noWrap sx={{ display: 'block', maxWidth: 120 }}>
-                  {p.file.name}
-                </Typography>
-                <Typography variant='caption' color='text.secondary'>
-                  {(p.file.size / 1024).toFixed(0)} KB
-                </Typography>
-              </Box>
-              <IconButton size='small' onClick={() => removePending(p.key)} disabled={uploading}>
-                <Icon icon='mdi:close' fontSize='1rem' />
-              </IconButton>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant='caption' noWrap sx={{ display: 'block', maxWidth: 120 }}>
+                    {p.file.name}
+                  </Typography>
+                  <Typography variant='caption' color='text.secondary'>
+                    {(p.file.size / 1024).toFixed(0)} KB
+                  </Typography>
+                </Box>
+                <IconButton size='small' onClick={() => removePending(p.key)} disabled={uploading}>
+                  <Icon icon='mdi:close' fontSize='1rem' />
+                </IconButton>
               </PreviewChip>
             )
           })}
@@ -546,12 +606,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
               >
                 <Icon icon='mdi:close' fontSize='1.375rem' />
               </IconButton>
-              <IconButton
-                size='small'
-                aria-label='Stop recording'
-                onClick={stopRecording}
-                sx={{ color: 'error.main' }}
-              >
+              <IconButton size='small' aria-label='Stop recording' onClick={stopRecording} sx={{ color: 'error.main' }}>
                 <Icon icon='mdi:stop-circle' fontSize='1.5rem' />
               </IconButton>
             </Box>
@@ -598,9 +653,16 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 <Button
                   type='submit'
                   variant='contained'
-                  disabled={uploading || processingFiles}
+                  disabled={uploading || processingFiles || exceedsAttachmentCap}
                   startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : undefined}
                   sx={{ ml: 1.25 }}
+                  title={
+                    exceedsAttachmentCap
+                      ? `Remove ${pending.length - MAX_FILES_PER_MESSAGE} attachment${
+                          pending.length - MAX_FILES_PER_MESSAGE === 1 ? '' : 's'
+                        } to send (${MAX_FILES_PER_MESSAGE}-file limit per message)`
+                      : undefined
+                  }
                 >
                   {uploading ? 'Sending…' : 'Send'}
                 </Button>

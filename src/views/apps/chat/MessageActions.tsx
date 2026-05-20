@@ -12,7 +12,7 @@ import toast from 'react-hot-toast'
 
 // ** Redux
 import { useDispatch, useSelector } from 'react-redux'
-import { setReplyingTo, setEditingMessage, setMessageStarred } from 'src/store/apps/chat'
+import { setReplyingTo, setEditingMessage, setMessageStarred, setInfoMessage } from 'src/store/apps/chat'
 import type { AppDispatch, RootState } from 'src/store'
 
 // ** SDK
@@ -258,6 +258,32 @@ const MessageActions = ({
           </ListItemIcon>
           <ListItemText>Delete for me</ListItemText>
         </MenuItem>
+        {isSender ? (
+          <MenuItem
+            onClick={() => {
+              handleMenuClose()
+              if (!chat.id) return
+              // Dispatch instead of opening a local drawer — the Sidebar
+              // primitive uses `position: absolute` so it must mount at
+              // the chat shell root (ChatContent), not inside the bubble
+              // (which is buried in a scroll container that traps it).
+              dispatch(
+                setInfoMessage({
+                  messageId: chat.id,
+                  messageText: chat.msg,
+                  readBy: chat.readBy,
+                  deliveredTo: chat.deliveredTo
+                })
+              )
+            }}
+            disabled={!chat.id}
+          >
+            <ListItemIcon>
+              <Icon icon='mdi:information-outline' fontSize='1rem' />
+            </ListItemIcon>
+            <ListItemText>Info</ListItemText>
+          </MenuItem>
+        ) : null}
         {isSender && canDeleteForEveryone ? (
           <MenuItem onClick={handleDeleteForEveryone} disabled={!chat.id} sx={{ color: 'error.main' }}>
             <ListItemIcon>
@@ -287,6 +313,7 @@ const MessageActions = ({
         }}
         confirmAction={handleConfirmDelete}
       />
+
     </>
   )
 }

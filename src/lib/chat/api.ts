@@ -541,6 +541,21 @@ export async function uploadChatFiles(files: UploadableFile[], conversationId: s
   return { attachments, failed: result.failed }
 }
 
+export async function getConversationFiles(
+  conversationId: string,
+  params?: { page?: number; limit?: number; type?: FileType }
+): Promise<{ items: FileResponse[]; total: number; page: number; totalPages: number }> {
+  const client = requireClient('getConversationFiles')
+  const res = (await client.storage.getConversationFiles(conversationId, params)) as any
+  // Actual response shape: { files: FileResponse[], total, page, limit }
+  const items: FileResponse[] = res.files ?? res.data ?? res.items ?? []
+  const total: number = res.total ?? res.meta?.total ?? 0
+  const page: number = res.page ?? res.meta?.page ?? 1
+  const limit: number = res.limit ?? res.meta?.limit ?? params?.limit ?? 30
+  const totalPages: number = res.totalPages ?? res.meta?.totalPages ?? (Math.ceil(total / limit) || 1)
+  return { items, total, page, totalPages }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Adapters (SDK types → app types)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -702,7 +717,11 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     ...(msg.isStarred ? { isStarred: true } : {}),
     ...(msg.isEdited ? { isEdited: true } : {}),
     ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
-    ...(isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
+    ...(isDeletedForEveryone ? { isDeletedForEveryone: true } : {}),
+    // Receipts — copy through for the "Message info" dialog. Skipped for
+    // tombstones since deleted messages don't show info anyway.
+    ...(!isDeletedForEveryone && msg.readBy?.length ? { readBy: msg.readBy } : {}),
+    ...(!isDeletedForEveryone && msg.deliveredTo?.length ? { deliveredTo: msg.deliveredTo } : {})
   }
 }
 
@@ -723,10 +742,7 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
   // change in this function; non-self DMs and groups take the original
   // paths unchanged.
   const meIdStr = String(currentUserId ?? '')
-  const isSelfChat =
-    !isGroup &&
-    activeParticipants.length > 0 &&
-    activeParticipants.every(p => p.userId === meIdStr)
+  const isSelfChat = !isGroup && activeParticipants.length > 0 && activeParticipants.every(p => p.userId === meIdStr)
 
   const otherParticipant = isGroup
     ? undefined
@@ -767,11 +783,17 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
   // Full participants list (incl. isActive=false) so callers can distinguish
   // "removed from group" from "never a member". DMs don't carry isActive
   // semantics — both sides are always active.
-  const participants = rawParticipants.map(p => ({
-    userId: p.userId,
-    isActive: p.isActive !== false,
-    role: p.role ?? 'member'
-  }))
+  const participants = rawParticipants.map(p => {
+    const u = p.user ?? p
+    return {
+      userId: p.userId,
+      isActive: p.isActive !== false,
+      role: p.role ?? 'member',
+      displayName: (u as any).displayName || (u as any).username || undefined,
+      username: (u as any).username || undefined,
+      avatarUrl: (u as any).avatarUrl || undefined
+    }
+  })
 
   // Convenience flag for the composer / chat-actions gate. For DMs the user
   // is always considered active. For groups, look up the current user in the

@@ -902,7 +902,8 @@ const initialState: ChatStoreType = {
   loadingMessages: false,
   pendingFeedback: {},
   replyingTo: null,
-  editingMessage: null
+  editingMessage: null,
+  infoMessage: null
 }
 
 export const appChatSlice = createSlice({
@@ -1003,6 +1004,26 @@ export const appChatSlice = createSlice({
       action: PayloadAction<{ messageId: string; originalText: string } | null>
     ) => {
       state.editingMessage = action.payload
+    },
+    // "Message info" drawer state — opens the right-side panel showing
+    // per-recipient Read + Delivered receipts. Mounted at the chat shell
+    // root (ChatContent) so the `position: absolute` Sidebar lays out
+    // against the chat panel, not against the message bubble it was
+    // triggered from. Dispatched by MessageActions when the user picks
+    // "Info" from the chevron menu; cleared when the drawer closes.
+    setInfoMessage: (
+      state,
+      action: PayloadAction<
+        | {
+            messageId: string
+            messageText?: string
+            readBy?: Array<{ userId: string; readAt: string }>
+            deliveredTo?: Array<{ userId: string; deliveredAt: string }>
+          }
+        | null
+      >
+    ) => {
+      state.infoMessage = action.payload
     },
     // Pin — server-broadcast on `message_pin_updated`. Visible to all
     // participants of the conversation.
@@ -1857,6 +1878,7 @@ export const {
   setChatAvatarOptimistic,
   patchLastMessageSender,
   applyParticipantLeft,
+  setInfoMessage,
   updateChatFlags,
   setUnreadCount,
   setReplyingTo,

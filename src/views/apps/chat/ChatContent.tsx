@@ -22,6 +22,8 @@ import SendMsgForm from 'src/views/apps/chat/SendMsgForm'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
+import MessageInfoDialog from 'src/views/apps/chat/MessageInfoDialog'
+import PinnedMessagesStrip from 'src/views/apps/chat/PinnedMessagesStrip'
 
 // ** Chat API
 import { searchMessages } from 'src/lib/chat/api'
@@ -68,6 +70,7 @@ const ChatContent = (props: ChatContentType) => {
   const [searchResultIds, setSearchResultIds] = useState<string[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchTotal, setSearchTotal] = useState(0)
+  const [scrollTargetMessageId, setScrollTargetMessageId] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -405,49 +408,16 @@ const ChatContent = (props: ChatContentType) => {
                 </Box>
               ) : (
                 <>
-                  {/* Pinned-messages strip. Shows count + latest pinned text;
-                      clicking scrolls to the most-recently-pinned bubble. */}
-                  {(() => {
-                    const pinned = selectedChat.chat.messages.filter(m => m.isPinned && m.id)
-                    if (!pinned.length) return null
-                    const latest = pinned[pinned.length - 1]
-
-                    return (
-                      <Box
-                        onClick={() => {
-                          if (!latest.id) return
-                          const el = document.querySelector(`[data-msg-id="${latest.id}"]`)
-                          if (!el) return
-                          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-                          el.classList.add('msg-flash')
-                          setTimeout(() => el.classList.remove('msg-flash'), 1200)
-                        }}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                          px: 4,
-                          py: 1.25,
-                          cursor: 'pointer',
-                          borderBottom: theme => `1px solid ${theme.palette.divider}`,
-                          backgroundColor: 'customColors.Surface',
-                          '&:hover': {
-                            backgroundColor: theme => theme.palette.action.hover
-                          }
-                        }}
-                      >
-                        <Icon icon='mdi:pin' fontSize='1.125rem' />
-                        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-                          <Typography variant='caption' sx={{ display: 'block', fontWeight: 600 }}>
-                            Pinned · {pinned.length}
-                          </Typography>
-                          <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
-                            {latest.message || (latest.attachments?.length ? '📎 Attachment' : '')}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )
-                  })()}
+                  <PinnedMessagesStrip
+                    selectedChat={selectedChat}
+                    userProfile={store.userProfile}
+                    onScrollToMessage={(messageId: string) => {
+                      // Clear first so re-clicking the same id retriggers
+                      // the ChatLog effect (which dedupes on prop value).
+                      setScrollTargetMessageId(null)
+                      requestAnimationFrame(() => setScrollTargetMessageId(messageId))
+                    }}
+                  />
                   <ChatLog
                     hidden={hidden}
                     data={{ ...selectedChat, userContact: store.userProfile }}
@@ -464,6 +434,8 @@ const ChatContent = (props: ChatContentType) => {
                         dispatch(jumpToMessage({ chatId, messageId }) as any)
                       }
                     }}
+                    scrollTargetMessageId={scrollTargetMessageId}
+                    onScrollToTargetDone={() => setScrollTargetMessageId(null)}
                     canInteract={canInteract}
                   />
                 </>
@@ -537,6 +509,11 @@ const ChatContent = (props: ChatContentType) => {
               userProfileRightOpen={userProfileRightOpen}
               handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
             />
+            {/* Mounted once at the chat shell root — driven by Redux
+                `state.chat.infoMessage`. Any bubble's "Info" menu item
+                dispatches `setInfoMessage(...)` and the drawer slides in
+                using the same `Sidebar` primitive as UserProfileRight. */}
+            <MessageInfoDialog />
           </Box>
         )
       }

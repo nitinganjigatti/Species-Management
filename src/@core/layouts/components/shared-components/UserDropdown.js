@@ -27,6 +27,10 @@ import { isWso2AuthEnabled } from 'src/lib/auth/authMode'
 // ** i18n
 import { useTranslation } from 'react-i18next'
 
+// ** Notification Service
+import notificationService from 'src/lib/notifications'
+import toast from 'react-hot-toast'
+
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
   width: 8,
@@ -43,6 +47,8 @@ const UserDropdown = props => {
   // ** States
   const [anchorEl, setAnchorEl] = useState(null)
   const [userData, setUserData] = useState([])
+  const [isPushEnabled, setIsPushEnabled] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   // ** Hooks
   const router = useSafeRouter()
@@ -98,8 +104,59 @@ const UserDropdown = props => {
     handleDropdownClose()
   }
 
+  const checkPushStatus = async () => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
+    try {
+      const reg = await navigator.serviceWorker.ready
+      if (reg && reg.active) {
+        const sub = await reg.pushManager.getSubscription()
+        setIsPushEnabled(!!sub)
+      }
+    } catch (error) {
+      console.error('Failed to check push status:', error)
+    }
+  }
+
+  const handleEnableNotifications = async () => {
+    debugger
+    try {
+      setSaving(true)
+      const success = await notificationService.enablePushNotifications()
+      if (success) {
+        setIsPushEnabled(true)
+        toast.success('Notifications enabled')
+      } else {
+        toast.error('Failed to enable notifications')
+      }
+    } catch (error) {
+      console.error('Failed to enable notifications:', error)
+      toast.error('Failed to enable notifications')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDisableNotifications = async () => {
+    try {
+      setSaving(true)
+      const success = await notificationService.disablePushNotifications()
+      if (success) {
+        setIsPushEnabled(false)
+        toast.success('Notifications disabled')
+      } else {
+        toast.error('Failed to disable notifications')
+      }
+    } catch (error) {
+      console.error('Failed to disable notifications:', error)
+      toast.error('Failed to disable notifications')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   useEffect(() => {
     getUserData()
+    checkPushStatus()
   }, [])
 
   return (
@@ -197,6 +254,26 @@ const UserDropdown = props => {
           </Box>
         </MenuItem>
         <Divider /> */}
+        <Divider sx={{ my: '0 !important' }} />
+        {!isPushEnabled ? (
+          <MenuItem
+            onClick={handleEnableNotifications}
+            disabled={saving}
+            sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
+          >
+            <Icon icon='mdi:bell-plus' />
+            {saving ? 'Enabling...' : 'Enable Notifications'}
+          </MenuItem>
+        ) : (
+          <MenuItem
+            onClick={handleDisableNotifications}
+            disabled={saving}
+            sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
+          >
+            <Icon icon='mdi:bell-off' />
+            {saving ? 'Disabling...' : 'Disable Notifications'}
+          </MenuItem>
+        )}
         {isWso2AuthEnabled() && (
           <MenuItem
             onClick={handleChangePassword}
@@ -206,16 +283,16 @@ const UserDropdown = props => {
             {t('change_password', 'Change Password')}
           </MenuItem>
         )}
+        <MenuItem onClick={handleMedia} sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}>
+          <Icon icon='ic:round-perm-media' />
+          {t('media')}
+        </MenuItem>
         <MenuItem
           onClick={handleLogout}
           sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}
         >
           <Icon icon='mdi:logout-variant' />
           {t('logout')}
-        </MenuItem>
-        <MenuItem onClick={handleMedia} sx={{ py: 2, '& svg': { mr: 2, fontSize: '1.375rem', color: 'text.primary' } }}>
-          <Icon icon='ic:round-perm-media' />
-          {t('media')}
         </MenuItem>
       </Menu>
     </Fragment>

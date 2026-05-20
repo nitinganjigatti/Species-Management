@@ -2,6 +2,7 @@
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import { useContext } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -10,6 +11,7 @@ import Icon from 'src/@core/components/icon'
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 // import SessionExpiryTimer from 'src/@core/layouts/components/shared-components/SessionExpiryTimer'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+// import NotificationDropdown from 'src/@core/layouts/components/shared-components/NotificationDropdown'
 import SelectPharmacy from 'src/components/SelectPharmacy'
 import { usePathname } from 'next/navigation'
 import { AuthContext } from 'src/context/AuthContext'
@@ -20,6 +22,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import LanguageDropdown from 'src/@core/layouts/components/shared-components/LanguageDropdown'
 import { useRouter } from 'next/router'
 import { useSafeRouter } from 'src/hooks/useSafeRouter'
+import { markAllRead, markAsRead } from 'src/lib/notifications'
 
 const AppBarContent = props => {
   // ** Props
@@ -33,6 +36,30 @@ const AppBarContent = props => {
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const { selectedPharmacy } = usePharmacyContext()
   const router = useSafeRouter()
+
+  // ** Redux
+  const dispatch = useDispatch()
+  const notifications = useSelector(state => state.notifications.items)
+
+  const handleNotificationClick = notification => {
+    console.log('[AppBarContent] Notification clicked:', notification)
+
+    // Mark as read in Redux
+    dispatch(markAsRead(notification.id))
+
+    // Navigate to conversation
+    if (notification.conversationId) {
+      console.log('[AppBarContent] Navigating to conversation:', notification.conversationId)
+      router.push(`/chat?conversationId=${notification.conversationId}`)
+    } else {
+      console.log('[AppBarContent] No conversationId, navigating to /chat')
+      router.push('/chat')
+    }
+  }
+
+  const handleReadAllNotifications = () => {
+    dispatch(markAllRead())
+  }
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -53,6 +80,12 @@ const AppBarContent = props => {
       )}
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         {/* <LanguageDropdown settings={settings} saveSettings={saveSettings} /> */}
+        {/* <NotificationDropdown
+          settings={settings}
+          notifications={notifications}
+          onNotificationClick={handleNotificationClick}
+          onReadAll={handleReadAllNotifications}
+        /> */}
         <UserDropdown settings={settings} />
       </Box>
     </Box>

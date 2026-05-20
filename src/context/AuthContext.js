@@ -35,6 +35,9 @@ import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 import { disconnectSocket as chatDisconnectSocket } from '@antzsoft/chat-core'
 import { disposeChatClient as chatDisposeClient } from 'src/lib/chat/client'
 
+// Push Notifications cleanup on logout
+import notificationService from 'src/lib/notifications'
+
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 // const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
@@ -139,9 +142,19 @@ const AuthProvider = ({ children }) => {
           await reconcilePharmacy(resData)
           setUser({ ...userObj })
           setUserData({ ...resData })
+
+          // Auto-enable push notifications after SSO login
+          try {
+            await notificationService.enablePushNotifications()
+          } catch (error) {
+            console.log(
+              '[AuthContext] Push notifications auto-enable failed (user may have denied permission):',
+              error.message
+            )
+          }
+
           setLoading(false)
         } catch (err) {
-          console.error('SSO refresh: hydrate failed:', err)
           clearLocalState()
           setLoading(false)
           // Terminate the WSO2 session too, otherwise the next /authorize
@@ -177,6 +190,16 @@ const AuthProvider = ({ children }) => {
         if (userObj) {
           try {
             const resData = await callRefreshToken()
+
+            try {
+              await notificationService.enablePushNotifications()
+            } catch (error) {
+              console.log(
+                '[AuthContext] Push notifications auto-enable failed (user may have denied permission):',
+                error.message
+              )
+            }
+
             setLoading(false)
             if (resData.token) {
               await reconcilePharmacy(resData)
@@ -273,6 +296,24 @@ const AuthProvider = ({ children }) => {
   }
 
   const logOutUser = async () => {
+    // Cleanup push notifications before clearing localStorage
+    try {
+      const deviceId = localStorage.getItem('antz_device_id')
+
+      // Always attempt cleanup (safe even without deviceId)
+      await notificationService.disablePushNotifications()
+
+      // 2. Unsubscribe browser push subscription
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready
+        const sub = await reg.pushManager.getSubscription()
+        if (sub) await sub.unsubscribe()
+      }
+    } catch (error) {
+      console.error('[Auth] Failed to cleanup push notifications:', error)
+      // Continue logout even if cleanup fails
+    }
+
     await queryClient.cancelQueries()
     queryClient.clear()
     queryClient.getQueryCache().clear()
@@ -376,7 +417,6 @@ const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Failed to get device info:', err)
     }
-    console.log('device details for login:', deviceDetails)
 
     // Same-origin path — proxied to NEXT_PUBLIC_BASE_URL via next.config.js
     // rewrite (/api/:path* → ${backend}/api/:path*). Avoids CORS in dev.
@@ -418,6 +458,17 @@ const AuthProvider = ({ children }) => {
       setUserData({ ...data })
       setUser({ ...nextUser })
 
+      // Auto-enable push notifications after successful login
+      try {
+        await notificationService.enablePushNotifications()
+        console.log('[AuthContext] Push notifications auto-enabled after login')
+      } catch (error) {
+        console.log(
+          '[AuthContext] Push notifications auto-enable failed (user may have denied permission):',
+          error.message
+        )
+      }
+
       loadLanguage(i18n.language || 'en-IN')
 
       const redirectURL = returnUrl && returnUrl !== '/' ? returnUrl : '/'
@@ -453,6 +504,22 @@ const AuthProvider = ({ children }) => {
       chatDisposeClient()
     } catch (e) {
       console.warn('[auth] chat client dispose failed:', e)
+    }
+    try {
+      const deviceId = localStorage.getItem('antz_device_id')
+
+      // Always attempt cleanup (safe even without deviceId)
+      await notificationService.disablePushNotifications()
+
+      // 2. Unsubscribe browser push subscription
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready
+        const sub = await reg.pushManager.getSubscription()
+        if (sub) await sub.unsubscribe()
+      }
+    } catch (error) {
+      console.error('[Auth] Failed to cleanup push notifications:', error)
+      // Continue logout even if cleanup fails
     }
 
     const preserveDeviceInfo = () => {

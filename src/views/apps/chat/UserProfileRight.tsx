@@ -17,7 +17,8 @@ import {
   updateGroupChat,
   removeParticipantFromGroup,
   updateParticipantRoleInGroup,
-  uploadGroupIcon
+  uploadGroupIcon,
+  selectChat
 } from 'src/store/apps/chat'
 import toast from 'react-hot-toast'
 
@@ -39,12 +40,12 @@ import MuiAvatar from '@mui/material/Avatar'
 import ListItem from '@mui/material/ListItem'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
-import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import ListItemButton from '@mui/material/ListItemButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
+import Tooltip from '@mui/material/Tooltip'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -59,6 +60,8 @@ import { UserProfileRightType, ChatEntityId, ContactType } from 'src/types/apps/
 import Sidebar from 'src/@core/components/sidebar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import MediaLinksDocsDrawer from 'src/views/apps/chat/MediaLinksDocsDrawer'
+import StarredMessagesDrawer from 'src/views/apps/chat/StarredMessagesDrawer'
 
 const UserProfileRight = (props: UserProfileRightType) => {
   const {
@@ -107,10 +110,21 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const [addableContacts, setAddableContacts] = useState<ContactType[]>([])
   const [searching, setSearching] = useState<boolean>(false)
 
+  const [mediaDrawerOpen, setMediaDrawerOpen] = useState(false)
+  const [starredDrawerOpen, setStarredDrawerOpen] = useState(false)
+
   // Fetch full user details for 1:1 chat profile sidebar
   const [contactUser, setContactUser] = useState<User | null>(null)
   const contactId = store?.selectedChat?.contact?.id
   const isGroup = store?.selectedChat?.contact?.isGroup === true
+  const dmOtherUserId = isGroup
+    ? undefined
+    : store?.selectedChat?.contact?.participantIds?.find(id => String(id) !== String(store?.userProfile?.id))
+  const groupsInCommon = dmOtherUserId
+    ? (store?.chats ?? []).filter(
+        c => c.isGroup === true && c.participantIds?.some(id => String(id) === String(dmOtherUserId))
+      )
+    : []
 
   useEffect(() => {
     if (isGroup || !userProfileRightOpen || !contactId) {
@@ -428,11 +442,14 @@ const UserProfileRight = (props: UserProfileRightType) => {
         }
       }
       const contact = store?.contacts?.find(c => c.id === id)
+      // Fall back to participant details embedded in the conversation
+      const participant = store?.selectedChat?.contact?.participants?.find(p => String(p.userId) === String(id))
+      const displayName = contact?.fullName ?? participant?.displayName ?? participant?.username ?? null
 
       return {
         id,
-        fullName: contact?.fullName ?? `User ${id}`,
-        avatar: contact?.avatar,
+        fullName: displayName ?? `User ${id}`,
+        avatar: contact?.avatar ?? participant?.avatarUrl,
         avatarColor: contact?.avatarColor,
         isYou: false,
         isAdmin
@@ -457,7 +474,21 @@ const UserProfileRight = (props: UserProfileRightType) => {
         }
       }}
     >
-      {store && store.selectedChat && isGroup && addingMembers ? (
+      {store && store.selectedChat && mediaDrawerOpen ? (
+        <MediaLinksDocsDrawer
+          open={mediaDrawerOpen}
+          onClose={() => setMediaDrawerOpen(false)}
+          conversationId={contactId}
+        />
+      ) : store && store.selectedChat && starredDrawerOpen ? (
+        <StarredMessagesDrawer
+          open={starredDrawerOpen}
+          onClose={() => setStarredDrawerOpen(false)}
+          conversationId={contactId}
+          conversationName={store.selectedChat.contact.fullName}
+          currentUserId={store.userProfile?.id ?? ''}
+        />
+      ) : store && store.selectedChat && isGroup && addingMembers ? (
         <Fragment>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
             {/* Header */}
@@ -617,556 +648,749 @@ const UserProfileRight = (props: UserProfileRightType) => {
           </Box>
         </Fragment>
       ) : store && store.selectedChat && isGroup ? (
-        <Fragment>
-          <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-            {/* Header */}
-            <Box
-              sx={{
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                px: 3,
-                py: 3.5,
-                borderBottom: theme => `1px solid ${theme.palette.divider}`,
-                gap: 2
-              }}
-            >
-              <Typography sx={{ flex: 1, fontWeight: 600, fontSize: '1rem' }}>Group info</Typography>
-              <IconButton size='small' onClick={handleUserProfileRightSidebarToggle} sx={{ color: 'text.secondary' }}>
-                <Icon icon='mdi:close' fontSize='1.25rem' />
-              </IconButton>
-            </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Header */}
+          <Box
+            sx={{
+              flexShrink: 0,
+              display: 'flex',
+              alignItems: 'center',
+              px: 3,
+              py: 3.5,
+              borderBottom: theme => `1px solid ${theme.palette.divider}`,
+              gap: 2
+            }}
+          >
+            <Typography sx={{ flex: 1, fontWeight: 600, fontSize: '1rem' }}>Group info</Typography>
+            <IconButton size='small' onClick={handleUserProfileRightSidebarToggle} sx={{ color: 'text.secondary' }}>
+              <Icon icon='mdi:close' fontSize='1.25rem' />
+            </IconButton>
+          </Box>
 
-            {/* Body */}
-            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-              {/* Identity block — side by side */}
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  px: 4,
-                  pt: 3,
-                  pb: 3,
-                  gap: 3,
-                  borderBottom: theme => `1px solid ${theme.palette.divider}`
-                }}
-              >
-                {/* Avatar */}
-                <Box sx={{ flexShrink: 0, position: 'relative' }}>
-                  {store.selectedChat.contact.avatar ? (
-                    <MuiAvatar
-                      src={store.selectedChat.contact.avatar}
-                      alt={store.selectedChat.contact.fullName}
-                      sx={{ width: 80, height: 80 }}
-                    />
-                  ) : (
-                    <CustomAvatar skin='light' color='primary' sx={{ width: 80, height: 80, fontSize: '1.75rem' }}>
-                      {getInitials(store.selectedChat.contact.fullName)}
-                    </CustomAvatar>
-                  )}
-                  {isCurrentUserAdmin && (
-                    <>
-                      {/* Camera — opens hidden file picker for group icon upload. */}
-                      <IconButton
-                        size='small'
-                        onClick={handleOpenIconPicker}
-                        disabled={uploadingIcon}
-                        aria-label='Change group icon'
-                        sx={{
-                          position: 'absolute',
-                          bottom: -2,
-                          right: -2,
-                          width: 26,
-                          height: 26,
-                          backgroundColor: 'primary.main',
-                          color: 'common.white',
-                          border: '2px solid white',
-                          '&:hover': { backgroundColor: 'primary.dark' },
-                          '&.Mui-disabled': { backgroundColor: 'primary.main', opacity: 0.6, color: 'common.white' }
-                        }}
-                      >
-                        <Icon icon={uploadingIcon ? 'mdi:loading' : 'mdi:camera'} fontSize='0.85rem' />
-                      </IconButton>
-                      <input
-                        ref={iconFileInputRef}
-                        type='file'
-                        accept='image/*'
-                        onChange={handleIconFileSelected}
-                        style={{ display: 'none' }}
-                      />
-                    </>
-                  )}
-                </Box>
-
-                {/* Name + description */}
-                {isEditing ? (
-                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField
-                      fullWidth
-                      variant='standard'
-                      value={editName}
-                      onChange={e => setEditName(e.target.value)}
-                      placeholder='Group name'
-                      autoFocus
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon icon='mdi:pencil-outline' fontSize='1rem' color='inherit' />
-                            </InputAdornment>
-                          ),
-                          inputProps: { maxLength: 50 }
-                        }
-                      }}
-                      sx={{
-                        '& .MuiInput-root': { fontSize: '1rem', fontWeight: 500 },
-                        '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
-                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
-                          borderBottomColor: 'customColors.Outline'
-                        }
-                      }}
-                    />
-                    <TextField
-                      fullWidth
-                      variant='standard'
-                      value={editDescription}
-                      onChange={e => setEditDescription(e.target.value)}
-                      placeholder='Description (optional)'
-                      slotProps={{
-                        input: {
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <Icon icon='mdi:text' fontSize='1rem' color='inherit' />
-                            </InputAdornment>
-                          ),
-                          inputProps: { maxLength: 200 }
-                        }
-                      }}
-                      sx={{
-                        '& .MuiInput-root': { fontSize: '0.875rem' },
-                        '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
-                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
-                          borderBottomColor: 'customColors.Outline'
-                        }
-                      }}
-                    />
-                    <Box sx={{ display: 'flex', gap: 1.5, mt: 0.5 }}>
-                      <Button variant='outlined' size='small' color='inherit' onClick={cancelEditGroup}>
-                        Cancel
-                      </Button>
-                      <Button variant='contained' size='small' onClick={saveEditGroup}>
-                        Save
-                      </Button>
-                    </Box>
-                  </Box>
+          {/* Scrollable body */}
+          <Box sx={{ flex: 1, overflowY: 'auto' }}>
+            {/* ── Avatar (centered) ── */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 4, pb: 3, px: 4 }}>
+              <Box sx={{ position: 'relative', mb: 2 }}>
+                {store.selectedChat.contact.avatar ? (
+                  <MuiAvatar
+                    src={store.selectedChat.contact.avatar}
+                    alt={store.selectedChat.contact.fullName}
+                    sx={{ width: 90, height: 90 }}
+                  />
                 ) : (
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Typography
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '1rem',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {store.selectedChat.contact.fullName}
-                      </Typography>
-                      {isCurrentUserAdmin && (
-                        <IconButton size='small' onClick={openEditGroup} sx={{ flexShrink: 0 }}>
-                          <Icon icon='mdi:pencil-outline' fontSize='0.9rem' />
-                        </IconButton>
-                      )}
-                    </Box>
-                    <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                      {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
-                    </Typography>
-                    {store.selectedChat.contact.description && (
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: 'text.secondary',
-                          mt: 0.5,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {store.selectedChat.contact.description}
-                      </Typography>
-                    )}
-                  </Box>
+                  <CustomAvatar skin='light' color='primary' sx={{ width: 90, height: 90, fontSize: '2rem' }}>
+                    {getInitials(store.selectedChat.contact.fullName)}
+                  </CustomAvatar>
+                )}
+                {isCurrentUserAdmin && (
+                  <>
+                    <IconButton
+                      size='small'
+                      onClick={handleOpenIconPicker}
+                      disabled={uploadingIcon}
+                      sx={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        width: 28,
+                        height: 28,
+                        backgroundColor: 'primary.main',
+                        color: 'common.white',
+                        border: '2px solid white',
+                        '&:hover': { backgroundColor: 'primary.dark' },
+                        '&.Mui-disabled': { backgroundColor: 'primary.main', opacity: 0.6, color: 'common.white' }
+                      }}
+                    >
+                      <Icon icon={uploadingIcon ? 'mdi:loading' : 'mdi:camera'} fontSize='0.85rem' />
+                    </IconButton>
+                    <input
+                      ref={iconFileInputRef}
+                      type='file'
+                      accept='image/*'
+                      onChange={handleIconFileSelected}
+                      style={{ display: 'none' }}
+                    />
+                  </>
                 )}
               </Box>
 
-              {/* Scrollable content */}
-              <Box sx={{ flex: 1, overflowY: 'auto', px: 4, pb: 4 }}>
-                {/* Members */}
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 1.5 }}>
-                  <Typography
-                    variant='caption'
-                    sx={{ textTransform: 'uppercase', fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}
-                  >
-                    Members ({groupMembers.length})
-                  </Typography>
-                  {isCurrentUserAdmin && (
-                    <Typography
-                      component='button'
-                      onClick={openAddMembers}
+              {/* Name + member count */}
+              {isEditing ? (
+                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <TextField
+                    fullWidth
+                    variant='standard'
+                    value={editName}
+                    onChange={e => setEditName(e.target.value)}
+                    placeholder='Group name'
+                    autoFocus
+                    slotProps={{
+                      input: {
+                        inputProps: { maxLength: 50 },
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <Icon icon='mdi:pencil-outline' fontSize='1rem' color='inherit' />
+                          </InputAdornment>
+                        ),
+                        endAdornment: (
+                          <InputAdornment position='end'>
+                            <Typography variant='caption' sx={{ color: 'text.disabled' }}>
+                              {editName.length}/50
+                            </Typography>
+                          </InputAdornment>
+                        )
+                      }
+                    }}
+                    sx={{
+                      '& .MuiInput-root': { fontSize: '1rem', fontWeight: 600 },
+                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' }
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    variant='standard'
+                    value={editDescription}
+                    onChange={e => setEditDescription(e.target.value)}
+                    placeholder='Description (optional)'
+                    slotProps={{
+                      input: {
+                        inputProps: { maxLength: 200 },
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <Icon icon='mdi:text' fontSize='1rem' color='inherit' />
+                          </InputAdornment>
+                        )
+                      }
+                    }}
+                    sx={{
+                      '& .MuiInput-root': { fontSize: '0.875rem' },
+                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' }
+                    }}
+                  />
+                  {/* Inline icon actions */}
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                    <IconButton
+                      size='small'
+                      onClick={cancelEditGroup}
                       sx={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '0.8125rem',
-                        fontWeight: 600,
-                        color: 'primary.main',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                        '&:hover': { color: 'primary.dark' }
+                        border: theme => `1px solid ${theme.palette.divider}`,
+                        borderRadius: 2,
+                        color: 'text.secondary',
+                        '&:hover': { backgroundColor: 'customColors.SurfaceVariant' }
                       }}
                     >
-                      <Icon icon='mdi:account-plus-outline' fontSize='1rem' />
-                      Add
-                    </Typography>
+                      <Icon icon='mdi:close' fontSize='1.1rem' />
+                    </IconButton>
+                    <IconButton
+                      size='small'
+                      onClick={saveEditGroup}
+                      disabled={!editName.trim()}
+                      sx={{
+                        border: theme => `1px solid ${theme.palette.primary.main}`,
+                        borderRadius: 2,
+                        color: 'primary.main',
+                        '&:hover': { backgroundColor: 'customColors.Surface' },
+                        '&.Mui-disabled': { opacity: 0.4 }
+                      }}
+                    >
+                      <Icon icon='mdi:check' fontSize='1.1rem' />
+                    </IconButton>
+                  </Box>
+                </Box>
+              ) : (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '1.125rem',
+                      color: 'customColors.OnSurfaceVariant',
+                      textAlign: 'center'
+                    }}
+                  >
+                    {store.selectedChat.contact.fullName}
+                  </Typography>
+                  {isCurrentUserAdmin && (
+                    <IconButton size='small' onClick={openEditGroup}>
+                      <Icon icon='mdi:pencil-outline' fontSize='0.9rem' />
+                    </IconButton>
                   )}
                 </Box>
-                <List disablePadding sx={{ mb: 4 }}>
-                  {groupMembers.map((m, index) => (
-                    <Box key={m.id}>
-                      <ListItem disablePadding>
-                        <ListItemButton
-                          sx={{ px: 0, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
+              )}
+              {!isEditing && (
+                <>
+                  {/* Description below name */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
+                    {store.selectedChat.contact.description ? (
+                      <Tooltip title={store.selectedChat.contact.description} placement='bottom' arrow>
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            color: 'customColors.OnSurfaceVariant',
+                            textAlign: 'center',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}
                         >
-                          <Box sx={{ flexShrink: 0 }}>
-                            {m.avatar ? (
-                              <MuiAvatar src={m.avatar} alt={m.fullName} sx={{ width: 40, height: 40 }} />
-                            ) : (
-                              <CustomAvatar
-                                skin='light'
-                                color={m.avatarColor}
-                                sx={{ width: 40, height: 40, fontSize: '0.875rem' }}
-                              >
-                                {getInitials(m.fullName)}
-                              </CustomAvatar>
-                            )}
-                          </Box>
-                          <ListItemText
-                            primary={
-                              <Typography
-                                variant='body2'
-                                sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}
-                              >
-                                {m.fullName}
-                                {m.isYou && (
-                                  <Typography
-                                    component='span'
-                                    sx={{ color: 'text.disabled', ml: 1, fontSize: '0.8125rem' }}
-                                  >
-                                    (You)
-                                  </Typography>
-                                )}
-                              </Typography>
-                            }
-                          />
-                          {m.isAdmin && (
-                            <Box
-                              sx={{
-                                px: 1.5,
-                                py: 0.25,
-                                borderRadius: 9999,
-                                backgroundColor: 'customColors.Surface',
-                                border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                                fontSize: '0.6875rem',
-                                fontWeight: 600,
-                                color: 'primary.dark',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.04em',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              Admin
-                            </Box>
-                          )}
-                          {isCurrentUserAdmin && !m.isYou && (
-                            <IconButton
-                              size='small'
-                              edge='end'
-                              onClick={e => openMemberMenu(e, { id: m.id, isAdmin: m.isAdmin, fullName: m.fullName })}
-                            >
-                              <Icon icon='mdi:dots-vertical' fontSize='1.125rem' />
-                            </IconButton>
-                          )}
-                        </ListItemButton>
-                      </ListItem>
-                      {index < groupMembers.length - 1 && (
-                        <Divider sx={{ ml: '58px', borderColor: 'customColors.OnBackground' }} />
-                      )}
-                    </Box>
-                  ))}
-                </List>
+                          {store.selectedChat.contact.description}
+                        </Typography>
+                      </Tooltip>
+                    ) : isCurrentUserAdmin ? (
+                      <Typography
+                        variant='body2'
+                        onClick={openEditGroup}
+                        sx={{ color: 'primary.main', cursor: 'pointer' }}
+                      >
+                        Add group description
+                      </Typography>
+                    ) : null}
+                  </Box>
+                  {/* Group chip + member count below description */}
+                  <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary', mt: 1 }}>
+                    Group · {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
+                  </Typography>
+                </>
+              )}
+            </Box>
 
-                {/* Group actions */}
-                <Typography
-                  variant='caption'
+            {/* ── Action buttons: Add / Search ── */}
+            {!isEditing && (
+              <Box sx={{ display: 'flex', gap: 2, px: 4, pb: 3 }}>
+                {isCurrentUserAdmin && (
+                  <Box
+                    onClick={openAddMembers}
+                    sx={{
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      py: 1.75,
+                      borderRadius: 3,
+                      border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: 'customColors.Surface' },
+                      transition: 'background-color 150ms'
+                    }}
+                  >
+                    <Icon icon='mdi:account-plus-outline' fontSize='1.4rem' color='primary.main' />
+                    <Typography variant='caption' sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
+                      Add
+                    </Typography>
+                  </Box>
+                )}
+                <Box
                   sx={{
-                    display: 'block',
-                    mb: 1,
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                    color: 'customColors.OnSurfaceVariant'
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 0.75,
+                    py: 1.75,
+                    borderRadius: 3,
+                    border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'customColors.Surface' },
+                    transition: 'background-color 150ms'
                   }}
                 >
-                  Group actions
-                </Typography>
-                <List dense sx={{ p: 0, mb: 4 }}>
-                  <ListItem
-                    disablePadding
-                    secondaryAction={
-                      <Switch
-                        edge='end'
-                        size='small'
-                        checked={isMuted}
-                        onChange={e => {
-                          if (currentGroupId === null) return
-                          if (e.target.checked) dispatch(muteConversation({ chatId: currentGroupId }))
-                          else dispatch(unmuteConversation(currentGroupId))
-                        }}
-                      />
-                    }
-                  >
-                    <ListItemButton sx={{ px: 0 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:bell-off-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Mute notifications' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem
-                    disablePadding
-                    secondaryAction={
-                      <Switch
-                        edge='end'
-                        size='small'
-                        checked={isPinned}
-                        onChange={e => {
-                          if (currentGroupId === null) return
-                          if (e.target.checked) dispatch(pinConversation(currentGroupId))
-                          else dispatch(unpinConversation(currentGroupId))
-                        }}
-                      />
-                    }
-                  >
-                    <ListItemButton sx={{ px: 0 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:pin-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Pin to top' />
-                    </ListItemButton>
-                  </ListItem>
-                </List>
-
-                {/* Danger zone */}
-                {isCurrentUserActive || isCurrentUserAdmin ? (
-                  <Typography
-                    variant='caption'
-                    sx={{ display: 'block', mb: 1, textTransform: 'uppercase', fontWeight: 600, color: 'error.main' }}
-                  >
-                    Danger zone
+                  <Icon icon='mdi:magnify' fontSize='1.4rem' color='primary.main' />
+                  <Typography variant='caption' sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
+                    Search
                   </Typography>
-                ) : null}
-                <List dense sx={{ p: 0 }}>
-                  {isCurrentUserActive ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 0 }} onClick={handleLeaveGroup}>
-                        <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
-                          <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText
-                          secondary={
-                            <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Leave group</Typography>
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                  {isCurrentUserAdmin ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 0 }} onClick={handleDeleteGroup}>
-                        <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
-                          <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText
-                          secondary={
-                            <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Delete group</Typography>
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                </List>
+                </Box>
               </Box>
+            )}
+
+            <Divider sx={{ mx: '5%' }} />
+
+            {/* ── Media, links and docs ── */}
+            <Box
+              onClick={() => setMediaDrawerOpen(true)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                px: 5,
+                py: 3,
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: 'customColors.Surface' },
+                transition: 'background-color 150ms'
+              }}
+            >
+              <Icon icon='mdi:image-multiple-outline' fontSize='1.25rem' color='customColors.Outline' />
+              <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                Media, links and docs
+              </Typography>
+              <Icon icon='mdi:chevron-right' fontSize='1rem' color='customColors.OutlineVariant' />
             </Box>
+
+            {/* ── Starred messages ── */}
+            <Box
+              onClick={() => setStarredDrawerOpen(true)}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4,
+                px: 5,
+                py: 3,
+                cursor: 'pointer',
+                '&:hover': { backgroundColor: 'customColors.Surface' },
+                transition: 'background-color 150ms'
+              }}
+            >
+              <Icon icon='mdi:star-outline' fontSize='1.25rem' color='customColors.Outline' />
+              <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                Starred messages
+              </Typography>
+              <Icon icon='mdi:chevron-right' fontSize='1rem' color='customColors.OutlineVariant' />
+            </Box>
+
+            {/* ── Mute notifications ── */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, px: 5, py: 2.75 }}>
+              <Icon icon='mdi:bell-off-outline' fontSize='1.25rem' color='customColors.Outline' />
+              <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                Mute notifications
+              </Typography>
+              <Switch
+                size='small'
+                checked={isMuted}
+                onChange={e => {
+                  if (currentGroupId === null) return
+                  if (e.target.checked) dispatch(muteConversation({ chatId: currentGroupId }))
+                  else dispatch(unmuteConversation(currentGroupId))
+                }}
+              />
+            </Box>
+
+            {/* ── Pin to top ── */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, px: 5, py: 2.75 }}>
+              <Icon icon='mdi:pin-outline' fontSize='1.25rem' color='customColors.Outline' />
+              <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                Pin to top
+              </Typography>
+              <Switch
+                size='small'
+                checked={isPinned}
+                onChange={e => {
+                  if (currentGroupId === null) return
+                  if (e.target.checked) dispatch(pinConversation(currentGroupId))
+                  else dispatch(unpinConversation(currentGroupId))
+                }}
+              />
+            </Box>
+
+            <Divider sx={{ mx: '5%' }} />
+
+            {/* ── Members ── */}
+            <Box sx={{ px: 5, pt: 2.5, pb: 1 }}>
+              <Typography variant='body2' sx={{ fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}>
+                {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
+              </Typography>
+            </Box>
+
+            <List disablePadding>
+              {/* Add member row — admin only */}
+              {isCurrentUserAdmin && (
+                <ListItem disablePadding>
+                  <ListItemButton
+                    onClick={openAddMembers}
+                    sx={{ px: 5, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
+                  >
+                    <Box
+                      sx={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: '50%',
+                        backgroundColor: 'primary.main',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      <Icon icon='mdi:account-plus-outline' fontSize='1.25rem' color='white' />
+                    </Box>
+                    <Typography variant='body2' sx={{ fontWeight: 500, color: 'primary.main' }}>
+                      Add member
+                    </Typography>
+                  </ListItemButton>
+                </ListItem>
+              )}
+
+              {groupMembers.map(m => {
+                const dmChat = m.isYou
+                  ? null
+                  : (store?.chats ?? []).find(
+                      c => !c.isGroup && c.participantIds?.some(id => String(id) === String(m.id))
+                    )
+
+                return (
+                <Box key={m.id}>
+                  <ListItem disablePadding>
+                    <ListItemButton
+                      onClick={dmChat ? () => { handleUserProfileRightSidebarToggle(); dispatch(selectChat(dmChat.id)) } : undefined}
+                      sx={{ px: 5, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' }, cursor: dmChat ? 'pointer' : 'default' }}
+                    >
+                      <Box sx={{ flexShrink: 0 }}>
+                        {m.avatar ? (
+                          <MuiAvatar src={m.avatar} alt={m.fullName} sx={{ width: 42, height: 42 }} />
+                        ) : (
+                          <CustomAvatar
+                            skin='light'
+                            color={m.avatarColor}
+                            sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
+                          >
+                            {getInitials(m.fullName)}
+                          </CustomAvatar>
+                        )}
+                      </Box>
+                      <ListItemText
+                        primary={
+                          <Typography variant='body2' sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
+                            {m.isYou ? 'You' : m.fullName}
+                          </Typography>
+                        }
+                      />
+                      {m.isAdmin && (
+                        <Box
+                          sx={{
+                            px: 1.5,
+                            py: 0.25,
+                            borderRadius: 9999,
+                            backgroundColor: 'primary.dark',
+                            fontSize: '0.6875rem',
+                            fontWeight: 600,
+                            color: 'common.white',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          Group admin
+                        </Box>
+                      )}
+                      {isCurrentUserAdmin && !m.isYou && (
+                        <IconButton
+                          size='small'
+                          edge='end'
+                          onClick={e => openMemberMenu(e, { id: m.id, isAdmin: m.isAdmin, fullName: m.fullName })}
+                        >
+                          <Icon icon='mdi:dots-vertical' fontSize='1.125rem' />
+                        </IconButton>
+                      )}
+                    </ListItemButton>
+                  </ListItem>
+                </Box>
+                )
+              })}
+            </List>
+
+            <Divider sx={{ mx: '5%', mt: 1 }} />
+
+            {/* ── Danger zone ── */}
+            <List dense sx={{ p: 0, mb: 2 }}>
+              {isCurrentUserActive && (
+                <ListItem disablePadding>
+                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleLeaveGroup}>
+                    <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
+                    <Typography variant='body2' sx={{ color: 'inherit', fontWeight: 500 }}>
+                      Leave group
+                    </Typography>
+                  </ListItemButton>
+                </ListItem>
+              )}
+              {isCurrentUserAdmin && (
+                <ListItem disablePadding>
+                  <ListItemButton sx={{ px: 5, py: 4, gap: 4, color: 'error.main' }} onClick={handleDeleteGroup}>
+                    <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
+                    <Typography variant='body2' sx={{ color: 'inherit', fontWeight: 500 }}>
+                      Delete group
+                    </Typography>
+                  </ListItemButton>
+                </ListItem>
+              )}
+            </List>
           </Box>
-        </Fragment>
+        </Box>
       ) : store && store.selectedChat ? (
-        <Fragment>
-          <Box sx={{ position: 'relative' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* ── Hero header ───────────────────────────────────────────── */}
+          <Box
+            sx={{
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              pt: 6,
+              pb: 4,
+              px: 4,
+              background: theme =>
+                `linear-gradient(160deg, ${theme.palette.customColors.Surface} 0%, ${theme.palette.background.paper} 100%)`,
+              borderBottom: theme => `1px solid ${theme.palette.divider}`
+            }}
+          >
             <IconButton
               size='small'
               onClick={handleUserProfileRightSidebarToggle}
-              sx={{
-                top: '0.7rem',
-                right: '0.7rem',
-                position: 'absolute',
-                color: 'text.secondary',
-                '& svg': { color: 'action.active' }
-              }}
+              sx={{ position: 'absolute', top: 10, right: 10, color: 'text.disabled' }}
             >
-              <Icon icon='mdi:close' />
+              <Icon icon='mdi:close' fontSize='1.1rem' />
             </IconButton>
-            <Box sx={{ px: 5, pb: 7, pt: 9.5, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-                <Badge
-                  overlap='circular'
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right'
+
+            <Badge
+              overlap='circular'
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              badgeContent={
+                <Box
+                  component='span'
+                  sx={{
+                    width: 14,
+                    height: 14,
+                    borderRadius: '50%',
+                    backgroundColor: `${statusObj[store.selectedChat.contact.status]}.main`,
+                    boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`
                   }}
-                  badgeContent={
-                    <Box
-                      component='span'
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        color: `${statusObj[store.selectedChat.contact.status]}.main`,
-                        boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`,
-                        backgroundColor: `${statusObj[store.selectedChat.contact.status]}.main`
-                      }}
-                    />
-                  }
+                />
+              }
+            >
+              {store.selectedChat.contact.avatar ? (
+                <MuiAvatar
+                  src={store.selectedChat.contact.avatar}
+                  alt={store.selectedChat.contact.fullName}
+                  sx={{ width: 96, height: 96 }}
+                />
+              ) : (
+                <CustomAvatar
+                  skin='light'
+                  color={store.selectedChat.contact.avatarColor}
+                  sx={{ width: 96, height: 96, fontSize: '2rem' }}
                 >
-                  {store.selectedChat.contact.avatar ? (
-                    <MuiAvatar
-                      sx={{ width: '5rem', height: '5rem' }}
-                      src={store.selectedChat.contact.avatar}
-                      alt={store.selectedChat.contact.fullName}
-                    />
-                  ) : (
-                    <CustomAvatar
-                      skin='light'
-                      color={store.selectedChat.contact.avatarColor}
-                      sx={{ width: '5rem', height: '5rem', fontSize: '2rem' }}
-                    >
-                      {getInitials(store.selectedChat.contact.fullName)}
-                    </CustomAvatar>
-                  )}
-                </Badge>
-              </Box>
-              <Typography sx={{ textAlign: 'center', mb: 0.5, fontWeight: 600 }}>
-                {store.selectedChat.contact.fullName}
-              </Typography>
-              <Typography sx={{ textAlign: 'center', textTransform: 'capitalize' }} variant='body2'>
+                  {getInitials(store.selectedChat.contact.fullName)}
+                </CustomAvatar>
+              )}
+            </Badge>
+
+            <Typography sx={{ mt: 2.5, fontWeight: 700, fontSize: '1.125rem', color: 'customColors.OnSurfaceVariant' }}>
+              {store.selectedChat.contact.fullName}
+            </Typography>
+            {store.selectedChat.contact.role ? (
+              <Typography
+                variant='caption'
+                sx={{ color: 'customColors.neutralSecondary', textTransform: 'capitalize', mt: 0.5 }}
+              >
                 {store.selectedChat.contact.role}
               </Typography>
-            </Box>
+            ) : null}
           </Box>
 
-          <Box sx={{ height: 'calc(100% - 12.25rem)' }}>
+          {/* ── Scrollable body ───────────────────────────────────────── */}
+          <Box sx={{ flex: 1, overflow: 'hidden' }}>
             <ScrollWrapper>
-              <Box sx={{ p: 5 }}>
-                <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase' }}>
-                  Personal Information
-                </Typography>
-                <List dense sx={{ mb: 6, p: 0 }}>
-                  {contactUser?.email ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 2 }}>
-                        <ListItemIcon sx={{ mr: 2 }}>
-                          <Icon icon='mdi:email-outline' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText secondary={contactUser.email} />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                  {contactUser?.phone ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 2 }}>
-                        <ListItemIcon sx={{ mr: 2 }}>
-                          <Icon icon='mdi:phone-outline' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText secondary={contactUser.phone} />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                  {contactUser?.username ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 2 }}>
-                        <ListItemIcon sx={{ mr: 2 }}>
-                          <Icon icon='mdi:account-outline' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText secondary={contactUser.username} />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                </List>
-                <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase' }}>
-                  Options
-                </Typography>
-                <List dense sx={{ p: 0 }}>
-                  <ListItem
-                    disablePadding
-                    secondaryAction={
-                      <Switch
-                        edge='end'
-                        size='small'
-                        checked={isMuted}
-                        onChange={e => {
-                          if (!contactId) return
-                          if (e.target.checked) dispatch(muteConversation({ chatId: contactId }))
-                          else dispatch(unmuteConversation(contactId))
-                        }}
-                      />
-                    }
-                  >
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:bell-off-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Mute notifications' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem
-                    disablePadding
-                    secondaryAction={
-                      <Switch
-                        edge='end'
-                        size='small'
-                        checked={isPinned}
-                        onChange={e => {
-                          if (!contactId) return
-                          if (e.target.checked) dispatch(pinConversation(contactId))
-                          else dispatch(unpinConversation(contactId))
-                        }}
-                      />
-                    }
-                  >
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:pin-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Pin to top' />
-                    </ListItemButton>
-                  </ListItem>
-                </List>
+              <Box sx={{ pb: 6 }}>
+                {/* Contact info */}
+                {contactUser?.email || contactUser?.phone ? (
+                  <>
+                    {contactUser?.email ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, px: 5, py: 2.5 }}>
+                        <Icon icon='mdi:email-outline' fontSize='1.25rem' color='customColors.Outline' />
+                        <Box>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: 'customColors.OnSurfaceVariant', wordBreak: 'break-all' }}
+                          >
+                            {contactUser.email}
+                          </Typography>
+                          <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
+                            Email
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : null}
+                    {contactUser?.phone ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, px: 5, py: 2.5 }}>
+                        <Icon icon='mdi:phone-outline' fontSize='1.25rem' color='customColors.Outline' />
+                        <Box>
+                          <Typography variant='body2' sx={{ color: 'customColors.OnSurfaceVariant' }}>
+                            {contactUser.phone}
+                          </Typography>
+                          <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
+                            Phone
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : null}
+                    <Divider sx={{ mx: '5%' }} />
+                  </>
+                ) : null}
+
+                {/* Media, links and docs */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    px: 5,
+                    py: 4,
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'customColors.Surface' },
+                    transition: 'background-color 150ms'
+                  }}
+                  onClick={() => setMediaDrawerOpen(true)}
+                >
+                  <Icon icon='mdi:image-multiple-outline' fontSize='1.25rem' color='customColors.Outline' />
+                  <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                    Media, links and docs
+                  </Typography>
+                  <Icon icon='mdi:chevron-right' fontSize='1rem' color='customColors.OutlineVariant' />
+                </Box>
+
+                {/* Starred messages */}
+                <Box
+                  onClick={() => setStarredDrawerOpen(true)}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    px: 5,
+                    py: 4,
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'customColors.Surface' },
+                    transition: 'background-color 150ms'
+                  }}
+                >
+                  <Icon icon='mdi:star-outline' fontSize='1.25rem' color='customColors.Outline' />
+                  <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                    Starred messages
+                  </Typography>
+                  <Icon icon='mdi:chevron-right' fontSize='1rem' color='customColors.OutlineVariant' />
+                </Box>
+
+                {/* Mute notifications */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, px: 5, py: 4 }}>
+                  <Icon
+                    icon={isMuted ? 'mdi:bell-off-outline' : 'mdi:bell-outline'}
+                    fontSize='1.25rem'
+                    color='customColors.Outline'
+                  />
+                  <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                    Mute notifications
+                  </Typography>
+                  <Switch
+                    size='small'
+                    checked={isMuted}
+                    onChange={e => {
+                      if (!contactId) return
+                      if (e.target.checked) dispatch(muteConversation({ chatId: contactId }))
+                      else dispatch(unmuteConversation(contactId))
+                    }}
+                  />
+                </Box>
+
+                {/* Pin to top */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, px: 5, py: 2.75 }}>
+                  <Icon
+                    icon={isPinned ? 'mdi:pin' : 'mdi:pin-outline'}
+                    fontSize='1.25rem'
+                    color='customColors.Outline'
+                  />
+                  <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                    Pin to top
+                  </Typography>
+                  <Switch
+                    size='small'
+                    checked={isPinned}
+                    onChange={e => {
+                      if (!contactId) return
+                      if (e.target.checked) dispatch(pinConversation(contactId))
+                      else dispatch(unpinConversation(contactId))
+                    }}
+                  />
+                </Box>
+                <Divider sx={{ mx: '5%' }} />
+
+                {/* Groups in common */}
+                {groupsInCommon.length > 0 ? (
+                  <>
+                    <Box sx={{ px: 5, py: 4 }}>
+                      <Typography variant='body2' sx={{ color: 'customColors.neutralSecondary', fontWeight: 500 }}>
+                        {groupsInCommon.length} {groupsInCommon.length === 1 ? 'group' : 'groups'} in common
+                      </Typography>
+                    </Box>
+                    {groupsInCommon.map(group => (
+                      <Box key={group.id}>
+                        <Box
+                          onClick={() => {
+                            handleUserProfileRightSidebarToggle()
+                            dispatch(selectChat(group.id))
+                          }}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 3,
+                            px: 5,
+                            py: 2,
+                            cursor: 'pointer',
+                            '&:hover': { backgroundColor: 'customColors.Surface' },
+                            transition: 'background-color 150ms'
+                          }}
+                        >
+                          {group.avatar ? (
+                            <MuiAvatar
+                              src={group.avatar}
+                              alt={group.fullName}
+                              sx={{ width: 42, height: 42, flexShrink: 0 }}
+                            />
+                          ) : (
+                            <CustomAvatar
+                              skin='light'
+                              color={group.avatarColor}
+                              sx={{ width: 42, height: 42, fontSize: '0.875rem', flexShrink: 0 }}
+                            >
+                              {getInitials(group.fullName)}
+                            </CustomAvatar>
+                          )}
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              variant='body2'
+                              sx={{ fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}
+                            >
+                              {group.fullName}
+                            </Typography>
+                            <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary' }}>
+                              {group.participantIds?.length ?? 0} members
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+                    ))}
+                    {/* <Divider sx={{ mx: '5%' }} /> */}
+                  </>
+                ) : null}
+
+                {/* Delete conversation */}
+                {/* <Box
+                  onClick={() => setConfirmAction({ type: 'deleteChat' })}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    px: 5,
+                    py: 4,
+                    cursor: 'pointer',
+                    '&:hover': { backgroundColor: 'customColors.BgTeritary' },
+                    transition: 'background-color 150ms'
+                  }}
+                >
+                  <Icon icon='mdi:delete-outline' fontSize='1.25rem' color='customColors.Tertiary' />
+                  <Typography variant='body2' sx={{ color: 'customColors.Tertiary', fontWeight: 500 }}>
+                    Delete conversation
+                  </Typography>
+                </Box> */}
               </Box>
             </ScrollWrapper>
           </Box>
-        </Fragment>
+        </Box>
       ) : null}
 
       {/* Member-row kebab menu — anchored to the click coordinates so the menu
