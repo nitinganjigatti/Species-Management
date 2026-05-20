@@ -1014,158 +1014,286 @@ const UserProfileRight = (props: UserProfileRightType) => {
         </Fragment>
       ) : store && store.selectedChat ? (
         <Fragment>
-          <Box sx={{ position: 'relative' }}>
+          {/* ── Hero header ───────────────────────────────────────────── */}
+          <Box
+            sx={{
+              position: 'relative',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              pt: 6,
+              pb: 4,
+              px: 4,
+              background: theme =>
+                `linear-gradient(160deg, ${theme.palette.customColors.Surface} 0%, ${theme.palette.background.paper} 100%)`,
+              borderBottom: theme => `1px solid ${theme.palette.divider}`
+            }}
+          >
             <IconButton
               size='small'
               onClick={handleUserProfileRightSidebarToggle}
-              sx={{
-                top: '0.7rem',
-                right: '0.7rem',
-                position: 'absolute',
-                color: 'text.secondary',
-                '& svg': { color: 'action.active' }
-              }}
+              sx={{ position: 'absolute', top: 10, right: 10, color: 'text.disabled' }}
             >
-              <Icon icon='mdi:close' />
+              <Icon icon='mdi:close' fontSize='1.1rem' />
             </IconButton>
-            <Box sx={{ px: 5, pb: 7, pt: 9.5, display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ mb: 4, display: 'flex', justifyContent: 'center' }}>
-                <Badge
-                  overlap='circular'
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right'
+
+            {/* Avatar */}
+            <Badge
+              overlap='circular'
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+              badgeContent={
+                <Box
+                  component='span'
+                  sx={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: '50%',
+                    backgroundColor: `${statusObj[store.selectedChat.contact.status]}.main`,
+                    boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`
                   }}
-                  badgeContent={
-                    <Box
-                      component='span'
-                      sx={{
-                        width: 10,
-                        height: 10,
-                        borderRadius: '50%',
-                        color: `${statusObj[store.selectedChat.contact.status]}.main`,
-                        boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`,
-                        backgroundColor: `${statusObj[store.selectedChat.contact.status]}.main`
-                      }}
-                    />
-                  }
+                />
+              }
+            >
+              {store.selectedChat.contact.avatar ? (
+                <MuiAvatar
+                  src={store.selectedChat.contact.avatar}
+                  alt={store.selectedChat.contact.fullName}
+                  sx={{ width: 80, height: 80 }}
+                />
+              ) : (
+                <CustomAvatar
+                  skin='light'
+                  color={store.selectedChat.contact.avatarColor}
+                  sx={{ width: 80, height: 80, fontSize: '1.75rem' }}
                 >
-                  {store.selectedChat.contact.avatar ? (
-                    <MuiAvatar
-                      sx={{ width: '5rem', height: '5rem' }}
-                      src={store.selectedChat.contact.avatar}
-                      alt={store.selectedChat.contact.fullName}
-                    />
-                  ) : (
-                    <CustomAvatar
-                      skin='light'
-                      color={store.selectedChat.contact.avatarColor}
-                      sx={{ width: '5rem', height: '5rem', fontSize: '2rem' }}
-                    >
-                      {getInitials(store.selectedChat.contact.fullName)}
-                    </CustomAvatar>
-                  )}
-                </Badge>
-              </Box>
-              <Typography sx={{ textAlign: 'center', mb: 0.5, fontWeight: 600 }}>
-                {store.selectedChat.contact.fullName}
-              </Typography>
-              <Typography sx={{ textAlign: 'center', textTransform: 'capitalize' }} variant='body2'>
+                  {getInitials(store.selectedChat.contact.fullName)}
+                </CustomAvatar>
+              )}
+            </Badge>
+
+            <Typography sx={{ mt: 2, fontWeight: 700, fontSize: '1.0625rem', color: 'customColors.OnSurfaceVariant' }}>
+              {store.selectedChat.contact.fullName}
+            </Typography>
+            {store.selectedChat.contact.role ? (
+              <Typography
+                variant='caption'
+                sx={{ color: 'customColors.neutralSecondary', textTransform: 'capitalize', mt: 0.25 }}
+              >
                 {store.selectedChat.contact.role}
               </Typography>
-            </Box>
+            ) : null}
           </Box>
 
-          <Box sx={{ height: 'calc(100% - 12.25rem)' }}>
-            <ScrollWrapper>
-              <Box sx={{ p: 5 }}>
-                <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase' }}>
-                  Personal Information
-                </Typography>
-                <List dense sx={{ mb: 6, p: 0 }}>
-                  {contactUser?.email ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 2 }}>
-                        <ListItemIcon sx={{ mr: 2 }}>
-                          <Icon icon='mdi:email-outline' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText secondary={contactUser.email} />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                  {contactUser?.phone ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 2 }}>
-                        <ListItemIcon sx={{ mr: 2 }}>
-                          <Icon icon='mdi:phone-outline' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText secondary={contactUser.phone} />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                  {contactUser?.username ? (
-                    <ListItem disablePadding>
-                      <ListItemButton sx={{ px: 2 }}>
-                        <ListItemIcon sx={{ mr: 2 }}>
-                          <Icon icon='mdi:account-outline' fontSize='1.25rem' />
-                        </ListItemIcon>
-                        <ListItemText secondary={contactUser.username} />
-                      </ListItemButton>
-                    </ListItem>
-                  ) : null}
-                </List>
-                <Typography variant='body2' sx={{ mb: 1.5, textTransform: 'uppercase' }}>
+          {/* ── Scrollable body ───────────────────────────────────────── */}
+          <ScrollWrapper>
+            <Box sx={{ px: 4, py: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Personal info card */}
+              {contactUser?.email || contactUser?.phone || contactUser?.username ? (
+                <Box>
+                  <Typography
+                    variant='caption'
+                    sx={{
+                      display: 'block',
+                      mb: 1.5,
+                      fontWeight: 600,
+                      color: 'customColors.Outline',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    Contact info
+                  </Typography>
+                  <Box
+                    sx={{
+                      borderRadius: 2,
+                      border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                      overflow: 'hidden'
+                    }}
+                  >
+                    {contactUser?.email ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          px: 3,
+                          py: 2,
+                          borderBottom:
+                            contactUser?.phone || contactUser?.username
+                              ? theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                              : 'none'
+                        }}
+                      >
+                        <Icon icon='mdi:email-outline' fontSize='1.1rem' color='customColors.Outline' />
+                        <Typography
+                          variant='body2'
+                          sx={{ color: 'customColors.OnSurfaceVariant', wordBreak: 'break-all' }}
+                        >
+                          {contactUser.email}
+                        </Typography>
+                      </Box>
+                    ) : null}
+                    {contactUser?.phone ? (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          px: 3,
+                          py: 2,
+                          borderBottom: contactUser?.username
+                            ? theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                            : 'none'
+                        }}
+                      >
+                        <Icon icon='mdi:phone-outline' fontSize='1.1rem' color='customColors.Outline' />
+                        <Typography variant='body2' sx={{ color: 'customColors.OnSurfaceVariant' }}>
+                          {contactUser.phone}
+                        </Typography>
+                      </Box>
+                    ) : null}
+                    {/* {contactUser?.username ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 3, py: 2 }}>
+                        <Icon icon='mdi:at' fontSize='1.1rem' color='customColors.Outline' />
+                        <Typography variant='body2' sx={{ color: 'customColors.OnSurfaceVariant' }}>
+                          {contactUser.username}
+                        </Typography>
+                      </Box>
+                    ) : null} */}
+                  </Box>
+                </Box>
+              ) : null}
+
+              {/* Options card */}
+              <Box>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    display: 'block',
+                    mb: 1.5,
+                    fontWeight: 600,
+                    color: 'customColors.Outline',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase'
+                  }}
+                >
                   Options
                 </Typography>
-                <List dense sx={{ p: 0 }}>
-                  <ListItem
-                    disablePadding
-                    secondaryAction={
-                      <Switch
-                        edge='end'
-                        size='small'
-                        checked={isMuted}
-                        onChange={e => {
-                          if (!contactId) return
-                          if (e.target.checked) dispatch(muteConversation({ chatId: contactId }))
-                          else dispatch(unmuteConversation(contactId))
-                        }}
-                      />
-                    }
+                <Box
+                  sx={{
+                    borderRadius: 2,
+                    border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                    overflow: 'hidden'
+                  }}
+                >
+                  {/* Mute */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      px: 3,
+                      py: 1.75,
+                      borderBottom: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                    }}
                   >
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:bell-off-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Mute notifications' />
-                    </ListItemButton>
-                  </ListItem>
-                  <ListItem
-                    disablePadding
-                    secondaryAction={
-                      <Switch
-                        edge='end'
-                        size='small'
-                        checked={isPinned}
-                        onChange={e => {
-                          if (!contactId) return
-                          if (e.target.checked) dispatch(pinConversation(contactId))
-                          else dispatch(unpinConversation(contactId))
-                        }}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Icon
+                        icon={isMuted ? 'mdi:bell-off-outline' : 'mdi:bell-outline'}
+                        fontSize='1.1rem'
+                        color='customColors.Outline'
                       />
-                    }
+                      <Typography variant='body2' sx={{ color: 'customColors.OnSurfaceVariant' }}>
+                        Mute notifications
+                      </Typography>
+                    </Box>
+                    <Switch
+                      size='small'
+                      checked={isMuted}
+                      onChange={e => {
+                        if (!contactId) return
+                        if (e.target.checked) dispatch(muteConversation({ chatId: contactId }))
+                        else dispatch(unmuteConversation(contactId))
+                      }}
+                    />
+                  </Box>
+                  {/* Pin */}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      px: 3,
+                      py: 1.75
+                    }}
                   >
-                    <ListItemButton sx={{ px: 2 }}>
-                      <ListItemIcon sx={{ mr: 2 }}>
-                        <Icon icon='mdi:pin-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText secondary='Pin to top' />
-                    </ListItemButton>
-                  </ListItem>
-                </List>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Icon
+                        icon={isPinned ? 'mdi:pin' : 'mdi:pin-outline'}
+                        fontSize='1.1rem'
+                        color='customColors.Outline'
+                      />
+                      <Typography variant='body2' sx={{ color: 'customColors.OnSurfaceVariant' }}>
+                        Pin to top
+                      </Typography>
+                    </Box>
+                    <Switch
+                      size='small'
+                      checked={isPinned}
+                      onChange={e => {
+                        if (!contactId) return
+                        if (e.target.checked) dispatch(pinConversation(contactId))
+                        else dispatch(unpinConversation(contactId))
+                      }}
+                    />
+                  </Box>
+                </Box>
               </Box>
-            </ScrollWrapper>
-          </Box>
+
+              {/* Danger zone */}
+              {/* <Box>
+                <Typography
+                  variant='caption'
+                  sx={{
+                    display: 'block',
+                    mb: 1.5,
+                    fontWeight: 600,
+                    color: 'customColors.Tertiary',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  Danger zone
+                </Typography>
+                <Box
+                  sx={{
+                    borderRadius: 2,
+                    border: theme => `1px solid ${theme.palette.customColors.BgTeritary}`,
+                    overflow: 'hidden'
+                  }}
+                >
+                  <Box
+                    onClick={() => setConfirmAction({ type: 'deleteChat' })}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      px: 3,
+                      py: 2,
+                      cursor: 'pointer',
+                      '&:hover': { backgroundColor: 'customColors.BgTeritary' },
+                      transition: 'background-color 150ms'
+                    }}
+                  >
+                    <Icon icon='mdi:delete-outline' fontSize='1.1rem' color='customColors.Tertiary' />
+                    <Typography variant='body2' sx={{ color: 'customColors.Tertiary', fontWeight: 500 }}>
+                      Delete conversation
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box> */}
+            </Box>
+          </ScrollWrapper>
         </Fragment>
       ) : null}
 
