@@ -23,6 +23,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
 import MessageInfoDialog from 'src/views/apps/chat/MessageInfoDialog'
+import PinnedMessagesStrip from 'src/views/apps/chat/PinnedMessagesStrip'
 
 // ** Chat API
 import { searchMessages } from 'src/lib/chat/api'
@@ -407,50 +408,16 @@ const ChatContent = (props: ChatContentType) => {
                 </Box>
               ) : (
                 <>
-                  {/* Pinned-messages strip. Shows count + latest pinned text;
-                      clicking scrolls to the most-recently-pinned bubble. */}
-                  {(() => {
-                    const pinned = selectedChat.chat.messages.filter(m => m.isPinned && m.id)
-                    if (!pinned.length) return null
-                    const latest = pinned[pinned.length - 1]
-
-                    return (
-                      <Box
-                        onClick={() => {
-                          if (!latest.id) return
-                          // Clear first so re-clicking the same pinned id
-                          // re-triggers the ChatLog effect (it dedupes on
-                          // the prop value).
-                          setScrollTargetMessageId(null)
-                          // Defer so React commits the null before the new id.
-                          requestAnimationFrame(() => setScrollTargetMessageId(latest.id ?? null))
-                        }}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                          px: 4,
-                          py: 1.25,
-                          cursor: 'pointer',
-                          borderBottom: theme => `1px solid ${theme.palette.divider}`,
-                          backgroundColor: 'customColors.Surface',
-                          '&:hover': {
-                            backgroundColor: theme => theme.palette.action.hover
-                          }
-                        }}
-                      >
-                        <Icon icon='mdi:pin' fontSize='1.125rem' />
-                        <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-                          <Typography variant='caption' sx={{ display: 'block', fontWeight: 600 }}>
-                            Pinned · {pinned.length}
-                          </Typography>
-                          <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
-                            {latest.message || (latest.attachments?.length ? '📎 Attachment' : '')}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    )
-                  })()}
+                  <PinnedMessagesStrip
+                    selectedChat={selectedChat}
+                    userProfile={store.userProfile}
+                    onScrollToMessage={(messageId: string) => {
+                      // Clear first so re-clicking the same id retriggers
+                      // the ChatLog effect (which dedupes on prop value).
+                      setScrollTargetMessageId(null)
+                      requestAnimationFrame(() => setScrollTargetMessageId(messageId))
+                    }}
+                  />
                   <ChatLog
                     hidden={hidden}
                     data={{ ...selectedChat, userContact: store.userProfile }}
