@@ -142,6 +142,15 @@ const AuthProvider = ({ children }) => {
           await reconcilePharmacy(resData)
           setUser({ ...userObj })
           setUserData({ ...resData })
+
+          // Auto-enable push notifications after SSO login
+          try {
+            await notificationService.enablePushNotifications()
+            console.log('[AuthContext] Push notifications auto-enabled after SSO login')
+          } catch (error) {
+            console.log('[AuthContext] Push notifications auto-enable failed (user may have denied permission):', error.message)
+          }
+
           setLoading(false)
         } catch (err) {
           console.error('SSO refresh: hydrate failed:', err)
@@ -440,6 +449,14 @@ const AuthProvider = ({ children }) => {
       await reconcilePharmacy(data)
       setUserData({ ...data })
       setUser({ ...nextUser })
+
+      // Auto-enable push notifications after successful login
+      try {
+        await notificationService.enablePushNotifications()
+        console.log('[AuthContext] Push notifications auto-enabled after login')
+      } catch (error) {
+        console.log('[AuthContext] Push notifications auto-enable failed (user may have denied permission):', error.message)
+      }
 
       loadLanguage(i18n.language || 'en-IN')
 
