@@ -139,7 +139,6 @@ export class NotificationService {
   }
 
   async enablePushNotifications(): Promise<boolean> {
-    debugger
     if (!this.isSupported()) return false
     try {
       const reg = await navigator.serviceWorker.ready
