@@ -174,34 +174,55 @@ The SDK exports `devicesApi` at module level (not on the `AntzChatClient` instan
 
 ## UI status — per-message interactions
 
-WhatsApp-style 3-dot menu + reaction picker on every bubble. All actions live in a single shared component, [src/views/apps/chat/MessageActions.tsx](../../../src/views/apps/chat/MessageActions.tsx), so text bubbles and attachment bubbles use identical handlers and SDK calls.
+WhatsApp-Web layout — the chevron 3-dot menu sits **INSIDE** the bubble's top-right corner, and the reaction picker (😀) sits **OUTSIDE** the bubble, vertically centered on the inside-facing edge. The two surfaces are split into two components so callers can position them independently:
+
+- [src/views/apps/chat/MessageActions.tsx](../../../src/views/apps/chat/MessageActions.tsx) — chevron menu + delete confirmation dialog.
+- [src/views/apps/chat/MessageReactionPicker.tsx](../../../src/views/apps/chat/MessageReactionPicker.tsx) — standalone 😀 trigger + 6-emoji quick-pick popover.
+
+Both share the same `.msg-actions` CSS class so the parent reveals them together on bubble hover (`&:hover .msg-actions { opacity: 1; pointer-events: auto }`).
 
 | Affordance | Status | Notes |
 |---|---|---|
-| 3-dot menu on hover (text bubble) | ✅ | Rendered inside [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx) |
-| 3-dot menu on hover (audio / video / image / document) | ✅ | Rendered as a sibling of the attachment column in [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) when the message is attachment-only. CSS `:hover .msg-actions { opacity: 1 !important }` reveals icons. |
-| Reaction picker popover | ✅ | 6 hardcoded emojis (👍 ❤️ 😂 😮 😢 🙏) + "more" disabled. Available on all bubble types. |
+| Chevron menu inside bubble top-right (text) | ✅ | Absolutely positioned at `top: 2, right: 2` inside the text bubble in [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx). Bubble has `pr: 7` to reserve space so the chevron doesn't overlap text. |
+| Chevron menu inside attachment top-right | ✅ | Same pattern in [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) attachment-only branch. Audio container uses `pt: 5` so the chevron sits cleanly above the audio control row. |
+| Chevron contrast on green / white-audio bg | ✅ | Chevron icon is `common.white` with a translucent dark circle backdrop (`rgba(0,0,0,0.32)` sender / `rgba(0,0,0,0.45)` receiver) so it reads against the bubble color AND any embedded white element (audio control, PDF preview, light image). |
+| Reaction picker outside bubble (centered) | ✅ | `MessageReactionPicker` rendered as a flex sibling of the bubble column. Outer row uses `flex-direction: isSender ? 'row-reverse' : 'row'` so the 😀 visually sits on the LEFT of sender (green) bubbles and the RIGHT of receiver (white) bubbles — i.e. always on the inside-facing edge. |
 | Reaction chips below bubble | ✅ | Chip per emoji, count visible, highlighted if user reacted. Click chip = toggle. |
 | Reply (composer banner + bubble snippet) | ✅ | `setReplyingTo` Redux state. Banner with cancel ✕ above the input. Inside reply bubble: left accent + sender name + 2-line preview, click snippet scrolls + flashes original (`msg-flash` CSS in [custom.css](../../../styles/custom.css)). |
-| Edit (own text messages only) | ✅ | `setEditingMessage` Redux state. Warning-color banner above input prefilled with original. Submit branches to `updateMessageOverSocket`. Bubble shows `(edited)` after broadcast. |
+| Edit (own text messages only) | ✅ | `setEditingMessage` Redux state. Warning-color banner above input prefilled with original. Submit branches to `updateMessageOverSocket` (no REST fallback). Bubble shows `(edited)` after broadcast. **Hidden once `editWindowSeconds` elapses since send** — see "Time-window gating" below. |
 | Star / Unstar | ✅ | Personal (no server broadcast). Optimistic local toggle. Star icon renders inline on bubble. |
 | Pin / Unpin | ✅ | DM: both sides; group: admin-only. Pinned strip renders above ChatLog showing latest pinned + count, click jumps. |
-| Copy text | ✅ | Hidden for attachment-only bubbles. |
-| Delete for me | ✅ | Same `MessageActions` for all message types. Shared `ConfirmationDialog`. Removes from local thread only. |
-| Delete for everyone (own messages) | ✅ | Same flow. Server broadcasts → tombstone "This message was deleted" replaces the bubble for all participants. Works on text and all attachment types. |
+| Copy text | ✅ | Hidden for attachment-only bubbles via `showCopyText={false}`. |
+| Delete for me | ✅ | Same `MessageActions` for all message types. Shared `ConfirmationDialog`. Removes from local thread only. **Always available** (no time gate). |
+| Delete for everyone (own messages) | ✅ | Same flow. Server broadcasts → tombstone "This message was deleted" replaces the bubble for all participants. Works on text and all attachment types. **Hidden once `deleteWindowSeconds` elapses since send.** |
+| Reactions toggle (add + remove) | ✅ | Single `addReactionOverSocket` call drives both — the server treats a re-emit with the same emoji as a toggle. State on every participant lands via `reaction_updated` broadcast → `applyReactionUpdate` reducer. No `remove_reaction` socket emit and no REST fallback needed. |
+
+#### Time-window gating ([MessageActions.tsx:74-98](../../../src/views/apps/chat/MessageActions.tsx#L74-L98))
+
+The backend returns `Conversation.settings.messageConfig` with two seconds-since-send windows: `editWindowSeconds` (e.g. `900` = 15 min) and `deleteWindowSeconds` (e.g. `216000` = 60 hr). Tenant-tunable on the server.
+
+- Adapter maps them onto `ChatsArrType.editWindowSeconds` / `.deleteWindowSeconds` ([api.ts:744-751](../../../src/lib/chat/api.ts#L744-L751)).
+- `MessageActions` reads both from `selectedChat.contact` via Redux and computes `canEdit` / `canDeleteForEveryone` by comparing `chat.time` against `Date.now()` with the per-window offset.
+- Backwards-safe: `undefined` window → no restriction → action always allowed (same as legacy behavior).
+- Fail-closed on malformed `chat.time` (NaN parse → treat as expired) so we don't enable an action on bogus data.
+- The check evaluates on render — if the menu is held open past the cutoff, the item stays clickable. Server still enforces its own policy on `update_message` / `delete_message` and the existing `.catch` toasts on rejection. Gate is purely UX.
 
 ### Component map
 
 ```
-MessageBubble                   ← text bubble + reply snippet + reactions row
-  └─ MessageActions             ← actions surface, alwaysVisible=hovered
-                                  showEdit, showCopyText
+MessageBubble                              ← outer flex row, position: relative
+  ├─ bubble Box (position: relative)       ← rounded message box
+  │    ├─ MessageActions (abs top-right)   ← chevron menu INSIDE bubble
+  │    ├─ reply snippet                    ← optional
+  │    ├─ text + inline pin/star/edited
+  │    └─ reactions chips row
+  └─ MessageReactionPicker                 ← 😀 OUTSIDE bubble, centered
 
-ChatLog (attachment-only path)
-  ├─ attachment column          ← image / video / audio / document
-  └─ MessageActions             ← actions surface
-                                  showEdit=false, showCopyText=false
-                                  parent CSS forces icons visible on hover
+ChatLog (attachment-only path)             ← outer flex row, position: relative
+  ├─ attachment column (position: relative)
+  │    ├─ MessageActions (abs top-right)   ← chevron menu INSIDE first attachment
+  │    └─ attachment Box(es)               ← image / video / audio / document
+  └─ MessageReactionPicker                 ← 😀 OUTSIDE column, centered
 ```
 
 ### Voice messages
@@ -255,6 +276,18 @@ const openPreview = (att) => setPreviewAttachment(att)
 // (replacing the previous <a target='_blank'> / <a download> wrappers).
 // One <AttachmentPreviewDialog> mounted at the bottom of ChatLog.
 ```
+
+### ChatLog scroll-container stability
+
+[`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) used to define an inner `ScrollWrapper` component **inside** its render function. Because the function reference was new on every render, React's reconciler treated each `<ScrollWrapper>` element as a different component type and unmounted + remounted the entire `PerfectScrollbar` subtree on every Redux state change (sends, receipts, reactions, edits, deletes, pins, stars). Each remount reset `scrollTop` to 0 and the `scrollToBottom` raf passes then yanked the chat back down — the visible effect was a brief flash-to-top on every send.
+
+Fix: the `hidden ? <Box> : <PerfectScrollbar>` conditional is now inlined directly in `ChatLog`'s return statement. React sees the same `<PerfectScrollbar>` element type across renders and reuses the instance. Side benefits:
+
+- `chatArea.current` ref stays stable → `scrollToBottom`, `triggerLoadOlder`, pagination anchor restoration all work reliably.
+- `messageRefs` Map of `msg-id → DOM element` is no longer cleared and rebuilt every render → search "jump to match" scrolls reliably.
+- ~50 message bubbles are no longer re-created from scratch on every Redux update — measurable perf win on active chats.
+
+General rule: never define a React component inside another component's render. The two look similar but trigger a full remount of the inner subtree on every outer render.
 
 ### Lightweight ack normalization
 
@@ -356,6 +389,9 @@ Summary table:
 2. **`read_receipt.conversationId` is sometimes wrong.** Reducer searches across all chats by `messageId` instead of trusting the event field.
 3. **`fullyReadMessageIds` empty in DMs.** Backend sends ids only in `messageId` for DM receipts. We accept any field for DMs because there's only one recipient.
 4. **Delivery events may fire even when recipient is offline.** Flagged by the presence cross-check warning — server semantic bug to file with backend if it appears.
+5. **Some socket emits process successfully but never send an ack frame.** Affects `delete_message` (and previously `remove_reaction`). The SDK's `withAck` rejects with `"Socket ack timeout: <event>"` even though the broadcast for that event fans out correctly. We work around by emitting **fire-and-forget** on the raw socket for these specific events instead of going through the SDK's ack-based emitter. State for both sender and receivers still lands via the corresponding `*_updated` / `*_deleted` broadcast. Reactions sidestep this entirely by using `add_reaction` as a toggle (no `remove_reaction` emit needed).
+6. **`message_deleted` is broadcast only, not stored as a query-able event.** On REST re-fetch (refresh / pagination), the server returns the deleted row with `status: 'deleted'` and (presumably) null content. Our adapter detects this status and produces the same tombstone state that `applyMessageDelete` produces live.
+7. **`conversation_updated` is not broadcast for icon-only changes.** We work around by dispatching the updated `Conversation` from `client.uploadIcon`'s response straight into `addOrReplaceChat` (which now also syncs `selectedChat`). Other participants get the change via `conversation_updated` if/when the server emits it, or on their next `fetchChatsContacts`.
 
 ---
 
@@ -397,6 +433,32 @@ Summary table:
 
 ## Changelog
 
+- **2026-05-19c** — Delete-for-everyone persistence + false-negative toast fix:
+  - **Adapter now reads `status: 'deleted'`.** SDK marks a soft-deleted message with `MessageStatus = 'deleted'`. `sdkMessageToMessage` ([api.ts:653-685](../../../src/lib/chat/api.ts#L653-L685)) now: (a) detects this on REST re-fetch, (b) sets `isDeletedForEveryone: true`, (c) blanks `message`, (d) drops `attachments` and `reactions` so the tombstone renders identically to the live-broadcast path. Before this fix, refreshing the tab would resurrect the deleted message's original content because `applyMessageDelete` only ran in response to the `message_deleted` socket event. Live and refresh paths now produce identical state.
+  - **`delete_message` socket emit is now fire-and-forget.** Same server quirk as `remove_reaction`: backend processes the deletion AND broadcasts `message_deleted` to all participants, but doesn't send an ack frame within 5s. The SDK's ack-based `withAck` was rejecting the Promise with `"Socket ack timeout: delete_message"`, producing a false `"Delete failed"` toast even on successful deletes. `deleteMessageOverSocket` ([api.ts:234-249](../../../src/lib/chat/api.ts#L234-L249)) now emits directly on the raw socket without waiting for ack. State still lands on every participant via the `message_deleted` broadcast → `applyMessageDelete` reducer. Same pattern as the SDK's own choice for `typing` and `mark_read` (also ack-less).
+
+- **2026-05-19b** — Reactions / leave-group / group identity / self-chat / group-icon upload / time-window gating:
+  - **Reactions toggle via single socket emit.** Earlier we had `addReactionOverSocket` + `removeReactionOverSocket`. Server's `remove_reaction` consistently failed to ack within 5 s, surfacing `"Socket ack timeout: remove_reaction"` even though the operation often succeeded. Backend now treats `add_reaction` as a toggle (re-emitting the same emoji removes it), so the client calls **only `addReactionOverSocket` for both add and remove**. State for both sides lands via the `reaction_updated` broadcast → `applyReactionUpdate` reducer. The duplicate `handleToggleReaction` in [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx) and [`MessageReactionPicker`](../../../src/views/apps/chat/MessageReactionPicker.tsx) both use the same call; `alreadyReacted` is kept only for any future UI branching.
+  - **Leave-group hidden when `isCurrentUserActive: false`.** Adapter computes `isCurrentUserActive` from `participants[me].isActive` ([api.ts:725-727](../../../src/lib/chat/api.ts#L725-L727)). [`UserProfileRight`](../../../src/views/apps/chat/UserProfileRight.tsx) reads it and gates both the "Leave group" ListItem and the "Danger zone" header. "Pin to top" stays available so the user can keep the chat at the top of their sidebar after leaving. DMs unaffected (`isCurrentUserActive` is always `true` for DMs).
+  - **Group sender identity in ChatLog.** Incoming bubbles in groups now resolve the actual sender via `state.chat.contacts` (deduped from all conversations' participants). [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx) reads `state.chat.contacts` via `useSelector`, builds a `senderById` Map, and replaces the group's icon/name with the actual sender's avatar/name/color. A colored sender-name `Typography` is rendered above the first bubble in each speaker's run. Falls back to "Unknown" if the sender is no longer in the contacts cache (e.g., removed from the group).
+  - **Self-chat ("Message yourself"). [`api.ts:686-705`](../../../src/lib/chat/api.ts#L686-L705)** — direct conversations where `activeParticipants.every(p => p.userId === currentUserId)` resolve `other` to the current user's own entry, and `fullName` renders as `` `${displayName} (You)` `` instead of "Unknown user". Id-based check (immutable to name/email changes); falls back to normal peer lookup if anyone else ever joins.
+  - **Group icon upload.** New thunk `uploadGroupIcon` ([store/apps/chat/index.ts](../../../src/store/apps/chat/index.ts)) calls SDK `client.uploadIcon(chatId, file)` — which runs presigned-url + S3 upload + `conversations.uploadIcon` in one shot and returns the updated `Conversation`. We pipe it through `sdkConversationToChat` and `addOrReplaceChat`. UI: admin-only camera IconButton overlay on the 80×80 avatar in [`UserProfileRight`](../../../src/views/apps/chat/UserProfileRight.tsx) Group info → opens a hidden `<input type='file' accept='image/*'>` → wraps the picked File in an `UploadableFile` (`{ uri: createObjectURL(file), name, type, size }` — without `name` the presigned-url request returns 400) → dispatches the thunk → revokes the blob URL in `finally`.
+  - **`addOrReplaceChat` now syncs `selectedChat`.** Reducer ([store/apps/chat/index.ts:1095-1102](../../../src/store/apps/chat/index.ts#L1095-L1102)) now keeps `state.selectedChat` in sync when the replaced chat is the currently-open one — mirroring the same sync `fetchChatsContacts.fulfilled` already does. This means group icon upload (and rename, add/remove members, role change, etc.) instantly refreshes the chat header + Group info drawer for the currently-open conversation, not just the sidebar tile.
+  - **Sidebar + chat header now render the group icon.** Both surfaces had a hardcoded `mdi:account-group` glyph for groups, ignoring `chat.avatar`. [`SidebarLeft`](../../../src/views/apps/chat/SidebarLeft.tsx) and [`ChatContent`](../../../src/views/apps/chat/ChatContent.tsx) now use the same `chat.avatar ? <MuiAvatar src=…> : <CustomAvatar><Icon mdi:account-group/></CustomAvatar>` pattern as the Group info drawer.
+  - **Backend gap: `conversation_updated` is NOT broadcast for icon changes / system messages.** Listener is wired ([AppChat.tsx](../../../src/views/apps/chat/AppChat.tsx)) but the broadcast itself only fires for some metadata changes. Uploader's local state updates atomically via the thunk; other participants get it via `conversation_updated` if/when the server emits it, or by next `fetchChatsContacts`. File with backend team if real-time fan-out is needed across all metadata changes.
+  - **Time-window gating for Edit and Delete-for-everyone.** Backend returns `Conversation.settings.messageConfig.{editWindowSeconds, deleteWindowSeconds}` (e.g. `900` and `216000`). Adapter exposes them on `ChatsArrType`. [`MessageActions`](../../../src/views/apps/chat/MessageActions.tsx) reads via `useSelector(state.chat.selectedChat.contact.editWindowSeconds)` and gates the menu items by comparing `chat.time` against `Date.now()`. Defensive: `undefined` window = no restriction (legacy fallback), NaN `chat.time` = treat as expired (fail-closed). Server is still the source of truth — the gate is purely UX.
+  - **Self-chat detection is `every()` over active participants.** Subtle but important: `activeParticipants.every(p => p.userId === meIdStr)` correctly returns `false` for a 2-participant DM where one is me, but `true` for a 1-participant DM where the only participant is me.
+  - **Cleanup of diagnostic logs.** Removed `[chat:icons]` from `fetchChatsContacts.fulfilled`, `onAnyDebug` (`[chat:event]` / `[chat:event ★ READ-LIKE]`) from `AppChat`, and lingering `[chat:att]` IIFE log from `ChatLog`. The `[chat:icon-upload]` log in `uploadGroupIcon` thunk and `[chat:system]` log in `onNewMessage` are intentionally kept while we investigate whether the backend emits a system message for group icon changes.
+
+- **2026-05-19** — WhatsApp-Web message-affordance layout + ChatLog scroll-container fix:
+  - **Split MessageActions into two components** so the chevron and the reaction picker can be positioned independently:
+    - [`MessageActions`](../../../src/views/apps/chat/MessageActions.tsx) — now only the chevron menu trigger + Menu + delete `ConfirmationDialog`. All reaction-picker code (`Popover`, `QUICK_REACTIONS`, `addReactionOverSocket`/`removeReactionOverSocket`, `useSelector` for `currentUserId`) extracted.
+    - [`MessageReactionPicker`](../../../src/views/apps/chat/MessageReactionPicker.tsx) — new standalone 😀 trigger + 6-emoji quick-pick popover.
+  - **Chevron INSIDE the bubble, reaction picker OUTSIDE.** [`MessageBubble`](../../../src/views/apps/chat/MessageBubble.tsx) renders the chevron `MessageActions` absolutely at `top: 2, right: 2` inside the bubble Box (which now has `position: relative` + `pr: 7` to reserve space for the icon). The `MessageReactionPicker` is a flex sibling of the bubble column, vertically centered, on the inside-facing edge (LEFT of green sender bubbles, RIGHT of receiver bubbles) via `flex-direction: row-reverse` on the outer row.
+  - **Same pattern in the attachment-only branch of [`ChatLog`](../../../src/views/apps/chat/ChatLog.tsx).** The attachment column got `position: relative`; the chevron sits absolute at `top: 4, right: 4` over the top-right of the first attachment. Audio container changed from uniform `p: 2` to `pt: 5, pb: 2, px: 2` so the chevron sits above the audio control row instead of overlapping the volume button.
+  - **Chevron contrast fix for audio + image + PDF previews.** The chevron icon was previously `rgba(255,255,255,0.85)` with no backdrop and disappeared on top of the white `<audio>` control strip. Now it's `common.white` with a translucent dark circle (`bgcolor: rgba(0,0,0,0.32)` on sender bubbles, `rgba(0,0,0,0.45)` on receiver) that contrasts against both the green bubble color AND any embedded white element underneath.
+  - **Hover reveal.** Both icons share `className='msg-actions'` (opacity 0 / pointer-events: none by default). Each outer row has `&:hover .msg-actions { opacity: 1; pointer-events: auto }` so they appear together when the row is hovered.
+  - **ChatLog flash-to-top on send — root cause + fix.** `ChatLog` defined an inner `ScrollWrapper` component inside its render function; React saw a new component type on every ChatLog render and unmounted + remounted the entire `PerfectScrollbar` subtree on every Redux state change. This reset `scrollTop` to 0, then the `scrollToBottom` raf passes yanked the chat back down — visible as a flash to top on every send / receipt / reaction. Fix: removed the inner `ScrollWrapper` and inlined the `hidden ? <Box> : <PerfectScrollbar>` conditional in the return statement. React now reuses the same `<PerfectScrollbar>` instance across renders; `scrollTop`, `chatArea.current`, `messageRefs`, and pagination anchor restoration all stay valid. Also dropped the unused `ReactNode` import.
 - **2026-05-18f** — Attachment preview is now **view-only, no downloads**:
   - New `AttachmentPreviewDialog` — fullscreen WhatsApp-Web-style overlay.
   - Replaced every `<a href target='_blank'>` and `<a download>` anchor in `ChatLog` with `onClick={() => openPreview(att)}`. Image / video / pdf / document all open in-page.

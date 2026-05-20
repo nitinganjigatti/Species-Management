@@ -231,8 +231,20 @@ export function updateMessageOverSocket(messageId: string, text: string): Promis
   return sdkSocketEmit.updateMessage(messageId, text)
 }
 
+// `delete_message` is emitted fire-and-forget instead of via the SDK's
+// ack-based `sdkSocketEmit.deleteMessage`. The chat backend processes the
+// removal and broadcasts `message_deleted` to all participants, but does
+// NOT send an ack frame back for this event — the 5s ack timeout would
+// otherwise reject with `"Socket ack timeout: delete_message"` even
+// though the deletion succeeded, producing a false "Delete failed" toast.
+// State for both sender and receivers lands via the `message_deleted`
+// broadcast handler in AppChat → `applyMessageDelete` reducer.
 export function deleteMessageOverSocket(messageId: string): Promise<unknown> {
-  return sdkSocketEmit.deleteMessage(messageId)
+  const socket = getChatSocket()
+  if (!socket) return Promise.reject(new Error('[chat-api] deleteMessageOverSocket: socket not connected'))
+  socket.emit('delete_message', { messageId })
+
+  return Promise.resolve()
 }
 
 export function deleteMessageForMeOverSocket(messageId: string): Promise<unknown> {
@@ -650,43 +662,123 @@ export function sdkMessageToMessage(msg: Message): MessageType {
       })()
     : undefined
 
+  // SDK marks a "delete for everyone" message with `status: 'deleted'`
+  // — the server still returns the row on subsequent `listMessages` calls
+  // so the tombstone renders in place. Without surfacing this, refreshing
+  // the tab would resurrect the original text + attachments + reactions
+  // because `applyMessageDelete` only runs in response to the live
+  // `message_deleted` socket event (not on REST re-fetch).
+  const isDeletedForEveryone = msg.status === 'deleted'
+
+  // Snapshot the sender's display name from the SDK Message if it's there.
+  // The SDK populates `msg.sender.displayName` on most recently-returned
+  // messages; capturing it here means the sidebar's "Saket: hello" prefix
+  // doesn't depend on the global contacts cache (which can lose entries
+  // when a member leaves the group).
+  const senderName =
+    (msg as typeof msg & { sender?: { displayName?: string; username?: string } }).sender?.displayName ??
+    (msg as typeof msg & { sender?: { displayName?: string; username?: string } }).sender?.username
+
   return {
     id: msg.id,
-    message: msg.content?.text ?? '',
+    // Blank the body on tombstones so the rendered bubble matches what the
+    // live-broadcast path produces (applyMessageDelete also blanks `m.message`).
+    message: isDeletedForEveryone ? '' : msg.content?.text ?? '',
     time,
     senderId: msg.senderId,
+    ...(senderName ? { senderName } : {}),
     feedback: {
       isSent: msg.status !== 'failed' && deliveryStatus !== 'failed',
       isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
       isSeen: deliveryStatus === 'read'
     },
-    ...(attachments && attachments.length ? { attachments } : {}),
+    // Skip attachments + reactions on tombstones — the placeholder is the
+    // only thing that should render. Matches applyMessageDelete reducer.
+    ...(!isDeletedForEveryone && attachments && attachments.length ? { attachments } : {}),
     ...(msg.content?.type ? { contentType: msg.content.type } : {}),
-    ...(reactions ? { reactions } : {}),
+    ...(!isDeletedForEveryone && reactions ? { reactions } : {}),
     ...(replyTo ? { replyTo } : {}),
     ...(msg.isPinned ? { isPinned: true } : {}),
     ...(msg.isStarred ? { isStarred: true } : {}),
     ...(msg.isEdited ? { isEdited: true } : {}),
-    ...(msg.editedAt ? { editedAt: msg.editedAt } : {})
+    ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
+    ...(isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
   }
 }
 
 export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEntityId): ChatsArrType {
   const isGroup = conv.conversationType === 'group'
 
-  // Backend soft-deletes removed members via isActive=false; filter them out.
-  const activeParticipants = ((conv.participants ?? []) as ParticipantWithFlatUser[]).filter(p => p.isActive !== false)
+  const rawParticipants = (conv.participants ?? []) as ParticipantWithFlatUser[]
 
-  const otherParticipant = isGroup ? undefined : activeParticipants.find(p => p.userId !== String(currentUserId))
+  // Backend soft-deletes removed members via isActive=false; filter them out
+  // for the active-only views (sidebar previews, "X members" counts, etc.).
+  const activeParticipants = rawParticipants.filter(p => p.isActive !== false)
+
+  // Self-chat detection — direct conversation where the only participant is
+  // the current user (WhatsApp's "Message yourself"). Without this, the
+  // peer lookup below would resolve to `undefined` → "Unknown user" + empty
+  // avatar. Falls back to the current user's own entry so the sidebar and
+  // header show their own name + avatar. This branch is the only behavior
+  // change in this function; non-self DMs and groups take the original
+  // paths unchanged.
+  const meIdStr = String(currentUserId ?? '')
+  const isSelfChat =
+    !isGroup &&
+    activeParticipants.length > 0 &&
+    activeParticipants.every(p => p.userId === meIdStr)
+
+  const otherParticipant = isGroup
+    ? undefined
+    : isSelfChat
+    ? activeParticipants[0]
+    : activeParticipants.find(p => p.userId !== meIdStr)
   const other = otherParticipant ? participantToUser(otherParticipant) : undefined
 
   const fullName = isGroup
     ? conv.name ?? 'Unnamed group'
+    : isSelfChat
+    ? `${other?.displayName || other?.username || 'You'} (You)`
     : other?.displayName || other?.username || other?.email || 'Unknown user'
 
   const avatar = isGroup ? conv.iconUrl ?? '' : other?.avatarUrl ?? ''
 
-  const lastMessage = conv.lastMessage ? sdkMessageToMessage(conv.lastMessage) : undefined
+  // Build lastMessage. Backfill `senderName` from the conversation's
+  // participants array when the server omits `sender.displayName` on the
+  // embedded message but we still have a `senderId` to look up.
+  //
+  // KNOWN BACKEND GAP: the `GET /conversations` list endpoint returns
+  // `lastMessage` with `senderId: ''` (empty string) and no `sender`
+  // object. We can't backfill without an id, so the sidebar's "Saket: …"
+  // prefix won't render on a cold hard-refresh. As soon as any new
+  // message arrives via the `new_message` socket event, `receiveMessage`
+  // stores the proper senderId/senderName and the prefix appears for
+  // that conv. File with chat-core team to include sender details on
+  // conversation-list responses for a full fix.
+  let lastMessage = conv.lastMessage ? sdkMessageToMessage(conv.lastMessage) : undefined
+  if (lastMessage && !lastMessage.senderName && lastMessage.senderId) {
+    const senderInList = rawParticipants.find(p => String(p.userId) === String(lastMessage!.senderId))
+    const resolvedName = senderInList?.displayName || senderInList?.username
+    if (resolvedName) {
+      lastMessage = { ...lastMessage, senderName: resolvedName }
+    }
+  }
+
+  // Full participants list (incl. isActive=false) so callers can distinguish
+  // "removed from group" from "never a member". DMs don't carry isActive
+  // semantics — both sides are always active.
+  const participants = rawParticipants.map(p => ({
+    userId: p.userId,
+    isActive: p.isActive !== false,
+    role: p.role ?? 'member'
+  }))
+
+  // Convenience flag for the composer / chat-actions gate. For DMs the user
+  // is always considered active. For groups, look up the current user in the
+  // unfiltered participants and read their isActive directly.
+  const meId = String(currentUserId ?? '')
+  const ownEntry = meId ? rawParticipants.find(p => p.userId === meId) : undefined
+  const isCurrentUserActive = isGroup ? ownEntry?.isActive !== false : true
 
   return {
     id: conv.id,
@@ -701,8 +793,19 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     description: conv.description,
     participantIds: activeParticipants.map(p => p.userId),
     adminIds: activeParticipants.filter(p => p.role === 'admin').map(p => p.userId),
+    participants,
+    isCurrentUserActive,
     isMuted: conv.isMuted ?? false,
     isPinned: conv.isPinned ?? false,
+    // Tenant-tunable message-mutation windows. Backend returns seconds;
+    // `undefined` lets the UI treat the action as always allowed (existing
+    // behavior). Consumed by MessageActions to gate Edit / Delete-for-
+    // everyone menu items once the window expires.
+    editWindowSeconds: conv.settings?.messageConfig?.editWindowSeconds,
+    deleteWindowSeconds: conv.settings?.messageConfig?.deleteWindowSeconds,
+    // Creator id — used by the sidebar to resolve the creator's display
+    // name from `state.chat.contacts` when no real lastMessage exists.
+    createdBy: conv.createdBy,
     chat: {
       id: conv.id,
       unseenMsgs: conv.unreadCount ?? 0,

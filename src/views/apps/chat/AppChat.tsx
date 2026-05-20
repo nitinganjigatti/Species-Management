@@ -16,6 +16,7 @@ import {
   selectChat,
   fetchUserProfile,
   fetchChatsContacts,
+  enrichLastMessageSenders,
   removeSelectedChat,
   receiveMessage,
   setUnreadCount,
@@ -24,6 +25,7 @@ import {
   applyMessageDelete,
   applyMessageDeleteForMe,
   applyMessagePin,
+  applyParticipantLeft,
   updateMessagesFeedback
 } from 'src/store/apps/chat'
 
@@ -173,10 +175,15 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     if (!chatClient) return
 
     // Fetch profile first so `fetchChatsContacts` can use its id to identify
-    // the "other" participant in direct conversations.
+    // the "other" participant in direct conversations. Once the list lands,
+    // kick off `enrichLastMessageSenders` to fetch full message details for
+    // each group's lastMessage (the conv-list endpoint omits sender info,
+    // so the sidebar's "Saket: …" prefix can't resolve without this
+    // per-message lookup). Fire-and-forget; failures are silent.
     const run = async () => {
       await dispatch(fetchUserProfile({ fallbackAvatarUrl }))
-      dispatch(fetchChatsContacts())
+      await dispatch(fetchChatsContacts())
+      dispatch(enrichLastMessageSenders())
     }
     run()
   }, [chatClient, dispatch, fallbackAvatarUrl])
@@ -265,6 +272,21 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         console.warn('[chat] new_message — could not extract message from event:', evt)
 
         return
+      }
+
+      // TEMP DIAG — when investigating whether the backend emits a system
+      // message on group-icon change, this surfaces only system-typed
+      // messages so the console isn't drowned by regular chat traffic.
+      // Filter by `[chat:system]`. Remove once verified.
+      if (raw.content?.type === 'system') {
+        // eslint-disable-next-line no-console
+        console.log('[chat:system] new system message', {
+          messageId: raw.id,
+          conversationId: raw.conversationId,
+          text: raw.content?.text,
+          metadata: raw.content,
+          full: raw
+        })
       }
 
       // Determine if this is our own message by comparing senderId with our
@@ -441,6 +463,22 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       dispatch(applyMessagePin({ messageId, isPinned }))
     }
 
+    // Participant left or was removed from a group — fires for ALL members
+    // of the conversation (including the leaver). Payload:
+    //   { conversationId, userId, displayName, removedBy? }
+    // When `userId === currentUser`, the reducer flips
+    // `isCurrentUserActive=false`, which the composer + interaction gates
+    // (`canInteract` in ChatContent, `isCurrentUserActive` in
+    // UserProfileRight) react to immediately — no refresh required.
+    // For other participants, their entry's `isActive` flips to false so
+    // member counts and avatars update too.
+    const onParticipantLeft = (evt: any) => {
+      const conversationId = evt?.conversationId
+      const userId = evt?.userId
+      if (!conversationId || !userId) return
+      dispatch(applyParticipantLeft({ chatId: conversationId, userId }))
+    }
+
     // TEMPORARY: log every server event before our specific handlers run, so
     // we can verify event-name matches. Remove once read-receipt flow is
     // verified end-to-end on staging.
@@ -465,6 +503,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     chatSocket.on('message_deleted', onMessageDeleted)
     chatSocket.on('message_deleted_for_me', onMessageDeletedForMe)
     chatSocket.on('message_pin_updated', onMessagePinUpdated)
+    chatSocket.on('participant_left', onParticipantLeft)
     chatSocket.on('typing_indicator', handleTypingEvent)
 
     return () => {
@@ -482,6 +521,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       chatSocket.off('message_deleted', onMessageDeleted)
       chatSocket.off('message_deleted_for_me', onMessageDeletedForMe)
       chatSocket.off('message_pin_updated', onMessagePinUpdated)
+      chatSocket.off('participant_left', onParticipantLeft)
       chatSocket.off('typing_indicator', handleTypingEvent)
     }
   }, [chatSocket, chatConnected, chatError, chatClient, dispatch])

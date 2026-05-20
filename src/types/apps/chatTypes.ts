@@ -79,6 +79,14 @@ export type MessageType = {
   time: string | Date
   message: string
   senderId: ChatEntityId
+  /**
+   * Sender's display name snapshotted from the SDK message's `sender.displayName`
+   * when available. Used by the sidebar to render the WhatsApp-style
+   * "Saket: hello" prefix without depending on the global contacts cache
+   * (which can lose entries when a member leaves the group). Falls back to
+   * the contacts lookup, then to no prefix.
+   */
+  senderName?: string
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
   contentType?: 'text' | 'attachment' | 'system'
@@ -136,16 +144,58 @@ export type ChatsArrType = {
   participantIds?: ChatEntityId[]
   /** Subset of participantIds that have the `admin` role server-side. */
   adminIds?: ChatEntityId[]
+  /**
+   * Raw participants array including soft-deleted (isActive=false) members.
+   * Use this when callers need to distinguish "still in the group" from
+   * "left/removed" for the current user — `participantIds` strips inactive
+   * entries by design.
+   */
+  participants?: Array<{ userId: string; isActive: boolean; role: string }>
+  /**
+   * Convenience flag: true if the current user has an active participant
+   * entry on the conversation. False for groups they've been removed from
+   * (or have left). Always true for DMs. Populated by the adapter from the
+   * `participants` array above.
+   */
+  isCurrentUserActive?: boolean
   /** Mirrors `Conversation.isMuted` from the SDK. */
   isMuted?: boolean
   /** Mirrors `Conversation.isPinned` from the SDK. */
   isPinned?: boolean
+  /**
+   * Time windows (seconds since send) during which the sender can edit or
+   * delete-for-everyone their own messages. Sourced from
+   * `Conversation.settings.messageConfig`. Tenant-tunable on the backend.
+   * Undefined → no restriction (caller falls back to "always allowed").
+   */
+  editWindowSeconds?: number
+  deleteWindowSeconds?: number
+  /**
+   * Creator of the conversation. Mirrors `Conversation.createdBy` from the
+   * SDK. Used by the sidebar to render a "X created group Y" preview when
+   * the server doesn't surface `lastMessage` for a freshly-created group.
+   */
+  createdBy?: ChatEntityId
 }
 
 export interface CreateGroupPayload {
   name: string
   description?: string
+  /**
+   * Local preview URL — UI-only, NOT sent to the server. SDK 1.0.6
+   * dropped `icon` from CreateGroupData; the icon now uploads in a
+   * separate step AFTER the group is created.
+   */
   icon?: string
+  /**
+   * SDK `UploadableFile` shape captured by the CreateGroupDrawer when the
+   * user picks an avatar. Used by `createGroupChat` to call
+   * `client.uploadIcon(groupId, iconFile)` ONLY after `createGroupConversation`
+   * has returned a real id — guarantees the icon attaches to the new
+   * group, not a half-created one. Mirrors the existing edit-group-icon
+   * flow in UserProfileRight.
+   */
+  iconFile?: { uri: string; name: string; type: string; size: number }
   participantIds: ChatEntityId[]
 }
 
@@ -288,4 +338,8 @@ export type ChatLogType = {
   // and we need to reload a context slice around that message. ChatContent
   // wires this to the `jumpToMessage` thunk.
   onJumpToMessage?: (messageId: string) => void
+  // When false, per-message actions (Reply / Star / Copy / Delete) and
+  // reaction toggles are suppressed. Set by ChatContent when the current
+  // user has been removed from / has left a group. Defaults to true.
+  canInteract?: boolean
 }

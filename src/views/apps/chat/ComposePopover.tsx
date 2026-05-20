@@ -85,17 +85,20 @@ const ComposePopover = ({
     }
 
     setSearching(true)
-    const t = setTimeout(async () => {
-      try {
-        const users = await searchUsers(q)
-        setSearchResults(users.map(sdkUserToContact))
-      } catch (err) {
-        console.error('[chat] searchUsers failed:', err)
-        setSearchResults([])
-      } finally {
-        setSearching(false)
-      }
-    }, q.length ? 300 : 0)
+    const t = setTimeout(
+      async () => {
+        try {
+          const users = await searchUsers(q)
+          setSearchResults(users.map(sdkUserToContact))
+        } catch (err) {
+          console.error('[chat] searchUsers failed:', err)
+          setSearchResults([])
+        } finally {
+          setSearching(false)
+        }
+      },
+      q.length ? 300 : 0
+    )
 
     return () => clearTimeout(t)
   }, [open, query, contacts])
@@ -131,7 +134,7 @@ const ComposePopover = ({
             maxHeight: 600,
             display: 'flex',
             flexDirection: 'column',
-            borderRadius: 2,
+            borderRadius: 1,
             boxShadow: theme => `0 12px 32px -8px ${theme.palette.primary.main}26, 0 4px 16px -2px rgba(0,0,0,0.10)`,
             overflow: 'hidden'
           }
@@ -180,7 +183,7 @@ const ComposePopover = ({
         sx={{
           mx: 3,
           mb: 2,
-          borderRadius: 2,
+          borderRadius: 1,
           backgroundColor: 'primary.main',
           color: 'common.white',
           '&:hover': { backgroundColor: 'primary.dark' }

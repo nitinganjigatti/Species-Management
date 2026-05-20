@@ -1,23 +1,20 @@
 'use client'
 
 // ** React Imports
-import {
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useCallback,
-  useState,
-  Ref,
-  ReactNode,
-  MouseEvent,
-  UIEvent
-} from 'react'
+import { useRef, useEffect, useLayoutEffect, useCallback, useState, Ref, MouseEvent, UIEvent } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
+
+// ** Redux — for resolving sender identities in group chats. `data.contact`
+// is the GROUP (name + icon), so non-sender bubbles need a per-message
+// lookup of who actually sent each message. We use the deduped contacts
+// list populated by `fetchChatsContacts` / `extractContactsFromConversations`.
+import { useSelector } from 'react-redux'
+import type { RootState } from 'src/store'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -29,6 +26,7 @@ import PerfectScrollbarComponent, { ScrollBarProps } from 'react-perfect-scrollb
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import MessageBubble from 'src/views/apps/chat/MessageBubble'
 import MessageActions from 'src/views/apps/chat/MessageActions'
+import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
 
 // ** Types
@@ -89,8 +87,24 @@ const ChatLog = (props: ChatLogType) => {
     searchResultIds = [],
     activeMatchIndex = 0,
     onLoadOlder,
-    onJumpToMessage
+    onJumpToMessage,
+    canInteract = true
   } = props
+
+  // Sender-resolution map for group chats. The avatar + name shown next to
+  // each incoming bubble must reflect the MESSAGE'S SENDER (not the group),
+  // so we look up `item.senderId` in the deduped contacts list. Falls back
+  // to data.contact / 'Unknown' if the participant isn't in the cache
+  // (e.g., they've been removed from the group and aren't in the active
+  // conversation list anymore).
+  const isGroupChat = data.contact.isGroup === true
+  const contactsList = useSelector((s: RootState) => s.chat?.contacts) ?? []
+  const senderById = (() => {
+    const m = new Map<string, (typeof contactsList)[number]>()
+    contactsList.forEach(c => m.set(String(c.id), c))
+
+    return m
+  })()
 
   // ** Ref
   const chatArea = useRef(null)
@@ -260,9 +274,22 @@ const ChatLog = (props: ChatLogType) => {
 
   // In-page preview state for image / video / pdf / other attachments.
   // Clicking an attachment opens the dialog; close button or backdrop closes.
-  const [previewAttachment, setPreviewAttachment] = useState<ChatAttachmentType | null>(null)
-  const openPreview = (att: ChatAttachmentType) => setPreviewAttachment(att)
-  const closePreview = () => setPreviewAttachment(null)
+  // When `list` is provided, prev/next carousel is enabled in the dialog.
+  const [previewState, setPreviewState] = useState<{
+    attachment: ChatAttachmentType
+    list?: ChatAttachmentType[]
+    index: number
+  } | null>(null)
+  const openPreview = (att: ChatAttachmentType, list?: ChatAttachmentType[]) => {
+    const idx = list
+      ? Math.max(
+          0,
+          list.findIndex(a => a.id === att.id)
+        )
+      : 0
+    setPreviewState({ attachment: att, list, index: idx })
+  }
+  const closePreview = () => setPreviewState(null)
 
   // ** Scroll to chat bottom — runs multiple passes so late-loading content
   // (images, embeds) doesn't leave us stuck mid-list. PerfectScrollbar's inner
@@ -496,6 +523,19 @@ const ChatLog = (props: ChatLogType) => {
 
       const isSender = item.senderId === data.userContact.id
 
+      // For group incoming messages, resolve the actual sender (their name +
+      // avatar) instead of falling back to the group's icon/name. DM incoming
+      // messages keep using `data.contact` since it IS the peer. Outgoing
+      // messages always show the current user.
+      const senderContact = !isSender && isGroupChat ? senderById.get(String(item.senderId)) : undefined
+      const avatarSrc = isSender
+        ? data.userContact.avatar
+        : senderContact?.avatar ?? (isGroupChat ? undefined : data.contact.avatar)
+      const avatarName = isSender
+        ? data.userContact.fullName ?? 'Me'
+        : senderContact?.fullName ?? (isGroupChat ? 'Unknown' : data.contact.fullName)
+      const avatarColor = isSender ? 'primary' : senderContact?.avatarColor ?? data.contact.avatarColor ?? 'primary'
+
       return (
         <Box
           key={index}
@@ -508,7 +548,7 @@ const ChatLog = (props: ChatLogType) => {
           <div>
             <CustomAvatar
               skin='light'
-              color={(isSender ? undefined : data.contact.avatarColor) ?? 'primary'}
+              color={avatarColor}
               sx={{
                 width: '2rem',
                 height: '2rem',
@@ -516,19 +556,32 @@ const ChatLog = (props: ChatLogType) => {
                 ml: isSender ? 4 : undefined,
                 mr: !isSender ? 4 : undefined
               }}
-              {...(isSender
-                ? data.userContact.avatar
-                  ? { src: data.userContact.avatar, alt: data.userContact.fullName }
-                  : {}
-                : data.contact.avatar
-                ? { src: data.contact.avatar, alt: data.contact.fullName }
-                : {})}
+              {...(avatarSrc ? { src: avatarSrc, alt: avatarName } : {})}
             >
-              {getInitials(isSender ? data.userContact.fullName ?? 'Me' : data.contact.fullName)}
+              {getInitials(avatarName)}
             </CustomAvatar>
           </div>
 
           <Box className='chat-body' sx={{ maxWidth: ['calc(100% - 5.75rem)', '75%', '65%'] }}>
+            {/* Sender name label above the first bubble in a group's run of
+                messages. Only for incoming messages in a group — DMs and
+                outgoing messages don't need it (avatar already identifies
+                the sender). */}
+            {!isSender && isGroupChat ? (
+              <Typography
+                variant='caption'
+                sx={{
+                  display: 'block',
+                  mb: 0.5,
+                  ml: 0.5,
+                  fontWeight: 600,
+                  color: theme =>
+                    theme.palette[(avatarColor as 'primary') ?? 'primary']?.main ?? theme.palette.primary.main
+                }}
+              >
+                {avatarName}
+              </Typography>
+            ) : null}
             {item.messages.map((chat: ChatLogChatType, index: number, { length }: { length: number }) => {
               const time = new Date(chat.time)
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false
@@ -560,33 +613,341 @@ const ChatLog = (props: ChatLogType) => {
                         sx={{
                           display: 'flex',
                           flexDirection: isSender ? 'row-reverse' : 'row',
-                          alignItems: 'flex-start',
+                          alignItems: 'center',
                           gap: 1,
+                          // Reveal chevron (inside attachment bubble) + emoji
+                          // picker (outside attachment column) on hover.
                           '&:hover .msg-actions': {
                             opacity: '1 !important',
                             pointerEvents: 'auto !important'
                           }
                         }}
                       >
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxWidth: '100%' }}>
-                          {chat.attachments.map(att => (
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1,
+                            maxWidth: '280px'
+                          }}
+                        >
+                          {/* Chevron lives INSIDE the attachment column,
+                              absolutely positioned at the top-right — matches
+                              the WhatsApp-Web pattern used for text bubbles. */}
+                          {canInteract ? (
                             <Box
-                              key={att.id}
                               sx={{
+                                position: 'absolute',
+                                top: 4,
+                                right: 4,
+                                zIndex: 2
+                              }}
+                            >
+                              <MessageActions
+                                chat={chat}
+                                isSender={isSender}
+                                senderName={isSender ? data.userContact.fullName : data.contact.fullName}
+                                senderId={item.senderId}
+                                canPin={(() => {
+                                  const isGroup = data.contact.isGroup === true
+                                  if (!isGroup) return true
+                                  const me = String(data.userContact.id ?? '')
+                                  const admins = data.contact.adminIds?.map(String) ?? []
+
+                                  return admins.includes(me)
+                                })()}
+                                showEdit={false}
+                                showCopyText={false}
+                              />
+                            </Box>
+                          ) : null}
+                          {(() => {
+                            const images = chat.attachments.filter(a => a.type === 'image')
+                            const others = chat.attachments.filter(a => a.type !== 'image')
+                            const imgCount = images.length
+                            const bubbleCorners = {
+                              borderTopLeftRadius: !isSender ? 0 : undefined,
+                              borderTopRightRadius: isSender ? 0 : undefined
+                            }
+
+                            const imgCell = (att: any, cellH: number, extraCount = 0) => (
+                              <Box
+                                sx={{
+                                  position: 'relative',
+                                  overflow: 'hidden',
+                                  cursor: 'zoom-in',
+                                  lineHeight: 0,
+                                  width: '100%',
+                                  height: cellH
+                                }}
+                                onClick={() => openPreview(att, images)}
+                                onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                              >
+                                <Box
+                                  component='img'
+                                  src={att.thumbnailUrl ?? att.url}
+                                  alt={att.filename}
+                                  loading='lazy'
+                                  draggable={false}
+                                  sx={{
+                                    width: '100%',
+                                    height: cellH,
+                                    display: 'block',
+                                    objectFit: 'cover',
+                                    userSelect: 'none'
+                                  }}
+                                />
+                                {extraCount > 0 && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      inset: 0,
+                                      backgroundColor: 'rgba(0,0,0,0.55)',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                  >
+                                    <Typography sx={{ color: 'common.white', fontWeight: 700, fontSize: '1.375rem' }}>
+                                      +{extraCount}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Box>
+                            )
+
+                            const renderImages = () => {
+                              if (imgCount === 0) return null
+                              if (imgCount <= 2) {
+                                return images.map((att, i) => (
+                                  <Box
+                                    key={att.id}
+                                    sx={{
+                                      boxShadow: 1,
+                                      borderRadius: 1,
+                                      overflow: 'hidden',
+                                      ...(i === 0 ? bubbleCorners : {}),
+                                      cursor: 'zoom-in',
+                                      lineHeight: 0
+                                    }}
+                                    onClick={() => openPreview(att)}
+                                    onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                  >
+                                    <Box
+                                      component='img'
+                                      src={att.thumbnailUrl ?? att.url}
+                                      alt={att.filename}
+                                      loading='lazy'
+                                      draggable={false}
+                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', userSelect: 'none' }}
+                                    />
+                                  </Box>
+                                ))
+                              }
+                              const MAX_SHOW = 4
+                              const visible = images.slice(0, MAX_SHOW)
+                              const extra = imgCount > MAX_SHOW ? imgCount - MAX_SHOW : 0
+                              const gridSx = {
                                 boxShadow: 1,
                                 borderRadius: 1,
                                 overflow: 'hidden',
-                                borderTopLeftRadius: !isSender ? 0 : undefined,
-                                borderTopRightRadius: isSender ? 0 : undefined,
-                                backgroundColor: isSender ? 'primary.main' : 'background.paper',
-                                color: isSender ? 'common.white' : 'text.primary'
+                                ...bubbleCorners,
+                                width: '100%',
+                                maxWidth: '280px'
+                              }
+                              if (imgCount === 3) {
+                                return (
+                                  <Box sx={{ ...gridSx, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    {imgCell(visible[0], 150)}
+                                    <Box sx={{ display: 'flex', gap: '2px' }}>
+                                      <Box sx={{ flex: 1 }}>{imgCell(visible[1], 130)}</Box>
+                                      <Box sx={{ flex: 1 }}>{imgCell(visible[2], 130)}</Box>
+                                    </Box>
+                                  </Box>
+                                )
+                              }
+                              return (
+                                <Box sx={{ ...gridSx, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
+                                  {visible.map((att, idx) => (
+                                    <Box key={att.id}>
+                                      {imgCell(att, 138, idx === MAX_SHOW - 1 && extra > 0 ? extra : 0)}
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )
+                            }
+
+                            return (
+                              <>
+                                {renderImages()}
+                                {others.map(att => (
+                                  <Box
+                                    key={att.id}
+                                    sx={{
+                                      boxShadow: 1,
+                                      borderRadius: 1,
+                                      overflow: 'hidden',
+                                      borderTopLeftRadius: !isSender && imgCount === 0 ? 0 : undefined,
+                                      borderTopRightRadius: isSender && imgCount === 0 ? 0 : undefined,
+                                      backgroundColor: isSender ? 'primary.main' : 'background.paper',
+                                      color: isSender ? 'common.white' : 'text.primary',
+                                      alignSelf:
+                                        att.type === 'audio' || att.type === 'video'
+                                          ? isSender
+                                            ? 'flex-end'
+                                            : 'flex-start'
+                                          : undefined
+                                    }}
+                                  >
+                                    {att.type === 'video' ? (
+                                      <Box
+                                        component='video'
+                                        src={att.url}
+                                        controls
+                                        controlsList='nodownload noplaybackrate'
+                                        onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                        sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
+                                        onClick={() => openPreview(att)}
+                                      />
+                                    ) : att.type === 'audio' ? (
+                                      <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
+                                        <Box
+                                          component='audio'
+                                          src={att.url}
+                                          controls
+                                          controlsList='nodownload noplaybackrate'
+                                          onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                          sx={{
+                                            display: 'block',
+                                            width: '100%',
+                                            borderRadius: 1,
+                                            bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
+                                          }}
+                                        />
+                                      </Box>
+                                    ) : (
+                                      (() => {
+                                        const visual = getAttachmentVisual(att.mimeType, att.filename)
+                                        return (
+                                          <Box
+                                            onClick={() => openPreview(att)}
+                                            sx={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 2,
+                                              p: theme => theme.spacing(3, 4),
+                                              color: 'inherit',
+                                              cursor: 'pointer'
+                                            }}
+                                          >
+                                            <Icon
+                                              icon={visual.icon}
+                                              color={isSender ? '#ffffff' : visual.color}
+                                              fontSize='2rem'
+                                            />
+                                            <Box sx={{ minWidth: 0 }}>
+                                              <Typography
+                                                variant='caption'
+                                                sx={{ display: 'block', color: 'inherit' }}
+                                                noWrap
+                                              >
+                                                {att.filename}
+                                              </Typography>
+                                              <Typography
+                                                variant='caption'
+                                                sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
+                                              >
+                                                {(att.size / 1024).toFixed(0)} KB
+                                              </Typography>
+                                            </Box>
+                                          </Box>
+                                        )
+                                      })()
+                                    )}
+                                  </Box>
+                                ))}
+                              </>
+                            )
+                          })()}
+                        </Box>
+                        {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
+                      </Box>
+                    ) : null}
+                    {/* Mixed (attachments + text) and text-only paths: existing inline
+                        attachments map below + MessageBubble. Skipped when attachment-only. */}
+                    {chat.attachments?.length && (chat.msg || chat.isDeletedForEveryone)
+                      ? (() => {
+                          const images = chat.attachments.filter(a => a.type === 'image')
+                          const others = chat.attachments.filter(a => a.type !== 'image')
+                          const imgCount = images.length
+                          const bubbleCorners = {
+                            borderTopLeftRadius: !isSender ? 0 : undefined,
+                            borderTopRightRadius: isSender ? 0 : undefined
+                          }
+
+                          const imgCell = (att: any, cellH: number, extraCount = 0) => (
+                            <Box
+                              sx={{
+                                position: 'relative',
+                                overflow: 'hidden',
+                                cursor: 'zoom-in',
+                                lineHeight: 0,
+                                width: '100%',
+                                height: cellH
                               }}
+                              onClick={() => openPreview(att, images)}
+                              onContextMenu={(e: MouseEvent) => e.preventDefault()}
                             >
-                              {att.type === 'image' ? (
+                              <Box
+                                component='img'
+                                src={att.thumbnailUrl ?? att.url}
+                                alt={att.filename}
+                                loading='lazy'
+                                draggable={false}
+                                sx={{
+                                  width: '100%',
+                                  height: cellH,
+                                  display: 'block',
+                                  objectFit: 'cover',
+                                  userSelect: 'none'
+                                }}
+                              />
+                              {extraCount > 0 && (
                                 <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    backgroundColor: 'rgba(0,0,0,0.55)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                  }}
+                                >
+                                  <Typography sx={{ color: 'common.white', fontWeight: 700, fontSize: '1.375rem' }}>
+                                    +{extraCount}
+                                  </Typography>
+                                </Box>
+                              )}
+                            </Box>
+                          )
+
+                          const renderImages = () => {
+                            if (imgCount === 0) return null
+                            if (imgCount <= 2) {
+                              return images.map((att, i) => (
+                                <Box
+                                  key={att.id}
+                                  sx={{
+                                    boxShadow: 1,
+                                    borderRadius: 1,
+                                    overflow: 'hidden',
+                                    ...(i === 0 ? bubbleCorners : {}),
+                                    cursor: 'zoom-in',
+                                    lineHeight: 0
+                                  }}
                                   onClick={() => openPreview(att)}
                                   onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                  sx={{ display: 'block', lineHeight: 0, cursor: 'zoom-in' }}
                                 >
                                   <Box
                                     component='img'
@@ -594,203 +955,140 @@ const ChatLog = (props: ChatLogType) => {
                                     alt={att.filename}
                                     loading='lazy'
                                     draggable={false}
-                                    sx={{ maxWidth: 280, maxHeight: 280, display: 'block', userSelect: 'none' }}
+                                    sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', userSelect: 'none' }}
                                   />
                                 </Box>
-                              ) : att.type === 'video' ? (
-                                <Box
-                                  component='video'
-                                  src={att.url}
-                                  controls
-                                  controlsList='nodownload noplaybackrate'
-                                  onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                  sx={{ maxWidth: 280, maxHeight: 280, display: 'block', cursor: 'pointer' }}
-                                  onClick={() => openPreview(att)}
-                                />
-                              ) : att.type === 'audio' ? (
-                                <Box sx={{ p: 2, minWidth: 300 }}>
-                                  <Box
-                                    component='audio'
-                                    src={att.url}
-                                    controls
-                                    controlsList='nodownload noplaybackrate'
-                                    onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                    sx={{
-                                      display: 'block',
-                                      width: 280,
-                                      maxWidth: '100%',
-                                      borderRadius: 1,
-                                      bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
-                                    }}
-                                  />
-                                </Box>
-                              ) : (
-                                (() => {
-                                  const visual = getAttachmentVisual(att.mimeType, att.filename)
-
-                                  return (
-                                    <Box
-                                      onClick={() => openPreview(att)}
-                                      sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        gap: 2,
-                                        p: theme => theme.spacing(3, 4),
-                                        color: 'inherit',
-                                        textDecoration: 'none',
-                                        cursor: 'pointer'
-                                      }}
-                                    >
-                                      <Icon
-                                        icon={visual.icon}
-                                        color={isSender ? '#ffffff' : visual.color}
-                                        fontSize='2rem'
-                                      />
-                                      <Box sx={{ minWidth: 0 }}>
-                                        <Typography variant='caption' sx={{ color: 'inherit' }} noWrap>
-                                          {att.filename}
-                                        </Typography>
-                                        <Typography variant='caption' sx={{ color: 'inherit', opacity: 0.8 }}>
-                                          {(att.size / 1024).toFixed(0)} KB
-                                        </Typography>
-                                      </Box>
-                                    </Box>
-                                  )
-                                })()
-                              )}
-                            </Box>
-                          ))}
-                        </Box>
-                        <MessageActions
-                          chat={chat}
-                          isSender={isSender}
-                          senderName={isSender ? data.userContact.fullName : data.contact.fullName}
-                          senderId={item.senderId}
-                          canPin={(() => {
-                            const isGroup = data.contact.isGroup === true
-                            if (!isGroup) return true
-                            const me = String(data.userContact.id ?? '')
-                            const admins = data.contact.adminIds?.map(String) ?? []
-
-                            return admins.includes(me)
-                          })()}
-                          showEdit={false}
-                          showCopyText={false}
-                        />
-                      </Box>
-                    ) : null}
-                    {/* Mixed (attachments + text) and text-only paths: existing inline
-                        attachments map below + MessageBubble. Skipped when attachment-only. */}
-                    {chat.attachments?.length && (chat.msg || chat.isDeletedForEveryone)
-                      ? chat.attachments.map(att => (
-                          <Box
-                            key={att.id}
-                            sx={{
+                              ))
+                            }
+                            const MAX_SHOW = 4
+                            const visible = images.slice(0, MAX_SHOW)
+                            const extra = imgCount > MAX_SHOW ? imgCount - MAX_SHOW : 0
+                            const gridSx = {
                               boxShadow: 1,
                               borderRadius: 1,
                               overflow: 'hidden',
-                              borderTopLeftRadius: !isSender ? 0 : undefined,
-                              borderTopRightRadius: isSender ? 0 : undefined,
-                              backgroundColor: isSender ? 'primary.main' : 'background.paper',
-                              color: isSender ? 'common.white' : 'text.primary'
-                            }}
-                          >
-                            {/* TEMP DIAG — remove once audio render is verified. Logs every
-                            attachment so we can see the actual type/url/mimeType the server
-                            returned. Filter console by `[chat:att]`. */}
-                            {(() => {
-                              console.log('[chat:att]', {
-                                id: att.id,
-                                type: att.type,
-                                mimeType: att.mimeType,
-                                url: att.url,
-                                filename: att.filename,
-                                size: att.size
-                              })
-
-                              return null
-                            })()}
-                            {att.type === 'image' ? (
-                              <Box
-                                component='a'
-                                href={att.url}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                                sx={{ display: 'block', lineHeight: 0 }}
-                              >
-                                <Box
-                                  component='img'
-                                  src={att.thumbnailUrl ?? att.url}
-                                  alt={att.filename}
-                                  loading='lazy'
-                                  sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
-                                />
-                              </Box>
-                            ) : att.type === 'video' ? (
-                              <Box
-                                component='video'
-                                src={att.url}
-                                controls
-                                sx={{ maxWidth: 280, maxHeight: 280, display: 'block' }}
-                              />
-                            ) : att.type === 'audio' ? (
-                              <Box sx={{ p: 2, minWidth: 300 }}>
-                                <Box
-                                  component='audio'
-                                  src={att.url}
-                                  controls
-                                  controlsList='nodownload noplaybackrate'
-                                  onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                  sx={{
-                                    display: 'block',
-                                    width: 280,
-                                    maxWidth: '100%',
-                                    // Light tint on green sender bubbles so the
-                                    // browser's default-dark audio controls read.
-                                    borderRadius: 1,
-                                    bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
-                                  }}
-                                />
-                              </Box>
-                            ) : (
-                              (() => {
-                                const visual = getAttachmentVisual(att.mimeType, att.filename)
-
-                                return (
-                                  <Box
-                                    component='a'
-                                    href={att.url}
-                                    target='_blank'
-                                    rel='noopener noreferrer'
-                                    download={att.filename}
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 2,
-                                      p: theme => theme.spacing(3, 4),
-                                      color: 'inherit',
-                                      textDecoration: 'none'
-                                    }}
-                                  >
-                                    <Icon
-                                      icon={visual.icon}
-                                      color={isSender ? '#ffffff' : visual.color}
-                                      fontSize='2rem'
-                                    />
-                                    <Box sx={{ minWidth: 0 }}>
-                                      <Typography variant='caption' sx={{ display: 'block', color: 'inherit' }} noWrap>
-                                        {att.filename}
-                                      </Typography>
-                                      <Typography variant='caption' sx={{ color: 'inherit', opacity: 0.8 }}>
-                                        {(att.size / 1024).toFixed(0)} KB
-                                      </Typography>
-                                    </Box>
+                              ...bubbleCorners,
+                              width: '100%',
+                              maxWidth: '280px'
+                            }
+                            if (imgCount === 3) {
+                              return (
+                                <Box sx={{ ...gridSx, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                  {imgCell(visible[0], 150)}
+                                  <Box sx={{ display: 'flex', gap: '2px' }}>
+                                    <Box sx={{ flex: 1 }}>{imgCell(visible[1], 130)}</Box>
+                                    <Box sx={{ flex: 1 }}>{imgCell(visible[2], 130)}</Box>
                                   </Box>
-                                )
-                              })()
-                            )}
-                          </Box>
-                        ))
+                                </Box>
+                              )
+                            }
+                            return (
+                              <Box sx={{ ...gridSx, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2px' }}>
+                                {visible.map((att, idx) => (
+                                  <Box key={att.id}>
+                                    {imgCell(att, 138, idx === MAX_SHOW - 1 && extra > 0 ? extra : 0)}
+                                  </Box>
+                                ))}
+                              </Box>
+                            )
+                          }
+
+                          return (
+                            <>
+                              {renderImages()}
+                              {others.map(att => (
+                                <Box
+                                  key={att.id}
+                                  sx={{
+                                    boxShadow: 1,
+                                    borderRadius: 1,
+                                    overflow: 'hidden',
+                                    borderTopLeftRadius: !isSender && imgCount === 0 ? 0 : undefined,
+                                    borderTopRightRadius: isSender && imgCount === 0 ? 0 : undefined,
+                                    backgroundColor: isSender ? 'primary.main' : 'background.paper',
+                                    color: isSender ? 'common.white' : 'text.primary',
+                                    alignSelf:
+                                      att.type === 'audio' || att.type === 'video'
+                                        ? isSender
+                                          ? 'flex-end'
+                                          : 'flex-start'
+                                        : undefined
+                                  }}
+                                >
+                                  {att.type === 'video' ? (
+                                    <Box
+                                      component='video'
+                                      src={att.url}
+                                      controls
+                                      controlsList='nodownload noplaybackrate'
+                                      onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
+                                      onClick={() => openPreview(att)}
+                                    />
+                                  ) : att.type === 'audio' ? (
+                                    <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
+                                      <Box
+                                        component='audio'
+                                        src={att.url}
+                                        controls
+                                        controlsList='nodownload noplaybackrate'
+                                        onContextMenu={(e: MouseEvent) => e.preventDefault()}
+                                        sx={{
+                                          display: 'block',
+                                          width: '100%',
+                                          borderRadius: 1,
+                                          bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
+                                        }}
+                                      />
+                                    </Box>
+                                  ) : (
+                                    (() => {
+                                      const visual = getAttachmentVisual(att.mimeType, att.filename)
+                                      return (
+                                        <Box
+                                          component='a'
+                                          href={att.url}
+                                          target='_blank'
+                                          rel='noopener noreferrer'
+                                          download={att.filename}
+                                          sx={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 2,
+                                            p: theme => theme.spacing(3, 4),
+                                            color: 'inherit',
+                                            textDecoration: 'none'
+                                          }}
+                                        >
+                                          <Icon
+                                            icon={visual.icon}
+                                            color={isSender ? '#ffffff' : visual.color}
+                                            fontSize='2rem'
+                                          />
+                                          <Box sx={{ minWidth: 0 }}>
+                                            <Typography
+                                              variant='caption'
+                                              sx={{ display: 'block', color: 'inherit' }}
+                                              noWrap
+                                            >
+                                              {att.filename}
+                                            </Typography>
+                                            <Typography
+                                              variant='caption'
+                                              sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
+                                            >
+                                              {(att.size / 1024).toFixed(0)} KB
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      )
+                                    })()
+                                  )}
+                                </Box>
+                              ))}
+                            </>
+                          )
+                        })()
                       : null}
                     {chat.msg || chat.isDeletedForEveryone ? (
                       <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
@@ -812,6 +1110,7 @@ const ChatLog = (props: ChatLogType) => {
                           isSearchMatch={isMatch}
                           isActiveSearchMatch={isActiveMatch}
                           searchQuery={searchQuery}
+                          canInteract={canInteract}
                         />
                       </Box>
                     ) : null}
@@ -874,39 +1173,35 @@ const ChatLog = (props: ChatLogType) => {
     </Box>
   )
 
-  const ScrollWrapper = ({ children }: { children: ReactNode }) => {
-    if (hidden) {
-      return (
+  // NOTE: do NOT extract this into a `ScrollWrapper` component defined inside
+  // ChatLog — React would treat that as a brand-new component type on every
+  // ChatLog render and unmount/remount PerfectScrollbar (and the entire
+  // message subtree) every time. That remount resets scrollTop to 0 and
+  // causes a visible flash-to-top on send / receipt updates. Keeping the
+  // conditional inline means React sees the same `<PerfectScrollbar />`
+  // element across renders and reuses the instance.
+  return (
+    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
+      {hidden ? (
         <Box
           ref={chatArea}
           onScroll={handleNativeScroll}
           sx={{ p: 5, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}
         >
-          {children}
+          {topStatus}
+          {renderChats()}
         </Box>
-      )
-    } else {
-      return (
-        <PerfectScrollbar
-          ref={chatArea}
-          options={{ wheelPropagation: false }}
-          onYReachStart={triggerLoadOlder}
-        >
-          {children}
+      ) : (
+        <PerfectScrollbar ref={chatArea} options={{ wheelPropagation: false }} onYReachStart={triggerLoadOlder}>
+          {topStatus}
+          {renderChats()}
         </PerfectScrollbar>
-      )
-    }
-  }
-
-  return (
-    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
-      <ScrollWrapper>
-        {topStatus}
-        {renderChats()}
-      </ScrollWrapper>
+      )}
       <AttachmentPreviewDialog
-        attachment={previewAttachment}
-        open={previewAttachment !== null}
+        attachment={previewState?.attachment ?? null}
+        attachments={previewState?.list}
+        initialIndex={previewState?.index ?? 0}
+        open={previewState !== null}
         onClose={closePreview}
       />
     </Box>

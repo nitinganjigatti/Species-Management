@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, ReactNode } from 'react'
+import { ReactNode } from 'react'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -11,14 +11,20 @@ import Chip from '@mui/material/Chip'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'src/store'
 
-// ** SDK
-import { addReactionOverSocket, removeReactionOverSocket } from 'src/lib/chat/api'
+// ** SDK — only `add_reaction` is acked by the chat backend; a re-emit
+// with the same emoji is treated as a toggle (server removes if the user
+// already reacted). Both add and remove use this one call; state for both
+// sides lands via the `reaction_updated` broadcast.
+import { addReactionOverSocket } from 'src/lib/chat/api'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-// ** Per-message interaction surface (3-dot menu, picker, dialog).
+// ** Per-message interaction surfaces.
+// MessageActions = chevron menu inside the bubble (top-right).
+// MessageReactionPicker = 😀 trigger outside the bubble (vertically centered).
 import MessageActions from 'src/views/apps/chat/MessageActions'
+import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 
 // ** Types
 import type { ChatLogChatType } from 'src/types/apps/chatTypes'
@@ -32,6 +38,13 @@ interface MessageBubbleProps {
   isSearchMatch?: boolean
   isActiveSearchMatch?: boolean
   searchQuery?: string
+  /**
+   * When false, the action menu (Reply / Star / Copy / Delete) and reaction
+   * toggles are hidden. ChatContent flips this off when the current user has
+   * left / been removed from the group (isActive=false on their participant
+   * entry). Defaults to true so DMs and other call sites are unaffected.
+   */
+  canInteract?: boolean
 }
 
 /**
@@ -39,8 +52,17 @@ interface MessageBubbleProps {
  * picker live in <MessageActions />, which is reused by ChatLog for
  * attachment-only bubbles too.
  */
-const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchMatch, isActiveSearchMatch, searchQuery }: MessageBubbleProps) => {
-  const [hovered, setHovered] = useState(false)
+const MessageBubble = ({
+  chat,
+  isSender,
+  senderName,
+  senderId,
+  canPin,
+  isSearchMatch,
+  isActiveSearchMatch,
+  searchQuery,
+  canInteract = true
+}: MessageBubbleProps) => {
   const currentUserId = useSelector((s: RootState) => s.chat?.userProfile?.id ?? null)
 
   // Tombstone for "delete for everyone".
@@ -121,8 +143,10 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
     const me = currentUserId != null ? String(currentUserId) : ''
     const existing = chat.reactions?.find(r => r.emoji === emoji)
     const alreadyReacted = !!(existing && me && existing.userIds.includes(me))
-    const fn = alreadyReacted ? removeReactionOverSocket : addReactionOverSocket
-    fn(chat.id, emoji).catch(err => {
+    // Single call for both add and remove — server treats a re-emit as a
+    // toggle. `alreadyReacted` is kept only for any future UI branching.
+    void alreadyReacted
+    addReactionOverSocket(chat.id, emoji).catch((err: unknown) => {
       console.error('[chat] toggle reaction failed:', err)
     })
   }
@@ -134,20 +158,29 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
         display: 'flex',
         alignItems: 'center',
         flexDirection: isSender ? 'row-reverse' : 'row',
-        gap: 1
+        gap: 1,
+        // Reveal the inside-bubble chevron + outside-bubble emoji trigger on
+        // hover (WhatsApp-Web pattern). Both icons use `.msg-actions` and
+        // start at opacity: 0 / pointer-events: none.
+        '&:hover .msg-actions': {
+          opacity: 1,
+          pointerEvents: 'auto'
+        }
       }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: '100%' }}>
         <Box
           data-msg-id={chat.id ?? undefined}
           sx={{
+            position: 'relative',
             boxShadow: 1,
             borderRadius: 1,
             maxWidth: '100%',
             width: 'fit-content',
             p: theme => theme.spacing(3, 4),
+            // Reserve room for the absolutely-positioned chevron at top-right
+            // so it doesn't overlap the message text.
+            pr: theme => theme.spacing(7),
             borderTopLeftRadius: !isSender ? 0 : undefined,
             borderTopRightRadius: isSender ? 0 : undefined,
             color: isSender ? 'common.white' : 'text.primary',
@@ -158,6 +191,26 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
             })
           }}
         >
+          {canInteract ? (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 2,
+                right: 2,
+                zIndex: 1
+              }}
+            >
+              <MessageActions
+                chat={chat}
+                isSender={isSender}
+                senderName={senderName}
+                senderId={senderId}
+                canPin={canPin}
+                showEdit
+                showCopyText
+              />
+            </Box>
+          ) : null}
           {chat.replyTo ? (
             <Box
               onClick={handleReplySnippetClick}
@@ -236,7 +289,7 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
           </Typography>
         </Box>
 
-        {chat.reactions && chat.reactions.length > 0 ? (
+        {canInteract && chat.reactions && chat.reactions.length > 0 ? (
           <Box
             sx={{
               display: 'flex',
@@ -255,7 +308,10 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
                 <Chip
                   key={r.emoji}
                   size='small'
-                  onClick={() => handleToggleReaction(r.emoji)}
+                  // Click-to-toggle only when the current user can interact
+                  // with this conversation. Removed-from-group users see
+                  // existing reaction chips as static read-only labels.
+                  onClick={canInteract ? () => handleToggleReaction(r.emoji) : undefined}
                   label={
                     <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
                       <span>{r.emoji}</span>
@@ -281,16 +337,7 @@ const MessageBubble = ({ chat, isSender, senderName, senderId, canPin, isSearchM
         ) : null}
       </Box>
 
-      <MessageActions
-        chat={chat}
-        isSender={isSender}
-        senderName={senderName}
-        senderId={senderId}
-        canPin={canPin}
-        alwaysVisible={hovered}
-        showEdit
-        showCopyText
-      />
+      {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
     </Box>
   )
 }

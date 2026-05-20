@@ -131,6 +131,72 @@ export const fetchChatsContacts = createAsyncThunk<{
 })
 
 /**
+ * Backend gap workaround — the conversation-list endpoint doesn't include
+ * `senderId` / `sender.displayName` on `lastMessage`, so the sidebar's
+ * WhatsApp-style "Saket: hello" prefix can't render on a cold page load.
+ * This thunk runs after `fetchChatsContacts`, scans group chats for
+ * lastMessages that have an `id` (so we can address them) but no
+ * `senderName`, and fetches the full message via `getMessage(id)` to
+ * resolve the sender. Results land via `patchLastMessageSender`.
+ *
+ * Throttled by a module-level Set of already-fetched message ids so we
+ * never refetch the same message — useful when `fetchChatsContacts` runs
+ * repeatedly (every `conversation_updated`, focus, etc.). Failures are
+ * silent — the prefix falls back to "no prefix", same as before.
+ */
+const enrichedLastMessageIds = new Set<string>()
+export const enrichLastMessageSenders = createAsyncThunk<void, void>(
+  'appChat/enrichLastMessageSenders',
+  async (_, { dispatch, getState }) => {
+    const client = getChatClientOrNull()
+    if (!client) return
+
+    const state = getState() as { chat?: ChatStoreType }
+    const chats = state.chat?.chats ?? []
+
+    // Pick group chats whose lastMessage is missing sender info AND has an id
+    // we haven't already enriched in this session.
+    const targets = chats
+      .filter(c => c.isGroup)
+      .map(c => ({
+        chatId: c.id,
+        messageId: c.chat.lastMessage?.id,
+        hasSender: Boolean(c.chat.lastMessage?.senderName)
+      }))
+      .filter(t => t.messageId && !t.hasSender && !enrichedLastMessageIds.has(t.messageId))
+
+    if (targets.length === 0) return
+
+    await Promise.all(
+      targets.map(async t => {
+        if (!t.messageId) return
+        enrichedLastMessageIds.add(t.messageId)
+        try {
+          const msg = await getMessage(t.messageId)
+          const senderId = (msg as { senderId?: string }).senderId ?? ''
+          const senderName =
+            (msg as { sender?: { displayName?: string; username?: string } }).sender?.displayName ??
+            (msg as { sender?: { displayName?: string; username?: string } }).sender?.username
+          if (senderId || senderName) {
+            dispatch(
+              patchLastMessageSender({
+                chatId: t.chatId,
+                senderId,
+                senderName
+              })
+            )
+          }
+        } catch (err) {
+          // Silent — prefix degrades to "no prefix" which is what it was before.
+          // eslint-disable-next-line no-console
+          console.warn('[chat] enrichLastMessageSenders failed for', t.messageId, err)
+        }
+      })
+    )
+  }
+)
+
+/**
  * Start (or reopen) a direct conversation with another user.
  *
  * The backend's `POST /conversations/direct` is idempotent — if a direct
@@ -183,10 +249,10 @@ export const createGroupChat = createAsyncThunk<void, CreateGroupPayload>(
     }
 
     try {
-      // NOTE: SDK 1.0.6 dropped `icon` from CreateGroupData. Group icons are
-      // now set via the separate `uploadConversationIcon(groupId, fileId)` flow
-      // after creation. The CreateGroupDrawer still collects an icon URL but
-      // it's no longer sent here — wire the post-create upload separately.
+      // SDK 1.0.6 dropped `icon` from CreateGroupData — create the group
+      // first (no icon), then if the user picked one, upload it via the
+      // existing `uploadGroupIcon` thunk. Sequential so the icon attaches
+      // to the real group id, not a half-created placeholder.
       const conv = await createGroupConversation({
         name: payload.name,
         description: payload.description,
@@ -199,6 +265,16 @@ export const createGroupChat = createAsyncThunk<void, CreateGroupPayload>(
 
       dispatch(addOrReplaceChat(chat))
       dispatch(selectChat(conv.id))
+
+      // Step 2 — group icon upload (only when the drawer captured a File).
+      // Fire-and-forget from the thunk's perspective: the user is already
+      // looking at the new group; the icon will pop in once the upload +
+      // `addOrReplaceChat` cycle inside uploadGroupIcon completes (~1-2s).
+      // We don't await this because a slow upload shouldn't block the
+      // selectChat above.
+      if (payload.iconFile) {
+        dispatch(uploadGroupIcon({ chatId: conv.id, file: payload.iconFile }))
+      }
     } catch (err) {
       console.error('[chat] createGroupChat failed:', err)
     }
@@ -345,6 +421,75 @@ export const updateGroupChat = createAsyncThunk<
     dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
   } catch (err) {
     console.error('[chat] updateGroupChat failed:', err)
+  }
+})
+
+/**
+ * Upload a new group icon. The SDK's `client.uploadIcon(conversationId, file)`
+ * runs the presigned-url + S3 upload + conversations.uploadIcon flow in one
+ * call and returns the updated Conversation (with a fresh `iconUrl`). We
+ * pipe that Conversation through the adapter and `addOrReplaceChat` so the
+ * sidebar tile picks up the new avatar immediately. Other participants get
+ * the change via the `conversation_updated` socket broadcast handled in
+ * AppChat. `file` must be an SDK `UploadableFile` — `{ uri, name, type, size }`
+ * — wrapped in a blob URL on the web.
+ */
+export const uploadGroupIcon = createAsyncThunk<
+  void,
+  { chatId: ChatEntityId; file: { uri: string; name: string; type: string; size: number } }
+>('appChat/uploadGroupIcon', async ({ chatId, file }, { dispatch, getState }) => {
+  // eslint-disable-next-line no-console
+  console.log('[chat:icon-upload] thunk start', { chatId, fileName: file?.name, fileType: file?.type, fileSize: file?.size })
+
+  const client = getChatClientOrNull()
+  if (!client || typeof chatId !== 'string') {
+    // eslint-disable-next-line no-console
+    console.warn('[chat:icon-upload] aborted', { hasClient: !!client, chatId })
+
+    return
+  }
+
+  // Snapshot the current avatar so we can revert if the upload fails.
+  const state = getState() as { chat?: ChatStoreType }
+  const previousAvatar = state.chat?.chats?.find(c => c.id === chatId)?.avatar ?? ''
+
+  // Optimistic swap — push the local blob URL into Redux immediately so
+  // the sidebar tile, chat header, and Group info drawer reflect the new
+  // image without waiting for the upload + signed-URL round-trip. The
+  // server's authoritative `iconUrl` overwrites this when the upload
+  // resolves below.
+  if (file.uri) {
+    dispatch(setChatAvatarOptimistic({ chatId, avatar: file.uri }))
+  }
+
+  try {
+    const conv = await client.uploadIcon(chatId, file)
+
+    // TEMP DIAG — surfaces whether the SDK's response actually carries the
+    // fresh `iconUrl`. Filter console by `[chat:icon-upload]`.
+    // eslint-disable-next-line no-console
+    console.log('[chat:icon-upload] uploadIcon response', {
+      id: conv?.id,
+      iconUrl: conv?.iconUrl,
+      hasIconUrl: !!conv?.iconUrl,
+      full: conv
+    })
+
+    const currentUserId = (getState() as { chat?: ChatStoreType }).chat?.userProfile?.id ?? ''
+    dispatch(addOrReplaceChat(sdkConversationToChat(conv, currentUserId)))
+
+    // Belt-and-suspenders: always re-fetch the list so the sidebar picks up
+    // a fresh signed `iconUrl` even if the immediate response had a stale
+    // or missing URL. Server's `conversation_updated` broadcast will also
+    // run this, but the uploader shouldn't have to wait for that echo.
+    dispatch(fetchChatsContacts())
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('[chat:icon-upload] FAILED:', err)
+    // Roll back the optimistic preview so the UI shows the previous icon
+    // (or the default glyph) instead of the now-stale blob URL.
+    dispatch(setChatAvatarOptimistic({ chatId, avatar: previousAvatar }))
+    throw err
   }
 })
 
@@ -931,6 +1076,20 @@ export const appChatSlice = createSlice({
             touched = chat.id
           }
         })
+
+        // Keep the sidebar preview (`chat.lastMessage`) in sync when the
+        // deleted message IS the last one. Without this, the sidebar
+        // would keep showing the now-deleted message's original text
+        // until the next refresh.
+        if (chat.chat.lastMessage?.id === messageId) {
+          chat.chat.lastMessage = {
+            ...chat.chat.lastMessage,
+            isDeletedForEveryone: true,
+            message: '',
+            attachments: undefined,
+            reactions: undefined
+          }
+        }
       })
       if (touched && state.selectedChat?.contact.id === touched) {
         const openChat = state.chats.find(c => c.id === touched)
@@ -953,6 +1112,13 @@ export const appChatSlice = createSlice({
         const before = chat.chat.messages.length
         chat.chat.messages = chat.chat.messages.filter(m => m.id !== messageId)
         if (chat.chat.messages.length !== before) touched = chat.id
+
+        // If the just-removed message was the sidebar preview, fall back
+        // to the new last message in the array (or undefined if empty).
+        // Without this, the sidebar would keep showing the gone message.
+        if (chat.chat.lastMessage?.id === messageId) {
+          chat.chat.lastMessage = chat.chat.messages[chat.chat.messages.length - 1]
+        }
       })
       if (touched && state.selectedChat?.contact.id === touched) {
         const openChat = state.chats.find(c => c.id === touched)
@@ -982,6 +1148,18 @@ export const appChatSlice = createSlice({
             touched = chat.id
           }
         })
+
+        // Keep the sidebar preview in sync if the edited message IS the
+        // last one. Without this, the sidebar would keep showing the
+        // pre-edit text.
+        if (chat.chat.lastMessage?.id === messageId) {
+          chat.chat.lastMessage = {
+            ...chat.chat.lastMessage,
+            message: text,
+            isEdited: true,
+            ...(editedAt ? { editedAt } : {})
+          }
+        }
       })
       if (touched && state.selectedChat?.contact.id === touched) {
         const openChat = state.chats.find(c => c.id === touched)
@@ -1041,6 +1219,102 @@ export const appChatSlice = createSlice({
     // Insert a chat at the top of the list, or replace if it already exists by id.
     // Used by `startDirectChat` after `createDirect` so the new (or surfaced)
     // conversation appears in the sidebar immediately.
+    // Optimistic avatar update — used by `uploadGroupIcon` to swap the
+    // sidebar/header icon to the local blob URL the instant the user
+    // picks a file, BEFORE the network upload completes. Keeps the
+    // sidebar tile + chat header + Group info drawer in sync (mirrors
+    // the selectedChat sync that addOrReplaceChat does). The real signed
+    // URL from the server overwrites this when the upload resolves.
+    setChatAvatarOptimistic: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; avatar: string }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, avatar } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      state.chats[idx] = { ...state.chats[idx], avatar }
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: state.selectedChat.chat,
+          contact: state.chats[idx]
+        }
+      }
+    },
+    // Mark a participant as no longer active in a group — fires from the
+    // server's `participant_left` socket event (covers both voluntary leave
+    // and admin-removal). Immediately flips:
+    //   • chat.participants[matched].isActive → false
+    //   • chat.participantIds / adminIds → strip the leaver
+    //   • chat.isCurrentUserActive → false when it's the current user
+    // Drives the composer/interaction gate (`canInteract` in ChatContent
+    // and `isCurrentUserActive` in UserProfileRight) so a removed user is
+    // locked out without waiting for the next `fetchChatsContacts`.
+    applyParticipantLeft: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; userId: ChatEntityId }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, userId } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const userIdStr = String(userId)
+      const chat = state.chats[idx]
+
+      // Update participants array (preserved with isActive=false for history).
+      const updatedParticipants = (chat.participants ?? []).map(p =>
+        String(p.userId) === userIdStr ? { ...p, isActive: false } : p
+      )
+      const updatedParticipantIds = (chat.participantIds ?? []).filter(
+        id => String(id) !== userIdStr
+      )
+      const updatedAdminIds = (chat.adminIds ?? []).filter(id => String(id) !== userIdStr)
+      const meIsLeaver = String(state.userProfile?.id ?? '') === userIdStr
+
+      state.chats[idx] = {
+        ...chat,
+        participants: updatedParticipants,
+        participantIds: updatedParticipantIds,
+        adminIds: updatedAdminIds,
+        // Flip the current-user flag iff THIS event is about us.
+        ...(meIsLeaver ? { isCurrentUserActive: false } : {})
+      }
+
+      // Mirror into selectedChat so the open chat's composer + Group info
+      // drawer re-render immediately.
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: state.selectedChat.chat,
+          contact: state.chats[idx]
+        }
+      }
+    },
+    // Patch a chat's `lastMessage` with sender info that wasn't included
+    // in the conversation-list response. Used by the `enrichLastMessageSenders`
+    // thunk after it fetches full message details via `getMessage(id)` to
+    // resolve the WhatsApp-style "Saket: …" sidebar prefix on cold load.
+    patchLastMessageSender: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; senderId: ChatEntityId; senderName?: string }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, senderId, senderName } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const chat = state.chats[idx]
+      if (!chat.chat.lastMessage) return
+      chat.chat.lastMessage = {
+        ...chat.chat.lastMessage,
+        senderId: chat.chat.lastMessage.senderId || senderId,
+        senderName: chat.chat.lastMessage.senderName ?? senderName
+      }
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: { ...state.selectedChat.chat, lastMessage: chat.chat.lastMessage },
+          contact: chat
+        }
+      }
+    },
     addOrReplaceChat: (state, action: PayloadAction<ChatsArrType>) => {
       const incoming = action.payload
       if (!state.chats) {
@@ -1052,16 +1326,53 @@ export const appChatSlice = createSlice({
       if (idx >= 0) {
         // Preserve any messages already cached locally; the incoming row has empty messages.
         const existing = state.chats[idx]
+
+        // Same merge logic as fetchChatsContacts.fulfilled — if the
+        // incoming lastMessage refers to the SAME message but is missing
+        // `senderId` / `senderName` (server's participant-mutation
+        // responses sometimes drop those), keep the previous values so
+        // the sidebar's "You: …" / "Saket: …" prefix doesn't vanish.
+        let mergedLastMessage = incoming.chat.lastMessage ?? existing.chat.lastMessage
+        if (
+          incoming.chat.lastMessage &&
+          existing.chat.lastMessage &&
+          incoming.chat.lastMessage.id &&
+          incoming.chat.lastMessage.id === existing.chat.lastMessage.id
+        ) {
+          mergedLastMessage = {
+            ...incoming.chat.lastMessage,
+            senderId: incoming.chat.lastMessage.senderId || existing.chat.lastMessage.senderId,
+            senderName: incoming.chat.lastMessage.senderName ?? existing.chat.lastMessage.senderName
+          }
+        }
+
         state.chats[idx] = {
           ...incoming,
+          // Preserve the previously-known group icon when the server's
+          // response omits `iconUrl`. The participant-mutation endpoints
+          // (add member / remove member / role change / rename) return
+          // the updated conversation but sometimes drop the iconUrl
+          // (server quirk). Without this, the sidebar avatar flickers to
+          // the default glyph after every member edit.
+          avatar: incoming.avatar || existing.avatar,
           chat: {
             ...incoming.chat,
             messages: existing.chat.messages,
-            lastMessage: incoming.chat.lastMessage ?? existing.chat.lastMessage
+            lastMessage: mergedLastMessage
           }
         }
       } else {
         state.chats.unshift(incoming)
+      }
+
+      // Keep selectedChat in sync so the currently-open chat's header + Group
+      // info drawer + ChatLog fallback avatar pick up the new metadata (icon,
+      // name, description, members) instantly — without waiting for the
+      // `conversation_updated` socket echo. Mirrors the same sync that
+      // `fetchChatsContacts.fulfilled` already does at the bottom of this file.
+      if (state.selectedChat && state.selectedChat.contact.id === incoming.id) {
+        const updated = state.chats.find(c => c.id === incoming.id)
+        if (updated) state.selectedChat = { chat: updated.chat, contact: updated }
       }
     },
     // Update feedback flags on one or more messages by id within a single
@@ -1385,12 +1696,34 @@ export const appChatSlice = createSlice({
           const prev = existingById.get(inc.id)
           if (!prev) return inc
 
+          // Merge lastMessage carefully — the server's conversation-list
+          // response sometimes returns `lastMessage` WITHOUT
+          // `sender.displayName` (or `senderId` is the WSO2 numeric id
+          // instead of the ObjectId). If we naively use `inc.lastMessage`,
+          // the sidebar's "You: …" / "Saket: …" prefix vanishes because
+          // the prefix lookup depends on those fields. When the incoming
+          // and previous lastMessage refer to the same message id, fall
+          // back to the previous values for any field the server omits.
+          let mergedLastMessage = inc.chat.lastMessage ?? prev.chat.lastMessage
+          if (
+            inc.chat.lastMessage &&
+            prev.chat.lastMessage &&
+            inc.chat.lastMessage.id &&
+            inc.chat.lastMessage.id === prev.chat.lastMessage.id
+          ) {
+            mergedLastMessage = {
+              ...inc.chat.lastMessage,
+              senderId: inc.chat.lastMessage.senderId || prev.chat.lastMessage.senderId,
+              senderName: inc.chat.lastMessage.senderName ?? prev.chat.lastMessage.senderName
+            }
+          }
+
           return {
             ...inc,
             chat: {
               ...inc.chat,
               messages: prev.chat.messages.length > 0 ? prev.chat.messages : inc.chat.messages,
-              lastMessage: inc.chat.lastMessage ?? prev.chat.lastMessage
+              lastMessage: mergedLastMessage
             }
           }
         })
@@ -1475,9 +1808,26 @@ export const appChatSlice = createSlice({
           after: newMsg.feedback
         })
       }
-      const newMessages = [...chatEntry.chat.messages, newMsg]
+      // Stamp the current user's id + display name on the synthesized
+      // message before it lands in state. `sendMessageOverSocket` returns
+      // a stub with `senderId: ''` when the server gives a lightweight
+      // `{success, messageId}` ack — without this rewrite, the sidebar's
+      // "You: …" prefix can't resolve (it matches by `senderId === userProfile.id`)
+      // and the previous sender's prefix would visibly disappear when we
+      // send a new message. Same fix shape as `receiveMessage` does for
+      // isOwn echoes.
+      const stampedMsg: MessageType =
+        state.userProfile
+          ? {
+              ...newMsg,
+              senderId: newMsg.senderId || state.userProfile.id,
+              senderName: newMsg.senderName ?? state.userProfile.fullName
+            }
+          : newMsg
+
+      const newMessages = [...chatEntry.chat.messages, stampedMsg]
       chatEntry.chat.messages = newMessages
-      chatEntry.chat.lastMessage = newMsg
+      chatEntry.chat.lastMessage = stampedMsg
 
       // Move this chat to the top of the list.
       const idx = state.chats.indexOf(chatEntry)
@@ -1504,6 +1854,9 @@ export const {
   receiveMessage,
   updateMessagesFeedback,
   addOrReplaceChat,
+  setChatAvatarOptimistic,
+  patchLastMessageSender,
+  applyParticipantLeft,
   updateChatFlags,
   setUnreadCount,
   setReplyingTo,

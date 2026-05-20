@@ -169,6 +169,22 @@ const ChatContent = (props: ChatContentType) => {
   const renderContent = () => {
     if (store) {
       const selectedChat = store.selectedChat
+
+      // Single source of truth for "the current user can act on this
+      // conversation". For DMs this is always true; for groups we look up
+      // the user's own participant entry and treat `isActive === false` as
+      // removed/left. Drives both composer visibility AND per-message
+      // action / reaction availability inside ChatLog.
+      const canInteract = (() => {
+        if (!selectedChat) return false
+        if (selectedChat.contact.isGroup !== true) return true
+        const me = String(store.userProfile?.id ?? '')
+        if (!me) return true
+        const myEntry = selectedChat.contact.participants?.find(p => String(p.userId) === me)
+
+        return myEntry?.isActive !== false
+      })()
+
       if (!selectedChat) {
         return (
           <ChatWrapperStartChat
@@ -239,9 +255,20 @@ const ChatContent = (props: ChatContentType) => {
                   sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
                 >
                   {selectedChat.contact.isGroup ? (
-                    <CustomAvatar skin='light' color='primary' sx={{ width: 40, height: 40, mr: 3.5 }}>
-                      <Icon icon='mdi:account-group' fontSize='1.25rem' />
-                    </CustomAvatar>
+                    // Group: prefer the uploaded `iconUrl` (mapped to
+                    // `contact.avatar` by the adapter). Fall back to the
+                    // default group glyph when no icon has been set yet.
+                    selectedChat.contact.avatar ? (
+                      <MuiAvatar
+                        src={selectedChat.contact.avatar}
+                        alt={selectedChat.contact.fullName}
+                        sx={{ width: 40, height: 40, mr: 3.5 }}
+                      />
+                    ) : (
+                      <CustomAvatar skin='light' color='primary' sx={{ width: 40, height: 40, mr: 3.5 }}>
+                        <Icon icon='mdi:account-group' fontSize='1.25rem' />
+                      </CustomAvatar>
+                    )
                   ) : (
                     <Badge
                       overlap='circular'
@@ -437,6 +464,7 @@ const ChatContent = (props: ChatContentType) => {
                         dispatch(jumpToMessage({ chatId, messageId }) as any)
                       }
                     }}
+                    canInteract={canInteract}
                   />
                 </>
               )
@@ -479,7 +507,26 @@ const ChatContent = (props: ChatContentType) => {
               </Box>
             )}
 
-            <SendMsgForm store={store} dispatch={dispatch} sendMsg={sendMsg} />
+            {/* Composer + per-message actions share the same gate
+                (`canInteract`) — when the current user is removed from /
+                has left a group, none of the chat actions should be usable. */}
+            {canInteract ? (
+              <SendMsgForm store={store} dispatch={dispatch} sendMsg={sendMsg} />
+            ) : (
+              <Box
+                sx={{
+                  px: 4,
+                  py: 3,
+                  textAlign: 'center',
+                  borderTop: theme => `1px solid ${theme.palette.divider}`,
+                  backgroundColor: 'customColors.Surface'
+                }}
+              >
+                <Typography variant='caption' sx={{ color: 'text.secondary' }}>
+                  You&apos;re no longer a member of this group.
+                </Typography>
+              </Box>
+            )}
 
             <UserProfileRight
               store={store}
