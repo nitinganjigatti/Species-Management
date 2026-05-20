@@ -180,8 +180,11 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
           <AvatarUpload
             value={iconUrl ?? undefined}
             onChange={async (file, previewUrl) => {
+              // AvatarUpload calls onChange with (null, null) when the user
+              // clears their pick — short-circuit so we don't try to
+              // compress a null File.
               if (!file) {
-                setIconUrl(null)
+                setIconUrl(previewUrl)
                 setIconFile(null)
 
                 return
