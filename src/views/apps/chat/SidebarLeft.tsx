@@ -84,7 +84,8 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
     userProfileLeftOpen,
     formatDateToMonthShort,
     handleLeftSidebarToggle,
-    handleUserProfileLeftSidebarToggle
+    handleUserProfileLeftSidebarToggle,
+    compact
   } = props
 
   // ** Local UI state
@@ -152,14 +153,14 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   }
 
   // Clear the open chat on route change (when navigating away from /chat).
-  // The "highlight" follows Redux selectedChat naturally — no local state to
-  // reset here.
+  // Skip in compact (FAB) mode — we want the conversation to persist across navigation.
   useEffect(() => {
+    if (compact) return
     return () => {
       dispatch(removeSelectedChat())
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname])
+  }, [pathname, compact])
 
   // ── filtered chat list ────────────────────────────────────────────────────
   const visibleChats: ChatsArrType[] = (() => {

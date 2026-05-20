@@ -903,7 +903,8 @@ const initialState: ChatStoreType = {
   pendingFeedback: {},
   replyingTo: null,
   editingMessage: null,
-  infoMessage: null
+  infoMessage: null,
+  selectedConversationId: null
 }
 
 export const appChatSlice = createSlice({
@@ -912,6 +913,9 @@ export const appChatSlice = createSlice({
   reducers: {
     removeSelectedChat: state => {
       state.selectedChat = null
+    },
+    setSelectedConversationId: (state, action: PayloadAction<string | null>) => {
+      state.selectedConversationId = action.payload
     },
     setActiveFilter: (state, action: PayloadAction<ChatFilterType>) => {
       state.activeFilter = action.payload
@@ -1869,6 +1873,7 @@ export const appChatSlice = createSlice({
 
 export const {
   setSelectedChat,
+  setSelectedConversationId,
   setChatMessages,
   prependChatMessages,
   setLoadingOlder,

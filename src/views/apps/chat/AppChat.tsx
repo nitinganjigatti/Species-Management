@@ -224,69 +224,63 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     dispatch(fetchChatsContacts())
   }, [chatClient, chatConnected, dispatch])
 
-  // Auto-select conversation from query param or first on initial load
-  // Tracks the URL to handle both initial load and notification clicks
+  const selectedConversationIdFromRedux = useSelector((state: RootState) => state.chat.selectedConversationId)
+
+  // Compact mode (FAB panel): restore from Redux/localStorage only, ignore URL changes
+  const compactRestoredRef = useRef(false)
+  useEffect(() => {
+    if (!compact) return
+    if (typeof window === 'undefined') return
+    if (compactRestoredRef.current) return
+    if (!store?.chats || store.chats.length === 0) return
+
+    // If there's already a selected chat, don't override it
+    if (store?.selectedChat?.contact?.id) {
+      compactRestoredRef.current = true
+      return
+    }
+
+    const savedId = selectedConversationIdFromRedux || localStorage.getItem('selectedChatConversationId')
+    if (!savedId) return
+
+    const chatToSelect = store.chats.find(c => String(c.id) === String(savedId))
+    if (chatToSelect) {
+      dispatch(selectChat(chatToSelect.id))
+      compactRestoredRef.current = true
+    }
+  }, [compact, store?.chats, store?.selectedChat?.contact?.id, selectedConversationIdFromRedux, dispatch])
+
+  // Full page mode: auto-select conversation from URL or first on initial load
   const lastUrlRef = useRef<string | null>(null)
   const retryCountRef = useRef(0)
   useEffect(() => {
-    // Only run on client side
+    if (compact) return
     if (typeof window === 'undefined') return
     if (!searchParams) return
 
     const conversationId = searchParams.get('conversationId')
     const currentUrl = conversationId || ''
 
-    // Only proceed if URL changed (handles both initial load and notification clicks)
-    if (lastUrlRef.current === currentUrl) {
-      return
-    }
+    if (lastUrlRef.current === currentUrl) return
     lastUrlRef.current = currentUrl
     retryCountRef.current = 0
 
-    // If chats are still loading (null), wait and retry
     if (store?.chats === null) {
-      console.log('[AppChat] Chats still loading, waiting...')
       const timer = setTimeout(() => {
         retryCountRef.current++
-        if (retryCountRef.current < 10) {
-          // Force re-run by clearing the ref
-          lastUrlRef.current = null
-        }
+        if (retryCountRef.current < 10) lastUrlRef.current = null
       }, 500)
       return () => clearTimeout(timer)
     }
 
-    if (!store?.chats || store.chats.length === 0) {
-      console.log('[AppChat] No chats available')
-      return
-    }
-
-    console.log('[AppChat] URL changed, conversationId:', conversationId)
-
-    // Check if conversationId is in URL (from notification click)
-    let chatToSelect = null
+    if (!store?.chats || store.chats.length === 0) return
 
     if (conversationId) {
-      console.log('[AppChat] Looking for chat with ID:', conversationId, 'type:', typeof conversationId)
-
-      // Debug: Log all available chats with details
-      console.log('[AppChat] Total chats available:', store.chats.length)
-      store.chats.forEach(c => {
-        const matches = String(c.id) === String(conversationId)
-        console.log(`  Chat: id="${c.id}" (${typeof c.id}), name="${c.fullName}", matches=${matches}`)
-      })
-
-      // Match by chat.id (converted to string for comparison)
-      chatToSelect = store.chats.find(c =>
-        String(c.id) === String(conversationId)
-      )
+      const chatToSelect = store.chats.find(c => String(c.id) === String(conversationId))
       if (chatToSelect) {
-        console.log('[AppChat] ✅ Found chat! Selecting:', chatToSelect.fullName, 'ID:', chatToSelect.id)
         dispatch(selectChat(chatToSelect.id))
         return
       } else {
-        console.log('❌ [AppChat] Chat NOT found for conversationId:', conversationId)
-        // Still wait a bit and retry in case chats are still loading
         if (retryCountRef.current < 5) {
           const timer = setTimeout(() => {
             retryCountRef.current++
@@ -297,16 +291,9 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       }
     }
 
-    // Fallback: select first conversation
     const first = store.chats?.[0]
-    if (!first) {
-      console.log('[AppChat] No chats available')
-      return
-    }
-
-    console.log('[AppChat] No conversationId in URL, selecting first chat:', first.fullName)
-    dispatch(selectChat(first.id))
-  }, [store?.chats, searchParams, dispatch])
+    if (first) dispatch(selectChat(first.id))
+  }, [compact, store?.chats, searchParams, dispatch])
 
   // Stable ref pointing at the currently open conversation id. Read inside the
   // socket handler so we can detect "message arrived in the chat I'm looking at"
@@ -329,14 +316,16 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
 
     // Only update URL if the selection changed AND it's not matching the URL
     // (i.e., user clicked sidebar, not clicked a notification)
+    // Skip URL push when in compact mode (floating panel)
     if (currentConversationId && currentConversationId !== prevConversationIdRef.current && String(currentConversationId) !== urlConversationId) {
-      console.log('[AppChat] User selected chat from sidebar, updating URL to:', currentConversationId)
       prevConversationIdRef.current = currentConversationId
-      router.push(`/chat?conversationId=${currentConversationId}`)
+      if (!compact) {
+        router.replace(`/chat?conversationId=${currentConversationId}`)
+      }
     } else {
       prevConversationIdRef.current = currentConversationId
     }
-  }, [store?.selectedChat?.contact?.id, searchParams, router])
+  }, [store?.selectedChat?.contact?.id, searchParams, router, compact])
 
   // Stable ref for the current user's profile id — used inside socket handlers
   // to determine if a message is "ours" (instead of relying on tempId, which
@@ -665,6 +654,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         formatDateToMonthShort={formatDateToMonthShort}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileLeftSidebarToggle={handleUserProfileLeftSidebarToggle}
+        compact={compact}
       />
       <ChatContent
         store={store}

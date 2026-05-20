@@ -12,6 +12,7 @@ import type { PushNotification, AppNotification } from './index'
 import type { AppDispatch, RootState } from 'src/store/store'
 import { useSearchParams } from 'next/navigation'
 import notificationService from './index'
+import { setSelectedConversationId } from 'src/store/apps/chat'
 
 const playNotificationSound = async () => {
   try {
@@ -115,6 +116,10 @@ export const useNotificationHandler = () => {
           conversationId: data.conversation_id || data.contact_id || data.sender_id || undefined
         }
         dispatch(addNotification(appNotification))
+        if (appNotification.conversationId) {
+          dispatch(setSelectedConversationId(String(appNotification.conversationId)))
+          localStorage.setItem('selectedChatConversationId', String(appNotification.conversationId))
+        }
         playNotificationSound()
       }
     },

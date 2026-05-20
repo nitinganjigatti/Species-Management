@@ -23,7 +23,7 @@ import AppChat from 'src/views/apps/chat/AppChat'
 
 // ** Store
 import type { RootState, AppDispatch } from 'src/store'
-import { fetchChatsContacts, fetchUserProfile, receiveMessage, setUnreadCount } from 'src/store/apps/chat'
+import { fetchChatsContacts, fetchUserProfile, receiveMessage, setUnreadCount, setSelectedConversationId } from 'src/store/apps/chat'
 
 // ** Chat API
 import { getChatSocket, sdkMessageToMessage } from 'src/lib/chat/api'
@@ -55,9 +55,14 @@ const ChatLauncher = () => {
   const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
   const dispatch = useDispatch<AppDispatch>()
   const [open, setOpen] = useState(false)
+  const [panelWidth, setPanelWidth] = useState(PANEL_WIDTH)
+  const [panelHeight, setPanelHeight] = useState(PANEL_HEIGHT)
+  const [isResizing, setIsResizing] = useState(false)
 
   const chats = useSelector((state: RootState) => state.chat.chats)
   const userProfileId = useSelector((state: RootState) => state.chat.userProfile?.id)
+  const selectedChat = useSelector((state: RootState) => state.chat.selectedChat)
+  const selectedConversationId = useSelector((state: RootState) => state.chat.selectedConversationId)
 
   // Total unread across all conversations — sum-reduce in a memo so we don't
   // create a fresh number identity on every render and trigger Badge re-renders.
@@ -66,6 +71,25 @@ const ChatLauncher = () => {
 
     return chats.reduce((sum, c) => sum + (c.chat?.unseenMsgs || 0), 0)
   }, [chats])
+
+  // Restore selected conversation from localStorage on app load
+  useEffect(() => {
+    if (!enableChatModule) return
+    const savedConversationId = localStorage.getItem('selectedChatConversationId')
+    if (savedConversationId) {
+      dispatch(setSelectedConversationId(savedConversationId))
+    }
+  }, [dispatch, enableChatModule])
+
+  // Sync selectedChat to Redux and localStorage
+  useEffect(() => {
+    if (!selectedChat?.contact?.id) return
+    const conversationId = String(selectedChat.contact.id)
+    if (conversationId !== selectedConversationId) {
+      dispatch(setSelectedConversationId(conversationId))
+    }
+    localStorage.setItem('selectedChatConversationId', conversationId)
+  }, [selectedChat?.contact?.id, selectedConversationId, dispatch])
 
   // Bootstrap the user's profile + conversation list once, so the FAB badge
   // can show the right number even before the user opens the panel. Skip
@@ -125,6 +149,52 @@ const ChatLauncher = () => {
 
   const toggleOpen = () => setOpen(o => !o)
 
+  const handleResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    const startX = e.clientX
+    const startY = e.clientY
+    const startWidth = panelWidth
+    const startHeight = panelHeight
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX
+      const deltaY = moveEvent.clientY - startY
+      setPanelWidth(Math.max(320, startWidth + deltaX))
+      setPanelHeight(Math.max(400, startHeight + deltaY))
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
+  const handleLeftResizeMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+    const startX = e.clientX
+    const startWidth = panelWidth
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - startX
+      setPanelWidth(Math.max(320, startWidth - deltaX))
+    }
+
+    const handleMouseUp = () => {
+      setIsResizing(false)
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
+
   return (
     <>
       <Zoom in={open} unmountOnExit>
@@ -133,18 +203,58 @@ const ChatLauncher = () => {
             position: 'fixed',
             bottom: 96,
             right: 24,
-            width: { xs: 'calc(100vw - 32px)', sm: PANEL_WIDTH },
-            height: { xs: 'calc(100vh - 120px)', sm: `min(${PANEL_HEIGHT}px, calc(100vh - 120px))` },
+            width: { xs: 'calc(100vw - 32px)', sm: `${panelWidth}px` },
+            height: { xs: 'calc(100vh - 120px)', sm: `min(${panelHeight}px, calc(100vh - 120px))` },
             borderRadius: 2,
             overflow: 'hidden',
             boxShadow: theme => theme.shadows[10],
             zIndex: 1200,
             backgroundColor: 'background.paper',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            userSelect: isResizing ? 'none' : 'auto'
           }}
         >
           <AppChat compact />
+
+          {/* Resize handle on left side */}
+          <Box
+            onMouseDown={handleLeftResizeMouseDown}
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '8px',
+              height: '100%',
+              cursor: 'ew-resize',
+              backgroundColor: 'primary.main',
+              opacity: 0.4,
+              '&:hover': {
+                opacity: 0.8
+              },
+              transition: 'opacity 0.2s'
+            }}
+          />
+
+          {/* Resize handle in bottom-right corner */}
+          <Box
+            onMouseDown={handleResizeMouseDown}
+            sx={{
+              position: 'absolute',
+              bottom: 0,
+              right: 0,
+              width: '20px',
+              height: '20px',
+              cursor: 'nwse-resize',
+              backgroundColor: 'primary.main',
+              borderRadius: '2px 0 0 0',
+              opacity: 0.6,
+              '&:hover': {
+                opacity: 1
+              },
+              transition: 'opacity 0.2s'
+            }}
+          />
         </Box>
       </Zoom>
 

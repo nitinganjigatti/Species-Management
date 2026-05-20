@@ -222,6 +222,8 @@ export type ChatStoreType = {
   selectedChat: SelectedChatType
   activeFilter: ChatFilterType
   loadingMessages: boolean
+  // Selected conversation ID — persisted across page navigation
+  selectedConversationId: string | null
   // Receipts (delivered/seen) that arrived BEFORE the corresponding message
   // landed in `chats`. Keyed by messageId. Drained in `sendMsg.fulfilled` and
   // `receiveMessage` once the message is appended.
@@ -285,6 +287,7 @@ export type ChatSidebarLeftType = {
   formatDateToMonthShort: (value: string, toTimeForCurrentDay?: boolean) => string
   handleLeftSidebarToggle: () => void
   handleUserProfileLeftSidebarToggle: () => void
+  compact?: boolean
 }
 
 export type UserProfileLeftType = {

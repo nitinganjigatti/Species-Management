@@ -32,7 +32,10 @@ self.addEventListener('activate', event => {
 
 // Push event — show notification and notify all open clients
 self.addEventListener('push', event => {
+  // console.log('[SW] Push event received')
+
   if (!event.data) {
+    console.log('[SW] Push event with no data')
     return
   }
 
@@ -54,29 +57,31 @@ self.addEventListener('push', event => {
     icon: '/branding/antz/Antz_logomark_h_color.svg',
     tag: data.message_id || data.conversation_id || 'notification',
     data,
+    // Group notifications by conversation
     renotify: data.event === 'dm_message' || data.event === 'group_message',
-    requireInteraction: false
+    requireInteraction: false,
+    silent: false
+    // Browser automatically plays system notification sound
+    // No need to specify sound - let OS handle it
   }
 
+  // Silent notifications for message edits/deletes
   if (data.event === 'message_edited' || data.event === 'message_deleted') {
     options.silent = true
   }
 
   event.waitUntil(
-    self.registration.showNotification(title || 'Notification', options)
-      .then(() => {
-        return self.clients.matchAll({ type: 'window' }).then(clients => {
-          clients.forEach(client => {
-            client.postMessage({
-              type: 'PUSH_NOTIFICATION',
-              notification: { title, body, data }
-            })
+    self.registration.showNotification(title || 'Notification', options).then(() => {
+      // Notify all open clients about the notification
+      return self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'PUSH_NOTIFICATION',
+            notification: { title, body, data }
           })
         })
       })
-      .catch(() => {
-        // Notification failed silently
-      })
+    })
   )
 })
 
