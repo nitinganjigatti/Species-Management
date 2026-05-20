@@ -23,12 +23,7 @@ import AppChat from 'src/views/apps/chat/AppChat'
 
 // ** Store
 import type { RootState, AppDispatch } from 'src/store'
-import {
-  fetchChatsContacts,
-  fetchUserProfile,
-  receiveMessage,
-  setUnreadCount
-} from 'src/store/apps/chat'
+import { fetchChatsContacts, fetchUserProfile, receiveMessage, setUnreadCount } from 'src/store/apps/chat'
 
 // ** Chat API
 import { getChatSocket, sdkMessageToMessage } from 'src/lib/chat/api'
@@ -159,7 +154,7 @@ const ChatLauncher = () => {
         aria-label={open ? 'Close chat' : 'Open chat'}
         sx={{
           position: 'fixed',
-          bottom: 24,
+          bottom: 100,
           right: 24,
           zIndex: 1201
         }}
