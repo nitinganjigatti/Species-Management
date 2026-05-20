@@ -11,6 +11,8 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import toast from 'react-hot-toast'
 
+import imageCompression from 'browser-image-compression'
+
 import Icon from 'src/@core/components/icon'
 
 import { SendMsgComponentType } from 'src/types/apps/chatTypes'
@@ -74,12 +76,36 @@ const kindMediaIcon: Record<'video' | 'audio', string> = {
   audio: 'mdi:music-note'
 }
 
+// Animated/vector formats break under canvas re-encoding (GIFs lose animation,
+// SVGs lose scalability) — skip them and send originals.
+const COMPRESSIBLE_IMAGE_RE = /^image\/(jpeg|jpg|png|webp|heic|heif|bmp|tiff)$/i
+
+const COMPRESS_OPTIONS = {
+  maxSizeMB: 1,
+  maxWidthOrHeight: 1920,
+  useWebWorker: true
+}
+
+const maybeCompressImage = async (file: File): Promise<File> => {
+  if (!COMPRESSIBLE_IMAGE_RE.test(file.type)) return file
+  try {
+    const out = await imageCompression(file, COMPRESS_OPTIONS)
+
+    return out.size < file.size ? out : file
+  } catch (err) {
+    console.warn('[chat] image compression failed, sending original:', err)
+
+    return file
+  }
+}
+
 const SendMsgForm = (props: SendMsgComponentType) => {
   const { store, dispatch, sendMsg } = props
 
   const [msg, setMsg] = useState<string>('')
   const [pending, setPending] = useState<PendingFile[]>([])
   const [uploading, setUploading] = useState(false)
+  const [processingFiles, setProcessingFiles] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   // ── Audio recording ────────────────────────────────────────────────────────
@@ -270,19 +296,24 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     }
   }
 
-  const handleFiles = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFiles = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
+    if (fileInputRef.current) fileInputRef.current.value = ''
     if (!files.length) return
 
-    const next: PendingFile[] = files.map(f => ({
-      key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
-      file: f,
-      previewUrl: URL.createObjectURL(f),
-      kind: inferKind(f.type)
-    }))
-    setPending(prev => [...prev, ...next])
-
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    setProcessingFiles(true)
+    try {
+      const processed = await Promise.all(files.map(maybeCompressImage))
+      const next: PendingFile[] = processed.map(f => ({
+        key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
+        file: f,
+        previewUrl: URL.createObjectURL(f),
+        kind: inferKind(f.type)
+      }))
+      setPending(prev => [...prev, ...next])
+    } finally {
+      setProcessingFiles(false)
+    }
   }
 
   const removePending = (key: string) => {
@@ -570,10 +601,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 size='small'
                 component='label'
                 htmlFor='chat-attachment-input'
-                disabled={uploading}
+                disabled={uploading || processingFiles}
                 sx={{ mr: 1.5, color: 'text.primary' }}
               >
-                <Icon icon='mdi:attachment' fontSize='1.375rem' />
+                {processingFiles ? (
+                  <CircularProgress size={18} color='inherit' />
+                ) : (
+                  <Icon icon='mdi:attachment' fontSize='1.375rem' />
+                )}
                 <input
                   ref={fileInputRef}
                   hidden
@@ -587,7 +622,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 <Button
                   type='submit'
                   variant='contained'
-                  disabled={uploading}
+                  disabled={uploading || processingFiles}
                   startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : undefined}
                   sx={{ ml: 1.25 }}
                 >
