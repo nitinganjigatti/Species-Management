@@ -231,7 +231,7 @@ export class NotificationService {
         badge: '/branding/antz/Antz_logomark_h_color.svg'
       })
     } catch (error) {
-      console.error('[Notifications] Failed to send test:', error)
+      // Test notification failed
     }
   }
 }
