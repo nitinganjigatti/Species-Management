@@ -180,6 +180,12 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
           <AvatarUpload
             value={iconUrl ?? undefined}
             onChange={async (file, previewUrl) => {
+              if (!file) {
+                setIconUrl(null)
+                setIconFile(null)
+
+                return
+              }
               const compressed = await maybeCompressImage(file, ICON_COMPRESS_OPTIONS)
               const url = compressed === file ? previewUrl : URL.createObjectURL(compressed)
               setIconUrl(url)
