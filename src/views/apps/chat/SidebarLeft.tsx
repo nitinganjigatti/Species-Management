@@ -252,6 +252,41 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
         }
       }
 
+      // WhatsApp-style sender prefix for group chats — shows
+      // "Alice: hello" / "You: hello" in the sidebar so the user can tell
+      // at a glance who spoke last in a group. Skipped for:
+      //   • DMs (only one peer, prefix would be noise)
+      //   • System messages (e.g. "X created group Y" — self-describing)
+      //   • Deleted-for-everyone tombstones (matches WhatsApp behavior)
+      //
+      // Resolution order (most stable first):
+      //   1. `lastMessage.senderName` — snapshotted by the adapter from
+      //      the SDK message's `sender.displayName`. Survives contact-cache
+      //      churn (members leaving the group, etc.) — the name is on the
+      //      message itself.
+      //   2. Current user id match → "You: "
+      //   3. `store.contacts` lookup (last fallback for older messages
+      //      cached before senderName was captured).
+      let senderPrefix = ''
+      if (
+        isGroup &&
+        lastMessage &&
+        lastMessage.senderId &&
+        !lastMessage.isDeletedForEveryone &&
+        lastMessage.contentType !== 'system'
+      ) {
+        const senderIdStr = String(lastMessage.senderId)
+        const meIdStr = String(store?.userProfile?.id ?? '')
+        if (meIdStr && senderIdStr === meIdStr) {
+          senderPrefix = 'You: '
+        } else if (lastMessage.senderName) {
+          senderPrefix = `${lastMessage.senderName.split(' ')[0]}: `
+        } else {
+          const sender = store?.contacts?.find(c => String(c.id) === senderIdStr)
+          if (sender?.fullName) senderPrefix = `${sender.fullName.split(' ')[0]}: `
+        }
+      }
+
       return (
         <ListItem key={`chat-${chat.id}-${index}`} disablePadding sx={{ '&:not(:last-child)': { mb: 1.5 } }}>
           <ListItemButton
@@ -375,6 +410,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                       variant='body2'
                       sx={{ display: 'block', ...(!activeCondition && { color: 'text.disabled' }) }}
                     >
+                      {senderPrefix ? (
+                        <Box component='span' sx={{ fontWeight: 600 }}>
+                          {senderPrefix}
+                        </Box>
+                      ) : null}
                       {lastMessage.message}
                     </Typography>
                   ) : lastMessage.attachments?.length ? (
@@ -402,6 +442,11 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                         variant='body2'
                         sx={{ display: 'block', minWidth: 0, ...(!activeCondition && { color: 'text.disabled' }) }}
                       >
+                        {senderPrefix ? (
+                          <Box component='span' sx={{ fontWeight: 600 }}>
+                            {senderPrefix}
+                          </Box>
+                        ) : null}
                         {lastMessage.attachments[0].type === 'image'
                           ? 'Photo'
                           : lastMessage.attachments[0].type === 'video'

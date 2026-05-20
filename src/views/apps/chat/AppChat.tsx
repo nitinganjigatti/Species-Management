@@ -16,6 +16,7 @@ import {
   selectChat,
   fetchUserProfile,
   fetchChatsContacts,
+  enrichLastMessageSenders,
   removeSelectedChat,
   receiveMessage,
   setUnreadCount,
@@ -173,10 +174,15 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     if (!chatClient) return
 
     // Fetch profile first so `fetchChatsContacts` can use its id to identify
-    // the "other" participant in direct conversations.
+    // the "other" participant in direct conversations. Once the list lands,
+    // kick off `enrichLastMessageSenders` to fetch full message details for
+    // each group's lastMessage (the conv-list endpoint omits sender info,
+    // so the sidebar's "Saket: …" prefix can't resolve without this
+    // per-message lookup). Fire-and-forget; failures are silent.
     const run = async () => {
       await dispatch(fetchUserProfile({ fallbackAvatarUrl }))
-      dispatch(fetchChatsContacts())
+      await dispatch(fetchChatsContacts())
+      dispatch(enrichLastMessageSenders())
     }
     run()
   }, [chatClient, dispatch, fallbackAvatarUrl])

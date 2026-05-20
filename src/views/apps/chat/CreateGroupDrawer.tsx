@@ -35,6 +35,11 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
   const [name, setName] = useState<string>('')
   const [description, setDescription] = useState<string>('')
   const [iconUrl, setIconUrl] = useState<string | null>(null)
+  // Keep the picked File alongside the preview URL so the post-create
+  // step can call `client.uploadIcon(newGroupId, file)`. SDK expects an
+  // `UploadableFile` shape (uri/name/type/size); we build it here from
+  // the File at submit time so the blob URL stays alive through upload.
+  const [iconFile, setIconFile] = useState<File | null>(null)
   const [memberQuery, setMemberQuery] = useState<string>('')
   const [selectedIds, setSelectedIds] = useState<Set<ChatEntityId>>(new Set())
   const [selectedContacts, setSelectedContacts] = useState<Map<ChatEntityId, ContactType>>(new Map())
@@ -100,10 +105,23 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
 
   const handleCreate = () => {
     if (!canCreate) return
+    // Build the SDK's `UploadableFile` shape from the picked File so the
+    // thunk can call `client.uploadIcon(newGroupId, iconFile)` after the
+    // group is created. Without `name` the presigned-url request returns
+    // 400; mirrors the wrap we do in UserProfileRight for edit-icon.
+    const iconUploadable = iconFile
+      ? {
+          uri: URL.createObjectURL(iconFile),
+          name: iconFile.name,
+          type: iconFile.type,
+          size: iconFile.size
+        }
+      : undefined
     onCreate({
       name: name.trim(),
       description: description.trim() || undefined,
       icon: iconUrl ?? undefined,
+      iconFile: iconUploadable,
       participantIds: Array.from(selectedIds)
     })
   }
@@ -160,7 +178,10 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
         >
           <AvatarUpload
             value={iconUrl ?? undefined}
-            onChange={(_file, previewUrl) => setIconUrl(previewUrl)}
+            onChange={(file, previewUrl) => {
+              setIconUrl(previewUrl)
+              setIconFile(file)
+            }}
             placeholderLabel='Add icon'
             size={90}
           />
