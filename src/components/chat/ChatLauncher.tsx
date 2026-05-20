@@ -154,8 +154,8 @@ const ChatLauncher = () => {
         aria-label={open ? 'Close chat' : 'Open chat'}
         sx={{
           position: 'fixed',
-          bottom: 100,
-          right: 24,
+          bottom: '24px',
+          right: '24px',
           zIndex: 1201
         }}
       >
