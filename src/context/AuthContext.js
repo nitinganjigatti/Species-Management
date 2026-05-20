@@ -146,14 +146,15 @@ const AuthProvider = ({ children }) => {
           // Auto-enable push notifications after SSO login
           try {
             await notificationService.enablePushNotifications()
-            console.log('[AuthContext] Push notifications auto-enabled after SSO login')
           } catch (error) {
-            console.log('[AuthContext] Push notifications auto-enable failed (user may have denied permission):', error.message)
+            console.log(
+              '[AuthContext] Push notifications auto-enable failed (user may have denied permission):',
+              error.message
+            )
           }
 
           setLoading(false)
         } catch (err) {
-          console.error('SSO refresh: hydrate failed:', err)
           clearLocalState()
           setLoading(false)
           // Terminate the WSO2 session too, otherwise the next /authorize
@@ -285,11 +286,9 @@ const AuthProvider = ({ children }) => {
   }
 
   const logOutUser = async () => {
-    debugger
     // Cleanup push notifications before clearing localStorage
     try {
       const deviceId = localStorage.getItem('antz_device_id')
-      console.log('[Auth] Device ID at logout:', deviceId)
 
       // Always attempt cleanup (safe even without deviceId)
       await notificationService.disablePushNotifications()
@@ -408,7 +407,6 @@ const AuthProvider = ({ children }) => {
     } catch (err) {
       console.error('Failed to get device info:', err)
     }
-    console.log('device details for login:', deviceDetails)
 
     // Same-origin path — proxied to NEXT_PUBLIC_BASE_URL via next.config.js
     // rewrite (/api/:path* → ${backend}/api/:path*). Avoids CORS in dev.
@@ -455,7 +453,10 @@ const AuthProvider = ({ children }) => {
         await notificationService.enablePushNotifications()
         console.log('[AuthContext] Push notifications auto-enabled after login')
       } catch (error) {
-        console.log('[AuthContext] Push notifications auto-enable failed (user may have denied permission):', error.message)
+        console.log(
+          '[AuthContext] Push notifications auto-enable failed (user may have denied permission):',
+          error.message
+        )
       }
 
       loadLanguage(i18n.language || 'en-IN')
@@ -496,7 +497,6 @@ const AuthProvider = ({ children }) => {
     }
     try {
       const deviceId = localStorage.getItem('antz_device_id')
-      console.log('[Auth] Device ID at logout:', deviceId)
 
       // Always attempt cleanup (safe even without deviceId)
       await notificationService.disablePushNotifications()
