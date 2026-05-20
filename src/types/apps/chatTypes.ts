@@ -79,6 +79,14 @@ export type MessageType = {
   time: string | Date
   message: string
   senderId: ChatEntityId
+  /**
+   * Sender's display name snapshotted from the SDK message's `sender.displayName`
+   * when available. Used by the sidebar to render the WhatsApp-style
+   * "Saket: hello" prefix without depending on the global contacts cache
+   * (which can lose entries when a member leaves the group). Falls back to
+   * the contacts lookup, then to no prefix.
+   */
+  senderName?: string
   feedback: MsgFeedbackType
   attachments?: ChatAttachmentType[]
   contentType?: 'text' | 'attachment' | 'system'
@@ -162,12 +170,32 @@ export type ChatsArrType = {
    */
   editWindowSeconds?: number
   deleteWindowSeconds?: number
+  /**
+   * Creator of the conversation. Mirrors `Conversation.createdBy` from the
+   * SDK. Used by the sidebar to render a "X created group Y" preview when
+   * the server doesn't surface `lastMessage` for a freshly-created group.
+   */
+  createdBy?: ChatEntityId
 }
 
 export interface CreateGroupPayload {
   name: string
   description?: string
+  /**
+   * Local preview URL — UI-only, NOT sent to the server. SDK 1.0.6
+   * dropped `icon` from CreateGroupData; the icon now uploads in a
+   * separate step AFTER the group is created.
+   */
   icon?: string
+  /**
+   * SDK `UploadableFile` shape captured by the CreateGroupDrawer when the
+   * user picks an avatar. Used by `createGroupChat` to call
+   * `client.uploadIcon(groupId, iconFile)` ONLY after `createGroupConversation`
+   * has returned a real id — guarantees the icon attaches to the new
+   * group, not a half-created one. Mirrors the existing edit-group-icon
+   * flow in UserProfileRight.
+   */
+  iconFile?: { uri: string; name: string; type: string; size: number }
   participantIds: ChatEntityId[]
 }
 

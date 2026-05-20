@@ -670,6 +670,15 @@ export function sdkMessageToMessage(msg: Message): MessageType {
   // `message_deleted` socket event (not on REST re-fetch).
   const isDeletedForEveryone = msg.status === 'deleted'
 
+  // Snapshot the sender's display name from the SDK Message if it's there.
+  // The SDK populates `msg.sender.displayName` on most recently-returned
+  // messages; capturing it here means the sidebar's "Saket: hello" prefix
+  // doesn't depend on the global contacts cache (which can lose entries
+  // when a member leaves the group).
+  const senderName =
+    (msg as typeof msg & { sender?: { displayName?: string; username?: string } }).sender?.displayName ??
+    (msg as typeof msg & { sender?: { displayName?: string; username?: string } }).sender?.username
+
   return {
     id: msg.id,
     // Blank the body on tombstones so the rendered bubble matches what the
@@ -677,6 +686,7 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     message: isDeletedForEveryone ? '' : msg.content?.text ?? '',
     time,
     senderId: msg.senderId,
+    ...(senderName ? { senderName } : {}),
     feedback: {
       isSent: msg.status !== 'failed' && deliveryStatus !== 'failed',
       isDelivered: deliveryStatus === 'delivered' || deliveryStatus === 'read',
@@ -733,7 +743,26 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
 
   const avatar = isGroup ? conv.iconUrl ?? '' : other?.avatarUrl ?? ''
 
-  const lastMessage = conv.lastMessage ? sdkMessageToMessage(conv.lastMessage) : undefined
+  // Build lastMessage. Backfill `senderName` from the conversation's
+  // participants array when the server omits `sender.displayName` on the
+  // embedded message but we still have a `senderId` to look up.
+  //
+  // KNOWN BACKEND GAP: the `GET /conversations` list endpoint returns
+  // `lastMessage` with `senderId: ''` (empty string) and no `sender`
+  // object. We can't backfill without an id, so the sidebar's "Saket: …"
+  // prefix won't render on a cold hard-refresh. As soon as any new
+  // message arrives via the `new_message` socket event, `receiveMessage`
+  // stores the proper senderId/senderName and the prefix appears for
+  // that conv. File with chat-core team to include sender details on
+  // conversation-list responses for a full fix.
+  let lastMessage = conv.lastMessage ? sdkMessageToMessage(conv.lastMessage) : undefined
+  if (lastMessage && !lastMessage.senderName && lastMessage.senderId) {
+    const senderInList = rawParticipants.find(p => String(p.userId) === String(lastMessage!.senderId))
+    const resolvedName = senderInList?.displayName || senderInList?.username
+    if (resolvedName) {
+      lastMessage = { ...lastMessage, senderName: resolvedName }
+    }
+  }
 
   // Full participants list (incl. isActive=false) so callers can distinguish
   // "removed from group" from "never a member". DMs don't carry isActive
@@ -774,6 +803,9 @@ export function sdkConversationToChat(conv: Conversation, currentUserId: ChatEnt
     // everyone menu items once the window expires.
     editWindowSeconds: conv.settings?.messageConfig?.editWindowSeconds,
     deleteWindowSeconds: conv.settings?.messageConfig?.deleteWindowSeconds,
+    // Creator id — used by the sidebar to resolve the creator's display
+    // name from `state.chat.contacts` when no real lastMessage exists.
+    createdBy: conv.createdBy,
     chat: {
       id: conv.id,
       unseenMsgs: conv.unreadCount ?? 0,

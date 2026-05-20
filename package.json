@@ -12,7 +12,7 @@
     "build:icons": "node src/iconify-bundle/bundle-icons-react.js"
   },
   "dependencies": {
-    "@antzsoft/chat-core": "^1.1.1",
+    "@antzsoft/chat-core": "^1.1.2",
     "@antzsoft/wso2-auth-web": "^1.4.5",
     "@babel/core": "^7.27.1",
     "@babel/eslint-parser": "7.21.3",
@@ -39,6 +39,7 @@
     "apexcharts-clevision": "3.28.5",
     "axios": "1.13.5",
     "bootstrap-icons": "1.10.3",
+    "browser-image-compression": "^2.0.2",
     "chart.js": "4.2.1",
     "clipboard-copy": "4.0.1",
     "clsx": "1.2.1",

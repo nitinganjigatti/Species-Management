@@ -116,11 +116,14 @@ export function useChatClient(): UseChatClientResult {
       avatar: { url: avatarUrl }
     } as Parameters<typeof connectSocket>[0]
 
-    connectSocket(resolvedSocketConfig, getAccessToken).catch(setError)
-
-    const s = getSocket()
-    setSocket(s)
-    const detachLifecycleLogs = attachSocketLifecycleLogs(s)
+    // SDK's `connectSocket` is async — it does `fetchServerKeys` BEFORE
+    // creating the socket (`_socket = io(...)` runs at the end of the
+    // async function in the SDK). Calling `getSocket()` synchronously on
+    // the next line throws `"Socket not initialized. Call connectSocket
+    // first."` because the socket truly isn't there yet. Attach listeners
+    // only after the connect Promise resolves. `cancelled` + nullable
+    // refs let the cleanup function detach safely even if the effect
+    // re-runs before the connect resolves.
 
     const onConnect = () => {
       setConnected(true)
@@ -133,17 +136,33 @@ export function useChatClient(): UseChatClientResult {
     const onDisconnect = () => setConnected(false)
     const onReconnect = () => setConnected(true)
 
-    s.on('connect', onConnect)
-    s.on('connect_error', onConnectError)
-    s.on('disconnect', onDisconnect)
-    s.io?.on?.('reconnect', onReconnect)
+    let s: ChatSocket | null = null
+    let detachLifecycleLogs: (() => void) | null = null
+    let cancelled = false
+
+    connectSocket(resolvedSocketConfig, getAccessToken)
+      .then(() => {
+        if (cancelled) return
+        s = getSocket()
+        setSocket(s)
+        detachLifecycleLogs = attachSocketLifecycleLogs(s)
+
+        s.on('connect', onConnect)
+        s.on('connect_error', onConnectError)
+        s.on('disconnect', onDisconnect)
+        s.io?.on?.('reconnect', onReconnect)
+      })
+      .catch(setError)
 
     return () => {
-      s.off('connect', onConnect)
-      s.off('connect_error', onConnectError)
-      s.off('disconnect', onDisconnect)
-      s.io?.off?.('reconnect', onReconnect)
-      detachLifecycleLogs()
+      cancelled = true
+      if (s) {
+        s.off('connect', onConnect)
+        s.off('connect_error', onConnectError)
+        s.off('disconnect', onDisconnect)
+        s.io?.off?.('reconnect', onReconnect)
+      }
+      detachLifecycleLogs?.()
       disconnectSocket()
       disposeChatClient()
       setConnected(false)

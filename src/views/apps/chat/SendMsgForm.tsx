@@ -17,6 +17,7 @@ import { SendMsgComponentType } from 'src/types/apps/chatTypes'
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
 import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
+import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 import { setReplyingTo, setEditingMessage } from 'src/store/apps/chat'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
@@ -80,6 +81,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const [msg, setMsg] = useState<string>('')
   const [pending, setPending] = useState<PendingFile[]>([])
   const [uploading, setUploading] = useState(false)
+  const [processingFiles, setProcessingFiles] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   // ── Audio recording ────────────────────────────────────────────────────────
@@ -270,19 +272,24 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     }
   }
 
-  const handleFiles = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleFiles = async (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
+    if (fileInputRef.current) fileInputRef.current.value = ''
     if (!files.length) return
 
-    const next: PendingFile[] = files.map(f => ({
-      key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
-      file: f,
-      previewUrl: URL.createObjectURL(f),
-      kind: inferKind(f.type)
-    }))
-    setPending(prev => [...prev, ...next])
-
-    if (fileInputRef.current) fileInputRef.current.value = ''
+    setProcessingFiles(true)
+    try {
+      const processed = await Promise.all(files.map(f => maybeCompressImage(f)))
+      const next: PendingFile[] = processed.map(f => ({
+        key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
+        file: f,
+        previewUrl: URL.createObjectURL(f),
+        kind: inferKind(f.type)
+      }))
+      setPending(prev => [...prev, ...next])
+    } finally {
+      setProcessingFiles(false)
+    }
   }
 
   const removePending = (key: string) => {
@@ -570,10 +577,14 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 size='small'
                 component='label'
                 htmlFor='chat-attachment-input'
-                disabled={uploading}
+                disabled={uploading || processingFiles}
                 sx={{ mr: 1.5, color: 'text.primary' }}
               >
-                <Icon icon='mdi:attachment' fontSize='1.375rem' />
+                {processingFiles ? (
+                  <CircularProgress size={18} color='inherit' />
+                ) : (
+                  <Icon icon='mdi:attachment' fontSize='1.375rem' />
+                )}
                 <input
                   ref={fileInputRef}
                   hidden
@@ -587,7 +598,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 <Button
                   type='submit'
                   variant='contained'
-                  disabled={uploading}
+                  disabled={uploading || processingFiles}
                   startIcon={uploading ? <CircularProgress size={16} color='inherit' /> : undefined}
                   sx={{ ml: 1.25 }}
                 >
