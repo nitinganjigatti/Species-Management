@@ -118,7 +118,7 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
           display: 'flex',
           alignItems: 'center',
           px: 3,
-          py: 2.5,
+          py: 3.5,
           borderBottom: theme => `1px solid ${theme.palette.divider}`,
           gap: 2
         }}

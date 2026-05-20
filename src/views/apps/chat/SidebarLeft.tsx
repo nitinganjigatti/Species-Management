@@ -478,7 +478,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
             <Box
               sx={{
                 px: 4,
-                py: 3,
+                py: 3.5,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',

@@ -457,556 +457,556 @@ const UserProfileRight = (props: UserProfileRightType) => {
       {store && store.selectedChat && isGroup && addingMembers ? (
         <Fragment>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Header */}
-          <Box
-            sx={{
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              px: 3,
-              py: 2.5,
-              borderBottom: theme => `1px solid ${theme.palette.divider}`,
-              gap: 2
-            }}
-          >
-            <IconButton size='small' onClick={cancelAddMembers} sx={{ color: 'text.secondary' }}>
-              <Icon icon='mdi:arrow-left' fontSize='1.25rem' />
-            </IconButton>
-            <Typography sx={{ flex: 1, fontWeight: 600, fontSize: '1rem' }}>Add members</Typography>
-            {selectedToAdd.size > 0 && (
-              <Box
-                sx={{
-                  px: 1.5,
-                  py: 0.25,
-                  borderRadius: 10,
-                  backgroundColor: 'customColors.Surface',
-                  border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
-                }}
-              >
-                <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'primary.dark' }}>
-                  {selectedToAdd.size} added
-                </Typography>
-              </Box>
-            )}
-          </Box>
-
-          {/* Body */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <Box sx={{ px: 4, pt: 3, pb: 2 }}>
-              <TextField
-                fullWidth
-                size='small'
-                autoFocus
-                value={addQuery}
-                onChange={e => setAddQuery(e.target.value)}
-                placeholder='Search people'
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mdi:magnify' fontSize='1.125rem' />
-                      </InputAdornment>
-                    )
-                  }
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 6,
-                    backgroundColor: 'customColors.Surface'
-                  }
-                }}
-              />
-            </Box>
-
-            <Box sx={{ flex: 1, overflowY: 'auto' }}>
-              {searching && addableContacts.length === 0 ? (
-                <Box sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                    Searching…
+            {/* Header */}
+            <Box
+              sx={{
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                px: 3,
+                py: 3.5,
+                borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                gap: 2
+              }}
+            >
+              <IconButton size='small' onClick={cancelAddMembers} sx={{ color: 'text.secondary' }}>
+                <Icon icon='mdi:arrow-left' fontSize='1.25rem' />
+              </IconButton>
+              <Typography sx={{ flex: 1, fontWeight: 600, fontSize: '1rem' }}>Add members</Typography>
+              {selectedToAdd.size > 0 && (
+                <Box
+                  sx={{
+                    px: 1.5,
+                    py: 0.25,
+                    borderRadius: 10,
+                    backgroundColor: 'customColors.Surface',
+                    border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`
+                  }}
+                >
+                  <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'primary.dark' }}>
+                    {selectedToAdd.size} added
                   </Typography>
                 </Box>
-              ) : addableContacts.length === 0 ? (
-                <Box sx={{ p: 4, textAlign: 'center' }}>
-                  <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                    {addQuery.trim() ? 'No people found' : 'No more users to add'}
-                  </Typography>
-                </Box>
-              ) : (
-                <List disablePadding>
-                  {addableContacts.map((c, index) => {
-                    const isSelected = selectedToAdd.has(c.id)
-
-                    return (
-                      <Box key={c.id}>
-                        <ListItem disablePadding>
-                          <ListItemButton
-                            onClick={() => toggleAddMember(c.id)}
-                            sx={{ px: 4, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
-                          >
-                            <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                              {c.avatar ? (
-                                <MuiAvatar src={c.avatar} alt={c.fullName} sx={{ width: 42, height: 42 }} />
-                              ) : (
-                                <CustomAvatar
-                                  skin='light'
-                                  color={c.avatarColor}
-                                  sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
-                                >
-                                  {getInitials(c.fullName)}
-                                </CustomAvatar>
-                              )}
-                              {isSelected && (
-                                <Box
-                                  sx={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    borderRadius: '50%',
-                                    backgroundColor: 'primary.main',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                  }}
-                                >
-                                  <Icon icon='mdi:check' fontSize='1.125rem' color='white' />
-                                </Box>
-                              )}
-                            </Box>
-                            <ListItemText
-                              primary={
-                                <Typography
-                                  variant='body2'
-                                  sx={{ fontWeight: isSelected ? 600 : 400, color: 'customColors.OnSurfaceVariant' }}
-                                >
-                                  {c.fullName}
-                                </Typography>
-                              }
-                            />
-                            {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='primary.main' />}
-                          </ListItemButton>
-                        </ListItem>
-                        {index < addableContacts.length - 1 && (
-                          <Divider sx={{ ml: '76px', borderColor: 'customColors.OnBackground' }} />
-                        )}
-                      </Box>
-                    )
-                  })}
-                </List>
               )}
             </Box>
-          </Box>
 
-          {/* Footer */}
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 2,
-              p: theme => theme.spacing(3, 4),
-              borderTop: theme => `1px solid ${theme.palette.divider}`
-            }}
-          >
-            <Button variant='outlined' color='inherit' fullWidth onClick={cancelAddMembers}>
-              Cancel
-            </Button>
-            <Button variant='contained' fullWidth disabled={selectedToAdd.size === 0} onClick={confirmAddMembers}>
-              {selectedToAdd.size > 0 ? `Add (${selectedToAdd.size})` : 'Add'}
-            </Button>
-          </Box>
+            {/* Body */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <Box sx={{ px: 4, pt: 3, pb: 2 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  autoFocus
+                  value={addQuery}
+                  onChange={e => setAddQuery(e.target.value)}
+                  placeholder='Search people'
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mdi:magnify' fontSize='1.125rem' />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 6,
+                      backgroundColor: 'customColors.Surface'
+                    }
+                  }}
+                />
+              </Box>
+
+              <Box sx={{ flex: 1, overflowY: 'auto' }}>
+                {searching && addableContacts.length === 0 ? (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography variant='caption' sx={{ color: 'text.disabled' }}>
+                      Searching…
+                    </Typography>
+                  </Box>
+                ) : addableContacts.length === 0 ? (
+                  <Box sx={{ p: 4, textAlign: 'center' }}>
+                    <Typography variant='caption' sx={{ color: 'text.disabled' }}>
+                      {addQuery.trim() ? 'No people found' : 'No more users to add'}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <List disablePadding>
+                    {addableContacts.map((c, index) => {
+                      const isSelected = selectedToAdd.has(c.id)
+
+                      return (
+                        <Box key={c.id}>
+                          <ListItem disablePadding>
+                            <ListItemButton
+                              onClick={() => toggleAddMember(c.id)}
+                              sx={{ px: 4, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
+                            >
+                              <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                                {c.avatar ? (
+                                  <MuiAvatar src={c.avatar} alt={c.fullName} sx={{ width: 42, height: 42 }} />
+                                ) : (
+                                  <CustomAvatar
+                                    skin='light'
+                                    color={c.avatarColor}
+                                    sx={{ width: 42, height: 42, fontSize: '0.875rem' }}
+                                  >
+                                    {getInitials(c.fullName)}
+                                  </CustomAvatar>
+                                )}
+                                {isSelected && (
+                                  <Box
+                                    sx={{
+                                      position: 'absolute',
+                                      inset: 0,
+                                      borderRadius: '50%',
+                                      backgroundColor: 'primary.main',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                  >
+                                    <Icon icon='mdi:check' fontSize='1.125rem' color='white' />
+                                  </Box>
+                                )}
+                              </Box>
+                              <ListItemText
+                                primary={
+                                  <Typography
+                                    variant='body2'
+                                    sx={{ fontWeight: isSelected ? 600 : 400, color: 'customColors.OnSurfaceVariant' }}
+                                  >
+                                    {c.fullName}
+                                  </Typography>
+                                }
+                              />
+                              {isSelected && <Icon icon='mdi:check-circle' fontSize='1.25rem' color='primary.main' />}
+                            </ListItemButton>
+                          </ListItem>
+                          {index < addableContacts.length - 1 && (
+                            <Divider sx={{ ml: '76px', borderColor: 'customColors.OnBackground' }} />
+                          )}
+                        </Box>
+                      )
+                    })}
+                  </List>
+                )}
+              </Box>
+            </Box>
+
+            {/* Footer */}
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2,
+                p: theme => theme.spacing(3, 4),
+                borderTop: theme => `1px solid ${theme.palette.divider}`
+              }}
+            >
+              <Button variant='outlined' color='inherit' fullWidth onClick={cancelAddMembers}>
+                Cancel
+              </Button>
+              <Button variant='contained' fullWidth disabled={selectedToAdd.size === 0} onClick={confirmAddMembers}>
+                {selectedToAdd.size > 0 ? `Add (${selectedToAdd.size})` : 'Add'}
+              </Button>
+            </Box>
           </Box>
         </Fragment>
       ) : store && store.selectedChat && isGroup ? (
         <Fragment>
           <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          {/* Header */}
-          <Box
-            sx={{
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              px: 3,
-              py: 2.5,
-              borderBottom: theme => `1px solid ${theme.palette.divider}`,
-              gap: 2
-            }}
-          >
-            <Typography sx={{ flex: 1, fontWeight: 600, fontSize: '1rem' }}>Group info</Typography>
-            <IconButton size='small' onClick={handleUserProfileRightSidebarToggle} sx={{ color: 'text.secondary' }}>
-              <Icon icon='mdi:close' fontSize='1.25rem' />
-            </IconButton>
-          </Box>
-
-          {/* Body */}
-          <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            {/* Identity block — side by side */}
+            {/* Header */}
             <Box
               sx={{
+                flexShrink: 0,
                 display: 'flex',
-                flexDirection: 'row',
                 alignItems: 'center',
-                px: 4,
-                pt: 3,
-                pb: 3,
-                gap: 3,
-                borderBottom: theme => `1px solid ${theme.palette.divider}`
+                px: 3,
+                py: 3.5,
+                borderBottom: theme => `1px solid ${theme.palette.divider}`,
+                gap: 2
               }}
             >
-              {/* Avatar */}
-              <Box sx={{ flexShrink: 0, position: 'relative' }}>
-                {store.selectedChat.contact.avatar ? (
-                  <MuiAvatar
-                    src={store.selectedChat.contact.avatar}
-                    alt={store.selectedChat.contact.fullName}
-                    sx={{ width: 80, height: 80 }}
-                  />
-                ) : (
-                  <CustomAvatar skin='light' color='primary' sx={{ width: 80, height: 80, fontSize: '1.75rem' }}>
-                    {getInitials(store.selectedChat.contact.fullName)}
-                  </CustomAvatar>
-                )}
-                {isCurrentUserAdmin && (
-                  <>
-                    {/* Camera — opens hidden file picker for group icon upload. */}
-                    <IconButton
-                      size='small'
-                      onClick={handleOpenIconPicker}
-                      disabled={uploadingIcon}
-                      aria-label='Change group icon'
-                      sx={{
-                        position: 'absolute',
-                        bottom: -2,
-                        right: -2,
-                        width: 26,
-                        height: 26,
-                        backgroundColor: 'primary.main',
-                        color: 'common.white',
-                        border: '2px solid white',
-                        '&:hover': { backgroundColor: 'primary.dark' },
-                        '&.Mui-disabled': { backgroundColor: 'primary.main', opacity: 0.6, color: 'common.white' }
-                      }}
-                    >
-                      <Icon icon={uploadingIcon ? 'mdi:loading' : 'mdi:camera'} fontSize='0.85rem' />
-                    </IconButton>
-                    <input
-                      ref={iconFileInputRef}
-                      type='file'
-                      accept='image/*'
-                      onChange={handleIconFileSelected}
-                      style={{ display: 'none' }}
+              <Typography sx={{ flex: 1, fontWeight: 600, fontSize: '1rem' }}>Group info</Typography>
+              <IconButton size='small' onClick={handleUserProfileRightSidebarToggle} sx={{ color: 'text.secondary' }}>
+                <Icon icon='mdi:close' fontSize='1.25rem' />
+              </IconButton>
+            </Box>
+
+            {/* Body */}
+            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              {/* Identity block — side by side */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  px: 4,
+                  pt: 3,
+                  pb: 3,
+                  gap: 3,
+                  borderBottom: theme => `1px solid ${theme.palette.divider}`
+                }}
+              >
+                {/* Avatar */}
+                <Box sx={{ flexShrink: 0, position: 'relative' }}>
+                  {store.selectedChat.contact.avatar ? (
+                    <MuiAvatar
+                      src={store.selectedChat.contact.avatar}
+                      alt={store.selectedChat.contact.fullName}
+                      sx={{ width: 80, height: 80 }}
                     />
-                  </>
+                  ) : (
+                    <CustomAvatar skin='light' color='primary' sx={{ width: 80, height: 80, fontSize: '1.75rem' }}>
+                      {getInitials(store.selectedChat.contact.fullName)}
+                    </CustomAvatar>
+                  )}
+                  {isCurrentUserAdmin && (
+                    <>
+                      {/* Camera — opens hidden file picker for group icon upload. */}
+                      <IconButton
+                        size='small'
+                        onClick={handleOpenIconPicker}
+                        disabled={uploadingIcon}
+                        aria-label='Change group icon'
+                        sx={{
+                          position: 'absolute',
+                          bottom: -2,
+                          right: -2,
+                          width: 26,
+                          height: 26,
+                          backgroundColor: 'primary.main',
+                          color: 'common.white',
+                          border: '2px solid white',
+                          '&:hover': { backgroundColor: 'primary.dark' },
+                          '&.Mui-disabled': { backgroundColor: 'primary.main', opacity: 0.6, color: 'common.white' }
+                        }}
+                      >
+                        <Icon icon={uploadingIcon ? 'mdi:loading' : 'mdi:camera'} fontSize='0.85rem' />
+                      </IconButton>
+                      <input
+                        ref={iconFileInputRef}
+                        type='file'
+                        accept='image/*'
+                        onChange={handleIconFileSelected}
+                        style={{ display: 'none' }}
+                      />
+                    </>
+                  )}
+                </Box>
+
+                {/* Name + description */}
+                {isEditing ? (
+                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <TextField
+                      fullWidth
+                      variant='standard'
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      placeholder='Group name'
+                      autoFocus
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon icon='mdi:pencil-outline' fontSize='1rem' color='inherit' />
+                            </InputAdornment>
+                          ),
+                          inputProps: { maxLength: 50 }
+                        }
+                      }}
+                      sx={{
+                        '& .MuiInput-root': { fontSize: '1rem', fontWeight: 500 },
+                        '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
+                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                          borderBottomColor: 'customColors.Outline'
+                        }
+                      }}
+                    />
+                    <TextField
+                      fullWidth
+                      variant='standard'
+                      value={editDescription}
+                      onChange={e => setEditDescription(e.target.value)}
+                      placeholder='Description (optional)'
+                      slotProps={{
+                        input: {
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon icon='mdi:text' fontSize='1rem' color='inherit' />
+                            </InputAdornment>
+                          ),
+                          inputProps: { maxLength: 200 }
+                        }
+                      }}
+                      sx={{
+                        '& .MuiInput-root': { fontSize: '0.875rem' },
+                        '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
+                        '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                          borderBottomColor: 'customColors.Outline'
+                        }
+                      }}
+                    />
+                    <Box sx={{ display: 'flex', gap: 1.5, mt: 0.5 }}>
+                      <Button variant='outlined' size='small' color='inherit' onClick={cancelEditGroup}>
+                        Cancel
+                      </Button>
+                      <Button variant='contained' size='small' onClick={saveEditGroup}>
+                        Save
+                      </Button>
+                    </Box>
+                  </Box>
+                ) : (
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '1rem',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {store.selectedChat.contact.fullName}
+                      </Typography>
+                      {isCurrentUserAdmin && (
+                        <IconButton size='small' onClick={openEditGroup} sx={{ flexShrink: 0 }}>
+                          <Icon icon='mdi:pencil-outline' fontSize='0.9rem' />
+                        </IconButton>
+                      )}
+                    </Box>
+                    <Typography variant='caption' sx={{ color: 'text.disabled' }}>
+                      {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
+                    </Typography>
+                    {store.selectedChat.contact.description && (
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          color: 'text.secondary',
+                          mt: 0.5,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}
+                      >
+                        {store.selectedChat.contact.description}
+                      </Typography>
+                    )}
+                  </Box>
                 )}
               </Box>
 
-              {/* Name + description */}
-              {isEditing ? (
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <TextField
-                    fullWidth
-                    variant='standard'
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    placeholder='Group name'
-                    autoFocus
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mdi:pencil-outline' fontSize='1rem' color='inherit' />
-                          </InputAdornment>
-                        ),
-                        inputProps: { maxLength: 50 }
-                      }
-                    }}
-                    sx={{
-                      '& .MuiInput-root': { fontSize: '1rem', fontWeight: 500 },
-                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
-                      '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
-                        borderBottomColor: 'customColors.Outline'
-                      }
-                    }}
-                  />
-                  <TextField
-                    fullWidth
-                    variant='standard'
-                    value={editDescription}
-                    onChange={e => setEditDescription(e.target.value)}
-                    placeholder='Description (optional)'
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mdi:text' fontSize='1rem' color='inherit' />
-                          </InputAdornment>
-                        ),
-                        inputProps: { maxLength: 200 }
-                      }
-                    }}
-                    sx={{
-                      '& .MuiInput-root': { fontSize: '0.875rem' },
-                      '& .MuiInput-underline:before': { borderBottomColor: 'customColors.SurfaceVariant' },
-                      '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
-                        borderBottomColor: 'customColors.Outline'
-                      }
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', gap: 1.5, mt: 0.5 }}>
-                    <Button variant='outlined' size='small' color='inherit' onClick={cancelEditGroup}>
-                      Cancel
-                    </Button>
-                    <Button variant='contained' size='small' onClick={saveEditGroup}>
-                      Save
-                    </Button>
-                  </Box>
-                </Box>
-              ) : (
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap'
-                      }}
-                    >
-                      {store.selectedChat.contact.fullName}
-                    </Typography>
-                    {isCurrentUserAdmin && (
-                      <IconButton size='small' onClick={openEditGroup} sx={{ flexShrink: 0 }}>
-                        <Icon icon='mdi:pencil-outline' fontSize='0.9rem' />
-                      </IconButton>
-                    )}
-                  </Box>
-                  <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                    {groupMembers.length} {groupMembers.length === 1 ? 'member' : 'members'}
+              {/* Scrollable content */}
+              <Box sx={{ flex: 1, overflowY: 'auto', px: 4, pb: 4 }}>
+                {/* Members */}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 1.5 }}>
+                  <Typography
+                    variant='caption'
+                    sx={{ textTransform: 'uppercase', fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}
+                  >
+                    Members ({groupMembers.length})
                   </Typography>
-                  {store.selectedChat.contact.description && (
+                  {isCurrentUserAdmin && (
                     <Typography
-                      variant='body2'
+                      component='button'
+                      onClick={openAddMembers}
                       sx={{
-                        color: 'text.secondary',
-                        mt: 0.5,
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: '0.8125rem',
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        '&:hover': { color: 'primary.dark' }
                       }}
                     >
-                      {store.selectedChat.contact.description}
+                      <Icon icon='mdi:account-plus-outline' fontSize='1rem' />
+                      Add
                     </Typography>
                   )}
                 </Box>
-              )}
-            </Box>
+                <List disablePadding sx={{ mb: 4 }}>
+                  {groupMembers.map((m, index) => (
+                    <Box key={m.id}>
+                      <ListItem disablePadding>
+                        <ListItemButton
+                          sx={{ px: 0, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
+                        >
+                          <Box sx={{ flexShrink: 0 }}>
+                            {m.avatar ? (
+                              <MuiAvatar src={m.avatar} alt={m.fullName} sx={{ width: 40, height: 40 }} />
+                            ) : (
+                              <CustomAvatar
+                                skin='light'
+                                color={m.avatarColor}
+                                sx={{ width: 40, height: 40, fontSize: '0.875rem' }}
+                              >
+                                {getInitials(m.fullName)}
+                              </CustomAvatar>
+                            )}
+                          </Box>
+                          <ListItemText
+                            primary={
+                              <Typography
+                                variant='body2'
+                                sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}
+                              >
+                                {m.fullName}
+                                {m.isYou && (
+                                  <Typography
+                                    component='span'
+                                    sx={{ color: 'text.disabled', ml: 1, fontSize: '0.8125rem' }}
+                                  >
+                                    (You)
+                                  </Typography>
+                                )}
+                              </Typography>
+                            }
+                          />
+                          {m.isAdmin && (
+                            <Box
+                              sx={{
+                                px: 1.5,
+                                py: 0.25,
+                                borderRadius: 9999,
+                                backgroundColor: 'customColors.Surface',
+                                border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
+                                fontSize: '0.6875rem',
+                                fontWeight: 600,
+                                color: 'primary.dark',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              Admin
+                            </Box>
+                          )}
+                          {isCurrentUserAdmin && !m.isYou && (
+                            <IconButton
+                              size='small'
+                              edge='end'
+                              onClick={e => openMemberMenu(e, { id: m.id, isAdmin: m.isAdmin, fullName: m.fullName })}
+                            >
+                              <Icon icon='mdi:dots-vertical' fontSize='1.125rem' />
+                            </IconButton>
+                          )}
+                        </ListItemButton>
+                      </ListItem>
+                      {index < groupMembers.length - 1 && (
+                        <Divider sx={{ ml: '58px', borderColor: 'customColors.OnBackground' }} />
+                      )}
+                    </Box>
+                  ))}
+                </List>
 
-            {/* Scrollable content */}
-            <Box sx={{ flex: 1, overflowY: 'auto', px: 4, pb: 4 }}>
-              {/* Members */}
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pt: 3, pb: 1.5 }}>
+                {/* Group actions */}
                 <Typography
                   variant='caption'
-                  sx={{ textTransform: 'uppercase', fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}
+                  sx={{
+                    display: 'block',
+                    mb: 1,
+                    textTransform: 'uppercase',
+                    fontWeight: 600,
+                    color: 'customColors.OnSurfaceVariant'
+                  }}
                 >
-                  Members ({groupMembers.length})
+                  Group actions
                 </Typography>
-                {isCurrentUserAdmin && (
-                  <Typography
-                    component='button'
-                    onClick={openAddMembers}
-                    sx={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      fontSize: '0.8125rem',
-                      fontWeight: 600,
-                      color: 'primary.main',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      '&:hover': { color: 'primary.dark' }
-                    }}
+                <List dense sx={{ p: 0, mb: 4 }}>
+                  <ListItem
+                    disablePadding
+                    secondaryAction={
+                      <Switch
+                        edge='end'
+                        size='small'
+                        checked={isMuted}
+                        onChange={e => {
+                          if (currentGroupId === null) return
+                          if (e.target.checked) dispatch(muteConversation({ chatId: currentGroupId }))
+                          else dispatch(unmuteConversation(currentGroupId))
+                        }}
+                      />
+                    }
                   >
-                    <Icon icon='mdi:account-plus-outline' fontSize='1rem' />
-                    Add
+                    <ListItemButton sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ mr: 2 }}>
+                        <Icon icon='mdi:bell-off-outline' fontSize='1.25rem' />
+                      </ListItemIcon>
+                      <ListItemText secondary='Mute notifications' />
+                    </ListItemButton>
+                  </ListItem>
+                  <ListItem
+                    disablePadding
+                    secondaryAction={
+                      <Switch
+                        edge='end'
+                        size='small'
+                        checked={isPinned}
+                        onChange={e => {
+                          if (currentGroupId === null) return
+                          if (e.target.checked) dispatch(pinConversation(currentGroupId))
+                          else dispatch(unpinConversation(currentGroupId))
+                        }}
+                      />
+                    }
+                  >
+                    <ListItemButton sx={{ px: 0 }}>
+                      <ListItemIcon sx={{ mr: 2 }}>
+                        <Icon icon='mdi:pin-outline' fontSize='1.25rem' />
+                      </ListItemIcon>
+                      <ListItemText secondary='Pin to top' />
+                    </ListItemButton>
+                  </ListItem>
+                </List>
+
+                {/* Danger zone */}
+                {isCurrentUserActive || isCurrentUserAdmin ? (
+                  <Typography
+                    variant='caption'
+                    sx={{ display: 'block', mb: 1, textTransform: 'uppercase', fontWeight: 600, color: 'error.main' }}
+                  >
+                    Danger zone
                   </Typography>
-                )}
-              </Box>
-              <List disablePadding sx={{ mb: 4 }}>
-                {groupMembers.map((m, index) => (
-                  <Box key={m.id}>
+                ) : null}
+                <List dense sx={{ p: 0 }}>
+                  {isCurrentUserActive ? (
                     <ListItem disablePadding>
-                      <ListItemButton
-                        sx={{ px: 0, py: 1.5, gap: 3, '&:hover': { backgroundColor: 'customColors.Surface' } }}
-                      >
-                        <Box sx={{ flexShrink: 0 }}>
-                          {m.avatar ? (
-                            <MuiAvatar src={m.avatar} alt={m.fullName} sx={{ width: 40, height: 40 }} />
-                          ) : (
-                            <CustomAvatar
-                              skin='light'
-                              color={m.avatarColor}
-                              sx={{ width: 40, height: 40, fontSize: '0.875rem' }}
-                            >
-                              {getInitials(m.fullName)}
-                            </CustomAvatar>
-                          )}
-                        </Box>
+                      <ListItemButton sx={{ px: 0 }} onClick={handleLeaveGroup}>
+                        <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
+                          <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
+                        </ListItemIcon>
                         <ListItemText
-                          primary={
-                            <Typography
-                              variant='body2'
-                              sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}
-                            >
-                              {m.fullName}
-                              {m.isYou && (
-                                <Typography
-                                  component='span'
-                                  sx={{ color: 'text.disabled', ml: 1, fontSize: '0.8125rem' }}
-                                >
-                                  (You)
-                                </Typography>
-                              )}
-                            </Typography>
+                          secondary={
+                            <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Leave group</Typography>
                           }
                         />
-                        {m.isAdmin && (
-                          <Box
-                            sx={{
-                              px: 1.5,
-                              py: 0.25,
-                              borderRadius: 9999,
-                              backgroundColor: 'customColors.Surface',
-                              border: theme => `1px solid ${theme.palette.customColors.SurfaceVariant}`,
-                              fontSize: '0.6875rem',
-                              fontWeight: 600,
-                              color: 'primary.dark',
-                              textTransform: 'uppercase',
-                              letterSpacing: '0.04em',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            Admin
-                          </Box>
-                        )}
-                        {isCurrentUserAdmin && !m.isYou && (
-                          <IconButton
-                            size='small'
-                            edge='end'
-                            onClick={e => openMemberMenu(e, { id: m.id, isAdmin: m.isAdmin, fullName: m.fullName })}
-                          >
-                            <Icon icon='mdi:dots-vertical' fontSize='1.125rem' />
-                          </IconButton>
-                        )}
                       </ListItemButton>
                     </ListItem>
-                    {index < groupMembers.length - 1 && (
-                      <Divider sx={{ ml: '58px', borderColor: 'customColors.OnBackground' }} />
-                    )}
-                  </Box>
-                ))}
-              </List>
-
-              {/* Group actions */}
-              <Typography
-                variant='caption'
-                sx={{
-                  display: 'block',
-                  mb: 1,
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  color: 'customColors.OnSurfaceVariant'
-                }}
-              >
-                Group actions
-              </Typography>
-              <List dense sx={{ p: 0, mb: 4 }}>
-                <ListItem
-                  disablePadding
-                  secondaryAction={
-                    <Switch
-                      edge='end'
-                      size='small'
-                      checked={isMuted}
-                      onChange={e => {
-                        if (currentGroupId === null) return
-                        if (e.target.checked) dispatch(muteConversation({ chatId: currentGroupId }))
-                        else dispatch(unmuteConversation(currentGroupId))
-                      }}
-                    />
-                  }
-                >
-                  <ListItemButton sx={{ px: 0 }}>
-                    <ListItemIcon sx={{ mr: 2 }}>
-                      <Icon icon='mdi:bell-off-outline' fontSize='1.25rem' />
-                    </ListItemIcon>
-                    <ListItemText secondary='Mute notifications' />
-                  </ListItemButton>
-                </ListItem>
-                <ListItem
-                  disablePadding
-                  secondaryAction={
-                    <Switch
-                      edge='end'
-                      size='small'
-                      checked={isPinned}
-                      onChange={e => {
-                        if (currentGroupId === null) return
-                        if (e.target.checked) dispatch(pinConversation(currentGroupId))
-                        else dispatch(unpinConversation(currentGroupId))
-                      }}
-                    />
-                  }
-                >
-                  <ListItemButton sx={{ px: 0 }}>
-                    <ListItemIcon sx={{ mr: 2 }}>
-                      <Icon icon='mdi:pin-outline' fontSize='1.25rem' />
-                    </ListItemIcon>
-                    <ListItemText secondary='Pin to top' />
-                  </ListItemButton>
-                </ListItem>
-              </List>
-
-              {/* Danger zone */}
-              {isCurrentUserActive || isCurrentUserAdmin ? (
-                <Typography
-                  variant='caption'
-                  sx={{ display: 'block', mb: 1, textTransform: 'uppercase', fontWeight: 600, color: 'error.main' }}
-                >
-                  Danger zone
-                </Typography>
-              ) : null}
-              <List dense sx={{ p: 0 }}>
-                {isCurrentUserActive ? (
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 0 }} onClick={handleLeaveGroup}>
-                      <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
-                        <Icon icon='mdi:exit-to-app' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText
-                        secondary={
-                          <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Leave group</Typography>
-                        }
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                ) : null}
-                {isCurrentUserAdmin ? (
-                  <ListItem disablePadding>
-                    <ListItemButton sx={{ px: 0 }} onClick={handleDeleteGroup}>
-                      <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
-                        <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
-                      </ListItemIcon>
-                      <ListItemText
-                        secondary={
-                          <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Delete group</Typography>
-                        }
-                      />
-                    </ListItemButton>
-                  </ListItem>
-                ) : null}
-              </List>
+                  ) : null}
+                  {isCurrentUserAdmin ? (
+                    <ListItem disablePadding>
+                      <ListItemButton sx={{ px: 0 }} onClick={handleDeleteGroup}>
+                        <ListItemIcon sx={{ mr: 2, color: 'error.main' }}>
+                          <Icon icon='mdi:trash-can-outline' fontSize='1.25rem' />
+                        </ListItemIcon>
+                        <ListItemText
+                          secondary={
+                            <Typography sx={{ color: 'error.main', fontSize: '0.875rem' }}>Delete group</Typography>
+                          }
+                        />
+                      </ListItemButton>
+                    </ListItem>
+                  ) : null}
+                </List>
+              </Box>
             </Box>
-          </Box>
           </Box>
         </Fragment>
       ) : store && store.selectedChat ? (
