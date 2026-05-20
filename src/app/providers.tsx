@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect } from 'react'
 
 // ** Emotion Imports
 import { CacheProvider } from '@emotion/react'
@@ -54,11 +54,30 @@ import { LanguageProvider } from 'src/context/LanguageContext'
 // Global init point for @antzsoft/chat-core — see src/components/chat/ChatBoot.tsx
 import ChatBoot from 'src/components/chat/ChatBoot'
 
+// Push Notifications
+import { PushNotificationProvider } from 'src/lib/notifications/PushNotificationProvider'
+
 interface ProvidersProps {
   children: ReactNode
 }
 
 export function Providers({ children }: ProvidersProps) {
+  // Register service worker for push notifications
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) {
+      console.log('[SW] Service Worker not supported')
+      return
+    }
+
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => {
+        console.log('[SW] ✅ Registered:', reg.scope)
+      })
+      .catch(err => {
+        console.error('[SW] ❌ Failed:', err.message)
+      })
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
@@ -72,8 +91,9 @@ export function Providers({ children }: ProvidersProps) {
                       <EggProvider>
                         <ForgotPasswordProvider>
                           <AuthProvider>
-                            <ChatBoot />
-                            <LanguageProvider>
+                            <PushNotificationProvider>
+                              <ChatBoot />
+                              <LanguageProvider>
                               <SettingsProvider pageSettings={null}>
                                 <SettingsConsumer>
                                   {({ settings }) => {
@@ -96,6 +116,7 @@ export function Providers({ children }: ProvidersProps) {
                                 </SettingsConsumer>
                               </SettingsProvider>
                             </LanguageProvider>
+                            </PushNotificationProvider>
                           </AuthProvider>
                         </ForgotPasswordProvider>
                       </EggProvider>

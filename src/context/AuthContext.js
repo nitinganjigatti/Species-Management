@@ -35,6 +35,9 @@ import { useAntzAuth } from '@antzsoft/wso2-auth-web/react'
 import { disconnectSocket as chatDisconnectSocket } from '@antzsoft/chat-core'
 import { disposeChatClient as chatDisposeClient } from 'src/lib/chat/client'
 
+// Push Notifications cleanup on logout
+import notificationService from 'src/lib/notifications'
+
 const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 // const base_url = process.env.NODE_ENV === 'development' ? '/api/' : `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 
@@ -273,6 +276,26 @@ const AuthProvider = ({ children }) => {
   }
 
   const logOutUser = async () => {
+    debugger
+    // Cleanup push notifications before clearing localStorage
+    try {
+      const deviceId = localStorage.getItem('antz_device_id')
+      console.log('[Auth] Device ID at logout:', deviceId)
+
+      // Always attempt cleanup (safe even without deviceId)
+      await notificationService.disablePushNotifications()
+
+      // 2. Unsubscribe browser push subscription
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready
+        const sub = await reg.pushManager.getSubscription()
+        if (sub) await sub.unsubscribe()
+      }
+    } catch (error) {
+      console.error('[Auth] Failed to cleanup push notifications:', error)
+      // Continue logout even if cleanup fails
+    }
+
     await queryClient.cancelQueries()
     queryClient.clear()
     queryClient.getQueryCache().clear()
@@ -453,6 +476,23 @@ const AuthProvider = ({ children }) => {
       chatDisposeClient()
     } catch (e) {
       console.warn('[auth] chat client dispose failed:', e)
+    }
+    try {
+      const deviceId = localStorage.getItem('antz_device_id')
+      console.log('[Auth] Device ID at logout:', deviceId)
+
+      // Always attempt cleanup (safe even without deviceId)
+      await notificationService.disablePushNotifications()
+
+      // 2. Unsubscribe browser push subscription
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready
+        const sub = await reg.pushManager.getSubscription()
+        if (sub) await sub.unsubscribe()
+      }
+    } catch (error) {
+      console.error('[Auth] Failed to cleanup push notifications:', error)
+      // Continue logout even if cleanup fails
     }
 
     const preserveDeviceInfo = () => {

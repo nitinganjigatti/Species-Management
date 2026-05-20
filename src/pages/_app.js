@@ -1,6 +1,7 @@
 // ** Next Imports
 import Head from 'next/head'
 import { Router } from 'next/router'
+import { useEffect } from 'react'
 
 // ** Loader Import
 import NProgress from 'nprogress'
@@ -77,6 +78,9 @@ import { NecropsyProvider } from 'src/context/NecropsyContext'
 import { queryClient } from 'src/lib/shared/queryClient'
 import { clientSideEmotionCache } from 'src/lib/shared/emotionCache'
 
+// Push Notifications
+import { PushNotificationProvider } from 'src/lib/notifications/PushNotificationProvider'
+
 // ** Pace Loader
 if (themeConfig.routingLoader) {
   Router.events.on('routeChangeStart', () => {
@@ -114,6 +118,22 @@ const App = props => {
   const guestGuard = Component.guestGuard ?? false
   const aclAbilities = Component.acl ?? defaultACLObj
 
+  // Register service worker for push notifications
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) {
+      console.log('[SW] Service Worker not supported')
+      return
+    }
+
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(reg => {
+        console.log('[SW] ✅ Registered:', reg.scope)
+      })
+      .catch(err => {
+        console.error('[SW] ❌ Failed:', err.message)
+      })
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       <Provider store={store}>
@@ -132,8 +152,9 @@ const App = props => {
                       <EggProvider>
                         <ForgotPasswordProvider>
                           <AuthProvider>
-                            <ChatBoot />
-                            <LanguageProvider>
+                            <PushNotificationProvider>
+                              <ChatBoot />
+                              <LanguageProvider>
                               <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
                                 <SettingsConsumer>
                                   {({ settings }) => {
@@ -162,6 +183,7 @@ const App = props => {
                                 </SettingsConsumer>
                               </SettingsProvider>
                             </LanguageProvider>
+                            </PushNotificationProvider>
                           </AuthProvider>
                         </ForgotPasswordProvider>
                       </EggProvider>

@@ -36,10 +36,13 @@ import { StatusObjType, StatusType } from 'src/types/apps/chatTypes'
 
 // ** Hooks
 import { useSettings } from 'src/@core/hooks/useSettings'
+import { useSafeRouter } from 'src/hooks/useSafeRouter'
 
 // ** Utils Imports
 import { getInitials } from 'src/@core/utils/get-initials'
 import { formatDateToMonthShort } from 'src/@core/utils/format'
+import { useSearchParams } from 'next/navigation'
+import { markConversationAsRead } from 'src/lib/notifications'
 
 // ** Chat App Components Imports
 import SidebarLeft from 'src/views/apps/chat/SidebarLeft'
@@ -65,6 +68,9 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(false)
   const [userProfileLeftOpen, setUserProfileLeftOpen] = useState<boolean>(false)
   const [userProfileRightOpen, setUserProfileRightOpen] = useState<boolean>(false)
+
+  // ** Router
+  const router = useSafeRouter()
 
   // ** Typing indicator state — keyed by conversationId → array of typing users
   type TypingUser = { userId: string; displayName: string }
@@ -118,6 +124,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   const { settings } = useSettings()
   const dispatch = useDispatch<AppDispatch>()
   const auth = useAuth() as any
+  const searchParams = useSearchParams()
   const fallbackAvatarUrl: string | undefined =
     auth?.userData?.user?.profile_pic ??
     auth?.userData?.user?.user_profile_pic ??
@@ -169,6 +176,14 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   const chatConnected = socketStatus === 'connected'
   const chatError = socketStatus === 'error' ? new Error('chat socket error') : null
 
+  // Mark conversation notifications as read when conversation is opened
+  useEffect(() => {
+    const conversationId = store?.selectedChat?.contact?.id
+    if (conversationId) {
+      dispatch(markConversationAsRead(String(conversationId)))
+    }
+  }, [store?.selectedChat?.contact?.id, dispatch])
+
   useEffect(() => {
     if (!chatClient) return
 
@@ -202,23 +217,89 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     dispatch(fetchChatsContacts())
   }, [chatClient, chatConnected, dispatch])
 
-  // Auto-select the first conversation on initial load so the chat panel
-  // isn't blank when the user lands on /chat. Skips if a chat is already
-  // selected (e.g. user already clicked one) or the list is empty.
-  const autoSelectedRef = useRef(false)
+  // Auto-select conversation from query param or first on initial load
+  // Tracks the URL to handle both initial load and notification clicks
+  const lastUrlRef = useRef<string | null>(null)
+  const retryCountRef = useRef(0)
   useEffect(() => {
-    if (autoSelectedRef.current) return
-    if (store?.selectedChat) {
-      autoSelectedRef.current = true
+    // Only run on client side
+    if (typeof window === 'undefined') return
+    if (!searchParams) return
 
+    const conversationId = searchParams.get('conversationId')
+    const currentUrl = conversationId || ''
+
+    // Only proceed if URL changed (handles both initial load and notification clicks)
+    if (lastUrlRef.current === currentUrl) {
       return
     }
-    const first = store?.chats?.[0]
-    if (!first) return
+    lastUrlRef.current = currentUrl
+    retryCountRef.current = 0
 
-    autoSelectedRef.current = true
+    // If chats are still loading (null), wait and retry
+    if (store?.chats === null) {
+      console.log('[AppChat] Chats still loading, waiting...')
+      const timer = setTimeout(() => {
+        retryCountRef.current++
+        if (retryCountRef.current < 10) {
+          // Force re-run by clearing the ref
+          lastUrlRef.current = null
+        }
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+
+    if (!store?.chats || store.chats.length === 0) {
+      console.log('[AppChat] No chats available')
+      return
+    }
+
+    console.log('[AppChat] URL changed, conversationId:', conversationId)
+
+    // Check if conversationId is in URL (from notification click)
+    let chatToSelect = null
+
+    if (conversationId) {
+      console.log('[AppChat] Looking for chat with ID:', conversationId, 'type:', typeof conversationId)
+
+      // Debug: Log all available chats with details
+      console.log('[AppChat] Total chats available:', store.chats.length)
+      store.chats.forEach(c => {
+        const matches = String(c.id) === String(conversationId)
+        console.log(`  Chat: id="${c.id}" (${typeof c.id}), name="${c.fullName}", matches=${matches}`)
+      })
+
+      // Match by chat.id (converted to string for comparison)
+      chatToSelect = store.chats.find(c =>
+        String(c.id) === String(conversationId)
+      )
+      if (chatToSelect) {
+        console.log('[AppChat] ✅ Found chat! Selecting:', chatToSelect.fullName, 'ID:', chatToSelect.id)
+        dispatch(selectChat(chatToSelect.id))
+        return
+      } else {
+        console.log('❌ [AppChat] Chat NOT found for conversationId:', conversationId)
+        // Still wait a bit and retry in case chats are still loading
+        if (retryCountRef.current < 5) {
+          const timer = setTimeout(() => {
+            retryCountRef.current++
+            lastUrlRef.current = null
+          }, 500)
+          return () => clearTimeout(timer)
+        }
+      }
+    }
+
+    // Fallback: select first conversation
+    const first = store.chats?.[0]
+    if (!first) {
+      console.log('[AppChat] No chats available')
+      return
+    }
+
+    console.log('[AppChat] No conversationId in URL, selecting first chat:', first.fullName)
     dispatch(selectChat(first.id))
-  }, [store?.chats, store?.selectedChat, dispatch])
+  }, [store?.chats, searchParams, dispatch])
 
   // Stable ref pointing at the currently open conversation id. Read inside the
   // socket handler so we can detect "message arrived in the chat I'm looking at"
@@ -227,6 +308,28 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   useEffect(() => {
     selectedChatIdRef.current = store?.selectedChat?.contact.id ?? null
   }, [store?.selectedChat?.contact.id])
+
+  // Update URL when selectedChat changes due to sidebar click (not from URL change)
+  // Track previous conversationId to detect actual changes
+  const prevConversationIdRef = useRef<string | number | null>(null)
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return
+    if (!searchParams) return
+
+    const currentConversationId = store?.selectedChat?.contact?.id ?? null
+    const urlConversationId = searchParams.get('conversationId')
+
+    // Only update URL if the selection changed AND it's not matching the URL
+    // (i.e., user clicked sidebar, not clicked a notification)
+    if (currentConversationId && currentConversationId !== prevConversationIdRef.current && String(currentConversationId) !== urlConversationId) {
+      console.log('[AppChat] User selected chat from sidebar, updating URL to:', currentConversationId)
+      prevConversationIdRef.current = currentConversationId
+      router.push(`/chat?conversationId=${currentConversationId}`)
+    } else {
+      prevConversationIdRef.current = currentConversationId
+    }
+  }, [store?.selectedChat?.contact?.id, searchParams, router])
 
   // Stable ref for the current user's profile id — used inside socket handlers
   // to determine if a message is "ours" (instead of relying on tempId, which

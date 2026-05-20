@@ -14,6 +14,7 @@ import shipmentReducer from 'src/store/slices/pharmacy/request/shipmentSlice'
 import necropsyReducer from 'src/store/slices/necropsy/necropsySlice'
 import necropsyFormOptionsReducer from 'src/store/slices/necropsy/necropsyFormOptionsSlice'
 import hospitalReducer from 'src/store/slices/hospital'
+import { notificationsReducer } from 'src/lib/notifications'
 import chatReducer from 'src/store/apps/chat'
 
 const store = configureStore({
@@ -33,6 +34,7 @@ const store = configureStore({
     necropsy: necropsyReducer,
     necropsyFormOptions: necropsyFormOptionsReducer,
     hospital: hospitalReducer,
+    notifications: notificationsReducer,
     chat: chatReducer
   },
   middleware: (getDefaultMiddleware) =>
