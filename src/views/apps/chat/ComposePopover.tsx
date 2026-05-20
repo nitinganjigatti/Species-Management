@@ -165,7 +165,7 @@ const ComposePopover = ({
           autoFocus
           value={query}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
-          placeholder='Search name or number'
+          placeholder='Search name or staff ID'
           sx={{ '& .MuiInputBase-root': { borderRadius: 5 } }}
           InputProps={{
             startAdornment: (
