@@ -60,7 +60,16 @@ export function getChatClient(opts: GetChatClientOpts): AntzChatClient {
     authToken: opts.accessToken,
     userId: opts.userId,
     tenantId: opts.tenantId,
-    avatar: opts.avatar
+    avatar: opts.avatar,
+    // SDK defaults `transitEncryption: true` (ECDH + AES-256-GCM on every
+    // HTTP body and socket event). The deployed server doesn't have
+    // `TRANSIT_ENCRYPTION_ENABLED=true`, so the handshake fails and the
+    // socket is never registered — `getSocket()` then throws
+    // `"Socket not initialized. Call connectSocket first."` on the next
+    // line in useChatClient. Forcing false matches the server config.
+    // Flip back to true (or remove) once the server enables transit
+    // encryption.
+    transitEncryption: false
   })
 
   return _client
