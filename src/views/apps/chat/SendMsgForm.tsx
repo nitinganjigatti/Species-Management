@@ -142,7 +142,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true })
     } catch (err) {
       console.warn('[chat] mic permission denied:', err)
-      toast.error('Microphone permission denied')
+      toast.error('Please enable your microphone to continue')
 
       return
     }
@@ -231,7 +231,6 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       mediaStreamRef.current?.getTracks().forEach(t => t.stop())
       stopTimer()
     }
-
   }, [])
 
   // When the user picks "Edit" on a bubble, store puts the message into
@@ -451,15 +450,10 @@ const SendMsgForm = (props: SendMsgComponentType) => {
               Replying to {replyingTo.senderName ?? 'message'}
             </Typography>
             <Typography variant='caption' noWrap sx={{ display: 'block', color: 'text.secondary' }}>
-              {replyingTo.textPreview ||
-                (replyingTo.hasAttachment ? '📎 Attachment' : '')}
+              {replyingTo.textPreview || (replyingTo.hasAttachment ? '📎 Attachment' : '')}
             </Typography>
           </Box>
-          <IconButton
-            size='small'
-            aria-label='Cancel reply'
-            onClick={() => dispatch(setReplyingTo(null))}
-          >
+          <IconButton size='small' aria-label='Cancel reply' onClick={() => dispatch(setReplyingTo(null))}>
             <Icon icon='mdi:close' fontSize='1rem' />
           </IconButton>
         </Box>
@@ -467,8 +461,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       {pending.length > 0 && (
         <PreviewStrip>
           {pending.map(p => {
-            const docVisual =
-              p.kind === 'document' ? getAttachmentVisual(p.file.type, p.file.name) : null
+            const docVisual = p.kind === 'document' ? getAttachmentVisual(p.file.type, p.file.name) : null
 
             return (
               <PreviewChip key={p.key}>
@@ -496,17 +489,17 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 ) : (
                   <Icon icon={kindMediaIcon[p.kind as 'video' | 'audio']} fontSize='1.75rem' />
                 )}
-              <Box sx={{ minWidth: 0 }}>
-                <Typography variant='caption' noWrap sx={{ display: 'block', maxWidth: 120 }}>
-                  {p.file.name}
-                </Typography>
-                <Typography variant='caption' color='text.secondary'>
-                  {(p.file.size / 1024).toFixed(0)} KB
-                </Typography>
-              </Box>
-              <IconButton size='small' onClick={() => removePending(p.key)} disabled={uploading}>
-                <Icon icon='mdi:close' fontSize='1rem' />
-              </IconButton>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant='caption' noWrap sx={{ display: 'block', maxWidth: 120 }}>
+                    {p.file.name}
+                  </Typography>
+                  <Typography variant='caption' color='text.secondary'>
+                    {(p.file.size / 1024).toFixed(0)} KB
+                  </Typography>
+                </Box>
+                <IconButton size='small' onClick={() => removePending(p.key)} disabled={uploading}>
+                  <Icon icon='mdi:close' fontSize='1rem' />
+                </IconButton>
               </PreviewChip>
             )
           })}
@@ -546,12 +539,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
               >
                 <Icon icon='mdi:close' fontSize='1.375rem' />
               </IconButton>
-              <IconButton
-                size='small'
-                aria-label='Stop recording'
-                onClick={stopRecording}
-                sx={{ color: 'error.main' }}
-              >
+              <IconButton size='small' aria-label='Stop recording' onClick={stopRecording} sx={{ color: 'error.main' }}>
                 <Icon icon='mdi:stop-circle' fontSize='1.5rem' />
               </IconButton>
             </Box>
