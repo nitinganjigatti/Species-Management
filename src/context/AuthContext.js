@@ -190,6 +190,16 @@ const AuthProvider = ({ children }) => {
         if (userObj) {
           try {
             const resData = await callRefreshToken()
+
+            try {
+              await notificationService.enablePushNotifications()
+            } catch (error) {
+              console.log(
+                '[AuthContext] Push notifications auto-enable failed (user may have denied permission):',
+                error.message
+              )
+            }
+
             setLoading(false)
             if (resData.token) {
               await reconcilePharmacy(resData)

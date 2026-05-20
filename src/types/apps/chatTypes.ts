@@ -362,6 +362,13 @@ export type ChatLogType = {
   // and we need to reload a context slice around that message. ChatContent
   // wires this to the `jumpToMessage` thunk.
   onJumpToMessage?: (messageId: string) => void
+  // External scroll request (e.g. pinned-bar click). When set, ChatLog tries
+  // to scroll to the message; if it's not in the loaded window it dispatches
+  // `onJumpToMessage` and retries once the messages array swaps. Caller
+  // should clear via `onScrollToTargetDone` once handled to allow re-clicks
+  // on the same id.
+  scrollTargetMessageId?: string | null
+  onScrollToTargetDone?: () => void
   // When false, per-message actions (Reply / Star / Copy / Delete) and
   // reaction toggles are suppressed. Set by ChatContent when the current
   // user has been removed from / has left a group. Defaults to true.
