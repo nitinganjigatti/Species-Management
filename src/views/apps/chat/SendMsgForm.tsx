@@ -279,7 +279,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
 
     setProcessingFiles(true)
     try {
-      const processed = await Promise.all(files.map(maybeCompressImage))
+      const processed = await Promise.all(files.map(f => maybeCompressImage(f)))
       const next: PendingFile[] = processed.map(f => ({
         key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
         file: f,
