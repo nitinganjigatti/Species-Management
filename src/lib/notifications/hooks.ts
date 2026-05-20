@@ -13,33 +13,42 @@ import type { AppDispatch, RootState } from 'src/store/store'
 import { useSearchParams } from 'next/navigation'
 import notificationService from './index'
 
+const playNotificationSound = async () => {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)()
+    const response = await fetch('/sounds/mac.wav')
+    const arrayBuffer = await response.arrayBuffer()
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer)
+    const source = audioContext.createBufferSource()
+    source.buffer = audioBuffer
+    source.connect(audioContext.destination)
+    source.start(0)
+  } catch (error) {
+    // Sound playback failed silently
+  }
+}
+
 export const usePushNotifications = () => {
   const { user, userData } = useAuth()
   const { handleNotification } = useNotificationHandler()
   const syncAttemptedRef = { current: false }
 
   useEffect(() => {
-    console.log('[Push Notifications] Effect triggered. User:', !!user, 'UserData:', !!userData)
-
     if (!user || !userData) {
-      console.log('[Push Notifications] Skipping - no user or userData')
       syncAttemptedRef.current = false
       return
     }
 
     if (syncAttemptedRef.current) {
-      console.log('[Push Notifications] Already attempted sync')
       return
     }
 
     const syncNotifications = async () => {
       try {
         syncAttemptedRef.current = true
-        console.log('[Push Notifications] Starting sync...')
         await notificationService.syncPushSubscription()
-        console.log('[Push Notifications] Sync completed')
       } catch (error) {
-        console.error('[Push Notifications] Failed to sync:', error)
+        // Sync failed silently
       }
     }
 
@@ -53,18 +62,11 @@ export const usePushNotifications = () => {
       if (event.data?.type === 'PUSH_NOTIFICATION') {
         handleNotification(event.data.notification)
       } else if (event.data?.type === 'NOTIFICATION_CLICK') {
-        console.log('[usePushNotifications] Browser notification clicked')
-        console.log('  conversationId:', event.data.conversationId, 'type:', typeof event.data.conversationId)
-        console.log('  Full data:', event.data)
         if (event.data.conversationId) {
           const targetUrl = `/chat?conversationId=${event.data.conversationId}`
-          console.log('[usePushNotifications] Navigating to:', targetUrl)
-          // Only use window.location.href if router isn't available (app not initialized)
           if (typeof window !== 'undefined') {
             window.location.href = targetUrl
           }
-        } else {
-          console.warn('[usePushNotifications] No conversationId in notification click event')
         }
       }
     }
@@ -79,7 +81,7 @@ export const usePushNotifications = () => {
   return {
     isReady: !!user && !!userData,
     enableNotifications: notificationService.enablePushNotifications.bind(notificationService),
-    disableNotifications: notificationService.disablePushNotifications.bind(notificationService),
+    disableNotifications: notificationService.disablePushNotifications.bind(notificationService)
   }
 }
 
@@ -96,7 +98,10 @@ export const useNotificationHandler = () => {
       const isSilent = data.event === 'message_edited' || data.event === 'message_deleted'
       if (!isSilent) {
         const currentConversationId = searchParams?.get('conversationId') || null
-        const isViewingConversation = currentRoute === '/chat' && !!currentConversationId && String(currentConversationId) === String(data.conversation_id)
+        const isViewingConversation =
+          currentRoute === '/chat' &&
+          !!currentConversationId &&
+          String(currentConversationId) === String(data.conversation_id)
 
         const appNotification: AppNotification = {
           id: crypto.randomUUID(),
@@ -109,8 +114,8 @@ export const useNotificationHandler = () => {
           avatarColor: getAvatarColor(data.event),
           conversationId: data.conversation_id || data.contact_id || data.sender_id || undefined
         }
-        console.log('[useNotificationHandler] Created notification with conversationId:', appNotification.conversationId, 'from data:', { conversation_id: data.conversation_id, contact_id: data.contact_id, sender_id: data.sender_id })
         dispatch(addNotification(appNotification))
+        playNotificationSound()
       }
     },
     [router, dispatch, searchParams, currentRoute]

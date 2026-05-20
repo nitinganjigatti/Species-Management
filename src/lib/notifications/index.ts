@@ -139,7 +139,6 @@ export class NotificationService {
   }
 
   async enablePushNotifications(): Promise<boolean> {
-    debugger
     if (!this.isSupported()) return false
     try {
       const reg = await navigator.serviceWorker.ready
@@ -231,7 +230,7 @@ export class NotificationService {
         badge: '/branding/antz/Antz_logomark_h_color.svg'
       })
     } catch (error) {
-      console.error('[Notifications] Failed to send test:', error)
+      // Test notification failed
     }
   }
 }

@@ -161,7 +161,14 @@ export type ChatsArrType = {
    * "left/removed" for the current user — `participantIds` strips inactive
    * entries by design.
    */
-  participants?: Array<{ userId: string; isActive: boolean; role: string }>
+  participants?: Array<{
+    userId: string
+    isActive: boolean
+    role: string
+    displayName?: string
+    username?: string
+    avatarUrl?: string
+  }>
   /**
    * Convenience flag: true if the current user has an active participant
    * entry on the conversation. False for groups they've been removed from
