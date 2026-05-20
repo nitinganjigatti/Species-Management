@@ -22,6 +22,7 @@ import SendMsgForm from 'src/views/apps/chat/SendMsgForm'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
+import MessageInfoDialog from 'src/views/apps/chat/MessageInfoDialog'
 
 // ** Chat API
 import { searchMessages } from 'src/lib/chat/api'
@@ -537,6 +538,11 @@ const ChatContent = (props: ChatContentType) => {
               userProfileRightOpen={userProfileRightOpen}
               handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
             />
+            {/* Mounted once at the chat shell root — driven by Redux
+                `state.chat.infoMessage`. Any bubble's "Info" menu item
+                dispatches `setInfoMessage(...)` and the drawer slides in
+                using the same `Sidebar` primitive as UserProfileRight. */}
+            <MessageInfoDialog />
           </Box>
         )
       }

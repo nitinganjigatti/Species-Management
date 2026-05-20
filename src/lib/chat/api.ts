@@ -702,7 +702,11 @@ export function sdkMessageToMessage(msg: Message): MessageType {
     ...(msg.isStarred ? { isStarred: true } : {}),
     ...(msg.isEdited ? { isEdited: true } : {}),
     ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
-    ...(isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
+    ...(isDeletedForEveryone ? { isDeletedForEveryone: true } : {}),
+    // Receipts — copy through for the "Message info" dialog. Skipped for
+    // tombstones since deleted messages don't show info anyway.
+    ...(!isDeletedForEveryone && msg.readBy?.length ? { readBy: msg.readBy } : {}),
+    ...(!isDeletedForEveryone && msg.deliveredTo?.length ? { deliveredTo: msg.deliveredTo } : {})
   }
 }
 

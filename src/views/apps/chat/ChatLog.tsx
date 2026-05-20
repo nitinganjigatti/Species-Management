@@ -358,7 +358,11 @@ const ChatLog = (props: ChatLogType) => {
         ...(msg.isStarred ? { isStarred: true } : {}),
         ...(msg.isEdited ? { isEdited: true } : {}),
         ...(msg.editedAt ? { editedAt: msg.editedAt } : {}),
-        ...(msg.isDeletedForEveryone ? { isDeletedForEveryone: true } : {})
+        ...(msg.isDeletedForEveryone ? { isDeletedForEveryone: true } : {}),
+        // Receipts — forwarded to the bubble so MessageActions can open the
+        // "Message info" dialog without going back to Redux per message.
+        ...(msg.readBy?.length ? { readBy: msg.readBy } : {}),
+        ...(msg.deliveredTo?.length ? { deliveredTo: msg.deliveredTo } : {})
       }
 
       // Date boundary — flush the active group and inject a separator
@@ -582,7 +586,7 @@ const ChatLog = (props: ChatLogType) => {
                 {avatarName}
               </Typography>
             ) : null}
-            {item.messages.map((chat: ChatLogChatType, index: number, { length }: { length: number }) => {
+            {item.messages.map((chat: ChatLogChatType, index: number) => {
               const time = new Date(chat.time)
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false
               const isActiveMatch = isMatch && chat.id === activeResultId
@@ -1123,10 +1127,16 @@ const ChatLog = (props: ChatLogType) => {
                       justifyContent: isSender ? 'flex-end' : 'flex-start'
                     }}
                   >
-                    {/* Feedback ticks (sent/delivered/seen) only on the last
-                        message of the group — same status applies to the whole
-                        batch, so repeating ticks per bubble would just be noise. */}
-                    {index + 1 === length ? renderMsgFeedback(isSender, chat.feedback) : null}
+                    {/* Feedback ticks per message — matches WhatsApp:
+                        • single grey ✓ → isSent (server acked)
+                        • double grey ✓✓ → isDelivered (recipient online / received)
+                        • double green ✓✓ → isSeen (recipient opened the chat)
+                        The data flows in from two paths that are kept in sync:
+                        (1) REST `listMessages` → adapter reads `msg.deliveryStatus`
+                            ('sent'|'delivered'|'read') and maps to the three flags;
+                        (2) Live `message_delivered` / `read_receipt` socket events
+                            patch flags via `updateMessagesFeedback`. */}
+                    {renderMsgFeedback(isSender, chat.feedback)}
                     <Typography variant='caption' sx={{ color: 'text.disabled' }}>
                       {time
                         ? new Date(time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
