@@ -1241,6 +1241,54 @@ export const appChatSlice = createSlice({
         }
       }
     },
+    // Mark a participant as no longer active in a group — fires from the
+    // server's `participant_left` socket event (covers both voluntary leave
+    // and admin-removal). Immediately flips:
+    //   • chat.participants[matched].isActive → false
+    //   • chat.participantIds / adminIds → strip the leaver
+    //   • chat.isCurrentUserActive → false when it's the current user
+    // Drives the composer/interaction gate (`canInteract` in ChatContent
+    // and `isCurrentUserActive` in UserProfileRight) so a removed user is
+    // locked out without waiting for the next `fetchChatsContacts`.
+    applyParticipantLeft: (
+      state,
+      action: PayloadAction<{ chatId: ChatEntityId; userId: ChatEntityId }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, userId } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const userIdStr = String(userId)
+      const chat = state.chats[idx]
+
+      // Update participants array (preserved with isActive=false for history).
+      const updatedParticipants = (chat.participants ?? []).map(p =>
+        String(p.userId) === userIdStr ? { ...p, isActive: false } : p
+      )
+      const updatedParticipantIds = (chat.participantIds ?? []).filter(
+        id => String(id) !== userIdStr
+      )
+      const updatedAdminIds = (chat.adminIds ?? []).filter(id => String(id) !== userIdStr)
+      const meIsLeaver = String(state.userProfile?.id ?? '') === userIdStr
+
+      state.chats[idx] = {
+        ...chat,
+        participants: updatedParticipants,
+        participantIds: updatedParticipantIds,
+        adminIds: updatedAdminIds,
+        // Flip the current-user flag iff THIS event is about us.
+        ...(meIsLeaver ? { isCurrentUserActive: false } : {})
+      }
+
+      // Mirror into selectedChat so the open chat's composer + Group info
+      // drawer re-render immediately.
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: state.selectedChat.chat,
+          contact: state.chats[idx]
+        }
+      }
+    },
     // Patch a chat's `lastMessage` with sender info that wasn't included
     // in the conversation-list response. Used by the `enrichLastMessageSenders`
     // thunk after it fetches full message details via `getMessage(id)` to
@@ -1808,6 +1856,7 @@ export const {
   addOrReplaceChat,
   setChatAvatarOptimistic,
   patchLastMessageSender,
+  applyParticipantLeft,
   updateChatFlags,
   setUnreadCount,
   setReplyingTo,
