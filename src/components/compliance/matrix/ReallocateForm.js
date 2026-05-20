@@ -7,8 +7,10 @@ import {
   Box,
   Button,
   CircularProgress,
+  FormControlLabel,
   IconButton,
   Stack,
+  Switch,
   TextField,
   Typography
 } from '@mui/material'
@@ -57,6 +59,7 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
   const [showFlagInput, setShowFlagInput] = useState(false)
   const [flagNote, setFlagNote] = useState('')
   const [saveError, setSaveError] = useState('')
+  const [genderMode, setGenderMode] = useState(false)
 
   // Snapshot endpoint disabled — drawer uses matrix row data directly so
   // the displayed allocation always matches the table. Re-enable once the
@@ -75,6 +78,7 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
       total: row.total ?? 0,
       orgs: orgsProp,
       by_org: row.by_org || {},
+      by_org_gender: row.by_org_gender || {},
       needs_review: Boolean(row.needs_review),
       review_flag_id: row.review_flag_id ?? null,
       has_groups: false,
@@ -90,6 +94,9 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
       compliance_common_name: '',
       compliance_scientific_name: '',
       by_org: {},
+      by_org_male: {},
+      by_org_female: {},
+      by_org_unknown: {},
       repoint: null,
       note: ''
     },
@@ -99,8 +106,16 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
 
   useEffect(() => {
     const by_org = {}
+    const by_org_male = {}
+    const by_org_female = {}
+    const by_org_unknown = {}
     orgs.forEach(org => {
-      by_org[String(org.organization_id)] = Number(snapshot.by_org?.[String(org.organization_id)] ?? 0)
+      const key = String(org.organization_id)
+      by_org[key] = Number(snapshot.by_org?.[key] ?? 0)
+      const g = snapshot.by_org_gender?.[key]
+      by_org_male[key] = Number(g?.male ?? 0)
+      by_org_female[key] = Number(g?.female ?? 0)
+      by_org_unknown[key] = Number(g?.unknown ?? 0)
     })
 
     // Pre-fill repoint only when the row is actually linked AND the linked
@@ -136,6 +151,9 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
         ? snapshot.compliance_scientific_name
         : snapshot.scientific_name || '',
       by_org,
+      by_org_male,
+      by_org_female,
+      by_org_unknown,
       repoint: linkedRepoint,
       note: ''
     })
@@ -146,6 +164,9 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
   // keystroke. useMemo over the watched object misses changes because RHF
   // mutates the object in place (same reference), so the dep never triggers.
   const byOrgValues = orgs.map(org => watch(`by_org.${org.organization_id}`))
+  const byOrgMaleValues = orgs.map(org => watch(`by_org_male.${org.organization_id}`))
+  const byOrgFemaleValues = orgs.map(org => watch(`by_org_female.${org.organization_id}`))
+  const byOrgUnknownValues = orgs.map(org => watch(`by_org_unknown.${org.organization_id}`))
   const repoint = watch('repoint')
   const commonName = watch('compliance_common_name')
   const scientificName = watch('compliance_scientific_name')
@@ -156,6 +177,17 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
   }, {})
   const liveSum = byOrgValues.reduce((acc, v) => acc + Number(v || 0), 0)
   const totalsValid = liveSum === lockedTotal
+
+  // Per-org gender sum validation (only relevant in gender mode)
+  const genderSumErrors = orgs.reduce((acc, org, i) => {
+    const count = Number(byOrgValues[i] || 0)
+    const m = Number(byOrgMaleValues[i] || 0)
+    const f = Number(byOrgFemaleValues[i] || 0)
+    const u = Number(byOrgUnknownValues[i] || 0)
+    if (m + f + u !== count) acc[String(org.organization_id)] = true
+    return acc
+  }, {})
+  const genderValid = Object.keys(genderSumErrors).length === 0
 
   // Original values for diff display
   const originalCommon = isMeaningful(snapshot.compliance_common_name)
@@ -217,7 +249,19 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
 
       if (countsDirty) {
         body.target = Object.fromEntries(
-          orgs.map(org => [org.organization_id, parseInt(values.by_org[String(org.organization_id)], 10) || 0])
+          orgs.map(org => {
+            const key = String(org.organization_id)
+            const count = parseInt(values.by_org[key], 10) || 0
+            if (genderMode) {
+              return [org.organization_id, {
+                count,
+                male: parseInt(values.by_org_male[key], 10) || 0,
+                female: parseInt(values.by_org_female[key], 10) || 0,
+                unknown: parseInt(values.by_org_unknown[key], 10) || 0
+              }]
+            }
+            return [org.organization_id, { count }]
+          })
         )
       }
 
@@ -565,7 +609,21 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
         </Box>
 
         {/* Organization allocation */}
-        <Typography sx={SECTION_LABEL_SX}>Organization allocation</Typography>
+        <Stack direction='row' alignItems='center' justifyContent='space-between' sx={{ mt: '14px', mb: '8px' }}>
+          <Typography sx={{ ...SECTION_LABEL_SX, mt: 0, mb: 0 }}>Organization allocation</Typography>
+          <FormControlLabel
+            control={
+              <Switch
+                size='small'
+                checked={genderMode}
+                onChange={e => setGenderMode(e.target.checked)}
+              />
+            }
+            label={<Typography sx={{ fontSize: 11, fontWeight: 600, color: 'customColors.neutralSecondary', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Gender breakdown</Typography>}
+            labelPlacement='start'
+            sx={{ m: 0, gap: 1 }}
+          />
+        </Stack>
 
         {/* Header row */}
         <Box
@@ -591,101 +649,114 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
 
         {/* Org rows */}
         <Stack spacing='6px' sx={{ mb: 0 }}>
-          {orgs.map(org => {
+          {orgs.map((org, i) => {
             const key = String(org.organization_id)
             const original = Number(snapshot.by_org?.[key] ?? 0)
             const current = Number(byOrg[key] ?? 0)
             const changed = current !== original
+            const genderError = genderMode && genderSumErrors[key]
             return (
               <Box
                 key={org.organization_id}
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 70px 24px 90px',
-                  alignItems: 'center',
                   px: '12px',
                   py: '8px',
                   border: 1,
-                  borderColor: changed ? 'customColors.Jade100' : 'customColors.SurfaceVariant',
+                  borderColor: genderError ? 'customColors.Tertiary' : changed ? 'customColors.Jade100' : 'customColors.SurfaceVariant',
                   borderRadius: 1,
                   bgcolor: changed ? 'customColors.OnBackground' : 'background.paper',
                   transition: 'background-color 150ms, border-color 150ms'
                 }}
               >
-                <Typography
-                  sx={{
-                    fontWeight: 600,
-                    color: 'customColors.OnSurfaceVariant',
-                    fontSize: 13
-                  }}
-                >
-                  {shortCode(org)}
-                </Typography>
-                <Typography
-                  sx={{
-                    textAlign: 'right',
-                    pr: '6px',
-                    color: 'customColors.neutralSecondary',
-                    fontVariantNumeric: 'tabular-nums',
-                    fontSize: 13,
-                    textDecoration: changed ? 'line-through' : 'none'
-                  }}
-                >
-                  {original}
-                </Typography>
-                <Box
-                  sx={{
-                    textAlign: 'center',
-                    color: changed ? 'primary.main' : 'customColors.neutralSecondary',
-                    fontSize: 13
-                  }}
-                >
-                  →
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 70px 24px 90px', alignItems: 'center' }}>
+                  <Typography sx={{ fontWeight: 600, color: 'customColors.OnSurfaceVariant', fontSize: 13 }}>
+                    {shortCode(org)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      textAlign: 'right',
+                      pr: '6px',
+                      color: 'customColors.neutralSecondary',
+                      fontVariantNumeric: 'tabular-nums',
+                      fontSize: 13,
+                      textDecoration: changed ? 'line-through' : 'none'
+                    }}
+                  >
+                    {original}
+                  </Typography>
+                  <Box sx={{ textAlign: 'center', color: changed ? 'primary.main' : 'customColors.neutralSecondary', fontSize: 13 }}>→</Box>
+                  <Controller
+                    name={`by_org.${org.organization_id}`}
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        type='number'
+                        inputProps={{ min: 0, step: 1, style: { textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 13, padding: '6px 10px', MozAppearance: 'textfield' } }}
+                        onWheel={e => e.target.blur()}
+                        onChange={e => field.onChange(e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0))}
+                        value={field.value ?? 0}
+                        sx={{
+                          width: 90,
+                          '& .MuiOutlinedInput-root': {
+                            fontWeight: changed ? 700 : 400,
+                            color: changed ? 'primary.dark' : 'customColors.OnSurfaceVariant',
+                            '& fieldset': { borderColor: changed ? 'primary.main' : 'customColors.SurfaceVariant' }
+                          },
+                          '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 }
+                        }}
+                      />
+                    )}
+                  />
                 </Box>
-                <Controller
-                  name={`by_org.${org.organization_id}`}
-                  control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      type='number'
-                      inputProps={{
-                        min: 0,
-                        step: 1,
-                        style: {
-                          textAlign: 'right',
-                          fontVariantNumeric: 'tabular-nums',
-                          fontSize: 13,
-                          padding: '6px 10px',
-                          MozAppearance: 'textfield'
-                        }
-                      }}
-                      onWheel={e => e.target.blur()}
-                      onChange={e =>
-                        field.onChange(
-                          e.target.value === ''
-                            ? 0
-                            : Math.max(0, parseInt(e.target.value, 10) || 0)
-                        )
-                      }
-                      value={field.value ?? 0}
-                      sx={{
-                        width: 90,
-                        '& .MuiOutlinedInput-root': {
-                          fontWeight: changed ? 700 : 400,
-                          color: changed ? 'primary.dark' : 'customColors.OnSurfaceVariant',
-                          '& fieldset': {
-                            borderColor: changed ? 'primary.main' : 'customColors.SurfaceVariant'
-                          }
-                        },
-                        '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': {
-                          WebkitAppearance: 'none',
-                          margin: 0
-                        }
-                      }}
-                    />
-                  )}
-                />
+
+                {/* Gender inputs — shown only when gender mode is on */}
+                {genderMode && (
+                  <Box sx={{ mt: '8px', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                    {[
+                      { name: `by_org_male.${org.organization_id}`, genderKey: 'male', bg: 'customColors.SecondaryContainer', color: 'customColors.OnSecondaryContainer' },
+                      { name: `by_org_female.${org.organization_id}`, genderKey: 'female', bg: 'customColors.AntzTertiary', color: 'customColors.rusticRed' },
+                      { name: `by_org_unknown.${org.organization_id}`, genderKey: 'unknown', bg: 'customColors.displaybgSecondary', color: 'customColors.neutralSecondary' }
+                    ].map(({ name, genderKey, bg, color }) => (
+                      <Controller
+                        key={name}
+                        name={name}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            type='number'
+                            size='small'
+                            inputProps={{ min: 0, step: 1, style: { textAlign: 'right', fontVariantNumeric: 'tabular-nums', fontSize: 12, MozAppearance: 'textfield' } }}
+                            onWheel={e => e.target.blur()}
+                            onChange={e => {
+                              const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value, 10) || 0)
+                              field.onChange(val)
+                              const m = genderKey === 'male' ? val : Number(byOrgMaleValues[i] || 0)
+                              const f = genderKey === 'female' ? val : Number(byOrgFemaleValues[i] || 0)
+                              const u = genderKey === 'unknown' ? val : Number(byOrgUnknownValues[i] || 0)
+                              setValue(`by_org.${org.organization_id}`, m + f + u, { shouldDirty: true })
+                            }}
+                            value={field.value ?? 0}
+                            sx={{
+                              '& .MuiOutlinedInput-root': {
+                                bgcolor: bg,
+                                '& fieldset': { borderColor: genderError ? 'customColors.Tertiary' : 'transparent' },
+                                '& input': { color }
+                              },
+                              '& input[type=number]::-webkit-inner-spin-button, & input[type=number]::-webkit-outer-spin-button': { WebkitAppearance: 'none', margin: 0 }
+                            }}
+                          />
+                        )}
+                      />
+                    ))}
+                  </Box>
+                )}
+                {genderError && (
+                  <Typography sx={{ fontSize: 10.5, color: 'customColors.Tertiary', mt: '4px', textAlign: 'right' }}>
+                    M + F + U must equal {current}
+                  </Typography>
+                )}
               </Box>
             )
           })}
@@ -872,7 +943,7 @@ const ReallocateForm = ({ editing, onClose, onSaved }) => {
         <Button
           type='submit'
           variant='contained'
-          disabled={isSubmitting || !totalsValid}
+          disabled={isSubmitting || !totalsValid || (genderMode && !genderValid)}
           startIcon={isSubmitting ? <CircularProgress size={14} color='inherit' /> : null}
           sx={{ fontSize: 13, fontWeight: 600, px: '16px', py: '8px' }}
         >

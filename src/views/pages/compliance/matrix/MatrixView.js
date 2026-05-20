@@ -459,6 +459,8 @@ const MatrixView = ({
                     </TableCell>
                     {orgs.map(org => {
                       const v = row.by_org?.[String(org.organization_id)] ?? 0
+                      const g = row.by_org_gender?.[String(org.organization_id)]
+                      const hasGender = g && (g.male > 0 || g.female > 0 || g.unknown > 0)
                       return (
                         <TableCell
                           key={org.organization_id}
@@ -468,6 +470,19 @@ const MatrixView = ({
                           }}
                         >
                           {v ? v : <Zero />}
+                          {hasGender && (
+                            <Stack direction='row' spacing='2px' justifyContent='flex-end' sx={{ mt: '3px' }}>
+                              <Box sx={{ px: '4px', py: '1px', borderRadius: '3px', fontSize: 9, fontWeight: 600, bgcolor: 'customColors.SecondaryContainer', color: 'customColors.OnSecondaryContainer', lineHeight: 1.4 }}>
+                                {g.male}
+                              </Box>
+                              <Box sx={{ px: '4px', py: '1px', borderRadius: '3px', fontSize: 9, fontWeight: 600, bgcolor: 'customColors.AntzTertiary', color: 'customColors.rusticRed', lineHeight: 1.4 }}>
+                                {g.female}
+                              </Box>
+                              <Box sx={{ px: '4px', py: '1px', borderRadius: '3px', fontSize: 9, fontWeight: 600, bgcolor: 'customColors.displaybgSecondary', color: 'customColors.neutralSecondary', lineHeight: 1.4 }}>
+                                {g.unknown}
+                              </Box>
+                            </Stack>
+                          )}
                         </TableCell>
                       )
                     })}
@@ -482,6 +497,23 @@ const MatrixView = ({
                       }}
                     >
                       {row.total ?? 0}
+                      {(() => {
+                        const tg = row.total_gender_breakdown
+                        const hasTotal = tg && (tg.male > 0 || tg.female > 0 || tg.unknown > 0)
+                        return hasTotal ? (
+                          <Stack direction='row' spacing='2px' justifyContent='flex-end' sx={{ mt: '3px' }}>
+                            <Box sx={{ px: '4px', py: '1px', borderRadius: '3px', fontSize: 9, fontWeight: 600, bgcolor: 'customColors.SecondaryContainer', color: 'customColors.OnSecondaryContainer', lineHeight: 1.4 }}>
+                              {tg.male}
+                            </Box>
+                            <Box sx={{ px: '4px', py: '1px', borderRadius: '3px', fontSize: 9, fontWeight: 600, bgcolor: 'customColors.AntzTertiary', color: 'customColors.rusticRed', lineHeight: 1.4 }}>
+                              {tg.female}
+                            </Box>
+                            <Box sx={{ px: '4px', py: '1px', borderRadius: '3px', fontSize: 9, fontWeight: 600, bgcolor: 'customColors.displaybgSecondary', color: 'customColors.neutralSecondary', lineHeight: 1.4 }}>
+                              {tg.unknown}
+                            </Box>
+                          </Stack>
+                        ) : null
+                      })()}
                     </TableCell>
                   </TableRow>
                 ))
