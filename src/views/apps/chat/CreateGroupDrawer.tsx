@@ -22,6 +22,7 @@ import Icon from 'src/@core/components/icon'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import AvatarUpload from 'src/views/forms/form-elements/file-uploader/AvatarUpload'
 import { getInitials } from 'src/@core/utils/get-initials'
+import { maybeCompressImage, ICON_COMPRESS_OPTIONS } from 'src/lib/chat/imageCompression'
 
 import type { ContactType, ChatEntityId, CreateGroupPayload } from 'src/types/apps/chatTypes'
 
@@ -178,9 +179,11 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
         >
           <AvatarUpload
             value={iconUrl ?? undefined}
-            onChange={(file, previewUrl) => {
-              setIconUrl(previewUrl)
-              setIconFile(file)
+            onChange={async (file, previewUrl) => {
+              const compressed = await maybeCompressImage(file, ICON_COMPRESS_OPTIONS)
+              const url = compressed === file ? previewUrl : URL.createObjectURL(compressed)
+              setIconUrl(url)
+              setIconFile(compressed)
             }}
             placeholderLabel='Add icon'
             size={90}

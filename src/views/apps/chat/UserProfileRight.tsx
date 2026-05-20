@@ -25,6 +25,7 @@ import toast from 'react-hot-toast'
 import { getChatClientOrNull } from 'src/lib/chat/client'
 import { searchUsers, sdkUserToContact, getUserById } from 'src/lib/chat/api'
 import type { User } from 'src/lib/chat/api'
+import { maybeCompressImage, ICON_COMPRESS_OPTIONS } from 'src/lib/chat/imageCompression'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -232,20 +233,23 @@ const UserProfileRight = (props: UserProfileRightType) => {
   }
 
   const handleIconFileSelected = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const picked = e.target.files?.[0]
     // Reset value so re-picking the same file fires onChange again.
     e.target.value = ''
-    if (!file) return
+    if (!picked) return
     if (currentGroupId === null || typeof currentGroupId !== 'string') {
       toast.error('Cannot upload icon — invalid group')
 
       return
     }
-    if (!file.type.startsWith('image/')) {
+    if (!picked.type.startsWith('image/')) {
       toast.error('Please pick an image file')
 
       return
     }
+
+    setUploadingIcon(true)
+    const file = await maybeCompressImage(picked, ICON_COMPRESS_OPTIONS)
 
     // SDK expects an `UploadableFile` shape (`{ uri, name, type, size }`).
     // Without `name` the presigned-url request returns 400. Wrap via a blob
@@ -258,7 +262,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
       size: file.size
     }
 
-    setUploadingIcon(true)
     try {
       await dispatch(uploadGroupIcon({ chatId: currentGroupId, file: uploadable })).unwrap()
       toast.success('Group icon updated')

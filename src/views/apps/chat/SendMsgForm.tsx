@@ -11,14 +11,13 @@ import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import toast from 'react-hot-toast'
 
-import imageCompression from 'browser-image-compression'
-
 import Icon from 'src/@core/components/icon'
 
 import { SendMsgComponentType } from 'src/types/apps/chatTypes'
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
 import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
+import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 import { setReplyingTo, setEditingMessage } from 'src/store/apps/chat'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
@@ -74,29 +73,6 @@ const inferKind = (mime: string): PendingFile['kind'] => {
 const kindMediaIcon: Record<'video' | 'audio', string> = {
   video: 'mdi:video-outline',
   audio: 'mdi:music-note'
-}
-
-// Animated/vector formats break under canvas re-encoding (GIFs lose animation,
-// SVGs lose scalability) — skip them and send originals.
-const COMPRESSIBLE_IMAGE_RE = /^image\/(jpeg|jpg|png|webp|heic|heif|bmp|tiff)$/i
-
-const COMPRESS_OPTIONS = {
-  maxSizeMB: 1,
-  maxWidthOrHeight: 1920,
-  useWebWorker: true
-}
-
-const maybeCompressImage = async (file: File): Promise<File> => {
-  if (!COMPRESSIBLE_IMAGE_RE.test(file.type)) return file
-  try {
-    const out = await imageCompression(file, COMPRESS_OPTIONS)
-
-    return out.size < file.size ? out : file
-  } catch (err) {
-    console.warn('[chat] image compression failed, sending original:', err)
-
-    return file
-  }
 }
 
 const SendMsgForm = (props: SendMsgComponentType) => {
