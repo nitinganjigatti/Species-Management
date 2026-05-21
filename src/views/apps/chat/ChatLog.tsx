@@ -28,6 +28,13 @@ import MessageBubble from 'src/views/apps/chat/MessageBubble'
 import MessageActions from 'src/views/apps/chat/MessageActions'
 import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
+import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
+
+// ** Forward marker helpers — treat a marker-only payload as "no text"
+// so forwarded attachment-only messages route to the attachment-only
+// render path (with its own actions menu + reaction picker) and pick up
+// the <ForwardedTag /> next to the attachment column.
+import { isForwarded, hasDisplayableText } from 'src/lib/chat/forwardMarker'
 
 // ** Types
 import type { ChatAttachmentType } from 'src/types/apps/chatTypes'
@@ -719,7 +726,7 @@ const ChatLog = (props: ChatLogType) => {
                         the same as on text bubbles. Mixed (text + attachments) messages
                         keep their actions inside MessageBubble below — one menu per
                         message, not per attachment. */}
-                    {chat.attachments?.length && !chat.msg && !chat.isDeletedForEveryone ? (
+                    {chat.attachments?.length && !hasDisplayableText(chat.msg) && !chat.isDeletedForEveryone ? (
                       <Box
                         sx={{
                           display: 'flex',
@@ -773,6 +780,7 @@ const ChatLog = (props: ChatLogType) => {
                               />
                             </Box>
                           ) : null}
+                          {isForwarded(chat.msg) ? <ForwardedTag isSender={isSender} /> : null}
                           {(() => {
                             const images = chat.attachments.filter(a => a.type === 'image')
                             const others = chat.attachments.filter(a => a.type !== 'image')
@@ -987,7 +995,7 @@ const ChatLog = (props: ChatLogType) => {
                     ) : null}
                     {/* Mixed (attachments + text) and text-only paths: existing inline
                         attachments map below + MessageBubble. Skipped when attachment-only. */}
-                    {chat.attachments?.length && (chat.msg || chat.isDeletedForEveryone)
+                    {chat.attachments?.length && (hasDisplayableText(chat.msg) || chat.isDeletedForEveryone)
                       ? (() => {
                           const images = chat.attachments.filter(a => a.type === 'image')
                           const others = chat.attachments.filter(a => a.type !== 'image')
@@ -1201,7 +1209,7 @@ const ChatLog = (props: ChatLogType) => {
                           )
                         })()
                       : null}
-                    {chat.msg || chat.isDeletedForEveryone ? (
+                    {hasDisplayableText(chat.msg) || chat.isDeletedForEveryone ? (
                       <Box sx={{ ml: isSender ? 'auto' : undefined, width: 'fit-content', maxWidth: '100%' }}>
                         <MessageBubble
                           chat={chat}

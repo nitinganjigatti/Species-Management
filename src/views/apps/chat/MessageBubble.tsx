@@ -25,6 +25,11 @@ import Icon from 'src/@core/components/icon'
 // MessageReactionPicker = 😀 trigger outside the bubble (vertically centered).
 import MessageActions from 'src/views/apps/chat/MessageActions'
 import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
+import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
+
+// ** Forward marker — strip the sentinel for display and detect the
+// "Forwarded" state so we can render <ForwardedTag /> above the body.
+import { isForwarded, stripForwardMarker, hasDisplayableText } from 'src/lib/chat/forwardMarker'
 
 // ** Types
 import type { ChatLogChatType } from 'src/types/apps/chatTypes'
@@ -133,7 +138,14 @@ const MessageBubble = ({
     return <>{parts}</>
   }
 
-  if (!chat.msg) return null
+  // Marker-only payloads (forwarded attachment-only messages) have a
+  // truthy `chat.msg` but no visible body — let the attachment-only
+  // render path in ChatLog handle them so the tag appears with the
+  // attachment column instead of inside an empty text bubble.
+  if (!hasDisplayableText(chat.msg)) return null
+
+  const forwarded = isForwarded(chat.msg)
+  const displayText = forwarded ? stripForwardMarker(chat.msg) : chat.msg ?? ''
 
   // Click the reply snippet → ask ChatContent to scroll + flash the original
   // bubble via the shared `scrollTargetMessageId` flow (same path as the
@@ -254,8 +266,9 @@ const MessageBubble = ({
               </Typography>
             </Box>
           ) : null}
+          {forwarded ? <ForwardedTag isSender={isSender} /> : null}
           <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
-            {isSearchMatch ? highlightText(chat.msg, !!isActiveSearchMatch) : chat.msg}
+            {isSearchMatch ? highlightText(displayText, !!isActiveSearchMatch) : displayText}
             {chat.isPinned ? (
               <Box
                 component='span'

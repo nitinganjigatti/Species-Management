@@ -23,6 +23,7 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
 import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
 import MessageInfoDialog from 'src/views/apps/chat/MessageInfoDialog'
+import ForwardMessageDialog from 'src/views/apps/chat/ForwardMessageDialog'
 import PinnedMessagesStrip from 'src/views/apps/chat/PinnedMessagesStrip'
 
 // ** Chat API
@@ -520,6 +521,10 @@ const ChatContent = (props: ChatContentType) => {
                 dispatches `setInfoMessage(...)` and the drawer slides in
                 using the same `Sidebar` primitive as UserProfileRight. */}
             <MessageInfoDialog />
+            {/* Forward-message picker — driven by Redux `state.chat.forwardingMessage`.
+                The 3-dot menu's "Forward" item dispatches `setForwardingMessage(...)`
+                with a snapshot of the source bubble. */}
+            <ForwardMessageDialog />
           </Box>
         )
       }

@@ -10,6 +10,8 @@ import type {
   ChatType,
   MessageType,
   MessageReplyRef,
+  ForwardingMessageRef,
+  ChatAttachmentType,
   SendMsgParamsType,
   ChatFilterType,
   ChatEntityId,
@@ -49,6 +51,8 @@ import {
 } from 'src/lib/chat/api'
 
 import { useChatStore } from '@antzsoft/chat-core'
+
+import { composeForwardedText } from 'src/lib/chat/forwardMarker'
 
 // ----------------------------------------------------------------------
 // Async Thunks — talk to the chat backend via @antzsoft/chat-core.
@@ -889,6 +893,76 @@ export const sendMsg = createAsyncThunk(
   }
 )
 
+/**
+ * Forward an existing message into another conversation.
+ *
+ * Implemented as a client-side composition because the SDK has no
+ * forwarding primitive — we re-send the source content via the standard
+ * `sendMessageOverSocket` path with a sentinel prefix on the text so both
+ * sender and recipient render the "Forwarded" label. Attachments are
+ * forwarded by reusing the source `Attachment.id` as the destination
+ * `SendMessageAttachment.fileId`; this assumes the backend accepts an
+ * already-uploaded fileId from another conversation. If that assumption
+ * breaks, the socket ack will reject and the thunk surfaces a toast via
+ * the dispatcher.
+ *
+ * On success, optionally dispatches `selectChat(targetChatId)` so the
+ * user lands in the destination chat with the forwarded message visible.
+ */
+export const forwardMessage = createAsyncThunk<
+  void,
+  {
+    sourceMessageId: string
+    sourceText?: string
+    sourceAttachments?: ChatAttachmentType[]
+    targetChatId: ChatEntityId
+    openTargetAfter?: boolean
+  }
+>('appChat/forwardMessage', async (params, { dispatch }) => {
+  const { sourceText, sourceAttachments, targetChatId, openTargetAfter = true } = params
+  const client = getChatClientOrNull()
+  if (!client || typeof targetChatId !== 'string') {
+    throw new Error('[chat] forwardMessage requires an initialized SDK and a real target chat id')
+  }
+
+  const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+
+  // Map ChatAttachmentType → SendMessageAttachment. Same shape as sendMsg.
+  const attachments = sourceAttachments?.length
+    ? sourceAttachments.map(a => ({
+        fileId: a.id,
+        type: a.type,
+        url: a.url,
+        thumbnailUrl: a.thumbnailUrl,
+        filename: a.filename,
+        mimeType: a.mimeType,
+        size: a.size
+      }))
+    : undefined
+
+  // composeForwardedText strips any existing marker on the source first,
+  // so re-forwarding an already-forwarded message never stacks markers.
+  const text = composeForwardedText(sourceText)
+
+  try {
+    await sendMessageOverSocket({
+      conversationId: targetChatId,
+      text,
+      tempId,
+      ...(attachments ? { attachments } : {})
+    })
+  } catch (err) {
+    console.error('[chat] forwardMessage send failed:', err)
+    throw err
+  }
+
+  dispatch(setForwardingMessage(null))
+
+  if (openTargetAfter) {
+    dispatch(selectChat(targetChatId))
+  }
+})
+
 // ----------------------------------------------------------------------
 // Slice
 // ----------------------------------------------------------------------
@@ -904,6 +978,7 @@ const initialState: ChatStoreType = {
   replyingTo: null,
   editingMessage: null,
   infoMessage: null,
+  forwardingMessage: null,
   selectedConversationId: null,
   drafts: {}
 }
@@ -1040,6 +1115,13 @@ export const appChatSlice = createSlice({
       >
     ) => {
       state.infoMessage = action.payload
+    },
+    // "Forward message" picker state — set by clicking "Forward" on a
+    // bubble; cleared on send-success or by the dialog's cancel button.
+    // The dialog is mounted at the chat shell root (ChatContent) so it
+    // overlays the chat panel.
+    setForwardingMessage: (state, action: PayloadAction<ForwardingMessageRef | null>) => {
+      state.forwardingMessage = action.payload
     },
     // Pin — server-broadcast on `message_pin_updated`. Visible to all
     // participants of the conversation.
@@ -1896,6 +1978,7 @@ export const {
   patchLastMessageSender,
   applyParticipantLeft,
   setInfoMessage,
+  setForwardingMessage,
   updateChatFlags,
   setUnreadCount,
   setReplyingTo,

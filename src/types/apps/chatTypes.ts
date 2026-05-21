@@ -72,6 +72,18 @@ export type MessageReplyRef = {
   hasAttachment?: boolean
 }
 
+// Snapshot of the message currently being forwarded, set when the user picks
+// "Forward" from the message-actions menu. The ForwardMessageDialog reads
+// this to render the source preview and to compose the outgoing payload.
+// Cleared on send-success or dialog cancel.
+export type ForwardingMessageRef = {
+  messageId: string
+  messageText?: string
+  attachments?: ChatAttachmentType[]
+  senderName?: string
+  senderId?: ChatEntityId
+}
+
 export type MessageType = {
   // Stable server id once known; absent for mock seed messages and pre-ack
   // optimistic sends. Used to dedupe socket echoes and update feedback ticks.
@@ -251,6 +263,10 @@ export type ChatStoreType = {
     readBy?: Array<{ userId: string; readAt: string }>
     deliveredTo?: Array<{ userId: string; deliveredAt: string }>
   } | null
+  // The message currently being forwarded. Set by clicking "Forward" on a
+  // bubble; cleared on send-success or by the dialog's cancel button.
+  // Drives the ForwardMessageDialog mounted at the chat shell root.
+  forwardingMessage: ForwardingMessageRef | null
   // WhatsApp-style per-conversation drafts. Keyed by conversationId.
   // Populated when the user types in the composer and switches chats
   // without sending; restored when they come back. Cleared on send.
