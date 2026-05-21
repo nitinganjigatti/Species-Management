@@ -34,14 +34,20 @@ import ControlledDateTimePicker from 'src/views/forms/form-fields/ControlledDate
 import Utility from 'src/utility'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
+import { AnesthesiaAssessmentType, DoctorDetails, PatientDetailsData } from 'src/types/hospital/models'
+import { SelectOption } from 'src/types/necropsy'
+import { Id } from 'src/types/compliance'
+import { PurposeOption } from '../AddAnesthesiaRecord'
 
 dayjs.extend(utc)
 
+const COLLAPSED_PURPOSE_HEIGHT = 170
+
 interface BasicDetailsProps {
-  vetOptions?: any[]
-  anesthetistOptions?: any[]
-  purposeOptions?: any[]
-  anesthesiaId?: any
+  vetOptions?: DoctorDetails[]
+  anesthetistOptions?: DoctorDetails[]
+  purposeOptions?: PurposeOption[]
+  anesthesiaId?: Id
   addLoader?: boolean
   selectedHospital?: any
   loadMoreDoctors?: () => void
@@ -50,9 +56,9 @@ interface BasicDetailsProps {
   loadingAnesthetist?: boolean
   handleVetSearch?: (val: string, current: any[]) => void
   handleAnesthetistSearch?: (val: string, current: any[]) => void
-  handleVetSelect?: (item: any) => void
-  handleAnesthetistSelect?: (item: any) => void
-  patientData?: any
+  handleVetSelect?: (item: DoctorDetails) => void
+  handleAnesthetistSelect?: (item: DoctorDetails) => void
+  patientData?: PatientDetailsData | null
   drawerOpen?: boolean
 }
 
@@ -92,8 +98,8 @@ export default function BasicDetails({
     { label: t('hospital_module.min'), value: 'min' }
   ]
   const [expanded, setExpanded] = useState<boolean>(false)
-  const [showToggle, setShowToggle] = useState<boolean>(false)
-  const [fullHeight, setFullHeight] = useState<any>(0 || '')
+  const [isOverflowing, setIsOverflowing] = useState<boolean>(false)
+  const [fullHeight, setFullHeight] = useState<number | string>(0 || '')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [searchValue, setSearchValue] = useState<string>('')
   const [loading, setLoading] = useState<boolean>(true)
@@ -164,17 +170,17 @@ export default function BasicDetails({
     }
   }
 
-  const autocompleteSlotProps: any = useMemo(
+  const autocompleteSlotProps = useMemo(
     () => ({
-      tags: (options: any[]) => ({
-        getTagProps: ({ index }: any) => ({
+      tags: (options: DoctorDetails[]) => ({
+        getTagProps: ({ index }: { index: number }) => ({
           key: options[index]?.id,
           label: options[index]?.name,
           size: 'small'
         })
       }),
       listbox: {
-        onScroll: (event: any) => {
+        onScroll: (event: React.UIEvent<HTMLElement>) => {
           const listboxNode = event.currentTarget
           if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 5) {
             loadMoreDoctors()
@@ -207,8 +213,8 @@ export default function BasicDetails({
     [loadingDoctors, theme, loadMoreDoctors]
   )
 
-  const selectedPurpose: any[] = (watch('basicDetails.selected') as any) || []
-  const selectedOtherPurpose: any[] = (watch('basicDetails.custom') as any) || []
+  const selectedPurpose: string[] = (watch('basicDetails.selected') as string[]) || []
+  const selectedOtherPurpose: string[] = (watch('basicDetails.custom') as string[]) || []
 
   useEffect(() => {
     if (!selectedOtherPurpose.length || !purposeOptions.length) return
@@ -217,17 +223,17 @@ export default function BasicDetails({
     let updatedCustom = [...selectedOtherPurpose]
     let updatedSelected = [...selectedPurpose]
 
-    selectedOtherPurpose.forEach((customValue: any) => {
+    selectedOtherPurpose.forEach((customValue: string) => {
       const normalizedCustom = normalizePurpose(customValue)
 
-      const matchedOption = purposeOptions.find((opt: any) => normalizePurpose(opt.name || '') === normalizedCustom)
+      const matchedOption = purposeOptions.find((opt: PurposeOption) => normalizePurpose(opt.name || '') === normalizedCustom)
 
       if (matchedOption) {
         const idAsString = String(matchedOption.id)
         if (!selected.has(idAsString)) {
           updatedSelected.push(idAsString)
         }
-        updatedCustom = updatedCustom.filter((v: any) => v !== customValue)
+        updatedCustom = updatedCustom.filter((v: string) => v !== customValue)
       }
     })
 
@@ -239,8 +245,8 @@ export default function BasicDetails({
 
   const normalizePurpose = (value: string) => value.toLowerCase().replace(/\s+/g, '').trim()
 
-  const filteredPurposeOptions = purposeOptions.filter((purpose: any) =>
-    purpose.name.toLowerCase().includes(searchValue.toLowerCase())
+  const filteredPurposeOptions = purposeOptions.filter((purpose: PurposeOption) =>
+    (purpose.name ?? '').toLowerCase().includes(searchValue.toLowerCase())
   )
 
   const debouncedMainSearch = useCallback(
@@ -266,14 +272,21 @@ export default function BasicDetails({
   }
 
   useEffect(() => {
-    if (loading) return
-    if (filteredPurposeOptions.length === 0) return
-    if (!contentRef.current) return
+    const node = contentRef.current
+    if (loading || !node || filteredPurposeOptions.length === 0) return
 
-    const height = contentRef.current.scrollHeight
-    setFullHeight(height)
-    setShowToggle(height > 170)
-  }, [filteredPurposeOptions])
+    const measure = () => {
+      const height = node.scrollHeight
+      setFullHeight(height)
+      setIsOverflowing(height > COLLAPSED_PURPOSE_HEIGHT)
+    }
+
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(node)
+
+    return () => observer.disconnect()
+  }, [filteredPurposeOptions, loading])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -297,24 +310,24 @@ export default function BasicDetails({
     const v = newPurpose.trim()
     if (!v) return
     const normalizedNew = normalizePurpose(v)
-    const selected: any[] = (watch('basicDetails.selected') as any) || []
-    const custom: any[] = (watch('basicDetails.custom') as any) || []
+    const selected: string[] = (watch('basicDetails.selected') as string[]) || []
+    const custom: string[] = (watch('basicDetails.custom') as string[]) || []
 
-    const matchedOption = purposeOptions.find((option: any) => normalizePurpose(option?.name || '') === normalizedNew)
+    const matchedOption = purposeOptions.find((option: PurposeOption) => normalizePurpose(option?.name || '') === normalizedNew)
     if (matchedOption) {
       const idAsString = String(matchedOption.id)
 
       if (selected.includes(idAsString)) {
-        setNewPurposeError('Purpose already exists and selected ')
+        setNewPurposeError(t('hospital_module.purpose_already_selected'))
       } else {
-        setNewPurposeError('Purpose already exists, please select')
+        setNewPurposeError(t('hospital_module.purpose_already_exists_please_select'))
       }
 
       return
     }
-    const existsInCustom = custom.some((item: any) => normalizePurpose(item) === normalizedNew)
+    const existsInCustom = custom.some((item: string) => normalizePurpose(item) === normalizedNew)
     if (existsInCustom) {
-      setNewPurposeError('Purpose already exists')
+      setNewPurposeError(t('hospital_module.purpose_already_exists'))
 
       return
     }
@@ -351,8 +364,8 @@ export default function BasicDetails({
             ampm
             outputFormat='YYYY-MM-DD HH:mm:ss'
             {...({
-              minDateTime: dayjs((Utility as any).convertUTCToLocal(patientData?.admitted_at)),
-              maxDateTime: patientData?.discharge_at ? dayjs((Utility as any).convertUTCToLocal(patientData?.discharge_at)) : dayjs()
+              minDateTime: dayjs(Utility.convertUTCToLocal(patientData?.admitted_at)),
+              maxDateTime: patientData?.discharge_at ? dayjs(Utility.convertUTCToLocal(patientData?.discharge_at)) : dayjs()
             } as any)}
             helperText={(errors as any).basicDetails?.anaesthesia_datetime?.message}
           />
@@ -368,8 +381,8 @@ export default function BasicDetails({
             label={`${t('hospital_module.estimated_time')}*`}
             placeholder={(t('add') as string)}
             type='number'
-            getOptionLabel={(option: any) => option.label}
-            getOptionValue={(option: any) => option.value}
+            getOptionLabel={(option: SelectOption) => option.label}
+            getOptionValue={(option: SelectOption) => option.value}
             showEmptyMenuItem={false}
             showEmptyMenuItemLabel={false}
             selectWidth={80}
@@ -381,26 +394,26 @@ export default function BasicDetails({
           <Controller
             name='basicDetails.veterinarian_id'
             control={control}
-            render={({ field }: any) => {
+            render={({ field }) => {
               return (
                 <Autocomplete
                   multiple
                   openOnFocus
                   disableCloseOnSelect={true}
                   options={vetOptions}
-                  getOptionLabel={(option: any) => option?.name || ''}
-                  isOptionEqualToValue={(option: any, value: any) => String(option.id) === String(value.id)}
+                  getOptionLabel={(option: DoctorDetails) => option?.name || ''}
+                  isOptionEqualToValue={(option: DoctorDetails, value: DoctorDetails) => String(option.id) === String(value.id)}
                   loading={loadingVet}
                   value={field.value || []}
-                  filterOptions={(x: any) => x}
-                  onInputChange={(event: any, newInputValue: any) => {
+                  filterOptions={(x: DoctorDetails[]) => x}
+                  onInputChange={(_event, newInputValue: string) => {
                     handleVetSearch(newInputValue, field.value || [])
                   }}
-                  onChange={(_: any, newValue: any) => {
-                    const previousValue = field.value || []
+                  onChange={(_, newValue: DoctorDetails[]) => {
+                    const previousValue: DoctorDetails[] = field.value || []
                     if (newValue.length > previousValue.length) {
                       const newItem = newValue.find(
-                        (item: any) => !previousValue.some((prev: any) => String(prev.id) === String(item.id))
+                        (item: DoctorDetails) => !previousValue.some((prev: DoctorDetails) => String(prev.id) === String(item.id))
                       )
                       if (newItem) handleVetSelect(newItem)
                     }
@@ -410,16 +423,16 @@ export default function BasicDetails({
                     tags: autocompleteSlotProps.tags(vetOptions),
                     listbox: autocompleteSlotProps.listbox
                   } as any}
-                  renderOption={(props: any, option: any) => (
+                  renderOption={(props, option: DoctorDetails) => (
                     <li {...props} key={option.id}>
                       {option.name}
                     </li>
                   )}
-                  renderInput={(params: any) => (
+                  renderInput={(params) => (
                     <TextField
                       {...params}
                       label={`${t('hospital_module.veterinarian')}*`}
-                      placeholder={'Search & Select'}
+                      placeholder={t('hospital_module.search_and_select')}
                       fullWidth
                       error={!!(errors as any)?.basicDetails?.veterinarian_id}
                       helperText={(errors as any)?.basicDetails?.veterinarian_id?.message}
@@ -436,25 +449,25 @@ export default function BasicDetails({
           <Controller
             name='basicDetails.anesthetist_id'
             control={control}
-            render={({ field }: any) => (
+            render={({ field }) => (
               <Autocomplete
                 multiple
                 openOnFocus
                 disableCloseOnSelect={true}
                 options={anesthetistOptions}
-                getOptionLabel={(option: any) => option?.name || ''}
-                isOptionEqualToValue={(option: any, value: any) => String(option.id) === String(value.id)}
+                getOptionLabel={(option: DoctorDetails) => option?.name || ''}
+                isOptionEqualToValue={(option: DoctorDetails, value: DoctorDetails) => String(option.id) === String(value.id)}
                 loading={loadingAnesthetist}
                 value={field.value || []}
-                filterOptions={(x: any) => x}
-                onInputChange={(event: any, newInputValue: any) => {
+                filterOptions={(x: DoctorDetails[]) => x}
+                onInputChange={(_event, newInputValue: string) => {
                   handleAnesthetistSearch(newInputValue, field.value || [])
                 }}
-                onChange={(_: any, newValue: any) => {
-                  const previousValue = field.value || []
+                onChange={(_, newValue: DoctorDetails[]) => {
+                  const previousValue: DoctorDetails[] = field.value || []
                   if (newValue.length > previousValue.length) {
                     const newItem = newValue.find(
-                      (item: any) => !previousValue.some((prev: any) => String(prev.id) === String(item.id))
+                      (item: DoctorDetails) => !previousValue.some((prev: DoctorDetails) => String(prev.id) === String(item.id))
                     )
                     if (newItem) handleAnesthetistSelect(newItem)
                   }
@@ -464,17 +477,17 @@ export default function BasicDetails({
                   tags: autocompleteSlotProps.tags(anesthetistOptions),
                   listbox: autocompleteSlotProps.listbox
                 } as any}
-                renderOption={(props: any, option: any) => (
+                renderOption={(props, option: DoctorDetails) => (
                   <li {...props} key={option.id}>
                     {option.name}
                   </li>
                 )}
-                renderInput={(params: any) => (
+                renderInput={(params) => (
                   <TextField
                     {...params}
                     label={`${t('hospital_module.anesthetist')}*`}
                     fullWidth
-                    placeholder={'Search & Select'}
+                    placeholder={t('hospital_module.search_and_select')}
                     error={!!(errors as any)?.basicDetails?.anesthetist_id}
                     helperText={(errors as any)?.basicDetails?.anesthetist_id?.message}
                     sx={commonTextFieldSx}
@@ -534,9 +547,9 @@ export default function BasicDetails({
           name='basicDetails.selected'
           control={control}
           defaultValue={[]}
-          render={({ field }: any) => (
+          render={({ field }) => (
             <>
-              <Collapse in={!expanded || loading || showToggle} collapsedSize={showToggle ? 170 : 'auto'}>
+              <Collapse in={!expanded || loading || isOverflowing} collapsedSize={isOverflowing ? COLLAPSED_PURPOSE_HEIGHT : 'auto'}>
                 {loading ? (
                   <Grid
                     container
@@ -545,7 +558,7 @@ export default function BasicDetails({
                     sx={{
                       display: 'flex',
                       flexWrap: 'wrap',
-                      maxHeight: !expanded ? 170 : fullHeight,
+                      maxHeight: !expanded ? COLLAPSED_PURPOSE_HEIGHT : fullHeight,
                       overflow: 'hidden',
                       mt: 3
                     }}
@@ -568,7 +581,7 @@ export default function BasicDetails({
                   <Box
                     ref={contentRef}
                     sx={{
-                      maxHeight: expanded ? fullHeight : 170,
+                      maxHeight: expanded ? fullHeight : COLLAPSED_PURPOSE_HEIGHT,
                       transition: 'max-height 0.3s ease',
                       display: 'flex',
                       flexWrap: 'wrap',
@@ -579,7 +592,7 @@ export default function BasicDetails({
                     {filteredPurposeOptions.length > 0 ? (
                       <ToggleButtonGroup
                         value={field.value || []}
-                        onChange={(_: any, newValues: any) => field.onChange(newValues)}
+                        onChange={(_, newValues: string[]) => field.onChange(newValues)}
                         aria-label='Purpose of anesthesia'
                         sx={{
                           flexWrap: 'wrap',
@@ -607,7 +620,7 @@ export default function BasicDetails({
                           }
                         }}
                       >
-                        {filteredPurposeOptions.map((option: any) => (
+                        {filteredPurposeOptions.map((option: PurposeOption) => (
                           <ToggleButton key={option.id ?? option.name} value={String(option.id)}>
                             {option?.name}
                           </ToggleButton>
@@ -632,7 +645,7 @@ export default function BasicDetails({
               {loading
                 ? null
                 : filteredPurposeOptions.length > 0 &&
-                  showToggle && (
+                  isOverflowing && (
                     <Grid sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <Typography
                         onClick={() => setExpanded((prev: boolean) => !prev)}
@@ -651,7 +664,7 @@ export default function BasicDetails({
                   )}
               {(errors as any).basicDetails?.selected && (
                 <Typography variant='caption' color={theme.palette.customColors.Error} sx={{ mt: 1, display: 'block' }}>
-                  {String((errors as any).basicDetails?.selected?.message || 'Required')}
+                  {String((errors as any).basicDetails?.selected?.message || t('hospital_module.required'))}
                 </Typography>
               )}
 
@@ -669,7 +682,7 @@ export default function BasicDetails({
                   </Typography>
 
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    {selectedOtherPurpose.map((p: any) => (
+                    {selectedOtherPurpose.map((p: string) => (
                       <Box
                         key={p}
                         sx={{
@@ -684,10 +697,10 @@ export default function BasicDetails({
                           border: `1px solid ${theme.palette.primary.main}`
                         }}
                       >
-                        <span style={{ whiteSpace: 'nowrap' }}>{p}</span>
+                        <Box component='span' sx={{ whiteSpace: 'nowrap' }}>{p}</Box>
                         <Button
                           onClick={() => {
-                            const updated = selectedOtherPurpose.filter((item: any) => item !== p)
+                            const updated = selectedOtherPurpose.filter((item: string) => item !== p)
                             setValue('basicDetails.custom', updated, { shouldValidate: true })
                           }}
                           aria-label={`Remove ${p}`}

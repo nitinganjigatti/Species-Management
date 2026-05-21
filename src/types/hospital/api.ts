@@ -355,3 +355,14 @@ export interface RoomsAndEnclosuresParams extends PaginationParams {
 }
 
 export interface RoomsAndEnclosuresResponse extends ApiResponse<unknown> {}
+
+export interface UpdateDeleteApiResponse {
+  success: boolean
+  message: string
+}
+
+export interface DeleteApiResponse {
+  success: boolean
+  data: unknown[]
+  message: string
+}

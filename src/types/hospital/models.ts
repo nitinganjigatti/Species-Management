@@ -10,7 +10,7 @@ import { Dayjs } from "dayjs"
 // ==================== Generic Helpers ====================
 
 export type Id = string | number
-export type StatusAction = 'active' | 'inactive'
+export type StatusAction = 'active' | 'inactive' | 'Active' | 'Inactive'
 export interface UserAvatarInfo {
   user_id?: Id
   first_name?: string
@@ -319,8 +319,8 @@ export interface CoAttendDoctor {
 }
 
 export interface PatientDetailsData {
-  hospital_case_id: Id
-  hospital_id: Id
+  hospital_case_id?: Id
+  hospital_id?: Id
   case_code?: string
   treatment_type?: string
   visit_type?: VisitTypeReason
@@ -371,6 +371,14 @@ export interface PatientDetailsData {
   discharge_follow_up_date?: string | null
   hospital_name?: string
   health_status?: string
+  animal?: {
+    common_name?: string
+    scientific_name?: string
+    age?: string
+    sex?: string
+    image_url?: string
+  }
+  additional_info?: Record<string, string>
 }
 
 export interface Patient {
@@ -1151,9 +1159,13 @@ export interface MedicalDefaultVital {
 export interface PrescriptionMedicineBatchDetail {
   batch_id?: Id
   batch_no?: string
+  batch_no_image?: string
+  batch_note?: string
   expiry_date?: string
   quantity?: string | number
   unit?: string
+  wastage_qty?: string | number
+  wastage_unit_name?: string
   [key: string]: unknown
 }
 
@@ -1247,6 +1259,7 @@ export interface PrescriptionMasterData {
 
 export interface PrescriptionFrequencyList {
   id: Id
+  value?: Id
   label: PrescriptionFrequency
   string_id?: string
   translation_string_id?: string
@@ -1888,3 +1901,418 @@ export interface MedicalSummaryDetails {
   follow_up_date: string | null
   medical_record_number: string
 }
+
+
+// ==================== Anesthesia ====================
+
+export type DeliveryStatus = | 'Complete' | 'Partial' | 'None'
+
+export type EstimatedUnit = | 'hr' | 'min' | string
+
+export interface AnesthesiaDetailOption {
+  label?: string
+  value?: string | number | null
+}
+
+export interface AnesthesiaMedicationRow {
+  id: Id
+  drug: string
+  purpose: string
+  amount: string
+  route: string | number
+  deliveryTime: string
+  deliveryStatus: DeliveryStatus | string
+  maxEffect: string
+  notes: string
+}
+
+export interface AnesthesiaRecordItem extends AnesthesiaDetails {
+  procedures?: string[]
+  createdOn?: string
+  createdBy?: string
+  time?: string
+}
+
+export interface AnesthesiaMonitoringState {
+  selected?: number[]
+  otherItems?: string[]
+}
+
+export interface AnesthesiaSetupSectionFieldEntry {
+  field_value?: string
+  unit?: string
+}
+
+export interface AnesthesiaSetupSectionState {
+  checked?: boolean
+  monitoring?: AnesthesiaMonitoringState
+  fields?: Record<string, AnesthesiaSetupSectionFieldEntry>
+  [key: string]: unknown
+}
+
+export interface MonitoringToggleItem {
+  id: number
+  name: string
+}
+
+export interface AnesthesiaSetupRow {
+  key: string
+  label?: string
+  meta: AnesthesiaSetup
+}
+
+export interface PreAnesthesiaSelectOption {
+  value: string | number
+  label: string
+}
+
+export interface MedicationDrugOption {
+  id?: Id
+  name?: string
+  drug_id?: Id
+}
+
+export interface UnitParams {
+  id?: Id
+  uom_abbr?: string
+  name?: string
+}
+
+export interface AnesthesiaGasRow {
+  id: Id
+  gas: string
+  o2: string
+  concentration: string | number
+  route: string
+  startTime: string
+  endTime: string
+}
+
+export interface AnesthesiaReversalRow {
+  id: Id
+  drug: string
+  amount: string | number
+  route: string
+  deliveryTime: string | number
+  deliveryStatus: DeliveryStatus | string
+  maxEffect: string
+}
+export interface AnesthesiaDetails {
+  id?: Id
+  anaesthesia_id: Id
+  code: string
+  hospital_case_id: Id
+  medical_record_id: Id
+  anaesthesia_datetime: string
+  location: string
+  estimated_time_required: number | string
+  estimated_time_unit: string
+  veterinarian_id: Id[]
+  anesthetist_id: Id[]
+  notes: string
+  created_by: string
+  created_at: string
+  created_by_name: string
+  created_by_role: string
+  updated_at: string
+  updated_by: string
+  veterinarians: DoctorDetails[]
+  anesthetists: DoctorDetails[]
+  purpose: AnesthesiaAssessmentType[]
+  anaesthesia_setup: AnesthesiaSetup[]
+  pre_anaesthesia: PreAnesthesia
+  anaesthesia_medications: AnaesthesiaMedications
+  vital_monitoring: VitalMonitoring
+  recovery_and_reversal: RecoveryAndReversal
+  attachments: Attachments
+}
+
+export interface DoctorDetails {
+  user_id?: Id
+  full_name?: string
+  role_name?: string
+  default_icon?: string | UserAvatarInfo
+  id?: Id
+  doctor_id?: Id
+  user_full_name?: string
+  name?: string
+  is_hospital_chief_doctor?: string | number
+  value?: string
+  label?: string
+}
+
+export interface DoctorOption {
+  label?: string
+  value?: string
+}
+
+export interface AnesthesiaAssessmentType {
+  id: Id
+  type: string
+  name: string
+  is_other: number | string | boolean
+  created_at: string
+  is_selected: number | string | boolean
+}
+export interface AnesthesiaSetup {
+  section_id: Id
+  section_name: string  
+  string_id?: string
+  type: string
+  fields: AnesthesiaSetupFields[]
+  monitoring_items: AnesthesiaAssessmentType[]
+}
+
+export interface AnesthesiaSetupFields {
+  field_id: Id
+  field_key: string
+  field_label: string
+  input_type: string
+  options: string[]
+  units: string[]
+  field_value: string
+  unit: string | null
+}
+
+export interface PreAnesthesia {
+  id: Id
+  anaesthesia_id: Id
+  temperature: string | number
+  humidity: string | number
+  physical_health_status: string
+  body_condition: string
+  animal_activity: string
+  fasting_time: string | number
+  fasting_unit: string
+  previous_endotracheal_tube_size: string
+  code_status: string
+  weight: string | number
+  weight_unit: string
+  weight_type: string
+  pre_anesthesia_notes: string
+  created_by: Id
+  created_at: string
+  clin_path: AnesthesiaAssessmentType[]
+}
+export interface AnaesthesiaMedications {
+  medication: {
+    total: string | number
+    records: Medications[]
+  }
+  gas: {
+    total: string | number
+    records: Gas[]
+  }
+}
+
+export interface Medications {
+  id: Id
+  anaesthesia_id: Id
+  type: string
+  drug_id: Id
+  drug_name: string
+  route: string | number
+  delivery_status: DeliveryStatus
+  created_at: string
+  purpose_stage: string
+  amount: number | string
+  unit_id: Id
+  unit_name: string
+  uom_abbr: string
+  delivery_time: string
+  max_effect: string
+  comments: string
+}
+
+export interface Gas {
+  id: Id
+  anaesthesia_id: Id
+  type: string
+  drug_id: Id
+  drug_name: string
+  route: string
+  delivery_status: DeliveryStatus
+  created_at: string
+  oxygen_l_min: number | string
+  concentration: number | string
+  start_time: string
+  end_time: string
+  comments?: string
+}
+
+export interface VitalMonitoring {
+  time_slots: VitalMonitoringTimeSlots[]
+  records: VitalMonitoringRecords[]
+}
+
+export interface VitalMonitoringTimeSlots {
+  id: Id
+  recorded_time?: string
+  monitoring_time_id?: Id
+  label?: string
+}
+
+export interface VitalMonitoringRecords {
+  section_id: Id
+  section_name: string
+  string_id?: string
+  type: string
+  fields: VitalMonitoringFields[]
+}
+
+export interface VitalMonitoringFields {
+  field_id: Id
+  field_key: string
+  field_label: string
+  input_type: string
+  options: string[]
+  units: string[]
+  values: VitalMonitoringValues[]
+  field_value?: string | number | null
+  unit?: string | null
+}
+
+export interface VitalMonitoringValues {
+  monitoring_time_id: Id
+  field_value: string | number
+  unit: string
+}
+
+export interface RecoveryAndReversal {
+  recovery: Recovery
+  reversal: {
+    total: string | number
+    records: Reversal[]
+  }
+}
+
+export interface Recovery {
+  id: Id
+  anaesthesia_id: Id
+  recovery_type: string
+  recovery_first_effect_time: string
+  recovery_full_effect_time: string
+  describe_problem:string
+  notes: string
+  rating_induction: string
+  rating_tolerance: string
+  rating_recovery: string
+  rating_overall: string
+  created_by: Id
+  created_at: string
+}
+
+export interface Reversal {
+  id: Id
+  anaesthesia_id: Id
+  type: string
+  drug_id: Id 
+  drug_name: string
+  route: string
+  delivery_status: DeliveryStatus
+  created_at: string
+  amount: string | number
+  unit_id: Id
+  unit_name: string
+  uom_abbr: string
+  delivery_time: string
+  comments: string | null
+  max_effect: string
+}
+
+export interface Attachments {
+  total: string | number
+  records: []
+}
+
+export interface DeliveryRoute {
+  id: Id
+  delivery: Id
+  route_abbr: string | number
+  string_id?: string
+  zoo_id: Id
+  is_deleted: string | number
+  created_at: string
+  modified_at: string
+  created_by: Id
+  modified_by: Id | null
+}
+
+// ==================== Surgery ====================
+
+export interface SurgeryRecords {
+  code: string
+  id: Id
+  detail: SurgeryDetails
+}
+
+export interface SurgeryDetails {
+  id: Id
+  code: string
+  hospital_id: Id
+  hospital_case_id: Id
+  surgery_date: string
+  start_time: string
+  end_time: string
+  type_of_surgery: string
+  surgical_approach: string
+  surgery_notes: string
+  complications: string
+  care_diet_instructions: string
+  care_activity_restrictions: string
+  additional_notes: string
+  anaesthesia_id: Id
+  surgery_id: Id
+  surgery_name: string
+  name_of_surgeon: string
+  name_of_surgeon_id: Id
+  updated_at: string | null
+  updated_by_name: string | null
+  attachments: SurgeryAttachments[]
+  secondary_surgeons: string[]
+  anaesthesia_detail: AnesthesiaDetails
+}
+
+export interface SurgeryAttachments {
+  id: Id
+  file: string
+  file_type: string
+  created_at: string
+  modified_at: string | null
+  user_full_name: string
+  user_profile_pic: string | null
+  file_original_name: string
+}
+
+export interface SurgeryMaster {
+  id: Id
+  zoo_id: Id
+  surgery_name: string
+  description: string
+  status: StatusAction
+  created_at: string 
+  created_by: Id
+  updated_at: string | null
+  updated_by: Id | null
+  is_deleted: string | number
+  deleted_at: string | null
+  deleted_by: Id | null
+}
+
+export interface SurgeryTemplateList {
+  id: Id
+  template_name: string
+  type: string
+  description: string
+  status: StatusAction
+  hospital_id: Id
+  zoo_id: Id
+  created_at: string
+}
+
+export interface SurgeryTemplateAction {
+  template_id: Id
+}
+
+
+

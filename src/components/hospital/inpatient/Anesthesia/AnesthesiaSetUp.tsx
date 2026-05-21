@@ -15,13 +15,14 @@ import {
   Typography
 } from '@mui/material'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
-import { useFormContext } from 'react-hook-form'
-import { alpha, useTheme } from '@mui/material/styles'
+import { useFormContext, FieldError } from 'react-hook-form'
+import { alpha, useTheme, Theme } from '@mui/material/styles'
+import { AnesthesiaAssessmentType, AnesthesiaMonitoringState, AnesthesiaSetup, AnesthesiaSetupFields, AnesthesiaSetupRow, AnesthesiaSetupSectionFieldEntry, AnesthesiaSetupSectionState, MonitoringToggleItem } from 'src/types/hospital/models'
 import { useTranslation } from 'react-i18next'
 import useSafeRouter from 'src/hooks/useSafeRouter'
 import { useParams } from 'next/navigation'
 
-const getTextFieldStyles = (theme: any) => {
+const getTextFieldStyles = (theme: Theme) => {
   const outline = theme.palette.customColors?.SurfaceVariant || theme.palette.divider
   const mutedText = theme.palette.customColors?.neutralSecondary || theme.palette.text.secondary
   const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
@@ -70,7 +71,7 @@ const radioTileGroupStyles = {
   '& .MuiToggleButtonGroup-grouped': { margin: 0 }
 }
 
-const getRadioTileButtonStyles = (theme: any) => {
+const getRadioTileButtonStyles = (theme: Theme) => {
   const outline = theme.palette.customColors?.OutlineVariant || theme.palette.divider
   const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
   return {
@@ -110,7 +111,7 @@ const monitoringToggleGroupStyles = {
   '& .MuiToggleButtonGroup-grouped': { margin: 0 }
 }
 
-const getMonitoringToggleButtonStyles = (theme: any) => {
+const getMonitoringToggleButtonStyles = (theme: Theme) => {
   const outline = theme.palette.customColors?.OutlineVariant || theme.palette.divider
   const onSurface = theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
   return {
@@ -135,19 +136,19 @@ const getMonitoringToggleButtonStyles = (theme: any) => {
   }
 }
 
-const getSectionTitleStyles = (theme: any) => ({
+const getSectionTitleStyles = (theme: Theme) => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '20px',
   color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
 })
-const getFirstColumnTextStyles = (theme: any) => ({
+const getFirstColumnTextStyles = (theme: Theme) => ({
   fontFamily: 'Inter',
   fontWeight: 500,
   fontSize: '16px',
   color: theme.palette.customColors?.OnSurfaceVariant || theme.palette.text.primary
 })
-const getChipStyles = (theme: any) => (theme2: any) => ({
+const getChipStyles = (theme: Theme) => (theme2: Theme) => ({
   width: '174px',
   minWidth: '174px',
   height: '48px',
@@ -165,17 +166,17 @@ const getChipStyles = (theme: any) => (theme2: any) => ({
   '& .MuiChip-label': { paddingInline: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }
 })
 
-const toCamel = (s: any) =>
+const toCamel = (s: string) =>
   String(s)
     .trim()
-    .replace(/_([a-zA-Z0-9])/g, (_: any, g1: any) => g1.toUpperCase())
+    .replace(/_([a-zA-Z0-9])/g, (_: string, g1: string) => g1.toUpperCase())
 
-const uiKeyForField = (_sectionStringId: any, apiFieldKey: any) => {
+const uiKeyForField = (_sectionStringId: string, apiFieldKey: string) => {
   return toCamel(apiFieldKey)
 }
 
 interface AnesthesiaSetUpSectionProps {
-  anesthesiaSetupList?: any[]
+  anesthesiaSetupList?: AnesthesiaSetup[]
 }
 
 const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSectionProps) => {
@@ -209,8 +210,8 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
   const [newMonitoringItem, setNewMonitoringItem] = useState<string>('')
   const [duplicateError, setDuplicateError] = useState<string>('')
 
-  const rows = (anesthesiaSetupList || []).map((section: any) => ({
-    key: section.string_id,
+  const rows: AnesthesiaSetupRow[] = (anesthesiaSetupList || []).map((section: AnesthesiaSetup) => ({
+    key: section.string_id ?? '',
     label: section.section_name,
     meta: section
   }))
@@ -226,16 +227,16 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
     setValue(`anesthesiaSetup.${key}.checked`, newVal, { shouldDirty: true })
 
     if (newVal) {
-      const meta = (anesthesiaSetupList || []).find((s: any) => s.string_id === key)
+      const meta = (anesthesiaSetupList || []).find((s: AnesthesiaSetup) => s.string_id === key)
       if (!meta) return
-      const currentSectionData: any = watch(`anesthesiaSetup.${key}`) || {}
+      const currentSectionData: AnesthesiaSetupSectionState = watch(`anesthesiaSetup.${key}`) || {}
       if (!currentSectionData.checked) {
-        const initialFlat: any = {}
-        const initialFieldsObject: any = {}
+        const initialFlat: Record<string, string> = {}
+        const initialFieldsObject: Record<string, AnesthesiaSetupSectionFieldEntry> = {}
 
         if (Array.isArray(meta.fields)) {
-          meta.fields.forEach((f: any) => {
-            const uiKey = uiKeyForField(meta.string_id, f.field_key)
+          meta.fields.forEach((f: AnesthesiaSetupFields) => {
+            const uiKey = uiKeyForField(meta.string_id ?? '', f.field_key)
             const fieldValue = f.field_value ?? ''
             const unit = f.unit ?? ''
             initialFlat[uiKey] = fieldValue
@@ -243,14 +244,14 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
           })
         }
 
-        let monitoringData: any = currentSectionData.monitoring || { selected: [], otherItems: [] }
+        let monitoringData: AnesthesiaMonitoringState = currentSectionData.monitoring || { selected: [], otherItems: [] }
         if (!currentSectionData.monitoring && meta.monitoring_items) {
           const selectedArr = meta.monitoring_items
-            .filter((mi: any) => mi.is_selected === '1' || mi.is_selected === 1)
-            .map((mi: any) => Number(mi.id))
+            .filter((mi: AnesthesiaAssessmentType) => mi.is_selected === '1' || mi.is_selected === 1)
+            .map((mi: AnesthesiaAssessmentType) => Number(mi.id))
           const customArr = meta.monitoring_items
-            .filter((mi: any) => !(mi.is_selected === '1' || mi.is_selected === 1))
-            .map((mi: any) => mi.name)
+            .filter((mi: AnesthesiaAssessmentType) => !(mi.is_selected === '1' || mi.is_selected === 1))
+            .map((mi: AnesthesiaAssessmentType) => mi.name)
 
           monitoringData = { selected: selectedArr, otherItems: customArr }
         }
@@ -275,23 +276,23 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
     setValue(`anesthesiaSetup.${key}.checked`, event.target.checked, { shouldDirty: true })
   }
 
-  const handleAddOtherItem = (section: string, meta: any) => {
+  const handleAddOtherItem = (section: string, meta: AnesthesiaSetup) => {
     const v = newMonitoringItem.trim()
     if (!v) {
       setDuplicateError('')
       return
     }
     setDuplicateError('')
-    const monitoringState: any = watch(`anesthesiaSetup.${section}.monitoring`) || { selected: [], otherItems: [] }
+    const monitoringState: AnesthesiaMonitoringState = watch(`anesthesiaSetup.${section}.monitoring`) || { selected: [], otherItems: [] }
     const normalizedNewItem = normalizeItemName(v)
-    const predefinedItems = meta.monitoring_items || []
-    const isInPredefined = predefinedItems.some((item: any) => normalizeItemName(item.name) === normalizedNewItem)
+    const predefinedItems: AnesthesiaAssessmentType[] = meta.monitoring_items || []
+    const isInPredefined = predefinedItems.some((item: AnesthesiaAssessmentType) => normalizeItemName(item.name) === normalizedNewItem)
     const isInCustomItems = (monitoringState.otherItems || []).some(
-      (item: any) => normalizeItemName(item) === normalizedNewItem
+      (item: string) => normalizeItemName(item) === normalizedNewItem
     )
     const selectedItemNames = (monitoringState.selected || [])
-      .map((selectedId: any) => {
-        const item = predefinedItems.find((i: any) => Number(i.id) === selectedId)
+      .map((selectedId: number) => {
+        const item = predefinedItems.find((i: AnesthesiaAssessmentType) => Number(i.id) === selectedId)
 
         return item ? normalizeItemName(item.name) : ''
       })
@@ -312,16 +313,16 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
     setDuplicateError('')
   }
 
-  const handleRemoveOtherItem = (section: string, itemToRemove: any) => {
-    const list: any[] = (watch(`anesthesiaSetup.${section}.monitoring.otherItems`) as any) || []
+  const handleRemoveOtherItem = (section: string, itemToRemove: string) => {
+    const list: string[] = (watch(`anesthesiaSetup.${section}.monitoring.otherItems`) as string[]) || []
     setValue(
       `anesthesiaSetup.${section}.monitoring.otherItems`,
-      list.filter((i: any) => i !== itemToRemove),
+      list.filter((i: string) => i !== itemToRemove),
       { shouldDirty: true }
     )
   }
 
-  const handleNewItemKeyDown = (e: React.KeyboardEvent, section: string, meta: any) => {
+  const handleNewItemKeyDown = (e: React.KeyboardEvent, section: string, meta: AnesthesiaSetup) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       handleAddOtherItem(section, meta)
@@ -335,17 +336,17 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
     }
   }
 
-  const renderRowContent = (sectionMeta: any) => {
-    const key = sectionMeta.string_id
+  const renderRowContent = (sectionMeta: AnesthesiaSetup) => {
+    const key = sectionMeta.string_id ?? ''
     const fields = sectionMeta.fields || []
 
     if (fields.length > 0) {
       return (
         <Grid container spacing={3}>
-          {fields.map((f: any) => {
-            const uiKey = uiKeyForField(sectionMeta.string_id, f.field_key)
+          {fields.map((f: AnesthesiaSetupFields) => {
+            const uiKey = uiKeyForField(sectionMeta.string_id ?? '', f.field_key)
             const flatValue = watch(`anesthesiaSetup.${key}.${uiKey}`) ?? ''
-            const fieldError: any = (errors as any)?.anesthesiaSetup?.[key]?.[uiKey]
+            const fieldError: FieldError | undefined = (errors as Record<string, Record<string, Record<string, FieldError>>>)?.anesthesiaSetup?.[key]?.[uiKey]
 
             if (f.input_type === 'text') {
               return (
@@ -353,7 +354,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
                   <TextField
                     fullWidth
                     label={f.field_label}
-                    placeholder='Enter'
+                    placeholder={t('enter')}
                     value={flatValue}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
                     slotProps={{
@@ -375,7 +376,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
                   <TextField
                     fullWidth
                     label={f.field_label}
-                    placeholder='Enter'
+                    placeholder={t('enter')}
                     value={flatValue}
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       const val = e.target.value
@@ -390,7 +391,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
                       input: {
                         inputMode: 'decimal',
                         min: 0,
-                        onWheel: (e: any) => e.target.blur(),
+                        onWheel: (e: React.WheelEvent<HTMLInputElement>) => (e.target as HTMLInputElement).blur(),
                         endAdornment: f.units?.length ? (
                           <InputAdornment position='end'>
                             <Typography sx={{ fontSize: '14px' }}>{f.units[0]}</Typography>
@@ -412,10 +413,10 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
                   <ToggleButtonGroup
                     exclusive
                     value={flatValue || ''}
-                    onChange={(e: any, v: any) => setValue(`anesthesiaSetup.${key}.${uiKey}`, v ?? '', { shouldDirty: true })}
+                    onChange={(_e: React.MouseEvent<HTMLElement>, v: string | null) => setValue(`anesthesiaSetup.${key}.${uiKey}`, v ?? '', { shouldDirty: true })}
                     sx={radioTileGroupStyles}
                   >
-                    {f.options.map((opt: any) => (
+                    {f.options.map((opt: string) => (
                       <ToggleButton key={opt} value={opt} sx={radioTileButtonStyles}>
                         <Typography component='span' sx={radioTileLabelStyles}>
                           {opt}
@@ -442,7 +443,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
                 <TextField
                   fullWidth
                   label={f.field_label}
-                  placeholder='Enter'
+                  placeholder={t('enter')}
                   value={flatValue}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValue(`anesthesiaSetup.${key}.${uiKey}`, e.target.value, { shouldDirty: true })}
                   slotProps={{
@@ -462,20 +463,20 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
     }
 
     if (Array.isArray(sectionMeta.monitoring_items) && sectionMeta.monitoring_items.length > 0) {
-      const monitoringState: any = watch(`anesthesiaSetup.${key}.monitoring`) || { selected: [], otherItems: [] }
-      const items = sectionMeta.monitoring_items.map((mi: any) => ({ id: Number(mi.id), name: mi.name }))
-      const monitoringError: any = (errors as any)?.anesthesiaSetup?.[key]?.monitoring
+      const monitoringState: AnesthesiaMonitoringState = watch(`anesthesiaSetup.${key}.monitoring`) || { selected: [], otherItems: [] }
+      const items: MonitoringToggleItem[] = sectionMeta.monitoring_items.map((mi: AnesthesiaAssessmentType) => ({ id: Number(mi.id), name: mi.name }))
+      const monitoringError: FieldError | undefined = (errors as Record<string, Record<string, Record<string, FieldError>>>)?.anesthesiaSetup?.[key]?.monitoring
 
       return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <ToggleButtonGroup
             value={monitoringState.selected || []}
-            onChange={(e: any, newValues: any) =>
+            onChange={(_e: React.MouseEvent<HTMLElement>, newValues: number[]) =>
               setValue(`anesthesiaSetup.${key}.monitoring.selected`, newValues || [], { shouldDirty: true })
             }
             sx={monitoringToggleGroupStyles}
           >
-            {items.map((option: any) => {
+            {items.map((option: MonitoringToggleItem) => {
               const isSelected = (monitoringState.selected || []).includes(option.id)
               return (
                 <ToggleButton key={option.id} value={option.id} sx={monitoringToggleButtonStyles}>
@@ -504,7 +505,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
             <Box>
               <Typography sx={{ ...firstColumnTextStyles, mb: '10px' }}>{t('hospital_module.other_monitoring_items_added')}</Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '12px', mt: '10px', mb: '10px' }}>
-                {monitoringState.otherItems.map((item: any) => (
+                {monitoringState.otherItems.map((item: string) => (
                   <Tooltip key={item} title={item} arrow placement='top'>
                     <Chip
                       label={item}
@@ -593,7 +594,7 @@ const AnesthesiaSetUpSection = ({ anesthesiaSetupList = [] }: AnesthesiaSetUpSec
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        {rows.map(({ key, label, meta }: any) => {
+        {rows.map(({ key, label, meta }: AnesthesiaSetupRow) => {
           const checked = !!watch(`anesthesiaSetup.${key}.checked`)
           const backgroundColor = checked ? selectedBackground : unselectedBackground
           const borderColor = checked ? outlineColor : borderMutedColor
