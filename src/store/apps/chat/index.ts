@@ -1071,25 +1071,77 @@ export const appChatSlice = createSlice({
         state.selectedChat.contact = chatEntry
       }
     },
-    // Authoritative unread count from the server — pushed via the
-    // `unread_count_changed` socket event whenever the server recalculates
-    // the count for this user (mark-read from any device, message
-    // deletion-for-me, etc.). Replaces our local count rather than
-    // incrementing, because the server is the source of truth.
-    setUnreadCount: (
+    // Case-1 patch for the `conversation_updated` socket event — when only
+    // a new message arrived (no metadata change). Server sends a slim
+    // payload with `lastMessage` (custom event shape, NOT the SDK Message),
+    // `unreadCount`, and `updatedAt`. We patch only those fields on the
+    // matching chat and move the chat to the top of the list. Case 2
+    // (full conversation replace) goes through `addOrReplaceChat` instead.
+    patchConversationFromEvent: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; count: number }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        lastMessage?: {
+          messageId: string
+          contentPreview?: string
+          sentAt?: string
+          senderName?: string
+          hasAttachments?: boolean
+          attachmentCount?: number
+        }
+        unreadCount?: number
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, count } = action.payload
+      const { chatId, lastMessage, unreadCount } = action.payload
       const chatEntry = state.chats.find(c => c.id === chatId)
       if (!chatEntry) return
-      chatEntry.chat.unseenMsgs = count
-      if (state.selectedChat?.contact.id === chatId) {
-        state.selectedChat = {
-          chat: { ...chatEntry.chat },
-          contact: chatEntry
+
+      if (lastMessage) {
+        const existing = chatEntry.chat.lastMessage
+        // Preserve the existing attachments array if the patch is about the
+        // SAME message we already have — the event payload only signals
+        // attachment presence (`hasAttachments`/`attachmentCount`), not the
+        // per-attachment metadata (type, mimeType, filename) the sidebar
+        // needs to pick an icon. Falling back keeps the existing icon
+        // correct. For a different message id we drop the previous
+        // attachments — re-arrives via `new_message` if needed.
+        const sameMessage = existing?.id && existing.id === lastMessage.messageId
+        chatEntry.chat.lastMessage = {
+          id: lastMessage.messageId,
+          time: lastMessage.sentAt ?? existing?.time ?? new Date().toISOString(),
+          message: lastMessage.contentPreview ?? '',
+          // senderId isn't part of the slim payload. Keep the previous one
+          // when we're talking about the same message; otherwise we can't
+          // determine it — sidebar's "You: …" prefix may be missing until
+          // a future `new_message` fills it in. Acceptable tradeoff.
+          senderId: sameMessage ? existing!.senderId : (existing?.senderId ?? ''),
+          senderName: lastMessage.senderName ?? existing?.senderName,
+          feedback: existing?.feedback ?? { isSent: true, isDelivered: false, isSeen: false },
+          attachments: sameMessage
+            ? existing?.attachments
+            : lastMessage.hasAttachments
+              ? existing?.attachments
+              : undefined
         }
+      }
+
+      if (typeof unreadCount === 'number') {
+        chatEntry.chat.unseenMsgs = unreadCount
+      }
+
+      // New activity → bubble to the top of the list, matching how
+      // `receiveMessage` already does for `new_message`-driven updates.
+      if (lastMessage) {
+        const idx = state.chats.indexOf(chatEntry)
+        if (idx > 0) {
+          state.chats.splice(idx, 1)
+          state.chats.unshift(chatEntry)
+        }
+      }
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = { chat: chatEntry.chat, contact: chatEntry }
       }
     },
     // Composer reply state — set by clicking "Reply" on a bubble, cleared by
@@ -1814,15 +1866,6 @@ export const appChatSlice = createSlice({
 
       const newMessages = [...chatEntry.chat.messages, stored]
       chatEntry.chat.messages = newMessages
-      chatEntry.chat.lastMessage = stored
-
-      // Move this chat to the top of the list so the sidebar reflects
-      // the most recent activity.
-      const idx = state.chats.indexOf(chatEntry)
-      if (idx > 0) {
-        state.chats.splice(idx, 1)
-        state.chats.unshift(chatEntry)
-      }
 
       const isOpen = state.selectedChat?.contact.id === conversationId
       if (isOpen) {
@@ -1833,11 +1876,12 @@ export const appChatSlice = createSlice({
           chat: { ...chatEntry.chat, messages: newMessages },
           contact: chatEntry
         }
-      } else {
-        const isMine =
-          isOwn || (state.userProfile != null && message.senderId === state.userProfile.id)
-        if (!isMine) chatEntry.chat.unseenMsgs += 1
       }
+      // Note: we deliberately do NOT touch any conversation-list state here
+      // (`unseenMsgs`, `lastMessage`, or list ordering). The conversation
+      // list is driven exclusively by `conversation_updated` (handled in
+      // `patchConversationFromEvent` and `addOrReplaceChat`). `new_message`
+      // is used only to append the message to the open ChatLog.
     },
     // Replaces the messages array for a chat. Dispatched by the `selectChat`
     // thunk after `messages.list()` resolves. Also carries the cursor
@@ -2120,7 +2164,7 @@ export const {
   setInfoMessage,
   setForwardingMessage,
   updateChatFlags,
-  setUnreadCount,
+  patchConversationFromEvent,
   setReplyingTo,
   setEditingMessage,
   applyMessageUpdate,

@@ -19,7 +19,6 @@ import {
   enrichLastMessageSenders,
   removeSelectedChat,
   receiveMessage,
-  setUnreadCount,
   applyReactionUpdate,
   applyMessageUpdate,
   applyMessageDelete,
@@ -27,11 +26,13 @@ import {
   applyMessagePin,
   applyParticipantLeft,
   applyParticipantJoined,
-  updateMessagesFeedback
+  updateMessagesFeedback,
+  addOrReplaceChat,
+  patchConversationFromEvent
 } from 'src/store/apps/chat'
 
 // ** Adapters
-import { joinChatRoom, markReadOverSocket, sdkMessageToMessage, getOnlineUsersOverSocket } from 'src/lib/chat/api'
+import { joinChatRoom, markReadOverSocket, sdkConversationToChat, sdkMessageToMessage, getOnlineUsersOverSocket } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
 import toast from 'react-hot-toast'
 // ** Types
@@ -191,18 +192,25 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   useEffect(() => {
     if (!chatClient) return
 
-    // Fetch profile first so `fetchChatsContacts` can use its id to identify
-    // the "other" participant in direct conversations. Once the list lands,
-    // kick off `enrichLastMessageSenders` to fetch full message details for
-    // each group's lastMessage (the conv-list endpoint omits sender info,
-    // so the sidebar's "Saket: …" prefix can't resolve without this
-    // per-message lookup). Fire-and-forget; failures are silent.
+    // Bootstrap on mount: ensure profile is loaded (the adapter needs `me`
+    // to identify the other participant in DMs), fetch the conversation
+    // list only if Redux doesn't already have it (ChatLauncher may have
+    // already populated it while the user was elsewhere in the app — soft
+    // navigation should not re-hit the API; `conversation_updated` keeps
+    // the cache fresh). Then kick off `enrichLastMessageSenders` so each
+    // group's lastMessage carries `senderName` for the "Saket: …" prefix
+    // (the conv-list endpoint omits this). Fire-and-forget; failures
+    // are silent.
+    const alreadyLoaded = Boolean(store?.chats)
     const run = async () => {
       await dispatch(fetchUserProfile({ fallbackAvatarUrl }))
-      await dispatch(fetchChatsContacts())
+      if (!alreadyLoaded) await dispatch(fetchChatsContacts())
       dispatch(enrichLastMessageSenders())
     }
     run()
+    // Intentionally omit `store?.chats` from deps — we only want this to
+    // fire on initial mount / chatClient change, not on every chats mutation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatClient, dispatch, fallbackAvatarUrl])
 
   // Join every conversation's Socket.IO room so the server pushes that room's
@@ -516,30 +524,39 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       )
     }
 
-    // Authoritative unread count from the server. Fires whenever the server
-    // recalculates this user's unread for a conversation — including mark-read
-    // from another device — so the sidebar badge stays consistent across
-    // tabs/devices without a REST refetch.
-    const onUnreadCountChanged = (evt: any) => {
-      const convId = evt?.conversationId
-      const count = typeof evt?.unreadCount === 'number' ? evt.unreadCount : null
-      if (!convId || count === null) return
-      dispatch(setUnreadCount({ chatId: convId, count }))
-    }
-
-    // When a conversation is updated (metadata change, pin/unpin, mute, etc.),
-    // refresh the conversation list so the sidebar reflects the change.
+    // `conversation_updated` carries one of two payload shapes per the
+    // server contract:
+    //   Case 1: new message arrived. Slim — { id, lastMessage, unreadCount,
+    //           updatedAt }. PATCH only those fields.
+    //   Case 2: metadata changed (rename/avatar/participants/role/settings).
+    //           Full Conversation object. REPLACE via sdkConversationToChat.
+    // Discriminate by `participants` + `settings` presence.
     const onConversationUpdated = (evt: any) => {
-      const convId = evt?.conversationId
+      const convId = evt?.id ?? evt?.conversationId
       if (!convId) return
 
-      if (!knownChatIdsRef.current.has(convId)) {
-        dispatch(fetchChatsContacts()).then(() => {
+      const isFullConversation = Array.isArray(evt?.participants) && evt?.settings !== undefined
+      if (isFullConversation) {
+        // Brand-new conversation surfaced via this event (rare — usually
+        // covered by `conversation_created`): we still need to join the
+        // socket room to receive future new_message events.
+        if (!knownChatIdsRef.current.has(convId)) {
           joinChatRoom(convId)
-        })
-      } else {
-        dispatch(fetchChatsContacts())
+        }
+        const myId = userProfileIdRef.current ?? ''
+        const chat = sdkConversationToChat(evt, myId)
+        dispatch(addOrReplaceChat(chat))
+
+        return
       }
+
+      dispatch(
+        patchConversationFromEvent({
+          chatId: convId,
+          lastMessage: evt?.lastMessage,
+          unreadCount: typeof evt?.unreadCount === 'number' ? evt.unreadCount : undefined
+        })
+      )
     }
 
     // Fires when a new conversation is created OR when the current user is
@@ -700,7 +717,6 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     chatSocket.on('message_delivered', onMessageDelivered)
     chatSocket.on('messages_delivered', onMessagesDelivered)
     chatSocket.on('read_receipt', onReadReceipt)
-    chatSocket.on('unread_count_changed', onUnreadCountChanged)
     chatSocket.on('conversation_updated', onConversationUpdated)
     chatSocket.on('conversation_created', onConversationCreated)
     chatSocket.on('conversation_deleted', onConversationDeleted)
@@ -719,7 +735,6 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       chatSocket.off('message_delivered', onMessageDelivered)
       chatSocket.off('messages_delivered', onMessagesDelivered)
       chatSocket.off('read_receipt', onReadReceipt)
-      chatSocket.off('unread_count_changed', onUnreadCountChanged)
       chatSocket.off('conversation_updated', onConversationUpdated)
       chatSocket.off('conversation_created', onConversationCreated)
       chatSocket.off('conversation_deleted', onConversationDeleted)
