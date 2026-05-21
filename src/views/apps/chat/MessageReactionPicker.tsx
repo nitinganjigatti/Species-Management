@@ -6,6 +6,10 @@ import dynamic from 'next/dynamic'
 import Box from '@mui/material/Box'
 import IconButton from '@mui/material/IconButton'
 import Popover from '@mui/material/Popover'
+import Paper from '@mui/material/Paper'
+import Popper from '@mui/material/Popper'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import Fade from '@mui/material/Fade'
 import toast from 'react-hot-toast'
 
 import { useSelector } from 'react-redux'
@@ -142,25 +146,35 @@ const MessageReactionPicker = ({ chat, isSender }: Props) => {
         </Box>
       </Popover>
 
-      {/* Full emoji-mart picker */}
-      <Popover
-        anchorEl={pickerAnchor}
+      {/* Full emoji-mart picker — Popper with flip disabled so it always opens upward */}
+      <Popper
         open={pickerOpen}
-        onClose={() => setPickerAnchor(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: isSender ? 'right' : 'left' }}
-        transformOrigin={{ vertical: 'bottom', horizontal: isSender ? 'right' : 'left' }}
-        slotProps={{ paper: { sx: { borderRadius: 2, overflow: 'hidden', boxShadow: 6 } } }}
+        anchorEl={pickerAnchor}
+        placement={isSender ? 'top-end' : 'top-start'}
+        transition
+        modifiers={[{ name: 'offset', options: { offset: [0, 8] } }]}
+        sx={{ zIndex: theme => theme.zIndex.modal }}
       >
-        {pickerOpen && (
-          <EmojiPicker
-            data={data}
-            onEmojiSelect={(emoji: { native: string }) => handleToggleReaction(emoji.native)}
-            searchPosition='top'
-            previewPosition='none'
-            skinTonePosition='none'
-          />
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={150}>
+            <Paper elevation={6} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              <ClickAwayListener onClickAway={() => setPickerAnchor(null)}>
+                <div>
+                  {pickerOpen && (
+                    <EmojiPicker
+                      data={data}
+                      onEmojiSelect={(emoji: { native: string }) => handleToggleReaction(emoji.native)}
+                      searchPosition='top'
+                      previewPosition='none'
+                      skinTonePosition='none'
+                    />
+                  )}
+                </div>
+              </ClickAwayListener>
+            </Paper>
+          </Fade>
         )}
-      </Popover>
+      </Popper>
     </>
   )
 }
