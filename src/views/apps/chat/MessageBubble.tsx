@@ -90,12 +90,12 @@ const MessageBubble = ({
       <Box
         sx={{
           boxShadow: 1,
-          borderRadius: 1,
+          borderRadius: '8px',
           maxWidth: '100%',
           width: 'fit-content',
           p: theme => theme.spacing(2.5, 4),
-          borderTopLeftRadius: !isSender ? 0 : undefined,
-          borderTopRightRadius: isSender ? 0 : undefined,
+          borderTopLeftRadius: !isSender ? '0px' : '8px',
+          borderTopRightRadius: isSender ? '0px' : '8px',
           backgroundColor: 'background.paper',
           color: 'text.secondary',
           display: 'inline-flex',
@@ -200,17 +200,15 @@ const MessageBubble = ({
           sx={{
             position: 'relative',
             boxShadow: 1,
-            borderRadius: 1,
+            borderRadius: '8px',
             maxWidth: '100%',
             width: 'fit-content',
             p: theme => theme.spacing(3, 4),
-            // Reserve room for the absolutely-positioned chevron at top-right
-            // so it doesn't overlap the message text.
-            pr: theme => theme.spacing(7),
-            borderTopLeftRadius: !isSender ? 0 : undefined,
-            borderTopRightRadius: isSender ? 0 : undefined,
+            pr: isSender ? '12px' : theme => theme.spacing(4),
+            borderTopLeftRadius: !isSender ? '0px' : '8px',
+            borderTopRightRadius: isSender ? '0px' : '8px',
             color: isSender ? 'common.white' : 'text.primary',
-            backgroundColor: isSender ? 'primary.main' : 'background.paper',
+            backgroundColor: isSender ? '#1F515B' : 'background.paper',
             ...(isActiveSearchMatch && {
               outline: theme => `2px solid ${theme.palette.warning.main}`,
               outlineOffset: '2px'
@@ -243,7 +241,7 @@ const MessageBubble = ({
               sx={{
                 cursor: chat.replyTo.messageId ? 'pointer' : 'default',
                 borderLeft: theme =>
-                  `3px solid ${isSender ? theme.palette.common.white : theme.palette.primary.main}`,
+                  `3px solid ${isSender ? theme.palette.common.white : '#1F515B'}`,
                 pl: 1.5,
                 py: 0.5,
                 mb: 1,
@@ -272,50 +270,75 @@ const MessageBubble = ({
             </Box>
           ) : null}
           {forwarded ? <ForwardedTag isSender={isSender} /> : null}
-          <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
-            <LinkifyText
-              text={displayText}
-              isSender={isSender}
-              renderText={isSearchMatch ? (s: string) => highlightText(s, !!isActiveSearchMatch) : undefined}
-            />
-            {chat.isPinned ? (
-              <Box
-                component='span'
-                sx={{
-                  ml: 1,
-                  display: 'inline-flex',
-                  verticalAlign: 'middle',
-                  color: 'inherit'
-                }}
-                aria-label='pinned'
-              >
-                <Icon icon='mdi:pin' fontSize='1rem' />
-              </Box>
-            ) : null}
-            {chat.isStarred ? (
-              <Box
-                component='span'
-                sx={{
-                  ml: 1,
-                  display: 'inline-flex',
-                  verticalAlign: 'middle',
-                  color: 'inherit'
-                }}
-                aria-label='starred'
-              >
-                <Icon icon='mdi:star' fontSize='1rem' />
-              </Box>
-            ) : null}
-            {chat.isEdited ? (
-              <Typography
-                component='span'
-                variant='caption'
-                sx={{ ml: 1, opacity: 0.7, fontStyle: 'italic', color: 'inherit' }}
-              >
-                (edited)
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
+              <LinkifyText
+                text={displayText}
+                isSender={isSender}
+                renderText={isSearchMatch ? (s: string) => highlightText(s, !!isActiveSearchMatch) : undefined}
+              />
+              {chat.isPinned ? (
+                <Box
+                  component='span'
+                  sx={{
+                    ml: 1,
+                    display: 'inline-flex',
+                    verticalAlign: 'middle',
+                    color: 'inherit'
+                  }}
+                  aria-label='pinned'
+                >
+                  <Icon icon='mdi:pin' fontSize='1rem' />
+                </Box>
+              ) : null}
+              {chat.isStarred ? (
+                <Box
+                  component='span'
+                  sx={{
+                    ml: 1,
+                    display: 'inline-flex',
+                    verticalAlign: 'middle',
+                    color: 'inherit'
+                  }}
+                  aria-label='starred'
+                >
+                  <Icon icon='mdi:star' fontSize='1rem' />
+                </Box>
+              ) : null}
+              {chat.isEdited ? (
+                <Typography
+                  component='span'
+                  variant='caption'
+                  sx={{ ml: 1, opacity: 0.7, fontStyle: 'italic', color: 'inherit' }}
+                >
+                  (edited)
+                </Typography>
+              ) : null}
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                justifyContent: 'flex-end'
+              }}
+            >
+              <Typography variant='caption' sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'inherit' }}>
+                {new Date(chat.time).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
               </Typography>
-            ) : null}
-          </Typography>
+              {isSender ? (
+                chat.feedback.isSent && !chat.feedback.isDelivered ? (
+                  <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'inherit' } }}>
+                    <Icon icon='mdi:check' fontSize='0.875rem' />
+                  </Box>
+                ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
+                  <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' } }}>
+                    <Icon icon='mdi:check-all' fontSize='0.875rem' />
+                  </Box>
+                ) : null
+              ) : null}
+            </Box>
+          </Box>
         </Box>
 
         {canInteract && chat.reactions && chat.reactions.length > 0 ? (
@@ -323,10 +346,11 @@ const MessageBubble = ({
             sx={{
               display: 'flex',
               flexWrap: 'wrap',
-              gap: 0.5,
+              gap: 1,
               ml: isSender ? 'auto' : 0,
               mr: isSender ? 0 : 'auto',
-              mt: 0.25
+              mt: '-8px',
+              p: '2px'
             }}
           >
             {chat.reactions.map(r => {
@@ -353,10 +377,13 @@ const MessageBubble = ({
                     height: 22,
                     cursor: 'pointer',
                     borderColor: theme => (youReacted ? theme.palette.primary.main : theme.palette.divider),
-                    backgroundColor: theme =>
-                      youReacted ? theme.palette.action.selected : theme.palette.background.paper,
-                    '&:hover': { backgroundColor: theme => theme.palette.action.hover },
-                    '& .MuiChip-label': { px: 0.75 }
+                    color: theme => (youReacted ? theme.palette.primary.main : theme.palette.divider),
+                    backgroundColor: 'common.white',
+                    '&:hover': {
+                      backgroundColor: theme => theme.palette.action.hover,
+                      color: 'text.primary'
+                    },
+                    '& .MuiChip-label': { pl: '6px', pr: '6px' }
                   }}
                   variant='outlined'
                 />

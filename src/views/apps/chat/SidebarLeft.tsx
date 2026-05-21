@@ -362,7 +362,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
               width: '100%',
               borderRadius: 1,
               alignItems: 'flex-start',
-              ...(activeCondition && { backgroundColor: theme => `${theme.palette.primary.main} !important` })
+              ...(activeCondition && { backgroundColor: '#1F515B !important' })
             }}
           >
             <ListItemAvatar sx={{ m: 0 }}>

@@ -686,42 +686,27 @@ const ChatLog = (props: ChatLogType) => {
           }}
         >
           <div>
-            <CustomAvatar
-              skin='light'
-              color={avatarColor}
-              sx={{
-                width: '2rem',
-                height: '2rem',
-                fontSize: '0.875rem',
-                ml: isSender ? 4 : undefined,
-                mr: !isSender ? 4 : undefined
-              }}
-              {...(avatarSrc ? { src: avatarSrc, alt: avatarName } : {})}
-            >
-              {getInitials(avatarName)}
-            </CustomAvatar>
+            {isGroupChat && !isSender ? (
+              <CustomAvatar
+                skin='light'
+                color={avatarColor}
+                sx={{
+                  width: '2rem',
+                  height: '2rem',
+                  fontSize: '0.875rem',
+                  ml: isSender ? 4 : undefined,
+                  mr: !isSender ? 4 : undefined
+                }}
+                {...(avatarSrc ? { src: avatarSrc, alt: avatarName } : {})}
+              >
+                {getInitials(avatarName)}
+              </CustomAvatar>
+            ) : (
+              <Box sx={{ width: '2rem', height: '2rem', ml: isSender ? 4 : undefined, mr: !isSender ? 4 : undefined }} />
+            )}
           </div>
 
           <Box className='chat-body' sx={{ maxWidth: ['calc(100% - 5.75rem)', '75%', '65%'] }}>
-            {/* Sender name label above the first bubble in a group's run of
-                messages. Only for incoming messages in a group — DMs and
-                outgoing messages don't need it (avatar already identifies
-                the sender). */}
-            {!isSender && isGroupChat ? (
-              <Typography
-                variant='caption'
-                sx={{
-                  display: 'block',
-                  mb: 0.5,
-                  ml: 0.5,
-                  fontWeight: 600,
-                  color: theme =>
-                    theme.palette[(avatarColor as 'primary') ?? 'primary']?.main ?? theme.palette.primary.main
-                }}
-              >
-                {avatarName}
-              </Typography>
-            ) : null}
             {item.messages.map((chat: ChatLogChatType, index: number) => {
               const time = new Date(chat.time)
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false
@@ -769,8 +754,13 @@ const ChatLog = (props: ChatLogType) => {
                             position: 'relative',
                             display: 'flex',
                             flexDirection: 'column',
-                            gap: 1,
-                            maxWidth: '280px'
+                            gap: 0,
+                            maxWidth: '280px',
+                            backgroundColor: isSender ? '#1F515B' : 'background.paper',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            boxShadow: 1,
+                            p: theme => theme.spacing(2)
                           }}
                         >
                           {/* Chevron lives INSIDE the attachment column,
@@ -866,12 +856,12 @@ const ChatLog = (props: ChatLogType) => {
                                   <Box
                                     key={att.id}
                                     sx={{
-                                      boxShadow: 1,
-                                      borderRadius: 1,
+                                      boxShadow: 'none',
+                                      borderRadius: 'none',
                                       overflow: 'hidden',
-                                      ...(i === 0 ? bubbleCorners : {}),
                                       cursor: 'zoom-in',
-                                      lineHeight: 0
+                                      lineHeight: 0,
+                                      width: '100%'
                                     }}
                                     onClick={() => openPreview(att)}
                                     onContextMenu={(e: MouseEvent) => e.preventDefault()}
@@ -882,7 +872,7 @@ const ChatLog = (props: ChatLogType) => {
                                       alt={att.filename}
                                       loading='lazy'
                                       draggable={false}
-                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', userSelect: 'none' }}
+                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', userSelect: 'none', width: '100%' }}
                                     />
                                   </Box>
                                 ))
@@ -927,13 +917,12 @@ const ChatLog = (props: ChatLogType) => {
                                   <Box
                                     key={att.id}
                                     sx={{
-                                      boxShadow: 1,
-                                      borderRadius: 1,
+                                      boxShadow: 'none',
+                                      borderRadius: 0,
                                       overflow: 'hidden',
-                                      borderTopLeftRadius: !isSender && imgCount === 0 ? 0 : undefined,
-                                      borderTopRightRadius: isSender && imgCount === 0 ? 0 : undefined,
-                                      backgroundColor: isSender ? 'primary.main' : 'background.paper',
+                                      backgroundColor: 'transparent',
                                       color: isSender ? 'common.white' : 'text.primary',
+                                      width: '100%',
                                       alignSelf:
                                         att.type === 'audio' || att.type === 'video'
                                           ? isSender
@@ -1012,6 +1001,36 @@ const ChatLog = (props: ChatLogType) => {
                               </>
                             )
                           })()}
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              justifyContent: 'flex-end',
+                              p: theme => theme.spacing(1, 2),
+                              borderTop: '1px solid',
+                              borderColor: isSender ? 'rgba(255,255,255,0.2)' : 'divider',
+                              backgroundColor: 'inherit',
+                              color: 'inherit',
+                              width: '100%',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <Typography variant='caption' sx={{ fontSize: '0.75rem', opacity: 1, color: isSender ? 'common.white' : 'text.primary' }}>
+                              {new Date(chat.time).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            </Typography>
+                            {isSender ? (
+                              chat.feedback.isSent && !chat.feedback.isDelivered ? (
+                                <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'common.white' } }}>
+                                  <Icon icon='mdi:check' fontSize='0.875rem' />
+                                </Box>
+                              ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
+                                <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'common.white' } }}>
+                                  <Icon icon='mdi:check-all' fontSize='0.875rem' />
+                                </Box>
+                              ) : null
+                            ) : null}
+                          </Box>
                         </Box>
                         {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
                       </Box>
@@ -1136,25 +1155,46 @@ const ChatLog = (props: ChatLogType) => {
                           }
 
                           return (
-                            <>
-                              {renderImages()}
-                              {others.map(att => (
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: isSender ? 'row-reverse' : 'row',
+                                alignItems: 'center',
+                                gap: 1
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  position: 'relative',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: 0,
+                                  maxWidth: '280px',
+                                  backgroundColor: isSender ? '#1F515B' : 'background.paper',
+                                  borderRadius: '8px',
+                                  overflow: 'hidden',
+                                  boxShadow: 1,
+                                  p: theme => theme.spacing(2)
+                                }}
+                              >
+                                {renderImages()}
+                                {others.map((att, idx) => (
                                 <Box
                                   key={att.id}
                                   sx={{
-                                    boxShadow: 1,
-                                    borderRadius: 1,
+                                    boxShadow: 'none',
+                                    borderRadius: 0,
                                     overflow: 'hidden',
-                                    borderTopLeftRadius: !isSender && imgCount === 0 ? 0 : undefined,
-                                    borderTopRightRadius: isSender && imgCount === 0 ? 0 : undefined,
-                                    backgroundColor: isSender ? 'primary.main' : 'background.paper',
+                                    backgroundColor: 'transparent',
                                     color: isSender ? 'common.white' : 'text.primary',
+                                    borderTop: idx > 0 || imgCount > 0 ? '1px solid' : 'none',
+                                    borderColor: isSender ? 'rgba(255,255,255,0.1)' : 'divider',
                                     alignSelf:
                                       att.type === 'audio' || att.type === 'video'
                                         ? isSender
                                           ? 'flex-end'
                                           : 'flex-start'
-                                        : undefined
+                                        : 'auto'
                                   }}
                                 >
                                   {att.type === 'video' ? (
@@ -1228,7 +1268,30 @@ const ChatLog = (props: ChatLogType) => {
                                   )}
                                 </Box>
                               ))}
-                            </>
+                              {(imgCount > 0 || others.length > 0) && (
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: 0.5,
+                                    justifyContent: 'flex-end',
+                                    p: theme => theme.spacing(1, 2),
+                                    borderTop: '1px solid',
+                                    borderColor: isSender ? 'rgba(255,255,255,0.2)' : 'divider',
+                                    backgroundColor: 'inherit',
+                                    color: 'inherit',
+                                    width: '100%',
+                                    boxSizing: 'border-box'
+                                  }}
+                                >
+                                  <Typography variant='caption' sx={{ fontSize: '0.75rem', opacity: 1, color: isSender ? 'common.white' : 'text.primary' }}>
+                                    {new Date(chat.time).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                  </Typography>
+                                </Box>
+                                )}
+                              </Box>
+                              {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
+                            </Box>
                           )
                         })()
                       : null}
@@ -1257,47 +1320,6 @@ const ChatLog = (props: ChatLogType) => {
                         />
                       </Box>
                     ) : null}
-                  </Box>
-                  <Box
-                    sx={{
-                      mt: 0.5,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 0.5,
-                      justifyContent: isSender ? 'flex-end' : 'flex-start'
-                    }}
-                  >
-                    {/* Feedback ticks per message — matches WhatsApp:
-                        • single grey ✓ → isSent (server acked)
-                        • double grey ✓✓ → isDelivered (recipient online / received)
-                        • double green ✓✓ → isSeen (recipient opened the chat)
-                        The data flows in from two paths that are kept in sync:
-                        (1) REST `listMessages` → adapter reads `msg.deliveryStatus`
-                            ('sent'|'delivered'|'read') and maps to the three flags;
-                        (2) Live `message_delivered` / `read_receipt` socket events
-                            patch flags via `updateMessagesFeedback`. */}
-                    {renderMsgFeedback(isSender, chat.feedback)}
-                    {/* Star indicator on attachment-only bubbles —
-                        full-opacity inherit color at 1rem so it reads
-                        as clearly as the chevron-menu star icon. */}
-                    {chat.isStarred ? (
-                      <Box
-                        component='span'
-                        sx={{
-                          display: 'inline-flex',
-                          verticalAlign: 'middle',
-                          color: 'inherit'
-                        }}
-                        aria-label='starred'
-                      >
-                        <Icon icon='mdi:star' fontSize='1rem' />
-                      </Box>
-                    ) : null}
-                    <Typography variant='caption' sx={{ color: 'text.disabled' }}>
-                      {time
-                        ? new Date(time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
-                        : null}
-                    </Typography>
                   </Box>
                 </Box>
               )
@@ -1480,16 +1502,16 @@ const ChatLog = (props: ChatLogType) => {
             width: 36,
             height: 36,
             borderRadius: '50%',
-            backgroundColor: 'primary.main',
+            backgroundColor: '#1F515B',
             color: 'common.white',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: theme => `0 2px 8px ${theme.palette.primary.main}66`,
+            boxShadow: '0 2px 8px rgba(31, 81, 91, 0.4)',
             transition: 'transform 0.15s, background-color 0.15s',
             '&:hover': {
-              backgroundColor: 'primary.dark',
+              backgroundColor: '#1a3f47',
               transform: 'scale(1.08)'
             },
             '&:active': { transform: 'scale(0.94)' }

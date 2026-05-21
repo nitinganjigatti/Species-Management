@@ -48,20 +48,20 @@ const FilterChip = ({ label, active = false, onClick, size = 30 }: FilterChipPro
         ...(active
           ? {
               // Mirrors MUI contained-primary button: hover darkens to primary.dark
-              backgroundColor: 'primary.main',
+              backgroundColor: '#1F515B',
               color: 'common.white',
-              borderColor: 'primary.main',
-              '&:hover': { backgroundColor: 'primary.dark', borderColor: 'primary.dark' }
+              borderColor: '#1F515B',
+              '&:hover': { backgroundColor: '#1a3f47', borderColor: '#1a3f47' }
             }
           : {
               // Mirrors MUI outlined-primary button: hover applies a primary alpha tint
               backgroundColor: 'transparent',
               color: 'text.secondary',
-              borderColor: 'divider',
+              borderColor: '#1F515B',
               '&:hover': {
-                backgroundColor: theme => `${theme.palette.primary.main}0A`,
-                borderColor: 'primary.main',
-                color: 'primary.main'
+                backgroundColor: 'rgba(31, 81, 91, 0.08)',
+                borderColor: '#1F515B',
+                color: '#1F515B'
               }
             })
       }}
