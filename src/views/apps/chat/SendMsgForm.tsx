@@ -9,7 +9,10 @@ import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
-import Popover from '@mui/material/Popover'
+import Paper from '@mui/material/Paper'
+import Popper from '@mui/material/Popper'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import Fade from '@mui/material/Fade'
 import toast from 'react-hot-toast'
 
 import data from '@emoji-mart/data'
@@ -894,24 +897,35 @@ const SendMsgForm = (props: SendMsgComponentType) => {
           ))}
       </Box>
 
-      <Popover
+      {/* Emoji picker — Popper with flip disabled so it always opens upward */}
+      <Popper
         open={emojiOpen}
         anchorEl={emojiAnchorEl}
-        onClose={() => setEmojiAnchorEl(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        PaperProps={{ sx: { boxShadow: 3, borderRadius: 2, overflow: 'hidden' } }}
+        placement='top-start'
+        transition
+        modifiers={[{ name: 'flip', enabled: false }, { name: 'offset', options: { offset: [0, 8] } }]}
+        sx={{ zIndex: theme => theme.zIndex.modal }}
       >
-        {emojiOpen && (
-          <EmojiPicker
-            data={data}
-            onEmojiSelect={handleEmojiSelect}
-            theme='light'
-            previewPosition='none'
-            skinTonePosition='none'
-          />
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={150}>
+            <Paper elevation={4} sx={{ borderRadius: 2, overflow: 'hidden' }}>
+              <ClickAwayListener onClickAway={() => setEmojiAnchorEl(null)}>
+                <div>
+                  {emojiOpen && (
+                    <EmojiPicker
+                      data={data}
+                      onEmojiSelect={handleEmojiSelect}
+                      theme='light'
+                      previewPosition='none'
+                      skinTonePosition='none'
+                    />
+                  )}
+                </div>
+              </ClickAwayListener>
+            </Paper>
+          </Fade>
         )}
-      </Popover>
+      </Popper>
     </Form>
   )
 }
