@@ -37,6 +37,7 @@ import MessageActions from 'src/views/apps/chat/MessageActions'
 import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 import AttachmentPreviewDialog from 'src/views/apps/chat/AttachmentPreviewDialog'
 import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
+import ReactionsRow from 'src/views/apps/chat/ReactionsRow'
 
 // ** Forward marker helpers — treat a marker-only payload as "no text"
 // so forwarded attachment-only messages route to the attachment-only
@@ -867,9 +868,7 @@ const ChatLog = (props: ChatLogType) => {
         // message, identified by content — independent of pagination state so
         // the card stays visible even when more messages load later.
         const isGroupCreationMsg =
-          !groupCardInjected &&
-          groupCreatedCard !== null &&
-          item.messages.some(m => /created group/i.test(m.msg))
+          !groupCardInjected && groupCreatedCard !== null && item.messages.some(m => /created group/i.test(m.msg))
         if (isGroupCreationMsg) groupCardInjected = true
 
         // When showing the group-created card, skip the redundant system
@@ -881,10 +880,7 @@ const ChatLog = (props: ChatLogType) => {
         return (
           <Fragment key={`sys-grp-${index}`}>
             {item.messages.map((chat, msgIdx) => (
-              <Box
-                key={`sys-${index}-${msgIdx}`}
-                sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}
-              >
+              <Box key={`sys-${index}-${msgIdx}`} sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
                 <Typography
                   variant='caption'
                   sx={{
@@ -977,7 +973,9 @@ const ChatLog = (props: ChatLogType) => {
                 {getInitials(avatarName)}
               </CustomAvatar>
             ) : (
-              <Box sx={{ width: '2rem', height: '2rem', ml: isSender ? 4 : undefined, mr: !isSender ? 4 : undefined }} />
+              <Box
+                sx={{ width: '2rem', height: '2rem', ml: isSender ? 4 : undefined, mr: !isSender ? 4 : undefined }}
+              />
             )}
           </div>
 
@@ -1036,6 +1034,7 @@ const ChatLog = (props: ChatLogType) => {
                           }
                         }}
                       >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: '100%' }}>
                         <Box
                           sx={{
                             position: 'relative',
@@ -1159,7 +1158,13 @@ const ChatLog = (props: ChatLogType) => {
                                       alt={att.filename}
                                       loading='lazy'
                                       draggable={false}
-                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', userSelect: 'none', width: '100%' }}
+                                      sx={{
+                                        maxWidth: '100%',
+                                        maxHeight: 280,
+                                        display: 'block',
+                                        userSelect: 'none',
+                                        width: '100%'
+                                      }}
                                     />
                                   </Box>
                                 ))
@@ -1288,36 +1293,37 @@ const ChatLog = (props: ChatLogType) => {
                               </>
                             )
                           })()}
+                          {/* Time footer for attachment-only bubbles. Matches the
+                              footer shown on text bubbles + the mixed attachment+text
+                              path so every message carries its send-time. */}
                           <Box
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
-                              gap: 0.5,
                               justifyContent: 'flex-end',
-                              p: theme => theme.spacing(1, 2),
-                              borderTop: '1px solid',
-                              borderColor: isSender ? 'rgba(255,255,255,0.2)' : 'divider',
-                              backgroundColor: 'inherit',
-                              color: 'inherit',
-                              width: '100%',
-                              boxSizing: 'border-box'
+                              gap: 0.5,
+                              mt: 0.25
                             }}
                           >
-                            <Typography variant='caption' sx={{ fontSize: '0.75rem', opacity: 1, color: isSender ? 'common.white' : 'text.primary' }}>
-                              {new Date(chat.time).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                            <Typography
+                              variant='caption'
+                              sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'text.secondary' }}
+                            >
+                              {new Date(chat.time).toLocaleString('en-US', {
+                                hour: 'numeric',
+                                minute: '2-digit',
+                                hour12: true
+                              })}
                             </Typography>
-                            {isSender ? (
-                              chat.feedback.isSent && !chat.feedback.isDelivered ? (
-                                <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'common.white' } }}>
-                                  <Icon icon='mdi:check' fontSize='0.875rem' />
-                                </Box>
-                              ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
-                                <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'common.white' } }}>
-                                  <Icon icon='mdi:check-all' fontSize='0.875rem' />
-                                </Box>
-                              ) : null
-                            ) : null}
+                            {isSender ? renderMsgFeedback(isSender, chat.feedback) : null}
                           </Box>
+                        </Box>
+                          {/* Reactions chip row sits OUTSIDE the attachment card but
+                              INSIDE the inner column (same shape as MessageBubble for
+                              text bubbles) so it stacks directly below the card with
+                              the negative top margin in ReactionsRow tucking it
+                              slightly onto the card edge. */}
+                          <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
                         </Box>
                         {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
                       </Box>
@@ -1466,115 +1472,126 @@ const ChatLog = (props: ChatLogType) => {
                               >
                                 {renderImages()}
                                 {others.map((att, idx) => (
-                                <Box
-                                  key={att.id}
-                                  sx={{
-                                    boxShadow: 'none',
-                                    borderRadius: 0,
-                                    overflow: 'hidden',
-                                    backgroundColor: 'transparent',
-                                    color: isSender ? 'common.white' : 'text.primary',
-                                    borderTop: idx > 0 || imgCount > 0 ? '1px solid' : 'none',
-                                    borderColor: isSender ? 'rgba(255,255,255,0.1)' : 'divider',
-                                    alignSelf:
-                                      att.type === 'audio' || att.type === 'video'
-                                        ? isSender
-                                          ? 'flex-end'
-                                          : 'flex-start'
-                                        : 'auto'
-                                  }}
-                                >
-                                  {att.type === 'video' ? (
-                                    <Box
-                                      component='video'
-                                      src={att.url}
-                                      controls
-                                      controlsList='nodownload noplaybackrate'
-                                      onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                      sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
-                                      onClick={() => openPreview(att)}
-                                    />
-                                  ) : att.type === 'audio' ? (
-                                    <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
+                                  <Box
+                                    key={att.id}
+                                    sx={{
+                                      boxShadow: 'none',
+                                      borderRadius: 0,
+                                      overflow: 'hidden',
+                                      backgroundColor: 'transparent',
+                                      color: isSender ? 'common.white' : 'text.primary',
+                                      borderTop: idx > 0 || imgCount > 0 ? '1px solid' : 'none',
+                                      borderColor: isSender ? 'rgba(255,255,255,0.1)' : 'divider',
+                                      alignSelf:
+                                        att.type === 'audio' || att.type === 'video'
+                                          ? isSender
+                                            ? 'flex-end'
+                                            : 'flex-start'
+                                          : 'auto'
+                                    }}
+                                  >
+                                    {att.type === 'video' ? (
                                       <Box
-                                        component='audio'
+                                        component='video'
                                         src={att.url}
                                         controls
                                         controlsList='nodownload noplaybackrate'
                                         onContextMenu={(e: MouseEvent) => e.preventDefault()}
-                                        sx={{
-                                          display: 'block',
-                                          width: '100%',
-                                          borderRadius: 1,
-                                          bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
-                                        }}
+                                        sx={{ maxWidth: '100%', maxHeight: 280, display: 'block', cursor: 'pointer' }}
+                                        onClick={() => openPreview(att)}
                                       />
-                                    </Box>
-                                  ) : (
-                                    (() => {
-                                      const visual = getAttachmentVisual(att.mimeType, att.filename)
-                                      return (
+                                    ) : att.type === 'audio' ? (
+                                      <Box sx={{ p: 2, minWidth: 220, width: '100%', maxWidth: '312px' }}>
                                         <Box
-                                          component='a'
-                                          href={att.url}
-                                          target='_blank'
-                                          rel='noopener noreferrer'
-                                          download={att.filename}
+                                          component='audio'
+                                          src={att.url}
+                                          controls
+                                          controlsList='nodownload noplaybackrate'
+                                          onContextMenu={(e: MouseEvent) => e.preventDefault()}
                                           sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: 2,
-                                            p: theme => theme.spacing(3, 4),
-                                            color: 'inherit',
-                                            textDecoration: 'none'
+                                            display: 'block',
+                                            width: '100%',
+                                            borderRadius: 1,
+                                            bgcolor: isSender ? 'rgba(255,255,255,0.9)' : 'transparent'
                                           }}
-                                        >
-                                          <Icon
-                                            icon={visual.icon}
-                                            color={isSender ? '#ffffff' : visual.color}
-                                            fontSize='2rem'
-                                          />
-                                          <Box sx={{ minWidth: 0 }}>
-                                            <Typography
-                                              variant='caption'
-                                              sx={{ display: 'block', color: 'inherit' }}
-                                              noWrap
-                                            >
-                                              {att.filename}
-                                            </Typography>
-                                            <Typography
-                                              variant='caption'
-                                              sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
-                                            >
-                                              {(att.size / 1024).toFixed(0)} KB
-                                            </Typography>
+                                        />
+                                      </Box>
+                                    ) : (
+                                      (() => {
+                                        const visual = getAttachmentVisual(att.mimeType, att.filename)
+                                        return (
+                                          <Box
+                                            component='a'
+                                            href={att.url}
+                                            target='_blank'
+                                            rel='noopener noreferrer'
+                                            download={att.filename}
+                                            sx={{
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              gap: 2,
+                                              p: theme => theme.spacing(3, 4),
+                                              color: 'inherit',
+                                              textDecoration: 'none'
+                                            }}
+                                          >
+                                            <Icon
+                                              icon={visual.icon}
+                                              color={isSender ? '#ffffff' : visual.color}
+                                              fontSize='2rem'
+                                            />
+                                            <Box sx={{ minWidth: 0 }}>
+                                              <Typography
+                                                variant='caption'
+                                                sx={{ display: 'block', color: 'inherit' }}
+                                                noWrap
+                                              >
+                                                {att.filename}
+                                              </Typography>
+                                              <Typography
+                                                variant='caption'
+                                                sx={{ display: 'block', color: 'inherit', opacity: 0.8 }}
+                                              >
+                                                {(att.size / 1024).toFixed(0)} KB
+                                              </Typography>
+                                            </Box>
                                           </Box>
-                                        </Box>
-                                      )
-                                    })()
-                                  )}
-                                </Box>
-                              ))}
-                              {(imgCount > 0 || others.length > 0) && (
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 0.5,
-                                    justifyContent: 'flex-end',
-                                    p: theme => theme.spacing(1, 2),
-                                    borderTop: '1px solid',
-                                    borderColor: isSender ? 'rgba(255,255,255,0.2)' : 'divider',
-                                    backgroundColor: 'inherit',
-                                    color: 'inherit',
-                                    width: '100%',
-                                    boxSizing: 'border-box'
-                                  }}
-                                >
-                                  <Typography variant='caption' sx={{ fontSize: '0.75rem', opacity: 1, color: isSender ? 'common.white' : 'text.primary' }}>
-                                    {new Date(chat.time).toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                                  </Typography>
-                                </Box>
+                                        )
+                                      })()
+                                    )}
+                                  </Box>
+                                ))}
+                                {(imgCount > 0 || others.length > 0) && (
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      gap: 0.5,
+                                      justifyContent: 'flex-end',
+                                      p: theme => theme.spacing(1, 2),
+                                      borderTop: '1px solid',
+                                      borderColor: isSender ? 'rgba(255,255,255,0.2)' : 'divider',
+                                      backgroundColor: 'inherit',
+                                      color: 'inherit',
+                                      width: '100%',
+                                      boxSizing: 'border-box'
+                                    }}
+                                  >
+                                    <Typography
+                                      variant='caption'
+                                      sx={{
+                                        fontSize: '0.75rem',
+                                        opacity: 1,
+                                        color: isSender ? 'common.white' : 'text.primary'
+                                      }}
+                                    >
+                                      {new Date(chat.time).toLocaleString('en-US', {
+                                        hour: 'numeric',
+                                        minute: '2-digit',
+                                        hour12: true
+                                      })}
+                                    </Typography>
+                                  </Box>
                                 )}
                               </Box>
                               {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
@@ -1653,7 +1670,8 @@ const ChatLog = (props: ChatLogType) => {
             const name = found?.displayName || found?.username
             return name ? `${name} created this group` : 'Group created'
           })()
-    const memberCount = data.contact.participants?.filter(p => p.isActive).length ?? data.contact.participantIds?.length ?? 0
+    const memberCount =
+      data.contact.participants?.filter(p => p.isActive).length ?? data.contact.participantIds?.length ?? 0
     const creationDate = new Date(data.contact.createdAt).toLocaleDateString('en-GB', {
       day: 'numeric',
       month: 'short',
@@ -1686,7 +1704,8 @@ const ChatLog = (props: ChatLogType) => {
                 width: 72,
                 height: 72,
                 borderRadius: '50%',
-                background: theme => `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
+                background: theme =>
+                  `linear-gradient(135deg, ${theme.palette.secondary.light}, ${theme.palette.secondary.main})`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -1701,22 +1720,24 @@ const ChatLog = (props: ChatLogType) => {
           <Typography variant='caption' sx={{ color: 'text.secondary', textAlign: 'center' }}>
             {memberCount} {memberCount === 1 ? 'member' : 'members'} &bull; Group created on {creationDate}
           </Typography>
-          {isAdmin && <Button
-            variant='text'
-            startIcon={<Icon icon='mdi:account-plus-outline' />}
-            onClick={onAddMember}
-            sx={{
-              mt: 0.5,
-              width: '100%',
-              borderRadius: 2,
-              backgroundColor: 'customColors.Surface',
-              color: 'primary.main',
-              fontWeight: 600,
-              '&:hover': { backgroundColor: 'customColors.OnBackground' }
-            }}
-          >
-            Add Member
-          </Button>}
+          {isAdmin && (
+            <Button
+              variant='text'
+              startIcon={<Icon icon='mdi:account-plus-outline' />}
+              onClick={onAddMember}
+              sx={{
+                mt: 0.5,
+                width: '100%',
+                borderRadius: 2,
+                backgroundColor: 'customColors.Surface',
+                color: 'primary.main',
+                fontWeight: 600,
+                '&:hover': { backgroundColor: 'customColors.OnBackground' }
+              }}
+            >
+              Add Member
+            </Button>
+          )}
         </Paper>
       </Box>
     )

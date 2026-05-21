@@ -125,8 +125,8 @@ const probeMediaDuration = (file: File, kind: 'audio' | 'video'): Promise<number
 // differently than the SDK defaults.
 const MAX_FILES_PER_MESSAGE = 10
 const MAX_FILE_SIZE_MB: Record<PendingFile['kind'], number> = {
-  image: 5,
-  video: 25,
+  image: 10,
+  video: 200,
   audio: 10,
   document: 10
 }
@@ -903,7 +903,10 @@ const SendMsgForm = (props: SendMsgComponentType) => {
         anchorEl={emojiAnchorEl}
         placement='top-start'
         transition
-        modifiers={[{ name: 'flip', enabled: false }, { name: 'offset', options: { offset: [0, 8] } }]}
+        modifiers={[
+          { name: 'flip', enabled: false },
+          { name: 'offset', options: { offset: [0, 8] } }
+        ]}
         sx={{ zIndex: theme => theme.zIndex.modal }}
       >
         {({ TransitionProps }) => (

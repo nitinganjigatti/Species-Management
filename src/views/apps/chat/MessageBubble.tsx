@@ -5,17 +5,6 @@ import { ReactNode } from 'react'
 // ** MUI Imports
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
-import Chip from '@mui/material/Chip'
-
-// ** Redux (for "did I react?" highlighting on chips)
-import { useSelector } from 'react-redux'
-import type { RootState } from 'src/store'
-
-// ** SDK — only `add_reaction` is acked by the chat backend; a re-emit
-// with the same emoji is treated as a toggle (server removes if the user
-// already reacted). Both add and remove use this one call; state for both
-// sides lands via the `reaction_updated` broadcast.
-import { addReactionOverSocket } from 'src/lib/chat/api'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -26,6 +15,7 @@ import Icon from 'src/@core/components/icon'
 import MessageActions from 'src/views/apps/chat/MessageActions'
 import MessageReactionPicker from 'src/views/apps/chat/MessageReactionPicker'
 import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
+import ReactionsRow from 'src/views/apps/chat/ReactionsRow'
 
 // ** Forward marker — strip the sentinel for display and detect the
 // "Forwarded" state so we can render <ForwardedTag /> above the body.
@@ -82,8 +72,6 @@ const MessageBubble = ({
   canInteract = true,
   onJumpToReply
 }: MessageBubbleProps) => {
-  const currentUserId = useSelector((s: RootState) => s.chat?.userProfile?.id ?? null)
-
   // Tombstone for "delete for everyone".
   if (chat.isDeletedForEveryone) {
     return (
@@ -162,21 +150,6 @@ const MessageBubble = ({
     onJumpToReply?.(String(targetId))
   }
 
-  // Toggle our reaction with `emoji` on this message (used when clicking an
-  // existing chip below the bubble — the popover picker lives in MessageActions).
-  const handleToggleReaction = (emoji: string) => {
-    if (!chat.id) return
-    const me = currentUserId != null ? String(currentUserId) : ''
-    const existing = chat.reactions?.find(r => r.emoji === emoji)
-    const alreadyReacted = !!(existing && me && existing.userIds.includes(me))
-    // Single call for both add and remove — server treats a re-emit as a
-    // toggle. `alreadyReacted` is kept only for any future UI branching.
-    void alreadyReacted
-    addReactionOverSocket(chat.id, emoji).catch((err: unknown) => {
-      console.error('[chat] toggle reaction failed:', err)
-    })
-  }
-
   return (
     <Box
       sx={{
@@ -240,18 +213,14 @@ const MessageBubble = ({
               onClick={handleReplySnippetClick}
               sx={{
                 cursor: chat.replyTo.messageId ? 'pointer' : 'default',
-                borderLeft: theme =>
-                  `3px solid ${isSender ? theme.palette.common.white : '#1F515B'}`,
+                borderLeft: theme => `3px solid ${isSender ? theme.palette.common.white : '#1F515B'}`,
                 pl: 1.5,
                 py: 0.5,
                 mb: 1,
                 opacity: 0.85
               }}
             >
-              <Typography
-                variant='caption'
-                sx={{ display: 'block', fontWeight: 600, color: 'inherit' }}
-              >
+              <Typography variant='caption' sx={{ display: 'block', fontWeight: 600, color: 'inherit' }}>
                 {chat.replyTo.senderName ?? 'Replied message'}
               </Typography>
               <Typography
@@ -264,8 +233,7 @@ const MessageBubble = ({
                   color: 'inherit'
                 }}
               >
-                {chat.replyTo.textPreview ||
-                  (chat.replyTo.hasAttachment ? '📎 Attachment' : 'Original message')}
+                {chat.replyTo.textPreview || (chat.replyTo.hasAttachment ? '📎 Attachment' : 'Original message')}
               </Typography>
             </Box>
           ) : null}
@@ -332,7 +300,13 @@ const MessageBubble = ({
                     <Icon icon='mdi:check' fontSize='0.875rem' />
                   </Box>
                 ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
-                  <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' } }}>
+                  <Box
+                    component='span'
+                    sx={{
+                      display: 'inline-flex',
+                      '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' }
+                    }}
+                  >
                     <Icon icon='mdi:check-all' fontSize='0.875rem' />
                   </Box>
                 ) : null
@@ -341,56 +315,7 @@ const MessageBubble = ({
           </Box>
         </Box>
 
-        {canInteract && chat.reactions && chat.reactions.length > 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 1,
-              ml: isSender ? 'auto' : 0,
-              mr: isSender ? 0 : 'auto',
-              mt: '-8px',
-              p: '2px'
-            }}
-          >
-            {chat.reactions.map(r => {
-              const me = currentUserId != null ? String(currentUserId) : ''
-              const youReacted = !!(me && r.userIds.includes(me))
-
-              return (
-                <Chip
-                  key={r.emoji}
-                  size='small'
-                  // Click-to-toggle only when the current user can interact
-                  // with this conversation. Removed-from-group users see
-                  // existing reaction chips as static read-only labels.
-                  onClick={canInteract ? () => handleToggleReaction(r.emoji) : undefined}
-                  label={
-                    <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                      <span>{r.emoji}</span>
-                      <Typography component='span' variant='caption'>
-                        {r.count}
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{
-                    height: 22,
-                    cursor: 'pointer',
-                    borderColor: theme => (youReacted ? theme.palette.primary.main : theme.palette.divider),
-                    color: theme => (youReacted ? theme.palette.primary.main : theme.palette.divider),
-                    backgroundColor: 'common.white',
-                    '&:hover': {
-                      backgroundColor: theme => theme.palette.action.hover,
-                      color: 'text.primary'
-                    },
-                    '& .MuiChip-label': { pl: '6px', pr: '6px' }
-                  }}
-                  variant='outlined'
-                />
-              )
-            })}
-          </Box>
-        ) : null}
+        <ReactionsRow chat={chat} isSender={isSender} canInteract={canInteract} />
       </Box>
 
       {canInteract ? <MessageReactionPicker chat={chat} isSender={isSender} /> : null}
