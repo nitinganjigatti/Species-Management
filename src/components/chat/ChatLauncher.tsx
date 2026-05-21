@@ -130,12 +130,24 @@ const ChatLauncher = () => {
       dispatch(setUnreadCount({ chatId: convId, count }))
     }
 
+    // Conversation metadata changed (rename, avatar, mute, pin from another
+    // device, etc.). Refresh the conversation list so the sidebar reflects
+    // the change while the user is off-/chat. AppChat owns the same listener
+    // on /chat — they're mutually exclusive by route, so no double-dispatch.
+    const onConversationUpdated = (evt: any) => {
+      const convId = evt?.conversationId
+      if (!convId) return
+      dispatch(fetchChatsContacts())
+    }
+
     socket.on('new_message', onNewMessage)
     socket.on('unread_count_changed', onUnreadCountChanged)
+    socket.on('conversation_updated', onConversationUpdated)
 
     return () => {
       socket.off('new_message', onNewMessage)
       socket.off('unread_count_changed', onUnreadCountChanged)
+      socket.off('conversation_updated', onConversationUpdated)
     }
   }, [dispatch, userProfileId, enableChatModule])
 
