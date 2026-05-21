@@ -24,12 +24,13 @@ import { updateMessageOverSocket } from 'src/lib/chat/api'
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
   display: 'flex',
   flexGrow: 1,
-  borderRadius: 24,
+  borderRadius: 34,
   alignItems: 'center',
   boxShadow: theme.shadows[1],
-  padding: '12px',
-  paddingRight: '8px',
+  paddingTop: '8px',
+  paddingRight: '20px',
   paddingLeft: '20px',
+  paddingBottom: '8px',
   justifyContent: 'space-between',
   backgroundColor: theme.palette.background.paper
 }))
@@ -134,6 +135,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const [uploading, setUploading] = useState(false)
   const [processingFiles, setProcessingFiles] = useState(false)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const textInputRef = useRef<HTMLInputElement | null>(null)
 
   // ── Audio recording ────────────────────────────────────────────────────────
   // Click 🎤 → recording overlay (timer + stop/cancel). Click ⏹ → blob lands
@@ -703,7 +705,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       )}
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <ChatFormWrapper>
+        <ChatFormWrapper onClick={() => textInputRef.current?.focus()}>
           {recording ? (
             // Recording overlay — replaces the text input until the user stops
             // or cancels. The recorded blob then drops into the pending strip
@@ -752,6 +754,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
                 fullWidth
                 value={msg}
                 size='small'
+                inputRef={textInputRef}
                 placeholder='Type your message here…'
                 onChange={e => {
                   setMsg(e.target.value)
