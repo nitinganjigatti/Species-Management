@@ -31,6 +31,11 @@ import ForwardedTag from 'src/views/apps/chat/ForwardedTag'
 // "Forwarded" state so we can render <ForwardedTag /> above the body.
 import { isForwarded, stripForwardMarker, hasDisplayableText } from 'src/lib/chat/forwardMarker'
 
+// ** Auto-detected URLs / mailto / tel links inside the body text.
+// Per-text-segment callback keeps search-highlight scoped to non-link
+// portions so we never wrap a <Box component='a'> in a highlight span.
+import LinkifyText from 'src/lib/chat/linkify'
+
 // ** Types
 import type { ChatLogChatType } from 'src/types/apps/chatTypes'
 
@@ -268,7 +273,11 @@ const MessageBubble = ({
           ) : null}
           {forwarded ? <ForwardedTag isSender={isSender} /> : null}
           <Typography sx={{ fontSize: '0.875rem', wordWrap: 'break-word', color: 'inherit' }}>
-            {isSearchMatch ? highlightText(displayText, !!isActiveSearchMatch) : displayText}
+            <LinkifyText
+              text={displayText}
+              isSender={isSender}
+              renderText={isSearchMatch ? (s: string) => highlightText(s, !!isActiveSearchMatch) : undefined}
+            />
             {chat.isPinned ? (
               <Box
                 component='span'
