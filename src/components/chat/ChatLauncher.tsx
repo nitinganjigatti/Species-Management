@@ -23,10 +23,17 @@ import AppChat from 'src/views/apps/chat/AppChat'
 
 // ** Store
 import type { RootState, AppDispatch } from 'src/store'
-import { fetchChatsContacts, fetchUserProfile, receiveMessage, setUnreadCount, setSelectedConversationId } from 'src/store/apps/chat'
+import {
+  fetchChatsContacts,
+  fetchUserProfile,
+  receiveMessage,
+  setSelectedConversationId,
+  addOrReplaceChat,
+  patchConversationFromEvent
+} from 'src/store/apps/chat'
 
 // ** Chat API
-import { getChatSocket, sdkMessageToMessage } from 'src/lib/chat/api'
+import { getChatSocket, sdkConversationToChat, sdkMessageToMessage } from 'src/lib/chat/api'
 
 // Floating chat launcher: a FAB anchored at the bottom-right of every
 // authenticated page. Clicking it pops a compact panel that hosts the full
@@ -34,11 +41,12 @@ import { getChatSocket, sdkMessageToMessage } from 'src/lib/chat/api'
 // (sidebar collapses below `lg`) to make the layout fit the narrow panel.
 //
 // To keep the FAB's unread badge live even when the panel is closed, we
-// subscribe to the two socket events that affect the badge (`new_message` and
-// `unread_count_changed`) and dispatch into the same Redux reducers AppChat
-// uses. AppChat owns the rest of the event surface (typing, receipts, pin,
-// edit, delete, etc.) — duplicating only the unread-count path avoids any
-// reducer-double-fire risk and stays minimal.
+// subscribe to `new_message` (so the open chat can render new arrivals)
+// and `conversation_updated` (the single source of truth for sidebar
+// lastMessage + unread-count updates, including cross-device read syncs).
+// AppChat owns the rest of the event surface (typing, receipts, pin,
+// edit, delete, etc.) — duplicating only the badge-affecting paths avoids
+// any reducer-double-fire risk and stays minimal.
 //
 // We hide the launcher entirely on the dedicated `/chat` route because
 // AppChat is already mounted there; rendering a second AppChat inside the
@@ -92,13 +100,17 @@ const ChatLauncher = () => {
   }, [selectedChat?.contact?.id, selectedConversationId, dispatch])
 
   // Bootstrap the user's profile + conversation list once, so the FAB badge
-  // can show the right number even before the user opens the panel. Skip
-  // entirely when chat is disabled for this tenant.
+  // can show the right number even before the user opens the panel. The
+  // chat list is kept fresh via the `conversation_updated` socket event
+  // after this initial load, so we don't refetch on every remount (e.g.
+  // when the user navigates between /chat and other module routes).
+  // Skip entirely when chat is disabled for this tenant.
+  const chatsLoaded = useSelector((s: RootState) => Boolean(s.chat?.chats))
   useEffect(() => {
     if (!enableChatModule) return
     dispatch(fetchUserProfile())
-    dispatch(fetchChatsContacts())
-  }, [dispatch, enableChatModule])
+    if (!chatsLoaded) dispatch(fetchChatsContacts())
+  }, [dispatch, enableChatModule, chatsLoaded])
 
   // Subscribe to the two socket events that affect unread counts. AppChat
   // owns the full event surface on /chat — we hide there to avoid overlap,
@@ -123,30 +135,39 @@ const ChatLauncher = () => {
       )
     }
 
-    const onUnreadCountChanged = (evt: any) => {
-      const convId = evt?.conversationId
-      const count = typeof evt?.unreadCount === 'number' ? evt.unreadCount : null
-      if (!convId || count === null) return
-      dispatch(setUnreadCount({ chatId: convId, count }))
-    }
-
-    // Conversation metadata changed (rename, avatar, mute, pin from another
-    // device, etc.). Refresh the conversation list so the sidebar reflects
-    // the change while the user is off-/chat. AppChat owns the same listener
-    // on /chat — they're mutually exclusive by route, so no double-dispatch.
+    // Conversation update — server uses ONE event for two payload shapes:
+    //   Case 1: new message arrived. Slim payload — { id, lastMessage,
+    //           unreadCount, updatedAt }. PATCH only those fields.
+    //   Case 2: metadata changed (rename/avatar/participants/role/settings).
+    //           Full Conversation object. REPLACE the whole entry.
+    // Detection rule per server contract: if the payload carries
+    // `participants` AND `settings` → Case 2; otherwise Case 1.
     const onConversationUpdated = (evt: any) => {
-      const convId = evt?.conversationId
+      const convId = evt?.id ?? evt?.conversationId
       if (!convId) return
-      dispatch(fetchChatsContacts())
+
+      const isFullConversation = Array.isArray(evt?.participants) && evt?.settings !== undefined
+      if (isFullConversation) {
+        const chat = sdkConversationToChat(evt, userProfileId ?? '')
+        dispatch(addOrReplaceChat(chat))
+
+        return
+      }
+
+      dispatch(
+        patchConversationFromEvent({
+          chatId: convId,
+          lastMessage: evt?.lastMessage,
+          unreadCount: typeof evt?.unreadCount === 'number' ? evt.unreadCount : undefined
+        })
+      )
     }
 
     socket.on('new_message', onNewMessage)
-    socket.on('unread_count_changed', onUnreadCountChanged)
     socket.on('conversation_updated', onConversationUpdated)
 
     return () => {
       socket.off('new_message', onNewMessage)
-      socket.off('unread_count_changed', onUnreadCountChanged)
       socket.off('conversation_updated', onConversationUpdated)
     }
   }, [dispatch, userProfileId, enableChatModule])
