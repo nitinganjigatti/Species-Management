@@ -380,6 +380,20 @@ const ChatLog = (props: ChatLogType) => {
   }
   const closePreview = () => setPreviewState(null)
 
+  // ** Tracks whether the user is scrolled far enough from the bottom to show the FAB
+  const [showScrollFab, setShowScrollFab] = useState(false)
+
+  const checkScrollFab = useCallback(() => {
+    const c = getScrollContainer()
+    if (!c) {
+      setShowScrollFab(false)
+
+      return
+    }
+    const distFromBottom = c.scrollHeight - c.scrollTop - c.clientHeight
+    setShowScrollFab(distFromBottom > 300)
+  }, [getScrollContainer])
+
   // ** Scroll to chat bottom — runs multiple passes so late-loading content
   // (images, embeds) doesn't leave us stuck mid-list. PerfectScrollbar's inner
   // div is `_container`. We also force a re-measure via PerfectScrollbar's
@@ -408,6 +422,9 @@ const ChatLog = (props: ChatLogType) => {
     // 3) after late content (images) settles
     setTimeout(doScroll, 120)
     setTimeout(doScroll, 350)
+
+    // Hide FAB once we scroll to bottom
+    setTimeout(() => setShowScrollFab(false), 400)
   }
 
   // ** Formats chat data — groups consecutive messages by sender, splits
@@ -1251,6 +1268,9 @@ const ChatLog = (props: ChatLogType) => {
       const prevTop = lastNativeScrollTopRef.current
       lastNativeScrollTopRef.current = el.scrollTop
 
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
+      setShowScrollFab(distFromBottom > 300)
+
       // Only act on UPWARD motion (current < previous) AND when near the top.
       if (el.scrollTop >= prevTop) return
       if (el.scrollTop > 80) return
@@ -1281,8 +1301,14 @@ const ChatLog = (props: ChatLogType) => {
   // causes a visible flash-to-top on send / receipt updates. Keeping the
   // conditional inline means React sees the same `<PerfectScrollbar />`
   // element across renders and reuses the instance.
+  const handleFabClick = useCallback(() => {
+    const c = getScrollContainer()
+    if (c) smoothScrollTo(c.scrollHeight, 350)
+    setShowScrollFab(false)
+  }, [getScrollContainer, smoothScrollTo])
+
   return (
-    <Box sx={{ flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
+    <Box sx={{ position: 'relative', flexGrow: 1, minHeight: 0, overflow: 'hidden' }}>
       {hidden ? (
         <Box
           ref={chatArea}
@@ -1293,7 +1319,13 @@ const ChatLog = (props: ChatLogType) => {
           {renderChats()}
         </Box>
       ) : (
-        <PerfectScrollbar ref={chatArea} options={{ wheelPropagation: false }} onYReachStart={triggerLoadOlder}>
+        <PerfectScrollbar
+          ref={chatArea}
+          options={{ wheelPropagation: false }}
+          onYReachStart={triggerLoadOlder}
+          onScrollY={checkScrollFab}
+          onYReachEnd={() => setShowScrollFab(false)}
+        >
           {topStatus}
           {renderChats()}
         </PerfectScrollbar>
@@ -1305,6 +1337,37 @@ const ChatLog = (props: ChatLogType) => {
         open={previewState !== null}
         onClose={closePreview}
       />
+
+      {/* Scroll-to-bottom FAB */}
+      {showScrollFab && (
+        <Box
+          onClick={handleFabClick}
+          sx={{
+            position: 'absolute',
+            bottom: 16,
+            right: 16,
+            zIndex: 10,
+            width: 36,
+            height: 36,
+            borderRadius: '50%',
+            backgroundColor: 'primary.main',
+            color: 'common.white',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: theme => `0 2px 8px ${theme.palette.primary.main}66`,
+            transition: 'transform 0.15s, background-color 0.15s',
+            '&:hover': {
+              backgroundColor: 'primary.dark',
+              transform: 'scale(1.08)'
+            },
+            '&:active': { transform: 'scale(0.94)' }
+          }}
+        >
+          <Icon icon='mdi:chevron-down' fontSize='1.375rem' />
+        </Box>
+      )}
     </Box>
   )
 }
