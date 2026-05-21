@@ -135,6 +135,7 @@ const ComposePopover = ({
             display: 'flex',
             flexDirection: 'column',
             borderRadius: 1,
+            backgroundColor: 'background.paper',
             boxShadow: theme => `0 12px 32px -8px ${theme.palette.primary.main}26, 0 4px 16px -2px rgba(0,0,0,0.10)`,
             overflow: 'hidden'
           }
@@ -166,7 +167,23 @@ const ComposePopover = ({
           value={query}
           onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
           placeholder='Search name or staff ID'
-          sx={{ '& .MuiInputBase-root': { borderRadius: 5 } }}
+          sx={{
+            '& .MuiInputBase-root': { borderRadius: 5 },
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: '#1F515B',
+                borderWidth: '0.5px'
+              },
+              '&:hover fieldset': {
+                borderColor: '#1F515B',
+                borderWidth: '0.5px'
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#1F515B',
+                borderWidth: '0.5px'
+              }
+            }
+          }}
           InputProps={{
             startAdornment: (
               <InputAdornment position='start'>
@@ -184,9 +201,9 @@ const ComposePopover = ({
           mx: 3,
           mb: 2,
           borderRadius: 1,
-          backgroundColor: 'primary.main',
+          backgroundColor: '#1F515B',
           color: 'common.white',
-          '&:hover': { backgroundColor: 'primary.dark' }
+          '&:hover': { backgroundColor: '#1a3f47' }
         }}
       >
         <Box
@@ -196,11 +213,15 @@ const ComposePopover = ({
             height: 36,
             borderRadius: '50%',
             backgroundColor: 'common.white',
-            color: 'primary.main',
+            color: '#1F515B',
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            mr: 3.5
+            mr: 3.5,
+            transition: 'color 0.2s ease',
+            '.MuiListItemButton-root:hover &': {
+              color: 'common.white'
+            }
           }}
         >
           <Icon icon='mdi:account-group' fontSize='1.125rem' />

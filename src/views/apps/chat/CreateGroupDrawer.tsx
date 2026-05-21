@@ -345,7 +345,19 @@ const CreateGroupDrawer = ({ contacts, onCancel, onCreate }: CreateGroupDrawerPr
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 6,
-                backgroundColor: 'customColors.Surface'
+                backgroundColor: 'customColors.Surface',
+                '& fieldset': {
+                  borderColor: '#1F515B',
+                  borderWidth: '0.5px'
+                },
+                '&:hover fieldset': {
+                  borderColor: '#1F515B',
+                  borderWidth: '0.5px'
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#1F515B',
+                  borderWidth: '0.5px'
+                }
               }
             }}
           />

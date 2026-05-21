@@ -411,7 +411,7 @@ const ChatContent = (props: ChatContentType) => {
                     })()
                   )}
                   <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                    <Typography sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                    <Typography sx={{ color: '#1F515B', fontWeight: 600 }}>
                       {selectedChat.contact.fullName}
                     </Typography>
                     {/* Status line — WhatsApp-Web style.
@@ -428,6 +428,7 @@ const ChatContent = (props: ChatContentType) => {
                       noWrap
                       sx={{
                         maxWidth: 480,
+                        fontSize: '12px',
                         color:
                           !selectedChat.contact.isGroup && peerUserId && onlineUsers.includes(peerUserId)
                             ? 'success.main'

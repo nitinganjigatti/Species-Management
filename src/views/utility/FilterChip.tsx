@@ -35,9 +35,11 @@ const FilterChip = ({ label, active = false, onClick, size = 30 }: FilterChipPro
       aria-pressed={active}
       sx={{
         height: size,
+        minHeight: size,
         borderRadius: 9999,
-        px: 0.5,
-        fontWeight: active ? 600 : 500,
+        px: 1.5,
+        py: 0.5,
+        fontWeight: 500,
         fontSize: '0.8125rem',
         border: '1px solid',
         cursor: 'pointer',
@@ -51,17 +53,18 @@ const FilterChip = ({ label, active = false, onClick, size = 30 }: FilterChipPro
               backgroundColor: '#1F515B',
               color: 'common.white',
               borderColor: '#1F515B',
+              px: 2,
               '&:hover': { backgroundColor: '#1a3f47', borderColor: '#1a3f47' }
             }
           : {
               // Mirrors MUI outlined-primary button: hover applies a primary alpha tint
               backgroundColor: 'transparent',
               color: 'text.secondary',
-              borderColor: '#1F515B',
+              borderColor: 'text.secondary',
               '&:hover': {
                 backgroundColor: 'rgba(31, 81, 91, 0.08)',
-                borderColor: '#1F515B',
-                color: '#1F515B'
+                borderColor: 'text.primary',
+                color: 'text.secondary'
               }
             })
       }}

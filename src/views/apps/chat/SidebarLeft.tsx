@@ -723,7 +723,7 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   onClick={handleComposeOpen}
                   sx={{
                     color: 'customColors.OnSurfaceVariant',
-                    '&:hover': { backgroundColor: 'primary.main', color: 'common.white' }
+                    '&:hover': { backgroundColor: '#1F515B', color: 'common.white' }
                   }}
                   title='New chat'
                 >
@@ -745,7 +745,23 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 value={query}
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
                 placeholder='Search'
-                sx={{ '& .MuiInputBase-root': { borderRadius: 5 } }}
+                sx={{
+                  '& .MuiInputBase-root': { borderRadius: 5 },
+                  '& .MuiOutlinedInput-root': {
+                    '& fieldset': {
+                      borderColor: '#1F515B',
+                      borderWidth: '0.5px'
+                    },
+                    '&:hover fieldset': {
+                      borderColor: '#1F515B',
+                      borderWidth: '0.5px'
+                    },
+                    '&.Mui-focused fieldset': {
+                      borderColor: '#1F515B',
+                      borderWidth: '0.5px'
+                    }
+                  }
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position='start'>
