@@ -28,7 +28,10 @@ import Icon from 'src/@core/components/icon'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Utils
-import { getInitials } from 'src/@core/utils/get-initials'
+import { getInitials as _getInitials } from 'src/@core/utils/get-initials'
+
+// Always show exactly 2 initials letters in the contact list
+const getInitials = (name: string) => _getInitials(name).slice(0, 2)
 
 // ** Types
 import type { ContactType, ChatsArrType, ChatEntityId } from 'src/types/apps/chatTypes'

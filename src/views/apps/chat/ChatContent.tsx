@@ -634,12 +634,13 @@ const ChatContent = (props: ChatContentType) => {
               sidebarWidth={sidebarWidth}
               userProfileRightOpen={userProfileRightOpen}
               handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
-              // Reuses the same scroll-target mechanism wired for the
-              // pinned strip + search drawer. Clearing first so re-clicks
-              // on the same id retrigger the effect in ChatLog.
               onScrollToMessage={(messageId: string) => {
                 setScrollTargetMessageId(null)
                 requestAnimationFrame(() => setScrollTargetMessageId(messageId))
+              }}
+              onOpenSearch={() => {
+                handleUserProfileRightSidebarToggle()
+                handleSearchToggle()
               }}
             />
             {/* WhatsApp-Web-style right-side search drawer. Gated on

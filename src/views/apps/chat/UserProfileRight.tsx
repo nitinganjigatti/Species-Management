@@ -86,7 +86,8 @@ const UserProfileRight = (props: UserProfileRightType) => {
     sidebarWidth,
     userProfileRightOpen,
     handleUserProfileRightSidebarToggle,
-    onScrollToMessage
+    onScrollToMessage,
+    onOpenSearch
   } = props
 
   const ScrollWrapper = ({ children }: { children: ReactNode }) => {
@@ -1015,6 +1016,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
                   </Box>
                 )}
                 <Box
+                  onClick={onOpenSearch}
                   sx={{
                     flex: 1,
                     display: 'flex',
