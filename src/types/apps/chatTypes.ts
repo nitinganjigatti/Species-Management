@@ -367,6 +367,8 @@ export type UserProfileRightType = {
    * ChatContent wires this to its `setScrollTargetMessageId`.
    */
   onScrollToMessage?: (messageId: string) => void
+  /** Opens the chat search drawer — wired by ChatContent to handleSearchToggle. */
+  onOpenSearch?: () => void
 }
 
 export type SendMsgComponentType = {

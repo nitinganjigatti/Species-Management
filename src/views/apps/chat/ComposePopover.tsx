@@ -28,7 +28,15 @@ import Icon from 'src/@core/components/icon'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** Utils
-import { getInitials } from 'src/@core/utils/get-initials'
+// First letter of first word + first letter of last word (e.g. "Add User Test" → "AT")
+const getInitials = (name: string): string => {
+  const words = name.trim().split(/\s+/).filter(Boolean)
+  if (words.length === 0) return ''
+  const first = words[0][0] ?? ''
+  const last = words.length > 1 ? words[words.length - 1][0] ?? '' : ''
+
+  return (first + last).toUpperCase()
+}
 
 // ** Types
 import type { ContactType, ChatsArrType, ChatEntityId } from 'src/types/apps/chatTypes'

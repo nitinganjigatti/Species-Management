@@ -117,19 +117,10 @@ const probeMediaDuration = (file: File, kind: 'audio' | 'video'): Promise<number
     window.setTimeout(() => finish(undefined), 3000)
   })
 
-// Attachment limits — matches the SDK's documented defaults so we surface
-// the same rules client-side BEFORE the upload. SDK exposes these on
-// `UploadConfig` (`maxFilesPerMessage`, `maxFileSizeMB`) but doesn't
-// actually enforce them in `uploadBatch`; without this guard, the user
-// would only learn after pressing Send. Tune if the backend ever caps
-// differently than the SDK defaults.
+// Attachment count cap surfaced to the user before send. We don't apply
+// a client-side per-file size check anymore — the SDK / server is the
+// authoritative gate.
 const MAX_FILES_PER_MESSAGE = 10
-const MAX_FILE_SIZE_MB: Record<PendingFile['kind'], number> = {
-  image: 10,
-  video: 200,
-  audio: 10,
-  document: 10
-}
 
 const kindMediaIcon: Record<'video' | 'audio', string> = {
   video: 'mdi:video-outline',
@@ -424,28 +415,11 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     if (fileInputRef.current) fileInputRef.current.value = ''
     if (!files.length) return
 
-    // Per-file size validation. Reject files whose size exceeds the
-    // per-kind limit BEFORE adding them to the pending strip — gives
-    // immediate feedback instead of failing silently on send.
-    const sized = files.filter(f => {
-      const kind = inferKind(f.type)
-      const limitMb = MAX_FILE_SIZE_MB[kind]
-      const fileMb = f.size / (1024 * 1024)
-      if (fileMb > limitMb) {
-        toast.error(`${f.name} is ${fileMb.toFixed(1)} MB — ${kind} limit is ${limitMb} MB`)
-
-        return false
-      }
-
-      return true
-    })
-    if (!sized.length) return
-
     // Count-based UX: KEEP all files in the pending strip (better than
     // silently dropping the user's picks), but raise a warning toast and
     // let the Send button's disabled state (driven by pending.length) be
     // the gate. User decides which to remove via the ✕ chip.
-    const projected = pending.length + sized.length
+    const projected = pending.length + files.length
     if (projected > MAX_FILES_PER_MESSAGE) {
       const excess = projected - MAX_FILES_PER_MESSAGE
       toast.error(`${MAX_FILES_PER_MESSAGE}-file limit — remove ${excess} attachment${excess === 1 ? '' : 's'} to send`)
@@ -453,7 +427,7 @@ const SendMsgForm = (props: SendMsgComponentType) => {
 
     setProcessingFiles(true)
     try {
-      const processed = await Promise.all(sized.map(f => maybeCompressImage(f)))
+      const processed = await Promise.all(files.map(f => maybeCompressImage(f)))
       // Build pending entries in parallel — duration probe for audio/
       // video runs alongside the compression pipeline. Helper resolves
       // with `undefined` on timeout or decode failure, so a single bad
