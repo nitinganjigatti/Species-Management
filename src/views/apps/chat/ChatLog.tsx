@@ -1043,6 +1043,11 @@ const ChatLog = (props: ChatLogType) => {
                             gap: 0,
                             maxWidth: '280px',
                             backgroundColor: isSender ? '#1F515B' : 'background.paper',
+                            // Set the card text color so the time footer + filename
+                            // captions inside (which use `color: 'inherit'`) read
+                            // correctly against the dark sender bubble. Mirrors
+                            // what MessageBubble does on its text card.
+                            color: isSender ? 'common.white' : 'text.primary',
                             borderRadius: '8px',
                             overflow: 'hidden',
                             boxShadow: 1,
@@ -1295,19 +1300,22 @@ const ChatLog = (props: ChatLogType) => {
                           })()}
                           {/* Time footer for attachment-only bubbles. Matches the
                               footer shown on text bubbles + the mixed attachment+text
-                              path so every message carries its send-time. */}
+                              path so every message carries its send-time. Inherits
+                              the card's `color` so it's white on sender / dark on
+                              incoming without a per-isSender branch. */}
                           <Box
                             sx={{
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'flex-end',
                               gap: 0.5,
-                              mt: 0.25
+                              mt: 1,
+                              color: 'inherit'
                             }}
                           >
                             <Typography
                               variant='caption'
-                              sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'text.secondary' }}
+                              sx={{ fontSize: '0.75rem', opacity: 0.8, color: 'inherit' }}
                             >
                               {new Date(chat.time).toLocaleString('en-US', {
                                 hour: 'numeric',
@@ -1315,7 +1323,23 @@ const ChatLog = (props: ChatLogType) => {
                                 hour12: true
                               })}
                             </Typography>
-                            {isSender ? renderMsgFeedback(isSender, chat.feedback) : null}
+                            {isSender ? (
+                              chat.feedback.isSent && !chat.feedback.isDelivered ? (
+                                <Box component='span' sx={{ display: 'inline-flex', '& svg': { color: 'inherit' } }}>
+                                  <Icon icon='mdi:check' fontSize='0.875rem' />
+                                </Box>
+                              ) : chat.feedback.isSent && chat.feedback.isDelivered ? (
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    display: 'inline-flex',
+                                    '& svg': { color: chat.feedback.isSeen ? 'success.main' : 'inherit' }
+                                  }}
+                                >
+                                  <Icon icon='mdi:check-all' fontSize='0.875rem' />
+                                </Box>
+                              ) : null
+                            ) : null}
                           </Box>
                         </Box>
                           {/* Reactions chip row sits OUTSIDE the attachment card but
