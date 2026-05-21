@@ -19,6 +19,11 @@ import Typography from '@mui/material/Typography'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'src/store'
 
+// ** SDK last-read pointer — drives the WhatsApp-Web "N unread messages"
+// divider in the message list. Seeded by `selectChat` thunk on open via
+// `getLastRead(chatId)` → `useChatStore.setLastRead(...)`.
+import { useChatStore } from '@antzsoft/chat-core'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
@@ -124,6 +129,70 @@ const ChatLog = (props: ChatLogType) => {
   const chatArea = useRef(null)
   const messageRefs = useRef<Map<string, HTMLElement>>(new Map())
 
+  // ── Unread-divider anchor (WhatsApp-Web style "N unread messages") ───────
+  // We snapshot the `lastReadMessageId` from the SDK store ONCE per chat
+  // open. Doing it via a ref + state pair (not just reading the store on
+  // every render) is critical because `selectChat` thunk also dispatches
+  // `markReadOverSocket` → server responds → `useChatStore.lastRead` shifts
+  // to the latest message id. If we read live, the divider would vanish the
+  // instant the user opens the chat. Freezing the anchor at open keeps the
+  // divider stable until the user navigates away and comes back.
+  const lastReadFromSdk = useChatStore(s => s.lastRead)
+  const selectedChatId = data?.contact?.id ? String(data.contact.id) : null
+  const unreadAnchorRef = useRef<string | null>(null)
+  const lastSnapshottedChatIdRef = useRef<string | null>(null)
+  const [unreadAnchor, setUnreadAnchor] = useState<string | null>(null)
+
+  // Marks the current chat id as awaiting its initial render — consumed by
+  // the data effect below to differentiate "first sight of this chat" from
+  // "subsequent live update". Cleared once consumed; reset on chat switch.
+  const firstRenderForChatRef = useRef<string | null>(null)
+
+  // Cooldown window (ms timestamp) during which `triggerLoadOlder` is
+  // suppressed. PSB fires `onYReachStart` as a side-effect of our own
+  // smooth-scroll landing near the top of the viewport (most visible in
+  // short DMs where the unread divider sits within the first viewport);
+  // without this guard PSB auto-prepends older messages and the user sees
+  // the chat "scroll up" right after the unread-divider land.
+  const ignoreLoadOlderUntilRef = useRef<number>(0)
+  // Timestamp of the unread-scroll landing. Drives the time-windowed
+  // guard inside `doScroll` so queued bottom-scrolls from the initial
+  // mount don't yank the user past the divider, while still allowing
+  // genuine live-message / own-send scroll-to-bottom calls afterwards.
+  const unreadScrollAtRef = useRef<number>(0)
+
+  // Reset the anchor whenever the user switches to a different chat. Uses
+  // refs so the reset itself doesn't trigger an extra render cycle.
+  useEffect(() => {
+    if (lastSnapshottedChatIdRef.current !== selectedChatId) {
+      unreadAnchorRef.current = null
+      lastSnapshottedChatIdRef.current = selectedChatId
+      firstRenderForChatRef.current = selectedChatId
+      setUnreadAnchor(null)
+    }
+  }, [selectedChatId])
+
+  // Snapshot the lastRead pointer the FIRST time it appears for this chat.
+  // After that, ignore further changes — the server flipping it to "latest"
+  // mid-session must NOT erase our divider position.
+  useEffect(() => {
+    if (!selectedChatId) return
+    if (unreadAnchorRef.current) return
+    const entry = lastReadFromSdk[selectedChatId]
+    const id = entry?.messageId
+    if (id) {
+      unreadAnchorRef.current = id
+      setUnreadAnchor(id)
+      // Pre-arm the load-older cooldown. The unread-scroll smooth-scrolls
+      // the divider to the top of the viewport, and PSB can fire
+      // `onYReachStart` as a side-effect of that motion crossing near
+      // zero (most visible in short DMs). Setting the cooldown the
+      // moment we know we'll be landing near the top guarantees the
+      // ref is armed BEFORE any such event could possibly arrive.
+      ignoreLoadOlderUntilRef.current = Date.now() + 1500
+    }
+  }, [selectedChatId, lastReadFromSdk])
+
   // Pagination — surfaced via `data.chat` from Redux. ChatLog only triggers;
   // ChatContent owns the dispatch.
   const loadingOlder = data.chat.loadingOlder === true
@@ -169,6 +238,12 @@ const ChatLog = (props: ChatLogType) => {
   }, [hidden])
 
   const triggerLoadOlder = useCallback(() => {
+    // Cooldown — PSB fires onYReachStart as a side-effect of our own
+    // smooth-scroll landing near the top (most visible in short DMs where
+    // the unread divider sits within the first viewport). Without this
+    // guard PSB auto-prepends older messages and the user sees the chat
+    // "scroll up" right after the unread-divider land.
+    if (Date.now() < ignoreLoadOlderUntilRef.current) return
     if (!onLoadOlder) return
     if (loadingOlder) return
     if (!hasMoreOlder) return
@@ -372,6 +447,121 @@ const ChatLog = (props: ChatLogType) => {
     onJumpToMessage(scrollTargetMessageId)
   }, [scrollTargetMessageId, data.chat.messages, onJumpToMessage, onScrollToTargetDone, scrollMessageIntoView])
 
+  // Pre-compute the first-unread message id + count once per
+  // (messages, anchor) change. We walk the messages array forward from
+  // the anchor and pick the first message that is (a) AFTER the anchor
+  // by index and (b) NOT sent by the current user. The "not from me"
+  // check matches WhatsApp — the divider is meaningful only when the
+  // next bubble belongs to someone else (your own send wouldn't be
+  // "unread" by definition). Needed both by the render path (divider
+  // injection) and by the auto-scroll effect below — declared here so
+  // both can see it.
+  const firstUnreadInfo = (() => {
+    if (!unreadAnchor) return { id: null as string | null, count: 0 }
+    const msgs = data?.chat?.messages ?? []
+    const anchorIdx = msgs.findIndex(m => m.id === unreadAnchor)
+    if (anchorIdx < 0) return { id: null, count: 0 }
+    const myId = String(data?.userContact?.id ?? '')
+    for (let i = anchorIdx + 1; i < msgs.length; i++) {
+      const m = msgs[i]
+      if (!m.id) continue
+      if (String(m.senderId) === myId) continue
+
+      return { id: m.id, count: msgs.length - i }
+    }
+
+    return { id: null, count: 0 }
+  })()
+
+  // ── Unread-divider auto-scroll + jump-load (WhatsApp parity) ─────────────
+  // Gap 1: when the first-unread message is in the loaded window, scroll
+  // its bubble into view so the user lands at the divider, not at bottom.
+  // Gap 2: when the lastRead anchor is OLDER than the loaded window, the
+  // anchor index returns -1 and the divider can't render. Request a jump
+  // (context window centered on the anchor) so the divider can appear in
+  // the next render cycle.
+  //
+  // Both guarded by per-anchor refs so they each fire exactly once. Reset
+  // happens via the `selectedChatId` reset effect above where the anchor
+  // itself resets — that path is already in place.
+  const scrolledToUnreadRef = useRef<string | null>(null)
+  const requestedUnreadJumpRef = useRef<string | null>(null)
+  // Direct DOM ref on the unread divider element so we scroll TO it
+  // (block: 'start') instead of centering the first-unread bubble — the
+  // bubble-centering approach pushes the divider off-screen above.
+  const unreadDividerRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    if (!selectedChatId) return
+    if (scrolledToUnreadRef.current !== null && scrolledToUnreadRef.current !== unreadAnchor) {
+      scrolledToUnreadRef.current = null
+    }
+    if (requestedUnreadJumpRef.current !== null && requestedUnreadJumpRef.current !== unreadAnchor) {
+      requestedUnreadJumpRef.current = null
+    }
+  }, [selectedChatId, unreadAnchor])
+
+  useEffect(() => {
+    // Need an anchor to do anything.
+    if (!unreadAnchor) return
+
+    // CRITICAL: don't treat an empty messages array as "anchor not in
+    // window". On chat open the SDK calls `getLastRead` and
+    // `listMessages` in parallel — `getLastRead` can resolve first and
+    // populate `unreadAnchor` while `data.chat.messages` is still []
+    // mid-render. If we fired `jumpToMessage` here we'd replace the
+    // about-to-arrive normal page with a context window, looking to
+    // the user like the chat reloaded right after opening.
+    const msgs = data.chat.messages
+    if (msgs.length === 0) return
+
+    // Anchor not in current window → request a context-window load
+    // (Gap 2). Same pattern as the search-jump effect at line ~389:
+    // dispatch once, wait for messages to swap, effect re-runs and
+    // either finds the anchor (then Gap 1 scrolls) or gives up.
+    const anchorIdx = msgs.findIndex(m => m.id === unreadAnchor)
+    if (anchorIdx < 0) {
+      if (requestedUnreadJumpRef.current === unreadAnchor) return
+      if (!onJumpToMessage) return
+      requestedUnreadJumpRef.current = unreadAnchor
+      onJumpToMessage(unreadAnchor)
+
+      return
+    }
+
+    // Anchor IS in window. Land EXACTLY at the divider — that's the
+    // "first unread starts here" position. We scroll TO the divider's
+    // own DOM ref (not the bubble below it) so the pill sits at the
+    // top of the viewport. Without this, centering the first-unread
+    // bubble would push the divider off-screen above.
+    if (!firstUnreadInfo.id) return
+    if (scrolledToUnreadRef.current === unreadAnchor) return // already done
+
+    const dividerEl = unreadDividerRef.current
+    if (!dividerEl) return // divider not yet mounted — effect re-runs
+
+    const container = getScrollContainer()
+    if (container) {
+      const elRect = dividerEl.getBoundingClientRect()
+      const cRect = container.getBoundingClientRect()
+      const target = Math.max(0, container.scrollTop + (elRect.top - cRect.top))
+      smoothScrollTo(target)
+    } else {
+      dividerEl.scrollIntoView({ block: 'start' })
+    }
+    scrolledToUnreadRef.current = unreadAnchor
+    unreadScrollAtRef.current = Date.now()
+    // Reinforce the load-older cooldown after the actual scroll fires.
+    // The smooth-scroll animation takes ~300ms, and PSB can fire
+    // `onYReachStart` from any frame whose `scrollTop` dips near zero —
+    // extending the window past the animation settle keeps us covered.
+    ignoreLoadOlderUntilRef.current = Date.now() + 800
+
+    // Sync newest-id ref so the scroll-to-bottom effect doesn't yank us
+    // away after this one runs.
+    const lastId = data.chat.messages[data.chat.messages.length - 1]?.id
+    lastSeenNewestIdRef.current = lastId
+  }, [unreadAnchor, firstUnreadInfo.id, data.chat.messages, onJumpToMessage, getScrollContainer, smoothScrollTo])
+
   // In-page preview state for image / video / pdf / other attachments.
   // Clicking an attachment opens the dialog; close button or backdrop closes.
   // When `list` is provided, prev/next carousel is enabled in the dialog.
@@ -409,9 +599,19 @@ const ChatLog = (props: ChatLogType) => {
   // (images, embeds) doesn't leave us stuck mid-list. PerfectScrollbar's inner
   // div is `_container`. We also force a re-measure via PerfectScrollbar's
   // `update()` if available.
-  const scrollToBottom = () => {
+  //
+  // `force` bypasses the unread-divider hold so own-send always scrolls to
+  // bottom (matches WhatsApp — your own message should land in view).
+  const scrollToBottom = (force = false) => {
     const doScroll = () => {
       if (!chatArea.current) return
+      // Hold at the unread divider — `scrollToBottom` queues delayed
+      // scrolls (rAF / 120ms / 350ms); any still pending when the
+      // unread-scroll lands would yank the user back to the bottom.
+      // Time-window the block (1s) so genuine new-message scroll calls
+      // fired AFTER the divider has settled flow through. `force`
+      // (own-send) bypasses unconditionally.
+      if (!force && scrolledToUnreadRef.current && Date.now() - unreadScrollAtRef.current < 1000) return
       if (hidden) {
         // @ts-ignore — native overflow div
         chatArea.current.scrollTop = chatArea.current.scrollHeight
@@ -557,8 +757,16 @@ const ChatLog = (props: ChatLogType) => {
     // ack. It is NOT true for prepended older pages or any other state mutation
     // (loadingOlder toggle, feedback flags, pin/star/edit/delete, etc.), so
     // those won't yank the user to the bottom.
-    const newestId = data.chat.messages[data.chat.messages.length - 1]?.id
+    const newest = data.chat.messages[data.chat.messages.length - 1]
+    const newestId = newest?.id
     if (newestId === lastSeenNewestIdRef.current) return
+
+    // `firstRenderForChatRef` is set to `selectedChatId` on chat switch
+    // and consumed here — the first time we see a non-empty messages
+    // array for that chat is the "initial render". Distinguishes the
+    // open-chat path (may need to hold at unread divider) from the
+    // live-update path (only follow if user is at/near bottom).
+    const isInitialRender = firstRenderForChatRef.current === selectedChatId
     lastSeenNewestIdRef.current = newestId
 
     // A `jumpToMessage` dispatch replaces the messages array with a context
@@ -567,6 +775,40 @@ const ChatLog = (props: ChatLogType) => {
     // trip and yank the user to the bottom. Skip — the search-scroll effect
     // will land us on the right bubble instead.
     if (pendingJumpForIdRef.current) return
+
+    // Own-send ALWAYS scrolls to bottom. Matches WhatsApp — your own
+    // message should land in view regardless of where you were reading.
+    // `force=true` bypasses the unread-divider hold inside `doScroll`.
+    const myId = String(data?.userContact?.id ?? '')
+    const isOwnSend = newest && String(newest.senderId) === myId
+    if (isOwnSend) {
+      firstRenderForChatRef.current = null
+      scrollToBottom(true)
+
+      return
+    }
+
+    if (isInitialRender) {
+      firstRenderForChatRef.current = null
+      // Has known unread → defer to the unread-scroll effect; it will
+      // land the user at the divider instead of the bottom.
+      if (selectedChatId) {
+        const lastReadId = lastReadFromSdk[selectedChatId]?.messageId
+        if (lastReadId && lastReadId !== newestId) return
+      }
+      scrollToBottom()
+
+      return
+    }
+
+    // Subsequent live updates — only auto-scroll if the user is at/near
+    // the bottom. Matches WhatsApp: a new message while reading older
+    // history must NOT yank you down (the FAB counter exposes it instead).
+    const c = getScrollContainer()
+    if (c) {
+      const distFromBottom = c.scrollHeight - c.scrollTop - c.clientHeight
+      if (distFromBottom > 200) return
+    }
 
     scrollToBottom()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -581,6 +823,39 @@ const ChatLog = (props: ChatLogType) => {
     // Track whether we've already injected the group-created card so it only
     // appears once — right after the first system message in history.
     let groupCardInjected = false
+    // Track whether the unread divider has been rendered — `formattedChatData`
+    // groups consecutive messages from the same sender, so multiple groups may
+    // contain unread messages, but the divider should only appear once,
+    // immediately before the first-unread bubble's group.
+    let unreadDividerRendered = false
+
+    // Helper that returns the divider JSX. Centered pill styling reuses the
+    // same tokens as the date / system-message separators so the divider
+    // visually integrates with the existing chat decorations.
+    const renderUnreadDivider = () => (
+      <Box
+        key={`unread-divider-${firstUnreadInfo.id}`}
+        ref={unreadDividerRef}
+        sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}
+      >
+        <Typography
+          variant='caption'
+          sx={{
+            px: 3,
+            py: 1,
+            borderRadius: 2,
+            backgroundColor: theme => theme.palette.action.hover,
+            color: 'text.secondary',
+            fontWeight: 600,
+            textAlign: 'center'
+          }}
+        >
+          {firstUnreadInfo.count === 1
+            ? '1 unread message'
+            : `${firstUnreadInfo.count} unread messages`}
+        </Typography>
+      </Box>
+    )
 
     return formattedChatData().map((item: FormattedChatsType, index: number) => {
       const isSystemGroup = item.senderId === 'system'
@@ -712,9 +987,21 @@ const ChatLog = (props: ChatLogType) => {
               const isMatch = chat.id ? searchResultSet.has(chat.id) : false
               const isActiveMatch = isMatch && chat.id === activeResultId
 
+              // Inject the unread divider IMMEDIATELY before the first
+              // bubble whose id matches `firstUnreadInfo.id`. Guarded
+              // by `unreadDividerRendered` so it appears exactly once
+              // across the entire render — even though sender-grouping
+              // means this loop sees every message in every group.
+              const showUnreadDivider =
+                !unreadDividerRendered &&
+                firstUnreadInfo.id !== null &&
+                chat.id === firstUnreadInfo.id
+              if (showUnreadDivider) unreadDividerRendered = true
+
               return (
+                <Fragment key={chat.id ?? `msg-${index}`}>
+                  {showUnreadDivider ? renderUnreadDivider() : null}
                 <Box
-                  key={index}
                   ref={(el: HTMLElement | null) => setMessageRef(chat.id, el)}
                   data-msg-id={chat.id}
                   sx={{ '&:not(:last-of-type)': { mb: 3.5 } }}
@@ -1322,6 +1609,7 @@ const ChatLog = (props: ChatLogType) => {
                     ) : null}
                   </Box>
                 </Box>
+                </Fragment>
               )
             })}
           </Box>
