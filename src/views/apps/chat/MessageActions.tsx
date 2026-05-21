@@ -250,7 +250,7 @@ const MessageActions = ({
         </MenuItem>
         <MenuItem onClick={handleToggleStar} disabled={!chat.id}>
           <ListItemIcon>
-            <Icon icon={chat.isStarred ? 'mdi:star' : 'mdi:star-outline'} fontSize='1rem' />
+            <Icon icon={chat.isStarred ? 'mdi:star-off-outline' : 'mdi:star-outline'} fontSize='1rem' />
           </ListItemIcon>
           <ListItemText>{chat.isStarred ? 'Unstar' : 'Star'}</ListItemText>
         </MenuItem>

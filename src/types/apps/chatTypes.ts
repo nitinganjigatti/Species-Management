@@ -358,6 +358,13 @@ export type UserProfileRightType = {
   sidebarWidth: number
   userProfileRightOpen: boolean
   handleUserProfileRightSidebarToggle: () => void
+  /**
+   * Optional callback to scroll the main ChatLog to a specific message
+   * id. Used by StarredMessagesDrawer (and any future "jump to" UI)
+   * to flash a bubble in the chat after the user clicks it in a list.
+   * ChatContent wires this to its `setScrollTargetMessageId`.
+   */
+  onScrollToMessage?: (messageId: string) => void
 }
 
 export type SendMsgComponentType = {

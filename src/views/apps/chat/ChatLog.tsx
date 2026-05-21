@@ -1263,6 +1263,7 @@ const ChatLog = (props: ChatLogType) => {
                       mt: 0.5,
                       display: 'flex',
                       alignItems: 'center',
+                      gap: 0.5,
                       justifyContent: isSender ? 'flex-end' : 'flex-start'
                     }}
                   >
@@ -1276,6 +1277,22 @@ const ChatLog = (props: ChatLogType) => {
                         (2) Live `message_delivered` / `read_receipt` socket events
                             patch flags via `updateMessagesFeedback`. */}
                     {renderMsgFeedback(isSender, chat.feedback)}
+                    {/* Star indicator on attachment-only bubbles —
+                        full-opacity inherit color at 1rem so it reads
+                        as clearly as the chevron-menu star icon. */}
+                    {chat.isStarred ? (
+                      <Box
+                        component='span'
+                        sx={{
+                          display: 'inline-flex',
+                          verticalAlign: 'middle',
+                          color: 'inherit'
+                        }}
+                        aria-label='starred'
+                      >
+                        <Icon icon='mdi:star' fontSize='1rem' />
+                      </Box>
+                    ) : null}
                     <Typography variant='caption' sx={{ color: 'text.disabled' }}>
                       {time
                         ? new Date(time).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })

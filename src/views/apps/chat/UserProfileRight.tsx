@@ -85,7 +85,8 @@ const UserProfileRight = (props: UserProfileRightType) => {
     getInitials,
     sidebarWidth,
     userProfileRightOpen,
-    handleUserProfileRightSidebarToggle
+    handleUserProfileRightSidebarToggle,
+    onScrollToMessage
   } = props
 
   const ScrollWrapper = ({ children }: { children: ReactNode }) => {
@@ -613,6 +614,12 @@ const UserProfileRight = (props: UserProfileRightType) => {
           conversationId={contactId}
           conversationName={store.selectedChat.contact.fullName}
           currentUserId={store.userProfile?.id ?? ''}
+          // Click on a starred row → scroll + flash the message in the
+          // main ChatLog behind the drawer. Drawer stays open so the
+          // user can click further starred messages without re-opening
+          // — matches WhatsApp Web's behavior. User explicitly closes
+          // via the back arrow when done browsing.
+          onMessageClick={messageId => onScrollToMessage?.(messageId)}
         />
       ) : store && store.selectedChat && isGroup && addingMembers ? (
         <Fragment>

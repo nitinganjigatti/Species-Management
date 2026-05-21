@@ -11,7 +11,6 @@ import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
 import CircularProgress from '@mui/material/CircularProgress'
-import InputBase from '@mui/material/InputBase'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -25,6 +24,9 @@ import UserProfileRight from 'src/views/apps/chat/UserProfileRight'
 import MessageInfoDialog from 'src/views/apps/chat/MessageInfoDialog'
 import ForwardMessageDialog from 'src/views/apps/chat/ForwardMessageDialog'
 import PinnedMessagesStrip from 'src/views/apps/chat/PinnedMessagesStrip'
+import SearchMessagesDrawer from 'src/views/apps/chat/SearchMessagesDrawer'
+import type { SearchResultItem } from 'src/views/apps/chat/SearchMessagesDrawer'
+import AddMembersDrawer from 'src/views/apps/chat/AddMembersDrawer'
 
 // ** Chat API
 import { searchMessages, getUserLastSeen } from 'src/lib/chat/api'
@@ -33,7 +35,7 @@ import { searchMessages, getUserLastSeen } from 'src/lib/chat/api'
 import { useChatStore } from '@antzsoft/chat-core'
 
 // ** Store
-import { loadOlderMessages, jumpToMessage, selectChat } from 'src/store/apps/chat'
+import { loadOlderMessages, jumpToMessage } from 'src/store/apps/chat'
 
 // ** Types
 import { ChatContentType } from 'src/types/apps/chatTypes'
@@ -72,10 +74,13 @@ const ChatContent = (props: ChatContentType) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeMatchIndex, setActiveMatchIndex] = useState(0)
   const [searchResultIds, setSearchResultIds] = useState<string[]>([])
+  // Full search results — required by the new SearchMessagesDrawer so
+  // each row can show sender + snippet + time. `searchResultIds` (above)
+  // is kept in sync and continues to drive ChatLog's in-bubble highlight.
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchTotal, setSearchTotal] = useState(0)
   const [scrollTargetMessageId, setScrollTargetMessageId] = useState<string | null>(null)
-  const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Live presence for the chat header (DMs only). SDK auto-fills
@@ -139,13 +144,17 @@ const ChatContent = (props: ChatContentType) => {
     return `last seen ${seen.toLocaleDateString()} at ${time}`
   }
 
-  // Debounced API search
+  // Debounced API search. Populates BOTH `searchResults` (full rows for
+  // the drawer's preview list) and `searchResultIds` (id-only array
+  // consumed by ChatLog for in-bubble highlighting). Keeping the two in
+  // sync from one effect avoids drift.
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
 
     const conversationId = store?.selectedChat?.contact?.id
     if (!searchQuery.trim() || !conversationId) {
       setSearchResultIds([])
+      setSearchResults([])
       setSearchTotal(0)
       setSearchLoading(false)
 
@@ -156,12 +165,24 @@ const ChatContent = (props: ChatContentType) => {
     debounceRef.current = setTimeout(() => {
       searchMessages({ query: searchQuery, conversationId: String(conversationId), limit: 50 })
         .then(res => {
-          setSearchResultIds(res.data.map(m => m.id))
+          // Adapt SDK Message → SearchResultItem for the drawer rows.
+          const rows: SearchResultItem[] = res.data.map((m: any) => ({
+            id: m.id,
+            text: m?.content?.text ?? '',
+            senderId: m?.senderId,
+            senderName:
+              m?.sender?.displayName ?? m?.sender?.username ?? (m?.senderId ? String(m.senderId) : undefined),
+            sentAt: m?.sentAt ?? m?.createdAt,
+            hasAttachment: Array.isArray(m?.content?.attachments) && m.content.attachments.length > 0
+          }))
+          setSearchResults(rows)
+          setSearchResultIds(rows.map(r => r.id))
           setSearchTotal(res.meta.total)
           setActiveMatchIndex(0)
         })
         .catch(() => {
           setSearchResultIds([])
+          setSearchResults([])
           setSearchTotal(0)
         })
         .finally(() => setSearchLoading(false))
@@ -177,14 +198,16 @@ const ChatContent = (props: ChatContentType) => {
     setSearchOpen(false)
     setSearchQuery('')
     setSearchResultIds([])
+    setSearchResults([])
     setSearchTotal(0)
   }, [store?.selectedChat?.contact?.id])
 
   const handleSearchToggle = useCallback(() => {
     setSearchOpen(prev => {
-      if (!prev) {
-        setTimeout(() => searchInputRef.current?.focus(), 100)
-      } else {
+      // Drawer's `autoFocus` on its own InputBase handles focusing —
+      // no need to reach into a ref. When closing, clear the query so
+      // ChatLog drops its in-bubble highlight at the same time.
+      if (prev) {
         setSearchQuery('')
       }
 
@@ -196,36 +219,34 @@ const ChatContent = (props: ChatContentType) => {
     setSearchOpen(false)
     setSearchQuery('')
     setSearchResultIds([])
+    setSearchResults([])
     setSearchTotal(0)
+    // No chat reload on close — matches WhatsApp Web. If the user
+    // jumped to a historical message via a result, they stay there;
+    // they can scroll back down or reopen the chat manually.
+  }, [])
 
-    // If the user jumped to a historical message via search, the loaded
-    // message window is sitting in the middle of history — reopen the chat
-    // to snap back to the latest 50 messages so live updates resume.
-    const chatId = store?.selectedChat?.contact?.id
-    if (chatId) dispatch(selectChat(chatId) as any)
-  }, [dispatch, store?.selectedChat?.contact?.id])
+  // Add Members drawer (group-created card's "Add members" button).
+  // Standalone right-side drawer that uses the same SDK call as the
+  // existing in-UserProfileRight Add Members panel. Independent state,
+  // independent mount — opening this drawer does NOT touch the
+  // UserProfileRight `addingMembers` state at all.
+  const [addMembersDrawerOpen, setAddMembersDrawerOpen] = useState<boolean>(false)
+  const handleAddMembersFromCard = useCallback(() => {
+    setAddMembersDrawerOpen(true)
+  }, [])
 
-  const handleSearchPrev = useCallback(() => {
-    setActiveMatchIndex(prev => (prev > 0 ? prev - 1 : searchResultIds.length - 1))
-  }, [searchResultIds.length])
-
-  const handleSearchNext = useCallback(() => {
-    setActiveMatchIndex(prev => (prev < searchResultIds.length - 1 ? prev + 1 : 0))
-  }, [searchResultIds.length])
-
-  const handleSearchKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
-        if (e.shiftKey) {
-          handleSearchPrev()
-        } else {
-          handleSearchNext()
-        }
-      } else if (e.key === 'Escape') {
-        handleSearchClose()
-      }
+  // Drawer click → scroll the main ChatLog to the chosen message and
+  // mark it as the "active match" so the existing flash + focus styles
+  // in ChatLog kick in.
+  const handleSearchResultClick = useCallback(
+    (messageId: string) => {
+      const idx = searchResultIds.indexOf(messageId)
+      if (idx >= 0) setActiveMatchIndex(idx)
+      setScrollTargetMessageId(null)
+      requestAnimationFrame(() => setScrollTargetMessageId(messageId))
     },
-    [handleSearchNext, handleSearchPrev, handleSearchClose]
+    [searchResultIds]
   )
 
   const handleStartConversation = () => {
@@ -474,47 +495,8 @@ const ChatContent = (props: ChatContentType) => {
               </Box>
             </Box>
 
-            {searchOpen && (
-              <Box
-                sx={{
-                  px: 4,
-                  py: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  borderBottom: theme => `1px solid ${theme.palette.divider}`,
-                  backgroundColor: 'background.paper'
-                }}
-              >
-                <Icon icon='mdi:magnify' fontSize='1.25rem' />
-                <InputBase
-                  inputRef={searchInputRef}
-                  placeholder='Search messages...'
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  onKeyDown={handleSearchKeyDown}
-                  sx={{ flex: 1, fontSize: '0.875rem' }}
-                  autoFocus
-                />
-                {searchQuery.trim() &&
-                  (searchLoading ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    <Typography variant='caption' sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                      {searchTotal > 0 ? `${activeMatchIndex + 1} of ${searchTotal}` : 'No results'}
-                    </Typography>
-                  ))}
-                <IconButton size='small' onClick={handleSearchPrev} disabled={searchResultIds.length === 0}>
-                  <Icon icon='mdi:chevron-up' fontSize='1.25rem' />
-                </IconButton>
-                <IconButton size='small' onClick={handleSearchNext} disabled={searchResultIds.length === 0}>
-                  <Icon icon='mdi:chevron-down' fontSize='1.25rem' />
-                </IconButton>
-                <IconButton size='small' onClick={handleSearchClose}>
-                  <Icon icon='mdi:close' fontSize='1.25rem' />
-                </IconButton>
-              </Box>
-            )}
+            {/* Search UI lives in the SearchMessagesDrawer mounted near
+                the bottom of this component, alongside UserProfileRight. */}
 
             {selectedChat && store.userProfile ? (
               store.loadingMessages ? (
@@ -566,7 +548,7 @@ const ChatContent = (props: ChatContentType) => {
                       requestAnimationFrame(() => setScrollTargetMessageId(messageId))
                     }}
                     canInteract={canInteract}
-                    onAddMember={handleUserProfileRightSidebarToggle}
+                    onAddMember={handleAddMembersFromCard}
                   />
                 </>
               )
@@ -648,7 +630,47 @@ const ChatContent = (props: ChatContentType) => {
               sidebarWidth={sidebarWidth}
               userProfileRightOpen={userProfileRightOpen}
               handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+              // Reuses the same scroll-target mechanism wired for the
+              // pinned strip + search drawer. Clearing first so re-clicks
+              // on the same id retrigger the effect in ChatLog.
+              onScrollToMessage={(messageId: string) => {
+                setScrollTargetMessageId(null)
+                requestAnimationFrame(() => setScrollTargetMessageId(messageId))
+              }}
             />
+            {/* WhatsApp-Web-style right-side search drawer. Gated on
+                `searchOpen` so the Sidebar primitive doesn't mount /
+                stay-mounted-but-offscreen on every chat — keeps the
+                initial render path clean for chats that never search. */}
+            {searchOpen && (
+              <SearchMessagesDrawer
+                open={searchOpen}
+                onClose={handleSearchClose}
+                peerName={selectedChat.contact.fullName}
+                query={searchQuery}
+                onQueryChange={setSearchQuery}
+                results={searchResults}
+                loading={searchLoading}
+                onResultClick={handleSearchResultClick}
+                activeMessageId={searchResultIds[activeMatchIndex] ?? null}
+                width={sidebarWidth}
+              />
+            )}
+            {/* Standalone Add Members drawer — triggered by the group-
+                created card. Gated on open so it doesn't mount until
+                needed. Independent of UserProfileRight; uses the same
+                `addParticipantsToGroup` thunk so behavior matches the
+                existing in-profile Add Members panel. */}
+            {addMembersDrawerOpen && selectedChat.contact.isGroup && (
+              <AddMembersDrawer
+                open={addMembersDrawerOpen}
+                onClose={() => setAddMembersDrawerOpen(false)}
+                groupId={typeof selectedChat.contact.id === 'string' ? selectedChat.contact.id : null}
+                existingParticipantIds={selectedChat.contact.participantIds ?? []}
+                currentUserId={store.userProfile?.id ?? ''}
+                width={sidebarWidth}
+              />
+            )}
             {/* Mounted once at the chat shell root — driven by Redux
                 `state.chat.infoMessage`. Any bubble's "Info" menu item
                 dispatches `setInfoMessage(...)` and the drawer slides in

@@ -285,12 +285,11 @@ const MessageBubble = ({
                   ml: 1,
                   display: 'inline-flex',
                   verticalAlign: 'middle',
-                  color: 'inherit',
-                  opacity: 0.85
+                  color: 'inherit'
                 }}
                 aria-label='pinned'
               >
-                <Icon icon='mdi:pin' fontSize='0.875rem' />
+                <Icon icon='mdi:pin' fontSize='1rem' />
               </Box>
             ) : null}
             {chat.isStarred ? (
@@ -300,12 +299,11 @@ const MessageBubble = ({
                   ml: 1,
                   display: 'inline-flex',
                   verticalAlign: 'middle',
-                  color: 'inherit',
-                  opacity: 0.85
+                  color: 'inherit'
                 }}
                 aria-label='starred'
               >
-                <Icon icon='mdi:star' fontSize='0.875rem' />
+                <Icon icon='mdi:star' fontSize='1rem' />
               </Box>
             ) : null}
             {chat.isEdited ? (
