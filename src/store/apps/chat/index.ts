@@ -904,7 +904,8 @@ const initialState: ChatStoreType = {
   replyingTo: null,
   editingMessage: null,
   infoMessage: null,
-  selectedConversationId: null
+  selectedConversationId: null,
+  drafts: {}
 }
 
 export const appChatSlice = createSlice({
@@ -919,6 +920,17 @@ export const appChatSlice = createSlice({
     },
     setActiveFilter: (state, action: PayloadAction<ChatFilterType>) => {
       state.activeFilter = action.payload
+    },
+    // Per-conversation draft setter. Empty/whitespace text deletes the
+    // entry so empty drafts don't accumulate or render in the sidebar.
+    setDraft: (state, action: PayloadAction<{ conversationId: string; text: string }>) => {
+      const { conversationId, text } = action.payload
+      if (!conversationId) return
+      if (text && text.trim().length) {
+        state.drafts[conversationId] = text
+      } else {
+        delete state.drafts[conversationId]
+      }
     },
     // Synchronous "open this chat" reducer. Called by the `selectChat` thunk
     // first so the chat panel opens immediately (with whatever messages are
@@ -1896,7 +1908,8 @@ export const {
   applyReactionUpdate,
   removeChatFromList,
   removeSelectedChat,
-  setActiveFilter
+  setActiveFilter,
+  setDraft
 } = appChatSlice.actions
 
 export default appChatSlice.reducer

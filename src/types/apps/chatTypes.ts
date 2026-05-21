@@ -251,6 +251,10 @@ export type ChatStoreType = {
     readBy?: Array<{ userId: string; readAt: string }>
     deliveredTo?: Array<{ userId: string; deliveredAt: string }>
   } | null
+  // WhatsApp-style per-conversation drafts. Keyed by conversationId.
+  // Populated when the user types in the composer and switches chats
+  // without sending; restored when they come back. Cleared on send.
+  drafts: Record<string, string>
 }
 
 export type SendMsgParamsType = {

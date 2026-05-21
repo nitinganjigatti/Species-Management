@@ -19,7 +19,7 @@ import { uploadChatFiles, typingOverSocket } from 'src/lib/chat/api'
 import type { UploadableFile } from 'src/lib/chat/api'
 import { maybeCompressImage } from 'src/lib/chat/imageCompression'
 import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
-import { setReplyingTo, setEditingMessage } from 'src/store/apps/chat'
+import { setReplyingTo, setEditingMessage, setDraft } from 'src/store/apps/chat'
 import { updateMessageOverSocket } from 'src/lib/chat/api'
 
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -258,6 +258,56 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isTypingRef = useRef(false)
 
+  // Mirror the latest `msg` into a ref so the chat-switch effect can read
+  // the most recent text WITHOUT listing `msg` in its deps (which would
+  // refire on every keystroke and wipe the input mid-typing).
+  const msgRef = useRef<string>('')
+  useEffect(() => {
+    msgRef.current = msg
+  }, [msg])
+
+  // Remembers the conversation the composer was attached to BEFORE the
+  // most recent switch — so we can save the typed text as a draft for
+  // THAT conversation, not the new one.
+  const prevConvIdRef = useRef<string | null>(null)
+
+  // WhatsApp-style drafts. State lives in Redux (keyed by conversationId)
+  // and is written ONLY at the chat-switch boundary — never on each
+  // keystroke — so live typing in the composer doesn't churn the store
+  // or trigger sidebar re-renders. Cleared explicitly on send.
+  const activeConversationId =
+    store?.selectedChat?.contact?.id !== undefined && store?.selectedChat?.contact?.id !== null
+      ? String(store.selectedChat.contact.id)
+      : null
+  const drafts = store?.drafts ?? {}
+
+  // On chat switch: save the previous chat's typed text as a draft (or
+  // clear it if the user emptied the input), then restore the new chat's
+  // draft into the composer. Also clears attachment chips and cancels
+  // any in-progress typing indicator. `setDraft` deletes empty entries,
+  // so "clear text → switch" properly removes the draft from the
+  // sidebar preview.
+  useEffect(() => {
+    const prevId = prevConvIdRef.current
+    if (prevId && prevId !== activeConversationId) {
+      dispatch(setDraft({ conversationId: prevId, text: msgRef.current }))
+    }
+
+    const incomingDraft = activeConversationId ? drafts[activeConversationId] ?? '' : ''
+    setMsg(incomingDraft)
+
+    setPending(prev => {
+      prev.forEach(p => URL.revokeObjectURL(p.previewUrl))
+
+      return []
+    })
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    isTypingRef.current = false
+
+    prevConvIdRef.current = activeConversationId
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeConversationId])
+
   const emitTyping = () => {
     const conversationId = store?.selectedChat?.contact?.id
     if (!conversationId || typeof conversationId !== 'string') return
@@ -435,6 +485,11 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     pending.forEach(p => URL.revokeObjectURL(p.previewUrl))
     setPending([])
     setMsg('')
+    // Sent successfully → drop the draft for this conversation so it
+    // doesn't reappear in the sidebar preview or composer on re-entry.
+    if (typeof conversationId === 'string') {
+      dispatch(setDraft({ conversationId, text: '' }))
+    }
     stopTyping()
   }
 

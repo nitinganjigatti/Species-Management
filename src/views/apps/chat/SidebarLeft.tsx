@@ -373,7 +373,23 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                 </Typography>
               }
               secondary={
-                lastMessage ? (
+                // WhatsApp-style: a stored draft for THIS chat overrides
+                // the normal lastMessage preview. Coloured red + bold
+                // "Draft:" prefix so it's immediately distinguishable
+                // from a regular sender prefix.
+                chat.id && store?.drafts?.[String(chat.id)] ? (
+                  <Typography
+                    component='span'
+                    noWrap
+                    variant='body2'
+                    sx={{ display: 'block', color: 'error.main' }}
+                  >
+                    <Box component='span' sx={{ fontWeight: 600 }}>
+                      Draft:{' '}
+                    </Box>
+                    {store.drafts[String(chat.id)]}
+                  </Typography>
+                ) : lastMessage ? (
                   // Tombstone preview — matches WhatsApp's sidebar behavior
                   // when the last message has been deleted-for-everyone.
                   // Renders italic placeholder so it reads distinct from
