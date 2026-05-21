@@ -436,6 +436,12 @@ const ChatContent = (props: ChatContentType) => {
                     }}
                     scrollTargetMessageId={scrollTargetMessageId}
                     onScrollToTargetDone={() => setScrollTargetMessageId(null)}
+                    onJumpToReply={(messageId: string) => {
+                      // Clear first so re-clicking the same reply re-fires
+                      // the ChatLog effect (which dedupes on prop value).
+                      setScrollTargetMessageId(null)
+                      requestAnimationFrame(() => setScrollTargetMessageId(messageId))
+                    }}
                     canInteract={canInteract}
                   />
                 </>

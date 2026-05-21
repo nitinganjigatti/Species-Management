@@ -25,12 +25,27 @@ export const formatDate = (value, formatting = { month: 'short', day: 'numeric',
 // ** Returns short month of passed date
 export const formatDateToMonthShort = (value, toTimeForCurrentDay = true) => {
   const date = new Date(value)
-  let formatting = { month: 'short', day: 'numeric' }
-  if (toTimeForCurrentDay && isToday(date)) {
-    formatting = { hour: 'numeric', minute: 'numeric' }
+  if (toTimeForCurrentDay) {
+    if (isToday(date)) {
+      return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: 'numeric' }).format(date)
+    }
+
+    const startOfToday = new Date()
+    startOfToday.setHours(0, 0, 0, 0)
+    const startOfDate = new Date(date)
+    startOfDate.setHours(0, 0, 0, 0)
+    const daysDiff = Math.round((startOfToday.getTime() - startOfDate.getTime()) / 86400000)
+
+    if (daysDiff === 1) return 'Yesterday'
+    if (daysDiff > 1 && daysDiff < 7) {
+      return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date)
+    }
+    if (date.getFullYear() !== startOfToday.getFullYear()) {
+      return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date)
+    }
   }
 
-  return new Intl.DateTimeFormat('en-US', formatting).format(new Date(value))
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date)
 }
 
 // ? The following functions are taken from https://codesandbox.io/s/ovvwzkzry9?file=/utils.js for formatting credit card details

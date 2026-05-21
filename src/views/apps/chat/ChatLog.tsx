@@ -90,7 +90,8 @@ const ChatLog = (props: ChatLogType) => {
     onJumpToMessage,
     scrollTargetMessageId = null,
     onScrollToTargetDone,
-    canInteract = true
+    canInteract = true,
+    onJumpToReply
   } = props
 
   // Sender-resolution map for group chats. The avatar + name shown next to
@@ -1204,6 +1205,7 @@ const ChatLog = (props: ChatLogType) => {
                           isActiveSearchMatch={isActiveMatch}
                           searchQuery={searchQuery}
                           canInteract={canInteract}
+                          onJumpToReply={onJumpToReply}
                         />
                       </Box>
                     ) : null}

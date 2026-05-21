@@ -45,6 +45,14 @@ interface MessageBubbleProps {
    * entry). Defaults to true so DMs and other call sites are unaffected.
    */
   canInteract?: boolean
+  /**
+   * Fired when the user clicks the reply snippet. ChatContent uses this to
+   * drive the same `scrollTargetMessageId` flow as the pinned-bar click —
+   * needed because PerfectScrollbar's `overflow: hidden` wrapper makes
+   * native `scrollIntoView` a no-op, and because the original message may
+   * sit outside the loaded message window (pagination).
+   */
+  onJumpToReply?: (messageId: string) => void
 }
 
 /**
@@ -61,7 +69,8 @@ const MessageBubble = ({
   isSearchMatch,
   isActiveSearchMatch,
   searchQuery,
-  canInteract = true
+  canInteract = true,
+  onJumpToReply
 }: MessageBubbleProps) => {
   const currentUserId = useSelector((s: RootState) => s.chat?.userProfile?.id ?? null)
 
@@ -126,14 +135,14 @@ const MessageBubble = ({
 
   if (!chat.msg) return null
 
-  // Click the reply snippet → scroll the original bubble into view + flash.
+  // Click the reply snippet → ask ChatContent to scroll + flash the original
+  // bubble via the shared `scrollTargetMessageId` flow (same path as the
+  // pinned-bar click). That handler also loads a context window via
+  // `jumpToMessage` when the original sits outside the loaded slice.
   const handleReplySnippetClick = () => {
-    if (!chat.replyTo?.messageId) return
-    const el = document.querySelector(`[data-msg-id="${chat.replyTo.messageId}"]`)
-    if (!el) return
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    el.classList.add('msg-flash')
-    setTimeout(() => el.classList.remove('msg-flash'), 1200)
+    const targetId = chat.replyTo?.messageId
+    if (!targetId) return
+    onJumpToReply?.(String(targetId))
   }
 
   // Toggle our reaction with `emoji` on this message (used when clicking an
