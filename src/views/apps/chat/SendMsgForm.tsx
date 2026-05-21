@@ -60,6 +60,11 @@ type PendingFile = {
   file: File
   previewUrl: string
   kind: 'image' | 'video' | 'audio' | 'document'
+  // Length in seconds — only set for audio/video. Captured via
+  // MediaRecorder for voice notes and via a hidden <audio>/<video>
+  // element's `loadedmetadata` event for picked files. Forwarded to
+  // the SDK on `sendMessage` so receivers can render a player UI.
+  durationSec?: number
 }
 
 const inferKind = (mime: string): PendingFile['kind'] => {
@@ -69,6 +74,36 @@ const inferKind = (mime: string): PendingFile['kind'] => {
 
   return 'document'
 }
+
+// Probe an audio/video file for its playback length. Returns the
+// duration in seconds (rounded to 1 decimal) or `undefined` if the
+// browser can't decode the file's metadata — we never want to block
+// the send flow on a missing duration. Resolves on `loadedmetadata`
+// or after a 3s safety timeout.
+const probeMediaDuration = (file: File, kind: 'audio' | 'video'): Promise<number | undefined> =>
+  new Promise(resolve => {
+    let settled = false
+    const finish = (value: number | undefined) => {
+      if (settled) return
+      settled = true
+      URL.revokeObjectURL(objectUrl)
+      resolve(value)
+    }
+    const objectUrl = URL.createObjectURL(file)
+    const el = document.createElement(kind)
+    el.preload = 'metadata'
+    el.muted = true
+    el.src = objectUrl
+    el.onloadedmetadata = () => {
+      const seconds = Number.isFinite(el.duration) ? Math.round(el.duration * 10) / 10 : undefined
+      finish(seconds && seconds > 0 ? seconds : undefined)
+    }
+    el.onerror = () => finish(undefined)
+    // Safety net — some codecs (or large remote files) never fire
+    // `loadedmetadata` on the first attempt. Resolve with undefined so
+    // the upload still proceeds.
+    window.setTimeout(() => finish(undefined), 3000)
+  })
 
 // Attachment limits — matches the SDK's documented defaults so we surface
 // the same rules client-side BEFORE the upload. SDK exposes these on
@@ -195,13 +230,19 @@ const SendMsgForm = (props: SendMsgComponentType) => {
       const filename = `voice-${Date.now()}.${ext}`
       const file = new File([blob], filename, { type: finalMime })
       const previewUrl = URL.createObjectURL(blob)
+      // Duration captured from the running timer — more reliable than
+      // probing the blob (some browsers report `Infinity` for blob
+      // durations until the audio finishes playing once). Convert ms
+      // → seconds with 1-decimal precision.
+      const recordedDurationSec = Math.max(1, Math.round((Date.now() - recordingStartRef.current) / 100) / 10)
       setPending(prev => [
         ...prev,
         {
           key: `voice-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           file,
           previewUrl,
-          kind: 'audio'
+          kind: 'audio',
+          durationSec: recordedDurationSec
         }
       ])
     }
@@ -289,8 +330,16 @@ const SendMsgForm = (props: SendMsgComponentType) => {
   // sidebar preview.
   useEffect(() => {
     const prevId = prevConvIdRef.current
-    if (prevId && prevId !== activeConversationId) {
+    const switched = !!prevId && prevId !== activeConversationId
+    if (switched) {
       dispatch(setDraft({ conversationId: prevId, text: msgRef.current }))
+      // A reply / edit reference points at a specific message inside
+      // the chat the user just left, so it must NOT leak into the new
+      // chat's composer. Cleared only on an actual switch — clearing
+      // unconditionally on mount would wipe state mid-render if a user
+      // landed directly on a chat with one of these states active.
+      dispatch(setReplyingTo(null))
+      dispatch(setEditingMessage(null))
     }
 
     const incomingDraft = activeConversationId ? drafts[activeConversationId] ?? '' : ''
@@ -370,12 +419,24 @@ const SendMsgForm = (props: SendMsgComponentType) => {
     setProcessingFiles(true)
     try {
       const processed = await Promise.all(sized.map(f => maybeCompressImage(f)))
-      const next: PendingFile[] = processed.map(f => ({
-        key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
-        file: f,
-        previewUrl: URL.createObjectURL(f),
-        kind: inferKind(f.type)
-      }))
+      // Build pending entries in parallel — duration probe for audio/
+      // video runs alongside the compression pipeline. Helper resolves
+      // with `undefined` on timeout or decode failure, so a single bad
+      // file never blocks the rest of the batch.
+      const next: PendingFile[] = await Promise.all(
+        processed.map(async f => {
+          const kind = inferKind(f.type)
+          const durationSec = kind === 'audio' || kind === 'video' ? await probeMediaDuration(f, kind) : undefined
+
+          return {
+            key: `${f.name}-${f.size}-${f.lastModified}-${Math.random().toString(36).slice(2, 6)}`,
+            file: f,
+            previewUrl: URL.createObjectURL(f),
+            kind,
+            ...(durationSec ? { durationSec } : {})
+          }
+        })
+      )
       setPending(prev => [...prev, ...next])
     } finally {
       setProcessingFiles(false)
@@ -455,15 +516,26 @@ const SendMsgForm = (props: SendMsgComponentType) => {
 
           return
         }
-        uploaded = result.attachments.map(a => ({
-          id: a.fileId,
-          type: a.type,
-          url: a.url,
-          thumbnailUrl: a.thumbnailUrl,
-          filename: a.filename,
-          mimeType: a.mimeType,
-          size: a.size
-        }))
+        // Match each returned attachment back to its pending entry by
+        // filename + size so we can carry forward the duration captured
+        // at pick/record time. The storage layer (FileResponse) doesn't
+        // persist duration; without this match it would be lost on the
+        // way to `socketEmit.sendMessage`.
+        uploaded = result.attachments.map(a => {
+          const match = pending.find(p => p.file.name === a.filename && p.file.size === a.size)
+          const carryDuration = (a.type === 'audio' || a.type === 'video') && match?.durationSec
+
+          return {
+            id: a.fileId,
+            type: a.type,
+            url: a.url,
+            thumbnailUrl: a.thumbnailUrl,
+            filename: a.filename,
+            mimeType: a.mimeType,
+            size: a.size,
+            ...(carryDuration ? { duration: match!.durationSec } : {})
+          }
+        })
       } catch (err) {
         console.error('[chat] attachment upload failed:', err)
         toast.error('Failed to upload attachments')

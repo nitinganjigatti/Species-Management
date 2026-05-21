@@ -294,8 +294,11 @@ export const createGroupChat = createAsyncThunk<void, CreateGroupPayload>(
  */
 export const addParticipantsToGroup = createAsyncThunk<
   void,
-  { groupId: ChatEntityId; userIds: ChatEntityId[] }
->('appChat/addParticipantsToGroup', async ({ groupId, userIds }, { dispatch, getState }) => {
+  // v1.1.3 — optional `role` lets the caller add new members directly
+  // as admins. Omit/undefined → server defaults to 'member'. Existing
+  // two-field callers ({ groupId, userIds }) keep working unchanged.
+  { groupId: ChatEntityId; userIds: ChatEntityId[]; role?: 'admin' | 'member' }
+>('appChat/addParticipantsToGroup', async ({ groupId, userIds, role }, { dispatch, getState }) => {
   const client = getChatClientOrNull()
   if (!client) {
     console.warn('[chat] addParticipantsToGroup: SDK not ready')
@@ -309,7 +312,7 @@ export const addParticipantsToGroup = createAsyncThunk<
   }
 
   try {
-    const conv = await apiAddParticipants(groupId, userIds.map(String))
+    const conv = await apiAddParticipants(groupId, userIds.map(String), role)
 
     const state = getState() as { chat?: ChatStoreType }
     const currentUserId = state.chat?.userProfile?.id ?? ''
@@ -830,6 +833,9 @@ export const sendMsg = createAsyncThunk(
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 
     // Map app-side ChatAttachmentType → SDK SendMessageAttachment (uses fileId).
+    // `duration` is forwarded for audio/video so receivers can render the
+    // length in their player UI (v1.1.3 spec). Other types leave it
+    // undefined — the SDK field is optional.
     const attachments = obj.attachments?.length
       ? obj.attachments.map(a => ({
           fileId: a.id,
@@ -838,7 +844,10 @@ export const sendMsg = createAsyncThunk(
           thumbnailUrl: a.thumbnailUrl,
           filename: a.filename,
           mimeType: a.mimeType,
-          size: a.size
+          size: a.size,
+          ...(a.duration !== undefined && (a.type === 'audio' || a.type === 'video')
+            ? { duration: a.duration }
+            : {})
         }))
       : undefined
 
@@ -1360,6 +1369,28 @@ export const appChatSlice = createSlice({
         }
       }
     },
+    // Explicit avatar clear — used after a successful
+    // `conversationsApi.removeIcon` so the sidebar / header / profile
+    // drawer drop back to the initials fallback. Necessary because
+    // `addOrReplaceChat` defensively keeps the previous avatar when the
+    // server response's `iconUrl` is undefined (a quirk of participant-
+    // mutation endpoints). This reducer overrides that protection for
+    // the explicit-removal case only.
+    clearChatAvatar: (state, action: PayloadAction<{ chatId: ChatEntityId }>) => {
+      if (!state.chats) return
+      const { chatId } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const next = { ...state.chats[idx] }
+      delete next.avatar
+      state.chats[idx] = next
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: state.selectedChat.chat,
+          contact: state.chats[idx]
+        }
+      }
+    },
     // Mark a participant as no longer active in a group — fires from the
     // server's `participant_left` socket event (covers both voluntary leave
     // and admin-removal). Immediately flips:
@@ -1371,10 +1402,18 @@ export const appChatSlice = createSlice({
     // locked out without waiting for the next `fetchChatsContacts`.
     applyParticipantLeft: (
       state,
-      action: PayloadAction<{ chatId: ChatEntityId; userId: ChatEntityId }>
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        userId: ChatEntityId
+        // v1.1.3 — when the leaver was kicked by an admin the socket event
+        // carries `removedBy`. Optional fields so existing single-arg
+        // callers (chatId+userId only) keep working unchanged.
+        removedBy?: ChatEntityId
+        removedByName?: string
+      }>
     ) => {
       if (!state.chats) return
-      const { chatId, userId } = action.payload
+      const { chatId, userId, removedBy, removedByName } = action.payload
       const idx = state.chats.findIndex(c => c.id === chatId)
       if (idx < 0) return
       const userIdStr = String(userId)
@@ -1390,13 +1429,22 @@ export const appChatSlice = createSlice({
       const updatedAdminIds = (chat.adminIds ?? []).filter(id => String(id) !== userIdStr)
       const meIsLeaver = String(state.userProfile?.id ?? '') === userIdStr
 
+      // Only snapshot the admin who removed us when the event is about US
+      // AND removedBy is actually present (admin-removal path). Self-exit
+      // leaves these fields untouched so the placeholder defaults to
+      // "You're no longer a member".
+      const removalFields =
+        meIsLeaver && removedBy !== undefined && removedBy !== null
+          ? { removedBy, removedByName }
+          : {}
+
       state.chats[idx] = {
         ...chat,
         participants: updatedParticipants,
         participantIds: updatedParticipantIds,
         adminIds: updatedAdminIds,
-        // Flip the current-user flag iff THIS event is about us.
-        ...(meIsLeaver ? { isCurrentUserActive: false } : {})
+        ...(meIsLeaver ? { isCurrentUserActive: false } : {}),
+        ...removalFields
       }
 
       // Mirror into selectedChat so the open chat's composer + Group info
@@ -1975,6 +2023,7 @@ export const {
   updateMessagesFeedback,
   addOrReplaceChat,
   setChatAvatarOptimistic,
+  clearChatAvatar,
   patchLastMessageSender,
   applyParticipantLeft,
   setInfoMessage,

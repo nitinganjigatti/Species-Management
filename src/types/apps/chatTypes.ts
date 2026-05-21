@@ -51,6 +51,15 @@ export type ChatAttachmentType = {
   size: number
   isUploading?: boolean
   uploadProgress?: number
+  /**
+   * Length in seconds for audio/video attachments. v1.1.3 SDK spec says
+   * this must be supplied on `socketEmit.sendMessage` so receivers can
+   * render the duration in their player UI. Captured client-side when
+   * the user records or picks the file (storage layer doesn't keep it).
+   * Undefined for images / documents and for older messages from before
+   * this field was wired.
+   */
+  duration?: number
 }
 
 // One reaction bucket on a message — `userIds` is who reacted, `count` is its
@@ -206,6 +215,17 @@ export type ChatsArrType = {
    * the server doesn't surface `lastMessage` for a freshly-created group.
    */
   createdBy?: ChatEntityId
+  /**
+   * v1.1.3 `participant_left` distinguishes self-exit from admin-removal
+   * by the presence of `removedBy` on the event payload. When the CURRENT
+   * user was kicked, we snapshot the admin's userId here so the composer's
+   * read-only placeholder can say "You were removed by …" instead of
+   * the generic "You're no longer a member" copy.
+   * Self-exit path leaves this field undefined.
+   */
+  removedBy?: ChatEntityId
+  /** Display name of the admin who removed the current user, when supplied. */
+  removedByName?: string
 }
 
 export interface CreateGroupPayload {

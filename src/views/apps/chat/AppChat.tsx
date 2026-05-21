@@ -32,6 +32,7 @@ import {
 // ** Adapters
 import { joinChatRoom, markReadOverSocket, sdkMessageToMessage } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
+import toast from 'react-hot-toast'
 // ** Types
 import { RootState, AppDispatch } from 'src/store'
 import { StatusObjType, StatusType } from 'src/types/apps/chatTypes'
@@ -556,19 +557,48 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     }
 
     // Participant left or was removed from a group — fires for ALL members
-    // of the conversation (including the leaver). Payload:
-    //   { conversationId, userId, displayName, removedBy? }
+    // of the conversation. Payload (v1.1.3):
+    //   { conversationId, userId, displayName, removedBy?, removedByName? }
     // When `userId === currentUser`, the reducer flips
     // `isCurrentUserActive=false`, which the composer + interaction gates
     // (`canInteract` in ChatContent, `isCurrentUserActive` in
     // UserProfileRight) react to immediately — no refresh required.
     // For other participants, their entry's `isActive` flips to false so
     // member counts and avatars update too.
+    //
+    // v1.1.3 distinguishes self-exit from admin-removal via the optional
+    // `removedBy` field. When present AND the leaver is us, we surface
+    // a toast and the reducer snapshots the admin's id/name so the
+    // composer placeholder reads "You were removed by …" instead of the
+    // generic copy. Field names are read defensively because the server
+    // event isn't strongly typed in the SDK.
     const onParticipantLeft = (evt: any) => {
       const conversationId = evt?.conversationId
       const userId = evt?.userId
       if (!conversationId || !userId) return
-      dispatch(applyParticipantLeft({ chatId: conversationId, userId }))
+      const removedBy = evt?.removedBy
+      const removedByName: string | undefined =
+        evt?.removedByName ?? evt?.removedByDisplayName ?? evt?.removedBy?.displayName
+      dispatch(
+        applyParticipantLeft({
+          chatId: conversationId,
+          userId,
+          ...(removedBy !== undefined && removedBy !== null ? { removedBy } : {}),
+          ...(removedByName ? { removedByName } : {})
+        })
+      )
+
+      // Toast only when WE are the one being removed BY an admin. We
+      // read the current-user id from the same ref used by the rest of
+      // the file (kept in sync via the userProfile effect above) so the
+      // closure sees the latest value across re-renders.
+      const me = userProfileIdRef.current !== null ? String(userProfileIdRef.current) : ''
+      const leaverIsMe = me !== '' && String(userId) === me
+      if (leaverIsMe && removedBy !== undefined && removedBy !== null) {
+        toast.error(
+          removedByName ? `You were removed from this group by ${removedByName}` : 'You were removed from this group'
+        )
+      }
     }
 
     // TEMPORARY: log every server event before our specific handlers run, so

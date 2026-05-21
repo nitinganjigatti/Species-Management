@@ -501,8 +501,18 @@ const ChatContent = (props: ChatContentType) => {
                   backgroundColor: 'customColors.Surface'
                 }}
               >
+                {/* v1.1.3 — when the chat carries `removedBy`, the current
+                    user was kicked by an admin (not a self-exit). Surface
+                    that distinction in the read-only placeholder so the
+                    user understands why they can't message. Defaults to
+                    the generic "no longer a member" copy when removedBy
+                    is absent (covers self-exit and legacy/refresh cases). */}
                 <Typography variant='caption' sx={{ color: 'text.secondary' }}>
-                  You&apos;re no longer a member of this group.
+                  {selectedChat.contact.removedBy
+                    ? selectedChat.contact.removedByName
+                      ? `You were removed from this group by ${selectedChat.contact.removedByName}.`
+                      : 'You were removed from this group.'
+                    : "You're no longer a member of this group."}
                 </Typography>
               </Box>
             )}

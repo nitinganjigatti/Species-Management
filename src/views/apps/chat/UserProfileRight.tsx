@@ -1,7 +1,7 @@
 'use client'
 
 // ** React Imports
-import { ChangeEvent, Fragment, ReactNode, useEffect, useRef, useState } from 'react'
+import { Fragment, ReactNode, useEffect, useState } from 'react'
 
 // ** Redux Imports
 import { useDispatch } from 'react-redux'
@@ -16,7 +16,6 @@ import {
   updateGroupChat,
   removeParticipantFromGroup,
   updateParticipantRoleInGroup,
-  uploadGroupIcon,
   selectChat,
   removeChatFromList,
   addOrReplaceChat,
@@ -33,10 +32,10 @@ import {
   leaveConversation,
   leaveAndDeleteConversation,
   getConversation,
-  sdkConversationToChat
+  sdkConversationToChat,
+  getAppConfig
 } from 'src/lib/chat/api'
 import type { User } from 'src/lib/chat/api'
-import { maybeCompressImage, ICON_COMPRESS_OPTIONS } from 'src/lib/chat/imageCompression'
 
 // ** MUI Imports
 import Box from '@mui/material/Box'
@@ -71,6 +70,7 @@ import Sidebar from 'src/@core/components/sidebar'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import MediaLinksDocsDrawer from 'src/views/apps/chat/MediaLinksDocsDrawer'
+import GroupIconEditor from 'src/views/apps/chat/GroupIconEditor'
 import StarredMessagesDrawer from 'src/views/apps/chat/StarredMessagesDrawer'
 
 const UserProfileRight = (props: UserProfileRightType) => {
@@ -97,25 +97,44 @@ const UserProfileRight = (props: UserProfileRightType) => {
   // mute/unmute/pin/unpin thunk which patches local state on success.
   const isMuted = store?.selectedChat?.contact.isMuted === true
   const isPinned = store?.selectedChat?.contact.isPinned === true
+
+  // v1.1.3 enforces a per-user cap on pinned conversations (5 by default).
+  // We fetch `maxPinnedConversations` from `appConfigApi` once and use it
+  // to gate the Pin-to-top Switches client-side, avoiding the server-
+  // rejected 6th-pin attempt. Default fallback of 5 matches the SDK's
+  // documented default, so the gate is sane even if the config call fails
+  // or hasn't resolved yet.
+  const [maxPinned, setMaxPinned] = useState<number>(5)
+  useEffect(() => {
+    let cancelled = false
+    getAppConfig()
+      .then(c => {
+        if (!cancelled && typeof c.maxPinnedConversations === 'number') {
+          setMaxPinned(c.maxPinnedConversations)
+        }
+      })
+      .catch(err => {
+        console.warn('[chat] getAppConfig failed — falling back to default pin cap:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [])
   // Hide the "Leave group" affordance once the current user is no longer
   // an active participant (server flipped their `participants[].isActive`
   // to false after a successful leave). Pin-to-top stays available so the
   // user can keep the chat at the top of their sidebar after leaving.
   const isCurrentUserActive = store?.selectedChat?.contact.isCurrentUserActive !== false
 
-  // Group icon upload — admin only. SDK's `client.uploadIcon` does
-  // presigned-url + S3 upload + setIcon in one shot; the thunk pipes the
-  // returned Conversation through the adapter + `addOrReplaceChat` so the
-  // sidebar / header / profile drawer all pick up the new iconUrl in one
-  // Redux tick. Other group members get it via the `conversation_updated`
-  // socket broadcast (handled in AppChat).
-  const iconFileInputRef = useRef<HTMLInputElement | null>(null)
-  const [uploadingIcon, setUploadingIcon] = useState<boolean>(false)
-
   // Add-members flow state
   const dispatch = useDispatch<AppDispatch>()
   const [addingMembers, setAddingMembers] = useState<boolean>(false)
   const [addQuery, setAddQuery] = useState<string>('')
+  // v1.1.3 — admin can add new members straight as admins (instead of
+  // adding as member first and then calling `updateParticipantRole`).
+  // Defaults to false → existing "member" behavior unchanged.
+  const [addAsAdmin, setAddAsAdmin] = useState<boolean>(false)
   const [selectedToAdd, setSelectedToAdd] = useState<Set<ChatEntityId>>(new Set())
   const [addableContacts, setAddableContacts] = useState<ContactType[]>([])
   const [searching, setSearching] = useState<boolean>(false)
@@ -220,11 +239,20 @@ const UserProfileRight = (props: UserProfileRightType) => {
     setAddingMembers(false)
     setSelectedToAdd(new Set())
     setAddQuery('')
+    setAddAsAdmin(false)
   }
 
   const confirmAddMembers = () => {
     if (currentGroupId === null || selectedToAdd.size === 0) return
-    dispatch(addParticipantsToGroup({ groupId: currentGroupId, userIds: Array.from(selectedToAdd) }))
+    dispatch(
+      addParticipantsToGroup({
+        groupId: currentGroupId,
+        userIds: Array.from(selectedToAdd),
+        // Only pass `role` when admin-toggle is on — keeps the wire
+        // shape identical for the default "add as member" path.
+        ...(addAsAdmin ? { role: 'admin' as const } : {})
+      })
+    )
     cancelAddMembers()
   }
 
@@ -265,53 +293,6 @@ const UserProfileRight = (props: UserProfileRightType) => {
   const handleDeleteGroup = () => {
     if (currentGroupId === null) return
     setConfirmAction({ type: 'delete' })
-  }
-
-  const handleOpenIconPicker = () => {
-    if (uploadingIcon) return
-    iconFileInputRef.current?.click()
-  }
-
-  const handleIconFileSelected = async (e: ChangeEvent<HTMLInputElement>) => {
-    const picked = e.target.files?.[0]
-    // Reset value so re-picking the same file fires onChange again.
-    e.target.value = ''
-    if (!picked) return
-    if (currentGroupId === null || typeof currentGroupId !== 'string') {
-      toast.error('Cannot upload icon — invalid group')
-
-      return
-    }
-    if (!picked.type.startsWith('image/')) {
-      toast.error('Please pick an image file')
-
-      return
-    }
-
-    setUploadingIcon(true)
-    const file = await maybeCompressImage(picked, ICON_COMPRESS_OPTIONS)
-
-    // SDK expects an `UploadableFile` shape (`{ uri, name, type, size }`).
-    // Without `name` the presigned-url request returns 400. Wrap via a blob
-    // URL — same pattern SendMsgForm uses for attachments.
-    const previewUrl = URL.createObjectURL(file)
-    const uploadable = {
-      uri: previewUrl,
-      name: file.name,
-      type: file.type,
-      size: file.size
-    }
-
-    try {
-      await dispatch(uploadGroupIcon({ chatId: currentGroupId, file: uploadable })).unwrap()
-      toast.success('Group icon updated')
-    } catch (err) {
-      console.error('[chat] uploadGroupIcon failed:', err)
-      toast.error('Failed to update group icon')
-    } finally {
-      setUploadingIcon(false)
-      URL.revokeObjectURL(previewUrl)
-    }
   }
 
   const runConfirmedAction = () => {
@@ -711,6 +692,32 @@ const UserProfileRight = (props: UserProfileRightType) => {
               </Box>
             </Box>
 
+            {/* Add-as-admin toggle — only visible when at least one
+                contact is selected, mirrors WhatsApp's "Add as admin"
+                option that appears AFTER you have someone to add. */}
+            {selectedToAdd.size > 0 ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 3,
+                  px: 4,
+                  py: 1.5,
+                  borderTop: theme => `1px solid ${theme.palette.divider}`
+                }}
+              >
+                <Icon icon='mdi:shield-account-outline' fontSize='1.25rem' color='customColors.Outline' />
+                <Typography variant='body2' sx={{ flex: 1, color: 'customColors.OnSurfaceVariant' }}>
+                  Add as admin
+                </Typography>
+                <Switch
+                  size='small'
+                  checked={addAsAdmin}
+                  onChange={e => setAddAsAdmin(e.target.checked)}
+                />
+              </Box>
+            ) : null}
+
             {/* Footer */}
             <Box
               sx={{
@@ -753,48 +760,22 @@ const UserProfileRight = (props: UserProfileRightType) => {
           <Box sx={{ flex: 1, overflowY: 'auto' }}>
             {/* ── Avatar (centered) ── */}
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', pt: 4, pb: 3, px: 4 }}>
-              <Box sx={{ position: 'relative', mb: 2 }}>
-                {store.selectedChat.contact.avatar ? (
-                  <MuiAvatar
-                    src={store.selectedChat.contact.avatar}
-                    alt={store.selectedChat.contact.fullName}
-                    sx={{ width: 90, height: 90 }}
-                  />
-                ) : (
-                  <CustomAvatar skin='light' color='primary' sx={{ width: 90, height: 90, fontSize: '2rem' }}>
-                    {getInitials(store.selectedChat.contact.fullName)}
-                  </CustomAvatar>
-                )}
-                {isCurrentUserAdmin && (
-                  <>
-                    <IconButton
-                      size='small'
-                      onClick={handleOpenIconPicker}
-                      disabled={uploadingIcon}
-                      sx={{
-                        position: 'absolute',
-                        bottom: 0,
-                        right: 0,
-                        width: 28,
-                        height: 28,
-                        backgroundColor: 'primary.main',
-                        color: 'common.white',
-                        border: '2px solid white',
-                        '&:hover': { backgroundColor: 'primary.dark' },
-                        '&.Mui-disabled': { backgroundColor: 'primary.main', opacity: 0.6, color: 'common.white' }
-                      }}
-                    >
-                      <Icon icon={uploadingIcon ? 'mdi:loading' : 'mdi:camera'} fontSize='0.85rem' />
-                    </IconButton>
-                    <input
-                      ref={iconFileInputRef}
-                      type='file'
-                      accept='image/*'
-                      onChange={handleIconFileSelected}
-                      style={{ display: 'none' }}
-                    />
-                  </>
-                )}
+              {/* WhatsApp-Web style group icon UI — extracted into its
+                  own component so this file stays focused on group info
+                  layout rather than icon plumbing. Owns: hover overlay,
+                  click menu (View / Upload / Remove), file input, upload
+                  via `uploadGroupIcon` thunk, remove via REST + reducer
+                  override, and the photo viewer + remove confirm dialog. */}
+              <Box sx={{ mb: 2 }}>
+                <GroupIconEditor
+                  chatId={String(store.selectedChat.contact.id)}
+                  avatar={store.selectedChat.contact.avatar}
+                  fullName={store.selectedChat.contact.fullName}
+                  isAdmin={isCurrentUserAdmin}
+                  currentUserId={store.userProfile?.id ?? ''}
+                  size={90}
+                  getInitials={getInitials}
+                />
               </Box>
 
               {/* Name + member count */}
@@ -1058,8 +1039,20 @@ const UserProfileRight = (props: UserProfileRightType) => {
                 checked={isPinned}
                 onChange={e => {
                   if (currentGroupId === null) return
-                  if (e.target.checked) dispatch(pinConversation(currentGroupId))
-                  else dispatch(unpinConversation(currentGroupId))
+                  if (e.target.checked) {
+                    // Block the 6th-pin BEFORE the network call — server
+                    // returns 400 once the cap is hit. Always allow unpin
+                    // (frees a slot), so the gate runs only on the pin path.
+                    const pinnedCount = store?.chats?.filter(c => c.isPinned).length ?? 0
+                    if (pinnedCount >= maxPinned) {
+                      toast.error(`You can pin up to ${maxPinned} chats. Unpin one first.`)
+
+                      return
+                    }
+                    dispatch(pinConversation(currentGroupId))
+                  } else {
+                    dispatch(unpinConversation(currentGroupId))
+                  }
                 }}
               />
             </Box>
@@ -1406,8 +1399,19 @@ const UserProfileRight = (props: UserProfileRightType) => {
                     checked={isPinned}
                     onChange={e => {
                       if (!contactId) return
-                      if (e.target.checked) dispatch(pinConversation(contactId))
-                      else dispatch(unpinConversation(contactId))
+                      if (e.target.checked) {
+                        // Same gate as the group pin switch — block before
+                        // the server returns 400 on the 6th pinned chat.
+                        const pinnedCount = store?.chats?.filter(c => c.isPinned).length ?? 0
+                        if (pinnedCount >= maxPinned) {
+                          toast.error(`You can pin up to ${maxPinned} chats. Unpin one first.`)
+
+                          return
+                        }
+                        dispatch(pinConversation(contactId))
+                      } else {
+                        dispatch(unpinConversation(contactId))
+                      }
                     }}
                   />
                 </Box>
@@ -1527,6 +1531,7 @@ const UserProfileRight = (props: UserProfileRightType) => {
         ConfirmationText={confirmCopy?.confirmText}
         cancelText='Cancel'
       />
+
     </Sidebar>
   )
 }

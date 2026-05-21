@@ -64,6 +64,8 @@ import {
   onSocketStatus as sdkOnSocketStatus,
   reconnectSocket as sdkReconnectSocket,
   refreshSocketAuth as sdkRefreshSocketAuth,
+  appConfigApi as sdkAppConfigApi,
+  type AppConfig,
   type SocketStatus
 } from '@antzsoft/chat-core'
 
@@ -288,6 +290,23 @@ export function syncAvatar(source: { url?: string; base64?: string }): Promise<{
   return requireClient('syncAvatar').auth.syncAvatar(source)
 }
 
+// App-wide tenant config — exposes server-enforced limits like
+// `maxPinnedConversations`. The result is stable per tenant, so we
+// cache it at module level after the first successful fetch. Callers
+// receive the cached value synchronously on subsequent calls without
+// hitting the network. SDK doc notes its own `['app-config']` cache
+// with `staleTime: Infinity`; this local cache adds zero-cost reuse
+// for non-React callers and a deterministic fallback when offline.
+let cachedAppConfig: AppConfig | null = null
+export async function getAppConfig(): Promise<AppConfig> {
+  if (cachedAppConfig) return cachedAppConfig
+  requireClient('getAppConfig')
+  const config = await sdkAppConfigApi.get()
+  cachedAppConfig = config
+
+  return config
+}
+
 // Builtin auth mode only — uploads a binary avatar file. We use external SSO
 // so this is unused today, but exposed for completeness.
 export function uploadAvatar(file: File | Blob, mimeType?: string): Promise<{ avatarUrl: string }> {
@@ -322,8 +341,19 @@ export function deleteConversation(conversationId: string): Promise<void> {
   return requireClient('deleteConversation').conversations.delete(conversationId)
 }
 
-export function addParticipants(conversationId: string, userIds: string[]): Promise<Conversation> {
-  return requireClient('addParticipants').conversations.addParticipants(conversationId, userIds)
+export function addParticipants(
+  conversationId: string,
+  userIds: string[],
+  role?: ParticipantRole
+): Promise<Conversation> {
+  // v1.1.3 — server accepts an optional `role` argument so admins can be
+  // promoted on the same call (default = 'member'). Forwarded only when
+  // provided so existing two-arg callers keep working unchanged.
+  return requireClient('addParticipants').conversations.addParticipants(
+    conversationId,
+    userIds,
+    ...(role ? [role] as const : [])
+  )
 }
 
 export function removeParticipant(conversationId: string, userId: string): Promise<Conversation> {
@@ -389,6 +419,14 @@ export function getUnreadSummary(): Promise<UnreadSummary> {
 // comes from `uploadChatFiles()` — same pipeline as message attachments.
 export function uploadConversationIcon(conversationId: string, fileId: string): Promise<Conversation> {
   return requireClient('uploadConversationIcon').conversations.uploadIcon(conversationId, fileId)
+}
+
+// Remove the group icon (admin only). Server deletes the stored asset and
+// clears `iconMeta`; the returned Conversation has `iconUrl: undefined`,
+// which the adapter maps onto `chat.avatar = undefined` so the sidebar /
+// header / profile drawer fall back to the initials avatar.
+export function removeConversationIcon(conversationId: string): Promise<Conversation> {
+  return requireClient('removeConversationIcon').conversations.removeIcon(conversationId)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
