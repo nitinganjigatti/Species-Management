@@ -31,7 +31,7 @@ import {
 } from 'src/store/apps/chat'
 
 // ** Adapters
-import { joinChatRoom, markReadOverSocket, sdkMessageToMessage } from 'src/lib/chat/api'
+import { joinChatRoom, markReadOverSocket, sdkMessageToMessage, getOnlineUsersOverSocket } from 'src/lib/chat/api'
 import type { MessageDeliveredEvent, MessagesDeliveredEvent, ReadReceiptEvent } from 'src/lib/chat/api'
 import toast from 'react-hot-toast'
 // ** Types
@@ -55,7 +55,7 @@ import ChatContent from 'src/views/apps/chat/ChatContent'
 // ** @antzsoft/chat-core smoke test — verifies the SDK can connect to the
 // backend without touching the existing Redux/mock data path. Logs to console.
 // Becomes a no-op when NEXT_PUBLIC_CHAT_API_URL is not set.
-import { getSocketStatus, onSocketStatus, tryGetSocket, type SocketStatus } from '@antzsoft/chat-core'
+import { getSocketStatus, onSocketStatus, tryGetSocket, useChatStore, type SocketStatus } from '@antzsoft/chat-core'
 import { getChatClientOrNull } from 'src/lib/chat/client'
 
 // Optional `compact` flag forces single-pane mobile-style layout regardless
@@ -225,6 +225,54 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     if (!chatClient || !chatConnected) return
     dispatch(fetchChatsContacts())
   }, [chatClient, chatConnected, dispatch])
+
+  // ── Presence cold-seed via `getOnlineUsers` ───────────────────────────────
+  // SDK's `useChatStore.onlineUsers` is normally populated by `user_online`
+  // / `user_offline` events as peers come and go — but on a fresh connect
+  // the array starts empty until peers happen to change state. Result:
+  // green dots are absent for already-online peers until they re-connect.
+  //
+  // Fix: one shot of `socketEmit.getOnlineUsers([all DM peer ids])` after
+  // socket connect + first chat list load. Merge the response into the
+  // store (don't replace — `user_online` events between connect and the
+  // batch response would otherwise get clobbered). Ref-gated so it fires
+  // exactly once per connection; reset on disconnect so a reconnect re-
+  // seeds with the latest data.
+  const seededOnlineUsersRef = useRef<boolean>(false)
+  useEffect(() => {
+    if (!chatConnected) {
+      seededOnlineUsersRef.current = false
+
+      return
+    }
+    if (seededOnlineUsersRef.current) return
+    if (!store?.chats) return
+
+    const me = String(store?.userProfile?.id ?? '')
+    const peerIds = new Set<string>()
+    store.chats.forEach(c => {
+      if (c.isGroup === true) return
+      c.participants?.forEach(p => {
+        if (p.isActive !== false && String(p.userId) !== me) peerIds.add(String(p.userId))
+      })
+    })
+    if (peerIds.size === 0) return
+
+    seededOnlineUsersRef.current = true
+    getOnlineUsersOverSocket(Array.from(peerIds))
+      .then(online => {
+        const presenceStore = useChatStore.getState()
+        // Merge instead of replace so any `user_online` events that
+        // arrived during the round-trip aren't dropped.
+        const merged = Array.from(new Set([...presenceStore.onlineUsers, ...online]))
+        presenceStore.setOnlineUsers(merged)
+      })
+      .catch(err => {
+        console.warn('[chat:presence] getOnlineUsers seed failed:', err)
+        // Allow a retry on the next connect transition.
+        seededOnlineUsersRef.current = false
+      })
+  }, [chatConnected, store?.chats, store?.userProfile?.id])
 
   const selectedConversationIdFromRedux = useSelector((state: RootState) => state.chat.selectedConversationId)
 
