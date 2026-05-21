@@ -65,12 +65,14 @@ import { getChatClientOrNull } from 'src/lib/chat/client'
 // two-pane layout, so we want the sidebar to act as a slide-in drawer.
 type AppChatProps = {
   compact?: boolean
+  isFullscreen?: boolean
+  onToggleFullscreen?: () => void
 }
 
-const AppChat = ({ compact = false }: AppChatProps = {}) => {
+const AppChat = ({ compact = false, isFullscreen = false, onToggleFullscreen }: AppChatProps = {}) => {
   // ** States
   const [userStatus, setUserStatus] = useState<StatusType>('online')
-  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(false)
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState<boolean>(Boolean(compact))
   const [userProfileLeftOpen, setUserProfileLeftOpen] = useState<boolean>(false)
   const [userProfileRightOpen, setUserProfileRightOpen] = useState<boolean>(false)
 
@@ -150,7 +152,8 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
   const sidebarWidth = smAbove ? 370 : 300
   // When `compact` is set, force narrow-viewport semantics so the sidebar
   // drawer auto-closes on chat select and ChatContent's hamburger appears.
-  const mdAbove = !compact && useMediaQuery(theme.breakpoints.up('md'))
+  const mdQuery = useMediaQuery(theme.breakpoints.up('md'))
+  const mdAbove = compact ? false : mdQuery
   const statusObj: StatusObjType = {
     busy: 'error',
     away: 'warning',
@@ -799,6 +802,8 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
         userProfileRightOpen={userProfileRightOpen}
         handleLeftSidebarToggle={handleLeftSidebarToggle}
         handleUserProfileRightSidebarToggle={handleUserProfileRightSidebarToggle}
+        isFullscreen={isFullscreen}
+        onToggleFullscreen={onToggleFullscreen}
         typingUsers={
           store?.selectedChat?.contact?.id
             ? typingUsers[String(store.selectedChat.contact.id)] ?? []

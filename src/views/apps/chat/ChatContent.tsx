@@ -66,6 +66,8 @@ const ChatContent = (props: ChatContentType) => {
     userProfileRightOpen,
     handleLeftSidebarToggle,
     handleUserProfileRightSidebarToggle,
+    isFullscreen = false,
+    onToggleFullscreen,
     typingUsers = []
   } = props
 
@@ -488,6 +490,17 @@ const ChatContent = (props: ChatContentType) => {
                 >
                   <Icon icon='mdi:magnify' />
                 </IconButton>
+
+                {onToggleFullscreen && (
+                  <IconButton
+                    size='small'
+                    sx={{ color: 'text.secondary' }}
+                    onClick={onToggleFullscreen}
+                    title={isFullscreen ? 'Minimize' : 'Maximize'}
+                  >
+                    <Icon icon={isFullscreen ? 'teenyicons:minimise-alt-solid' : 'akar-icons:enlarge'} />
+                  </IconButton>
+                )}
 
                 {/* 3-dot menu hidden — re-enable when needed */}
                 {/* <OptionsMenu

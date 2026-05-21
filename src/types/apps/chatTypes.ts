@@ -316,6 +316,8 @@ export type ChatContentType = {
   userProfileRightOpen: boolean
   handleLeftSidebarToggle: () => void
   handleUserProfileRightSidebarToggle: () => void
+  isFullscreen?: boolean
+  onToggleFullscreen?: () => void
   typingUsers?: TypingUserInfo[]
 }
 

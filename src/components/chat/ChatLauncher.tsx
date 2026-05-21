@@ -63,6 +63,7 @@ const ChatLauncher = () => {
   const enableChatModule = Boolean(auth?.userData?.settings?.ENABLE_CHAT_MODULE)
   const dispatch = useDispatch<AppDispatch>()
   const [open, setOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [panelWidth, setPanelWidth] = useState(PANEL_WIDTH)
   const [panelHeight, setPanelHeight] = useState(PANEL_HEIGHT)
   const [isResizing, setIsResizing] = useState(false)
@@ -234,11 +235,23 @@ const ChatLauncher = () => {
         <Box
           sx={{
             position: 'fixed',
-            bottom: 96,
-            right: 24,
-            width: { xs: 'calc(100vw - 32px)', sm: `${panelWidth}px` },
-            height: { xs: 'calc(100vh - 120px)', sm: `min(${panelHeight}px, calc(100vh - 120px))` },
-            borderRadius: 2,
+            ...(isFullscreen
+              ? {
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  width: '100vw',
+                  height: '100vh',
+                  borderRadius: 0
+                }
+              : {
+                  bottom: 120,
+                  right: 24,
+                  width: { xs: 'calc(100vw - 32px)', sm: `${panelWidth}px` },
+                  height: { xs: 'calc(100vh - 140px)', sm: `min(${panelHeight}px, calc(100vh - 140px))` },
+                  borderRadius: 2
+                }),
             overflow: 'hidden',
             boxShadow: theme => theme.shadows[10],
             zIndex: 1200,
@@ -248,70 +261,80 @@ const ChatLauncher = () => {
             userSelect: isResizing ? 'none' : 'auto'
           }}
         >
-          <AppChat compact />
-
-          {/* Resize handle on left side */}
-          <Box
-            onMouseDown={handleLeftResizeMouseDown}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '8px',
-              height: '100%',
-              cursor: 'ew-resize',
-              backgroundColor: 'primary.main',
-              opacity: 0.4,
-              '&:hover': {
-                opacity: 0.8
-              },
-              transition: 'opacity 0.2s'
-            }}
+          <AppChat
+            compact={!isFullscreen}
+            isFullscreen={isFullscreen}
+            onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
           />
 
-          {/* Resize handle in bottom-right corner */}
-          <Box
-            onMouseDown={handleResizeMouseDown}
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              right: 0,
-              width: '20px',
-              height: '20px',
-              cursor: 'nwse-resize',
-              backgroundColor: 'primary.main',
-              borderRadius: '2px 0 0 0',
-              opacity: 0.6,
-              '&:hover': {
-                opacity: 1
-              },
-              transition: 'opacity 0.2s'
-            }}
-          />
+          {!isFullscreen && (
+            <>
+              {/* Resize handle on left side */}
+              <Box
+                onMouseDown={handleLeftResizeMouseDown}
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '8px',
+                  height: '100%',
+                  cursor: 'ew-resize',
+                  backgroundColor: 'primary.main',
+                  opacity: 0.4,
+                  '&:hover': {
+                    opacity: 0.8
+                  },
+                  transition: 'opacity 0.2s'
+                }}
+              />
+
+              {/* Resize handle in bottom-right corner */}
+              <Box
+                onMouseDown={handleResizeMouseDown}
+                sx={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  width: '20px',
+                  height: '20px',
+                  cursor: 'nwse-resize',
+                  backgroundColor: 'primary.main',
+                  borderRadius: '2px 0 0 0',
+                  opacity: 0.6,
+                  '&:hover': {
+                    opacity: 1
+                  },
+                  transition: 'opacity 0.2s'
+                }}
+              />
+            </>
+          )}
         </Box>
       </Zoom>
 
-      <Fab
-        color='primary'
-        onClick={toggleOpen}
-        aria-label={open ? 'Close chat' : 'Open chat'}
-        sx={{
-          position: 'fixed',
-          bottom: '24px',
-          right: '24px',
-          zIndex: 1201
-        }}
-      >
-        <Badge
-          color='error'
-          max={99}
-          badgeContent={totalUnread}
-          invisible={open || totalUnread === 0}
-          overlap='circular'
+      {!isFullscreen && (
+        <Fab
+          color='primary'
+          onClick={toggleOpen}
+          aria-label={open ? 'Close chat' : 'Open chat'}
+          sx={{
+            position: 'fixed',
+            bottom: '40px',
+            right: '24px',
+            zIndex: 1201
+          }}
         >
-          <Icon icon={open ? 'mdi:close' : 'mdi:chat'} fontSize='1.5rem' />
-        </Badge>
-      </Fab>
+          <Badge
+            color='error'
+            max={99}
+            badgeContent={totalUnread}
+            invisible={open || totalUnread === 0}
+            overlap='circular'
+          >
+            <Icon icon={open ? 'mdi:close' : 'mdi:chat'} fontSize='1.5rem' />
+          </Badge>
+        </Fab>
+      )}
     </>
   )
 }
