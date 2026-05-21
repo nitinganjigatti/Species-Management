@@ -52,6 +52,10 @@ import { getAttachmentVisual } from 'src/views/apps/chat/attachmentIcon'
 // ** Slice actions (filter + group)
 import { setActiveFilter, createGroupChat, startDirectChat } from 'src/store/apps/chat'
 
+// ** SDK presence store — `onlineUsers` auto-tracks `user_online` /
+// `user_offline` socket events inside the SDK. We just subscribe.
+import { useChatStore } from '@antzsoft/chat-core'
+
 const ScrollWrapper = ({ children, hidden }: { children: ReactNode; hidden: boolean }) => {
   if (hidden) {
     return <Box sx={{ height: '100%', overflow: 'auto' }}>{children}</Box>
@@ -102,6 +106,14 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
   // effect in AppChat, programmatic `dispatch(selectChat(...))`, or any other
   // path. Single source of truth: state.chat.selectedChat.contact.id.
   const selectedChatId = store?.selectedChat?.contact?.id ?? null
+
+  // Live presence — drives the green dot on DM avatars. SDK auto-updates
+  // `onlineUsers` from `user_online` / `user_offline` socket events; we
+  // just subscribe. Selector returns the same array reference between
+  // renders when membership is unchanged, so unrelated state changes
+  // don't trigger a re-render of every chat row.
+  const onlineUsers = useChatStore(s => s.onlineUsers)
+  const currentUserIdForPresence = String(store?.userProfile?.id ?? '')
 
   // ── handlers ──────────────────────────────────────────────────────────────
   const handleChatClick = (type: 'chat' | 'contact', id: ChatEntityId) => {
@@ -319,25 +331,16 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                   </CustomAvatar>
                 )
               ) : (
-                <Badge
-                  overlap='circular'
-                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                  badgeContent={
-                    <Box
-                      component='span'
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        color: `${statusObj[chat.status]}.main`,
-                        backgroundColor: `${statusObj[chat.status]}.main`,
-                        boxShadow: theme =>
-                          `0 0 0 2px ${!activeCondition ? theme.palette.background.paper : theme.palette.common.white}`
-                      }}
-                    />
-                  }
-                >
-                  {chat.avatar ? (
+                // DM peer userId — the participant that isn't the current
+                // user. If the participants array is missing (legacy data /
+                // mid-fetch state) we fall back to no peer id so the badge
+                // simply hides instead of showing a misleading dot.
+                (() => {
+                  const peerUserId = chat.participants?.find(
+                    p => String(p.userId) !== currentUserIdForPresence
+                  )?.userId
+                  const isPeerOnline = Boolean(peerUserId) && onlineUsers.includes(String(peerUserId))
+                  const avatarEl = chat.avatar ? (
                     <MuiAvatar src={chat.avatar} alt={chat.fullName} sx={{ width: 40, height: 40 }} />
                   ) : (
                     <CustomAvatar
@@ -347,8 +350,37 @@ const SidebarLeft = (props: ChatSidebarLeftType) => {
                     >
                       {getInitials(chat.fullName)}
                     </CustomAvatar>
-                  )}
-                </Badge>
+                  )
+
+                  // Show the badge ONLY when the peer is actually online
+                  // (matches WhatsApp). Hiding the dot when offline avoids
+                  // the previous always-on dot driven by the static
+                  // `chat.status` default from the adapter.
+                  return isPeerOnline ? (
+                    <Badge
+                      overlap='circular'
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                      badgeContent={
+                        <Box
+                          component='span'
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            color: 'success.main',
+                            backgroundColor: 'success.main',
+                            boxShadow: theme =>
+                              `0 0 0 2px ${!activeCondition ? theme.palette.background.paper : theme.palette.common.white}`
+                          }}
+                        />
+                      }
+                    >
+                      {avatarEl}
+                    </Badge>
+                  ) : (
+                    avatarEl
+                  )
+                })()
               )}
             </ListItemAvatar>
 

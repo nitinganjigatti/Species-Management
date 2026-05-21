@@ -33,8 +33,12 @@ import {
   leaveAndDeleteConversation,
   getConversation,
   sdkConversationToChat,
-  getAppConfig
+  getAppConfig,
+  getUserLastSeen
 } from 'src/lib/chat/api'
+
+// ** SDK presence store — auto-updates from `user_online` / `user_offline`.
+import { useChatStore } from '@antzsoft/chat-core'
 import type { User } from 'src/lib/chat/api'
 
 // ** MUI Imports
@@ -176,6 +180,56 @@ const UserProfileRight = (props: UserProfileRightType) => {
       .then(user => setContactUser(user))
       .catch(() => setContactUser(null))
   }, [userProfileRightOpen, contactId, isGroup])
+
+  // Live presence subscription for DM profile. ChatContent already
+  // seeds `lastSeen` when the DM opens; we mirror it here so a deep-link
+  // straight into the profile drawer (without first viewing the chat)
+  // still shows the right "last seen" text. Idempotent: the effect skips
+  // the fetch if the store already has a value.
+  const presenceOnlineUsers = useChatStore(s => s.onlineUsers)
+  const presenceLastSeenMap = useChatStore(s => s.lastSeen)
+  const dmPeerIdStr = dmOtherUserId ? String(dmOtherUserId) : null
+  useEffect(() => {
+    if (!dmPeerIdStr || !userProfileRightOpen) return
+    if (presenceLastSeenMap[dmPeerIdStr]) return
+    let cancelled = false
+    getUserLastSeen(dmPeerIdStr)
+      .then(res => {
+        if (cancelled || !res?.lastSeenAt) return
+        useChatStore.getState().setLastSeen(dmPeerIdStr, res.lastSeenAt)
+      })
+      .catch(err => console.warn('[chat:presence] getUserLastSeen failed (profile):', err))
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dmPeerIdStr, userProfileRightOpen])
+
+  // Same formatter as ChatContent — duplicated to avoid coupling the
+  // two files. Returns null when ISO is missing/invalid so the caller
+  // can fall back to other copy.
+  const formatLastSeen = (iso?: string): string | null => {
+    if (!iso) return null
+    const seen = new Date(iso)
+    if (Number.isNaN(seen.getTime())) return null
+    const now = new Date()
+    const sameDay =
+      seen.getFullYear() === now.getFullYear() &&
+      seen.getMonth() === now.getMonth() &&
+      seen.getDate() === now.getDate()
+    const yesterday = new Date(now)
+    yesterday.setDate(now.getDate() - 1)
+    const isYesterday =
+      seen.getFullYear() === yesterday.getFullYear() &&
+      seen.getMonth() === yesterday.getMonth() &&
+      seen.getDate() === yesterday.getDate()
+    const time = seen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (sameDay) return `last seen today at ${time}`
+    if (isYesterday) return `last seen yesterday at ${time}`
+
+    return `last seen ${seen.toLocaleDateString()} at ${time}`
+  }
 
   const currentUserId = store?.userProfile?.id ?? 11
   const currentGroupId = store?.selectedChat?.contact?.id ?? null
@@ -1278,6 +1332,24 @@ const UserProfileRight = (props: UserProfileRightType) => {
               >
                 {store.selectedChat.contact.role}
               </Typography>
+            ) : null}
+            {/* DM live-presence line: green "online" or grey "last seen X".
+                Renders only for DMs that have an identified peer userId;
+                hidden for groups (no presence) and for DMs where the peer
+                cannot be resolved (preserves the existing layout). */}
+            {dmPeerIdStr ? (
+              presenceOnlineUsers.includes(dmPeerIdStr) ? (
+                <Typography
+                  variant='caption'
+                  sx={{ color: 'success.main', mt: 0.5, fontWeight: 500 }}
+                >
+                  online
+                </Typography>
+              ) : formatLastSeen(presenceLastSeenMap[dmPeerIdStr]) ? (
+                <Typography variant='caption' sx={{ color: 'customColors.neutralSecondary', mt: 0.5 }}>
+                  {formatLastSeen(presenceLastSeenMap[dmPeerIdStr])}
+                </Typography>
+              ) : null
             ) : null}
           </Box>
 

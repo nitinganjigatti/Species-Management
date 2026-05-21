@@ -1400,6 +1400,96 @@ export const appChatSlice = createSlice({
     // Drives the composer/interaction gate (`canInteract` in ChatContent
     // and `isCurrentUserActive` in UserProfileRight) so a removed user is
     // locked out without waiting for the next `fetchChatsContacts`.
+    // Mirror of `applyParticipantLeft` for the `participant_joined`
+    // socket event. Fires when a user is added to a group (admin-add
+    // OR a previously-removed user being re-added). Updates:
+    //   • chat.participants — pushes a new entry OR flips an existing
+    //     soft-deleted entry's `isActive` back to true
+    //   • chat.participantIds — adds the userId (deduped)
+    //   • chat.adminIds — adds when role === 'admin'
+    //   • chat.isCurrentUserActive — flips back to true when WE were
+    //     re-added (so the composer + danger zone re-unlock)
+    //   • chat.removedBy / removedByName — cleared when WE were re-
+    //     added, so the "You were removed by …" placeholder goes away
+    applyParticipantJoined: (
+      state,
+      action: PayloadAction<{
+        chatId: ChatEntityId
+        userId: ChatEntityId
+        displayName?: string
+        username?: string
+        avatarUrl?: string
+        role?: 'admin' | 'member'
+      }>
+    ) => {
+      if (!state.chats) return
+      const { chatId, userId, displayName, username, avatarUrl, role } = action.payload
+      const idx = state.chats.findIndex(c => c.id === chatId)
+      if (idx < 0) return
+      const userIdStr = String(userId)
+      const chat = state.chats[idx]
+
+      // Participant entry — flip existing back to active or push new.
+      const existing = (chat.participants ?? []).find(p => String(p.userId) === userIdStr)
+      const updatedParticipants = existing
+        ? (chat.participants ?? []).map(p =>
+            String(p.userId) === userIdStr
+              ? {
+                  ...p,
+                  isActive: true,
+                  // Re-add can carry fresh display info; only overwrite
+                  // when the event actually provides each field.
+                  ...(displayName ? { displayName } : {}),
+                  ...(username ? { username } : {}),
+                  ...(avatarUrl ? { avatarUrl } : {}),
+                  ...(role ? { role } : {})
+                }
+              : p
+          )
+        : [
+            ...(chat.participants ?? []),
+            {
+              userId: userIdStr,
+              isActive: true,
+              role: role ?? 'member',
+              displayName,
+              username,
+              avatarUrl
+            }
+          ]
+
+      const participantIdSet = new Set((chat.participantIds ?? []).map(String))
+      participantIdSet.add(userIdStr)
+      const updatedParticipantIds = Array.from(participantIdSet)
+
+      const adminIdSet = new Set((chat.adminIds ?? []).map(String))
+      if (role === 'admin') adminIdSet.add(userIdStr)
+      const updatedAdminIds = Array.from(adminIdSet)
+
+      const meIsJoiner = String(state.userProfile?.id ?? '') === userIdStr
+
+      // Clean slate for re-added current user — drop the "removed by"
+      // snapshot so the placeholder reverts to the normal composer.
+      const nextChat: ChatsArrType = {
+        ...chat,
+        participants: updatedParticipants,
+        participantIds: updatedParticipantIds,
+        adminIds: updatedAdminIds,
+        ...(meIsJoiner ? { isCurrentUserActive: true } : {})
+      }
+      if (meIsJoiner) {
+        delete nextChat.removedBy
+        delete nextChat.removedByName
+      }
+      state.chats[idx] = nextChat
+
+      if (state.selectedChat && state.selectedChat.contact.id === chatId) {
+        state.selectedChat = {
+          chat: state.selectedChat.chat,
+          contact: state.chats[idx]
+        }
+      }
+    },
     applyParticipantLeft: (
       state,
       action: PayloadAction<{
@@ -2026,6 +2116,7 @@ export const {
   clearChatAvatar,
   patchLastMessageSender,
   applyParticipantLeft,
+  applyParticipantJoined,
   setInfoMessage,
   setForwardingMessage,
   updateChatFlags,

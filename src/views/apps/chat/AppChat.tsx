@@ -26,6 +26,7 @@ import {
   applyMessageDeleteForMe,
   applyMessagePin,
   applyParticipantLeft,
+  applyParticipantJoined,
   updateMessagesFeedback
 } from 'src/store/apps/chat'
 
@@ -579,6 +580,34 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     // composer placeholder reads "You were removed by …" instead of the
     // generic copy. Field names are read defensively because the server
     // event isn't strongly typed in the SDK.
+    // New participant added to a group — mirror of `participant_left`.
+    // Payload (per v1.1.3): { conversationId, userId, displayName?,
+    // avatarUrl?, username?, role? }. Reducer flips `isActive` back to
+    // true on an existing soft-deleted entry OR pushes a new one,
+    // patches `participantIds` / `adminIds` (if role=admin), and — when
+    // the joiner is US — restores `isCurrentUserActive` and clears any
+    // prior `removedBy` snapshot so the composer unlocks instantly.
+    const onParticipantJoined = (evt: any) => {
+      const conversationId = evt?.conversationId
+      const userId = evt?.userId
+      if (!conversationId || !userId) return
+      const displayName: string | undefined = evt?.displayName ?? evt?.user?.displayName
+      const username: string | undefined = evt?.username ?? evt?.user?.username
+      const avatarUrl: string | undefined = evt?.avatarUrl ?? evt?.user?.avatarUrl
+      const role: 'admin' | 'member' | undefined =
+        evt?.role === 'admin' || evt?.role === 'member' ? evt.role : undefined
+      dispatch(
+        applyParticipantJoined({
+          chatId: conversationId,
+          userId,
+          ...(displayName ? { displayName } : {}),
+          ...(username ? { username } : {}),
+          ...(avatarUrl ? { avatarUrl } : {}),
+          ...(role ? { role } : {})
+        })
+      )
+    }
+
     const onParticipantLeft = (evt: any) => {
       const conversationId = evt?.conversationId
       const userId = evt?.userId
@@ -632,6 +661,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
     chatSocket.on('message_deleted', onMessageDeleted)
     chatSocket.on('message_deleted_for_me', onMessageDeletedForMe)
     chatSocket.on('message_pin_updated', onMessagePinUpdated)
+    chatSocket.on('participant_joined', onParticipantJoined)
     chatSocket.on('participant_left', onParticipantLeft)
     chatSocket.on('typing_indicator', handleTypingEvent)
 
@@ -650,6 +680,7 @@ const AppChat = ({ compact = false }: AppChatProps = {}) => {
       chatSocket.off('message_deleted', onMessageDeleted)
       chatSocket.off('message_deleted_for_me', onMessageDeletedForMe)
       chatSocket.off('message_pin_updated', onMessagePinUpdated)
+      chatSocket.off('participant_joined', onParticipantJoined)
       chatSocket.off('participant_left', onParticipantLeft)
       chatSocket.off('typing_indicator', handleTypingEvent)
     }

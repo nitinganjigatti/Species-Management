@@ -27,7 +27,10 @@ import ForwardMessageDialog from 'src/views/apps/chat/ForwardMessageDialog'
 import PinnedMessagesStrip from 'src/views/apps/chat/PinnedMessagesStrip'
 
 // ** Chat API
-import { searchMessages } from 'src/lib/chat/api'
+import { searchMessages, getUserLastSeen } from 'src/lib/chat/api'
+
+// ** SDK presence store — auto-updates from `user_online` / `user_offline`.
+import { useChatStore } from '@antzsoft/chat-core'
 
 // ** Store
 import { loadOlderMessages, jumpToMessage, selectChat } from 'src/store/apps/chat'
@@ -74,6 +77,67 @@ const ChatContent = (props: ChatContentType) => {
   const [scrollTargetMessageId, setScrollTargetMessageId] = useState<string | null>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Live presence for the chat header (DMs only). SDK auto-fills
+  // `onlineUsers` + `lastSeen` from socket events; we just subscribe
+  // and seed `lastSeen` once per DM open for cold-start cases.
+  const onlineUsers = useChatStore(s => s.onlineUsers)
+  const lastSeenMap = useChatStore(s => s.lastSeen)
+  const peerUserId = (() => {
+    const sc = store?.selectedChat
+    if (!sc || sc.contact.isGroup === true) return null
+    const meIdStr = String(store?.userProfile?.id ?? '')
+    const peer = sc.contact.participants?.find(p => String(p.userId) !== meIdStr)
+
+    return peer?.userId ? String(peer.userId) : null
+  })()
+  useEffect(() => {
+    if (!peerUserId) return
+    // Skip if we already have a snapshot — the store auto-refreshes via
+    // `user_offline` events while the socket is connected, so refetching
+    // on every DM re-open would be wasted network.
+    if (lastSeenMap[peerUserId]) return
+    let cancelled = false
+    getUserLastSeen(peerUserId)
+      .then(res => {
+        if (cancelled || !res?.lastSeenAt) return
+        useChatStore.getState().setLastSeen(peerUserId, res.lastSeenAt)
+      })
+      .catch(err => {
+        console.warn('[chat:presence] getUserLastSeen failed:', err)
+      })
+
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [peerUserId])
+
+  // Format a last-seen ISO string into WhatsApp-style copy:
+  //   "last seen today at 14:30"
+  //   "last seen yesterday at 14:30"
+  //   "last seen 12/04/2026 at 14:30"
+  // Returns null when there's no valid date — caller falls back to the
+  // generic contact role label.
+  const formatLastSeen = (iso?: string): string | null => {
+    if (!iso) return null
+    const seen = new Date(iso)
+    if (Number.isNaN(seen.getTime())) return null
+    const now = new Date()
+    const sameDay =
+      seen.getFullYear() === now.getFullYear() && seen.getMonth() === now.getMonth() && seen.getDate() === now.getDate()
+    const yesterday = new Date(now)
+    yesterday.setDate(now.getDate() - 1)
+    const isYesterday =
+      seen.getFullYear() === yesterday.getFullYear() &&
+      seen.getMonth() === yesterday.getMonth() &&
+      seen.getDate() === yesterday.getDate()
+    const time = seen.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    if (sameDay) return `last seen today at ${time}`
+    if (isYesterday) return `last seen yesterday at ${time}`
+
+    return `last seen ${seen.toLocaleDateString()} at ${time}`
+  }
 
   // Debounced API search
   useEffect(() => {
@@ -278,25 +342,12 @@ const ChatContent = (props: ChatContentType) => {
                       </CustomAvatar>
                     )
                   ) : (
-                    <Badge
-                      overlap='circular'
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                      sx={{ mr: 4.5 }}
-                      badgeContent={
-                        <Box
-                          component='span'
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            color: `${statusObj[selectedChat.contact.status]}.main`,
-                            boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`,
-                            backgroundColor: `${statusObj[selectedChat.contact.status]}.main`
-                          }}
-                        />
-                      }
-                    >
-                      {selectedChat.contact.avatar ? (
+                    (() => {
+                      // DM presence — green dot only when peer is in
+                      // live `useChatStore.onlineUsers`. Hides the badge
+                      // entirely otherwise (matches WhatsApp Web).
+                      const isPeerOnline = peerUserId ? onlineUsers.includes(peerUserId) : false
+                      const peerAvatar = selectedChat.contact.avatar ? (
                         <MuiAvatar
                           src={selectedChat.contact.avatar}
                           alt={selectedChat.contact.fullName}
@@ -310,33 +361,83 @@ const ChatContent = (props: ChatContentType) => {
                         >
                           {getInitials(selectedChat.contact.fullName)}
                         </CustomAvatar>
-                      )}
-                    </Badge>
+                      )
+
+                      return isPeerOnline ? (
+                        <Badge
+                          overlap='circular'
+                          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                          sx={{ mr: 4.5 }}
+                          badgeContent={
+                            <Box
+                              component='span'
+                              sx={{
+                                width: 8,
+                                height: 8,
+                                borderRadius: '50%',
+                                color: 'success.main',
+                                boxShadow: theme => `0 0 0 2px ${theme.palette.background.paper}`,
+                                backgroundColor: 'success.main'
+                              }}
+                            />
+                          }
+                        >
+                          {peerAvatar}
+                        </Badge>
+                      ) : (
+                        <Box sx={{ mr: 4.5, display: 'inline-flex' }}>{peerAvatar}</Box>
+                      )
+                    })()
                   )}
                   <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                     <Typography sx={{ color: 'text.secondary', fontWeight: 600 }}>
                       {selectedChat.contact.fullName}
                     </Typography>
+                    {/* Status line — WhatsApp-Web style.
+                          DM     → green "online" / grey "last seen X" /
+                                   fallback to contact role label.
+                          Group  → comma-separated member names with
+                                   "You" for the current user, CSS-
+                                   truncated when the row is too narrow.
+                                   This matches the WhatsApp Web header
+                                   ("You, Alice, Bob …") instead of the
+                                   previous bare "<N> members" count. */}
                     <Typography
                       variant='body2'
+                      noWrap
                       sx={{
-                        color: 'text.disabled',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        maxWidth: 480,
+                        color:
+                          !selectedChat.contact.isGroup && peerUserId && onlineUsers.includes(peerUserId)
+                            ? 'success.main'
+                            : 'text.disabled'
                       }}
                     >
                       {selectedChat.contact.isGroup
                         ? (() => {
-                            const me = String(store.userProfile?.id ?? '')
-                            const active = selectedChat.contact.participants?.filter(p => p.isActive) ?? []
-                            if (!active.length) return `${selectedChat.contact.participantIds?.length ?? 0} members`
-
-                            return active
-                              .sort((a, b) => (String(a.userId) === me ? -1 : String(b.userId) === me ? 1 : 0))
+                            const me = String(store?.userProfile?.id ?? '')
+                            const names = (selectedChat.contact.participants ?? [])
+                              .filter(p => p.isActive !== false)
                               .map(p => (String(p.userId) === me ? 'You' : p.displayName || p.username || 'Unknown'))
-                              .join(', ')
+
+                            // Order: "You" first if present, matching
+                            // WhatsApp's convention; rest in their
+                            // existing participants order so it stays
+                            // stable across renders.
+                            const youIdx = names.indexOf('You')
+                            if (youIdx > 0) {
+                              names.splice(youIdx, 1)
+                              names.unshift('You')
+                            }
+
+                            return names.length
+                              ? names.join(', ')
+                              : `${selectedChat.contact.participantIds?.length ?? 0} members`
                           })()
+                        : peerUserId && onlineUsers.includes(peerUserId)
+                        ? 'online'
+                        : peerUserId && formatLastSeen(lastSeenMap[peerUserId])
+                        ? formatLastSeen(lastSeenMap[peerUserId])
                         : selectedChat.contact.role}
                     </Typography>
                   </Box>
